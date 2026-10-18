@@ -626,6 +626,111 @@ mat4.orthoNormalBasisZ = function (out, z)
     return out;
 };
 
+/**
+ * Carbon: Inverse (math/src/Matrix.cpp:7-46)
+ *
+ * Carbon's Matrix Inverse( const Matrix& m ), in float: Determinant (math/include/Matrix_inline.h:505-521),
+ * then for each column the Vector4 Cross (math/include/Vector4_inline.h:186-193) of the three rows that
+ * remain, scaled by the signed reciprocal determinant. A singular matrix (determinant exactly 0) comes back
+ * as a copy of m; gl's mat4.invert returns null there and leaves out untouched, which is why this exists.
+ * One matrix, no composition: Carbon's m.m[r][c] is m[r * 4 + c] on the shared byte layout.
+ *
+ * @param {mat4} out Receiving matrix; may alias m.
+ * @param {mat4} m Matrix to invert.
+ * @returns {mat4} out
+ */
+mat4.inverseCarbon = function (out, m)
+{
+    const f = Math.fround;
+
+    // Determinant (Matrix_inline.h:505-521): Carbon _rc is m[(r - 1) * 4 + (c - 1)].
+    const a0 = f(f(m[0] * m[5]) - f(m[1] * m[4]));
+    const a1 = f(f(m[0] * m[6]) - f(m[2] * m[4]));
+    const a2 = f(f(m[0] * m[7]) - f(m[3] * m[4]));
+    const a3 = f(f(m[1] * m[6]) - f(m[2] * m[5]));
+    const a4 = f(f(m[1] * m[7]) - f(m[3] * m[5]));
+    const a5 = f(f(m[2] * m[7]) - f(m[3] * m[6]));
+    const b0 = f(f(m[8] * m[13]) - f(m[9] * m[12]));
+    const b1 = f(f(m[8] * m[14]) - f(m[10] * m[12]));
+    const b2 = f(f(m[8] * m[15]) - f(m[11] * m[12]));
+    const b3 = f(f(m[9] * m[14]) - f(m[10] * m[13]));
+    const b4 = f(f(m[9] * m[15]) - f(m[11] * m[13]));
+    const b5 = f(f(m[10] * m[15]) - f(m[11] * m[14]));
+    const det = f(f(f(f(f(f(a0 * b5) - f(a1 * b4)) + f(a2 * b3)) + f(a3 * b2)) - f(a4 * b1)) + f(a5 * b0));
+
+    // if( !det ) out = m; - C++ !det is det == 0, so a NaN determinant still inverts.
+    if (det === 0)
+    {
+        return mat4.copy(out, m);
+    }
+
+    const result = INVERSE_CARBON_RESULT;
+    const rows = INVERSE_CARBON_ROWS;
+    const v = INVERSE_CARBON_CROSS;
+    for (let i = 0; i < 4; i++)
+    {
+        const signedDet = f(((i & 1) ? -1 : 1) / det);
+
+        // vec[] gathers every row but i, in order.
+        for (let j = 0; j < 4; j++)
+        {
+            if (j !== i)
+            {
+                const a = j > i ? j - 1 : j;
+                rows[a][0] = m[j * 4];
+                rows[a][1] = m[j * 4 + 1];
+                rows[a][2] = m[j * 4 + 2];
+                rows[a][3] = m[j * 4 + 3];
+            }
+        }
+
+        crossVector4Carbon(v, rows[0], rows[1], rows[2]);
+        result[i] = f(signedDet * v[0]);
+        result[4 + i] = f(signedDet * v[1]);
+        result[8 + i] = f(signedDet * v[2]);
+        result[12 + i] = f(signedDet * v[3]);
+    }
+
+    return mat4.copy(out, result);
+};
+
+// mat4.inverseCarbon scratch: the result is built apart from out so out may alias m.
+const INVERSE_CARBON_RESULT = new Float32Array(16);
+const INVERSE_CARBON_ROWS = [new Float32Array(4), new Float32Array(4), new Float32Array(4)];
+const INVERSE_CARBON_CROSS = new Float32Array(4);
+
+/**
+ * Carbon: Cross (math/include/Vector4_inline.h:186-193)
+ *
+ * Carbon's Vector4 Cross( v1, v2, v3 ), in float, for
+ * mat4.inverseCarbon.
+ *
+ * @param {Float32Array} out Receiving 4-vector.
+ * @param {Float32Array} v1
+ * @param {Float32Array} v2
+ * @param {Float32Array} v3
+ * @returns {Float32Array} out
+ */
+function crossVector4Carbon(out, v1, v2, v3)
+{
+    const f = Math.fround;
+    const minor = (a, b, c, d) => f(f(a * b) - f(c * d));
+
+    const zwZW = minor(v2[2], v3[3], v3[2], v2[3]);
+    const ywYW = minor(v2[1], v3[3], v3[1], v2[3]);
+    const yzZY = minor(v2[1], v3[2], v2[2], v3[1]);
+    const xwXW = minor(v2[0], v3[3], v3[0], v2[3]);
+    const xzXZ = minor(v2[0], v3[2], v3[0], v2[2]);
+    const xyXY = minor(v2[0], v3[1], v3[0], v2[1]);
+    const yzYZ = minor(v2[1], v3[2], v3[1], v2[2]);
+
+    out[0] = f(f(f(v1[1] * zwZW) - f(v1[2] * ywYW)) + f(v1[3] * yzZY));
+    out[1] = -f(f(f(v1[0] * zwZW) - f(v1[2] * xwXW)) + f(v1[3] * xzXZ));
+    out[2] = f(f(f(v1[0] * ywYW) - f(v1[1] * xwXW)) + f(v1[3] * xyXY));
+    out[3] = -f(f(f(v1[0] * yzYZ) - f(v1[1] * xzXZ)) + f(v1[2] * xyXY));
+    return out;
+}
+
 // D3D ortho, depth maps to [0..1]
 mat4.orthoD3D = function(out, l, r, b, t, n, f)
 {
@@ -1364,6 +1469,7 @@ export const {
     copyTranslation,
     fromMat3,
     orthoNormalBasisZ,
+    inverseCarbon,
     orthoD3D,
     lookAtD3D,
     lookAtCarbon,

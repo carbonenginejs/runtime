@@ -4,6 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume_Blue.cpp
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { box3 } from "#math/box3";
 import { color } from "#math/color";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -25,6 +26,12 @@ const INNER_COLOR_SCALE = Math.fround(0.6);
 
 // Scratch for the intersection centres moved into box space.
 const DEBUG_POSITION = vec3.create();
+
+// GetIntensity scratch (Carbon's stack locals).
+const AXIS_ALIGNED_POSITION = vec3.create();
+const AXIS_ALIGNED_INNER_POSITION = vec3.create();
+const RAY_DIR = vec3.create();
+const INNER_TO_OUTER_BOX = mat4.create();
 
 
 /**
@@ -73,25 +80,30 @@ export class EveBoxVolume extends IEveVolume
 
   _nextCallbackId = 1;
 
-  _inverseRotation = quat.create();
-
   /** Carbon m_boxTransform (EveBoxVolume.h:49, identity at cpp:21): Setup builds it (cpp:104). */
   _boxTransform = mat4.create();
 
   /** Carbon m_innerBoxTransform (EveBoxVolume.h:50, identity at cpp:22): Setup builds it (cpp:105). */
   _innerBoxTransform = mat4.create();
 
+  /** Carbon m_inverseBoxTransform (identity at cpp:23): Setup inverts m_boxTransform into it (cpp:107). */
+  _inverseBoxTransform = mat4.create();
+
+  /** Carbon m_inverseInnerBoxTransform (identity at cpp:24): Setup inverts m_innerBoxTransform into it (cpp:108). */
+  _inverseInnerBoxTransform = mat4.create();
+
+  /** Carbon m_boundingSphere (zero at cpp:25): Setup fills it (cpp:110-111). */
+  _boundingSphere = { center: vec3.create(), radius: 0 };
+
   /**
-   * Carbon m_innerIntersection (EveBoxVolume.h:54, zero at cpp:19). Carbon
-   * writes it in GetIntensity (cpp:80, cpp:83); this port's adapted GetIntensity
-   * does not, so it stays at the origin.
+   * Carbon m_innerIntersection (EveBoxVolume.h:54, zero at cpp:19): the last
+   * GetIntensity's inner-box hit, in outer-box unit space (cpp:80, cpp:83).
    */
   _innerIntersection = vec3.create();
 
   /**
-   * Carbon m_outerIntersection (EveBoxVolume.h:55, zero at cpp:20). Carbon
-   * writes it in GetIntensity (cpp:79); this port's adapted GetIntensity does
-   * not, so it stays at the origin.
+   * Carbon m_outerIntersection (EveBoxVolume.h:55, zero at cpp:20): the last
+   * GetIntensity's outer-box hit, in outer-box unit space (cpp:79).
    */
   _outerIntersection = vec3.create();
 
@@ -101,10 +113,7 @@ export class EveBoxVolume extends IEveVolume
   /** Carbon EveBoxVolume::MIN_AABB (EveBoxVolume.h:60, cpp:12). */
   static _MIN_AABB = vec3.fromValues(-0.5, -0.5, -0.5);
 
-  /**
-   * Clamps the authored scalings and caches the inverse rotation the intensity
-   * test needs.
-   */
+  /** Carbon Initialize (EveBoxVolume.cpp:35-39): runs Setup. */
   @blue.method
   @meta.implemented
   Initialize()
@@ -114,49 +123,78 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /**
-   * Returns a fresh sphere centred on the box position whose radius is half the
-   * length of the scaling vector.
+   * Carbon GetBoundingSphere (EveBoxVolume.cpp:53-56): the sphere Setup cached,
+   * returned by value as a fresh { center, radius }.
+   *
+   * @returns {{center: vec3, radius: number}}
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   GetBoundingSphere()
   {
     return {
-      center: vec3.clone(this.position),
-      radius: vec3.length(this.scaling) * 0.5
+      center: vec3.clone(this._boundingSphere.center),
+      radius: this._boundingSphere.radius
     };
   }
 
   /**
-   * Returns the falloff weight for a point given in the volume's own space: the
-   * point is moved into box-local space with the cached inverse rotation, then
-   * compared radially against the inner and outer boxes - 1 inside the inner
-   * box, 0 outside the outer one, and a squared ramp between them.
+   * Carbon GetIntensity (EveBoxVolume.cpp:58-86). The point is taken into the
+   * unit spaces of the outer and inner boxes through the inverses Setup cached:
+   * 0 outside the outer unit box, 1 inside the inner one. Between them a ray
+   * from the outer-space point toward the centre, Normalize( -point ), is cast
+   * from the outer-space point against the outer unit box (the face behind it)
+   * and from the INNER-space point against the inner unit box, along that same
+   * outer-space direction; the inner hit is moved into outer unit space and the
+   * result is LengthSq( point - outerHit ) / LengthSq( innerHit - outerHit ),
+   * all in outer unit space. Both hits are recorded in _outerIntersection and
+   * _innerIntersection, which RenderDebugInfo draws.
    *
-   * Carbon (EveBoxVolume.cpp:58-86) intersects a ray with both boxes and
-   * records the hits in m_outerIntersection/m_innerIntersection, which
-   * RenderDebugInfo draws; this port does not record them, so
-   * _outerIntersection/_innerIntersection stay at the origin.
+   * Carbon quirk (CE-180), reproduced: a zero inner scaling on any axis makes the inner
+   * box transform singular, and Carbon's Inverse returns a singular matrix
+   * unchanged (math/src/Matrix.cpp:12-15), so the inner test reads the point
+   * pushed FORWARD through the inner box transform. With the inner scaling all
+   * zero - the default - every point maps to the box position, and when each
+   * position component lies in [-0.5, 0.5] the whole outer box reads 1.
+   *
+   * @param {vec3} position Point in the volume's parent space; not modified.
+   * @returns {number} The intensity.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   GetIntensity(position)
   {
-    const local = EveBoxVolume._toLocal(position, this.position, this._inverseRotation);
-    const outer = EveBoxVolume._radialBoxDistance(local, this.scaling);
-    const distance = vec3.length(local);
-    if (!(outer > 0) || distance > outer)
+    const axisAlignedPosition = vec3.transformMat4(AXIS_ALIGNED_POSITION, position, this._inverseBoxTransform);
+
+    // Are we outside the outer box?
+    if (!box3.bounds.boundingBoxIsInside(EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedPosition))
     {
       return 0;
     }
-    const inner = EveBoxVolume._radialBoxDistance(local, this.innerScaling);
-    if (inner > 0 && distance <= inner)
+
+    const axisAlignedInnerPosition = vec3.transformMat4(AXIS_ALIGNED_INNER_POSITION, position, this._inverseInnerBoxTransform);
+
+    // Are we inside the inner box?
+    if (box3.bounds.boundingBoxIsInside(EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedInnerPosition))
     {
       return 1;
     }
-    const span = outer - inner;
-    const ratio = span > 0 ? (outer - distance) / span : 0;
-    return ratio * ratio;
+
+    const rayDir = vec3.normalizeCarbon(RAY_DIR, vec3.negate(RAY_DIR, axisAlignedPosition));
+
+    // We are somewhere in between (cpp:79-80); Carbon ignores both hit flags.
+    box3.bounds.intersectAxisAlignedBoxRay(this._outerIntersection, EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedPosition, rayDir);
+    box3.bounds.intersectAxisAlignedBoxRay(this._innerIntersection, EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedInnerPosition, rayDir);
+
+    // Move the inner intersection to the outer box space (cpp:83).
+    // Carbon (row-vector): m_innerBoxTransform * m_inverseBoxTransform - inner box first.
+    mat4.multiply(INNER_TO_OUTER_BOX, this._inverseBoxTransform, this._innerBoxTransform);
+    vec3.transformMat4(this._innerIntersection, this._innerIntersection, INNER_TO_OUTER_BOX);
+
+    return Math.fround(
+      vec3.squaredDistance(axisAlignedPosition, this._outerIntersection)
+      / vec3.squaredDistance(this._innerIntersection, this._outerIntersection)
+    );
   }
 
   /**
@@ -269,8 +307,8 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /**
-   * Re-clamps the scalings and the cached inverse rotation after an authored
-   * change, then notifies every registered listener.
+   * Re-runs Setup after an authored change to position, scaling, rotation or
+   * inner scaling, then notifies every registered listener.
    */
   @blue.method
   @meta.implemented
@@ -292,9 +330,9 @@ export class EveBoxVolume extends IEveVolume
    * (Color_inline.h:125-128) - and, when debugShowIntersection is set, the
    * intersection points as solid spheres of radius 1.
    *
-   * The intersection points are Carbon's members, but this port's adapted
-   * GetIntensity never writes them, so with debugShowIntersection on both
-   * spheres sit at the box centre.
+   * The intersection points are the ones the last GetIntensity between the
+   * two boxes recorded, in outer-box unit space; m_boxTransform takes them
+   * back out. Until such a call both sit at the box centre.
    *
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} parentTransform The parent's world transform.
@@ -334,29 +372,26 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /**
-   * Carbon Setup (EveBoxVolume.cpp:99-112): clamp the scalings, keep the
-   * inner scaling inside the outer, refresh the cached derived state.
-   * Carbon caches four full matrices plus the bounding sphere; this port
-   * caches the box and inner box transforms RenderDebugInfo reads
-   * (cpp:104-105) and the inverse rotation its intensity test reads, and
-   * derives the inverses and the sphere on demand. Box's Setup does NOT
-   * fire change callbacks - OnModified does (cpp:194-215), unlike the
-   * ellipsoid, whose Setup fires them itself.
-   *
-   * Adapted: Carbon caches the two inverse box transforms and the bounding sphere; this
-   * port's GetIntensity and GetBoundingSphere derive their own state on demand, so Setup
-   * refreshes the clamps, the two box transforms and the cached inverse rotation.
+   * Carbon Setup (EveBoxVolume.cpp:99-112): clamp the scaling to non-negative,
+   * clamp the inner scaling into [0, scaling], then cache the outer and inner
+   * box transforms, their inverses (Carbon's Inverse, so a singular transform
+   * is kept as it is) and the bounding sphere. Box's Setup does NOT fire
+   * change callbacks - OnModified does (cpp:194-215), unlike the ellipsoid,
+   * whose Setup fires them itself.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   Setup()
   {
+    // XMVectorMax( m_scaling, 0 ) and XMVectorMin( XMVectorMax( m_innerScaling, 0 ), m_scaling )
+    // are SSE maxps / minps: (a > b) ? a : b and (a < b) ? a : b per lane.
     for (let i = 0; i < 3; i++)
     {
-      this.scaling[i] = Math.max(0, this.scaling[i]);
-      this.innerScaling[i] = Math.min(Math.max(0, this.innerScaling[i]), this.scaling[i]);
+      const scaling = this.scaling[i] > 0 ? this.scaling[i] : 0;
+      const innerScaling = this.innerScaling[i] > 0 ? this.innerScaling[i] : 0;
+      this.scaling[i] = scaling;
+      this.innerScaling[i] = innerScaling < scaling ? innerScaling : scaling;
     }
-    quat.invert(this._inverseRotation, this.rotation);
 
     // Carbon m_boxTransform = TransformationMatrix( m_scaling, m_rotation, m_position )
     // (cpp:104): row-vector S * R * T.
@@ -365,39 +400,11 @@ export class EveBoxVolume extends IEveVolume
     // Carbon m_innerBoxTransform = TransformationMatrix( m_innerScaling, m_rotation, m_position )
     // (cpp:105): row-vector S * R * T.
     mat4.fromRotationTranslationScale(this._innerBoxTransform, this.rotation, this.position, this.innerScaling);
-  }
 
-  /**
-   * Moves a point into box-local space by subtracting the box centre and
-   * applying the inverse rotation.
-   */
-  static _toLocal(position, center, inverseRotation)
-  {
-    const local = vec3.subtract(vec3.create(), position, center);
-    return vec3.transformQuat(local, local, inverseRotation);
-  }
+    mat4.inverseCarbon(this._inverseBoxTransform, this._boxTransform);
+    mat4.inverseCarbon(this._inverseInnerBoxTransform, this._innerBoxTransform);
 
-  /**
-   * Returns how far the box surface lies from the centre along the direction of
-   * the given local point, falling back to half the smallest extent when the
-   * point sits at the centre.
-   */
-  static _radialBoxDistance(position, scaling)
-  {
-    const length = vec3.length(position);
-    if (length === 0)
-    {
-      return Math.min(scaling[0], scaling[1], scaling[2]) * 0.5;
-    }
-    let distance = Number.POSITIVE_INFINITY;
-    for (let i = 0; i < 3; i++)
-    {
-      const direction = Math.abs(position[i] / length);
-      if (direction > 0)
-      {
-        distance = Math.min(distance, scaling[i] * 0.5 / direction);
-      }
-    }
-    return Number.isFinite(distance) ? distance : 0;
+    vec3.copy(this._boundingSphere.center, this.position);
+    this._boundingSphere.radius = Math.fround(Math.fround(vec3.length(this.scaling)) * 0.5);
   }
 }

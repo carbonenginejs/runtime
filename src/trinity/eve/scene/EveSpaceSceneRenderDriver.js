@@ -313,6 +313,15 @@ export class EveSpaceSceneRenderDriver
     TriBatchType.TRIBATCHTYPE_DECAL
   ]);
 
+  /** The primary batch types GatherBatches pairs with the instanced mesh manager (EveSpaceScene.cpp:1527), in Carbon's order. */
+  static _instancedBatchTypes = [
+    TriBatchType.TRIBATCHTYPE_OPAQUE,
+    TriBatchType.TRIBATCHTYPE_DECAL,
+    TriBatchType.TRIBATCHTYPE_ADDITIVE,
+    TriBatchType.TRIBATCHTYPE_DEPTH,
+    TriBatchType.TRIBATCHTYPE_DISTORTION
+  ];
+
   /** The standard states Carbon applies before each accumulator (EveSpaceScene.cpp:1139-1142). */
   static _standardStatesFor = Object.freeze({
     [TriBatchType.TRIBATCHTYPE_OPAQUE]: RenderingMode.RM_OPAQUE,
@@ -736,10 +745,26 @@ export class EveSpaceSceneRenderDriver
       this.scene.UpdateVisibility(renderContext.GetInverseViewTransform());
 
       map = this._Collect(this.scene.GetRenderables([], renderContext), renderContext);
-      // Carbon GatherBatches (EveSpaceScene.cpp:1525): after the renderables' batches,
-      // the instanced mesh manager collects its providers. Its GetBatches
-      // (cpp:1527) and ReportUsedScreenSizes (cpp:1529) are not ported yet.
+      // Carbon GatherBatches (EveSpaceScene.cpp:1525-1531): after the
+      // renderables' batches, the instanced mesh manager collects its
+      // providers, commits its batches into the primary accumulators and
+      // reports its screen sizes; then the batches are finalized.
+      // Adapted: CjsBatchManager.Collect already finalized the renderables'
+      // batches, so the map is finalized again once the manager has
+      // committed (a re-sort, which partitions the same way). Carbon pairs
+      // every one of the five types with an accumulator; a type this map
+      // does not collect is left out of the pairs, which the manager treats
+      // as not asked for.
       this.scene.instancedMeshManager.CollectMeshes(this.scene.componentRegistry);
+      const instancedBatches = [];
+      for (const batchType of EveSpaceSceneRenderDriver._instancedBatchTypes)
+      {
+        const accumulator = map ? map.GetAccumulator(batchType) : null;
+        if (accumulator) instancedBatches.push([ batchType, accumulator ]);
+      }
+      this.scene.instancedMeshManager.GetBatches(this.scene.updateContext.GetFrustum(), this.scene.updateContext.GetInvLodFactor(), instancedBatches);
+      this.scene.instancedMeshManager.ReportUsedScreenSizes();
+      if (map) map.Finalize();
       // Carbon's allObjects is the scene list plus camera parent, not flattened
       // renderables or planets. Dispatch after FinalizeBatches (cpp:1470-1527).
       if (this.scene.shLightingManager)

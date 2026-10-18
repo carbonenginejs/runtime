@@ -20,6 +20,7 @@ import { EveDamageOverlay } from "../../overlays/EveDamageOverlay.js";
 import { EveDamageOverlayOwnerInfo } from "../../overlays/EveDamageOverlayOwnerInfo.js";
 import { EveGetLocatorPose } from "../../locator/EveLocatorSets.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
 import { EveChildInstancedMesh } from "./EveChildInstancedMesh.js";
@@ -655,7 +656,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
-   * Appends one instanced mesh: normalizes the area ducks, copies the instance transforms, stamps CASTS_SHADOW plus one flag bit per area batch type (Carbon cpp:574-581), and clears the registration latch so the next AddMeshesToManager pass picks it up.
+   * Appends one instanced mesh: normalizes the area ducks, copies the instance transforms with each instance's sphere index, mirroring and picking indices (Carbon cpp:557-567), stamps CASTS_SHADOW plus one flag bit per area batch type (Carbon cpp:583-590), and clears the registration latch so the next AddMeshesToManager pass picks it up. Carbon's merge into an existing matching mesh (cpp:464-538) is not ported; every call appends a mesh.
    * @param {Iterable} areas - area ducks ({effect, batchType, areaIndex, areaCount})
    * @param {Iterable<Float32Array>} instanceTransforms - 16-value matrices; copied, not retained
    * @param {Number} partTag - modular owner shared by every appended instance
@@ -686,6 +687,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       return false;
     }
 
+    // Carbon cpp:463: the new mesh's index, which every instance's picking
+    // hit decodes to.
+    const pickingMeshIndex = this.meshes.length >>> 0;
     const normalizedAreas = sourceAreas.map(area => EveChildInstancedMeshes._CreateArea(area));
     const instances = sourceTransforms.map((transform, sphereIndex) =>
     {
@@ -693,9 +697,15 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       {
         throw new TypeError("EveChildInstancedMeshes instance transforms must contain 16 values");
       }
+      // Carbon cpp:559-565: the per-instance record. IsMirrored is
+      // Determinant( m ) < 0 (MatrixUtils.cpp:28-31); a transpose has the
+      // same determinant, so gl-matrix's reads Carbon's bytes unchanged.
       const instance = new EveChildInstancedMeshInstance();
       mat4.copy(instance.transform, transform);
       instance.sphereIndex = sphereIndex;
+      instance.mirrored = mat4.determinant(transform) < 0;
+      instance.pickingMeshIndex = pickingMeshIndex;
+      instance.pickingInstanceIndex = sphereIndex >>> 0;
       return instance;
     });
 
@@ -917,8 +927,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
-   * Overwrites the transform of every instance owned by a modular part with an
-   * ABSOLUTE new transform (Carbon EveChildInstancedMeshes.cpp:665-685,
+   * Overwrites the transform and mirroring of every instance owned by a modular part with an
+   * ABSOLUTE new transform (Carbon EveChildInstancedMeshes.cpp:674-696,
    * PLAT-11963). No handle teardown - the per-frame async pass refreshes the
    * cull spheres from the live transforms - but a part that owns locators
    * invalidates the owner's merged set. The per-part filter lives HERE, not at
@@ -930,6 +940,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   {
     const tag = Number(partTag) >>> 0;
     const transform = mat4.fromRotationTranslationScale(mat4.create(), rotation, translation, scale);
+    // Carbon cpp:678: IsMirrored( m ), Determinant( m ) < 0.
+    const mirrored = mat4.determinant(transform) < 0;
     let movedOwnedLocators = false;
     for (const mesh of this.meshes)
     {
@@ -938,6 +950,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         if ((Number(mesh.partTags[index] ?? 0) >>> 0) === tag)
         {
           mat4.copy(mesh.instances[index].transform, transform);
+          mesh.instances[index].mirrored = mirrored;
           movedOwnedLocators ||= mesh.ownedLocatorSets.length !== 0;
         }
       }
@@ -1404,12 +1417,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
-   * Carbon EveChildInstancedMeshes::AddMeshesToManager (cpp:472-553), the
+   * Carbon EveChildInstancedMeshes::AddMeshesToManager (cpp:741-828), the
    * InstancedMeshProvider entry the engine's CollectMeshes drives
-   * (EveInstancedMeshManager.cpp:45-56; scene EveSpaceScene.cpp:1516).
+   * (EveInstancedMeshManager.cpp:80-82; scene EveSpaceScene.cpp:1525).
    * Contract quirks preserved: nothing registers before the first update
-   * pass (cpp:474); switching managers tears EVERYTHING down BEFORE the
-   * latch early-out (cpp:478-481); the latch is set optimistically and
+   * pass (cpp:743); switching managers - read off the per-object handle's
+   * owner - tears EVERYTHING down BEFORE the latch early-out (cpp:747-754);
+   * the no-clip per-object record registers inside the mesh loop, after a
+   * mesh passes the readiness checks (cpp:789-792); the latch is set optimistically and
    * cleared by ANY not-ready mesh/area so the per-frame caller retries until
    * geometry streams in - EXCEPT display-off meshes, which skip WITHOUT
    * clearing it (their handles were already removed by SetMeshDisplay);
@@ -1431,7 +1446,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     {
       return;
     }
-    if (this._meshManager !== null && this._meshManager !== manager)
+    // Carbon cpp:747: the manager switch is read off the per-object handle's owner.
+    if (this._perObjectDataHandle !== null && this._perObjectDataHandle.owner !== manager)
     {
       this.UnregisterFromMeshManager();
     }
@@ -1447,12 +1463,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       this._perObjectDataHandle = manager.AddPerObjectData(this._perObjectData);
     }
 
-    if (this.meshes.some(mesh => !mesh.inheritOverlayEffects) &&
-      this._perObjectDataNoClipHandle === null)
-    {
-      this._perObjectDataNoClipHandle = manager.AddPerObjectData(this._perObjectDataNoClip);
-    }
-
     this._allRegistered = true;
     for (let meshIndex = 0; meshIndex < this.meshes.length; meshIndex++)
     {
@@ -1462,7 +1472,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         continue;
       }
       const geometry = mesh.GetGeometryResource();
-      if (!geometry || geometry.IsGood() === false)
+      // Carbon cpp:766-770: no geometry or no combined declaration yet.
+      if (!geometry || mesh.combinedVertexDeclaration === Tr2EffectStateManager.Unknown)
+      {
+        this._allRegistered = false;
+        continue;
+      }
+      // cpp:771-775.
+      if (!geometry.IsGood())
       {
         this._allRegistered = false;
         continue;
@@ -1476,6 +1493,13 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       {
         this._allRegistered = false;
         continue;
+      }
+
+      // Carbon cpp:789-792: the no-clip record registers inside the loop, for
+      // the first mesh that is ready to register and opts out of the clip.
+      if (!mesh.inheritOverlayEffects && this._perObjectDataNoClipHandle === null)
+      {
+        this._perObjectDataNoClipHandle = manager.AddPerObjectData(this._perObjectDataNoClip);
       }
 
       if (mesh.sphereHandle === null)
@@ -1502,7 +1526,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         }
         area.meshGroupHandle = manager.AddMeshGroup__StaticPerInstanceData(
           geometry,
-          0,
+          mesh.combinedVertexDeclaration,
           area.batchType,
           mesh.meshIndex,
           area.areaIndex,

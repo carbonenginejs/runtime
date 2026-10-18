@@ -36,23 +36,26 @@ class TestInstancedMeshManager
     };
   }
 
+    // Every handle names its issuing manager, as Carbon's DataHandle::owner
+    // does: AddMeshesToManager reads the per-object handle's owner to detect a
+    // manager switch (EveChildInstancedMeshes.cpp:747).
     AddPerObjectData(data)
     {
-      const handle = Object.freeze({ kind: "pod", data });
+      const handle = Object.freeze({ kind: "pod", data, owner: this });
       this.calls.perObject.push(handle);
       return handle;
     }
 
     AddBoundingSphereGroup(bounds, flags, spheres, count)
     {
-      const handle = Object.freeze({ kind: "sphere", bounds, flags, spheres, count });
+      const handle = Object.freeze({ kind: "sphere", bounds, flags, spheres, count, owner: this });
       this.calls.spheres.push(handle);
       return handle;
     }
 
     AddMeshGroup__StaticPerInstanceData(...args)
     {
-      const handle = Object.freeze({ kind: "group", args });
+      const handle = Object.freeze({ kind: "group", args, owner: this });
       this.calls.groups.push(handle);
       return handle;
     }
@@ -101,6 +104,9 @@ function MakeProvider({ geometry = GEOMETRY } = {})
   {
     provider.SetGeometryResource(0, geometry);
   }
+  // Stands in for Carbon RebuildCachedData (cpp:702-739), not ported yet: registration
+  // is gated on a combined vertex declaration (cpp:766-770).
+  for (const mesh of provider.meshes) mesh.combinedVertexDeclaration = 7;
   const world = mat4.create();
   mat4.translate(world, world, [100, 0, 0]);
   mat4.scale(world, world, [2, 2, 2]);
@@ -249,39 +255,90 @@ test("Manager switch tears everything down through the old handles (cpp:478-481,
   assert.equal(second.calls.groups.length, 2, "groups on the new manager");
 });
 
-test("Manager handles are opaque and may use zero-valued primitive identities", () =>
+test("A handle at index zero stays registered, and removal follows Carbon's order (cpp:50-71)", () =>
 {
-  class PrimitiveHandleManager
+  class IndexedHandleManager
   {
     nextHandle = 0;
 
     removed = [];
 
-    AddPerObjectData() { return this.nextHandle++; }
+    AddPerObjectData() { return { owner: this, index: this.nextHandle++ }; }
 
-    AddBoundingSphereGroup() { return this.nextHandle++; }
+    AddBoundingSphereGroup() { return { owner: this, index: this.nextHandle++ }; }
 
-    AddMeshGroup__StaticPerInstanceData() { return this.nextHandle++; }
+    AddMeshGroup__StaticPerInstanceData() { return { owner: this, index: this.nextHandle++ }; }
 
     SetSphereGroupBounds() { }
 
-    RemoveMeshGroup(handle) { this.removed.push([ "mesh", handle ]); }
+    RemoveMeshGroup(handle) { this.removed.push([ "mesh", handle.index ]); }
 
-    RemoveBoundingSphereGroup(handle) { this.removed.push([ "sphere", handle ]); }
+    RemoveBoundingSphereGroup(handle) { this.removed.push([ "sphere", handle.index ]); }
 
-    RemovePerObjectData(handle) { this.removed.push([ "pod", handle ]); }
+    RemovePerObjectData(handle) { this.removed.push([ "pod", handle.index ]); }
   }
 
   const provider = MakeProvider();
-  const manager = new PrimitiveHandleManager();
+  const manager = new IndexedHandleManager();
   provider.AddMeshesToManager(manager);
   provider.AddMeshesToManager(manager);
-  assert.equal(manager.nextHandle, 4, "zero-valued handles remain registered");
+  assert.equal(manager.nextHandle, 4, "the index-zero per-object handle remains registered");
 
   provider.UnregisterFromMeshManager();
   assert.deepEqual(manager.removed, [
     [ "mesh", 2 ], [ "mesh", 3 ], [ "sphere", 1 ], [ "pod", 0 ]
   ]);
+});
+
+test("AddMeshesToManager registers the no-clip record inside the mesh loop (cpp:789-792)", () =>
+{
+  const provider = MakeProvider();
+  const second = mat4.create();
+  provider.AddMesh("res:/geo2", false, 0, 0,
+    [ { effect: createEffect("fx3"), batchType: 0, areaIndex: 0, areaCount: 1 } ], [ second ]);
+  provider.AddMesh("res:/geo3", false, 0, 0,
+    [ { effect: createEffect("fx4"), batchType: 0, areaIndex: 0, areaCount: 1 } ], [ mat4.create() ]);
+  // Mesh 1 opts out of the clip but has no geometry; mesh 2 opts out and is ready.
+  provider.SetMeshInheritOverlayEffects(1, false);
+  provider.SetMeshInheritOverlayEffects(2, false);
+  provider.SetGeometryResource(2, GEOMETRY);
+  provider.meshes[2].combinedVertexDeclaration = 7;
+  provider.UpdateAsyncronous(null, {});
+
+  const order = [];
+  const manager = MakeManager();
+  for (const name of [ "AddPerObjectData", "AddBoundingSphereGroup", "AddMeshGroup__StaticPerInstanceData" ])
+  {
+    const original = manager[name].bind(manager);
+    manager[name] = (...args) => { order.push(name); return original(...args); };
+  }
+  provider.AddMeshesToManager(manager);
+
+  assert.deepEqual(order, [
+    "AddPerObjectData",
+    "AddBoundingSphereGroup", "AddMeshGroup__StaticPerInstanceData", "AddMeshGroup__StaticPerInstanceData",
+    "AddPerObjectData",
+    "AddBoundingSphereGroup", "AddMeshGroup__StaticPerInstanceData"
+  ], "the no-clip record registers for mesh 2, the first ready mesh that opts out - not before the loop, and not for unready mesh 1");
+  assert.equal(manager.calls.perObject[1].data, provider._perObjectDataNoClip);
+  assert.equal(manager.calls.groups[2].args[9], manager.calls.perObject[1], "mesh 2 draws with the no-clip record");
+});
+
+test("AddMesh fills each instance's mirroring and picking indices (cpp:463, 559-565)", () =>
+{
+  const provider = MakeProvider();
+  const mirrored = mat4.fromScaling(mat4.create(), [ -1, 1, 1 ]);
+  provider.AddMesh("res:/geo2", false, 0, 0,
+    [ { effect: createEffect("fx3"), batchType: 0, areaIndex: 0, areaCount: 1 } ], [ mat4.create(), mirrored ]);
+
+  const instances = provider.meshes[1].instances;
+  assert.deepEqual(instances.map(instance => instance.mirrored), [ false, true ], "IsMirrored: Determinant < 0 (MatrixUtils.cpp:28-31)");
+  assert.deepEqual(instances.map(instance => instance.pickingMeshIndex), [ 1, 1 ], "the new mesh's index (cpp:463)");
+  assert.deepEqual(instances.map(instance => instance.pickingInstanceIndex), [ 0, 1 ], "cpp:564");
+  assert.deepEqual(provider.meshes[0].instances.map(instance => instance.pickingMeshIndex), [ 0, 0 ]);
+
+  provider.SetInstanceTransformByPartTag(0, [ 0, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, -1, 1 ]);
+  assert.equal(provider.meshes[0].instances[0].mirrored, true, "SetInstanceTransformByPartTag refreshes mirrored (cpp:678, 687)");
 });
 
 test("instanced per-object custom masks retain their terminal GPU orientation", () =>

@@ -7,6 +7,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { color } from "#math/color";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
+import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
 import { meta, type, blue } from "#schema";
@@ -25,6 +26,10 @@ const INNER_COLOR_SCALE = Math.fround(0.6);
 
 // Scratch for the TransformationMatrix temporaries.
 const DEBUG_SHAPE_TRANSFORM = mat4.create();
+
+// GetIntensity scratch: Carbon's by-value position parameter and its ray direction.
+const POSITION = vec3.create();
+const RAY_DIR = vec3.create();
 
 
 /**
@@ -73,29 +78,30 @@ export class EveEllipsoidVolume extends IEveVolume
 
   _nextCallbackId = 1;
 
-  _inverseRotation = quat.create();
-
   /** Carbon m_rotationMatrix (EveEllipsoidVolume.h:51, identity at cpp:17): Setup builds it (cpp:42). */
   _rotationMatrix = mat4.create();
 
+  /** Carbon m_inverseRotationMatrix (identity at cpp:18): Setup inverts m_rotationMatrix into it (cpp:43). */
+  _inverseRotationMatrix = mat4.create();
+
+  /** Carbon m_boundingSphere (zero at cpp:20): Setup fills it (cpp:45-46). */
+  _boundingSphere = { center: vec3.create(), radius: 0 };
+
   /**
-   * Carbon m_innerIntersection (EveEllipsoidVolume.h:47, zero at cpp:14).
-   * Carbon writes it in GetIntensity (cpp:89, cpp:95); this port's adapted
-   * GetIntensity does not, so it stays at the origin.
+   * Carbon m_innerIntersection (EveEllipsoidVolume.h:47, zero at cpp:14): the
+   * last GetIntensity's inner-ellipsoid hit in the inverse-rotated frame, or
+   * the origin when the inner shape is zero (cpp:89, cpp:95).
    */
   _innerIntersection = vec3.create();
 
   /**
-   * Carbon m_outerIntersection (EveEllipsoidVolume.h:48, zero at cpp:15).
-   * Carbon writes it in GetIntensity (cpp:92); this port's adapted
-   * GetIntensity does not, so it stays at the origin.
+   * Carbon m_outerIntersection (EveEllipsoidVolume.h:48, zero at cpp:15): the
+   * last GetIntensity's outer-ellipsoid hit in the inverse-rotated frame
+   * (cpp:92).
    */
   _outerIntersection = vec3.create();
 
-  /**
-   * Clamps the authored shapes, caches the inverse rotation and fires the change
-   * callbacks.
-   */
+  /** Carbon Initialize (EveEllipsoidVolume.cpp:29-33): runs Setup. */
   @blue.method
   @meta.implemented
   Initialize()
@@ -105,50 +111,72 @@ export class EveEllipsoidVolume extends IEveVolume
   }
 
   /**
-   * Returns a fresh sphere centred on the volume position with the largest shape
-   * radius, so it covers the ellipsoid on every axis.
+   * Carbon GetBoundingSphere (EveEllipsoidVolume.cpp:72-75): the sphere Setup
+   * cached, returned by value as a fresh { center, radius }.
+   *
+   * @returns {{center: vec3, radius: number}}
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   GetBoundingSphere()
   {
     return {
-      center: vec3.clone(this.position),
-      radius: Math.max(this.shape[0], this.shape[1], this.shape[2])
+      center: vec3.clone(this._boundingSphere.center),
+      radius: this._boundingSphere.radius
     };
   }
 
   /**
-   * Returns the falloff weight for a point given in the volume's own space: the
-   * point is moved into ellipsoid-local space with the cached inverse rotation,
-   * then compared radially against the inner and outer shapes - 1 inside the
-   * inner ellipsoid, 0 outside the outer one, and a squared ramp between them.
+   * Carbon GetIntensity (EveEllipsoidVolume.cpp:77-98). The point is rotated by
+   * the cached inverse rotation matrix, then tested against axis-aligned
+   * ellipsoids centred on position: 0 outside the outer shape, 1 inside the
+   * inner one. Between them a ray toward the centre is intersected with both
+   * shapes, keeping each line's root nearest the point (behind it for the
+   * outer shape), and the result is LengthSq( point - outerHit ) /
+   * LengthSq( innerHit - outerHit ). A zero inner shape leaves the inner hit at
+   * the origin. Both hits are recorded in _outerIntersection and
+   * _innerIntersection, which RenderDebugInfo draws.
    *
-   * Carbon (EveEllipsoidVolume.cpp:77-98) intersects a ray with both
-   * ellipsoids and records the hits in m_outerIntersection/m_innerIntersection,
-   * which RenderDebugInfo draws; this port does not record them, so
-   * _outerIntersection/_innerIntersection stay at the origin.
+   * Carbon quirk (CE-181), reproduced: the inverse rotation turns the point about the
+   * ORIGIN, not about position, so with both a rotation and a position the
+   * volume Carbon tests is centred on position * RotationMatrix( rotation ),
+   * not on the position RenderDebugInfo draws it at.
+   *
+   * @param {vec3} position Point in the volume's parent space; not modified.
+   * @returns {number} The intensity.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   GetIntensity(position)
   {
-    const local = vec3.subtract(vec3.create(), position, this.position);
-    vec3.transformQuat(local, local, this._inverseRotation);
-    const outer = EveEllipsoidVolume._radialDistance(local, this.shape);
-    const distance = vec3.length(local);
-    if (!(outer > 0) || distance > outer)
+    const f = Math.fround;
+    const point = vec3.transformMat4(POSITION, position, this._inverseRotationMatrix);
+
+    if (!sph3.isPointInsideEllipsoid(this.position, this.shape, point))
     {
       return 0;
     }
-    const inner = EveEllipsoidVolume._radialDistance(local, this.innerShape);
-    if (inner > 0 && distance <= inner)
+    if (sph3.isPointInsideEllipsoid(this.position, this.innerShape, point))
     {
       return 1;
     }
-    const span = outer - inner;
-    const ratio = span > 0 ? (outer - distance) / span : 0;
-    return ratio * ratio;
+
+    vec3.set(this._innerIntersection, 0, 0, 0);
+
+    const rayDir = vec3.normalizeCarbon(RAY_DIR, vec3.subtract(RAY_DIR, this.position, point));
+    sph3.intersectEllipsoidRayClosest(this._outerIntersection, this.position, this.shape, point, rayDir);
+
+    // LengthSq( m_innerShape ) != 0, in float.
+    const innerShape = this.innerShape;
+    if (f(f(f(innerShape[0] * innerShape[0]) + f(innerShape[1] * innerShape[1])) + f(innerShape[2] * innerShape[2])) !== 0)
+    {
+      sph3.intersectEllipsoidRayClosest(this._innerIntersection, this.position, this.innerShape, point, rayDir);
+    }
+
+    return f(
+      vec3.squaredDistance(point, this._outerIntersection)
+      / vec3.squaredDistance(this._innerIntersection, this._outerIntersection)
+    );
   }
 
   /**
@@ -228,8 +256,8 @@ export class EveEllipsoidVolume extends IEveVolume
   }
 
   /**
-   * Re-clamps the shapes and the cached inverse rotation after an authored
-   * change, and notifies every registered listener.
+   * Carbon OnModified (EveEllipsoidVolume.cpp:148-152): re-runs Setup, which
+   * also notifies every registered listener.
    */
   @blue.method
   @meta.implemented
@@ -248,9 +276,9 @@ export class EveEllipsoidVolume extends IEveVolume
    * debugShowIntersection is set, the intersection points as solid spheres of
    * radius 1 under the rotation matrix alone, as Carbon draws them.
    *
-   * The intersection points are Carbon's members, but this port's adapted
-   * GetIntensity never writes them, so with debugShowIntersection on both
-   * spheres sit at the parent origin.
+   * The intersection points are the ones the last GetIntensity between the
+   * two shapes recorded, in the inverse-rotated frame the rotation matrix
+   * takes back out. Until such a call both sit at the parent origin.
    *
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} parentTransform The parent's world transform.
@@ -293,65 +321,39 @@ export class EveEllipsoidVolume extends IEveVolume
 
   /**
    * Carbon Setup (EveEllipsoidVolume.cpp:35-55): clamp the shape to
-   * non-negative radii, fit the inner shape inside it, refresh the cached
-   * inverse rotation, and fire EVERY change callback - the ellipsoid's
-   * callback fan-out lives INSIDE Setup, opposite to the box's, whose
-   * OnModified fires them. Carbon also caches the rotation matrix pair and
-   * the bounding sphere; this port caches the rotation matrix RenderDebugInfo
-   * reads (cpp:42) and derives the inverse and the sphere on demand.
-   *
-   * Adapted: Carbon caches the inverse rotation matrix and bounding sphere; this port's
-   * GetIntensity and GetBoundingSphere derive their own state on demand, so Setup refreshes
-   * the clamps, the rotation matrix and the cached inverse rotation quaternion. The callback
-   * fan-out matches Carbon's placement inside Setup.
+   * non-negative radii, fit the inner shape inside it, cache the rotation
+   * matrix, its inverse (Carbon's Inverse) and the bounding sphere, and fire
+   * EVERY change callback - the ellipsoid's callback fan-out lives INSIDE
+   * Setup, opposite to the box's, whose OnModified fires them.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   Setup()
   {
+    // XMVectorMax( 0, m_shape ) and XMVectorMax( 0, XMVectorMin( m_innerShape, m_shape ) ) are
+    // SSE maxps / minps: (a > b) ? a : b and (a < b) ? a : b per lane.
     for (let i = 0; i < 3; i++)
     {
-      this.shape[i] = Math.max(0, this.shape[i]);
-      this.innerShape[i] = Math.min(Math.max(0, this.innerShape[i]), this.shape[i]);
+      const shape = 0 > this.shape[i] ? 0 : this.shape[i];
+      const innerShape = this.innerShape[i] < shape ? this.innerShape[i] : shape;
+      this.shape[i] = shape;
+      this.innerShape[i] = 0 > innerShape ? 0 : innerShape;
     }
-    quat.invert(this._inverseRotation, this.rotation);
 
     // Carbon m_rotationMatrix = RotationMatrix( m_rotation ) (cpp:42): a single
     // matrix, so the byte layout ports unchanged.
     mat4.fromQuat(this._rotationMatrix, this.rotation);
+    mat4.inverseCarbon(this._inverseRotationMatrix, this._rotationMatrix);
+
+    // max( m_shape.x, max( m_shape.y, m_shape.z ) ): std::max(a, b) is (a < b) ? b : a.
+    const shapeYZ = this.shape[1] < this.shape[2] ? this.shape[2] : this.shape[1];
+    vec3.copy(this._boundingSphere.center, this.position);
+    this._boundingSphere.radius = this.shape[0] < shapeYZ ? shapeYZ : this.shape[0];
 
     for (const callback of this._callbacks.values())
     {
       callback?.();
     }
-  }
-
-  /**
-   * Returns how far the ellipsoid surface lies from the centre along the
-   * direction of the given local point, the smallest radius when the point sits
-   * at the centre, and 0 when the direction has an extent-less axis.
-   */
-  static _radialDistance(position, radii)
-  {
-    const length = vec3.length(position);
-    if (length === 0)
-    {
-      return Math.min(radii[0], radii[1], radii[2]);
-    }
-    let denominator = 0;
-    for (let i = 0; i < 3; i++)
-    {
-      if (radii[i] <= 0 && position[i] !== 0)
-      {
-        return 0;
-      }
-      if (radii[i] > 0)
-      {
-        const direction = position[i] / length;
-        denominator += direction * direction / (radii[i] * radii[i]);
-      }
-    }
-    return denominator > 0 ? 1 / Math.sqrt(denominator) : 0;
   }
 }
 

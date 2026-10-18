@@ -865,6 +865,72 @@ sph3.translate = function(out, a, v)
     return out;
 };
 
+/**
+ * Carbon: IsPointInsideEllipsoid (trinity/trinity/Utilities/BoundingSphere.cpp:173-180)
+ *
+ * Whether point lies inside the axis-aligned ellipsoid, surface included, in float. Carbon divides by the
+ * radii unguarded, so a zero radius gives an infinite or NaN term and the point counts as outside.
+ *
+ * @param {vec3} ellipsoidCenter Ellipsoid centre.
+ * @param {vec3} ellipsoidRadii Ellipsoid radii per axis.
+ * @param {vec3} point Point to test.
+ * @returns {boolean}
+ */
+sph3.isPointInsideEllipsoid = function(ellipsoidCenter, ellipsoidRadii, point)
+{
+    const f = Math.fround;
+    const dx = f(f(point[0] - ellipsoidCenter[0]) / ellipsoidRadii[0]);
+    const dy = f(f(point[1] - ellipsoidCenter[1]) / ellipsoidRadii[1]);
+    const dz = f(f(point[2] - ellipsoidCenter[2]) / ellipsoidRadii[2]);
+    return f(f(f(dx * dx) + f(dy * dy)) + f(dz * dz)) <= 1;
+};
+
+/**
+ * Carbon: IntersectEllipsoidRayClosest (trinity/trinity/Utilities/BoundingSphere.cpp:150-170)
+ *
+ * Intersects a ray with an axis-aligned ellipsoid, in float, by scaling both into the unit sphere and
+ * solving the quadratic. Of the two roots it keeps the one nearest the origin by absolute distance, so it
+ * may lie BEHIND the origin. out is written only on a hit.
+ *
+ * @param {vec3} out Receives the closest intersection point (Carbon's out).
+ * @param {vec3} ellipsoidCenter Ellipsoid centre.
+ * @param {vec3} ellipsoidRadii Ellipsoid radii per axis.
+ * @param {vec3} rayOrigin Ray origin.
+ * @param {vec3} rayDir Ray direction.
+ * @returns {boolean} false when the line misses the ellipsoid.
+ */
+sph3.intersectEllipsoidRayClosest = function(out, ellipsoidCenter, ellipsoidRadii, rayOrigin, rayDir)
+{
+    const f = Math.fround;
+
+    const vx = f(rayDir[0] / ellipsoidRadii[0]);
+    const vy = f(rayDir[1] / ellipsoidRadii[1]);
+    const vz = f(rayDir[2] / ellipsoidRadii[2]);
+    const sx = f(f(rayOrigin[0] - ellipsoidCenter[0]) / ellipsoidRadii[0]);
+    const sy = f(f(rayOrigin[1] - ellipsoidCenter[1]) / ellipsoidRadii[1]);
+    const sz = f(f(rayOrigin[2] - ellipsoidCenter[2]) / ellipsoidRadii[2]);
+
+    const v_v = f(f(f(vx * vx) + f(vy * vy)) + f(vz * vz));
+    const v_s = f(f(f(vx * sx) + f(vy * sy)) + f(vz * sz));
+    const s_s = f(f(f(sx * sx) + f(sy * sy)) + f(sz * sz));
+    const halfB = f(v_s / v_v);
+    let pq = f(f(f(halfB * halfB) - f(s_s / v_v)) + f(1 / v_v));
+    if (pq < 0)
+    {
+        return false;
+    }
+
+    pq = f(Math.sqrt(pq));
+    const t1 = f(-pq - halfB);
+    const t2 = f(pq - halfB);
+
+    const minT = Math.abs(t1) < Math.abs(t2) ? t1 : t2;
+    out[0] = f(f(minT * rayDir[0]) + rayOrigin[0]);
+    out[1] = f(f(minT * rayDir[1]) + rayOrigin[1]);
+    out[2] = f(f(minT * rayDir[2]) + rayOrigin[2]);
+    return true;
+};
+
 export const {
     alloc,
     unalloc,
@@ -910,5 +976,7 @@ export const {
     toBounds,
     toPositionRadius,
     transformMat4,
-    translate
+    translate,
+    isPointInsideEllipsoid,
+    intersectEllipsoidRayClosest
 } = sph3;

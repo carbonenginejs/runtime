@@ -1,10 +1,15 @@
-// EveInstancedMeshManager, stage 1: the records, the registration handles and
-// their swap-with-back removal (EveInstancedMeshManager.cpp:123-383), the
-// InstanceFlags bits (cpp:1002-1052), the instance-buffer ring (cpp:398-507)
-// and the CollectMeshes route through the component registry (cpp:71-121).
+// EveInstancedMeshManager: the records, the registration handles and their
+// swap-with-back removal (EveInstancedMeshManager.cpp:123-383), the
+// InstanceFlags bits (cpp:1002-1052), the instance-buffer ring (cpp:398-507),
+// the CollectMeshes route through the component registry (cpp:71-121), and the
+// draw side: culling, binning, LOD selection, instance upload, the batch,
+// shadow and picking gathers (cpp:509-1000).
 import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { quat } from "../../npm/dist/global/math/quat.js";
+import { TriRenderBatchAccumulator } from "../../npm/dist/trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 import {
   EveChildInstancedMeshInstance,
   EveComponentRegistry,
@@ -15,8 +20,13 @@ import {
   EveInstancedMeshManagerInstanceFlags,
   EveInstancedMeshManagerMeshKey,
   EveInstancedMeshManagerSphereGroup,
+  EvePendingPickingReadback,
   EveSpaceScene,
+  Float4x3,
   RawData,
+  Tr2RenderReason,
+  TriFrustum,
+  TriShadowFrustum,
   Tr2RenderContext_GetMainThreadRenderContext
 } from "../../npm/dist/trinity/index.js";
 import { Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
@@ -326,3 +336,226 @@ test("the scene owns an instanced mesh manager (EveSpaceScene.cpp:301)", () =>
   assert.equal(scene.instancedMeshManager.constructor, EveInstancedMeshManager);
   scene.Destroy();
 });
+
+// ---------------------------------------------------------------------------
+// The draw side (cpp:509-1000).
+
+/** A realized suballocation stand-in: Carbon's Allocation accessors (Tr2SuballocatedBuffer.h:23-66). */
+function FakeAllocation(name, startIndex, stride)
+{
+  const buffer = { name };
+  return { buffer, GetBuffer: () => buffer, GetStride: () => stride, GetOffset: () => startIndex * stride, GetStartIndex: () => startIndex };
+}
+
+/** A realized LOD: two areas (10 and 5 triangles), forward and reversed indices. */
+function FakeLod(maxScreenSize, vertexStart, indexStart, reversedStart)
+{
+  return {
+    maxScreenSize,
+    allocationsValid: true,
+    reversedIndicesValid: true,
+    primitiveCount: 15,
+    areas: [ { firstIndex: 0, primitiveCount: 10 }, { firstIndex: 30, primitiveCount: 5 } ],
+    vertexAllocation: FakeAllocation("vb" + vertexStart, vertexStart, 32),
+    indexAllocation: FakeAllocation("ib" + indexStart, indexStart, 2),
+    reversedIndexAllocation: FakeAllocation("rib" + reversedStart, reversedStart, 2)
+  };
+}
+
+/** A two-LOD geometry: LOD 0 above 10 pixels, LOD 1 below. */
+function FakeDrawGeometry()
+{
+  const lods = [ FakeLod(100, 2, 100, 200), FakeLod(10, 7, 300, 400) ];
+  const mesh = { minBounds: [ -1, -1, -1 ], maxBounds: [ 1, 1, 1 ], lods };
+  return {
+    lods,
+    GetMeshData: () => mesh,
+    GetMeshLod__LodIndex: (_meshIndex, lodIndex) => lods[lodIndex] ?? null
+  };
+}
+
+function FakeMaterial(name)
+{
+  const shader = { name };
+  return {
+    name,
+    used: [],
+    GetShaderStateInterface: () => shader,
+    CompatibleWithGdr: () => false,
+    UsedWithScreenSize(...args) { this.used.push(args); }
+  };
+}
+
+/** The camera at the origin looking down -Z: 90 degrees, 1000 pixels wide, so a unit sphere 50 away is ~20 pixels. */
+function CameraFrustum()
+{
+  const frustum = new TriFrustum();
+  frustum.DeriveFrustum(mat4.create(), new Float32Array(3), mat4.perspectiveZO(mat4.create(), Math.PI / 2, 1, 1, 1000), { width: 1000 });
+  return frustum;
+}
+
+/**
+ * One opaque and one decal mesh sharing a sphere group. Opaque instances:
+ * A (20 px, LOD 0), B (8 px, LOD 1), C (20 px, mirrored, LOD 0), D (behind the camera).
+ */
+function DrawScene({ castsShadow = false } = {})
+{
+  const manager = new EveInstancedMeshManager();
+  manager.AddPerObjectData(RawData.create("EveSpacePerObjectData"));
+  const pod = manager.AddPerObjectData(RawData.create("EveSpacePerObjectData"));
+
+  const flags = new EveInstancedMeshManagerInstanceFlags();
+  flags.AddBatchType(TriBatchType.TRIBATCHTYPE_OPAQUE);
+  flags.AddBatchType(TriBatchType.TRIBATCHTYPE_DECAL);
+  flags.SetCastsShadow(castsShadow);
+  const spheres = [ Sphere(0, 1), Sphere(0, 0.4), Sphere(2, 1), Sphere(0, 1) ];
+  spheres[0].center[2] = spheres[1].center[2] = spheres[2].center[2] = -50;
+  spheres[3].center[2] = 50;
+  const sphere = manager.AddBoundingSphereGroup({ center: new Float32Array(3), radius: 60 }, flags, spheres, spheres.length);
+
+  const instances = spheres.map((_, index) =>
+  {
+    const instance = new EveChildInstancedMeshInstance();
+    instance.sphereIndex = index;
+    return instance;
+  });
+  mat4.fromRotationTranslationScale(instances[0].transform, quat.setAxisAngle(quat.create(), [ 0, 0, 1 ], Math.PI / 2), [ 1, 2, 3 ], [ 2, 3, 4 ]);
+  instances[0].pickingMeshIndex = 5;
+  instances[0].pickingInstanceIndex = 9;
+  instances[2].mirrored = true;
+
+  const geometry = FakeDrawGeometry();
+  const opaqueMaterial = FakeMaterial("opaque");
+  const decalMaterial = FakeMaterial("decal");
+  const owner = { name: "owner" };
+  const decalOwner = { name: "decalOwner" };
+  manager.AddMeshGroup__StaticPerInstanceData(geometry, 77, TriBatchType.TRIBATCHTYPE_OPAQUE, 0, 0, 1, false,
+    opaqueMaterial, 1, pod, sphere, instances, instances.length, owner, 4);
+  manager.AddMeshGroup__StaticPerInstanceData(geometry, 78, TriBatchType.TRIBATCHTYPE_DECAL, 0, 1, 1, false,
+    decalMaterial, 2, pod, sphere, [ instances[0] ], 1, decalOwner, 6);
+
+  return { manager, sphere, flags, instances, geometry, opaqueMaterial, decalMaterial, owner, decalOwner };
+}
+
+test("GetMeshLod: the first LOD whose next threshold the size exceeds (cpp:975-986)", () =>
+{
+  const meshInfo = { screenSizeThresholds: Float32Array.of(100, 10, 2) };
+  assert.equal(EveInstancedMeshManager._GetMeshLod(meshInfo, 50), 0);
+  assert.equal(EveInstancedMeshManager._GetMeshLod(meshInfo, 10), 1, "strictly greater (cpp:980)");
+  assert.equal(EveInstancedMeshManager._GetMeshLod(meshInfo, 1), 2, "below every threshold: the last LOD");
+  assert.equal(EveInstancedMeshManager._GetMeshLod({ screenSizeThresholds: new Float32Array(0) }, 1), INVALID,
+    "Carbon quirk: no LODs wraps lodCount - 1 to 0xFFFFFFFF");
+});
+
+test("GetBatches culls, bins by LOD and mirroring, and commits instanced draws into the paired accumulators (cpp:509-552, 651-759, 839-925)", () =>
+{
+  const { manager, opaqueMaterial, decalMaterial, geometry, instances } = DrawScene();
+  const opaque = new TriRenderBatchAccumulator();
+  const decal = new TriRenderBatchAccumulator();
+  const committed = manager.GetBatches(CameraFrustum(), 1, [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, opaque ], [ TriBatchType.TRIBATCHTYPE_DECAL, decal ] ]);
+
+  // Culling: Intersect bounds, so each sphere is tested (cpp:532-543).
+  const sizes = manager._sphereGroups[0].screenSizes;
+  assert.ok(Math.abs(sizes[0] - 20) < 0.01 && Math.abs(sizes[1] - 8) < 0.01, "estimated pixel sizes");
+  assert.equal(sizes[3], 0, "a sphere outside the frustum gets size 0 (cpp:536-541)");
+
+  // Binning: A in LOD 0, C in LOD 0's mirrored slot, B in LOD 1, D dropped (cpp:683-688).
+  const [ , opaqueInfo ] = [ ...manager._meshInstances.values() ][0];
+  assert.deepEqual(opaqueInfo.lodIndices.map(slot => slot.map(([ instance ]) => instances.indexOf(instance))), [ [ 0 ], [ 2 ], [ 1 ], [] ]);
+  assert.equal(opaqueInfo.totalVisibleInstances, 3);
+  assert.equal(opaqueInfo.lodIndices[0][0][1], 1, "binned with the group's per-object data index");
+
+  assert.equal(committed, 4, "three opaque slots and one decal slot");
+  const batches = opaque.GetBatches();
+  assert.equal(batches.length, 3);
+  assert.equal(decal.GetBatches().length, 1, "the decal mesh lands in the decal accumulator only");
+  assert.equal(decal.GetBatches()[0].material, decalMaterial);
+
+  const [ lod0, mirrored, lod1 ] = batches;
+  assert.equal(lod0.material, opaqueMaterial);
+  assert.equal(lod0.vertexDeclaration, 77, "the combined declaration (cpp:904)");
+  assert.equal(lod0.vertexStreams[0], geometry.lods[0].vertexAllocation.buffer);
+  assert.equal(lod0.indexBuffer, geometry.lods[0].indexAllocation.buffer);
+  assert.equal(lod0.vertexStreams[1], manager._staticInstanceBuffer._buffer, "instance stream 1 (cpp:905)");
+  assert.equal(lod0.stride[1], 60, "sizeof( StaticPerInstanceBufferElement )");
+  assert.deepEqual([ lod0.indexCountPerInstance, lod0.instanceCount, lod0.startIndexLocation, lod0.baseVertexLocation, lod0.startInstanceLocation ],
+    [ 30, 1, 100, 2, 0 ], "area 0 of LOD 0 (cpp:906-911)");
+  assert.equal(mirrored.indexBuffer, geometry.lods[0].reversedIndexAllocation.buffer, "a mirrored slot draws the reversed indices (cpp:63-64)");
+  assert.deepEqual([ mirrored.startIndexLocation, mirrored.startInstanceLocation ], [ 200 + 15 * 3 - 0 - 30, 1 ],
+    "reversed start index (TriGeometryRes.cpp:214-216); instances follow in slot order");
+  assert.deepEqual([ lod1.startIndexLocation, lod1.baseVertexLocation, lod1.startInstanceLocation ], [ 300, 7, 2 ]);
+  assert.equal(lod0.objectData, null, "no per-object data: the shader reads InstancedPerObjectBuffer");
+  assert.equal(decal.GetBatches()[0].startInstanceLocation, 3, "the decal mesh's span follows the opaque one");
+
+  // Upload (cpp:949-962): Float4x3 of A's transform, per-object index, picking indices.
+  const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+  assert.equal(manager._staticInstanceBuffer._mappedData, null, "DoneCopying unmapped the ring (cpp:922-923)");
+  const bytes = manager._staticInstanceBuffer._buffer.MapForWriting(renderContext).data;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, 240);
+  const packed = Float4x3.fromMat4(instances[0].transform);
+  const near = (a, b) => Math.abs(a - b) < 1e-5;
+  assert.ok(near(view.getFloat32(4, true), -3) && near(view.getFloat32(16, true), 2), "basis packed column-stride (MatrixUtils.cpp:6-20), rotated and scaled");
+  assert.ok(near(view.getFloat32(12, true), 1) && near(view.getFloat32(28, true), 2) && near(view.getFloat32(44, true), 3), "translation in each row's w");
+  assert.ok(Array.from({ length: 12 }, (_, i) => view.getFloat32(i * 4, true)).every((value, i) => near(value, packed[i])));
+  assert.deepEqual([ view.getUint32(48, true), view.getUint32(52, true), view.getUint32(56, true) ], [ 1, 5, 9 ]);
+  assert.equal(view.getUint32(60 + 52, true), 0, "element 1 is C");
+  manager._staticInstanceBuffer._buffer.UnmapForWriting(renderContext);
+
+  manager.ReportUsedScreenSizes();
+  assert.equal(opaqueMaterial.used.length, 1, "cpp:988-1000");
+  assert.ok(Math.abs(opaqueMaterial.used[0][0] - 20) < 0.01, "the largest screen size drawn");
+  assert.ok(Math.abs(opaqueMaterial.used[0][1] - Math.sqrt(3)) < 1e-6, "the mesh radius");
+  assert.deepEqual(opaqueMaterial.used[0][2], [], "no UV densities in this payload");
+  assert.equal(decalMaterial.used.length, 1);
+});
+
+test("GetBatches asks only for the paired types and honours the reflection filter (cpp:694-708, 739-759)", () =>
+{
+  const { manager } = DrawScene();
+  const opaque = new TriRenderBatchAccumulator();
+  assert.equal(manager.GetBatches(CameraFrustum(), 1, [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, opaque ] ]), 3, "the decal mesh is not asked for");
+  const [ , decalInfo ] = [ ...manager._meshInstances.values() ][1];
+  assert.equal(decalInfo.totalVisibleInstances, 0, "cpp:749-753");
+
+  const reflected = new TriRenderBatchAccumulator();
+  assert.equal(manager.GetBatches(CameraFrustum(), 1, [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, reflected ] ], Tr2RenderReason.TR2RENDERREASON_REFLECTION), 0,
+    "a reflection pass requires RENDER_IN_REFLECTION (cpp:701-704)");
+  assert.equal(manager._sphereGroups[0].lastTestResult, 0, "a filtered group is Outside (cpp:549)");
+});
+
+test("GetShadowBatches draws only shadow-casting groups (cpp:599-649, 710-725)", () =>
+{
+  const camera = CameraFrustum();
+  const shadow = TriShadowFrustum.create__Shadow(camera);
+
+  const plain = DrawScene();
+  assert.equal(plain.manager.GetShadowBatches(camera, shadow, 1, [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, new TriRenderBatchAccumulator() ] ]), 0);
+
+  const caster = DrawScene({ castsShadow: true });
+  const batches = new TriRenderBatchAccumulator();
+  assert.equal(caster.manager.GetShadowBatches(camera, shadow, 1, [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, batches ] ]), 3,
+    "every instance at least SHADOW_SIZE_THRESHOLD in the shadow map draws");
+});
+
+test("GetPickingBatches commits one pointer-picking batch per group LOD slot (cpp:727-737, 762-837)", () =>
+{
+  const { manager, owner } = DrawScene();
+  const readback = new EvePendingPickingReadback(1, 2);
+  const batches = new TriRenderBatchAccumulator();
+  const frustum = CameraFrustum();
+  manager.GetPickingBatches(readback, frustum, frustum, 1, [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, batches ] ]);
+
+  assert.equal(batches.GetBatches().length, 3, "one batch per non-empty slot");
+  assert.deepEqual(readback.blueObjects, [ owner, owner, owner ], "the owner is retained per batch (cpp:828)");
+  const pointer = batches.GetBatches()[1].objectData.GetPickingPointer();
+  assert.equal(pointer, (BigInt(readback.sequence) << 32n) | 2n, "the retained index stands in for the root pointer (cpp:827)");
+
+  const pixel = new Uint8Array(16);
+  const words = new DataView(pixel.buffer);
+  words.setUint32(0, 2, true);
+  words.setUint32(4, readback.sequence, true);
+  assert.equal(readback.DecodeResult(pixel)[0], owner, "the request decodes the hit to the group's owner");
+  assert.doesNotThrow(() => batches.GetBatches()[0].objectData.ApplyConstantBuffers(null, null), "PickingPerObjectData uploads nothing (cpp:25-27)");
+  readback.Destroy();
+});
+

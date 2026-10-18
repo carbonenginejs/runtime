@@ -8,7 +8,7 @@ import { EveInstancedMeshManagerInstanceBufferAllocation } from "./EveInstancedM
  * the manager keeps for one MeshKey - the mesh groups registered under it,
  * the material, the mesh's bounding radius and per-LOD screen-size
  * thresholds (filled on first registration), and the per-frame culling and
- * binning results stage 2 fills.
+ * binning results the draw side fills.
  */
 @blue.define({ className: "EveInstancedMeshManagerMeshData", donors: [ "EveInstancedMeshManager::MeshData" ] })
 export class EveInstancedMeshManagerMeshData

@@ -85,9 +85,13 @@ function sceneRecording(calls)
     UpdateFogSettings() { calls.push([ "UpdateFogSettings" ]); },
     UpdateVisibility() { calls.push([ "UpdateVisibility" ]); },
     GetRenderables(out) { calls.push([ "GetRenderables" ]); return out; },
-    // EveSpaceScene owns its instanced mesh manager and component registry (h:708; GatherBatches cpp:1525).
+    // EveSpaceScene owns its instanced mesh manager and component registry (h:708; GatherBatches cpp:1525-1529).
     componentRegistry: {},
-    instancedMeshManager: { CollectMeshes() { calls.push([ "CollectMeshes" ]); } },
+    instancedMeshManager: {
+      CollectMeshes() { calls.push([ "CollectMeshes" ]); },
+      GetBatches(frustum, invLodFactor, batches) { calls.push([ "GetBatches", frustum, invLodFactor, batches ]); return 0; },
+      ReportUsedScreenSizes() { calls.push([ "ReportUsedScreenSizes" ]); }
+    },
     PopulateAndApplyPerFrameData() {},
     RenderVolumetrics(_depth, pool) { return [new GpuResourceHandle(), new GpuResourceHandle()]; },
     GetPerFramePSData() { return null; },
@@ -116,7 +120,7 @@ function sceneRecording(calls)
     jitteredProjection: Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1),
     postprocess: null,
     // EveSpaceScene's m_updateContext; the driver stamps its render context.
-    updateContext: { renderContext: null },
+    updateContext: { renderContext: null, frustum: { id: "frustum" }, GetFrustum() { return this.frustum; }, GetInvLodFactor() { return 0.5; } },
     // No post-process effects: the chain runs copy, sharpening and tonemapping.
     GetPostProcess() { return null; }
   };
@@ -138,7 +142,11 @@ function batchManager(calls)
     },
     GetBatchMap()
     {
-      return { GetAccumulator: type => accumulators.get(type) ?? null };
+      return {
+        GetAccumulator: type => accumulators.get(type) ?? null,
+        // GatherBatches finalizes after the instanced mesh manager commits (cpp:1531).
+        Finalize() { calls.push([ "Finalize" ]); }
+      };
     }
   };
 }
@@ -194,8 +202,12 @@ test("the frame runs Carbon's order", () =>
     "UpdateVisibility",
     "GetRenderables",
     "Collect",
-    // GatherBatches: the instanced mesh manager after the renderables (cpp:1525).
+    // GatherBatches: the instanced mesh manager after the renderables
+    // (cpp:1525-1529), then FinalizeBatches (cpp:1531).
     "CollectMeshes",
+    "GetBatches",
+    "ReportUsedScreenSizes",
+    "Finalize",
     // After the gather: the scene's global textures (cpp:1390-1397).
     "UpdateVariableStore",
     // AFTER the gather: the blended sun colour is only current once lights have
@@ -219,6 +231,21 @@ test("the frame runs Carbon's order", () =>
     // Then the last-frame store (cpp:2866-2868, driver :597-598).
     "EndRender"
   ]);
+});
+
+test("the instanced mesh manager draws into the primary accumulators (EveSpaceScene.cpp:1527)", () =>
+{
+  const calls = [];
+  const driver = driverOver(calls);
+
+  driver.Execute([ StubTarget() ], null, 1, 2, null, StubContext());
+
+  const [ , frustum, invLodFactor, batches ] = calls.find(([ name ]) => name === "GetBatches");
+  assert.equal(frustum, driver.scene.updateContext.frustum, "the update context's frustum");
+  assert.equal(invLodFactor, 0.5, "the update context's inverse LOD factor");
+  // Carbon pairs OPAQUE, DECAL, ADDITIVE, DEPTH and DISTORTION; this map
+  // collects only the first two, so only they are paired.
+  assert.deepEqual(batches.map(([ type, accumulator ]) => [ type, accumulator.id ]), [ [ OPAQUE, "opaque" ], [ DECAL, "decal" ] ]);
 });
 
 test("a GPU particle system updates after the scene and renders in the main pass", () =>
@@ -283,7 +310,7 @@ test("transparent then additive follow the opaque family, under RM_ALPHA and RM_
     [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, { id: "transparent", GetBatches: () => [] } ],
     [ TriBatchType.TRIBATCHTYPE_ADDITIVE, { id: "additive", GetBatches: () => [] } ]
   ]);
-  driver.SetBatchManager({ Collect() {}, GetBatchMap: () => ({ GetAccumulator: type => accumulators.get(type) ?? null }) });
+  driver.SetBatchManager({ Collect() {}, GetBatchMap: () => ({ GetAccumulator: type => accumulators.get(type) ?? null, Finalize() {} }) });
 
   const esm = context.GetEffectStateManager();
   const apply = esm.ApplyStandardStates.bind(esm);

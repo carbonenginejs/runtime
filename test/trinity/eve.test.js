@@ -1567,10 +1567,39 @@ test("EveBoxVolume follows Carbon box intensity, bounds, and callbacks", () =>
   volume.innerScaling = vec3.fromValues(4, 2, 1);
   assert(volume.Initialize());
   assertEquals(volume.GetIntensity(vec3.create()), 1);
+  // Carbon EveBoxVolume.cpp:58-86, in outer-box unit space: (3,0,0) / (8,4,2) = (0.375,0,0); inner
+  // space (0.75,0,0) is outside. Ray (-1,0,0): outer hit behind = (0.5,0,0) (cpp:79), inner unit hit
+  // (0.5,0,0) * diag(4,2,1) * diag(1/8,1/4,1/2) = (0.25,0,0) (cpp:80,83).
+  // (0.375-0.5)^2 / (0.25-0.5)^2 = 0.015625 / 0.0625 = 0.25.
   assertAlmostEquals(volume.GetIntensity(vec3.fromValues(3, 0, 0)), 0.25);
   assertEquals(volume.GetIntensity(vec3.fromValues(5, 0, 0)), 0);
+  // Outside returns early (cpp:63-66), so the (3,0,0) hits are still recorded for RenderDebugInfo.
+  assertVec3(volume._outerIntersection, [0.5, 0, 0]);
+  assertVec3(volume._innerIntersection, [0.25, 0, 0]);
   const bounds = volume.GetBoundingSphere();
   assertAlmostEquals(bounds.radius, Math.sqrt(84) * 0.5);
+
+  // Inner box not similar to the outer: Carbon's unit-space ratio, not a radial one.
+  // scaling (4,4,4), inner (2,4,4), point (1.5,0.5,0): outer unit (0.375,0.125,0), inner unit
+  // (0.75,0.125,0) outside on x. rayDir = -(3,1,0)/sqrt(10). Outer slab minT = -0.125/0.948683 ->
+  // hit (0.5,1/6,0). Inner slab minT = 0.25/0.948683 -> unit hit (0.5,1/24,0), times diag(0.5,1,1)
+  // -> (0.25,1/24,0). (0.125^2 + (1/24)^2) / (0.25^2 + 0.125^2) = 0.0173611 / 0.078125 = 2/9.
+  // (The radial ramp this replaced gave 0.25 here.)
+  const skewed = new EveBoxVolume();
+  skewed.scaling = vec3.fromValues(4, 4, 4);
+  skewed.innerScaling = vec3.fromValues(2, 4, 4);
+  assert(skewed.Initialize());
+  assertAlmostEquals(skewed.GetIntensity(vec3.fromValues(1.5, 0.5, 0)), 2 / 9, 1e-5);
+  assertVec3(skewed._outerIntersection, [0.5, 1 / 6, 0]);
+  assertVec3(skewed._innerIntersection, [0.25, 1 / 24, 0]);
+
+  // Carbon quirk (cpp:108 with math/src/Matrix.cpp:12-15): a zero inner scaling makes the inner box
+  // transform singular, Inverse returns it unchanged, every point maps to the box position (0,0,0),
+  // which is inside the unit box - so the whole outer box reads 1. (The radial ramp gave 0.0625.)
+  const hollow = new EveBoxVolume();
+  hollow.scaling = vec3.fromValues(8, 4, 2);
+  assert(hollow.Initialize());
+  assertEquals(hollow.GetIntensity(vec3.fromValues(3, 0, 0)), 1);
 
   let changes = 0;
   const id = volume.RegisterForChanges(() => changes++);
@@ -1596,9 +1625,28 @@ test("EveEllipsoidVolume follows Carbon ellipsoid intensity and setup", () =>
   assert(volume.Initialize());
   assertEquals(changes, 1);
   assertEquals(volume.GetIntensity(vec3.create()), 1);
+  // Carbon EveEllipsoidVolume.cpp:77-98: rayDir = (-1,0,0). Outer: v = (-1/4,0,0), s = (3/4,0,0),
+  // v_s/v_v = -3, pq = 9 - 9 + 16 = 16, roots -1 and 7, closest -1 -> hit (4,0,0) (cpp:92). Inner:
+  // v = (-1/2,0,0), s = (3/2,0,0), pq = 9 - 9 + 4 = 4, roots 1 and 5 -> hit (2,0,0) (cpp:95).
+  // (3-4)^2 / (2-4)^2 = 0.25.
   assertAlmostEquals(volume.GetIntensity(vec3.fromValues(3, 0, 0)), 0.25);
   assertEquals(volume.GetIntensity(vec3.fromValues(5, 0, 0)), 0);
+  assertVec3(volume._outerIntersection, [4, 0, 0]);
+  assertVec3(volume._innerIntersection, [2, 0, 0]);
   assertEquals(volume.GetBoundingSphere().radius, 4);
+
+  // Carbon quirk (cpp:79): the inverse rotation turns the point about the ORIGIN, then the test is
+  // against an ellipsoid at position. Rotated 90 degrees about Z, RotationMatrix maps x to y, so the
+  // tested centre is (10,0,0) * R = (0,10,0): that point reads 1, the authored position reads 0
+  // ((10,0,0) * R^-1 = (0,-10,0), 10*sqrt(2) from the centre). The radial version gave 0 and 1.
+  const turned = new EveEllipsoidVolume();
+  turned.shape = vec3.fromValues(4, 2, 1);
+  turned.innerShape = vec3.fromValues(2, 1, 0.5);
+  turned.position = vec3.fromValues(10, 0, 0);
+  quat.setAxisAngle(turned.rotation, vec3.fromValues(0, 0, 1), Math.PI / 2);
+  assert(turned.Initialize());
+  assertEquals(turned.GetIntensity(vec3.fromValues(0, 10, 0)), 1);
+  assertEquals(turned.GetIntensity(vec3.fromValues(10, 0, 0)), 0);
   volume.shape = vec3.fromValues(-1, 3, 2);
   volume.innerShape = vec3.fromValues(4, -1, 5);
   volume.OnModified("shape");

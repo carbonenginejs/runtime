@@ -6,6 +6,7 @@ import { meta, type, blue } from "#schema";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
 import { EveInstancedMeshManagerInstanceFlags } from "../../instancedMeshManager/EveInstancedMeshManagerInstanceFlags.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 
 
 /**
@@ -99,6 +100,20 @@ export class EveChildInstancedMesh
    * CASTS_SHADOW at AddMesh (cpp:585), RENDER_IN_REFLECTION refreshed each
    * async pass (cpp:289). */
   flags = new EveInstancedMeshManagerInstanceFlags();
+
+  /**
+   * Carbon Mesh::combinedVertexDeclaration (EveChildInstancedMeshes.h): the
+   * mesh's declaration plus the instance inputs TEXCOORD8-15, built by
+   * RebuildCachedData (cpp:702-739); UNINITIALIZED_DECLARATION until then.
+   *
+   * Waiting: RebuildCachedData is not ported. Its instance inputs include
+   * UINT32_1 and UINT32_2 elements (cpp:722-724), which the CMF element
+   * vocabulary the geometry declarations use cannot express, and the vertex
+   * layout translation belongs to the AL. Until it lands the declaration stays
+   * unset, so AddMeshesToManager's Carbon gate (cpp:766-770) registers no
+   * mesh group and the manager emits no instanced batches.
+   */
+  combinedVertexDeclaration = Tr2EffectStateManager.Unknown;
 
   _geometry = null;
 

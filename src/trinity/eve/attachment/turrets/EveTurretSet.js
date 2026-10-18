@@ -85,8 +85,12 @@ export class EveTurretSet extends EveEntity
   @type.rootRef("EveTurretFiringFX")
   _firingEffect = null;
 
-  /** Live firing effect property uses the native registration/muzzle setter. */
-  @blue.readwrite
+  /**
+   * Carbon MAP_PROPERTY "firingEffect" over GetFiringEffect/SetFiringEffect
+   * (EveTurretSet_Blue.cpp:104): the setter transfers registration and binds
+   * the muzzle joints.
+   */
+  @blue.property()
   @type.rootRef("EveTurretFiringFX")
   @meta.implemented
   get firingEffect()
@@ -107,8 +111,11 @@ export class EveTurretSet extends EveEntity
   @type.rootRef("EveSpaceObjectChild")
   _ambientEffect = null;
 
-  /** Live ambient property rebuilds the distributed instances. */
-  @blue.readwrite
+  /**
+   * Carbon MAP_PROPERTY "ambientEffect" over GetAmbientEffect/SetAmbientEffect
+   * (EveTurretSet_Blue.cpp:122): the setter rebuilds the distributed instances.
+   */
+  @blue.property()
   @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get ambientEffect()
@@ -123,8 +130,11 @@ export class EveTurretSet extends EveEntity
     this.SetAmbientEffect(value);
   }
 
-  /** Live target property; validation remains owned by EveTurretTarget. */
-  @blue.readwrite
+  /**
+   * Carbon MAP_PROPERTY "targetObject" over GetTargetObject/SetTargetObject
+   * (EveTurretSet_Blue.cpp:78); validation stays with EveTurretTarget.
+   */
+  @blue.property()
   @type.rootRef("ITriTargetable")
   @meta.implemented
   get targetObject()

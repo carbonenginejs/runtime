@@ -14,5 +14,6 @@ export * from "./EveInstancedMeshManagerInstanceBuffer.js";
 export * from "./EveInstancedMeshManagerMeshData.js";
 export * from "./EveInstancedMeshManagerKeyHasher.js";
 export * from "./EveInstancedMeshManagerSphereGroup.js";
+export * from "./EveInstancedMeshManagerPickingPerObjectData.js";
 export * from "./EveInstancedMeshManager.js";
 export * from "./IEveInstanceMeshProvider.js";

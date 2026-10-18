@@ -10,7 +10,7 @@ import { EveInstancedMeshManagerInstanceFlags } from "./EveInstancedMeshManagerI
  * provider's set of instance cull spheres - the group's enclosing sphere and
  * flags (copied in), the provider's per-instance sphere array (read in
  * place), the provider's handle, and the per-instance screen sizes and last
- * frustum result stage 2's culling writes.
+ * frustum result the manager's culling writes.
  *
  * A sphere is the `{ center, radius }` record TriFrustum's sphere tests read.
  */

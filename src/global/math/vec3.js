@@ -887,6 +887,44 @@ vec3.clampLength = function (out, a, maxLength)
 };
 
 
+/**
+ * Carbon: Normalize (math/include/Vector3_inline.h:181-192)
+ *
+ * Carbon's Vector3 Normalize, in float: v is first divided by its largest absolute component (Carbon's
+ * guard against the squares overflowing; Vector3 / float multiplies by 1.0f / f, Vector3_inline.h:81-89),
+ * then scaled by 1 / Length. A zero vector stays zero, signs of zero included.
+ *
+ * @param {vec3} out Receiving vector; may alias v.
+ * @param {vec3} v Vector to normalise.
+ * @returns {vec3} out
+ */
+vec3.normalizeCarbon = function (out, v)
+{
+    const f = Math.fround;
+    const x = f(v[0]), y = f(v[1]), z = f(v[2]);
+
+    // std::max( std::max( |x|, |y| ), |z| ), where std::max(a, b) is (a < b) ? b : a.
+    const ax = Math.abs(x), ay = Math.abs(y), az = Math.abs(z);
+    const maxXY = ax < ay ? ay : ax;
+    const max = maxXY < az ? az : maxXY;
+
+    // v / ( max ? max : 1 ); a C++ float is true for NaN, so the test is against 0, not JS truthiness.
+    const fDiv = f(1 / (max !== 0 ? max : 1));
+    const mx = f(x * fDiv), my = f(y * fDiv), mz = f(z * fDiv);
+
+    let length = f(Math.sqrt(f(f(f(mx * mx) + f(my * my)) + f(mz * mz))));
+    if (length !== 0)
+    {
+        length = f(1 / length);
+    }
+
+    out[0] = f(mx * length);
+    out[1] = f(my * length);
+    out[2] = f(mz * length);
+    return out;
+};
+
+
 export { vec3 };
 
 export const {
@@ -920,6 +958,7 @@ export const {
     multiply,
     negate,
     normalize,
+    normalizeCarbon,
     random,
     rotateX,
     rotateY,

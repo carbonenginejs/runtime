@@ -639,6 +639,7 @@ export class EveSpaceScene
    * MAP_PROPERTY "gpuParticleSystem" (EveSpaceScene_Blue.cpp:472): the GPU
    * particle system, held by the update context, which hands it to emitters.
    */
+  @blue.property()
   @type.rootRef("Tr2GpuParticleSystem")
   get gpuParticleSystem()
   {
@@ -1089,8 +1090,9 @@ export class EveSpaceScene
    * Pre-92483097 EveSpaceScene.cpp:3578-3771: retained collision-set indices,
    * request-owned BGRA8 main target and independent float debug target.
    * Browser readback readiness replaces native frame-number synchronization.
-   * The instancing manager's picking side (GetPickingBatches, GetPickedObject)
-   * is not ported yet, so instanced meshes are not pickable. The debug renderer's
+   * Instanced meshes are not picked in this framework: current Carbon picks
+   * them only through the readback framework (EveInstancedMeshManager.h:100,
+   * 279), and the pre-92483097 manager bodies are not ported. The debug renderer's
    * Pick entry is an explicit unported obligation, not silently skipped.
    */
   @meta.adapted
@@ -1119,11 +1121,10 @@ export class EveSpaceScene
       }
       const batches = this._pickingBatches;
       batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
-      // Waiting: Carbon's instanced picking batches (EveSpaceScene.cpp:3641-3660,
-      // m_instancedMeshManager->GetPickingBatches) arrive with the manager's
-      // draw side. The manager now exists with the scene but does not yet
-      // implement GetPickingBatches, so no instanced batches are gathered here,
-      // as before when the member was null.
+      // Waiting: EvePendingPickingReadback. Pre-92483097 cpp:3621-3639 gathered
+      // the instanced meshes here; current Carbon picks them only through the
+      // readback framework (EveInstancedMeshManager.h:100, 279), so this
+      // framework gathers none.
       if ((request.collisionSet.length || batches.GetBatchCount()) && !Failed(renderContext.BeginScene()))
       {
         try
@@ -1195,7 +1196,13 @@ export class EveSpaceScene
   /**
    * Carbon 92483097's regular-object GPU pass. Call between scene renders. Submission and
    * state restoration finish synchronously before any WebGPU readback is awaited.
-   * Instanced, skinned, interior and debug-renderer picking remain separate ports.
+   * Instanced meshes come from the manager's GetPickingBatches (cpp:3643-3661).
+   * Skinned, interior and debug-renderer picking remain separate ports.
+   *
+   * Adapted: Carbon gathers the instanced batches before it checks the pick
+   * buffers; here they are gathered once the buffers exist, inside the block
+   * whose finally clears the picking accumulator, so a failed pick cannot
+   * leave them queued for the next one.
    */
   @meta.adapted
   PerformPicking__Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
@@ -1240,6 +1247,24 @@ export class EveSpaceScene
             esm.SetFullScreenViewport();
             const batches = this._pickingBatches;
             batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
+            // Carbon cpp:3643-3661: the shared instanced meshes' batches.
+            {
+              const instancedBatches = [];
+              if ((pickTypes & Tr2PickType.PICK_TYPE_OPAQUE) !== 0)
+              {
+                instancedBatches.push([ TriBatchType.TRIBATCHTYPE_OPAQUE, batches ]);
+              }
+              if ((pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT) !== 0)
+              {
+                instancedBatches.push([ TriBatchType.TRIBATCHTYPE_TRANSPARENT, batches ]);
+                instancedBatches.push([ TriBatchType.TRIBATCHTYPE_ADDITIVE, batches ]);
+              }
+              if (instancedBatches.length !== 0)
+              {
+                this.instancedMeshManager.GetPickingBatches(request, this.updateContext.GetFrustum(), this.CreatePickingFrustum(renderContext),
+                  this.updateContext.GetInvLodFactor(), instancedBatches);
+              }
+            }
             for (const renderable of visible)
             {
               const pickable = CjsSchema.cast(renderable, ITr2Pickable);
@@ -1325,9 +1350,9 @@ export class EveSpaceScene
     const mainData = mapping.result === ALResult.S_OK ? mapping.data : null;
     const debugData = debug.result === ALResult.S_OK ? debug.data : null;
     const result = pending.framework === "objectId"
-      // Waiting: immediate instanced traceback goes through the manager's
-      // GetPickedObject (EveInstancedMeshManager.h:101), not yet ported, so no
-      // manager is supplied - as before when the member was null.
+      // Waiting: EvePendingPickingReadback. Pre-92483097 cpp:3749-3754 decoded
+      // an immediate instanced hit with the manager's GetPickedObject, which
+      // current Carbon declares (h:101) without a body; no manager is passed.
       ? pending.DecodeResult__ObjectId(mainData, debugData, immediate, null)
       : mainData ? pending.DecodeResult(mainData) : [null, 0, 0];
     listener.UpdateResult(pending.pickedX, pending.pickedY, ...result);
@@ -2203,7 +2228,8 @@ export class EveSpaceScene
    *   pass - so after TAA's opaque copy, which excludes them as Carbon's does;
    * - the last-frame store (cpp:2866-2868): this frame's view, and its
    *   UNJITTERED projection, become next frame's viewLast and projectionLast,
-   *   which the per-frame vertex block hands the velocity shaders.
+   *   which the per-frame vertex block hands the velocity shaders;
+   * - the instanced mesh manager's ReportUsedScreenSizes (cpp:2896).
    *
    * Adapted: the rest of Carbon's EndRender (the secondary transparent and
    * additive gathers, batch clearing, the variable store) belongs to passes
@@ -2248,6 +2274,9 @@ export class EveSpaceScene
     {
       Tr2Renderer.DrawTexture__EffectTexCoords(renderContext, visualizerEffect.effect, OVERLAY_TL, OVERLAY_BR);
     }
+
+    // The instanced meshes' screen sizes, last (cpp:2896).
+    this.instancedMeshManager.ReportUsedScreenSizes();
   }
 
   /**
@@ -2615,8 +2644,7 @@ export class EveSpaceScene
    * Adapted:
    * - `renderer` is passed in, as RenderBackgroundPassObjects and
    *   SetupCascadedShadows take it here.
-   * - EveInstancedMeshManager's GetBatches is not ported yet (cpp:1915-1925),
-   *   so there are no instanced batches; raytraced shadows are unported, so the RAYTRACED quality
+   * - Raytraced shadows are unported, so the RAYTRACED quality
    *   draws no reflection shadows (Carbon's m_rtManager is absent).
    * - Carbon locks the saved DepthMap provider while it is swapped out; a JS
    *   reference needs no lock.
@@ -2741,7 +2769,24 @@ export class EveSpaceScene
     const hasFog = !!this.volumetricsRenderer && this.volumetricsRenderer.HasFog();
     const batches = this._secondaryBatches;
     this.ClearBatches(batches);
-    if (!hasFog && !visibleRenderables.length) return;
+
+    // Carbon cpp:1915-1925: the shared instanced meshes, into the secondary
+    // batches. Carbon quirk, reproduced: no reason is passed, so the
+    // manager's default TR2RENDERREASON_NORMAL drops the RENDER_IN_REFLECTION
+    // filter and every instanced mesh reflects (CE-183).
+    const hasInstancedBatches = this.instancedMeshManager.GetBatches(
+      this.updateContext.GetFrustum(),
+      this.updateContext.GetInvLodFactor(),
+      [
+        [ TriBatchType.TRIBATCHTYPE_OPAQUE, batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE) ],
+        [ TriBatchType.TRIBATCHTYPE_DECAL, batches.get(TriBatchType.TRIBATCHTYPE_DECAL) ],
+        [ TriBatchType.TRIBATCHTYPE_ADDITIVE, batches.get(TriBatchType.TRIBATCHTYPE_ADDITIVE) ],
+        [ TriBatchType.TRIBATCHTYPE_DEPTH, batches.get(TriBatchType.TRIBATCHTYPE_DEPTH) ]
+      ]) > 0;
+
+    this.instancedMeshManager.ReportUsedScreenSizes();
+
+    if (!hasFog && !visibleRenderables.length && !hasInstancedBatches) return;
 
     const esm = renderContext.GetEffectStateManager();
     renderContext.Clear({ clearDepth: true, depth: 0 });
@@ -3476,8 +3521,10 @@ export class EveSpaceScene
       const splitSetup = shadowMap.SetupShadowSplit(splitIndex, renderContext.GetInverseViewTransform(), sunDir, viewFrustum.zNear, left, right, top, bottom);
 
       // The split's slice of the camera frustum, for half-space culling of
-      // casters. Only the planes are read, so they are all that is made.
-      const cameraFrustum = new TriFrustum();
+      // casters: a copy of the update context's frustum with its planes
+      // replaced (cpp:660-663). The instanced mesh manager also reads its
+      // view position and projection for instance pixel sizes.
+      const cameraFrustum = new TriFrustum().Copy(this.updateContext.GetFrustum());
       // Carbon's Inverse returns its input when the determinant is zero
       // (Matrix.cpp:13-16), as it is for a split the near clip has passed;
       // gl-matrix returns null there.
@@ -3516,6 +3563,9 @@ export class EveSpaceScene
       for (const info of shadowCasterInfo) info.perObjectData = info.caster.GetShadowPerObjectData(batches);
       for (const info of shadowCasterInfo) info.caster.GetShadowBatches(batches, info.perObjectData, info.radius);
 
+      // Carbon cpp:741-745: the shared instanced meshes' casters for this split.
+      this.instancedMeshManager.GetShadowBatches(cameraFrustums[frustumIndex], shadowFrustums[frustumIndex], this.updateContext.GetInvLodFactor(),
+        [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, batches ] ], renderReason);
       batches.Finalize();
     }
 

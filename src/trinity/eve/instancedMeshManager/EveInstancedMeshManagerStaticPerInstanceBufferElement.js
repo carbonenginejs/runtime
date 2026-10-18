@@ -6,8 +6,8 @@ import { type, blue } from "#schema";
  * Carbon EveInstancedMeshManager::StaticPerInstanceBufferElement (private,
  * h:150-156): the GPU record one static instance becomes in the static
  * instance buffer - its packed world transform, the slot of its per-object
- * data in the structured buffer, and its picking indices. Stage 2's
- * UploadLodData writes these; nothing in this stage does.
+ * data in the structured buffer, and its picking indices. The manager's
+ * UploadLodData writes these, byte for byte, into the instance buffer.
  */
 @blue.define({ className: "EveInstancedMeshManagerStaticPerInstanceBufferElement", donors: [ "EveInstancedMeshManager::StaticPerInstanceBufferElement" ] })
 export class EveInstancedMeshManagerStaticPerInstanceBufferElement

@@ -1314,6 +1314,97 @@ box3.bounds.union = function (outMin, outMax, aMin, aMax, bMin, bMax)
     outMax[2] = Math.max(aMax[2], bMax[2]);
 };
 
+/**
+ * Carbon: BoundingBoxIsInside (trinity/trinity/Utilities/BoundingBox.cpp:135-150)
+ *
+ * Whether pos lies inside the bounds, faces included. Carbon tests each axis for being outside, so a NaN
+ * component counts as inside.
+ *
+ * @param {vec3} min Minimum bounds.
+ * @param {vec3} max Maximum bounds.
+ * @param {vec3} pos Point to test.
+ * @returns {boolean}
+ */
+box3.bounds.boundingBoxIsInside = function (min, max, pos)
+{
+    if ((min[0] > pos[0]) || (max[0] < pos[0]))
+    {
+        return false;
+    }
+    if ((min[1] > pos[1]) || (max[1] < pos[1]))
+    {
+        return false;
+    }
+    if ((min[2] > pos[2]) || (max[2] < pos[2]))
+    {
+        return false;
+    }
+    return true;
+};
+
+/**
+ * Carbon: IntersectAxisAlignedBoxRay (trinity/trinity/Utilities/BoundingBox.cpp:294-319)
+ *
+ * Slab test of a ray against axis-aligned bounds, in float. out always receives rayOrigin + minT * rayDir,
+ * where minT is the largest per-axis near distance, so a ray starting inside the box gets the face BEHIND
+ * it; the return says whether minT < maxT. Degenerate bounds (min == max) write the point itself and
+ * return LengthSq( Normalize( min - rayOrigin ) - rayDir ) < 1e10, which holds for any finite direction:
+ * Carbon quirk (CE-182), ported as written.
+ *
+ * @param {vec3} out Receives the intersection point (Carbon's intersection output).
+ * @param {vec3} minBounds Minimum bounds.
+ * @param {vec3} maxBounds Maximum bounds.
+ * @param {vec3} rayOrigin Ray origin.
+ * @param {vec3} rayDir Ray direction, normalised.
+ * @returns {boolean} false when the ray misses the bounds.
+ */
+box3.bounds.intersectAxisAlignedBoxRay = function (out, minBounds, maxBounds, rayOrigin, rayDir)
+{
+    const f = Math.fround;
+
+    if (minBounds[0] === maxBounds[0] && minBounds[1] === maxBounds[1] && minBounds[2] === maxBounds[2])
+    {
+        // We are actually dealing with a point, not a box.
+        const toPoint = INTERSECT_AABB_RAY_POINT;
+        toPoint[0] = f(minBounds[0] - rayOrigin[0]);
+        toPoint[1] = f(minBounds[1] - rayOrigin[1]);
+        toPoint[2] = f(minBounds[2] - rayOrigin[2]);
+        vec3.normalizeCarbon(toPoint, toPoint);
+        const dx = f(toPoint[0] - rayDir[0]), dy = f(toPoint[1] - rayDir[1]), dz = f(toPoint[2] - rayDir[2]);
+        out[0] = minBounds[0];
+        out[1] = minBounds[1];
+        out[2] = minBounds[2];
+        return f(f(f(dx * dx) + f(dy * dy)) + f(dz * dz)) < 1e10;
+    }
+
+    const ox = f(rayOrigin[0]), oy = f(rayOrigin[1]), oz = f(rayOrigin[2]);
+    const rx = f(rayDir[0]), ry = f(rayDir[1]), rz = f(rayDir[2]);
+
+    // XMVectorReciprocal is an exact SSE divide, not the estimate; a zero lane gives a signed infinity.
+    const ix = f(1 / rx), iy = f(1 / ry), iz = f(1 / rz);
+
+    const t0x = f(f(minBounds[0] - ox) * ix), t0y = f(f(minBounds[1] - oy) * iy), t0z = f(f(minBounds[2] - oz) * iz);
+    const t1x = f(f(maxBounds[0] - ox) * ix), t1y = f(f(maxBounds[1] - oy) * iy), t1z = f(f(maxBounds[2] - oz) * iz);
+
+    // XMVectorMin / XMVectorMax are SSE minps / maxps: (a < b) ? a : b and (a > b) ? a : b per lane.
+    const sx = t0x < t1x ? t0x : t1x, sy = t0y < t1y ? t0y : t1y, sz = t0z < t1z ? t0z : t1z;
+    const bx = t0x > t1x ? t0x : t1x, by = t0y > t1y ? t0y : t1y, bz = t0z > t1z ? t0z : t1z;
+
+    // std::max(a, b) is (a < b) ? b : a; std::min(a, b) is (b < a) ? b : a.
+    const syz = sy < sz ? sz : sy;
+    const minT = sx < syz ? syz : sx;
+    const byz = bz < by ? bz : by;
+    const maxT = byz < bx ? byz : bx;
+
+    out[0] = f(ox + f(minT * rx));
+    out[1] = f(oy + f(minT * ry));
+    out[2] = f(oz + f(minT * rz));
+    return minT < maxT;
+};
+
+// box3.bounds.intersectAxisAlignedBoxRay scratch for the degenerate-bounds branch.
+const INTERSECT_AABB_RAY_POINT = new Float32Array(3);
+
 export const {
     bounds,
     alloc,

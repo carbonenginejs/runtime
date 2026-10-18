@@ -1503,9 +1503,15 @@ export class EveSOF
       const areas = this.CreateSharedLayoutAreas(document, dna);
       if (areas.length !== 0)
       {
+        // Carbon AddMesh (EveChildInstancedMeshes.cpp:463, 559-565) fills the
+        // record's mirroring and picking indices; this document is built
+        // without AddMesh, so it carries them.
         const instance = document.AddNode("EveChildInstancedMeshInstance", {
           transform: transform.slice(),
-          sphereIndex: 0
+          sphereIndex: 0,
+          mirrored: mat4.determinant(transform) < 0,
+          pickingMeshIndex: shared.meshes.length,
+          pickingInstanceIndex: 0
         });
         shared.meshes.push(document.AddNode("EveChildInstancedMesh", {
           geometryPath: dna.GetHullGeometryResPath(),
@@ -2657,9 +2663,17 @@ export class EveSOF
             });
             rootFields.effectChildren.push(sharedRef);
           }
+          // Carbon AddMesh (EveChildInstancedMeshes.cpp:463, 559-565), as above.
+          const pickingMeshIndex = sharedMeshes.length;
           const instances = transforms.map((transform, sphereIndex) => document.AddNode(
             "EveChildInstancedMeshInstance",
-            { transform, sphereIndex }
+            {
+              transform,
+              sphereIndex,
+              mirrored: mat4.determinant(transform) < 0,
+              pickingMeshIndex,
+              pickingInstanceIndex: sphereIndex
+            }
           ));
           sharedMeshes.push(document.AddNode("EveChildInstancedMesh", {
             geometryPath: extensionDna.GetHullGeometryResPath(),
