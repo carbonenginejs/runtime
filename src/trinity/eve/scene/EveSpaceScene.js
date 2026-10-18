@@ -57,7 +57,9 @@ import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../
 import { EveVisualizeMethod, VisualizerType } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
+import { TriShadowFrustum } from "./shadows/TriShadowFrustum.js";
 import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
+import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
 import { be } from "#blue";
 import { ExecuteMainThreadActions } from "../../core/continueOnMainThread.js";
@@ -124,6 +126,41 @@ const SHADOW_CLIP_TO_UV = mat4.fromValues(
 // EveSpaceScene.cpp:1441 `const Matrix& identity = IdentityMatrix()`). Module
 // const, NEVER mutated - objects in m_objects are scene roots.
 const IDENTITY = mat4.create();
+
+/** Carbon's TRI_2PI (TriMath.h:245), the float literal 6.283185307f. */
+const TRI_2PI = Math.fround(6.283185307);
+
+/** RenderShadowMapForLight's six cube-face directions (EveSpaceScene.cpp:2581-2583). Never mutated. */
+const POINT_LIGHT_DIRECTIONS = [
+  vec3.fromValues(1, 0, 0), vec3.fromValues(0, 1, 0), vec3.fromValues(0, 0, 1),
+  vec3.fromValues(-1, 0, 0), vec3.fromValues(0, -1, 0), vec3.fromValues(0, 0, -1)
+];
+
+/** GetLightMatrices' two up vectors (EveSpaceScene.cpp:4191). Never mutated. */
+const LIGHT_UP_Y = vec3.fromValues(0, 1, 0);
+const LIGHT_UP_X = vec3.fromValues(1, 0, 0);
+
+// GetLightMatrices' look-at target, live only inside the call.
+const lightMatricesAtScratch = vec3.create();
+
+// Module scratch for the cloud and light shadow passes. RenderShadowMapForLight's
+// light camera stays live across its RenderShadowMapForSpotLight calls, so
+// each pass has fields of its own.
+const shadowPassScratch = {
+  cloudProjection: mat4.create(),
+  cloudInverseProjection: mat4.create(),
+  cloudInvViewProj: mat4.create(),
+  cloudViewProj: mat4.create(),
+  spotMarginScale: vec3.create(),
+  spotMarginMatrix: mat4.create(),
+  spotViewProj: mat4.create(),
+  lightProjection: mat4.create(),
+  lightView: mat4.create(),
+  lightUp: vec3.create(),
+  lightAt: vec3.create(),
+  lightMatrices: { projection: mat4.create(), view: mat4.create() },
+  lightCell: { shadowMapScale: 0, shadowMapOffsetX: 0, shadowMapOffsetY: 0 }
+};
 
 /** Carbon's default-constructed EveSpaceScene::ShadowResources: every texture empty. */
 function EmptyShadowResources()
@@ -3542,13 +3579,16 @@ export class EveSpaceScene
   _shadowPerFrameVSBuffer = new Tr2ConstantBufferAL();
 
   /**
-   * Carbon EveSpaceScene::RenderShadows (cpp:2618-2676): the cascaded shadow
-   * map at LOW or HIGH shadow quality.
+   * Carbon EveSpaceScene::RenderShadows (cpp:2629-2694): the cascaded shadow
+   * map at LOW or HIGH shadow quality, then the point and spot light shadow
+   * atlas.
    *
    * Adapted: the renderer is passed in for the resolve's blitter, as
-   * `Tr2ShadowMap.DrawToShadowMapResult` takes it. Not ported, each a later
-   * insertion here: the raytraced branch (no Tr2RaytracingManager), and the
-   * point and spot light shadow atlas (the light manager's shadow maps).
+   * `Tr2ShadowMap.DrawToShadowMapResult` takes it. Two branches wait on
+   * subsystems that are not ported, each marked at its site: the raytraced
+   * branch (no Tr2RaytracingManager), and the light atlas pass, which needs
+   * the light manager's GetShadowMapAtlas. The atlas pass's per-light work,
+   * RenderShadowMapForLight and its helpers, is ported.
    *
    * @param {object} depthMap The scene depth.
    * @param {object|null} normalMap The depth pass's normal map (the raytraced branch reads it).
@@ -3565,13 +3605,35 @@ export class EveSpaceScene
   {
     if (!this.display || !this._enableShadows) return EmptyShadowResources();
 
+    let result = EmptyShadowResources();
+
     if (this.cascadedShadowMap
       && (this.shadowQualitySetting === ShadowQuality.SHADOW_LOW || this.shadowQualitySetting === ShadowQuality.SHADOW_HIGH))
     {
-      return this.SetupCascadedShadows(Tr2RenderReason.TR2RENDERREASON_NORMAL, this.cascadedShadowMap, this.updateContext.GetFrustum(), depthMap, gpuResourcePool, renderContext, renderer);
+      result = this.SetupCascadedShadows(Tr2RenderReason.TR2RENDERREASON_NORMAL, this.cascadedShadowMap, this.updateContext.GetFrustum(), depthMap, gpuResourcePool, renderContext, renderer);
     }
 
-    return EmptyShadowResources();
+    // Waiting: Tr2RaytracingManager (EveSpaceScene.cpp:2641-2671). Carbon's
+    // `else if( m_rtManager && m_shadowQuality == SHADOW_RAYTRACED ... )`
+    // branch goes here; it is the only caller of RenderVolumetricShadowMap
+    // (cpp:2658), after the volumetrics renderer's own RenderShadows.
+
+    const lightManager = Tr2LightManager.getInstance();
+
+    if (lightManager
+      && lightManager.GetShadowCastingLights().length > 0
+      && this.shadowQualitySetting !== ShadowQuality.SHADOW_DISABLED
+      && this.shadowQualitySetting !== ShadowQuality.SHADOW_RAYTRACED)
+    {
+      // Waiting: Tr2LightManager.GetShadowMapAtlas (Tr2LightManager.cpp:703,
+      // called at EveSpaceScene.cpp:2678). With a valid atlas Carbon runs
+      // PrepareShadowMapForLights, then RenderShadowMapForLight for each
+      // index in GetShadowCastingLights against the registry's shadow
+      // casters, then FinishRenderingShadowMapForLights, and returns the
+      // atlas as pointLightShadowDepth (cpp:2679-2690).
+    }
+
+    return result;
   }
 
   /**
@@ -3753,6 +3815,443 @@ export class EveSpaceScene
       pointLightShadowMap: new GpuResourceHandle(),
       pointLightShadowDepth: new GpuResourceHandle()
     };
+  }
+
+  /**
+   * Carbon EveSpaceScene::RenderVolumetricShadowMap (cpp:2369-2385): for each
+   * volumetric renderable, takes its shadow camera, and when it prepares its
+   * cloud shadow map, draws the scene's shadow casters into it with
+   * RenderIntoCloudShadowMap and publishes the map.
+   *
+   * Its only Carbon caller is RenderShadows' raytraced branch (cpp:2658),
+   * which waits on Tr2RaytracingManager, so nothing calls it yet.
+   *
+   * Adapted: the shadow camera is a plain record with
+   * ITr2VolumetricRenderable::ShadowInfo's fields (ITr2VolumetricRenderable.h:37-43),
+   * whose members start null where Carbon default-constructs them. The
+   * renderable assigns all four (EveChildCloud2.cpp:903-906), and allocating
+   * defaults it replaces would be per-frame garbage.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.adapted
+  RenderVolumetricShadowMap(renderContext)
+  {
+    const shadowCasters = this.componentRegistry.GetComponents(EveComponentType.ShadowCaster);
+
+    this.componentRegistry.ProcessComponents(EveComponentType.VolumetricRenderable, volumetric =>
+    {
+      const shadowInfo = { shadowFrustum: null, lightViewProj: null, aabbMax: null, shadowMapSize: 0 };
+
+      volumetric.GetVolumetricShadowInfo(shadowInfo, this.sunDirection);
+
+      if (volumetric.PrepareCloudShadowMap(renderContext))
+      {
+        this.RenderIntoCloudShadowMap(renderContext, shadowInfo, shadowCasters);
+        volumetric.SetCloudShadowMapHandle();
+      }
+    });
+  }
+
+  /**
+   * Carbon EveSpaceScene::RenderIntoCloudShadowMap (cpp:2387-2446): draws the
+   * shadow casters between the camera and a cloud into the cloud's shadow
+   * map, with their "Shadow" technique and the cloud's light view-projection.
+   * The cloud's PrepareCloudShadowMap pushed the target, depth-stencil and
+   * viewport this pops.
+   *
+   * Adapted: Carbon reads the camera off Tr2Renderer's statics, which the
+   * render context holds here, as SetupCascadedShadows does; the aspect ratio
+   * is Tr2Renderer's `_22 / _11` of the projection (Tr2Renderer.cpp:80). The
+   * accumulator draws from the context's pool allocator, where Carbon gives
+   * it its own (cpp:245-250). Carbon fills a fresh PerFrameVSData of which it
+   * sets only ViewProjectionMat; ours reuses the cascades' record, which sets
+   * the same one field.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {object} cloudShadowInformation ITr2VolumetricRenderable::ShadowInfo:
+   *   `{ shadowFrustum, lightViewProj, aabbMax, shadowMapSize }`.
+   * @param {Array<IEveShadowCaster>} shadowCasters The registry's shadow casters.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.adapted
+  RenderIntoCloudShadowMap(renderContext, cloudShadowInformation, shadowCasters)
+  {
+    const scratch = shadowPassScratch;
+
+    // Get distance from camera to zFar (cpp:2391-2393).
+    // Carbon quirk, reproduced: aabbMax is the cloud's bound in LIGHT-VIEW
+    // space (EveChildCloud2.cpp:893-906) while the view position is in world
+    // space, so this distance mixes two frames.
+    const dist = vec3.distance(renderContext.GetViewPosition(), cloudShadowInformation.aabbMax);
+
+    const cameraProjection = renderContext.GetProjection();
+    const aspectRatio = cameraProjection[0] ? cameraProjection[5] / cameraProjection[0] : 0;
+
+    // PerspectiveFovMatrix (Matrix_inline.h:704-714) is gl-matrix's
+    // perspectiveZO element for element while the far clip is finite.
+    mat4.perspectiveZO(scratch.cloudProjection, renderContext.GetFieldOfView(), aspectRatio, this.updateContext.GetFrustum().zNear, dist);
+
+    // Carbon's Inverse returns its input when the determinant is zero
+    // (Matrix.cpp:13-16); gl-matrix returns null there.
+    if (!mat4.invert(scratch.cloudInverseProjection, scratch.cloudProjection)) mat4.copy(scratch.cloudInverseProjection, scratch.cloudProjection);
+
+    // Carbon (row-vector): Inverse( projection ) * GetInverseViewTransform()
+    // - the inverse projection applies first, so gl-matrix reverses the operands (cpp:2396).
+    mat4.multiply(scratch.cloudInvViewProj, renderContext.GetInverseViewTransform(), scratch.cloudInverseProjection);
+
+    if (!mat4.invert(scratch.cloudViewProj, scratch.cloudInvViewProj)) mat4.copy(scratch.cloudViewProj, scratch.cloudInvViewProj);
+
+    // A default TriFrustum, of which only the planes are set (cpp:2399-2400).
+    const frustum = new TriFrustum();
+
+    frustum.ExtractFrustum(scratch.cloudViewProj);
+
+    const batches = this._shadowBatches[0];
+    const allocator = renderContext.GetTriPoolAllocator();
+
+    if (allocator) batches.SetTriPoolAllocator(allocator);
+
+    const shadowFrustum = TriShadowOrthoFrustum.create__AllFields(cloudShadowInformation.shadowFrustum, cloudShadowInformation.shadowMapSize, this.sunDirection);
+
+    // Carbon quirk, reproduced: one sizeInShadow serves every caster
+    // (cpp:2405) and IsCastingShadow's result is ignored, so a caster that
+    // returns before writing the size is gathered with the previous caster's
+    // size.
+    const sizeInShadow = [ 0 ];
+
+    for (const caster of shadowCasters)
+    {
+      caster.IsCastingShadow__ShadowFrustum(frustum, shadowFrustum, Tr2RenderReason.TR2RENDERREASON_NORMAL, sizeInShadow);
+
+      // special threshold check
+      if (sizeInShadow[0] > 5)
+      {
+        const perObjData = caster.GetShadowPerObjectData(batches);
+
+        caster.GetShadowBatches(batches, perObjData, sizeInShadow[0]);
+      }
+    }
+
+    // The instanced meshes cull against the update context's frustum, not
+    // the clipped one the casters were given (cpp:2416).
+    this.instancedMeshManager.GetShadowBatches(this.updateContext.GetFrustum(), shadowFrustum, this.updateContext.GetInvLodFactor(),
+      [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, batches ] ]);
+
+    batches.Finalize();
+
+    // column_major for shaders: Carbon stores Transpose( lightViewProj ) (cpp:2421).
+    this._shadowPerFrameVS.SetAndTranspose("ViewProjectionMat", cloudShadowInformation.lightViewProj);
+
+    const data = this._shadowPerFrameVS.GetData();
+
+    const shaderTypeMask = renderContext.GetRenderContextAL().constructor.SHADER_TYPE_MASK;
+    // Carbon's perFrameVsMask (cpp:2423-2429): vertex, and every other non-pixel stage the backend has.
+    const perFrameVsMask = (1 << ShaderType.VERTEX_SHADER) | (shaderTypeMask & (
+      (1 << ShaderType.COMPUTE_SHADER)
+      | (1 << ShaderType.GEOMETRY_SHADER)
+      | (1 << ShaderType.HULL_SHADER)
+      | (1 << ShaderType.DOMAIN_SHADER)
+    ));
+
+    Tr2RenderUtils.fillAndSetConstants(this._shadowPerFrameVSBuffer, data, data.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
+
+    const esm = renderContext.GetEffectStateManager();
+
+    if (batches.GetBatchCount())
+    {
+      esm.SetInvertedDepthTest(false);
+
+      try
+      {
+        esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
+        renderContext.RenderBatches(batches, "Shadow");
+      }
+      finally
+      {
+        esm.SetInvertedDepthTest(true);
+      }
+    }
+
+    batches.Clear();
+
+    renderContext.SetReadOnlyDepth(false);
+
+    esm.PopRenderTarget();
+    esm.PopDepthStencilBuffer();
+    esm.PopViewport();
+  }
+
+  /**
+   * Carbon EveSpaceScene::PrepareShadowMapForLights (cpp:2490-2503): binds
+   * the light shadow atlas as the depth-stencil, with no colour target, and
+   * clears it to 0 for the reversed-depth light projections.
+   *
+   * Carbon's empty `Tr2TextureAL()` is null here, as every other empty
+   * target bind in this file. Carbon's CR only reports a failed clear, so the
+   * result is ignored as in a release build.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {object} shadowMap The light shadow atlas.
+   * @returns {boolean} True, as Carbon's.
+   */
+  @blue.method
+  @meta.implemented
+  PrepareShadowMapForLights(renderContext, shadowMap)
+  {
+    const esm = renderContext.GetEffectStateManager();
+
+    // Using depth stencil as shadow map
+    esm.PushRenderTarget__TextureAL(null);
+    esm.PushDepthStencilBuffer__TextureAL(shadowMap);
+
+    // we want a clean depth buffer for this
+    renderContext.SetReadOnlyDepth(false);
+    renderContext.Clear({ clearDepth: true, color: 0, depth: 0, stencil: 0 });
+
+    return true;
+  }
+
+  /**
+   * Carbon EveSpaceScene::RenderShadowMapForSpotLight (cpp:2505-2572): draws
+   * the shadow casters seen by one light camera into its cell of the light
+   * shadow atlas, with their "DynamicLightShadow" technique. Point lights
+   * call it once per cube face.
+   *
+   * Adapted: the accumulator draws from the context's pool allocator, where
+   * Carbon gives it its own (cpp:245-250). Carbon builds a temporary
+   * `TriShadowFrustum( shadowFrustum )` for every caster (cpp:2534); each is
+   * a copy of the same frustum, so one built before the loop is the same
+   * value. The per-frame record is the cascades', as in
+   * RenderIntoCloudShadowMap.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {Array<IEveShadowCaster>} shadowCasters The registry's shadow casters.
+   * @param {number} shadowMapScale The cell's size in texels.
+   * @param {number} shadowMapOffsetX The cell's left edge in texels.
+   * @param {number} shadowMapOffsetY The cell's top edge in texels.
+   * @param {vec3} lightPosition The light's world position.
+   * @param {mat4} view The light camera's view.
+   * @param {mat4} projection The light camera's reversed-depth projection.
+   * @param {object} shadowMap The light shadow atlas.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.adapted
+  RenderShadowMapForSpotLight(renderContext, shadowCasters, shadowMapScale, shadowMapOffsetX, shadowMapOffsetY, lightPosition, view, projection, shadowMap)
+  {
+    const scratch = shadowPassScratch;
+    const esm = renderContext.GetEffectStateManager();
+
+    esm.PushViewport();
+    esm.UpdateRenderTargetViewport(shadowMap.GetWidth(), shadowMap.GetHeight());
+    esm.SetViewport({ width: shadowMapScale, height: shadowMapScale, x: shadowMapOffsetX, y: shadowMapOffsetY, minZ: 0, maxZ: 1 });
+
+    // A 16 texel guard band inside the cell (cpp:2522-2524).
+    const margin = 16;
+    const marginScale = 1 - (margin / shadowMapScale);
+
+    vec3.set(scratch.spotMarginScale, marginScale, marginScale, 1);
+    mat4.fromScaling(scratch.spotMarginMatrix, scratch.spotMarginScale);
+
+    // Carbon (row-vector): view * projection * marginMatrix - view first,
+    // then projection, then the margin; gl-matrix reverses each pair (cpp:2525).
+    mat4.multiply(scratch.spotViewProj, projection, view);
+    mat4.multiply(scratch.spotViewProj, scratch.spotMarginMatrix, scratch.spotViewProj);
+
+    const shadowFrustum = new TriFrustum();
+
+    shadowFrustum.DeriveFrustum(view, lightPosition, projection, esm.GetViewport());
+
+    const batches = this._shadowBatches[0];
+    const allocator = renderContext.GetTriPoolAllocator();
+
+    if (allocator) batches.SetTriPoolAllocator(allocator);
+
+    const casterShadowFrustum = TriShadowFrustum.create__Shadow(shadowFrustum);
+
+    // Carbon quirk, reproduced: one sizeInShadow serves every caster
+    // (cpp:2531) and IsCastingShadow's result is ignored, as in
+    // RenderIntoCloudShadowMap.
+    const sizeInShadow = [ 0 ];
+
+    for (const caster of shadowCasters)
+    {
+      caster.IsCastingShadow__ShadowFrustum(this.updateContext.GetFrustum(), casterShadowFrustum, Tr2RenderReason.TR2RENDERREASON_NORMAL, sizeInShadow);
+
+      // special threshold check
+      if (sizeInShadow[0] > 5)
+      {
+        const perObjData = caster.GetShadowPerObjectData(batches);
+
+        caster.GetShadowBatches(batches, perObjData, Math.min(shadowMapScale, sizeInShadow[0]));
+      }
+    }
+
+    this.instancedMeshManager.GetShadowBatches(this.updateContext.GetFrustum(), TriShadowFrustum.create__Shadow(shadowFrustum), this.updateContext.GetInvLodFactor(),
+      [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, batches ] ]);
+
+    batches.Finalize();
+
+    // column_major for shaders: Carbon stores Transpose( viewProj ) (cpp:2548).
+    this._shadowPerFrameVS.SetAndTranspose("ViewProjectionMat", scratch.spotViewProj);
+
+    const data = this._shadowPerFrameVS.GetData();
+
+    const shaderTypeMask = renderContext.GetRenderContextAL().constructor.SHADER_TYPE_MASK;
+    // Carbon's perFrameVsMask (cpp:2550-2556): vertex, and every other non-pixel stage the backend has.
+    const perFrameVsMask = (1 << ShaderType.VERTEX_SHADER) | (shaderTypeMask & (
+      (1 << ShaderType.COMPUTE_SHADER)
+      | (1 << ShaderType.GEOMETRY_SHADER)
+      | (1 << ShaderType.HULL_SHADER)
+      | (1 << ShaderType.DOMAIN_SHADER)
+    ));
+
+    Tr2RenderUtils.fillAndSetConstants(this._shadowPerFrameVSBuffer, data, data.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
+
+    if (batches.GetBatchCount())
+    {
+      if (!esm.IsDepthTestInverted())
+      {
+        esm.SetInvertedDepthTest(true);
+
+        // Carbon quirk, reproduced: the ON_BLOCK_EXIT restore belongs to
+        // this inner block (cpp:2560-2564), so it runs here, before the
+        // draw; the casters draw with the depth test as it was found.
+        esm.SetInvertedDepthTest(false);
+      }
+
+      esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
+      renderContext.RenderBatches(batches, "DynamicLightShadow");
+    }
+
+    batches.Clear();
+    esm.PopViewport();
+  }
+
+  /**
+   * Carbon EveSpaceScene::RenderShadowMapForLight (cpp:2574-2618): one
+   * shadow-casting light's cells of the atlas. A point light (innerAngle at
+   * most 0) draws six 90 degree cube faces into a 3x2 block of cells; a spot
+   * light draws one cell with GetLightMatrices' camera.
+   *
+   * The light is one of Tr2LightManager.GetLightData()'s records, which
+   * carries Carbon's PerLightData fields. The 10-bit cell fields are unpacked
+   * by the light manager's GetUnpackedShadowMapData.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {Array<IEveShadowCaster>} shadowCasters The registry's shadow casters.
+   * @param {object} lightData The light's record.
+   * @param {object} shadowMap The light shadow atlas.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  RenderShadowMapForLight(renderContext, shadowCasters, lightData, shadowMap)
+  {
+    const scratch = shadowPassScratch;
+    const lightManager = Tr2LightManager.getInstance();
+
+    if (lightData.innerAngle <= 0)
+    {
+      // pointlight
+      const fov = 90 / 360 * TRI_2PI;
+
+      // we flip near and far plane for reverse z
+      mat4.perspectiveZO(scratch.lightProjection, fov, 1, lightData.radius, lightData.radius / 1000);
+
+      for (let y = 0; y < 2; y++)
+      {
+        for (let x = 0; x < 3; x++)
+        {
+          const direction = POINT_LIGHT_DIRECTIONS[x + y * 3];
+
+          vec3.set(scratch.lightUp, direction[2], direction[0], direction[1]);
+          vec3.subtract(scratch.lightAt, lightData.position, direction);
+          mat4.lookAtCarbon(scratch.lightView, lightData.position, scratch.lightAt, scratch.lightUp);
+
+          const cell = lightManager.GetUnpackedShadowMapData(lightData, scratch.lightCell);
+          const shadowMapOffsetX = cell.shadowMapOffsetX + x * cell.shadowMapScale;
+          const shadowMapOffsetY = cell.shadowMapOffsetY + y * cell.shadowMapScale;
+
+          this.RenderShadowMapForSpotLight(renderContext, shadowCasters, cell.shadowMapScale, shadowMapOffsetX, shadowMapOffsetY,
+            lightData.position, scratch.lightView, scratch.lightProjection, shadowMap);
+        }
+      }
+    }
+    else
+    {
+      // spotlight
+      const matrices = this.GetLightMatrices(lightData, scratch.lightMatrices);
+      const cell = lightManager.GetUnpackedShadowMapData(lightData, scratch.lightCell);
+
+      this.RenderShadowMapForSpotLight(renderContext, shadowCasters, cell.shadowMapScale, cell.shadowMapOffsetX, cell.shadowMapOffsetY,
+        lightData.position, matrices.view, matrices.projection, shadowMap);
+    }
+  }
+
+  /**
+   * Carbon EveSpaceScene::FinishRenderingShadowMapForLights (cpp:2620-2627):
+   * unbinds the atlas PrepareShadowMapForLights bound and rebinds the scene's
+   * per-frame data, which the light passes replaced.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  FinishRenderingShadowMapForLights(renderContext)
+  {
+    const esm = renderContext.GetEffectStateManager();
+
+    renderContext.SetReadOnlyDepth(true);
+
+    esm.PopRenderTarget();
+    esm.PopDepthStencilBuffer();
+    this.ApplyPerFrameData(renderContext);
+  }
+
+  /**
+   * Carbon EveSpaceScene::GetLightMatrices (cpp:4175-4193): a spot light's
+   * camera, a reversed-depth perspective whose near plane is the light's
+   * radius and far plane a thousandth of it, looking along the light's
+   * direction.
+   *
+   * Adapted: Carbon's two output references become one record, filled and
+   * returned, as a C++ output pointer becomes the return value here.
+   *
+   * @param {object} lightData The light's record.
+   * @param {{projection: mat4, view: mat4}} out Receives the matrices.
+   * @returns {{projection: mat4, view: mat4}} out
+   */
+  @blue.method
+  @meta.adapted
+  GetLightMatrices(lightData, out)
+  {
+    // we flip near and far plane for reverse z
+    const zn = lightData.radius;
+    const zf = lightData.radius / 1000;
+    const aspect = 1;
+    const d = lightData.projectionPlaneDistance;
+    const projection = mat4.identity(out.projection);
+
+    // Carbon m[r][c] is flat r * 4 + c on the shared layout.
+    projection[0] = d / aspect;
+    projection[5] = d;
+    projection[10] = zf / (zn - zf);
+    projection[11] = -1;
+    projection[14] = (zf * zn) / (zn - zf);
+    projection[15] = 0;
+
+    const up = Math.abs(lightData.direction[1]) < 0.7 ? LIGHT_UP_Y : LIGHT_UP_X;
+
+    vec3.subtract(lightMatricesAtScratch, lightData.position, lightData.direction);
+    mat4.lookAtCarbon(out.view, lightData.position, lightMatricesAtScratch, up);
+
+    return out;
   }
 
   /**
