@@ -103,9 +103,11 @@ export class Tr2FollowCurve extends ITriVectorFunction
   }
 
   /**
-   * Updates the cached value and copies it into `out`.
-   * Adapted: retains JS time-first/output-last arguments and numeric seconds;
-   * native Be::Time and double overloads share this seconds-based entry point.
+   * Carbon's Update(double): updates the cached value and copies it into `out`
+   * (Tr2FollowCurve.cpp:117-122). The Be::Time overload is the inherited
+   * `Update__Ticks`, which converts with TimeAsDouble and calls this, as Carbon's
+   * does (cpp:110-115).
+   * Adapted: JS time-first/output-last arguments, output returned.
    */
   @blue.method
   @meta.adapted
@@ -116,9 +118,10 @@ export class Tr2FollowCurve extends ITriVectorFunction
   }
 
   /**
-   * Gets the vector value at `time` into `out`.
-   * Adapted: retains JS time-first/output-last arguments, numeric seconds and
-   * caller-owned vectors instead of native overloads/value returns.
+   * Carbon's GetValueAt(double): the vector value at `time` seconds into `out`
+   * (cpp:129-133). The Be::Time overload is the inherited `GetValueAt__Ticks`,
+   * which converts with TimeAsDouble and calls this, as Carbon's does (cpp:124-127).
+   * Adapted: JS time-first/output-last arguments, output returned.
    */
   @blue.method
   @meta.adapted
@@ -149,6 +152,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
 
   /**
    * Native interpolated-position no-op leaves output untouched; JS keeps time first.
+   * Carbon declares only the Be::Time overload (Tr2FollowCurve.h:34, cpp:155-158), so
+   * the bare name takes Blue 100ns ticks.
    */
   @blue.method
   @meta.noop
