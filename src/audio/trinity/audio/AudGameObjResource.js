@@ -741,6 +741,21 @@ export class AudGameObjResource
     return 1;
   }
 
+  /**
+   * Submits a retained pose to a backend created after placement. A game
+   * object's pose reaches the backend through ApplyEffectivePlacement, so the
+   * base has nothing to submit; AudListener retains its pose and overrides this.
+   *
+   * Ours: Carbon's audio backend exists before any placement; browser audio
+   * can start after it.
+   *
+   * @returns {boolean} False: nothing was submitted.
+   */
+  RealizePlacement()
+  {
+    return false;
+  }
+
   /** Carbon method HasAuthoredRotation (cpp:415-418): the authored rotation is not identity. */
   @blue.method
   @meta.implemented

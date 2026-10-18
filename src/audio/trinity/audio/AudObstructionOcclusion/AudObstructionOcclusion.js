@@ -20,8 +20,8 @@ function NowSeconds()
  * Owns Carbon's caller-supplied line-of-sight state and backend delivery.
  *
  * This collaborator is intentionally not exported from the package. Hosts use
- * the Carbon-facing AudManager methods; injected backends may implement
- * SetObjectObstructionAndOcclusion to realize the values.
+ * the Carbon-facing AudManager methods; the installed ICjsWwiseSoundEngine
+ * backend realizes the values through SetObjectObstructionAndOcclusion.
  */
 @blue.define("AudObstructionOcclusion")
 export class AudObstructionOcclusion
@@ -239,12 +239,12 @@ export class AudObstructionOcclusion
     this._fadeRate = Math.max(0, Number(value));
   }
 
-  /** Delivers one live value through the optional Wwise-shaped backend seam. */
+  /** Delivers one live value to the installed ICjsWwiseSoundEngine backend, if any. */
   @meta.renamed("SendToWwise")
   @meta.adapted
   _SendToBackend(backend, emitterID, state)
   {
-    if (typeof backend?.SetObjectObstructionAndOcclusion !== "function")
+    if (!backend)
     {
       return false;
     }

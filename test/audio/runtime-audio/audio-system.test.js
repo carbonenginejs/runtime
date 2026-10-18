@@ -2500,12 +2500,12 @@ test("pre-backend listener placement realizes its actual stored orientation once
   }
 });
 
-test("listener realization retries when a backend gains placement support", () =>
+test("listener realization retries when a backend arrives after placement", () =>
 {
-  const backend = {};
   const writes = [];
+  const backend = { SetListenerPosition: (...values) => writes.push(values) };
 
-  AudGameObjResource.backend = backend;
+  AudGameObjResource.backend = null;
   try
   {
     const listener = new AudListener();
@@ -2513,7 +2513,7 @@ test("listener realization retries when a backend gains placement support", () =
     listener.SetPosition([ 1, 0, 0 ], [ 0, 0, 1 ], [ 2, 3, 4 ]);
     assert.equal(listener.RealizePlacement(), false);
 
-    backend.SetListenerPosition = (...values) => writes.push(values);
+    AudGameObjResource.backend = backend;
     assert.equal(listener.RealizePlacement(), true);
     assert.equal(listener.RealizePlacement(), false);
     assert.equal(writes.length, 1);

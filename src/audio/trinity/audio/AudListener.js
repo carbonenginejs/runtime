@@ -76,7 +76,7 @@ export class AudListener extends AudGameObjResource
       this.#cross);
     vec3.copy(this.position, positionValue);
     const backend = AudGameObjResource.backend;
-    if (typeof backend?.SetListenerPosition === "function")
+    if (backend)
     {
       backend.SetListenerPosition(
         this.ID,
@@ -92,17 +92,16 @@ export class AudListener extends AudGameObjResource
    * Submits the retained pose once to each available backend instance.
    *
    * Custom: Browser audio may be created after a headless listener receives
-   * placement. This method replays the stored pose when SetListenerPosition
-   * becomes available and records which backend received it. Missing placement
-   * support leaves the pose eligible for a later retry.
+   * placement. This method replays the stored pose once a backend is
+   * installed and records which backend received it. With no backend the pose
+   * stays eligible for a later retry.
    *
-   * @returns {boolean} True when submitted; false when unsupported or already submitted to this backend.
+   * @returns {boolean} True when submitted; false with no backend or when already submitted to this one.
    */
   RealizePlacement()
   {
     const backend = AudGameObjResource.backend;
-    if (typeof backend?.SetListenerPosition !== "function"
-      || backend === this.#realizedBackend)
+    if (!backend || backend === this.#realizedBackend)
     {
       return false;
     }

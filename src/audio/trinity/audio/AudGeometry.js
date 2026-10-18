@@ -131,8 +131,7 @@ export class AudGeometry extends ITr2AudGeometry
     const backend = AudGameObjResource.backend;
     if (!geometryData?.vertices?.length || !geometryData?.indices?.length
       || !manager?.GetSpatialAudioGeometryEnabled()
-      || typeof backend?.SetGeometry !== "function"
-      || typeof backend?.SetGeometryInstance !== "function")
+      || !backend)
     {
       return;
     }
@@ -175,7 +174,7 @@ export class AudGeometry extends ITr2AudGeometry
     const backend = AudGameObjResource.backend;
     if (!manager?.GetSpatialAudioGeometryEnabled()
       || !geometrySets.has(geometrySetId)
-      || typeof backend?.SetGeometryInstance !== "function")
+      || !backend)
     {
       return;
     }

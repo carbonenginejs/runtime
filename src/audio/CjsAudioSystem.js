@@ -359,7 +359,7 @@ export class CjsAudioSystem
         {
             for (const emitter of this._adoptedEmitters)
             {
-                emitter.RealizePlacement?.();
+                emitter.RealizePlacement();
             }
             for (const driver of this._adoptedCurveSetDrivers)
             {
@@ -448,7 +448,7 @@ export class CjsAudioSystem
         this.backend?.SetMusicEngine(null);
         if (disposePrevious)
         {
-            previous?.Dispose?.();
+            previous?.Dispose();
         }
         this.musicEngine = next;
         this._providedMusicEngine = next;
@@ -536,7 +536,7 @@ export class CjsAudioSystem
         {
             this._RecoverInitialEvent(emitter);
             emitter.Wake();
-            emitter.RealizePlacement?.();
+            emitter.RealizePlacement();
         }
         return emitter;
     }
