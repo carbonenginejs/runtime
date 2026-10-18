@@ -1,5 +1,6 @@
 export * from "./EveEllipseDefinition.js";
 export * from "./EveEllipseSet.js";
+export * from "./EveEllipseSetEllipseVertex.js";
 export * from "./EveConnector.js";
 export * from "./EveLineContainer.js";
 export * from "./EveProjectBracket.js";
