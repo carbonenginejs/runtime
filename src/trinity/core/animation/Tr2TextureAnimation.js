@@ -340,9 +340,9 @@ export class Tr2TextureAnimation
    *
    * Custom: Stands in for Carbon's destructor, which only sets `cancel` on the
    * shared state (Tr2TextureAnimation.cpp:103-109); the grid textures are freed
-   * by refcount when their last holder lets go. No texture is destroyed here
-   * either: a bound resource set may still hold one, and garbage collection
-   * reclaims it after the last reference drops.
+   * by refcount when their last holder lets go. Here each grid's texture
+   * handle, created by this animation, is destroyed (`_clear`), releasing this
+   * animation's share; a bound resource set may still hold its own.
    *
    * Temporary destructor stand-in: exists because teardown is required before
    * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
