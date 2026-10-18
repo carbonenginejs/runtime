@@ -68,7 +68,7 @@ export class Tr2ConstantBufferFormats
   /** Uploads and binds one per-frame stage using its context-owned buffer. */
   static _bindPerFrame(data, renderContext, stage, register)
   {
-    const bytes = data && typeof data.GetData === "function" ? data.GetData() : null;
+    const bytes = data ? data.GetData() : null;
 
     if (!bytes || !bytes.byteLength) return false;
 
