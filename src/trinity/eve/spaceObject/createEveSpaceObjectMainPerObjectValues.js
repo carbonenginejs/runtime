@@ -143,8 +143,7 @@ function extractCustomMasks(object)
   for (let index = 0; index < masks.length; index++)
   {
     const mask = masks[index];
-    if (!mask || typeof mask.FillPerObjectData !== "function"
-      || mask.FillPerObjectData(index, vsRecord, psRecord) !== true)
+    if (!mask || mask.FillPerObjectData(index, vsRecord, psRecord) !== true)
     {
       fail(`object.customMasks[${index}] could not fill Main per-object data`);
     }

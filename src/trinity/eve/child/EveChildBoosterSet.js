@@ -900,7 +900,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @meta.adapted
   GetPerObjectData(accumulator = null)
   {
-    if (typeof accumulator?.Alloc !== "function") return null;
+    if (!accumulator) return null;
     const vs = accumulator.Alloc("EveChildBoosterSetVSData");
     const ps = accumulator.Alloc("EveChildBoosterSetPSData");
     vs.SetAndTranspose("worldMatrix", this._parentTransform);

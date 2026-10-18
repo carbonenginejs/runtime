@@ -52,13 +52,14 @@ export function createChildPerObjectRecords()
  * world space (EveChildMesh.cpp:933-941).
  *
  * @param {{vs: RawData, ps: RawData}} records - the child's own pair
- * @param {Object} parent - anything exposing GetPerObjectStructs
+ * @param {IEveSpaceObject2|null} parent - params.spaceObjectParent
  * @param {Float32Array} translation - the child's local translation
- * @returns {Boolean} false when the parent cannot supply structs
+ * @returns {Boolean} false when there is no space-object parent
  */
 export function inheritParentPerObjectData(records, parent, translation)
 {
-  if (typeof parent?.GetPerObjectStructs !== "function")
+  // Carbon null-checks the pointer only (EveChildMesh.cpp:1015-1017).
+  if (!parent)
   {
     return false;
   }
