@@ -89,7 +89,10 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   }
 
   /**
-   * Updates sampled transform values.
+   * Updates sampled transform values. A keyframed position or orientation curve
+   * is read with Carbon's own GetKeyFrameAtT, everything else with the Granny
+   * evaluator stand-in; the scale curve always uses the evaluator
+   * (Tr2GrannyTransformTrack.cpp:27-53).
    */
   @blue.method
   @meta.adapted
@@ -99,8 +102,22 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
     {
       return;
     }
-    CjsGrannyCurves.sampleGrannyCurve(this.translation, this.#positionCurve, time, this.cycle, this.duration);
-    CjsGrannyCurves.sampleGrannyCurve(this.rotation, this.#orientationCurve, time, this.cycle, this.duration);
+    if (this.#positionCurve.keyframed)
+    {
+      CjsGrannyCurves.getKeyFrameAtT(this.translation, this.#positionCurve, time, this.duration);
+    }
+    else
+    {
+      CjsGrannyCurves.sampleGrannyCurve(this.translation, this.#positionCurve, time, this.cycle, this.duration);
+    }
+    if (this.#orientationCurve.keyframed)
+    {
+      CjsGrannyCurves.getKeyFrameAtT(this.rotation, this.#orientationCurve, time, this.duration);
+    }
+    else
+    {
+      CjsGrannyCurves.sampleGrannyCurve(this.rotation, this.#orientationCurve, time, this.cycle, this.duration);
+    }
     quat.normalize(this.rotation, this.rotation);
     const scaleShear = CjsGrannyCurves.sampleGrannyCurve(this.#scaleShearScratch, this.#scaleCurve, time, this.cycle, this.duration);
     this.scale[0] = Math.hypot(scaleShear[0], scaleShear[1], scaleShear[2]);

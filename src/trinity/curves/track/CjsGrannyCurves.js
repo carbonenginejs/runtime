@@ -386,6 +386,38 @@ export class CjsGrannyCurves
     return out;
   }
 
+  /**
+   * Ports `GetKeyFrameAtT` (Utilities/GrannyCurveHelpers.h:10-21), Carbon's own
+   * read of a keyframed (DaKeyframes32f) curve, which Tr2GrannyTransformTrack
+   * and Tr2GrannyVectorTrack use in place of Granny's evaluator
+   * (Tr2GrannyTransformTrack.cpp:30-46, Tr2GrannyVectorTrack.cpp:24-31).
+   * The frame is `int(float(numFrames) * time / duration)` with numFrames the
+   * control count over the dimension, read with no bounds check. Its caller
+   * admits `time == duration` (Tr2GrannyTrack.cpp:37), so Carbon reads one
+   * frame past the end there.
+   *
+   * Adapted: an unchecked frame outside the controls throws a RangeError
+   * instead of reading undefined (ruling 11). That includes the end-time read.
+   *
+   * @param {number[]|Float32Array} out Caller-owned output, at least the curve dimension long.
+   * @param {{controls: ArrayLike<number>, dimension: number}} curve Decoded keyframed curve.
+   * @param {number} time Track-local time in seconds.
+   * @param {number} duration Track duration in seconds.
+   * @returns {number[]|Float32Array} out.
+   * @throws {RangeError} When the computed frame is outside the stored frames.
+   */
+  static getKeyFrameAtT(out, curve, time, duration)
+  {
+    const numFrames = Math.trunc(curve.controls.length / curve.dimension);
+    const frame = Math.trunc(Math.fround(numFrames) * time / duration);
+
+    if (!(frame >= 0 && frame < numFrames))
+    {
+      throw new RangeError(`GetKeyFrameAtT: frame ${frame} out of range, frame count is ${numFrames}.`);
+    }
+    return CjsGrannyCurves.#copyControl(out, curve, frame);
+  }
+
   /** Narrows a value to a non-null object, otherwise null. */
   static #asRecord(value)
   {
@@ -593,6 +625,13 @@ export class CjsGrannyCurves
   /**
    * Maps a time onto a frame index for a uniformly keyframed curve, clamping to
    * the first and last frame; a duration of zero always yields frame 0.
+   *
+   * This stands in for Granny's own evaluator on a keyframed curve
+   * (GrannyEvaluateCurveAtT and GrannySampleModelAnimations;
+   * Tr2GrannyAnimationLayer.cpp:561,749, Tr2GrannyTransformTrack.cpp:48).
+   * Carbon's own keyframe read is getKeyFrameAtT, which does not clamp.
+   * Unverified: the Granny SDK is not in e:\carbonengine, so whether Granny
+   * clamps here cannot be checked from source.
    */
   static #sampleKeyframedCurve(count, time, duration)
   {

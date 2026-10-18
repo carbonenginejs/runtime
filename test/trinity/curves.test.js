@@ -516,6 +516,28 @@ test("CjsGrannyCurves samples keyframed, linear, and quadratic controls", () =>
   }, 1.5, false, 2, { keyframed: true });
   assertAlmostEquals(out[0], 9);
 });
+test("GetKeyFrameAtT reads Carbon's unchecked frame and throws outside the frames", () =>
+{
+  const out = new Float32Array(2);
+  const curve = { controls: [1, 2, 3, 4, 5, 6], dimension: 2 };
+  CjsGrannyCurves.getKeyFrameAtT(out, curve, 0, 3);
+  assertVector(Array.from(out), [1, 2]);
+  CjsGrannyCurves.getKeyFrameAtT(out, curve, 2.99, 3);
+  assertVector(Array.from(out), [5, 6]);
+  for (const [time, duration] of [[3, 3], [-1.5, 3], [0, 0]])
+  {
+    let error = null;
+    try
+    {
+      CjsGrannyCurves.getKeyFrameAtT(out, curve, time, duration);
+    }
+    catch (e)
+    {
+      error = e;
+    }
+    assert(error instanceof RangeError, `time ${time} over ${duration} should throw a RangeError`);
+  }
+});
 function assertCarbonMethod(ctor, methodName, status)
 {
   const method = CjsSchema.getMethod(ctor, methodName);

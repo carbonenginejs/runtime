@@ -64,7 +64,9 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   }
 
   /**
-   * Updates sampled vector value.
+   * Updates sampled vector value. A keyframed curve is read with Carbon's own
+   * GetKeyFrameAtT, anything else with the Granny evaluator stand-in
+   * (Tr2GrannyVectorTrack.cpp:21-32).
    */
   @blue.method
   @meta.adapted
@@ -74,7 +76,14 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
     {
       return;
     }
-    CjsGrannyCurves.sampleGrannyCurve(this.#valueScratch, this.#valueCurve, time, this.cycle, this.duration);
+    if (this.#valueCurve.keyframed)
+    {
+      CjsGrannyCurves.getKeyFrameAtT(this.#valueScratch, this.#valueCurve, time, this.duration);
+    }
+    else
+    {
+      CjsGrannyCurves.sampleGrannyCurve(this.#valueScratch, this.#valueCurve, time, this.cycle, this.duration);
+    }
     this.value = this.#valueScratch[0];
   }
 }
