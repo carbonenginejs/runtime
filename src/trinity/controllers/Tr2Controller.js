@@ -4,7 +4,7 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { be, BlueList, IListNotify, CcpTime, CjsBlueClasses } from "#blue";
+import { be, BlueList, IListNotify, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
@@ -75,8 +75,6 @@ export class Tr2Controller extends EveThrottleable
   _bindingPathRoots = [];
 
   _owner = null;
-
-  _time = 0;
 
   /**
    * Subscribes the controller to its three owned native lists (cpp:21-33).
@@ -288,8 +286,9 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Updates state machines, then queues updateables in native order (cpp:230-270).
-   * Adapted: queued Update receives Blue actual/frame ticks; the JS expression
-   * context retains frame seconds here.
+   * Queued Update receives Blue actual and frame ticks, as Carbon's does.
+   * Adapted: the dirty mask is a BigInt holder, and the CCP_STATS counters and
+   * timers are omitted.
    * @param {number} [normalizedUpdateFrequency=0.5] Normalized throttle detail.
    * @returns {void}
    */
@@ -306,7 +305,6 @@ export class Tr2Controller extends EveThrottleable
       return;
     }
     const currentTime = be.os.GetActualTime();
-    this._time = CcpTime.timeAsDouble(be.os.GetCurrentFrameTime());
     const dirtyVariables = this._dirtyVariables.value;
     this._dirtyVariables.value = 0n;
     for (const stateMachine of this.stateMachines)
@@ -370,17 +368,6 @@ export class Tr2Controller extends EveThrottleable
   GetOwner()
   {
     return this._owner;
-  }
-
-  /**
-   * Returns frame seconds sampled by the last unthrottled Update.
-   * Custom: the JavaScript expression evaluator consumes an explicit time context;
-   * Tr2Controller.h/.cpp have no GetTime method.
-   * @returns {number} Last sampled frame time in seconds.
-   */
-  GetTime()
-  {
-    return this._time;
   }
 
   /**
@@ -645,7 +632,10 @@ export class Tr2Controller extends EveThrottleable
    * @param {object|null} [owner=this._owner] Expression owner.
    * @param {Tr2StateMachine|null} [stateMachine=null] Expression state machine.
    * @param {object} [extra={}] Additional expression inputs.
-   * @returns {object} New context with controller, owner, state machine and time.
+   * It carries no time: Carbon's controller expression functions read the clock
+   * themselves (`BeOS->GetCurrentFrameTime()`, Tr2ControllerExpression.cpp:241-255,
+   * :357-377), and StateTime is the state machine's float run time (:31-34).
+   * @returns {object} New context with controller, owner and state machine.
    */
   GetExpressionContext(owner = this._owner, stateMachine = null, extra = {})
   {
@@ -653,8 +643,7 @@ export class Tr2Controller extends EveThrottleable
       ...extra,
       controller: this,
       owner,
-      stateMachine,
-      time: this._time
+      stateMachine
     };
   }
 

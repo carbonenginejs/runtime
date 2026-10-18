@@ -329,14 +329,16 @@ test("custom expression conveniences preserve absent-variable results without na
   controller.variables[0].value = null;
   assert.equal(controller.GetVariableValue("value", -2), -2, "retained convenience handles a nullish JS value");
   assert.equal(controller.GetFloatVariableByName("value"), null, "the optional-value accessor does not apply that fallback");
-  for (const name of ["GetTime", "GetVariableValue", "SetVariableValue", "GetExpressionContext"])
+  assert.equal(controller.GetTime, undefined, "Carbon's Tr2Controller has no time accessor; expression terms read the clock");
+  for (const name of ["GetVariableValue", "SetVariableValue", "GetExpressionContext"])
   {
     const method = CjsSchema.getMethod(Tr2Controller, name);
     assert.equal(method?.carbon, undefined);
     assert.equal(method?.carbon?.method, undefined);
   }
   const owner = {}, stateMachine = new Tr2StateMachine();
-  assert.deepEqual(controller.GetExpressionContext(owner, stateMachine, { key: 7 }), { key: 7, controller, owner, stateMachine, time: 0 });
+  // No time key: Carbon's expression functions read BeOS themselves (Tr2ControllerExpression.cpp:241-255, :357-377).
+  assert.deepEqual(controller.GetExpressionContext(owner, stateMachine, { key: 7 }), { key: 7, controller, owner, stateMachine });
 });
 
 /** Authored minimal Black framing; schema facts come only from runtime declarations. */
