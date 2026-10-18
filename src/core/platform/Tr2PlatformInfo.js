@@ -207,13 +207,9 @@ export class Tr2PlatformInfo
         };
     }
 
-    /** Registers the detected capabilities with a CjsLibrary-like registry. */
+    /** Registers the detected capabilities with a CjsLibrary capability registry. */
     RegisterCapabilities(library)
     {
-        if (!library || typeof library.RegisterCapabilities !== "function")
-        {
-            throw new TypeError("Tr2PlatformInfo requires a CjsLibrary-like capability registry.");
-        }
         library.RegisterCapabilities(this.GetCapabilities());
         return this;
     }

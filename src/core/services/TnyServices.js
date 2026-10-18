@@ -24,8 +24,6 @@ export class TnyServices
             throw new TypeError("Service name must be a nonempty, trimmed string");
         if (this._services.has(name)) throw new Error("Service " + name + " is already registered");
         if (typeof Constructor !== "function") throw new TypeError("Service " + name + " requires a constructor");
-        if (typeof Constructor.prototype?.Close !== "function")
-            throw new TypeError("Service " + name + " must implement Close or extend TnyService");
         validateStoragePolicy(Constructor.storagePolicy, name);
         this._services.set(name, { Constructor, options, usesStorage: Constructor.storagePolicy !== null,
             instance: null, constructing: false });
