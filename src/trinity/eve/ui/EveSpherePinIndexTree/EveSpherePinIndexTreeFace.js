@@ -3,8 +3,8 @@ import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
 /** Native face record; its AABB midpoint and enclosing radius are Cartesian. */
-@meta.define({ className: "Face", donors: ["EveSpherePinIndexTree::Face"] })
-export class Face
+@meta.define({ className: "EveSpherePinIndexTreeFace", carbon: "EveSpherePinIndexTree::Face" })
+export class EveSpherePinIndexTreeFace
 {
   center = vec3.create();
   radius = 0;

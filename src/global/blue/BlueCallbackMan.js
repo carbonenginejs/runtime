@@ -22,6 +22,7 @@
 //   and on resume.
 import { CjsSchema, meta, blue } from "#schema";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
+import { BlueCallbackManThreadData } from "./BlueCallbackManThreadData.js";
 
 /**
  * @typedef {object} BlueCallbackEntry
@@ -54,38 +55,6 @@ function createCancelledError(id)
   const error = new Error(`BlueCallbackMan: entry ${id} was cancelled.`);
   error.name = "AbortError";
   return error;
-}
-
-/** `BlueCallbackMan::ThreadData` (CallbackMan.h:124-148): one thread, here one slot. */
-class BlueCallbackManThreadData
-{
-  /** Thread index, used for the fence bitmask. */
-  threadIndex = 0;
-
-  /** Id of the entry being processed, or 0. */
-  currentId = 0;
-
-  /** Settles when the entry in progress has finished; Carbon's `m_cbInProgressMutex`. */
-  inProgress = null;
-
-  /** Id of the entry handed to the slot's worker; unlike `currentId`, a cancel keeps it. */
-  workerEntryId = 0;
-
-  /** The slot's worker, for a manager running its own threads. */
-  worker = null;
-
-  /** Thread name. */
-  name = "BlueCallbackManThread";
-
-  /**
-   * Creates the data for one slot.
-   *
-   * @param {number} threadIndex Slot index.
-   */
-  constructor(threadIndex)
-  {
-    this.threadIndex = threadIndex;
-  }
 }
 
 /** `BlueCallbackMan` - a callback queue run by its own workers or by `Update`. */
@@ -811,5 +780,3 @@ CjsSchema.decorateMethod(BlueCallbackMan, "_ExtractFromQueue", blue.method, meta
  */
 export const BeCallbackMan = new BlueCallbackMan();
 BeCallbackMan.SetName("BeCallbackMan");
-
-CjsSchema.meta.define(BlueCallbackManThreadData, { className: "BlueCallbackManThreadData", donors: [ "BlueCallbackMan::ThreadData" ] });

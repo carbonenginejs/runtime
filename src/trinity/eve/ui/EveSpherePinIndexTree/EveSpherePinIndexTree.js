@@ -2,13 +2,13 @@
 // Source: trinity/trinity/Eve/UI/EveSpherePinIndexTree.cpp
 // Hand-maintained CPU implementation of the native, non-Blue geometry index.
 import { meta, blue } from "#schema";
-import { TreeNode } from "./TreeNode.js";
-import { Face } from "./Face.js";
+import { EveSpherePinIndexTreeTreeNode } from "./EveSpherePinIndexTreeTreeNode.js";
+import { EveSpherePinIndexTreeFace } from "./EveSpherePinIndexTreeFace.js";
 
 /** Splits the greater angular extent; ties split theta (cpp:49-84). */
 function CreateChildNodes(node)
 {
-  const left = node.left = new TreeNode(), right = node.right = new TreeNode();
+  const left = node.left = new EveSpherePinIndexTreeTreeNode(), right = node.right = new EveSpherePinIndexTreeTreeNode();
   for (const child of [left, right])
   {
     child.thetaMin = node.thetaMin;
@@ -31,7 +31,7 @@ function CreateTree(node, levels)
 {
   if (!node)
   {
-    node = new TreeNode();
+    node = new EveSpherePinIndexTreeTreeNode();
     node.phiMin = -Math.PI;
     node.phiMax = Math.PI;
     node.thetaMin = -Math.PI / 2;
@@ -129,7 +129,7 @@ export class EveSpherePinIndexTree
       const indices = group.faces;
       for (let i = 0; i + 2 < indices.length; i += 3)
       {
-        const face = new Face();
+        const face = new EveSpherePinIndexTreeFace();
         face.index1 = indices[i];
         face.index2 = indices[i + 1];
         face.index3 = indices[i + 2];
@@ -264,8 +264,8 @@ export class EveSpherePinIndexTree
   }
 
   /** Carbon EveSpherePinIndexTree::Face (public, declared EveSpherePinIndexTree.h:13, defined cpp:34-46). */
-  static Face = Face;
+  static Face = EveSpherePinIndexTreeFace;
 
   /** Carbon EveSpherePinIndexTree::TreeNode (public, declared EveSpherePinIndexTree.h:14, defined cpp:14-32). */
-  static TreeNode = TreeNode;
+  static TreeNode = EveSpherePinIndexTreeTreeNode;
 }

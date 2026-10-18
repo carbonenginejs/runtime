@@ -7,8 +7,8 @@ import { meta } from "#schema";
 import { FadingValue } from "./FadingValue.js";
 
 /** Obstruction/occlusion fade state retained for one registered emitter. */
-@meta.define({ className: "EmitterState", donors: ["AudObstructionOcclusion::EmitterState"] })
-export class EmitterState
+@meta.define({ className: "AudObstructionOcclusionEmitterState", carbon: "AudObstructionOcclusion::EmitterState" })
+export class AudObstructionOcclusionEmitterState
 {
   obstruction = new FadingValue();
 

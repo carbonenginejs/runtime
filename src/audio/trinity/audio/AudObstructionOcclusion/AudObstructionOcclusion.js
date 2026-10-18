@@ -5,7 +5,7 @@ import { meta, blue } from "#schema";
 
 import { CjsBlueOS } from "#blue";
 import { LISTENER_GAME_OBJ_ID } from "../SoundPrioritization.js";
-import { EmitterState } from "./EmitterState.js";
+import { AudObstructionOcclusionEmitterState } from "./AudObstructionOcclusionEmitterState.js";
 import { FadingValue } from "./FadingValue.js";
 
 const DEFAULT_FADE_RATE = 1;
@@ -131,7 +131,7 @@ export class AudObstructionOcclusion
 
     if (!state)
     {
-      state = new EmitterState();
+      state = new AudObstructionOcclusionEmitterState();
       this._emitters.set(emitterID, state);
     }
     state.obstruction.SetTarget(obstruction);
@@ -264,5 +264,5 @@ export class AudObstructionOcclusion
   static FadingValue = FadingValue;
 
   /** Carbon AudObstructionOcclusion::EmitterState (private, AudObstructionOcclusion.h:102-109). */
-  static EmitterState = EmitterState;
+  static EmitterState = AudObstructionOcclusionEmitterState;
 }
