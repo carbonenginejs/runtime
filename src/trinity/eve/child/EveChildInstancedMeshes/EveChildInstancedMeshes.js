@@ -25,6 +25,8 @@ import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
 import { EveChildInstancedMesh } from "./EveChildInstancedMesh.js";
 import { IEveInstanceMeshProvider } from "../../instancedMeshManager/IEveInstanceMeshProvider.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
+import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 
 const POSITION_SCRATCH = vec3.create();
 const OVERLAY_LOCAL_SCRATCH = mat4.create();
@@ -1560,6 +1562,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         continue;
       }
       const geometry = mesh.GetGeometryResource();
+      // Carbon rebuilds the declaration when the geometry finishes loading
+      // (RebuildCachedData, an IBlueAsyncResNotifyTarget callback). That
+      // notification is not ported, so the first pass that finds the
+      // geometry good rebuilds it here.
+      if (geometry && mesh.combinedVertexDeclaration === Tr2EffectStateManager.Unknown && geometry.IsGood())
+      {
+        this.RebuildCachedData(geometry);
+      }
       // Carbon cpp:766-770: no geometry or no combined declaration yet.
       if (!geometry || mesh.combinedVertexDeclaration === Tr2EffectStateManager.Unknown)
       {
@@ -1726,6 +1736,62 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     area.reversed = !!source.reversed;
     area.effectHash = EveChildInstancedMeshes._GetEffectHash(area.effect);
     return area;
+  }
+
+  /**
+   * Carbon RebuildCachedData (cpp:702-739): for each mesh drawing `resource`,
+   * the combined vertex declaration - the mesh's own elements on stream 0
+   * plus the instance record's inputs on stream 1 at step rate 1: three
+   * FLOAT32_4 rows at TEXCOORD8-10, three more at TEXCOORD11-13, a UINT32_1
+   * at TEXCOORD14 and a UINT32_2 at TEXCOORD15. A mesh without elements
+   * keeps UNINITIALIZED_DECLARATION and does not register.
+   *
+   * Carbon quirk, reproduced: `m_nextOffset[1] = 0` after TEXCOORD10
+   * (cpp:719) restarts the stream-1 ledger, so TEXCOORD11-13 read the same
+   * bytes as TEXCOORD8-10 - a static instance record's world transform
+   * stands in as its previous-frame transform.
+   *
+   * Adapted: the trigger, since IBlueAsyncResNotifyTarget is not ported (see
+   * AddMeshesToManager); the mesh's elements are the geometry payload's
+   * declaration (GetMeshVertexElements) rather than the handle Carbon's
+   * loader stored; and the raytracing meshes Carbon frees here (cpp:729-737)
+   * are not ported.
+   * @param {TriGeometryRes} resource The geometry that finished loading.
+   */
+  @meta.adapted
+  RebuildCachedData(resource)
+  {
+    for (const mesh of this.meshes)
+    {
+      if (mesh.GetGeometryResource() !== resource)
+      {
+        continue;
+      }
+      mesh.combinedVertexDeclaration = Tr2EffectStateManager.Unknown;
+
+      const meshElements = CarbonVertexElements(resource.GetMeshVertexElements(mesh.meshIndex));
+      if (meshElements.length === 0)
+      {
+        continue;
+      }
+      const instance = new Tr2VertexDefinition();
+      instance.Add("FLOAT32_4", "TEXCOORD", 8, 1, 1);
+      instance.Add("FLOAT32_4", "TEXCOORD", 9, 1, 1);
+      instance.Add("FLOAT32_4", "TEXCOORD", 10, 1, 1);
+      instance.nextOffset[1] = 0;
+      instance.Add("FLOAT32_4", "TEXCOORD", 11, 1, 1);
+      instance.Add("FLOAT32_4", "TEXCOORD", 12, 1, 1);
+      instance.Add("FLOAT32_4", "TEXCOORD", 13, 1, 1);
+      instance.Add("UINT32_1", "TEXCOORD", 14, 1, 1);
+
+      instance.Add("UINT32_2", "TEXCOORD", 15, 1, 1);
+      const elements = meshElements.map(item => ({ ...item }));
+      for (const item of instance.items)
+      {
+        elements.push(item);
+      }
+      mesh.combinedVertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(elements);
+    }
   }
 
   /**

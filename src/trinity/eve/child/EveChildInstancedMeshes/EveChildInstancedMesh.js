@@ -104,14 +104,9 @@ export class EveChildInstancedMesh
   /**
    * Carbon Mesh::combinedVertexDeclaration (EveChildInstancedMeshes.h): the
    * mesh's declaration plus the instance inputs TEXCOORD8-15, built by
-   * RebuildCachedData (cpp:702-739); UNINITIALIZED_DECLARATION until then.
-   *
-   * Waiting: RebuildCachedData is not ported. Its instance inputs include
-   * UINT32_1 and UINT32_2 elements (cpp:722-724), which the CMF element
-   * vocabulary the geometry declarations use cannot express, and the vertex
-   * layout translation belongs to the AL. Until it lands the declaration stays
-   * unset, so AddMeshesToManager's Carbon gate (cpp:766-770) registers no
-   * mesh group and the manager emits no instanced batches.
+   * EveChildInstancedMeshes.RebuildCachedData (cpp:702-739);
+   * UNINITIALIZED_DECLARATION until then, which AddMeshesToManager's gate
+   * (cpp:766-770) skips.
    */
   combinedVertexDeclaration = Tr2EffectStateManager.Unknown;
 
