@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
@@ -19,8 +20,8 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
 @blue.define("EveChildPlug")
 @blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
-@blue.inherit(IEveEffectChildrenOwner)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
+@blue.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
 export class EveChildPlug extends EveChildTransform
 {
 
@@ -366,6 +367,81 @@ export class EveChildPlug extends EveChildTransform
     }
     return null;
   }
+  /**
+   * Carbon EveChildPlug::SetShaderOption (cpp:263-270): forwards to every
+   * child object.
+   * @param {string} name
+   * @param {string} value
+   */
+  @meta.implemented
+  SetShaderOption(name, value)
+  {
+    for (const child of this.objects)
+    {
+      child.SetShaderOption(name, value);
+    }
+  }
+
+  /**
+   * Carbon EveChildPlug::GetDebugOptions (cpp:359-368): each debug-renderable
+   * child's options.
+   * @param {Set<string>} options
+   */
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    for (const child of this.objects)
+    {
+      const renderable = CjsSchema.cast(child, ITr2DebugRenderable);
+      if (renderable)
+      {
+        renderable.GetDebugOptions(options);
+      }
+    }
+  }
+
+  /**
+   * Carbon EveChildPlug::RenderDebugInfo (cpp:370-383): each debug-renderable
+   * child draws, unless the plug is hidden.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (!this.display)
+    {
+      return;
+    }
+    for (const child of this.objects)
+    {
+      const renderable = CjsSchema.cast(child, ITr2DebugRenderable);
+      if (renderable)
+      {
+        renderable.RenderDebugInfo(renderer);
+      }
+    }
+  }
+
+  /** Carbon EveChildPlug::FindSoundEmitter (cpp:486-500): the first child emitter of that name. */
+  @blue.method
+  @meta.implemented
+  FindSoundEmitter(name)
+  {
+    for (const child of this.objects)
+    {
+      const owner = CjsSchema.cast(child, ITr2SoundEmitterOwner);
+      if (owner)
+      {
+        const emitter = owner.FindSoundEmitter(name);
+        if (emitter !== null)
+        {
+          return emitter;
+        }
+      }
+    }
+    return null;
+  }
+
 }
 
 // EveChildPlug_Blue.cpp: native exposure; unported contracts: IShaderConfigurer.

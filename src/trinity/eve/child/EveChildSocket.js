@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
@@ -22,8 +23,8 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
 @blue.define("EveChildSocket")
 @blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
-@blue.inherit(IEveEffectChildrenOwner)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
+@blue.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
 export class EveChildSocket extends EveChildTransform
 {
 
@@ -412,6 +413,69 @@ export class EveChildSocket extends EveChildTransform
   RemoveFromEffectChildrenList(_child)
   {
   }
+  /**
+   * Carbon EveChildSocket::SetShaderOption (cpp:402-408): forwards to the plug.
+   * @param {string} name
+   * @param {string} value
+   */
+  @meta.implemented
+  SetShaderOption(name, value)
+  {
+    if (this.plug)
+    {
+      return this.plug.SetShaderOption(name, value);
+    }
+  }
+
+  /**
+   * Carbon EveChildSocket::GetDebugOptions (cpp:455-465): the plug's options.
+   * @param {Set<string>} options
+   */
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    if (!this.plug)
+    {
+      return;
+    }
+    const renderable = CjsSchema.cast(this.plug, ITr2DebugRenderable);
+    if (renderable)
+    {
+      renderable.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon EveChildSocket::RenderDebugInfo (cpp:467-477): the plug draws,
+   * unless the socket is hidden or empty.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (!this.display || !this.plug)
+    {
+      return;
+    }
+    const renderable = CjsSchema.cast(this.plug, ITr2DebugRenderable);
+    if (renderable)
+    {
+      renderable.RenderDebugInfo(renderer);
+    }
+  }
+
+  /** Carbon EveChildSocket::FindSoundEmitter (cpp:499-506): the plug's emitter. */
+  @blue.method
+  @meta.implemented
+  FindSoundEmitter(name)
+  {
+    if (this.plug)
+    {
+      return this.plug.FindSoundEmitter(name);
+    }
+    return null;
+  }
+
 }
 
 // EveChildSocket_Blue.cpp: native exposure; unported contracts: IShaderConfigurer.
