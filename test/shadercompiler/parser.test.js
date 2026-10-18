@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ParserUtils, FXAnalyzer, ASTNode, Type, HLSLParserTokens, InlineString } from "../../src/shadercompiler/index.js";
+import { ParserUtils, FXAnalyzer, ASTNode, Type, HLSLParserTokens, InlineString, FileLocation } from "../../src/shadercompiler/index.js";
 import { parse, dumpTree, createState } from "./support/parse.js";
 
 const { NT_FUNCTION_DEFINITION, NT_TECHNIQUE } = ASTNode.ASTNodeType;
@@ -234,4 +234,23 @@ test("a float render state stores its bits in the state's DWORD", () =>
     const blob = { value: 0 };
     assert.equal(FXAnalyzer.ParseStateAssignment(state, node, FXAnalyzer.g_renderStates, blob), true);
     assert.equal(blob.value, 0x3f000000);
+});
+
+test("ASTNode child indexes Carbon leaves unchecked throw a RangeError; GetChildOrNull keeps Carbon's own check", () =>
+{
+    const parent = new ASTNode(0, new FileLocation(), null, null);
+    const a = new ASTNode(0, new FileLocation(), null, null), b = new ASTNode(0, new FileLocation(), null, null);
+    parent.AddChild(a);
+    parent.InsertChild(1, b);
+    assert.equal(parent.GetChild(1), b);
+    assert.throws(() => parent.InsertChild(3, a), RangeError);
+    assert.throws(() => parent.ReplaceChild(2, a), RangeError);
+    assert.throws(() => parent.GetChild(2), RangeError);
+    assert.throws(() => parent.GetChild(-1), RangeError);
+    assert.throws(() => parent.RemoveChild(2), RangeError);
+    assert.throws(() => parent.RemoveChild(-1), RangeError);
+    assert.equal(parent.GetChildOrNull(2), null);
+    assert.equal(parent.GetChildOrNull(-1), null);
+    parent.RemoveChild(0);
+    assert.deepEqual(parent.GetChildren(), [ b ]);
 });

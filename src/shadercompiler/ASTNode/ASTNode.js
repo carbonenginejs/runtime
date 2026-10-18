@@ -138,12 +138,19 @@ export class ASTNode
     }
 
     /**
-     * Carbon's `RemoveChild( size_t )`.
+     * Carbon's `RemoveChild( size_t )`: `m_children.erase( begin() + place )`
+     * (ASTNode.cpp:76-79). Erasing outside the children is undefined, so it
+     * throws here instead of splice's silent no-op.
      *
      * @param {number} place Index to remove.
+     * @throws {RangeError} When place is not a child index.
      */
     RemoveChild(place)
     {
+        if (!(place >= 0 && place < this._children.length))
+        {
+            throw new RangeError(`ASTNode.RemoveChild: place ${place} of ${this._children.length}`);
+        }
         this._children.splice(place, 1);
     }
 
@@ -196,12 +203,15 @@ export class ASTNode
     }
 
     /**
+     * Carbon's `GetChildOrNull` (ASTNode.cpp:110-113). Its size_t index cannot
+     * be negative, so a negative JS index is past the end too.
+     *
      * @param {number} index Child index.
      * @returns {ASTNode|null} The child, or null past the end.
      */
     GetChildOrNull(index)
     {
-        return index < this._children.length ? this._children[index] : null;
+        return index >= 0 && index < this._children.length ? this._children[index] : null;
     }
 
     /** @returns {Array<ASTNode|null>} The live child array. */
