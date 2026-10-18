@@ -8,6 +8,7 @@ import { EveEntity } from "../EveEntity.js";
 import { meta, type, blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { color } from "#math/color";
@@ -171,11 +172,10 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * the transform and bound, then resolve the post-process intensity from the
    * camera position against the inclusion and exclusion volumes.
    *
-   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state
-   * arrives via the threaded render context.
+   * Adapted: a singular world transform keeps the volume off for the frame,
+   * where Carbon inverts unconditionally (cpp:100).
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -192,11 +192,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
     }
 
     attributes.intensity = 0;
-    const viewPosition = updateContext?.renderContext?.GetViewPosition();
-    if (!viewPosition)
-    {
-      return;
-    }
+    const viewPosition = Tr2Renderer.GetViewPosition();
     if (!mat4.invert(EveChildPostProcessVolume._inverseWorld, this.worldTransform))
     {
       // JS-only guard: Carbon inverts unconditionally; a singular world

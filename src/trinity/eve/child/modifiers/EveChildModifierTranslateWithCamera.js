@@ -4,6 +4,7 @@
 import { mat4 } from "#math/mat4";
 import { meta, type, blue } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /**
  * Transform modifier that moves a child with the camera, either pinning its
@@ -23,7 +24,6 @@ export class EveChildModifierTranslateWithCamera extends IEveChildTransformModif
    * with the view position, otherwise the view position is added (Carbon
    * EveChildModifierTranslateWithCamera.cpp).
    *
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused
@@ -31,17 +31,11 @@ export class EveChildModifierTranslateWithCamera extends IEveChildTransformModif
    * @returns {Float32Array} out
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
-  ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
+  ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
     mat4.copy(out, transform);
-    const renderContext = context?.renderContext;
-    if (!renderContext)
-    {
-      return out;
-    }
-    const camPos = renderContext.GetViewPosition();
+    const camPos = Tr2Renderer.GetViewPosition();
     if (this.attachedToCamera)
     {
       out[12] = camPos[0];

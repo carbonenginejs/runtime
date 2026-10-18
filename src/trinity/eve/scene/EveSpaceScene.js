@@ -37,6 +37,7 @@ import { TriDevice } from "../../core/device/TriDevice.js";
 import { DefaultKeyGenerator, EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { gTriDev } from "../../core/device/gTriDev.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { BackgroundRenderingReason } from "../../generated/eve/enums.js";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -179,11 +180,11 @@ function EmptyShadowResources()
 // (EveSpaceScene.cpp:1295-1427/1433-1525); CarbonEngineJS splits them into
 // scene-owned methods that an engine driver calls in this exact order:
 //
-//  1. Host stamps `updateContext.renderContext` (view -> derived inverse-view
-//     + viewPos) and `updateContext.device`.
+//  1. Host sets the camera on the renderer (Tr2Renderer.SetViewTransform and
+//     the projection) and stamps `updateContext.device`.
 //  2. Driver derives the frustum:
-//     `frustum.DeriveFrustum(view, viewPos, projection, viewport)` from that
-//     same renderContext state (Carbon cpp:476).
+//     `frustum.DeriveFrustum(view, viewPos, projection, viewport)` from the
+//     Tr2Renderer statics (Carbon cpp:485).
 //  3. `scene.StampFrameContext({ frustum, thresholds..., lodFactor,
 //     raytracingEnabled })`.
 //  4. `scene.Update(realTime, simTime)` - internally ends with
@@ -194,16 +195,16 @@ function EmptyShadowResources()
 //  6. `scene.UpdateFogSettings()` - portable Trinity state production over
 //     "FroxelFogSettings" (cpp:1365-1370). An engine realizes the later render
 //     intent; it does not own this blend/update method.
-//  7. `scene.UpdateVisibility(updateContext.renderContext
-//     .GetInverseViewTransform())` - the cpp:1443-1467 block.
+//  7. `scene.UpdateVisibility(Tr2Renderer.GetInverseViewTransform())` - the
+//     cpp:1443-1467 block.
 //  8. `const renderables = scene.GetRenderables([])` - pre-culled
 //     (cpp:1470-1507 minus impostors).
-//  9. `batchManager.Collect(renderables, reason, updateContext.renderContext)`
+//  9. `batchManager.Collect(renderables, reason, renderContext)`
 //     - with engine-registered collectors covering Carbon's [QUADS]
 //     (cpp:1509-1511) and [INSTANCED] (cpp:1516-1520; the instanced collector
 //     reads "InstancedMeshProvider" from `scene.componentRegistry`);
 //     `Finalize` inside Collect = Carbon FinalizeBatches cpp:1522.
-// 10. `scene.GatherLights(lightManager)` - AFTER step 9 (Carbon cpp:1396-1416
+// 10. `scene.GatherLights(lightManager, renderContext)` - AFTER step 9 (Carbon cpp:1396-1416
 //     runs after GatherBatches cpp:1387).
 // 10b. `scene.UpdateShLighting(objects)` - the LAST thing Carbon's gather does
 //     (cpp:1524), so every receiver's secondary-lighting coefficients are
@@ -740,9 +741,8 @@ export class EveSpaceScene
 
   // Carbon m_updateContext (protected, absent from the Blue scan): the scene
   // owns ONE frame context, constructed once and re-stamped each Update. The
-  // host/driver stamps updateContext.renderContext (camera view) + .device per
-  // pass before calling Update - our explicit replacement for Carbon's
-  // Tr2Renderer view statics.
+  // host/driver stamps .device per pass before calling Update; the camera is
+  // the Tr2Renderer view statics, as in Carbon.
   updateContext = new EveUpdateContext();
 
   /**
@@ -1232,8 +1232,8 @@ export class EveSpaceScene
     listener.readbacks.push(request);
     const esm = renderContext.GetEffectStateManager();
     const inverted = esm.IsDepthTestInverted(), managed = esm.IsManagedRendering();
-    renderContext.PushProjection();
-    renderContext.PushViewTransform();
+    Tr2Renderer.PushProjection();
+    Tr2Renderer.PushViewTransform();
     esm.PushViewport();
     try
     {
@@ -1301,19 +1301,24 @@ export class EveSpaceScene
       if (!managed) esm.EndManagedRendering();
       esm.SetInvertedDepthTest(inverted);
       esm.PopViewport();
-      renderContext.PopViewTransform();
-      renderContext.PopProjection();
+      Tr2Renderer.PopViewTransform();
+      Tr2Renderer.PopProjection();
     }
     return immediate ? this._AwaitPicking(listener, renderContext) : this._PollPicking(listener, renderContext);
   }
 
-  /** Native one-pixel picking frustum for the retained legacy instancing seam. */
-  @meta.adapted
-  CreatePickingFrustum(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  /**
+   * Carbon's file-static CreatePickingFrustum (EveSpaceScene.cpp:134-146): the
+   * renderer's view and projection over a one-pixel viewport.
+   *
+   * @returns {TriFrustum} The picking frustum.
+   */
+  @meta.implemented
+  CreatePickingFrustum()
   {
     const frustum = new TriFrustum();
-    frustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(),
-      renderContext.GetProjection(), { width: 1, height: 1 });
+    frustum.DeriveFrustum(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetViewPosition(),
+      Tr2Renderer.GetProjectionTransform(), { width: 1, height: 1 });
     return frustum;
   }
 
@@ -1339,8 +1344,8 @@ export class EveSpaceScene
     const esm = renderContext.GetEffectStateManager();
     const inverted = esm.IsDepthTestInverted();
     const managed = esm.IsManagedRendering();
-    renderContext.PushProjection();
-    renderContext.PushViewTransform();
+    Tr2Renderer.PushProjection();
+    Tr2Renderer.PushViewTransform();
     esm.PushViewport();
     try
     {
@@ -1385,7 +1390,7 @@ export class EveSpaceScene
               }
               if (instancedBatches.length !== 0)
               {
-                this.instancedMeshManager.GetPickingBatches(request, this.updateContext.GetFrustum(), this.CreatePickingFrustum(renderContext),
+                this.instancedMeshManager.GetPickingBatches(request, this.updateContext.GetFrustum(), this.CreatePickingFrustum(),
                   this.updateContext.GetInvLodFactor(), instancedBatches);
               }
             }
@@ -1430,8 +1435,8 @@ export class EveSpaceScene
       if (!managed) esm.EndManagedRendering();
       esm.SetInvertedDepthTest(inverted);
       esm.PopViewport();
-      renderContext.PopViewTransform();
-      renderContext.PopProjection();
+      Tr2Renderer.PopViewTransform();
+      Tr2Renderer.PopProjection();
     }
     return immediate ? this._AwaitPicking(listener, renderContext) : this._PollPicking(listener, renderContext);
   }
@@ -1484,27 +1489,23 @@ export class EveSpaceScene
     pending.Destroy();
   }
 
-  /** Crops the current projection to one pixel; gl-matrix reverses native composition. */
+  /**
+   * Carbon SetupTransformsForPicking (EveSpaceScene.cpp:3817-3846): the view
+   * and projection on the renderer, the projection scaled so one pixel covers
+   * the viewport and centred on the pick point, then the pick's per-frame
+   * records.
+   */
   @blue.method
   @meta.adapted
   SetupTransformsForPicking(fx, fy, projection, view, viewport, renderContext)
   {
-    const mat4_0 = mat4.alloc();
-    try
-    {
-      const crop = mat4.identity(mat4_0);
-      crop[0] = viewport.width;
-      crop[5] = viewport.height;
-      crop[12] = -fx * viewport.width;
-      crop[13] = -fy * viewport.height;
-      mat4.multiply(crop, crop, projection.GetMatrixWithoutViewAdjustment());
-      renderContext.SetViewTransform(view.GetTransform());
-      renderContext.SetProjection(crop, projection.fov);
-    }
-    finally
-    {
-      mat4.unalloc(mat4_0);
-    }
+    Tr2Renderer.SetViewTransform(view.GetTransform());
+    projection.SetProjection();
+    // Scale up the projection so we have 1 pixel rendered to the viewport,
+    // translated to centre on the pick ray origin.
+    const scaling = [ viewport.width, viewport.height ];
+    const translation = [ -fx * scaling[0], -fy * scaling[1] ];
+    Tr2Renderer.AdjustProjection(scaling, translation);
 
     // Carbon (cpp:3829-3845): fill LOCAL per-frame records for the pick
     // projection and bind them, leaving the scene's own records at their
@@ -1527,8 +1528,8 @@ export class EveSpaceScene
     // Carbon copies the frustum it restores (TriFrustum frustum = GetFrustum(), cpp:660).
     const previous = new TriFrustum().Copy(this.updateContext.GetFrustum());
     const frustum = new TriFrustum();
-    frustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(),
-      renderContext.GetProjection(), { width: 1, height: 1 });
+    frustum.DeriveFrustum(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetViewPosition(),
+      Tr2Renderer.GetProjectionTransform(), { width: 1, height: 1 });
     this.updateContext.SetFrustum(frustum);
     try
     {
@@ -1570,7 +1571,8 @@ export class EveSpaceScene
   @meta.implemented
   PickInfinity(x, y, projection, view, viewport = null, out = vec3.create())
   {
-    const resolved = viewport ?? this.updateContext.renderContext.GetViewport();
+    // gTriDev->ScreenToProjection reads the device viewport (TriDevice.cpp:1132-1135).
+    const resolved = viewport ?? gTriDev.device.viewport;
     const projected = screenToProjection(x, y, resolved);
     const ray = convertProjectionCoordToWorldPickRay(projected.x, projected.y, projection, view);
 
@@ -1592,8 +1594,8 @@ export class EveSpaceScene
    * Sync/Async pair is the camera parent's ONLY update, so its world transform
    * is the camera pose of the frame being gathered (cpp:1449-1452).
    * @param {Float32Array} inverseView - the inverse view matrix
-   *   (updateContext.renderContext.GetInverseViewTransform(); Carbon reads the
-   *   Tr2Renderer static at cpp:1449)
+   *   (Tr2Renderer.GetInverseViewTransform(), the static Carbon reads at
+   *   cpp:1449)
    */
   UpdateVisibility(inverseView)
   {
@@ -1869,7 +1871,7 @@ export class EveSpaceScene
    * @param {Tr2LightManager|null} lightManager Manager receiving the lights.
    * @returns {void}
    */
-  GatherLights(lightManager)
+  GatherLights(lightManager, renderContext)
   {
     // Retain the manager for the per-frame pixel shader shadow-atlas settings.
     this._lightManager = lightManager ?? null;
@@ -1879,8 +1881,8 @@ export class EveSpaceScene
       return;
     }
 
-    lightManager.SetShadowQuality(this.shadowQualitySetting, this.updateContext.renderContext.GetRecordingFrameNumber());
-    lightManager.Clear(this.updateContext.renderContext);
+    lightManager.SetShadowQuality(this.shadowQualitySetting, renderContext.GetRecordingFrameNumber());
+    lightManager.Clear(renderContext);
     lightManager.SetFrustum(this.updateContext.GetFrustum());
     lightManager.AdjustLightCutoff(this.updateContext.GetLodFactor());
 
@@ -2272,8 +2274,7 @@ export class EveSpaceScene
    * and the effect state manager (EveSpaceScene.cpp:3018-3205): render-target
    * size and device viewport (3045-3046, 3060), animation time (3066, 3118),
    * frame counter (3121), gamma (3099), the non-reversed projection and
-   * aspect ratio for FovXY (3049-3050; s_aspectRatio is _22/_11,
-   * Tr2Renderer.cpp:80), the scene post process's mip bias (3161-3164) and
+   * aspect ratio for FovXY (3060-3061, 3117-3118), the scene post process's mip bias (3161-3164) and
    * the light manager's shadow atlas (3126-3137).
    *
    * The fills keep a `frame` argument whose fields OVERRIDE these, for
@@ -2288,7 +2289,7 @@ export class EveSpaceScene
   _EngineFrameState(renderContext)
   {
     const esm = renderContext.GetEffectStateManager();
-    const projection = renderContext.GetProjection();
+    const projection = Tr2Renderer.GetProjectionTransform();
     const atlas = this._lightManager ? this._lightManager.GetShadowMapAtlasSettings() : null;
 
     return {
@@ -2299,7 +2300,7 @@ export class EveSpaceScene
       frameIndex: Number(Tr2Renderer.GetCurrentFrameCounter()) >>> 0,
       gammaBrightness: EveSpaceScene.eveSpaceSceneGammaBrightness,
       projectionTransform: projection,
-      aspectRatio: projection && projection[0] ? projection[5] / projection[0] : 1,
+      aspectRatio: Tr2Renderer.GetAspectRatio(),
       sceneMipLodBias: this.postprocess ? this.postprocess.GetMipLodBias() : 0,
       inverseShadowMapAtlasSize: atlas && atlas.actualTextureSize > 0 ? 1 / atlas.actualTextureSize : 0,
       shadowMapAtlasEntryMinSizeLog2: atlas ? atlas.entryMinSizeLog2 : 0
@@ -2332,7 +2333,7 @@ export class EveSpaceScene
   @meta.adapted
   Jitter(renderContext)
   {
-    mat4.copy(this.projection, renderContext.GetProjection());
+    mat4.copy(this.projection, Tr2Renderer.GetProjectionTransform());
 
     if (this.postprocess && this.postprocess.GetTaaIfAvailable() !== null)
     {
@@ -2398,7 +2399,7 @@ export class EveSpaceScene
       }
     }
 
-    mat4.copy(this.viewLast, renderContext.GetViewTransform());
+    mat4.copy(this.viewLast, Tr2Renderer.GetViewTransform());
     mat4.copy(this.projectionLast, this.projection);
 
     // An overlay visualizer draws over the finished frame (cpp:2883-2886).
@@ -2561,17 +2562,17 @@ export class EveSpaceScene
     // records the next one. Only the view and child frustum change here.
     if (this.planets.length)
     {
-      renderContext.PushViewTransform();
+      Tr2Renderer.PushViewTransform();
       // Carbon: auto normalFrustum = m_updateContext.GetFrustum() copies (cpp:1830).
       const normalFrustum = new TriFrustum().Copy(this.updateContext.GetFrustum());
       const planetView = mat4.alloc();
       const planetProjection = mat4.alloc();
       try
       {
-        this.CreatePlanetViewMatrix(renderContext.GetViewTransform(), planetView);
-        renderContext.SetViewTransform(planetView);
-        EveCamera.ModifyClipPlanes(renderContext.GetProjection(), 0.01, 1e5, planetProjection);
-        this._planetFrustum.DeriveFrustum(planetView, renderContext.GetViewPosition(), planetProjection, renderContext.GetViewport());
+        this.CreatePlanetViewMatrix(Tr2Renderer.GetViewTransform(), planetView);
+        Tr2Renderer.SetViewTransform(planetView);
+        EveCamera.ModifyClipPlanes(Tr2Renderer.GetProjectionTransform(), 0.01, 1e5, planetProjection);
+        this._planetFrustum.DeriveFrustum(planetView, Tr2Renderer.GetViewPosition(), planetProjection, renderContext.GetViewport());
         this.updateContext.SetFrustum(this._planetFrustum);
         for (const planet of this.planets)
         {
@@ -2583,7 +2584,7 @@ export class EveSpaceScene
       finally
       {
         this.updateContext.SetFrustum(normalFrustum);
-        renderContext.PopViewTransform();
+        Tr2Renderer.PopViewTransform();
         mat4.unalloc(planetProjection);
         mat4.unalloc(planetView);
       }
@@ -2645,8 +2646,8 @@ export class EveSpaceScene
     if (!manager || manager.GetRenderQueueLength() === 0) return;
 
     const esm = renderContext.GetEffectStateManager();
-    renderContext.PushViewTransform();
-    renderContext.PushProjection();
+    Tr2Renderer.PushViewTransform();
+    Tr2Renderer.PushProjection();
     esm.PushViewport();
     try
     {
@@ -2676,8 +2677,8 @@ export class EveSpaceScene
     finally
     {
       esm.PopViewport();
-      renderContext.PopProjection();
-      renderContext.PopViewTransform();
+      Tr2Renderer.PopProjection();
+      Tr2Renderer.PopViewTransform();
     }
   }
 
@@ -2686,7 +2687,7 @@ export class EveSpaceScene
   {
     const esm = renderContext.GetEffectStateManager();
     const scratch = EveSpaceScene._impostorScratch;
-    const inverseView = renderContext.GetInverseViewTransform();
+    const inverseView = Tr2Renderer.GetInverseViewTransform();
     const eye = vec3.set(scratch.eye, inverseView[12], inverseView[13], inverseView[14]);
     const up = vec3.set(scratch.up, inverseView[4], inverseView[5], inverseView[6]);
     const batches = this._secondaryBatches;
@@ -2706,11 +2707,11 @@ export class EveSpaceScene
       // XMMatrixLookToLH( eyePosition, viewDir, up ) is lookAtD3D toward eyePosition + viewDir.
       mat4.lookAtD3D(scratch.view, eyePosition, vec3.add(scratch.target, eyePosition, viewDir), up);
       mat4.perspectiveRHD3D(scratch.projection, radius * 2, radius * 2, distance - radius, distance + radius);
-      renderContext.SetViewTransform(scratch.view);
-      renderContext.SetProjection(scratch.projection);
+      Tr2Renderer.SetViewTransform(scratch.view);
+      Tr2Renderer.SetProjectionTransform(scratch.projection);
 
       const frustum = new TriFrustum();
-      frustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(), renderContext.GetProjection(), fakeViewport);
+      frustum.DeriveFrustum(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetViewPosition(), Tr2Renderer.GetProjectionTransform(), fakeViewport);
 
       this.PopulatePerFramePSData(this._perFramePS, renderContext);
       this.PopulatePerFrameVSData(this._perFrameVS, renderContext);
@@ -2828,7 +2829,7 @@ export class EveSpaceScene
       try
       {
         probe.InitRenderPass(renderContext);
-        mat4.copy(this.projection, renderContext.GetProjection());
+        mat4.copy(this.projection, Tr2Renderer.GetProjectionTransform());
 
         for (let face = probe.GetStartFace(); face < probe.GetEndFace(); face += 1)
         {
@@ -2840,14 +2841,14 @@ export class EveSpaceScene
           this._reflectionFaceDepth.SetTexture(probe.GetDepthBuffer(face));
 
           // Planets are culled against a planet-scale frustum (cpp:1847-1866).
-          const view = mat4.copy(this._reflectionView, renderContext.GetViewTransform());
-          renderContext.SetViewTransform(this.CreatePlanetViewMatrix(view, this._reflectionPlanetView));
-          const planetProjection = EveCamera.ModifyClipPlanes(renderContext.GetProjection(), 0.01, 1e5, this._reflectionPlanetProjection);
+          const view = mat4.copy(this._reflectionView, Tr2Renderer.GetViewTransform());
+          Tr2Renderer.SetViewTransform(this.CreatePlanetViewMatrix(view, this._reflectionPlanetView));
+          const planetProjection = EveCamera.ModifyClipPlanes(Tr2Renderer.GetProjectionTransform(), 0.01, 1e5, this._reflectionPlanetProjection);
           const planetFrustum = new TriFrustum();
-          planetFrustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(), planetProjection, esm.GetViewport());
+          planetFrustum.DeriveFrustum(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetViewPosition(), planetProjection, esm.GetViewport());
           this.updateContext.SetFrustum(planetFrustum);
           for (const planet of this.planets) planet.UpdatePlanetVisibility(this.updateContext, this.planetScale);
-          renderContext.SetViewTransform(view);
+          Tr2Renderer.SetViewTransform(view);
 
           const currentFrustum = probe.GetFrustum(face, renderContext);
           this.updateContext.SetFrustum(currentFrustum);
@@ -2968,8 +2969,8 @@ export class EveSpaceScene
     {
       const viewport = esm.GetViewport();
       froxelFog = this.volumetricsRenderer.RenderFogIntoReflectionMap(renderContext, gpuResourcePool, viewport.width, viewport.height,
-        this.sunDirection, this.currentSunColor, this.updateContext.GetOrigin(), renderContext.GetViewTransform(),
-        renderContext.GetReversedDepthProjectionTransform());
+        this.sunDirection, this.currentSunColor, this.updateContext.GetOrigin(), Tr2Renderer.GetViewTransform(),
+        Tr2Renderer.GetReversedDepthProjectionTransform());
     }
     store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", froxelFog ? froxelFog.Get() : new Tr2TextureAL());
 
@@ -3085,25 +3086,24 @@ export class EveSpaceScene
 
   /**
    * Updates planet children with the scaled camera required by child modifiers
-   * (cpp:3828-3841). Adapted: renderer globals are explicit on the update context.
+   * (cpp:3828-3841).
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   UpdatePlanets(updateContext)
   {
     if (!this.planets.length) return;
-    const context = updateContext.renderContext;
     const view = mat4.alloc();
-    context.PushViewTransform();
+    Tr2Renderer.PushViewTransform();
     try
     {
-      this.CreatePlanetViewMatrix(context.GetViewTransform(), view);
-      context.SetViewTransform(view);
+      this.CreatePlanetViewMatrix(Tr2Renderer.GetViewTransform(), view);
+      Tr2Renderer.SetViewTransform(view);
       for (const planet of this.planets) planet.UpdatePlanetSyncronous(updateContext, this.planetScale);
     }
     finally
     {
-      context.PopViewTransform();
+      Tr2Renderer.PopViewTransform();
       mat4.unalloc(view);
     }
   }
@@ -3234,16 +3234,16 @@ export class EveSpaceScene
     const lastView = mat4.alloc();
     const lastProjection = mat4.alloc();
     let constantsChanged = false;
-    context.PushProjection();
-    context.PushViewTransform();
+    Tr2Renderer.PushProjection();
+    Tr2Renderer.PushViewTransform();
     try
     {
-      this.CreatePlanetViewMatrix(context.GetViewTransform(), view);
-      context.SetViewTransform(view);
+      this.CreatePlanetViewMatrix(Tr2Renderer.GetViewTransform(), view);
+      Tr2Renderer.SetViewTransform(view);
       EveCamera.ModifyClipPlanes(this.projection, 0.01, 1e5, projection);
       // Carbon projection * jitter: gl-matrix applies projection first.
       mat4.multiply(projection, this.jitterMatrix, projection);
-      context.SetProjection(projection);
+      Tr2Renderer.SetProjectionTransform(projection);
       const visible = [];
       for (const planet of this.planets) planet.GetRenderables(visible);
       if (!visible.length) return;
@@ -3281,8 +3281,8 @@ export class EveSpaceScene
     finally
     {
       this.ClearBatches(this._secondaryBatches);
-      context.PopViewTransform();
-      context.PopProjection();
+      Tr2Renderer.PopViewTransform();
+      Tr2Renderer.PopProjection();
       mat4.unalloc(lastProjection);
       mat4.unalloc(lastView);
       mat4.unalloc(projection);
@@ -3664,14 +3664,14 @@ export class EveSpaceScene
 
     if (shadowCasters.length + volumetricCount + fogCount === 0) return EmptyShadowResources();
 
-    shadowMap.UpdateSplitValues(renderContext.GetFrontClip(), renderContext.GetBackClip());
+    shadowMap.UpdateSplitValues(Tr2Renderer.GetFrontClip(), Tr2Renderer.GetBackClip());
 
     const shadowMapSize = shadowMap.GetShadowMapSize();
     const splitCount = CjsPerFrameLayouts.SHADOW_FRUSTUM_COUNT;
 
     // The frustum's left, right, top and bottom over the near plane, from the
     // projection (cpp:633-644); Carbon's _11, _22, _31 and _32 are 0, 5, 8, 9.
-    const projection = renderContext.GetProjection();
+    const projection = Tr2Renderer.GetProjectionTransform();
     const rightMinusLeft = 2 / projection[0];
     const bottomMinusTop = 2 / -projection[5];
     const left = (projection[8] - 1) / 2 * rightMinusLeft;
@@ -3685,7 +3685,7 @@ export class EveSpaceScene
 
     for (let splitIndex = 0; splitIndex < splitCount; ++splitIndex)
     {
-      const splitSetup = shadowMap.SetupShadowSplit(splitIndex, renderContext.GetInverseViewTransform(), sunDir, viewFrustum.zNear, left, right, top, bottom);
+      const splitSetup = shadowMap.SetupShadowSplit(splitIndex, Tr2Renderer.GetInverseViewTransform(), sunDir, viewFrustum.zNear, left, right, top, bottom);
 
       // The split's slice of the camera frustum, for half-space culling of
       // casters: a copy of the update context's frustum with its planes
@@ -3881,14 +3881,10 @@ export class EveSpaceScene
     // Carbon quirk (CE-189), reproduced: aabbMax is the cloud's bound in LIGHT-VIEW
     // space (EveChildCloud2.cpp:893-906) while the view position is in world
     // space, so this distance mixes two frames.
-    const dist = vec3.distance(renderContext.GetViewPosition(), cloudShadowInformation.aabbMax);
+    const dist = vec3.distance(Tr2Renderer.GetViewPosition(), cloudShadowInformation.aabbMax);
 
-    const cameraProjection = renderContext.GetProjection();
-    const aspectRatio = cameraProjection[0] ? cameraProjection[5] / cameraProjection[0] : 0;
-
-    // PerspectiveFovMatrix (Matrix_inline.h:704-714) is gl-matrix's
-    // perspectiveZO element for element while the far clip is finite.
-    mat4.perspectiveZO(scratch.cloudProjection, renderContext.GetFieldOfView(), aspectRatio, this.updateContext.GetFrustum().zNear, dist);
+    // cpp:2395.
+    mat4.perspectiveFovCarbon(scratch.cloudProjection, Tr2Renderer.GetFieldOfView(), Tr2Renderer.GetAspectRatio(), this.updateContext.GetFrustum().zNear, dist);
 
     // Carbon's Inverse returns its input when the determinant is zero
     // (Matrix.cpp:13-16); gl-matrix returns null there.
@@ -3896,7 +3892,7 @@ export class EveSpaceScene
 
     // Carbon (row-vector): Inverse( projection ) * GetInverseViewTransform()
     // - the inverse projection applies first, so gl-matrix reverses the operands (cpp:2396).
-    mat4.multiply(scratch.cloudInvViewProj, renderContext.GetInverseViewTransform(), scratch.cloudInverseProjection);
+    mat4.multiply(scratch.cloudInvViewProj, Tr2Renderer.GetInverseViewTransform(), scratch.cloudInverseProjection);
 
     if (!mat4.invert(scratch.cloudViewProj, scratch.cloudInvViewProj)) mat4.copy(scratch.cloudViewProj, scratch.cloudInvViewProj);
 
@@ -4269,7 +4265,7 @@ export class EveSpaceScene
       depthMap.GetWidth(), depthMap.GetHeight(), this.cascadedShadowMap, null,
       this.shadowQualitySetting, this.sunDirection, this.currentSunColor,
       this.updateContext.GetOrigin(), this.updateContext.GetOriginShift(),
-      renderContext.GetViewTransform(), renderContext.GetReversedDepthProjectionTransform(),
+      Tr2Renderer.GetViewTransform(), Tr2Renderer.GetReversedDepthProjectionTransform(),
       this.viewLast, this.projectionLast);
     try
     {
@@ -4379,11 +4375,11 @@ export class EveSpaceScene
   {
     const out = data;
     const frame = this._EngineFrameState(renderContext);
-    const view = renderContext.GetViewTransform();
+    const view = Tr2Renderer.GetViewTransform();
     // Carbon's frame is reverse-Z: the shaders get the REVERSED-depth
     // projection (cpp:3022), matching the inverted depth test and the clear to
     // 0 the driver sets. The forward one here put depth the other way round.
-    const projection = renderContext.GetReversedDepthProjectionTransform();
+    const projection = Tr2Renderer.GetReversedDepthProjectionTransform();
 
     // column_major for shaders
     out.SetAndTranspose("ViewMat", view);
@@ -4395,7 +4391,7 @@ export class EveSpaceScene
 
     // "need the transposed, but shader also needs column_major, so it is
     // transpose(transpose(m)) == m" (cpp:3037-3038): a plain copy.
-    out.SetWithoutTransposing("ViewInverseTransposeMat", renderContext.GetInverseViewTransform());
+    out.SetWithoutTransposing("ViewInverseTransposeMat", Tr2Renderer.GetInverseViewTransform());
 
     // Carbon `m_projectionLast * m_jitterMatrix` then `m_viewLast * that`.
     mat4.multiply(perFrameLastProjectionScratch, this.jitterMatrix, this.projectionLast);
@@ -4536,12 +4532,12 @@ export class EveSpaceScene
     const out = data;
     const frame = this._EngineFrameState(renderContext);
     // The reversed-depth projection, as the vertex fill (cpp:3140).
-    const projection = renderContext.GetReversedDepthProjectionTransform();
+    const projection = Tr2Renderer.GetReversedDepthProjectionTransform();
 
-    out.SetAndTranspose("ViewMat", renderContext.GetViewTransform());
+    out.SetAndTranspose("ViewMat", Tr2Renderer.GetViewTransform());
 
     // transpose(transpose(m)) == m, as in the vertex fill (cpp:3093-3094): a plain copy.
-    out.SetWithoutTransposing("ViewInverseTransposeMat", renderContext.GetInverseViewTransform());
+    out.SetWithoutTransposing("ViewInverseTransposeMat", Tr2Renderer.GetInverseViewTransform());
 
     mat4.fromQuat(perFrameMatrixScratch, this.envMapRotation);
     out.SetAndTranspose("EnvMapRotationMat", perFrameMatrixScratch);
@@ -4671,7 +4667,7 @@ export class EveSpaceScene
       out.SetIndex("CascadeRanges", index, split.CascadeRanges[index]);
     }
 
-    const inverseView = renderContext.GetInverseViewTransform();
+    const inverseView = Tr2Renderer.GetInverseViewTransform();
     const cellsX = 8;
     const cellsY = 2;
 

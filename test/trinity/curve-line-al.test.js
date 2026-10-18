@@ -1,3 +1,4 @@
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {CjsSchema} from '../../npm/dist/global/schema/index.js';
@@ -12,14 +13,14 @@ function setup(t) {
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL();
   const registered=new Set(TriDevice.GetResourcesRegistered());
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();
-  context.PushProjection();context.PushViewTransform();context.SetProjection(mat4.create());context.SetViewTransform(mat4.create());
+  Tr2Renderer.PushProjection();Tr2Renderer.PushViewTransform();Tr2Renderer.SetProjectionTransform(mat4.create());Tr2Renderer.SetViewTransform(mat4.create());
   const draws=[],draw=al.DrawInstanced.bind(al);
   al.DrawInstanced=(...args)=>{draws.push(args);return draw(...args);};
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
   t.after(()=>{
     for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&CjsSchema.cast(resource,INotify))resource.Destroy();
-    context.PopProjection();context.PopViewTransform();context.SetRenderContextAL(prior);
+    Tr2Renderer.PopProjection();Tr2Renderer.PopViewTransform();context.SetRenderContextAL(prior);
   });
   return {context,al,effect,draws};
 }
@@ -116,18 +117,18 @@ test('line batch categories dispatch real nonindexed draws and camera depth uses
   const picking=collect(lines,TriBatchType.TRIBATCHTYPE_PICKING);assert.equal(picking.length,1);
   context.RenderBatches({GetBatches:()=>picking});assert.equal(draws.length,1);assert.deepEqual(draws[0].slice(0,4),[6,1,0,0]);
   lines.display=false;assert.equal(collect(lines,TriBatchType.TRIBATCHTYPE_PICKING).length,0);lines.display=true;
-  context.SetProjection(mat4.perspective(mat4.create(),Math.PI/3,1.5,1,100));
+  Tr2Renderer.SetProjectionTransform(mat4.perspective(mat4.create(),Math.PI/3,1.5,1,100));Tr2Renderer.SetViewTransform(mat4.create());
   lines.boundingSphere.set([0,0,0,1]);lines.depthOffset=0;lines.worldTransform[12]=1000;
   assert.equal(collect(lines,TriBatchType.TRIBATCHTYPE_PICKING)[0].depth,268435456);
-  lines.depthOffset=context.GetFrustumRadius()/2;assert.equal(collect(lines,TriBatchType.TRIBATCHTYPE_PICKING)[0].depth,134217728);
-  lines.depthOffset=context.GetFrustumRadius()*2;assert.equal(collect(lines,TriBatchType.TRIBATCHTYPE_PICKING)[0].depth,0);
+  lines.depthOffset=Tr2Renderer.GetFrustumRadius()/2;assert.equal(collect(lines,TriBatchType.TRIBATCHTYPE_PICKING)[0].depth,134217728);
+  lines.depthOffset=Tr2Renderer.GetFrustumRadius()*2;assert.equal(collect(lines,TriBatchType.TRIBATCHTYPE_PICKING)[0].depth,0);
 });
 
 test('frustum radius follows inverse-projected corner and projection stack restoration',()=>{
-  const context=new Tr2RenderContext();assert.equal(context.GetFrustumRadius(),0);context.PushProjection();
-  const projection=mat4.perspective(mat4.create(),Math.PI/3,1.5,1,100);context.SetProjection(projection);
+  Tr2Renderer.SetProjectionTransform(mat4.create());const before=Tr2Renderer.GetFrustumRadius();Tr2Renderer.PushProjection();
+  const projection=mat4.perspective(mat4.create(),Math.PI/3,1.5,1,100);Tr2Renderer.SetProjectionTransform(projection);
   const expected=100*Math.hypot(1.5*Math.tan(Math.PI/6),Math.tan(Math.PI/6),1);
-  assert.ok(Math.abs(context.GetFrustumRadius()-expected)<0.001);const radius=context.GetFrustumRadius();
-  context.PushProjection();context.SetProjection(mat4.create());assert.equal(context.GetFrustumRadius(),Math.sqrt(3));
-  context.PopProjection();assert.equal(context.GetFrustumRadius(),radius);context.PopProjection();assert.equal(context.GetFrustumRadius(),0);
+  assert.ok(Math.abs(Tr2Renderer.GetFrustumRadius()-expected)<0.001);const radius=Tr2Renderer.GetFrustumRadius();
+  Tr2Renderer.PushProjection();Tr2Renderer.SetProjectionTransform(mat4.create());assert.equal(Tr2Renderer.GetFrustumRadius(),Math.sqrt(3));
+  Tr2Renderer.PopProjection();assert.ok(Math.abs(Tr2Renderer.GetFrustumRadius()-radius)<1e-4);Tr2Renderer.PopProjection();assert.equal(Tr2Renderer.GetFrustumRadius(),before);
 });

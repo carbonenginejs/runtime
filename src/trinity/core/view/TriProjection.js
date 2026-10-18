@@ -4,6 +4,10 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriProjection_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { meta, type, blue } from "#schema";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+
+/** SetProjection__RenderContext's viewport adjustment, rebuilt on each call. */
+const VIEWPORT_ADJUSTMENT = mat4.create();
 
 
 /**
@@ -117,6 +121,91 @@ export class TriProjection
     this.projectionType = TriProjection.CUSTOM;
     mat4.copy(this.customTransform, value);
     mat4.copy(this.transform, value);
+  }
+
+  /**
+   * Carbon SetProjection( renderContext ) (TriProjection.cpp:71-109): sets this
+   * projection on the renderer, scaled and offset when the authored viewport
+   * extends past the render target and was clipped to the device viewport.
+   * Carbon's `_11 _22 _31 _32` are indices 0, 5, 8 and 9.
+   *
+   * Adapted: our state manager has no viewport until a render target or a
+   * viewport is set, where Carbon's always has one; with none, the adjustment
+   * stays the identity.
+   *
+   * @param {Tr2RenderContext} renderContext The context whose viewport is read.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.adapted
+  SetProjection__RenderContext(renderContext)
+  {
+    const adjustment = mat4.identity(VIEWPORT_ADJUSTMENT);
+    const esm = renderContext.GetEffectStateManager();
+    const viewport = esm.GetViewport();
+    const deviceViewport = esm.GetDeviceViewport();
+
+    // In case we shrunk the viewport we need to scale and/or offset the
+    // projection matrix.
+    if (viewport && deviceViewport)
+    {
+      adjustment[0] = viewport.width / deviceViewport.width;
+      adjustment[5] = viewport.height / deviceViewport.height;
+      adjustment[8] = (viewport.width - deviceViewport.width) / deviceViewport.width;
+      adjustment[9] = (viewport.height - deviceViewport.height) / deviceViewport.height;
+      if (viewport.x < 0)
+      {
+        adjustment[8] *= -1;
+      }
+
+      if (viewport.y + viewport.height > Math.trunc(esm.renderTargetHeight))
+      {
+        adjustment[9] *= -1;
+      }
+    }
+
+    switch (this.projectionType)
+    {
+      case TriProjection.FOV:
+        Tr2Renderer.SetPerspectiveProjection__FovAspect(this.fov, this.zn, this.zf, this.aspect, adjustment);
+        break;
+      case TriProjection.OFF_CENTER:
+        Tr2Renderer.SetPerspectiveProjection__LeftRightBottomTop(this.left, this.right, this.bottom, this.top, this.zn, this.zf, adjustment);
+        break;
+      case TriProjection.ORTHO:
+        Tr2Renderer.SetOrthoProjection__WidthHeight(this.left, this.top, this.zn, this.zf, adjustment);
+        break;
+      case TriProjection.CUSTOM:
+        Tr2Renderer.SetProjectionTransform(this.customTransform, adjustment);
+        break;
+    }
+  }
+
+  /**
+   * Carbon SetProjection() (TriProjection.cpp:111-128): sets this projection
+   * on the renderer with no viewport adjustment.
+   *
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  SetProjection()
+  {
+    switch (this.projectionType)
+    {
+      case TriProjection.FOV:
+        Tr2Renderer.SetPerspectiveProjection__FovAspect(this.fov, this.zn, this.zf, this.aspect);
+        break;
+      case TriProjection.OFF_CENTER:
+        Tr2Renderer.SetPerspectiveProjection__LeftRightBottomTop(this.left, this.right, this.bottom, this.top, this.zn, this.zf);
+        break;
+      case TriProjection.ORTHO:
+        Tr2Renderer.SetOrthoProjection__WidthHeight(this.left, this.top, this.zn, this.zf);
+        break;
+      case TriProjection.CUSTOM:
+        Tr2Renderer.SetProjectionTransform(this.customTransform);
+        break;
+    }
   }
 
   /** The active mode, one of the FOV, OFF_CENTER, ORTHO or CUSTOM constants. */

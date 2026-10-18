@@ -22,6 +22,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const context={GetViewTransform:()=>mat4.create()};
 
@@ -44,7 +45,7 @@ test("Scene declaration order, stored aliases and list identities match native s
 test("actual step forwards both raw clocks to real curve sets; the view is the main-thread context's",()=>{
  const scene=new Tr2Sprite2dScene(),step=new TriStepUpdate();step.object=scene;
  const values=[];for(const useRealTime of [true,false]){const set=new TriCurveSet(),curve=new Tr2CurveScalar();curve.AddKey(0,0);curve.AddKey(100,100);set.curves.Append(curve);set.useRealTime=useRealTime;set.isPlaying=true;scene.curveSets.Append(set);values.push(set);}
- const view=mat4.create();view[2]=1;view[6]=0;view[10]=0;const main=Tr2RenderContext_GetMainThreadRenderContext();main.SetViewTransform(view);step.Execute(20_000_000,50_000_000,main);assert.deepEqual(values.map(s=>s.scaledTime),[2,5]);assert.equal(scene._realTime,20_000_000);assert.equal(scene._simTime,50_000_000);
+ const view=mat4.create();view[2]=1;view[6]=0;view[10]=0;const main=Tr2RenderContext_GetMainThreadRenderContext();Tr2Renderer.SetViewTransform(view);step.Execute(20_000_000,50_000_000,main);assert.deepEqual(values.map(s=>s.scaledTime),[2,5]);assert.equal(scene._realTime,20_000_000);assert.equal(scene._simTime,50_000_000);
  const qx=0.332621,qy=0.332621,qw=0.882455,expected=[qw*qw+qx*qx-qy*qy,2*qx*qy,-2*qy*qw,1];const dot=Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue();for(let i=0;i<4;i++)assert.ok(Math.abs(dot[i]-expected[i])<1e-6);
  // The variable must not retain released pool memory.
  const temporary=vec3.alloc();temporary.fill(99);vec3.unalloc(temporary);for(let i=0;i<4;i++)assert.ok(Math.abs(dot[i]-expected[i])<1e-6);
@@ -79,10 +80,10 @@ test("resource invalidation clamps the native sprite limit and an invalid contex
 test("Scene uses the main-thread view fallback and tolerates a missing shader handle", () =>
 {
   const main = Tr2RenderContext_GetMainThreadRenderContext();
-  const saved = mat4.clone(main.GetViewTransform());
+  const saved = mat4.clone(Tr2Renderer.GetViewTransform());
   try
   {
-    main.SetViewTransform(mat4.create());
+    Tr2Renderer.SetViewTransform(mat4.create());
     const scene = new Tr2Sprite2dScene();
     const set = new TriCurveSet();
     const received = [];
@@ -98,7 +99,7 @@ test("Scene uses the main-thread view fallback and tolerates a missing shader ha
   }
   finally
   {
-    main.SetViewTransform(saved);
+    Tr2Renderer.SetViewTransform(saved);
   }
 });
 

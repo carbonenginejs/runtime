@@ -35,6 +35,7 @@ import {
 } from "../../npm/dist/trinity/index.js";
 import * as generatedChildren from "../../npm/dist/trinity/generated/eve/child/index.js";
 import * as generatedSmartLights from "../../npm/dist/trinity/generated/eve/smartLights/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 const EPSILON = 1e-5;
@@ -168,13 +169,12 @@ class VisibleFrustum extends TriFrustum
 function createFrame(worldTransform)
 {
   const renderContext = new Tr2RenderContext();
-  renderContext.SetViewTransform(mat4.fromTranslation(mat4.create(), [-17, -9, 11]));
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-17, -9, 11]));
 
   const frustum = new VisibleFrustum();
   vec3.set(frustum.viewPos, 17, 9, -11);
 
   const updateContext = new EveUpdateContext();
-  updateContext.renderContext = renderContext;
   updateContext.SetFrustum(frustum);
   // The context copies the frustum by value (ruling 16, EveUpdateContext.h:182-185),
   // which slices a stub subclass; keep the stub's pinned answers on its own copy.

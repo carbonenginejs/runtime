@@ -30,7 +30,6 @@ export class EveChildModifierHaloInverted extends IEveChildTransformModifier
    * clamp(dot(normalize(d), -transformZ), 0), then
    * return scalingTransform * alignMat * transform. Despite the class name it is
    * NOT a subclass of Halo - it is its own modifier over DistanceBase.
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused
@@ -38,21 +37,13 @@ export class EveChildModifierHaloInverted extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
-  ApplyTransform(context, transform, boneCount, bones, out)
+  ApplyTransform(transform, boneCount, bones, out)
   {
-    const renderContext = context?.renderContext;
-
-    if (!renderContext)
-    {
-      return mat4.copy(out, transform);
-    }
-
     const { alignMat, d, forward, scaleVec, scalingTransform } = this.constructor.scratch;
 
     // distCenter is computed by DistanceBase and left unused here, as in Carbon.
-    EveChildModifierTransformCommon.distanceBase(context, transform, alignMat, d);
+    EveChildModifierTransformCommon.distanceBase(transform, alignMat, d);
 
     vec3.set(forward, transform[8], transform[9], transform[10]);
     vec3.normalize(forward, forward);

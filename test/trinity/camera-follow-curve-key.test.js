@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { Tr2CameraFollowCurveKey } from "../../npm/dist/trinity/curves/key/Tr2CameraFollowCurveKey.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const context = Tr2RenderContext_GetMainThreadRenderContext();
 
@@ -17,21 +18,25 @@ function close(actual, expected)
 
 function camera(aspect = 1, near = 1, inverseView = mat4.create(), fov = Math.PI / 2)
 {
+  // _22 = 1 / tan(fov / 2) and _11 = _22 / aspect, so the renderer reads the
+  // field of view and aspect back from the matrix (Tr2Renderer.cpp:70-83).
   const projection = mat4.create();
-  projection[0] = 1 / aspect;
-  projection[5] = 1;
+  projection[5] = 1 / Math.tan(fov / 2);
+  projection[0] = projection[5] / aspect;
   projection[10] = -1;
   projection[14] = -near;
-  context.SetProjection(projection, fov);
-  context.SetViewTransform(mat4.invert(mat4.create(), inverseView));
+  Tr2Renderer.SetProjectionTransform(projection);
+  Tr2Renderer.SetViewTransform(mat4.invert(mat4.create(), inverseView));
 }
 
-test("camera key tolerates the initial unconfigured projection", () =>
+test("camera key initializes against Carbon's identity projection", () =>
 {
-  assert.equal(context.GetProjection(), null);
+  // Carbon's Matrix() is the identity, so an unconfigured renderer has one.
+  Tr2Renderer.SetProjectionTransform(mat4.create());
+  Tr2Renderer.SetViewTransform(mat4.create());
   const key = new Tr2CameraFollowCurveKey();
   assert.equal(key.Initialize(), true);
-  close(key.boxPosition, [0, 0, 0]);
+  assert.ok(Array.from(key.boxPosition).every(Number.isFinite));
 });
 
 test("camera framing transforms bounds, signed offset and coordinate tangents", () =>

@@ -11,13 +11,11 @@ export class IEveChildTransformModifier
 
   /**
    * Carbon `Matrix ApplyTransform( const Matrix& transform, size_t boneCount,
-   * const Float4x3* bones ) const` (IEveChildTransformModifier.h:12), as every
-   * caller and implementer calls it (`applyTransformModifiers`,
-   * EveChildTransform.js): the frame context first, standing in for the
-   * renderer globals the camera-dependent billboards read, and the returned
-   * Matrix written into caller-owned `out` last.
+   * const Float4x3* bones ) const` (IEveChildTransformModifier.h:12), with the
+   * returned Matrix written into caller-owned `out` last. Camera-dependent
+   * modifiers read the renderer's current view (Tr2Renderer statics), as
+   * Carbon's do.
    *
-   * @param {object} _context The frame context.
    * @param {mat4} _transform The transform to modify (read only).
    * @param {number} _boneCount How many bones `bones` holds.
    * @param {Float32Array|null} _bones Float4x3 palette, 12 floats per bone.
@@ -25,6 +23,6 @@ export class IEveChildTransformModifier
    * @returns {mat4} `out`.
    */
   @blue.abstract
-  ApplyTransform(_context, _transform, _boneCount, _bones, _out) {}
+  ApplyTransform(_transform, _boneCount, _bones, _out) {}
 
 }

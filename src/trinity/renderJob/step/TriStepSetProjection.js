@@ -1,8 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.h
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.cpp
 import { meta, type, blue } from "#schema";
-import { mat4 } from "#math/mat4";
-import { TriProjection } from "../../core/view/TriProjection.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -13,8 +11,6 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @blue.chainTo(TriRenderStep)
 export class TriStepSetProjection extends TriRenderStep
 {
-  #transform = mat4.create();
-
   @blue.readwrite
   @blue.persist
   @type.rootRef("TriProjection")
@@ -40,8 +36,8 @@ export class TriStepSetProjection extends TriRenderStep
   }
 
   /**
-   * Installs the projection on the render context when one is authored, leaving the
-   * current projection untouched otherwise.
+   * Sets the authored projection on the renderer, leaving the current
+   * projection untouched when there is none (TriStepSetProjection.cpp:20-27).
    */
   @blue.method
   @meta.implemented
@@ -49,23 +45,7 @@ export class TriStepSetProjection extends TriRenderStep
   {
     if (this.projection)
     {
-      this.projection.GetTransform(this.#transform);
-      let fieldOfView;
-      switch (this.projection.GetProjectionType())
-      {
-        case TriProjection.FOV:
-          fieldOfView = this.projection.fov;
-          break;
-        case TriProjection.ORTHO:
-          fieldOfView = 1;
-          break;
-        default:
-          fieldOfView = this.#transform[5]
-            ? 2 * Math.atan(1 / this.#transform[5])
-            : 0;
-          break;
-      }
-      renderContext.SetProjection(this.#transform, fieldOfView);
+      this.projection.SetProjection__RenderContext(renderContext);
     }
     return TriRenderJob.StepResult.RS_OK;
   }

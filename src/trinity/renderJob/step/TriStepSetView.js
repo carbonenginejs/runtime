@@ -2,6 +2,7 @@
 // Source: trinity/trinity/RenderJob/TriStepSetView.cpp
 import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -45,11 +46,10 @@ export class TriStepSetView extends TriRenderStep
   }
 
   /**
-   * Sets the view transform from the view when one is authored; otherwise
-   * updates the camera using the render context viewport's aspect ratio (1 when the
-   * viewport is missing or has no height) and sets the resulting view matrix.
-   * The second argument to SetViewTransform identifies the source object the
-   * render context should associate with the transform.
+   * Sets the renderer's view transform from the view when one is authored;
+   * otherwise updates the camera using the render context viewport's aspect
+   * ratio (1 when the viewport is missing or has no height) and sets the
+   * resulting view matrix (TriStepSetView.cpp:21-33).
    */
   @blue.method
   @meta.implemented
@@ -57,14 +57,14 @@ export class TriStepSetView extends TriRenderStep
   {
     if (this.view)
     {
-      renderContext.SetViewTransform(this.view.GetTransform(), this.view);
+      Tr2Renderer.SetViewTransform(this.view.GetTransform());
     }
     else if (this.camera)
     {
       const viewport = renderContext.GetViewport();
       const aspectRatio = viewport?.height ? viewport.width / viewport.height : 1;
       this.camera.Update(simTime, aspectRatio, realTime);
-      renderContext.SetViewTransform(this.camera.GetViewMatrix(), this.camera);
+      Tr2Renderer.SetViewTransform(this.camera.GetViewMatrix());
     }
     return TriRenderJob.StepResult.RS_OK;
   }

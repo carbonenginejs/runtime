@@ -1,14 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EveSpaceScene, EveComponentRegistry, EveChildPostProcessVolume, EveComponentType, Tr2LightManager, TriRenderBatchMap, Tr2RenderContext } from "../../npm/dist/trinity/index.js";
+import { EveSpaceScene, EveComponentRegistry, EveChildPostProcessVolume, EveComponentType, Tr2LightManager, TriRenderBatchMap, Tr2RenderContext, TriDevice, gTriDev } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/index.js";
 
-test("scene picking requires its frame viewport method when no viewport was supplied", () =>
+test("scene picking without a supplied viewport reads the device viewport (TriDevice.cpp:1132-1135)", () =>
 {
   const scene = new EveSpaceScene();
-  scene.updateContext.renderContext = new Tr2RenderContext();
-  scene.updateContext.renderContext.GetViewport = undefined;
-  assert.throws(() => scene.PickInfinity(1, 1, mat4.create(), mat4.create()), /GetViewport/);
+  const previous = gTriDev.device;
+  gTriDev.device = new TriDevice();
+  try
+  {
+    gTriDev.device.viewport = { x: 0, y: 0, width: 10, height: 10 };
+    assert.ok(scene.PickInfinity(1, 1, mat4.create(), mat4.create()));
+  }
+  finally
+  {
+    gTriDev.device = previous;
+  }
   assert.ok(scene.PickInfinity(1, 1, mat4.create(), mat4.create(), { x: 0, y: 0, width: 10, height: 10 }));
 });
 
@@ -24,18 +32,16 @@ for (const method of ["UpdatePostProcessAttributes", "BlendLightingOverrides", "
   test(`${method} requires the scene's component registry`, () =>
   {
     const scene = new EveSpaceScene();
-    scene.updateContext.renderContext = new Tr2RenderContext();
     scene.componentRegistry = null;
-    assert.throws(() => scene[method](lightManager()), TypeError);
+    assert.throws(() => scene[method](lightManager(), new Tr2RenderContext()), TypeError);
   });
 
   test(`${method} does not replace a missing component collection with an empty one`, () =>
   {
     const scene = new EveSpaceScene();
-    scene.updateContext.renderContext = new Tr2RenderContext();
     scene.componentRegistry = new EveComponentRegistry();
     scene.componentRegistry.GetComponents = () => null;
-    assert.throws(() => scene[method](lightManager()), TypeError);
+    assert.throws(() => scene[method](lightManager(), new Tr2RenderContext()), TypeError);
   });
 }
 

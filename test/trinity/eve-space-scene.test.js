@@ -14,6 +14,7 @@ import {
   Tr2RenderContext
 } from "../../npm/dist/trinity/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 // Test fixture standing in for `@carbon.inherit(X)` as a base-class
 // expression, because these files are plain scripts and carry no decorators.
@@ -247,8 +248,7 @@ test("EveSpaceScene.Update drives a camera modifier end to end via the stamped r
   // Host/driver role: stamp the camera view onto the scene context's render
   // context (camera at +X, identity orientation).
   const renderContext = new Tr2RenderContext();
-  renderContext.SetViewTransform(mat4.fromTranslation(mat4.create(), [-10, 0, 0]));
-  scene.updateContext.renderContext = renderContext;
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-10, 0, 0]));
 
   scene.Update(0, 1);
 

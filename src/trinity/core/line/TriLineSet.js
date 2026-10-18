@@ -8,6 +8,7 @@ import { vec3 } from "#math/vec3";
 import { Topology } from "#consts/render-context";
 import { TriDebugResourceHelper } from "../TriDebugResourceHelper.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
 
 
 /** TriDebugResourceHelper::VertexPosColor: a float3 position and a packed colour, 16 bytes. */
@@ -245,7 +246,7 @@ export class TriLineSet
     if (!this.vertices.length) return;
     const helper = TriDebugResourceHelper.g_debugResourceHelper();
     renderContext.GetEffectStateManager().ApplyVertexDeclaration(helper.GetVertexPosColorDecl());
-    renderContext.SetWorldTransform(this.transform);
+    Tr2Renderer.SetWorldTransform(this.transform);
     helper.GetLineEffect().Render(this, renderContext);
   }
 

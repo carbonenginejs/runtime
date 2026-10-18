@@ -21,6 +21,7 @@ import { Tr2RuntimeInstanceData } from "../../core/mesh/Tr2RuntimeInstanceData.j
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { be } from "#blue";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 
 const UP = vec3.fromValues(0, 1, 0);
@@ -298,11 +299,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
       this.rotationConstraint !== RotationalConstraints.NONE;
     if (this._geometryDirty || alwaysUpdate || this._refreshStaticGeometry)
     {
-      const published = this.UpdateGeometryResource(
-        placements,
-        entityCount,
-        updateContext.renderContext
-      );
+      const published = this.UpdateGeometryResource(placements, entityCount);
       this.UpdateBoundingSphere(placements, distribution);
       if (published)
       {
@@ -364,13 +361,13 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * Builds logical current/previous matrices, publishes their canonical 3x4
    * bytes and stores the same logical matrices for ray/filter consumers.
    *
-   * Adapted: Carbon reads the global renderer camera, packs Tr2DirectInstanceData, and
-   * stores transposed auxiliary matrices; JS receives the active context, keeps auxiliary
-   * ray/filter transforms logical, and delegates row packing to Tr2RuntimeInstanceData.
+   * Adapted: Carbon packs Tr2DirectInstanceData and stores transposed auxiliary
+   * matrices; JS keeps auxiliary ray/filter transforms logical and delegates row
+   * packing to Tr2RuntimeInstanceData. The camera is the renderer's (cpp:243).
    */
   @blue.method
   @meta.adapted
-  UpdateGeometryResource(placements, size, renderContext)
+  UpdateGeometryResource(placements, size)
   {
     this._totalObjectCount = Number(size) >>> 0;
     if (this._totalObjectCount === 0)
@@ -389,7 +386,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
       return false;
     }
 
-    const cameraPosition = renderContext.GetViewPosition();
+    const cameraPosition = Tr2Renderer.GetViewPosition();
     const instances = [];
     const logicalTransforms = [];
 

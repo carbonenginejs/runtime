@@ -8,6 +8,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
 import { mat4 } from "#math/mat4";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -313,7 +314,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     }
 
     this._fogIntensity = 0;
-    const viewPosition = updateContext.renderContext.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     // Inverse( m_worldTransform ) (EveChildFogVolume.cpp:105), unconditional.
     const inverse = mat4.inverseCarbon(INVERSE_WORLD, this.worldTransform);
     if (!initialized) return;

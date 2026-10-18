@@ -597,7 +597,7 @@ export class EveStretch3 extends IEveFiringEffectElement
       if (this._stretchModifier)
       {
         this._stretchModifier.SetDestPosition(this.destinationPosition);
-        this._stretchModifier.ApplyTransform(context, EveStretch3._sourceTransform, 0, null, params.localToWorldTransform);
+        this._stretchModifier.ApplyTransform(EveStretch3._sourceTransform, 0, null, params.localToWorldTransform);
       }
       else mat4.copy(params.localToWorldTransform, EveStretch3._sourceTransform);
       this.stretchObject.UpdateAsyncronous(context, params);

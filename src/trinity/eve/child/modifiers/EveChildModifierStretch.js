@@ -34,10 +34,9 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * destination function is sampled at Blue's frame time, read here as Carbon
    * reads `BeOS->GetCurrentFrameTime()` (cpp:37-41).
    *
-   * Adapted: the frame context comes first and the result is written into the
-   * caller-owned `out`, as the IEveChildTransformModifier interface takes it.
+   * The returned Matrix is written into caller-owned `out`, as the
+   * IEveChildTransformModifier interface takes it.
    *
-   * @param {Object} _context - frame context; unused here
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused
@@ -45,8 +44,8 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
   @blue.method
-  @meta.adapted
-  ApplyTransform(_context, transform, _boneCount = 0, _bones = null, out)
+  @meta.implemented
+  ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
     const { sourceRotation, sourceTranslation, sourceScale, end, diff, arcMat, arcQuat, scale, mid, srcRotMat } =
       EveChildModifierStretch._scratch;

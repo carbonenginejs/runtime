@@ -11,6 +11,7 @@ import * as generatedCore from "../../npm/dist/trinity/generated/trinityCore/ind
 import * as trinity from "../../npm/dist/trinity/index.js";
 import * as alStub from "../../npm/dist/trinityal/index.js";
 import * as consts from "../../npm/dist/global/consts/renderContext/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 const EPSILON = 1e-5;
@@ -454,8 +455,8 @@ function shadowScene(shadowQuality)
 
   core.Tr2Renderer.prepareDeviceResources(context);
   projection.PerspectiveFov(Math.PI / 4, 1, 1, 100000);
-  context.SetProjection(projection.GetTransform());
-  context.SetViewTransform(view);
+  Tr2Renderer.SetProjectionTransform(projection.GetTransform());
+  Tr2Renderer.SetViewTransform(view);
   context.SetTriPoolAllocator({ Allocate: () => ({}), Clear() {} });
   frustum.DeriveFrustum(view, vec3.create(), projection.GetTransform(), { x: 0, y: 0, width: 256, height: 256 });
   scene.StampFrameContext({ frustum });

@@ -540,7 +540,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
         {
           if (this.instanceGeometryResource)
           {
-            const viewPosition = Tr2RenderContext_GetMainThreadRenderContext().GetViewPosition();
+            const viewPosition = Tr2Renderer.GetViewPosition();
 
             // Carbon Inverse returns the matrix itself when it is singular (math/src/Matrix.cpp:12-16).
             const inverseWorld = Tr2InstancedMesh._debugInverseWorld;

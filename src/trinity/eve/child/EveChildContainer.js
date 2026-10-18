@@ -803,12 +803,11 @@ export class EveChildContainer extends EveChildTransform
    * and the Granny bone-list override are engine/animation seams; the CPU update fan-out is
    * ported.
    *
-   * @param {Object} updateContext - frame context (EveUpdateContext), threaded to modifiers
+   * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params - localToWorldTransform + boneCount/bones
    * @returns {Float32Array} worldTransform
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -850,7 +849,7 @@ export class EveChildContainer extends EveChildTransform
     const boneCount = params?.boneCount ?? 0;
     const bones = params?.bones ?? null;
 
-    applyTransformModifiers(this, updateContext, boneCount, bones);
+    applyTransformModifiers(this, boneCount, bones);
 
     this._activationStrength = Number(params?.activationStrength ?? 1);
 

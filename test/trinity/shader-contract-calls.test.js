@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2RuntimeTextureParameter, Tr2Material, TriTransformParameter, Tr2RenderContext, TriVariableParameter, TriVariable } from "../../npm/dist/trinity/index.js";
 import { Tr2ResourceSetDescriptionAL } from "../../npm/dist/trinityal/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 test("runtime texture changes require attached materials to invalidate resource sets", () =>
 {
@@ -16,16 +17,16 @@ test("runtime texture changes require attached materials to invalidate resource 
   assert.equal(calls, 1);
 });
 
-test("non-fixed transform parameters require the inverse-view getter and its result", () =>
+test("non-fixed transform parameters read the renderer's inverse view (TriTransformParameter.cpp:45)", () =>
 {
   const parameter = new TriTransformParameter();
   parameter.transformBase = 1;
-  const context = new Tr2RenderContext();
   const dest = new Float32Array(16);
-  context.GetInverseViewTransform = undefined;
-  assert.throws(() => parameter.CopyValueToEffect(0, dest, 64, context), /GetInverseViewTransform/);
-  context.GetInverseViewTransform = () => null;
-  assert.throws(() => parameter.CopyValueToEffect(0, dest, 64, context), TypeError);
+  // A view with translation only: the inverse view's rotation is the identity
+  // and its translation is dropped.
+  Tr2Renderer.SetViewTransform([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1 ]);
+  parameter.CopyValueToEffect(0, dest, 64, null);
+  assert.deepEqual(Array.from(dest), [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
 });
 
 test("fixed transform parameters need no render context", () =>

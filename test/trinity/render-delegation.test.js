@@ -96,15 +96,8 @@ test("GetSortValue measures view-position distance scaled by the multiplier", ()
   transform.worldTransform[13] = 4;
   transform.sortValueMultiplier = 2;
 
-  const context = {
-    GetViewPosition()
-    {
-      return [ 3, 0, 0 ];
-    }
-  };
-  assert.equal(transform.GetSortValue(context), 8, "distance 4 x multiplier 2");
-  assert.throws(() => transform.GetSortValue(), /GetViewPosition/u,
-    "the owned camera contract fails visibly when no render context is supplied");
+  Tr2Renderer.SetViewTransform([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -3, 0, 0, 1 ]);
+  assert.equal(transform.GetSortValue(), 8, "distance 4 x multiplier 2");
 });
 
 test("GetPerObjectData applies the Carbon singular-world patch fixup", () =>
@@ -246,15 +239,10 @@ test("EveSpaceObject2 transparent areas are sorted back-to-front by world-space 
   geometry.MarkPrepared();
   object.mesh.SetGeometryRes(geometry);
 
-  const context = {
-    GetViewPosition()
-    {
-      return [ 0, 0, 0 ];
-    }
-  };
+  Tr2Renderer.SetViewTransform([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);
 
   const accumulator = new TriRenderBatchAccumulator();
-  object.GetBatches(accumulator, TRANSPARENT, null, 0, context);
+  object.GetBatches(accumulator, TRANSPARENT, null, 0);
   assert.deepEqual(
     accumulator.GetBatches().map(batch => batch.material.id),
     [ "far", "near" ],
@@ -276,13 +264,8 @@ test("EveSpaceObject2.GetPerObjectData/GetSortValue honor the Carbon contracts",
 
   object.worldTransform[12] = 3;
   object.worldTransform[13] = 4;
-  const context = {
-    GetViewPosition()
-    {
-      return [ 0, 0, 0 ];
-    }
-  };
-  assert.equal(object.GetSortValue(context), 5, "plain distance, no multiplier");
+  Tr2Renderer.SetViewTransform([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);
+  assert.equal(object.GetSortValue(), 5, "plain distance, no multiplier");
 });
 
 test("EveMissileWarhead.GetPerObjectData Allocs a RawData record from the store", () =>

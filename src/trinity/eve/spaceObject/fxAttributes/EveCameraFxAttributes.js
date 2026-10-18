@@ -4,9 +4,11 @@ import { meta, type, blue } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 const OBJECT_POSITION = vec3.create();
 const VECTOR_TO_OBJECT = vec3.create();
+const VIEW_LOOK_AT = vec3.create();
 const CHILD_TRANSFORM = mat4.create();
 const IDENTITY_TRANSFORM = mat4.create();
 
@@ -52,23 +54,17 @@ export class EveCameraFxAttributes extends IEveFxAttribute
   distanceToCamera = 0;
 
   /**
-   * Collects Carbon's camera-relative attributes for the current child update.
-   * Renderer-global camera state is supplied by EveUpdateContext in Trinity.
+   * Collects Carbon's camera-relative attributes for the current child update,
+   * from the renderer's current view (EveCameraFxAttributes.cpp:20-49).
    *
-   * Adapted: Carbon reads Tr2Renderer camera globals; the runtime Trinity layer supplies the
-   * equivalent state through updateContext.renderContext.
+   * Adapted: the parents' GetModelCenterWorldPosition and GetLocalToWorldTransform
+   * return their result rather than filling a reference, and a missing
+   * localToWorldTransform reads as the identity.
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
-    const renderContext = updateContext?.renderContext;
-    if (!renderContext)
-    {
-      return;
-    }
-
     const objectPosition = OBJECT_POSITION;
     vec3.set(objectPosition, 0, 0, 0);
 
@@ -92,16 +88,12 @@ export class EveCameraFxAttributes extends IEveFxAttribute
       vec3.set(objectPosition, transform[12], transform[13], transform[14]);
     }
 
-    const cameraPosition = renderContext.GetViewPosition();
-    const view = renderContext.GetViewTransform();
-
+    const cameraPosition = Tr2Renderer.GetViewPosition();
     vec3.subtract(VECTOR_TO_OBJECT, objectPosition, cameraPosition);
+    const view = Tr2Renderer.GetViewTransform();
+
     this.distanceToCamera = vec3.length(VECTOR_TO_OBJECT);
-    this.lookAngleToObject = -(
-      view[2] * VECTOR_TO_OBJECT[0] +
-      view[6] * VECTOR_TO_OBJECT[1] +
-      view[10] * VECTOR_TO_OBJECT[2]
-    ) / this.distanceToCamera;
+    this.lookAngleToObject = -(vec3.dot(Tr2Renderer.GetViewLookAt(VIEW_LOOK_AT), VECTOR_TO_OBJECT) / this.distanceToCamera);
 
     const objectTransform = params?.localToWorldTransform ?? IDENTITY_TRANSFORM;
     vec3.set(this.objectRotation, objectTransform[2], objectTransform[6], objectTransform[10]);

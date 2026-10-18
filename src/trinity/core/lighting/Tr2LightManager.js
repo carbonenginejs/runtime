@@ -851,7 +851,7 @@ export class Tr2LightManager
 
   static _instance = null;
 
-  static scratch = { words4_0: new Uint32Array(4), mat4_0: mat4.create() };
+  static scratch = { words4_0: new Uint32Array(4) };
 
   /** Carbon SetVariableStore (cpp:214-218): the globals name this manager's buffers. */
   @blue.method
@@ -1004,20 +1004,14 @@ export class Tr2LightManager
 
     if (!this.UpdateLightBuffer(renderContext)) return false;
 
-    const { mat4_0 } = Tr2LightManager.scratch;
     const floats = this._perFrameFloats;
     const words = this._perFrameWords;
     const esm = renderContext.GetEffectStateManager();
 
-    // Tr2Renderer::GetInverseProjectionTransform is Inverse(s_projectionTransform)
-    // (Tr2Renderer.cpp:197), the inverse SetProjection publishes as
-    // ProjectionInvMat; it is inverted here from the context's projection,
-    // identity when singular as SetProjection does.
-    const projection = renderContext.GetProjection();
-    const projectionInverse = (projection && mat4.invert(mat4_0, projection)) ?? mat4.identity(mat4_0);
-    mat4.transpose(this._perFrameProjInverse, projectionInverse);
-    mat4.transpose(this._perFrameViewInverse, renderContext.GetInverseViewTransform());
-    floats.set(renderContext.GetViewPosition(), PER_FRAME_CAMERA_POS);
+    // Tr2LightManager.cpp:410-412.
+    mat4.transpose(this._perFrameProjInverse, Tr2Renderer.GetInverseProjectionTransform());
+    mat4.transpose(this._perFrameViewInverse, Tr2Renderer.GetInverseViewTransform());
+    floats.set(Tr2Renderer.GetViewPosition(), PER_FRAME_CAMERA_POS);
     words[PER_FRAME_WIDTH] = esm.renderTargetWidth >>> 0;
     words[PER_FRAME_HEIGHT] = esm.renderTargetHeight >>> 0;
     words[PER_FRAME_TILES_X] = Math.floor((words[PER_FRAME_WIDTH] + (TILE_WIDTH - 1)) / TILE_WIDTH);

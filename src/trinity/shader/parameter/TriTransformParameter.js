@@ -7,6 +7,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsParameter } from "./CjsParameter.js";
 import { TRITRANSFORMBASE } from "#consts/graphics";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** Composes authored translation, rotation, scale, and transform-base state into the matrix uploaded to a shader constant. */
 @blue.define("TriTransformParameter")
@@ -116,7 +117,7 @@ export class TriTransformParameter extends CjsParameter
     if (this.transformBase !== 0)
     {
       // TriTransformParameter.cpp:36-45 requires the inverse view only for non-fixed bases.
-      const baseTransform = mat4.clone(context.GetInverseViewTransform());
+      const baseTransform = mat4.clone(Tr2Renderer.GetInverseViewTransform());
       baseTransform[12] = 0;
       baseTransform[13] = 0;
       baseTransform[14] = 0;

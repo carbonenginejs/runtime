@@ -1,9 +1,9 @@
 // Source: trinity/trinity/Eve/EveUpdateContext.h
 //
 // Hand-maintained (NOT generated). Promoted out of src/trinity/generated because this
-// per-frame context carries two runtime-only composition references -
-// renderContext (Tr2RenderContext) and device (TriDevice) - that do not exist
-// in the Carbon schema and would be dropped on every regeneration. The schema
+// per-frame context carries a runtime-only composition reference - device
+// (TriDevice) - that does not exist in the Carbon schema and would be dropped
+// on every regeneration. The schema
 // scan of EveUpdateContext.h also emitted assignment-statement and local-variable
 // artifacts (time / manager / ps / deltaT / originNow / originDelta - deltaT is
 // computed on demand in Carbon, and the origin temporaries are UpdateOrigin
@@ -96,13 +96,8 @@ export class EveUpdateContext
   originShiftRemainder = new Float64Array(3);
 
   // --- Runtime composition (NOT in the Carbon schema) ---------------------
-  // Carbon's modifiers read view state from Tr2Renderer statics; we thread it
-  // explicitly instead. camera/view -> Tr2RenderContext, device -> TriDevice.
-  // Both are swappable per pass; reference fields, default null.
-
-  /** renderContext (Tr2RenderContext) - camera/view sub-context, swapped per pass. */
-  @type.rootRef("Tr2RenderContext")
-  renderContext = null;
+  // device -> TriDevice, swappable per pass; a reference field, default null.
+  // The view is not here: it is the Tr2Renderer statics, as in Carbon.
 
   /** device (TriDevice) - GPU managers and command surface. */
   @type.rootRef("TriDevice")

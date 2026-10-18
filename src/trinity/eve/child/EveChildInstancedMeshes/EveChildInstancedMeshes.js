@@ -27,6 +27,7 @@ import { EveChildInstancedMesh } from "./EveChildInstancedMesh.js";
 import { IEveInstanceMeshProvider } from "../../instancedMeshManager/IEveInstanceMeshProvider.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 const POSITION_SCRATCH = vec3.create();
 const OVERLAY_LOCAL_SCRATCH = mat4.create();
@@ -1331,9 +1332,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /** Returns the squared camera distance used to sort transparent overlays. */
   @blue.method
   @meta.adapted
-  GetSortValue(renderContext = null)
+  GetSortValue()
   {
-    const viewPosition = renderContext?.GetViewPosition() ?? [ 0, 0, 0 ];
+    const viewPosition = Tr2Renderer.GetViewPosition();
     return Math.hypot(
       viewPosition[0] - this.worldTransform[12],
       viewPosition[1] - this.worldTransform[13],

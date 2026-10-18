@@ -7,6 +7,7 @@ import { EveSpaceObject2, EveUiObject, Tr2Lod, Tr2TranslationAdapter, Tr2RenderC
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { UpdateContext, FixedFrustum } from "../support/eveUpdateContext.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const TICKS_PER_SECOND = 10_000_000;
 
@@ -23,9 +24,9 @@ function near(actual, expected, label, epsilon = 1e-5)
 function placed(t)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext();
-  const prior = mat4.clone(context.GetViewTransform());
-  context.SetViewTransform(mat4.fromTranslation(mat4.create(), [ -3, -8, -5 ]));
-  t.after(() => context.SetViewTransform(prior));
+  const prior = mat4.clone(Tr2Renderer.GetViewTransform());
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [ -3, -8, -5 ]));
+  t.after(() => Tr2Renderer.SetViewTransform(prior));
 
   const object = new EveUiObject();
   object.translationCurve = new Tr2TranslationAdapter();

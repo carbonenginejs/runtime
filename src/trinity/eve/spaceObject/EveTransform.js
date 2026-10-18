@@ -200,19 +200,16 @@ export class EveTransform extends Tr2Transform
   }
 
   /**
-   * Rebuilds the local matrix from rotation, translation and scaling and composes it with the parent to refresh worldTransform, keeping the previous world transform for motion vectors, then pushes the new transform to the particle systems and observers.
+   * Rebuilds the local matrix from rotation, translation and scaling and composes it with the parent to refresh worldTransform, keeping the previous world transform for motion vectors, then pushes the new transform to the particle systems and observers (EveTransform.cpp:162-176).
+   * @param {TriFrustum} frustum The update context's frustum.
+   * @param {mat4} [parentTransform] The parent's world transform.
    * @returns {mat4} The node's live worldTransform, valid until the next update.
-   *
-   * Adapted: Renderer-owned modifier state is supplied through the update
-   * context; standard SRT and parent composition stay in Trinity.
   */
   @blue.method
-  @blue.contextual(["camera"])
-  @meta.adapted
-  UpdateViewDependentData(context, parentTransform = EveTransform._identity)
+  @meta.implemented
+  UpdateViewDependentData(frustum, parentTransform = EveTransform._identity)
   {
-    const frustum = context.GetFrustum();
-    super.UpdateViewDependentData(context.renderContext, parentTransform);
+    super.UpdateViewDependentData(frustum, parentTransform);
     for (const system of this.particleSystems) system.UpdateViewDependentData(frustum, this.worldTransform);
     for (const observer of this.observers) observer.Update(this.worldTransform);
     return this.worldTransform;
@@ -331,8 +328,8 @@ export class EveTransform extends Tr2Transform
     if (this.hideOnLowQuality && Tr2Renderer.IsLowQuality()) return false;
     if (!this.display) return false;
 
-    this.UpdateViewDependentData(context, parentTransform);
     const frustum = context.GetFrustum();
+    this.UpdateViewDependentData(frustum, parentTransform);
     if (this.mesh)
     {
       // An invalid sphere leaves the transform invisible, as Carbon's nested ifs do.

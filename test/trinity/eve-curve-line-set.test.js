@@ -146,5 +146,4 @@ test("EveCurveLineSet display and frustum gates fail or collect directly", () =>
 
   lines.display = true;
   assert.throws(() => lines.UpdateVisibility({}, mat4.create()), /GetFrustum/u);
-  assert.throws(() => lines.GetSortValue(), /GetViewPosition/u);
 });

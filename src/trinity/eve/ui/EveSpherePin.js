@@ -460,14 +460,14 @@ export class EveSpherePin
     return true;
   }
 
-  /** Uses the supplied context or main renderer, without per-frame vector allocation. */
+  /** Distance from the renderer's view, without per-frame vector allocation. */
   @blue.method
-  @meta.adapted
-  GetSortValue(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  @meta.implemented
+  GetSortValue()
   {
     const vec3_0 = EveSpherePin.scratch.vec3_0;
     vec3.transformMat4(vec3_0, this.boundingSphere, this.worldTransform);
-    return vec3.distance(renderContext.GetViewPosition(), vec3_0) * this.sortValueMultiplier;
+    return vec3.distance(Tr2Renderer.GetViewPosition(), vec3_0) * this.sortValueMultiplier;
   }
 
   /** Routes transparent and picking passes through the corresponding native effect. */

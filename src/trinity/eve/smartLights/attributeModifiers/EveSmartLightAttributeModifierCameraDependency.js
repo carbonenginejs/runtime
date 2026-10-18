@@ -4,7 +4,7 @@ import { meta, type, blue } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { vec3 } from "#math/vec3";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** EveSmartLightAttributeModifierCameraDependency (eve/smartLights/attributeModifiers) - generated from schema shapeHash 5e9c1bd9.... */
 @blue.define("EveSmartLightAttributeModifierCameraDependency")
@@ -150,16 +150,12 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Product of the enabled camera amplitudes, remapped into the
    * [minimumActivation, maximumActivation] range
    * (EveSmartLightAttributeModifierCameraDependency.cpp:95-104).
-   *
-   * Adapted: Carbon reads the Tr2Renderer::GetViewPosition static (cpp:97);
-   * this runtime keeps the renderer's view state on the main-thread render
-   * context (Tr2RenderContext.js, view-state section), so it is read there.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   _GetActivationValue(objectPosition, entityDirection)
   {
-    const camPos = Tr2RenderContext_GetMainThreadRenderContext().GetViewPosition();
+    const camPos = Tr2Renderer.GetViewPosition();
     const vec2obj = EveSmartLightAttributeModifierCameraDependency._vec2obj;
     if (this.overwritePosition)
     {
@@ -196,27 +192,19 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
 
   /**
    * Camera look-at cone amplitude
-   * (EveSmartLightAttributeModifierCameraDependency.cpp:52-72). Carbon's
-   * Tr2Renderer::GetViewLookAt() is the view matrix column (_13,_23,_33)
-   * (Tr2Renderer.cpp:593-600), which on the shared byte layout is view[2],
-   * view[6], view[10].
-   *
-   * Adapted: the view is read from the main-thread render context, where this
-   * runtime keeps Tr2Renderer's view statics; there is no GetViewLookAt
-   * accessor on it, so the column is taken from the view transform here.
+   * (EveSmartLightAttributeModifierCameraDependency.cpp:52-72).
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   _GetLookAtAmplitude(vec2obj)
   {
     if (!this.useCameraLookAt)
     {
       return 1;
     }
-    const view = Tr2RenderContext_GetMainThreadRenderContext().GetViewTransform();
     const scratch = EveSmartLightAttributeModifierCameraDependency._normalized;
     vec3.normalize(scratch, vec2obj);
-    let lookAtAmplitude = -(view[2] * scratch[0] + view[6] * scratch[1] + view[10] * scratch[2]);
+    let lookAtAmplitude = -vec3.dot(Tr2Renderer.GetViewLookAt(EveSmartLightAttributeModifierCameraDependency._lookAt), scratch);
     if (this.lookAtVisionCone < 90 && this.lookAtVisionCone > 0)
     {
       const startValue = (90 - this.lookAtVisionCone) / 90;
@@ -262,6 +250,8 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
     return placementAmplitude;
   }
 
+
+  static _lookAt = vec3.create();
 
   static _vec2obj = vec3.create();
 

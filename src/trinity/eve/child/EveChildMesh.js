@@ -48,6 +48,7 @@ import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
 import { EveDamageOverlayOwnerInfo } from "../overlays/EveDamageOverlayOwnerInfo.js";
 import { EveMeshOverlayEffect } from "../overlays/EveMeshOverlayEffect.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import "./EveChildContainer.js";
 
 // Module scratch for the hot per-frame visibility/shadow paths (allocation
@@ -955,12 +956,11 @@ export class EveChildMesh extends EveChildTransform
    * invalidation (cpp:988-991), audio geometry
    * (cpp:920-930), parent VS/PS struct refresh (cpp:932-960), and the skinned
    * GetBounds overload are not modelled, hence @impl.adapted.
-   * @param {Object} updateContext - frame context (EveUpdateContext), threaded to modifiers
+   * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params - localToWorldTransform + boneCount/bones
    * @returns {Float32Array} worldTransform
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -978,7 +978,6 @@ export class EveChildMesh extends EveChildTransform
 
     applyTransformModifiers(
       this,
-      updateContext,
       params?.boneCount ?? 0,
       params?.bones ?? null
     );
@@ -1497,16 +1496,15 @@ export class EveChildMesh extends EveChildTransform
 
   /** Carbon EveChildMesh::GetSortValue (cpp:787-792): view distance scaled by
    * sortValueScale plus sortValueOffset.
-   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.
    */
   @blue.method
-  @meta.adapted
-  GetSortValue(renderContext = null)
+  @meta.implemented
+  GetSortValue()
   {
-    const viewPosition = renderContext?.GetViewPosition();
-    const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
-    const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
-    const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];
+    const viewPosition = Tr2Renderer.GetViewPosition();
+    const x = viewPosition[0] - this.worldTransform[12];
+    const y = viewPosition[1] - this.worldTransform[13];
+    const z = viewPosition[2] - this.worldTransform[14];
     return Math.hypot(x, y, z) * this.sortValueScale + this.sortValueOffset;
   }
 

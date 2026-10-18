@@ -29,6 +29,7 @@ import { TriStepRenderTexture } from "../../npm/dist/trinity/renderJob/index.js"
 import { TriStepRenderDebug } from "../../npm/dist/trinity/renderJob/index.js";
 import { TriStepToggleCubemap } from "../../npm/dist/trinity/renderJob/index.js";
 import { Tr2LineGraph } from "../../npm/dist/trinity/core/line/Tr2LineGraph.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 /**
@@ -574,7 +575,7 @@ test("P0 render steps preserve Carbon null rules and emit backend-neutral intent
   setProjection.__init__(projection);
   setProjection.Execute(0, 0, context);
   assertEquals(
-    Array.from(context.GetProjection()).join(","),
+    Array.from(Tr2Renderer.GetProjectionTransform()).join(","),
     Array.from(projection.transform).join(",")
   );
 });
@@ -609,8 +610,8 @@ test("TriStepSetView gives view precedence and updates camera before emitting in
 {
   const context = stubContext();
   let cameraUpdates = 0;
-  const viewTransform = {};
-  const cameraTransform = {};
+  const viewTransform = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 3, 1 ];
+  const cameraTransform = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1 ];
   const view = { GetTransform: () => viewTransform };
   const camera = {
     Update(time, aspectRatio, realTime) { cameraUpdates++; this.time = time; this.aspectRatio = aspectRatio; this.realTime = realTime; },
@@ -620,14 +621,14 @@ test("TriStepSetView gives view precedence and updates camera before emitting in
   setView.__init__(view, camera);
   setView.Execute(0, 12, context);
   assertEquals(cameraUpdates, 0);
-  assertEquals(context.GetView().transform, viewTransform);
+  assertEquals(Array.from(Tr2Renderer.GetViewTransform()).join(), viewTransform.join());
   setView.__init__(null, camera);
   setView.Execute(0, 13, context);
   assertEquals(cameraUpdates, 1);
   assertEquals(camera.time, 13);
   assertEquals(camera.aspectRatio, 1);
   assertEquals(camera.realTime, 0);
-  assertEquals(context.GetView().transform, cameraTransform);
+  assertEquals(Array.from(Tr2Renderer.GetViewTransform()).join(), cameraTransform.join());
 });
 
 test("render-state steps preserve Carbon initialization, enums, and ignored backend results", () =>

@@ -3,6 +3,7 @@
 import { meta, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 // Carbon: RenderJob/TriStepPopProjection.cpp — Execute pops the projection
 // (Tr2Renderer::PopProjection).
@@ -19,9 +20,10 @@ export class TriStepPopProjection extends TriRenderStep
   /** Restores the projection saved by the matching push step. */
   @blue.method
   @meta.implemented
-  Execute(_realTime, _simTime, renderContext)
+  Execute(_realTime, _simTime, _renderContext)
   {
-    renderContext.PopProjection();
+    // TriStepPopProjection.cpp:9.
+    Tr2Renderer.PopProjection();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

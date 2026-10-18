@@ -1,3 +1,4 @@
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EvePlanet, EveLensflare, EveSpaceScene, EveChildContainer, EveChildMesh, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from '../../npm/dist/trinity/index.js';
@@ -73,9 +74,11 @@ test('planet size threshold is strict and depth proxy has no minScreenSize gate'
   assert.deepEqual(planet.GetRenderables(), ['child']);
   assert.deepEqual(changes, [Tr2Lod.TR2_LOD_LOW, Tr2Lod.TR2_LOD_LOW, Tr2Lod.TR2_LOD_HIGH, Tr2Lod.TR2_LOD_HIGH]);
   planet.radius = 5000000;
-  assert.equal(planet._EstimatePixelDiameterDist(1000, 1, 1000000, { GetViewport: () => ({width: 1000}) }), 5);
+  // Tr2Renderer::GetViewport is the main-thread context's state-manager viewport (Tr2Renderer.cpp:1392-1396).
+  Tr2RenderContext_GetMainThreadRenderContext().GetEffectStateManager().SetViewport({ x: 0, y: 0, width: 1000, height: 1000 });
+  assert.equal(planet._EstimatePixelDiameterDist(1000, 1, 1000000), 5);
   planet.radius = 1;
-  assert.equal(planet._EstimatePixelDiameterDist(1000, 1, 1000000, { GetViewport: () => ({width: 1000}) }), 0);
+  assert.equal(planet._EstimatePixelDiameterDist(1000, 1, 1000000), 0);
 });
 
 function camera()
@@ -83,8 +86,8 @@ function camera()
   const context = new Tr2RenderContext();
   const view = mat4.lookAt(mat4.create(), [3000000, 5000000, -7000000], [10000000, 2000000, 4000000], [0,1,0]);
   const projection = mat4.perspectiveZO(mat4.create(), 0.9, 1.6, 2, 5e9);
-  context.SetViewTransform(view);
-  context.SetProjection(projection);
+  Tr2Renderer.SetViewTransform(view);
+  Tr2Renderer.SetProjectionTransform(projection);
   context.GetViewport=()=>({x:0,y:0,width:1280,height:800,minZ:0,maxZ:1});
   return {context, view, projection};
 }
@@ -93,15 +96,14 @@ test('scaled planet update restores the camera after a child throws', () =>
 {
   const scene = new EveSpaceScene();
   const {context, view} = camera();
-  scene.updateContext.renderContext = context;
   scene.planets.push({ UpdatePlanetSyncronous(update, scale) {
     assert.equal(scale, 1000000);
-    close(context.GetViewTransform().slice(0, 12), view.slice(0, 12));
-    close(context.GetViewTransform().slice(12, 15), Array.from(view.slice(12, 15), v => v / 1000000));
+    close(Tr2Renderer.GetViewTransform().slice(0, 12), view.slice(0, 12));
+    close(Tr2Renderer.GetViewTransform().slice(12, 15), Array.from(view.slice(12, 15), v => v / 1000000));
     throw new Error('child failure');
   } });
   assert.throws(() => scene.UpdatePlanets(scene.updateContext), /child failure/);
-  close(context.GetViewTransform(), view);
+  close(Tr2Renderer.GetViewTransform(), view);
 });
 
 test('empty planet draw restores projection and camera', () =>
@@ -112,8 +114,8 @@ test('empty planet draw restores projection and camera', () =>
   scene.projectionLast.set(projection);
   scene.planets.push({ GetRenderables() {} });
   scene.RenderPlanets(context);
-  close(context.GetViewTransform(), view);
-  close(context.GetProjection(), projection);
+  close(Tr2Renderer.GetViewTransform(), view);
+  close(Tr2Renderer.GetProjectionTransform(), projection);
 });
 
 test('planet draw orders depth, opaque, decal, transparent, additive and restores state on draw failure', () =>
@@ -150,7 +152,7 @@ test('planet draw orders depth, opaque, decal, transparent, additive and restore
     assert.deepEqual(log.filter(x=>typeof x === 'number'),fail?expected.slice(0,4):expected);
     assert.deepEqual(log.slice(-3),['PS','VS','apply']);
     assert.equal(context.GetRenderContextAL().GetReadOnlyDepth(),false);
-    close(context.GetViewTransform(),view); close(context.GetProjection(),projection);
+    close(Tr2Renderer.GetViewTransform(),view); close(Tr2Renderer.GetProjectionTransform(),projection);
   }
 });
 
@@ -159,7 +161,6 @@ test('background occlusion sees planet depth before the final depth clear', () =
   const scene=new EveSpaceScene();
   scene.backgroundRenderingEnabled=true;
   const {context}=camera();
-  scene.updateContext.renderContext=context;
   scene.planets.push({SetRenderScale(){},UpdateLOD(){},UpdatePlanetVisibility(){}});
   const order=[];
   scene.RenderPlanets=()=>order.push('planets');
@@ -251,7 +252,7 @@ test('lensflare distance law reaches both global and per-object glare scale', ()
   const flare = new EveLensflare();
   const {view, projection} = camera();
   // PrepareRender reads Tr2Renderer's view where this runtime keeps it: the main-thread context.
-  Tr2RenderContext_GetMainThreadRenderContext().SetViewTransform(view);
+  Tr2Renderer.SetViewTransform(view);
   const frustum = {viewPos: [0,0,0], viewDir: [0,0,1], projectionMatrix: projection};
   for (const au of [0.1,1,10]) {
     flare.translationCurve = { Update__Ticks: (_time,out) => out.set([0,0,-au * 0.1495978707e12]) };

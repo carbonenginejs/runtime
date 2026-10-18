@@ -8,6 +8,7 @@ import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { SCREEN_VERTEX_BYTES } from "../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { ALResult } from "../../npm/dist/trinityal/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 /** A Tr2RenderContext with the stub backend installed, which is what Carbon ships. */
 function stubContext()
@@ -196,13 +197,3 @@ test("Draw__Texture picks the filtered effect only for linear, and refuses a mis
   assert.equal(partial.Draw__Texture(context, { id: "t" }, undefined, undefined, 1), false);
 });
 
-test("camera space refuses when no projection is set rather than unprojecting through nothing", () =>
-{
-  const context = stubContext();
-  const blitter = new Tr2Blitter();
-  const effect = material();
-
-  assert.equal(context.GetProjection(), null);
-  assert.equal(blitter.DrawInCameraSpace(context, effect.GetShaderStateInterface(), effect), false);
-  assert.equal(effect.log.length, 0);
-});

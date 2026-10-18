@@ -743,9 +743,10 @@ export class Tr2CurveLineSet
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);
-    const context = Tr2RenderContext_GetMainThreadRenderContext(), view = context.GetViewPosition();
+    // cpp:1114-1117.
+    const view = Tr2Renderer.GetViewPosition();
     const distance = Math.hypot(this.boundingSphere[0] - view[0], this.boundingSphere[1] - view[1], this.boundingSphere[2] - view[2]);
-    const z = Math.min(Math.max(Math.fround((distance + this.depthOffset) / context.GetFrustumRadius()), 0), 1);
+    const z = Math.min(Math.max(Math.fround((distance + this.depthOffset) / Tr2Renderer.GetFrustumRadius()), 0), 1);
     batch.depth = Math.fround(Math.fround(0xFFFFFFF) * Math.fround(1 - z)) >>> 0;
     batch.SetVertexDeclaration(this._vertexDeclHandle);
     batch.SetStreamSource(0, this._vertexBuffer, LINE_STRIDE);
@@ -769,19 +770,13 @@ export class Tr2CurveLineSet
     this.pickEffect = effect;
   }
 
-  /**
-   * Distance from the transformed local bound to the active view.
-   *
-   * Adapted: Carbon reads the renderer-global view position; the collector supplies its
-   * active render context explicitly.
-   */
+  /** Distance from the transformed local bound to the renderer's view (cpp:648-657). */
   @blue.method
-  @blue.contextual(["camera"])
-  @meta.adapted
-  GetSortValue(context)
+  @meta.implemented
+  GetSortValue()
   {
     const { vec3_11 } = Tr2CurveLineSet.scratch;
-    const viewPosition = context.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     vec3_11[0] = this.boundingSphere[0];
     vec3_11[1] = this.boundingSphere[1];
     vec3_11[2] = this.boundingSphere[2];

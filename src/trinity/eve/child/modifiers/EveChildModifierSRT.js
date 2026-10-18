@@ -37,9 +37,7 @@ export class EveChildModifierSRT extends IEveChildTransformModifier
    * transform (Carbon EveChildModifierSRT::ApplyTransform:
    * TransformationMatrix(s,r,t) * transform in row-vector convention - SRT
    * first, then transform, which is mat4.multiply(out, transform, srt) in
-   * gl-matrix). Context-first for a uniform modifier apply loop; SRT is not
-   * camera-dependent, so context is unused.
-   * @param {Object} _context - unused (SRT is not a contextual modifier)
+   * gl-matrix). The returned Matrix is written into caller-owned `out`.
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused
@@ -47,8 +45,8 @@ export class EveChildModifierSRT extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
   @blue.method
-  @meta.adapted
-  ApplyTransform(_context, transform, _boneCount = 0, _bones = null, out)
+  @meta.implemented
+  ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
     const local = mat4.fromRotationTranslationScale(
       EveChildModifierSRT._scratch,

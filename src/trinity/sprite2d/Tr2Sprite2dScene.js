@@ -34,6 +34,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectPickState, Tr2SpriteObjectEffect, Tr2Sprite2dTextureSettings } from "../generated/sprite2d/enums.js";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
+import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import "./Tr2SpriteObjectBase.js";
 
 /** Carbon's effect path for the 2D UI ubershader (Tr2Sprite2dScene.cpp:52). @type {string} */
@@ -1019,9 +1020,9 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Publishes the camera direction and updates every owned curve set before cleanup.
    *
-   * Adapted: Carbon reads Tr2Renderer::GetViewLookAt (cpp:205); this runtime keeps the
-   * view statics on the main-thread render context, so it is read there; writes go
-   * through the existing variable-store handle; curve-set clocks remain raw ticks.
+   * Adapted: Carbon reads Tr2Renderer::GetViewLookAt (cpp:205), the view's third
+   * column; writes go through the existing variable-store handle; curve-set clocks
+   * remain raw ticks.
    *
    * @param {number} realTime Raw Blue real-time ticks (100ns).
    * @param {number} simTime Raw Blue simulation ticks (100ns).
@@ -1037,7 +1038,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._realTime = realTime;
     this._simTime = simTime;
     if (!this.display) return;
-    const view = Tr2RenderContext_GetMainThreadRenderContext().GetViewTransform();
+    const view = Tr2Renderer.GetViewTransform();
     const direction = vec3.alloc();
     const dot = this._dotVectorValue;
     try
@@ -1195,14 +1196,12 @@ export class Tr2Sprite2dScene extends ITr2Scene
   @blue.method
   _DetermineWorldTransform()
   {
-    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
-
     this._is2dRenderContext = this.is2dRender;
 
-    if (this.is2dRender) mat4.copy(this._worldTransform, renderContext.GetInverseViewTransform());
+    if (this.is2dRender) mat4.copy(this._worldTransform, Tr2Renderer.GetInverseViewTransform());
     else mat4.fromRotationTranslationScale(this._worldTransform, this.rotation, this.translation, this.scaling);
 
-    renderContext.SetWorldTransform(this._worldTransform);
+    Tr2Renderer.SetWorldTransform(this._worldTransform);
   }
 
   /**
@@ -1217,7 +1216,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   {
     if (this.isFullscreen)
     {
-      const viewport = Tr2RenderContext_GetMainThreadRenderContext().GetViewport();
+      const viewport = Tr2Renderer.GetViewport();
       this.displayWidth = viewport.width;
       this.displayHeight = viewport.height;
     }

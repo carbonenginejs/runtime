@@ -4,7 +4,7 @@
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { IsMatch, INotify, IInitialize } from "#blue";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
 import { meta, type, blue } from "#schema";
@@ -138,11 +138,10 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Initializes derived camera-box values.
    *
-   * Adapted: Reads Carbon's renderer camera state from the ambient render context.
    * @returns {boolean} True after calculating the camera box.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   Initialize()
   {
     this.CalculateBoxPosition();
@@ -165,10 +164,10 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
     }
     if (IsMatch(propertyName, "enabled"))
     {
-      const context = Tr2RenderContext_GetMainThreadRenderContext();
-      this._lastEnabledFOV = Math.fround(context.GetFieldOfView() * 0.5);
-      mat4.copy(this._lastEnabledInverseViewMatrix, context.GetInverseViewTransform());
-      this._lastEnabledFrontClip = Math.fround(context.GetFrontClip());
+      // Tr2FollowCurveKey.cpp:187-189.
+      this._lastEnabledFOV = Math.fround(Tr2Renderer.GetFieldOfView() * 0.5);
+      mat4.copy(this._lastEnabledInverseViewMatrix, Tr2Renderer.GetInverseViewTransform());
+      this._lastEnabledFrontClip = Math.fround(Tr2Renderer.GetFrontClip());
     }
     return true;
   }
@@ -176,11 +175,10 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Fits the bounds between the outer and inner view cones and transforms the result.
    *
-   * Adapted: Uses the ambient render context for Carbon's renderer state and
-   * gl-matrix for its vector/quaternion transforms. Aspect is derived from the
-   * projection as in Tr2Renderer::UpdateProjectionParameters. Disabled keys retain
-   * the captured FOV, near plane and inverse view, but still use the current aspect.
-   * Tangents use coordinate transforms, including translation, as Carbon does.
+   * Adapted: gl-matrix carries its vector/quaternion transforms. Disabled keys
+   * retain the captured FOV, near plane and inverse view, but still use the
+   * current aspect (Tr2FollowCurveKey.cpp:204-220). Tangents use coordinate
+   * transforms, including translation, as Carbon does.
    *
    * @returns {void}
    */
@@ -188,10 +186,9 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   @meta.adapted
   CalculateBoxPosition()
   {
-    const context = Tr2RenderContext_GetMainThreadRenderContext();
-    let inverseView = context.GetInverseViewTransform();
-    this._fov = Math.fround(context.GetFieldOfView() * 0.5);
-    this._frontClip = Math.fround(context.GetFrontClip());
+    let inverseView = Tr2Renderer.GetInverseViewTransform();
+    this._fov = Math.fround(Tr2Renderer.GetFieldOfView() * 0.5);
+    this._frontClip = Math.fround(Tr2Renderer.GetFrontClip());
     if (!this.enabled)
     {
       inverseView = this._lastEnabledInverseViewMatrix;
@@ -202,8 +199,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
     const outer = Math.fround(Math.tan(this._fov));
     const inner = Math.fround(Math.tan(Math.fround(this._fov * this.fovMultiplication)));
     const nearSize = Math.fround(this._frontClip / outer);
-    const projection = context.GetProjection();
-    const aspect = projection && projection[0] ? Math.fround(projection[5] / projection[0]) : 0;
+    const aspect = Math.fround(Tr2Renderer.GetAspectRatio());
     const nearDistance = Math.max(Math.fround(nearSize * aspect), Math.fround(nearSize / aspect));
     const radius = Math.max(Math.fround(Math.hypot(this.objectBounds[0], this.objectBounds[1])), nearDistance);
     if (inner === outer)

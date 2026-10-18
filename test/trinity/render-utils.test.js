@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_FLOATS, Tr2RenderUtils } from "../../npm/dist/trinity/core/Tr2RenderUtils.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 /**
@@ -71,26 +72,11 @@ test("SetupScreenQuad honours a sub-rectangle placement and its texture window",
   assert.deepEqual(emitted[3], [ 0, 0, 1, 1, 0.75, 0.75 ]);
 });
 
-test("SetupScreenQuadInCameraSpace reports null rather than guessing a projection", () =>
-{
-  const context = new Tr2RenderContext();
-
-  // Carbon takes the projection from the Tr2Renderer global, which is always
-  // set by the time a blit runs; we take it from the context, which can be
-  // empty. Refusing beats unprojecting through an identity nobody chose.
-  assert.equal(context.GetProjection(), null);
-  assert.equal(Tr2RenderUtils.setupScreenQuadInCameraSpace(new Float32Array(SCREEN_QUAD_FLOATS), context), null);
-});
-
 test("SetupScreenQuadInCameraSpace shares one depth across all four corners", () =>
 {
   const context = new Tr2RenderContext();
-  context.SetProjection([
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1
-  ]);
+  // The renderer's RAW projection, inverted (Tr2RenderUtils.cpp:63-64).
+  Tr2Renderer.SetPerspectiveProjection__FovAspect(1.2, 1, 100, 1.5);
 
   const quad = Tr2RenderUtils.setupScreenQuadInCameraSpace(new Float32Array(SCREEN_QUAD_FLOATS), context);
   assert.notEqual(quad, null);

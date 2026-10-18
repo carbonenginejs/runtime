@@ -13,6 +13,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -154,14 +155,16 @@ test("lighting overrides combine Carbon volume bounds and camera intensity", () 
   assertEquals(sphere[0], 1);
   assertEquals(sphere[3], 4);
 
-  override.UpdateAsyncronous({ renderContext: { GetViewPosition: () => [1, 0, 0] } }, { localToWorldTransform: mat4.create() });
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-1, 0, 0]));
+  override.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
   const values = override.GetOverrides();
   assertEquals(values.intensity, 1);
   assertEquals(values.value.backgroundIntensity, 1);
   assertEquals(values.value.sunColor[3], 1);
   assertEquals(CjsSchema.getField(EveChildLightingOverride, "sunColor")?.type.kind, "color");
 
-  override.UpdateAsyncronous({ renderContext: { GetViewPosition: () => [20, 0, 0] } }, { localToWorldTransform: mat4.create() });
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-20, 0, 0]));
+  override.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
   assertEquals(override.GetOverrides().intensity, 0);
   assertEquals(override.IsAlwaysOn(), true);
 });
@@ -187,14 +190,16 @@ test("fog volumes expose Carbon settings, bounds, and camera intensity", () =>
   assertEquals(fog.boundingSphereCenter[0], 2);
   assertEquals(fog.boundingSphereRadius, 5);
 
-  fog.UpdateAsyncronous({ renderContext: { GetViewPosition: () => [2, 0, 0] } }, { localToWorldTransform: mat4.create() });
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-2, 0, 0]));
+  fog.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
   let settings = fog.GetFroxelFogSettings();
   assertEquals(settings.intensity, 1);
   assertEquals(settings.thickness.value, 3);
   assertEquals(settings.thickness.enabled, true);
   assertEquals(settings.godRayNoiseFrequency.value, 15);
 
-  fog.UpdateAsyncronous({ renderContext: { GetViewPosition: () => [20, 0, 0] } }, { localToWorldTransform: mat4.create() });
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-20, 0, 0]));
+  fog.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
   settings = fog.GetFroxelFogSettings();
   assertEquals(settings.intensity, 0);
   assertEquals(CjsSchema.getField(EveChildFogVolume, "fogColor")?.type.kind, "color");
@@ -1215,13 +1220,13 @@ test("EveVirtualCameraSystem owns Carbon camera selection and transitions", () =
 test("EveChildModifierSRT applies Carbon scale, rotation, and translation before the child transform", () =>
 {
   const modifier = new EveChildModifierSRT();
-  assertMat4(modifier.ApplyTransform(null, mat4.create(), 0, null, mat4.create()), mat4.create());
+  assertMat4(modifier.ApplyTransform(mat4.create(), 0, null, mat4.create()), mat4.create());
   modifier.scaling = vec3.fromValues(2, 2, 2);
   modifier.translation = vec3.fromValues(3, 4, 5);
   modifier.rotation = quat.setAxisAngle(quat.create(), vec3.fromValues(0, 0, 1), Math.PI / 2);
   const source = mat4.fromTranslation(mat4.create(), vec3.fromValues(1, 0, 0));
   const out = mat4.create();
-  assertEquals(modifier.ApplyTransform(null, source, 0, null, out), out);
+  assertEquals(modifier.ApplyTransform(source, 0, null, out), out);
   // Carbon (row-vector): SRT * transform - the SRT applies FIRST, so the
   // origin lands at T(3,4,5), then the source translation adds (1,0,0).
   assertAlmostEquals(out[12], 4);

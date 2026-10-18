@@ -4,6 +4,7 @@
 import { meta, type, blue } from "#schema";
 import { ITriVectorFunction } from "#blue";
 import { vec3 } from "#math/vec3";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec4 } from "#math/vec4";
 
 const OFFSET_SCRATCH = vec3.create();
@@ -50,30 +51,22 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   //
   // The derivatives are NOT offset, only scaled (cpp:84-107): a constant
   // offset has no rate of change, so adding it to a velocity would be wrong.
-  //
-  // Carbon reads the inverse view transform from a Tr2Renderer static; this
-  // port takes the render context that carries those relocated statics. Asking
-  // for view space without a context returns the raw offset under the existing
-  // JavaScript nullable-context adaptation; native reads the renderer static.
 
   /**
-   * Copies the world-space offset, using a supplied inverse view when requested.
-   * JavaScript receives the relocated renderer context and an output buffer instead of native statics and a returned vector; absent context keeps the authored offset.
-   * @param {Tr2RenderContext|null} renderContext Optional renderer context.
+   * Copies the offset, rotated by the renderer's inverse view when it is in
+   * view space (cpp:133-141). The returned Vector3 is written into `out`.
    * @param {Float32Array} out Destination vector; defaults to shared scratch.
    * @returns {Float32Array} The destination.
    */
   @blue.method
-  @meta.adapted
-  GetOffsetPosition(renderContext = null, out = OFFSET_SCRATCH)
+  @meta.implemented
+  GetOffsetPosition(out = OFFSET_SCRATCH)
   {
     vec3.copy(out, this.offsetPosition);
 
     if (!this.useViewSpace) return out;
 
-    const inverseView = renderContext ? renderContext.GetInverseViewTransform() : null;
-
-    if (!inverseView) return out;
+    const inverseView = Tr2Renderer.GetInverseViewTransform();
 
     // Carbon transforms the offset with w = 0, so it rotates without picking
     // up the eye position (cpp:139).
@@ -84,17 +77,15 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
   }
 
   /**
-   * Adds the offset before scaling the position in place.
-   * JavaScript passes the relocated renderer context explicitly.
+   * Adds the offset before scaling the position in place (cpp:126-131).
    * @param {Float32Array} inOut Position to transform.
-   * @param {Tr2RenderContext|null} renderContext Optional renderer context.
    * @returns {Float32Array} The position buffer.
    */
   @blue.method
-  @meta.adapted
-  GetTransformedPosition(inOut, renderContext = null)
+  @meta.implemented
+  GetTransformedPosition(inOut)
   {
-    const offset = this.GetOffsetPosition(renderContext);
+    const offset = this.GetOffsetPosition();
 
     vec3.add(inOut, inOut, offset);
     return vec3.scale(inOut, inOut, this.scaleModifier);
@@ -158,21 +149,20 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /**
    * Carbon's Update(Be::Time): the ball's tick update, or its interpolated system position, then offset and scale
-   * (cpp:35-52). The renderer context is a JavaScript addition for the view-space offset. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * (cpp:35-52). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination position.
-   * @param {Tr2RenderContext|null} renderContext Renderer context for the view-space offset.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
-  Update__Ticks(time, inOut, renderContext = null)
+  @meta.implemented
+  Update__Ticks(time, inOut)
   {
     if (this.clientBall)
     {
       if (this.useSystemCoordinates) this.clientBall.InterpolatedPosition(time, inOut);
       else this.clientBall.Update__Ticks(time, inOut);
     }
-    return this.GetTransformedPosition(inOut, renderContext);
+    return this.GetTransformedPosition(inOut);
   }
 
   /**
@@ -180,18 +170,17 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * scale (cpp:60-76). JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} inOut Destination position.
-   * @param {Tr2RenderContext|null} renderContext Renderer context for the view-space offset.
    * @returns {Float32Array} The destination.
    */
-  @meta.adapted
-  GetValueAt__Ticks(time, inOut, renderContext = null)
+  @meta.implemented
+  GetValueAt__Ticks(time, inOut)
   {
     if (this.clientBall)
     {
       if (this.useSystemCoordinates) this.clientBall.InterpolatedPosition(time, inOut);
       else this.clientBall.GetValueAt__Ticks(time, inOut);
     }
-    return this.GetTransformedPosition(inOut, renderContext);
+    return this.GetTransformedPosition(inOut);
   }
 
   /**

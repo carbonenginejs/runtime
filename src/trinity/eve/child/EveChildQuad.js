@@ -15,6 +15,7 @@ import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "./packQuadInstanceData
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A billboard quad child that renders through the shared quad renderer's additive instance batch rather than the normal render-batch path. */
 @blue.define("EveChildQuad")
@@ -249,19 +250,15 @@ export class EveChildQuad extends EveChildTransform
     return false;
   }
 
-  /** Distance from the view position to the world translation (EveChildQuad.cpp:123-128).
-   *
-   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated
-   * camera state arrives via the threaded render context.
-   */
+  /** Distance from the view position to the world translation (EveChildQuad.cpp:123-128). */
   @blue.method
-  @meta.adapted
-  GetSortValue(renderContext = null)
+  @meta.implemented
+  GetSortValue()
   {
-    const viewPosition = renderContext?.GetViewPosition();
-    const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
-    const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
-    const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];
+    const viewPosition = Tr2Renderer.GetViewPosition();
+    const x = viewPosition[0] - this.worldTransform[12];
+    const y = viewPosition[1] - this.worldTransform[13];
+    const z = viewPosition[2] - this.worldTransform[14];
     return Math.hypot(x, y, z);
   }
 

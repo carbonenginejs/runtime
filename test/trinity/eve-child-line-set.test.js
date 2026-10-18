@@ -1,3 +1,4 @@
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -26,7 +27,7 @@ function setup(t) {
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=be.resMan;
   const registered=new Set(TriDevice.GetResourcesRegistered());
   const al=new Tr2RenderContextALStub();al.CreateDevice();al.BeginScene();context.SetRenderContextAL(al);
-  context.SetViewTransform(mat4.create());be.resMan=new StubResMan();
+  Tr2Renderer.SetViewTransform(mat4.create());be.resMan=new StubResMan();
   t.after(()=>{
     const resources=TriDevice.GetResourcesRegistered().filter(x=>!registered.has(x));
     for(const resource of resources) {

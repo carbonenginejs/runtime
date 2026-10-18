@@ -8,7 +8,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2Lod } from "#consts/trinity";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /**
  * Carbon's EveUiObject: a space object drawn as part of the UI. It is never
@@ -41,9 +41,7 @@ export class EveUiObject extends EveSpaceObject2
    * already-scaled transform again. Carbon quirk (CE-191): the inverse world
    * transform the base computed is not refreshed, so it stays unscaled.
    *
-   * Adapted: Carbon reads Tr2Renderer's view-position static; it lives on the
-   * main-thread render context here (Tr2RenderContext.js head). Carbon
-   * returns nothing; this returns the base's JavaScript result.
+   * Adapted: Carbon returns nothing; this returns the base's JavaScript result.
    *
    * @param {number} time Frame time in Blue ticks.
    * @returns {boolean} False when the base had already built the transform for this time.
@@ -59,7 +57,7 @@ export class EveUiObject extends EveSpaceObject2
       // add a scaling to the worldmatrix based on camera distance to make this guy not perspective
       const { vec3_0 } = EveUiObject.scratch;
       // vec3_0 is d, then the scaling vector
-      vec3.subtract(vec3_0, this.worldPosition, Tr2RenderContext_GetMainThreadRenderContext().GetViewPosition());
+      vec3.subtract(vec3_0, this.worldPosition, Tr2Renderer.GetViewPosition());
       const dist = vec3.length(vec3_0);
 
       vec3.set(vec3_0, dist, dist, dist);

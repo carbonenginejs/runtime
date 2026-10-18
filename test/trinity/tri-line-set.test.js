@@ -6,6 +6,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { TriLineSet, TriDebugResourceHelper, Tr2VariableStore, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 function setup(t)
 {
@@ -62,7 +63,7 @@ test("Render sets the world transform; SubmitGeometry draws a 16-byte VertexPosC
   lines.transform = mat4.fromTranslation(mat4.create(), [ 7, 8, 9 ]);
 
   lines.Render(context);
-  assert.deepEqual(Array.from(context.GetWorldTransform()), Array.from(lines.transform));
+  assert.deepEqual(Array.from(Tr2Renderer.GetWorldTransform()), Array.from(lines.transform));
   const worldMat = Tr2VariableStore.globalStore().GetVariable("WorldMat");
   assert.deepEqual(Array.from(worldMat.GetValue()).slice(12, 15), [ 7, 8, 9 ], "the WorldMat global follows (Tr2Renderer.cpp:553-559)");
   assert.notEqual(TriDebugResourceHelper.g_debugResourceHelper().GetVertexPosColorDecl(), undefined);

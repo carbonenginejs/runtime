@@ -12,6 +12,7 @@ import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriRenderBatchAccumulator } from "../../npm/dist/trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 function setup(t)
 {
@@ -138,9 +139,8 @@ test("Update places the set by its curves and scaling, and the sort value is its
   assert.deepEqual(Array.from(set.worldTransform), [ 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 3, 4, 5, 1 ]);
 
   // GetSortValue (cpp:203-208): the camera at (3, 8, 5) is 4 from the set's translation.
-  renderContext.SetViewTransform(mat4.fromTranslation(mat4.create(), [ -3, -8, -5 ]));
-  assert.ok(Math.abs(set.GetSortValue(renderContext) - 4) < 1e-6);
-  assert.equal(set.GetSortValue(), 0, "no render context yields 0");
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [ -3, -8, -5 ]));
+  assert.ok(Math.abs(set.GetSortValue() - 4) < 1e-6);
 
   // GetPerObjectData (cpp:210-231): two structs, one WorldMat each, both stored transposed.
   const accumulator = new TriRenderBatchAccumulator().SetTriPoolAllocator(makePerObjectStore());

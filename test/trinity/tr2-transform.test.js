@@ -22,16 +22,16 @@ function assertArrayNear(actual, expected, message = "array")
   }
 }
 
+/**
+ * Sets the renderer's camera, as a pass does: a view looking from
+ * viewPosition and a projection with the given field of view. Returns the
+ * frustum argument Carbon's UpdateViewDependentData takes and does not read.
+ */
 function makeRenderContext(viewPosition = [ 13, -7, 19 ], fieldOfView = 1.07)
 {
-  const view = mat4.lookAt(mat4.create(), viewPosition, [ 1, 2, 3 ], [ 0, 1, 0 ]);
-  const inverseView = mat4.invert(mat4.create(), view);
-  return {
-    GetFieldOfView: () => fieldOfView,
-    GetInverseViewTransform: () => inverseView,
-    GetViewPosition: () => viewPosition,
-    GetViewTransform: () => view
-  };
+  core.Tr2Renderer.SetViewTransform(mat4.lookAt(mat4.create(), viewPosition, [ 1, 2, 3 ], [ 0, 1, 0 ]));
+  core.Tr2Renderer.SetPerspectiveProjection__FovAspect(fieldOfView, 1, 1000, 1);
+  return null;
 }
 
 test("Tr2Transform is one maintained nominal base with Carbon defaults and stable setters", () =>
@@ -105,7 +105,7 @@ test("Tr2Transform updates curve sets at TimeAsDouble of its Be::Time and preser
   assertArrayNear(transform.lastWorldTransform, firstWorld, "second-frame previous world");
 });
 
-test("Tr2Transform distance scaling uses the render context field of view", () =>
+test("Tr2Transform distance scaling uses the renderer field of view", () =>
 {
   const transform = new core.Tr2Transform();
   transform.useDistanceBasedScale = true;
@@ -161,7 +161,9 @@ test("LOOK_AT_CAMERA preserves Carbon's degenerate zero basis", () =>
   transform.modifier = core.Tr2Transform.Tr2TransformModifier.TR2TM_LOOK_AT_CAMERA;
   transform.scaling.set([ 2, 3, 4 ]);
   transform.translation.set([ 5, 6, 7 ]);
-  transform.UpdateViewDependentData(makeRenderContext([ 5, 6, 7 ]));
+  // A translation-only view puts the camera exactly at the transform (5, 6, 7).
+  core.Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [ -5, -6, -7 ]));
+  transform.UpdateViewDependentData(null);
   for (const index of [ 0, 1, 2, 4, 5, 6, 8, 9, 10 ])
   {
     assert.equal(Math.abs(transform.worldTransform[index]), 0, `basis ${index}`);
@@ -175,8 +177,8 @@ test("Tr2Transform camera and mesh contracts fail visibly when malformed", () =>
   transform.worldTransform[12] = 3;
   transform.worldTransform[13] = 4;
   transform.sortValueMultiplier = 2;
-  assert.equal(transform.GetSortValue({ GetViewPosition: () => [ 3, 0, 0 ] }), 8);
-  assert.throws(() => transform.GetSortValue(), /GetViewPosition/u);
+  core.Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [ -3, 0, 0 ]));
+  assert.equal(transform.GetSortValue(), 8);
   transform.mesh = {};
   assert.throws(() => transform.HasTransparentBatches(), /GetAreas/u);
   assert.throws(() => transform.GetBatches({}, 0, null, 0), /GetAreas/u);
@@ -208,9 +210,9 @@ test("Eve transforms drive particle view state directly", t =>
       return false;
     }
   };
-  const renderContext = makeRenderContext();
+  makeRenderContext();
   transform.scaling.set([ 2, 3, 4 ]);
   transform.translation.set([ 10, 20, 30 ]);
-  transform.UpdateViewDependentData({ GetFrustum: () => frustum, renderContext });
+  transform.UpdateViewDependentData(frustum);
   assertArrayNear(receivedSphere, [ 12, 23, 34, 8 ], "particle sorting sphere");
 });

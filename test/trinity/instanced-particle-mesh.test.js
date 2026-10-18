@@ -19,6 +19,7 @@ import {StubResMan} from "../support/stubResMan.js";
 import "../../npm/dist/audio/index.js";
 import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/internal.js";
 import { WebgpuVertexBufferLayout } from "../../npm/dist/trinityal/webgpu/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 function setup(t)
 {
@@ -26,7 +27,7 @@ function setup(t)
   t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2RuntimeInstanceData||resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destroy();});
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=be.resMan;
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();be.resMan=new StubResMan();
-  context.SetViewTransform(mat4.create());
+  Tr2Renderer.SetViewTransform(mat4.create());
   t.after(()=>{SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);be.resMan=manager;});
   // Validate the state actually bound by SubmitGeometry, after ESM filtering,
   // with WebGPU's real conversion. Read every declared attribute so an unused

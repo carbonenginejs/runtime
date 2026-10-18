@@ -17,6 +17,7 @@ import { quat } from "#math/quat";
 import { EveChildUpdateParams } from "../../EveChildUpdateParams.js";
 import { Tr2Lod } from "../../EveLODHelper.js";
 import { vec4 } from "#math/vec4";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** A celestial effect root with scaled surface rendering and an ordinary-world depth proxy. */
 @blue.define("EvePlanet")
@@ -208,10 +209,10 @@ export class EvePlanet extends EveEffectRoot2
 
   /**
    * Estimates size and visits children under the scaled transform (cpp:117-130).
-   * Adapted: renderer globals come from updateContext.renderContext. As in Carbon,
-   * size uses the renderer projection, while child culling uses the planet frustum.
+   * As in Carbon, size uses the renderer projection, while child culling uses
+   * the planet frustum.
    */
-  @meta.adapted
+  @meta.implemented
   @blue.method
   UpdatePlanetVisibility(updateContext, renderScale)
   {
@@ -221,9 +222,8 @@ export class EvePlanet extends EveEffectRoot2
       this._CalculatePlanetScaleTransform(this._worldTransform, renderScale, transform);
       const { vec3_0 } = EvePlanet.scratch;
       vec3.set(vec3_0, transform[12], transform[13], transform[14]);
-      const context = updateContext.renderContext;
-      this.estimatedPixelDiameter = this._EstimatePixelDiameterPos(vec3_0, 1 / context.GetProjection()[0], renderScale, context);
-      this._estimatedMaxPixelDiameter = this._EstimatePixelDiameterPos(vec3_0, Math.tan(0.65 / 2), renderScale, context);
+      this.estimatedPixelDiameter = this._EstimatePixelDiameterPos(vec3_0, 1 / Tr2Renderer.GetProjectionTransform()[0], renderScale);
+      this._estimatedMaxPixelDiameter = this._EstimatePixelDiameterPos(vec3_0, Math.tan(0.65 / 2), renderScale);
       for (const child of this.effectChildren) child.UpdateVisibility(updateContext, transform, this.lodLevel);
     }
     finally
@@ -232,20 +232,20 @@ export class EvePlanet extends EveEffectRoot2
     }
   }
 
-  /** Renderer position is explicit instead of global (EvePlanet.cpp:180-187). */
-  @meta.adapted
+  /** Distance from the renderer's view, then the pixel estimate (EvePlanet.cpp:184-191). */
+  @meta.implemented
   @blue.method
-  _EstimatePixelDiameterPos(center, tanFOV, scale, context)
+  _EstimatePixelDiameterPos(center, tanFOV, scale)
   {
-    return this._EstimatePixelDiameterDist(vec3.distance(center, context.GetViewPosition()), tanFOV, scale, context);
+    return this._EstimatePixelDiameterDist(vec3.distance(center, Tr2Renderer.GetViewPosition()), tanFOV, scale);
   }
 
-  /** Renderer viewport is explicit; preserves both epsilon tests (cpp:199-221). */
-  @meta.adapted
+  /** Pixel diameter over the renderer's viewport; preserves both epsilon tests (cpp:202-221). */
+  @meta.implemented
   @blue.method
-  _EstimatePixelDiameterDist(distance, tanFOV, scale, context)
+  _EstimatePixelDiameterDist(distance, tanFOV, scale)
   {
-    const halfWidthProjection = context.GetViewport().width * 0.5 / tanFOV;
+    const halfWidthProjection = Tr2Renderer.GetViewport().width * 0.5 / tanFOV;
     const radius = this.radius / scale;
     if (distance < 1e-5) distance = 1e-5;
     if (radius < 1e-5) return 0;

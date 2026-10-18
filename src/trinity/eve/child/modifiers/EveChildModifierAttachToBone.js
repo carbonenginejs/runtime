@@ -25,7 +25,6 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * Float4x3 column-stride 12-float palette (skill gotcha 7:
    * rows are (v0,v4,v8,v12) / (v1,v5,v9,v13) / (v2,v6,v10,v14)).
    *
-   * @param {Object} _context - unused (not camera dependent)
    * @param {Float32Array} transform - source (read only)
    * @param {Number} boneCount
    * @param {Float32Array|Array} bones - Float4x3 palette, 12 floats per bone
@@ -34,7 +33,7 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    */
   @blue.method
   @meta.implemented
-  ApplyTransform(_context, transform, boneCount, bones, out)
+  ApplyTransform(transform, boneCount, bones, out)
   {
     // Carbon checks only the index (cpp:15-18); an in-range index reads the
     // palette unchecked (cpp:21).

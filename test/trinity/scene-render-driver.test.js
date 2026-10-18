@@ -581,7 +581,7 @@ test("Jitter offsets the projection by Carbon's 4-sample pattern with TAA, and n
   const esm = context.GetEffectStateManager();
   const identity = Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
-  context.SetProjection(identity);
+  Tr2Renderer.SetProjectionTransform(identity);
   esm.renderTargetWidth = 200;
   esm.renderTargetHeight = 100;
 
@@ -605,7 +605,7 @@ test("Jitter offsets the projection by Carbon's 4-sample pattern with TAA, and n
   assert.equal(scene.jitteredProjection[13], jy);
 
   // EndRender stores the UNJITTERED projection for next frame (cpp:2867-2868).
-  context.SetViewTransform(identity);
+  Tr2Renderer.SetViewTransform(identity);
   scene.EndRender(context);
   assert.deepEqual(Array.from(scene.projectionLast), Array.from(identity));
 });
@@ -618,7 +618,7 @@ test("EndRender draws the lens flares additively with depth read-only, then stor
   const calls = [];
   const identity = Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
-  context.SetViewTransform(identity);
+  Tr2Renderer.SetViewTransform(identity);
   context.SetTriPoolAllocator({ Allocate: () => ({}), Clear() {} });
 
   const readOnly = context.SetReadOnlyDepth.bind(context);

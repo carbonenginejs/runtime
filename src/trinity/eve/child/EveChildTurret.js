@@ -460,7 +460,6 @@ export class EveChildTurret extends EveChildMesh
    * late muzzle fallback to the turret root until geometry loads.
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {

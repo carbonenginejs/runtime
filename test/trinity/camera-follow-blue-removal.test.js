@@ -10,15 +10,13 @@ import { ITr2FollowCurveKey } from "../../npm/dist/trinity/curves/index.js";
 import { Tr2CameraFollowCurveKey } from "../../npm/dist/trinity/curves/key/Tr2CameraFollowCurveKey.js";
 import { Tr2FollowCurve } from "../../npm/dist/trinity/curves/curve/Tr2FollowCurve.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
-function camera(t)
+/** Sets the renderer's camera: identity view, a 90-degree square projection with front clip 1. */
+function camera(_t)
 {
-  const context = Tr2RenderContext_GetMainThreadRenderContext();
-  const identity = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
-  t.mock.method(context, "GetProjection", () => identity);
-  t.mock.method(context, "GetInverseViewTransform", () => identity);
-  t.mock.method(context, "GetFieldOfView", () => Math.PI / 2);
-  t.mock.method(context, "GetFrontClip", () => 1);
+  Tr2Renderer.SetViewTransform(new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]));
+  Tr2Renderer.SetProjectionTransform(new Float32Array([1,0,0,0, 0,1,0,0, 0,0,-1,-1, 0,0,-1,0]));
 }
 
 test("camera key constructs without model state and implements the native five-method interface", () =>

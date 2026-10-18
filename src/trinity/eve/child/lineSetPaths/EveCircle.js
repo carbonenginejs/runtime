@@ -12,6 +12,7 @@ import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 // Debug-drawing scratch (debug rendering is single-threaded).
 const DEBUG_TRANSFORM = mat4.create();
@@ -327,7 +328,6 @@ export class EveCircle extends IEveLineSetPath
    * A { view: DataView, offset: byteOffset } cursor replaces uint8_t*& and is
    * advanced for every point, including invisible zero-scale records. Matrix
    * products reverse Carbon's row-vector operands; packing transposes once.
-   * Camera state is read from the supplied context instead of renderer globals.
    * JS scalar intermediates are not claimed SIMD/libm byte-identical.
    */
   @blue.method
@@ -369,7 +369,7 @@ export class EveCircle extends IEveLineSetPath
         mat4.fromQuat(mat4_1, quat_1);
         mat4.invert(mat4_1, mat4_1);
         vec3.transformMat4(vec3_1, vec3_0, mat4_0);
-        vec3.subtract(vec3_1, renderContext.GetViewPosition(), vec3_1);
+        vec3.subtract(vec3_1, Tr2Renderer.GetViewPosition(), vec3_1);
         vec3.transformMat4(vec3_1, vec3_1, mat4_1);
       }
       quat.arcFromForward(quat_0, vec3_1);

@@ -4,14 +4,15 @@ import { Tr2ParticleSystem, Tr2ParticleElementDeclaration, ITr2GenericEmitterUpd
   Tr2RenderContext_GetMainThreadRenderContext, EveChildParticleSystem } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub, ALResult } from "../../npm/dist/trinityal/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 function setup(t, cpuPosition = false, withPosition = true)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext();
-  const previous = context.GetRenderContextAL(), view = mat4.clone(context.GetViewTransform());
+  const previous = context.GetRenderContextAL(), view = mat4.clone(Tr2Renderer.GetViewTransform());
   context.SetRenderContextAL(new Tr2RenderContextALStub());
   context.GetRenderContextAL().CreateDevice();
-  context.SetViewTransform(mat4.create());
+  Tr2Renderer.SetViewTransform(mat4.create());
   const system = new Tr2ParticleSystem();
   system.maxParticleCount = 5;
   system.requiresSorting = true;
@@ -22,7 +23,7 @@ function setup(t, cpuPosition = false, withPosition = true)
   // Be::Time ticks (ITr2GenericEmitter.h:42): one second.
   const args = new ITr2GenericEmitterUpdateArguments(); args.time = 10_000_000;
   system.Update(args);
-  t.after(() => {system.ReleaseResources(); context.SetRenderContextAL(previous); context.SetViewTransform(view);});
+  t.after(() => {system.ReleaseResources(); context.SetRenderContextAL(previous); Tr2Renderer.SetViewTransform(view);});
   const buffer = system.GetGpuBuffer();
   const map = buffer.MapForWriting.bind(buffer), unmap = buffer.UnmapForWriting.bind(buffer);
   const state = {maps: 0, unmaps: 0, bytes: null, fail: false};
@@ -65,7 +66,7 @@ test("SortParticles uses inverse world coordinates and accepts CPU-only POSITION
   const {system, state, context} = setup(t, true);
   const world = new Float32Array([0, 2, 0, 0, -3, 0, 0, 0, 0, 0, 4, 0, 10, 20, 30, 1]);
   const view = mat4.fromTranslation(mat4.create(), [-7, -16, -30]);
-  context.SetViewTransform(view); // world eye [7,16,30], local eye [-2,1,0]
+  Tr2Renderer.SetViewTransform(view); // world eye [7,16,30], local eye [-2,1,0]
   system.UpdateViewDependentData(null, world);
   system.SortParticles();
   assert.deepEqual(tags(system, state), [30, 20, 10], "cpp:1080-1088 transforms camera into system coordinates before comparing");
@@ -76,10 +77,10 @@ test("sorting gates preserve native camera threshold, invisible order, and faile
 {
   const {system, state, context} = setup(t);
   system.UpdateViewDependentData(null, mat4.create()); system.SortParticles();
-  context.SetViewTransform(mat4.fromTranslation(mat4.create(), [-0.02, 0, 0]));
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-0.02, 0, 0]));
   system.UpdateViewDependentData(null, mat4.create()); system.SortParticles();
   assert.equal(state.maps, 1, "cpp:1089 movement squared below0.001 skips clean upload");
-  context.SetViewTransform(mat4.fromTranslation(mat4.create(), [-0.04, 0, 0]));
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-0.04, 0, 0]));
   system.UpdateViewDependentData(null, mat4.create()); system.SortParticles();
   assert.equal(state.maps, 2);
   system.SetParticleElement(0, "tag", 11);
@@ -95,7 +96,7 @@ test("sorting gates preserve native camera threshold, invisible order, and faile
   assert.equal(state.unmaps, unmaps + 1);
   assert.deepEqual(tags(system, state), [12, 30, 20]);
   system.requiresSorting = false;
-  context.SetViewTransform(mat4.fromTranslation(mat4.create(), [-100, 0, 0]));
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [-100, 0, 0]));
   const before = state.maps; system.SortParticles();
   assert.equal(state.maps, before, "cpp:1070 clean non-sorting systems never remap for camera movement");
 });

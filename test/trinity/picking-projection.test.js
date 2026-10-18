@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import { EveCamera, TriProjection, TriView, Tr2PrimitiveScene, Tr2PrimitiveSet,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 
@@ -23,21 +24,22 @@ for (const mode of ["fov", "off-center", "custom", "ortho"])
     handle.scaleByDistanceToView = true;
     handle.localTransform[12] = 30;
     scene.primitives.push(handle);
-    context.PushProjection();
-    context.PushViewTransform();
-    t.after(() => { context.PopViewTransform(); context.PopProjection(); scene.Destroy(); });
-    context.SetViewTransform(view.GetTransform());
-    context.SetProjection(original, expectedFov);
+    Tr2Renderer.PushProjection();
+    Tr2Renderer.PushViewTransform();
+    t.after(() => { Tr2Renderer.PopViewTransform(); Tr2Renderer.PopProjection(); scene.Destroy(); });
+    // Carbon sets the view and the projection the way a pass does.
+    Tr2Renderer.SetViewTransform(view.GetTransform());
+    projection.SetProjection();
     scene.GetPickingObjectsToRender(null, context);
     const visibleWorld = [...handle.worldTransform], visibleScale = handle.scale;
     assert.ok(visibleScale > 0);
 
     scene.SetupTransformsForPicking(0.25, -0.4, projection, view, viewport, context);
     scene.GetPickingObjectsToRender(null, context);
-    assert.equal(context.GetFieldOfView(), expectedFov);
+    assert.equal(Tr2Renderer.GetFieldOfView(), expectedFov);
     assert.equal(handle.scale, visibleScale, "picking must not collapse or shrink the handle");
     assert.deepEqual([...handle.worldTransform], visibleWorld);
     assert.deepEqual([...projection.GetMatrixWithoutViewAdjustment()], [...original]);
-    assert.ok(Math.abs(context.GetProjection()[0] - original[0] * viewport.width) < 0.001);
+    assert.ok(Math.abs(Tr2Renderer.GetProjectionTransform()[0] - original[0] * viewport.width) < 0.001);
   });
 }

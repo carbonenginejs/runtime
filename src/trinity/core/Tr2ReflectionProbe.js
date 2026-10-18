@@ -372,7 +372,7 @@ export class Tr2ReflectionProbe
     {
       // Tr2Renderer::GetInverseViewTransform().GetZ(): the third row, which
       // gl-matrix stores at the same offsets.
-      const inverseView = renderContext.GetInverseViewTransform();
+      const inverseView = Tr2Renderer.GetInverseViewTransform();
       const viewDirection = [ inverseView[8], inverseView[9], inverseView[10] ];
 
       for (const effect of [ this._preFilterEffect, this._copyMipEffect ])
@@ -450,25 +450,25 @@ export class Tr2ReflectionProbe
   @meta.implemented
   InitRenderPass(renderContext)
   {
-    if (!this.lockPosition) vec3.copy(this.position, renderContext.GetViewPosition());
+    if (!this.lockPosition) vec3.copy(this.position, Tr2Renderer.GetViewPosition());
 
     const esm = renderContext.GetEffectStateManager();
     esm.PushViewport();
-    renderContext.PushViewTransform();
-    renderContext.PushProjection();
+    Tr2Renderer.PushViewTransform();
+    Tr2Renderer.PushProjection();
     esm.PushRenderTarget__Current();
     esm.PushDepthStencilBuffer__Current();
 
     esm.SetViewport({ x: 0, y: 0, width: this.reflectionSize, height: this.reflectionSize, minZ: 0, maxZ: 1 });
 
     // Carbon m[2][2], m[2][3], m[3][2], m[3][3]: the same offsets in gl-matrix's layout.
-    const current = renderContext.GetProjection();
+    const current = Tr2Renderer.GetProjectionTransform();
     const projection = mat4.identity(this._faceProjection);
     projection[10] = current[10];
     projection[11] = -1;
     projection[14] = current[14];
     projection[15] = 0;
-    renderContext.SetProjection(projection);
+    Tr2Renderer.SetProjectionTransform(projection);
 
     this._prevCullInversion = esm.IsCullModeInverted();
     esm.SetInvertedCullMode(true);
@@ -508,7 +508,7 @@ export class Tr2ReflectionProbe
     const at = vec3.add(this._faceTarget, this.position, Tr2ReflectionProbe._faceDirections[face * 2 + 1]);
     const view = mat4.lookAtCarbon(this._faceView, this.position, at, up);
     mat4.multiply(view, Tr2ReflectionProbe._xInverter, view);
-    renderContext.SetViewTransform(view);
+    Tr2Renderer.SetViewTransform(view);
   }
 
   /**
@@ -532,8 +532,8 @@ export class Tr2ReflectionProbe
 
     esm.PopDepthStencilBuffer();
     esm.PopRenderTarget();
-    renderContext.PopProjection();
-    renderContext.PopViewTransform();
+    Tr2Renderer.PopProjection();
+    Tr2Renderer.PopViewTransform();
     esm.PopViewport();
 
     this.Filter(renderContext);
@@ -555,7 +555,7 @@ export class Tr2ReflectionProbe
   GetFrustum(_face, renderContext)
   {
     const frustum = new TriFrustum();
-    frustum.DeriveFrustum(renderContext.GetViewTransform(), this.position, renderContext.GetProjection(),
+    frustum.DeriveFrustum(Tr2Renderer.GetViewTransform(), this.position, Tr2Renderer.GetProjectionTransform(),
       renderContext.GetEffectStateManager().GetViewport());
     return frustum;
   }

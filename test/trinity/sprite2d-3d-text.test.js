@@ -1,3 +1,4 @@
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 // Sprite2D text in 3D: a Tr2Sprite2dTextObject gathered by a Tr2Sprite2dScene with
 // is2dRender = false, under a rotated, non-uniformly scaled scene transform.
 //
@@ -95,7 +96,7 @@ test('3D text: glyph vertices take Carbon positions and depth, and land at Carbo
 
   assert.equal(scene._vertexCount, 4);
   const view = scene._vertexView;
-  const world = context.GetWorldTransform();
+  const world = Tr2Renderer.GetWorldTransform();
 
   for (let i = 0; i < 4; i++)
   {

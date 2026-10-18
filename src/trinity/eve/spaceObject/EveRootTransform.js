@@ -109,12 +109,12 @@ export class EveRootTransform extends EveTransform
     this.UpdateAsyncronous(updateContext);
   }
 
-  /** Applies the detached root matrix as the inherited transform parent. */
+  /** Applies the detached root matrix as the inherited transform parent (EveRootTransform.cpp:70-74). */
   @blue.method
   @meta.implemented
-  UpdateViewDependentData(context)
+  UpdateViewDependentData(frustum, _parentTransform)
   {
-    return super.UpdateViewDependentData(context, this._lastUpdateMatrix);
+    return super.UpdateViewDependentData(frustum, this._lastUpdateMatrix);
   }
 
   /** Root transforms have no damage locators. */

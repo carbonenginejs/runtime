@@ -3,6 +3,7 @@ import test from "node:test";
 import { EveSpaceScene, EveSpaceObject2, EvePickingContext, Tr2PerObjectData, TriProjection,
   TriView, TriViewport, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { ALResult, Tr2ConstantBufferAL, Tr2RenderContextALStub, Tr2TextureAL, Tr2ReadbackAL } from "../../npm/dist/trinityal/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 function setup(t, framework = "pointer")
 {
@@ -18,11 +19,11 @@ function setup(t, framework = "pointer")
   viewport.height = 600;
   projection.PerspectiveFov(Math.PI / 3, 4 / 3, 1, 10000);
   view.SetLookAtPosition([10, 20, 100], [0, 0, 0], [0, 1, 0]);
-  context.SetProjection(projection.GetMatrixWithoutViewAdjustment(), projection.fov);
-  context.SetViewTransform(view.GetTransform());
+  Tr2Renderer.SetProjectionTransform(projection.GetMatrixWithoutViewAdjustment());
+  Tr2Renderer.SetViewTransform(view.GetTransform());
   const esm = context.GetEffectStateManager();
   esm.SetViewport(viewport);
-  const originalView = [...context.GetViewTransform()];
+  const originalView = [...Tr2Renderer.GetViewTransform()];
   let pointer = 0n, objectId = 0;
   t.mock.method(scene, "GetPickingObjectsToRender", () => [object]);
   t.mock.method(scene, "PopulatePerFramePSData", () => {});
@@ -104,7 +105,7 @@ test("immediate EVE picks await their own request and restore the view before aw
   const h = setup(t);
   let finished = false;
   const first = h.scene.PickObjectAndExtraData(...h.args).then(value => { finished = true; return value; });
-  assert.deepEqual([...h.context.GetViewTransform()], h.originalView);
+  assert.deepEqual([...Tr2Renderer.GetViewTransform()], h.originalView);
   await Promise.resolve();
   assert.equal(finished, false);
   h.snapshots[0].complete();
@@ -148,7 +149,7 @@ test("failed picking draws restore context state and remove the failed request",
   const esm = h.context.GetEffectStateManager(), inverted = esm.IsDepthTestInverted(), managed = esm.IsManagedRendering();
   t.mock.method(h.context, "RenderBatchesForPicking__Pointer", () => { throw new Error("synthetic draw failure"); });
   assert.throws(() => h.scene.PerformPicking(listener, false, ...h.args), /synthetic draw failure/);
-  assert.deepEqual([...h.context.GetViewTransform()], h.originalView);
+  assert.deepEqual([...Tr2Renderer.GetViewTransform()], h.originalView);
   assert.equal(esm.IsDepthTestInverted(), inverted);
   assert.equal(esm.IsManagedRendering(), managed);
   assert.equal(listener.readbacks.length, 0);
@@ -163,7 +164,7 @@ test("legacy EVE picks use retained collision indices and BGRA request-owned att
   assert.equal(request.framework, "objectId");
   assert.equal(request.collisionSet[0][0], h.object);
   assert.equal(request.mainPickBuffer._pickTarget.IsValid(), true);
-  assert.deepEqual([...h.context.GetViewTransform()], h.originalView);
+  assert.deepEqual([...Tr2Renderer.GetViewTransform()], h.originalView);
   Tr2RenderContext.eveSpacePickingFramework = "pointer";
   h.snapshots[0].complete();
   assert.deepEqual(await pending, [h.object, 53, 0], "a setting change cannot reinterpret an in-flight request");
@@ -205,7 +206,7 @@ test("failed legacy draws restore state and release the failed request", t =>
   const esm = h.context.GetEffectStateManager(), inverted = esm.IsDepthTestInverted(), managed = esm.IsManagedRendering();
   t.mock.method(h.context, "RenderBatchesForPicking__ObjectId", () => { throw new Error("legacy draw failure"); });
   assert.throws(() => h.scene.PerformPicking(listener, false, ...h.args), /legacy draw failure/u);
-  assert.deepEqual([...h.context.GetViewTransform()], h.originalView);
+  assert.deepEqual([...Tr2Renderer.GetViewTransform()], h.originalView);
   assert.equal(esm.IsDepthTestInverted(), inverted);
   assert.equal(esm.IsManagedRendering(), managed);
   assert.equal(listener.readbacks.length, 0);

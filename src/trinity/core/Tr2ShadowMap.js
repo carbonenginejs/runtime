@@ -618,7 +618,7 @@ export class Tr2ShadowMap
           shadowMapResult,
           depthMap,
           null,
-          renderContext.GetReversedDepthProjectionTransform(),
+          Tr2Renderer.GetReversedDepthProjectionTransform(),
           upscaling,
           gpuResourcePool,
           renderContext,

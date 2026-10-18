@@ -8,6 +8,7 @@ import { test } from "node:test";
 import { Tr2RenderContext, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const value = name => Array.from(Tr2VariableStore.globalStore().FindVariable(name).GetValue());
 
@@ -17,13 +18,13 @@ test("SetProjection and SetViewTransform publish the camera globals", () =>
   const projection = mat4.perspectiveNO(mat4.create(), Math.PI / 3, 1.5, 1, 1000);
   const view = mat4.lookAt(mat4.create(), [ 3, 4, 5 ], [ 0, 0, 0 ], [ 0, 1, 0 ]);
 
-  context.SetProjection(projection);
-  context.SetViewTransform(view);
+  Tr2Renderer.SetProjectionTransform(projection);
+  Tr2Renderer.SetViewTransform(view);
 
   assert.deepEqual(value("ProjectionMat"), Array.from(projection));
   assert.deepEqual(value("ViewMat"), Array.from(view));
-  assert.deepEqual(value("ProjectionInvMat"), Array.from(mat4.invert(mat4.create(), projection)));
-  assert.deepEqual(value("ViewInvMat"), Array.from(mat4.invert(mat4.create(), view)));
+  assert.deepEqual(value("ProjectionInvMat"), Array.from(Tr2Renderer.GetInverseProjectionTransform()));
+  assert.deepEqual(value("ViewInvMat"), Array.from(Tr2Renderer.GetInverseViewTransform()));
 
   // Carbon view * proj (row-vector) is gl-matrix multiply(proj, view).
   const viewProjection = mat4.multiply(mat4.create(), projection, view);

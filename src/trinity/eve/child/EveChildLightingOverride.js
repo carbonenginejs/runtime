@@ -6,6 +6,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
 import { mat4 } from "#math/mat4";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
@@ -180,9 +181,10 @@ export class EveChildLightingOverride extends EveChildTransform
     }
 
     this._overrideIntensity = 0;
-    const viewPosition = updateContext?.renderContext?.GetViewPosition();
+    // EveChildLightingOverride.cpp:115-116.
+    const viewPosition = Tr2Renderer.GetViewPosition();
     const inverse = mat4.invert(mat4.create(), this.worldTransform);
-    if (!viewPosition || !inverse || !this._boundingSphere.initialized) return;
+    if (!inverse || !this._boundingSphere.initialized) return;
     const localView = vec3.transformMat4(vec3.create(), viewPosition, inverse);
     if (vec3.distance(localView, this._boundingSphere.center) > this._boundingSphere.radius) return;
 

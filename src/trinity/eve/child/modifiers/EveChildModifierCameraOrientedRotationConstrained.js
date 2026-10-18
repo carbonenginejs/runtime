@@ -4,6 +4,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { meta, blue } from "#schema";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 
 const UP = vec3.fromValues(0, 1, 0);
@@ -74,7 +75,6 @@ export class EveChildModifierCameraOrientedRotationConstrained extends IEveChild
    * decompose the child, project (camPos - translation) into the child's
    * rotation frame, take its heading atan2(vec.x, vec.z), and pre-multiply a
    * world-up rotation by that angle. Return result * transform.
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused
@@ -82,24 +82,16 @@ export class EveChildModifierCameraOrientedRotationConstrained extends IEveChild
    * @returns {Float32Array} out
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
-  ApplyTransform(context, transform, boneCount, bones, out)
+  ApplyTransform(transform, boneCount, bones, out)
   {
-    const renderContext = context?.renderContext;
-
-    if (!renderContext)
-    {
-      return mat4.copy(out, transform);
-    }
-
     const { rotation, translation, scale, p, rotMatrix, result } = this.constructor.scratch;
 
     // Carbon: Decompose(scale, rotation, translation, transform).
     mat4.decomposeCarbon(transform, rotation, translation, scale);
     mat4.fromQuat(rotMatrix, rotation);
 
-    const camPos = renderContext.GetViewPosition();
+    const camPos = Tr2Renderer.GetViewPosition();
     p[0] = camPos[0] - translation[0];
     p[1] = camPos[1] - translation[1];
     p[2] = camPos[2] - translation[2];

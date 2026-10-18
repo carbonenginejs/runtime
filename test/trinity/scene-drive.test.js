@@ -25,6 +25,7 @@ import {
   TriFrustum,
   TriViewport
 } from "../../npm/dist/trinity/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 const EPSILON = 1e-5;
@@ -51,7 +52,7 @@ const EYE = vec3.fromValues(3, 5, -7);
 const TARGET = vec3.fromValues(10, 2, 4);
 const FORWARD = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), TARGET, EYE));
 
-/** A real derived TriFrustum + a stamped Tr2RenderContext for the same pose. */
+/** A real derived TriFrustum for a pose; the renderer's view is set to it. */
 function MakeCamera({ eye = EYE, target = TARGET, up = [0, 1, 0] } = {})
 {
   const view = mat4.lookAt(mat4.create(), eye, target, up);
@@ -60,9 +61,8 @@ function MakeCamera({ eye = EYE, target = TARGET, up = [0, 1, 0] } = {})
   viewport.__init__(0, 0, 1280, 800);
   const frustum = new TriFrustum();
   frustum.DeriveFrustum(view, eye, projection, viewport);
-  const renderContext = new Tr2RenderContext();
-  renderContext.SetViewTransform(view);
-  return { view, projection, viewport, frustum, renderContext };
+  Tr2Renderer.SetViewTransform(view);
+  return { view, projection, viewport, frustum };
 }
 
 // --- Fixture 1: drive-order recorder ----------------------------------------
@@ -71,7 +71,6 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
 {
   const scene = new EveSpaceScene();
   const camera = MakeCamera();
-  scene.updateContext.renderContext = camera.renderContext;
 
   const log = [];
   const MakeObjectStub = name => ({
@@ -133,7 +132,8 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
   }
 
   scene.StampFrameContext({ frustum: camera.frustum });
-  const inverseView = camera.renderContext.GetInverseViewTransform();
+  Tr2Renderer.SetViewTransform(camera.view);
+  const inverseView = Tr2Renderer.GetInverseViewTransform();
   scene.UpdateVisibility(inverseView);
 
   const sequence = log.map(entry => `${entry.name}.${entry.method}`);
@@ -215,7 +215,6 @@ test("UpdateVisibility + GetRenderables cull real EveSpaceObject2s through a rea
 {
   const scene = new EveSpaceScene();
   const camera = MakeCamera();
-  scene.updateContext.renderContext = camera.renderContext;
 
   const MakeObject = position =>
   {
@@ -258,7 +257,8 @@ test("UpdateVisibility + GetRenderables cull real EveSpaceObject2s through a rea
 
   scene.StampFrameContext({ frustum: camera.frustum });
   scene.Update(0, 1);
-  scene.UpdateVisibility(camera.renderContext.GetInverseViewTransform());
+  Tr2Renderer.SetViewTransform(camera.view);
+  scene.UpdateVisibility(Tr2Renderer.GetInverseViewTransform());
 
   assert.equal(visible.isVisible, true, "in-frustum object stamped visible");
   assert.equal(hidden.isVisible, false, "behind-camera object stamped invisible");
@@ -268,9 +268,9 @@ test("UpdateVisibility + GetRenderables cull real EveSpaceObject2s through a rea
   // Flip the camera to look straight up: both objects leave the frustum and
   // the gather goes empty (the spec's implemented-into-the-void closure test).
   const flipped = MakeCamera({ target: [EYE[0], EYE[1] + 10, EYE[2]], up: [1, 0, 0] });
-  scene.updateContext.renderContext = flipped.renderContext;
   scene.StampFrameContext({ frustum: flipped.frustum });
-  scene.UpdateVisibility(flipped.renderContext.GetInverseViewTransform());
+  Tr2Renderer.SetViewTransform(flipped.view);
+  scene.UpdateVisibility(Tr2Renderer.GetInverseViewTransform());
   assert.equal(visible.isVisible, false);
   assert.deepEqual(scene.GetRenderables([]), []);
 });
@@ -508,10 +508,9 @@ test("GatherLights drives the manager duck in Carbon's exact order", () =>
   const scene = new EveSpaceScene();
   const { frustum } = MakeCamera();
   scene.StampFrameContext({ frustum, lodFactor: 2 });
-  // The driver stamps the frame's render context; Carbon passes its recording
-  // frame number to SetShadowQuality (cpp:1403).
+  // The driver passes the frame's render context; Carbon passes its recording
+  // frame number to SetShadowQuality (cpp:1409).
   const renderContext = { GetRecordingFrameNumber: () => 7 };
-  scene.updateContext.renderContext = renderContext;
 
   const calls = [];
   const manager = new (class extends Tr2LightManager
@@ -550,7 +549,7 @@ test("GatherLights drives the manager duck in Carbon's exact order", () =>
   bystander.GetOverrides = () => ({});
   scene.componentRegistry.RegisterComponent(EveComponentType.EveLightingOverride, bystander);
 
-  scene.GatherLights(manager);
+  scene.GatherLights(manager, renderContext);
 
   assert.deepEqual(calls, [
     ["SetShadowQuality", 3, 7],
@@ -564,20 +563,19 @@ test("GatherLights drives the manager duck in Carbon's exact order", () =>
 
   // Zero owners: Clear/Resolve still run (stale lights must drop).
   const emptyScene = new EveSpaceScene();
-  emptyScene.updateContext.renderContext = renderContext;
   calls.length = 0;
-  emptyScene.GatherLights(manager);
+  emptyScene.GatherLights(manager, renderContext);
   assert.deepEqual(calls.map(call => call[0]), [
     "SetShadowQuality", "Clear", "SetFrustum", "AdjustLightCutoff", "ResolveLightData"
   ]);
 
   // Null manager: dynamic lighting off - a silent no-op.
-  assert.doesNotThrow(() => scene.GatherLights(null));
+  assert.doesNotThrow(() => scene.GatherLights(null, renderContext));
   // RETIRED with the Tr2LightManager port (2026-09-05): the partial-duck
   // assertion existed to keep the seven optional-call hedges alive. The
   // manager is a real class now; a non-manager object throwing loudly is
   // the contract (own code is called directly - a throw is the diagnostic).
-  assert.throws(() => scene.GatherLights({}), TypeError);
+  assert.throws(() => scene.GatherLights({}, renderContext), TypeError);
 });
 
 // --- Fixture 7: ClearComponentRegistry + one-shot trigger model -------------

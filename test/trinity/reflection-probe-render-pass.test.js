@@ -7,6 +7,7 @@ import test from "node:test";
 import { Tr2ReflectionProbe } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { StubContext } from "../support/stubContext.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 /** Carbon LookAtMatrix (math/include/Matrix_inline.h:671-702), as m[row][col] = out[row * 4 + col]. */
 function carbonLookAtMatrix(eye, at, up)
@@ -63,7 +64,7 @@ test("StartRenderFace looks along each face as Carbon's LookAtMatrix(...) * xInv
     const at = [ 10 + direction[0], -20 + direction[1], 30 + direction[2] ];
     const look = carbonLookAtMatrix([ 10, -20, 30 ], at, up);
     const expected = carbonMultiply(look, X_INVERTER);
-    close(context.GetViewTransform(), expected, `face ${face}`);
+    close(Tr2Renderer.GetViewTransform(), expected, `face ${face}`);
     if (face === 0)
     {
       // Negative control: the reversed product is a different matrix.
@@ -79,12 +80,12 @@ test("InitRenderPass takes the camera position unless locked, squares the projec
   const esm = context.GetEffectStateManager();
   const probe = new Tr2ReflectionProbe();
   const projection = mat4.perspective(mat4.create(), 1, 1.6, 2, 5000);
-  context.SetProjection(projection);
+  Tr2Renderer.SetProjectionTransform(projection);
   const before = esm.IsCullModeInverted();
 
   probe.InitRenderPass(context);
-  assert.deepEqual(Array.from(probe.position), Array.from(context.GetViewPosition()), "unlocked: takes the view position");
-  const square = context.GetProjection();
+  assert.deepEqual(Array.from(probe.position), Array.from(Tr2Renderer.GetViewPosition()), "unlocked: takes the view position");
+  const square = Tr2Renderer.GetProjectionTransform();
   assert.equal(square[0], 1);
   assert.equal(square[5], 1);
   assert.equal(square[10], projection[10], "near/far term kept (m[2][2])");

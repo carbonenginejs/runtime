@@ -611,7 +611,6 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @returns {Float32Array} worldTransform
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {

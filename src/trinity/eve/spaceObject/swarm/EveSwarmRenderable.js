@@ -15,8 +15,8 @@ import { createChildPerObjectRecords, stampChildTransforms } from "../../perObje
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2PickType } from "#consts/graphics/tr2PickType";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { EveSpaceObjectDecal } from "../../attachment/decal/EveSpaceObjectDecal.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** Carbon's EveSwarmRenderable (EveSwarm.h:20-95): one fighter of an EveSwarm, drawing the squad's shared mesh at its own world transform. */
 @blue.define("EveSwarmRenderable")
@@ -257,12 +257,11 @@ export class EveSwarmRenderable extends EveEntity
    * world-space bounding-box centres.
    *
    * Adapted: the transparent sort is written out here rather than through Carbon's
-   * GetSortedBatchesFromMeshAreaVector, and the view position comes from the render context, which defaults to the
-   * main-thread context Carbon's Tr2Renderer::GetViewPosition reads. Returns whether a batch was committed.
+   * GetSortedBatchesFromMeshAreaVector. Returns whether a batch was committed.
    */
   @blue.method
   @meta.adapted
-  GetBatches(batches, batchType, perObjectData, _reason, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (!this.mesh)
     {
@@ -277,7 +276,7 @@ export class EveSwarmRenderable extends EveEntity
 
     // vec3_0 is the area centre, vec3_1 and vec3_2 its box.
     const { vec3_0, vec3_1, vec3_2 } = EveSwarmRenderable.scratch;
-    const viewPosition = renderContext.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     const geometry = this.mesh.GetGeometryResource();
     const meshIndex = this.mesh.GetMeshIndex();
     const lod = geometry ? geometry.GetMeshLod__ScreenSize(meshIndex, Number.MAX_VALUE) : null;
@@ -329,15 +328,12 @@ export class EveSwarmRenderable extends EveEntity
 
   /**
    * Carbon GetSortValue (EveSwarm.cpp:54-59): distance from the view position to this fighter's translation.
-   *
-   * Adapted: the view position comes from the render context, which defaults to the main-thread context Carbon's
-   * Tr2Renderer::GetViewPosition reads.
    */
   @blue.method
-  @meta.adapted
-  GetSortValue(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  @meta.implemented
+  GetSortValue()
   {
-    const viewPosition = renderContext.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     return Math.hypot(
       viewPosition[0] - this.worldTransform[12],
       viewPosition[1] - this.worldTransform[13],

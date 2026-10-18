@@ -3,6 +3,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { meta, blue } from "#schema";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 
 /**
@@ -25,7 +26,6 @@ export class EveChildModifierHalo extends IEveChildTransformModifier
    * then scales each parent axis by clamp(dot(normalize(camPos - myPos),
    * normalize(transformZ)), 0) SQUARED - the facing falloff. Reads
    * GetViewPosition + GetInverseViewTransform.
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused
@@ -33,19 +33,11 @@ export class EveChildModifierHalo extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
-  ApplyTransform(context, transform, boneCount, bones, out)
+  ApplyTransform(transform, boneCount, bones, out)
   {
-    const renderContext = context?.renderContext;
-
-    if (!renderContext)
-    {
-      return mat4.copy(out, transform);
-    }
-
     const { d, childZ } = this.constructor.scratch;
-    const camPos = renderContext.GetViewPosition();
+    const camPos = Tr2Renderer.GetViewPosition();
 
     d[0] = camPos[0] - transform[12];
     d[1] = camPos[1] - transform[13];
@@ -67,7 +59,7 @@ export class EveChildModifierHalo extends IEveChildTransformModifier
     const scaleY = vec3.length(transform.subarray(4, 7)) * facing;
     const scaleZ = vec3.length(transform.subarray(8, 11)) * facing;
 
-    const invView = renderContext.GetInverseViewTransform();
+    const invView = Tr2Renderer.GetInverseViewTransform();
 
     mat4.copy(out, transform);
     out[0] = invView[0] * scaleX;

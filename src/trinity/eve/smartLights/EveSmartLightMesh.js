@@ -265,11 +265,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
       this.rotationConstraint !== RotationalConstraints.NONE;
     if (this._geometryDirty || alwaysUpdate || this._refreshStaticGeometry)
     {
-      const published = this.UpdateGeometryResource(
-        placements,
-        entityCount,
-        updateContext.renderContext
-      );
+      const published = this.UpdateGeometryResource(placements, entityCount);
       this.UpdateBoundingSphere(placements, distribution);
       if (published)
       {

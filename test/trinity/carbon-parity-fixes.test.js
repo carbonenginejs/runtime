@@ -95,7 +95,7 @@ test("EveChildModifierSRT matches the row-vector identity cross-check", () =>
     vec3.fromValues(1, 1, 1)
   );
   const out = mat4.create();
-  modifier.ApplyTransform(null, source, 0, null, out);
+  modifier.ApplyTransform(source, 0, null, out);
   // SRT translation (0,5,0) rotated by the source's +90-degree Z roll lands
   // on -X: origin -> (-5, 0, 0).
   assertClose(out[12], -5, "rotated SRT tx");

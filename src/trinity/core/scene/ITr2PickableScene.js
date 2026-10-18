@@ -1,7 +1,6 @@
 // Source: trinity/trinity/ITr2PickableScene.h
 // Source: trinity/trinity/ITr2PickableScene.cpp
 import { CjsSchema, meta, blue } from "#schema";
-import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 import { TriBatchType, RenderingMode } from "#consts/graphics";
@@ -9,7 +8,7 @@ import { CullMode } from "#consts/render-context";
 import { ALResult, Failed } from "#trinityal";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { screenToProjection, convertProjectionCoordToWorldPickRay } from "../view/pickRay.js";
-import { TriProjection } from "../view/TriProjection.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Native picking algorithm with nested result records and virtual scene hooks. */
@@ -36,12 +35,12 @@ export class ITr2PickableScene
     const esm = context.GetEffectStateManager();
     const mappings = [];
     let candidates = [];
-    context.PushProjection();
-    context.PushViewTransform();
+    Tr2Renderer.PushProjection();
+    Tr2Renderer.PushViewTransform();
     esm.PushViewport();
     try
     {
-      this.SetupTransformsForPicking(pixel.x, pixel.y, projection, view, viewport, context);
+      this.SetupTransformsForPicking(pixel.x, pixel.y, projection, view, viewport);
       candidates = this.GetPickingObjectsToRender(direction, context).filter(object => CjsSchema.cast(object, ITr2Pickable));
       const passes = this.GetRequiredPasses(requested);
       if (!candidates.length || !passes.length || !this.GetPickBuffer().PrepareResources(context)) return;
@@ -92,8 +91,8 @@ export class ITr2PickableScene
     finally
     {
       esm.PopViewport();
-      context.PopViewTransform();
-      context.PopProjection();
+      Tr2Renderer.PopViewTransform();
+      Tr2Renderer.PopProjection();
     }
     for (const pending of mappings)
     {
@@ -115,33 +114,24 @@ export class ITr2PickableScene
     }
   }
 
-  /** Native projection crop, with column-vector multiplication order reversed. */
-  @meta.adapted
-  SetupTransformsForPicking(fx, fy, projection, view, viewport, context)
+  /**
+   * Carbon SetupTransformsForPicking (ITr2PickableScene.cpp:177-192): the
+   * view and projection, then the projection scaled so one pixel covers the
+   * viewport and centred on the pick point. AdjustProjection leaves the
+   * translation row alone, so an orthographic projection is not recentred;
+   * Carbon's own Tr2PrimitiveScene overrides for exactly that.
+   */
+  @meta.implemented
+  SetupTransformsForPicking(fx, fy, projection, view, viewport)
   {
-    const mat4_0 = mat4.alloc();
-    try
-    {
-      const crop = mat4.identity(mat4_0);
-      crop[0] = viewport.width;
-      crop[5] = viewport.height;
-      crop[12] = -fx * viewport.width;
-      crop[13] = -fy * viewport.height;
-      const original = projection.GetMatrixWithoutViewAdjustment();
-      // Carbon sets the original projection before AdjustProjection, which
-      // preserves its FOV. Custom/off-center projections have no stored fov;
-      // deriving it from the cropped matrix would shrink distance-scaled tools.
-      const fieldOfView = projection.projectionType === TriProjection.ORTHO ? 1
-        : projection.projectionType === TriProjection.FOV ? projection.fov
-          : (original[5] ? 2 * Math.atan(1 / original[5]) : 0);
-      mat4.multiply(crop, crop, original);
-      context.SetViewTransform(view.GetTransform());
-      context.SetProjection(crop, fieldOfView);
-    }
-    finally
-    {
-      mat4.unalloc(mat4_0);
-    }
+    Tr2Renderer.SetViewTransform(view.GetTransform());
+    projection.SetProjection();
+
+    // Projection is set up to scale the image such that the viewport is
+    // covered by one pixel, translated to centre on the pick ray origin.
+    const scaling = [ viewport.width, viewport.height ];
+    const translation = [ -fx * scaling[0], -fy * scaling[1] ];
+    Tr2Renderer.AdjustProjection(scaling, translation);
   }
 
   /** Native object indices remain local to this call's retained candidate list. */

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { Tr2RenderContext, TriProjection } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext, Tr2Renderer, TriProjection } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { TriStepSetProjection } from "../../npm/dist/trinity/renderJob/index.js";
 
@@ -73,21 +73,33 @@ test("PopViewport on an empty stack returns false and does not throw", () =>
 });
 
 
-test("PushProjection/PopProjection save and restore the current projection", () =>
+test("Tr2Renderer PushProjection/PopProjection save and restore the raw projection", () =>
 {
-  const context = new Tr2RenderContext();
   const p0 = mat4.fromScaling(mat4.create(), [ 1, 2, 3 ]);
   const p1 = mat4.fromScaling(mat4.create(), [ 4, 5, 6 ]);
-  context.SetProjection(p0, 0.75);
-  context.PushProjection();
-  context.SetProjection(p1, 1.25);
-  assert.deepEqual(Array.from(context.GetProjection()), Array.from(p1));
-  assert.equal(context.GetFieldOfView(), 1.25);
+  Tr2Renderer.SetProjectionTransform(p0);
+  Tr2Renderer.PushProjection();
+  Tr2Renderer.SetProjectionTransform(p1);
+  assert.deepEqual(Array.from(Tr2Renderer.GetProjectionTransform()), Array.from(p1));
+  assert.ok(Math.abs(Tr2Renderer.GetFieldOfView() - 2 * Math.atan(1 / 5)) < 1e-6);
 
-  assert.equal(context.PopProjection(), true);
-  assert.deepEqual(Array.from(context.GetProjection()), Array.from(p0));
-  assert.equal(context.GetFieldOfView(), 0.75, "field of view is restored with its projection");
-  assert.equal(context.GetStackSizeProjection(), 0);
+  Tr2Renderer.PopProjection();
+  assert.deepEqual(Array.from(Tr2Renderer.GetProjectionTransform()), Array.from(p0));
+  // Carbon PopProjection re-derives the parameters from the restored matrix
+  // (Tr2Renderer.cpp:981-991).
+  assert.ok(Math.abs(Tr2Renderer.GetFieldOfView() - 2 * Math.atan(1 / 2)) < 1e-6);
+  assert.throws(() => Tr2Renderer.PopProjection(), RangeError, "an empty stack is Carbon's assert");
+});
+
+test("Carbon quirk: PopProjection does not restore the orthographic field of view", () =>
+{
+  Tr2Renderer.SetOrthoProjection__WidthHeight(20, 10, 1, 1000);
+  assert.equal(Tr2Renderer.GetFieldOfView(), 1);
+  Tr2Renderer.PushProjection();
+  Tr2Renderer.SetPerspectiveProjection__FovAspect(1.07, 1, 1000, 1.6);
+  Tr2Renderer.PopProjection();
+  // UpdateProjectionParameters reads 2 * atan(1 / _22) back, _22 = 2 / height.
+  assert.ok(Math.abs(Tr2Renderer.GetFieldOfView() - 2 * Math.atan(5)) < 1e-6);
 });
 
 test("TriStepSetProjection preserves Carbon field-of-view semantics by mode", () =>
@@ -99,35 +111,31 @@ test("TriStepSetProjection preserves Carbon field-of-view semantics by mode", ()
   projection.PerspectiveFov(1.07, 1.6, 1, 1000);
   step.SetProjection(projection);
   step.Execute(0, 0, context);
-  assert.equal(context.GetFieldOfView(), 1.07, "FOV projections retain the authored scalar");
+  assert.ok(Math.abs(Tr2Renderer.GetFieldOfView() - 1.07) < 1e-6, "FOV projections retain the authored scalar");
 
   projection.PerspectiveOrthographic(20, 10, 1, 1000);
   step.Execute(0, 0, context);
-  assert.equal(context.GetFieldOfView(), 1, "Carbon caches one radian for orthographic projections");
+  assert.equal(Tr2Renderer.GetFieldOfView(), 1, "Carbon caches one radian for orthographic projections");
 
   const custom = mat4.create();
   custom[5] = 3.5;
   projection.CustomProjection(custom);
   step.Execute(0, 0, context);
-  assert.ok(Math.abs(context.GetFieldOfView() - 2 * Math.atan(1 / 3.5)) < 1e-12);
+  assert.ok(Math.abs(Tr2Renderer.GetFieldOfView() - 2 * Math.atan(1 / 3.5)) < 1e-6);
 });
 
-test("PushViewTransform/PopViewTransform save and restore the cached view matrix", () =>
+test("Tr2Renderer PushViewTransform/PopViewTransform save and restore the view matrix", () =>
 {
-  const context = new Tr2RenderContext();
-  context.SetViewTransform(viewWithTranslationX(5));
-  assert.equal(context.GetViewTransform()[12], 5);
-  assert.equal(context.HasViewMatrix(), true);
+  Tr2Renderer.SetViewTransform(viewWithTranslationX(5));
+  assert.equal(Tr2Renderer.GetViewTransform()[12], 5);
 
-  context.PushViewTransform();
-  assert.equal(context.GetStackSizeViewTransform(), 1);
+  Tr2Renderer.PushViewTransform();
+  Tr2Renderer.SetViewTransform(viewWithTranslationX(9));
+  assert.equal(Tr2Renderer.GetViewTransform()[12], 9);
 
-  context.SetViewTransform(viewWithTranslationX(9));
-  assert.equal(context.GetViewTransform()[12], 9);
-
-  assert.equal(context.PopViewTransform(), true);
-  assert.equal(context.GetViewTransform()[12], 5, "view matrix restored");
-  assert.equal(context.GetViewPosition()[0], -5, "eye position re-derived from inverse");
-  assert.equal(context.GetStackSizeViewTransform(), 0);
+  Tr2Renderer.PopViewTransform();
+  assert.equal(Tr2Renderer.GetViewTransform()[12], 5, "view matrix restored");
+  assert.equal(Tr2Renderer.GetViewPosition()[0], -5, "eye position re-derived from inverse");
+  assert.throws(() => Tr2Renderer.PopViewTransform(), RangeError, "an empty stack is Carbon's assert");
 });
 

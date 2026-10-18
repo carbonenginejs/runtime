@@ -66,6 +66,7 @@ import { Copier } from "#blue/Copier";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { IEveEffectChildrenOwner } from "../child/IEveEffectChildrenOwner.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 // Static scratch for the sorted-transparent area pass (allocation rules: hot
 // per-frame path, copy-into, never allocate per call).
@@ -2037,7 +2038,7 @@ export class EveSpaceObject2 extends EveEntity
     }
     if (this._impostorMode && impostors !== null)
     {
-      const view = Tr2RenderContext_GetMainThreadRenderContext().GetViewTransform();
+      const view = Tr2Renderer.GetViewTransform();
       const hash = EveSpaceObject2._impostorHash;
       const vec3_0 = EveSpaceObject2._impostorScratch;
       EveSpaceObject2._TransformNormal(vec3_0, EveSpaceObject2._impostorForward, this.worldTransform);
@@ -2163,12 +2164,10 @@ export class EveSpaceObject2 extends EveEntity
   /** Carbon ITr2Renderable contract (EveSpaceObject2.cpp:1097-1140): activated
    * attachments recurse, the impact overlay contributes, the hull mesh delegates
    * per batch type, and TRANSPARENT routes through the distance-sorted area
-   * path, then GetBatchesFromOverlayVector adds the overlay batches. Adapted:
-   * the view position arrives via the appended render-context argument instead
-   * of Carbon's renderer global. */
+   * path, then GetBatchesFromOverlayVector adds the overlay batches. */
   @blue.method
   @meta.adapted
-  GetBatches(batches, batchType, perObjectData, reason, renderContext = null)
+  GetBatches(batches, batchType, perObjectData, reason)
   {
     if (!this.mesh)
     {
@@ -2205,7 +2204,7 @@ export class EveSpaceObject2 extends EveEntity
       }
       else
       {
-        this._GetSortedTransparentBatches(areas, batches, perObjectData, renderContext);
+        this._GetSortedTransparentBatches(areas, batches, perObjectData);
       }
     }
 
@@ -2228,10 +2227,10 @@ export class EveSpaceObject2 extends EveEntity
    * bounding-box center and falling back to the object origin when the geometry
    * resource cannot supply a box.
    */
-  _GetSortedTransparentBatches(areas, batches, perObjectData, renderContext)
+  _GetSortedTransparentBatches(areas, batches, perObjectData)
   {
     const geometry = this.mesh.GetGeometryResource() ?? null;
-    const viewPosition = renderContext?.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     const meshIndex = this.mesh.meshIndex ?? 0;
 
     // Carbon resolves the LOD once for the whole sorted list (cpp:72) and
@@ -2253,9 +2252,9 @@ export class EveSpaceObject2 extends EveEntity
       }
       vec3.transformMat4(TRANSPARENT_CENTER, TRANSPARENT_CENTER, this.worldTransform);
 
-      const dx = (viewPosition?.[0] ?? 0) - TRANSPARENT_CENTER[0];
-      const dy = (viewPosition?.[1] ?? 0) - TRANSPARENT_CENTER[1];
-      const dz = (viewPosition?.[2] ?? 0) - TRANSPARENT_CENTER[2];
+      const dx = viewPosition[0] - TRANSPARENT_CENTER[0];
+      const dy = viewPosition[1] - TRANSPARENT_CENTER[1];
+      const dz = viewPosition[2] - TRANSPARENT_CENTER[2];
       sorted.push({ area, distance: dx * dx + dy * dy + dz * dz });
     }
 
@@ -2489,20 +2488,17 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
-   * Returns the distance from the render context's view position to the hull
+   * Returns the distance from the renderer's view position to the hull
    * world translation, used to order transparent renderables back-to-front.
-   *
-   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state
-   * arrives via the threaded render context.
    */
   @blue.method
-  @meta.adapted
-  GetSortValue(renderContext = null)
+  @meta.implemented
+  GetSortValue()
   {
-    const viewPosition = renderContext?.GetViewPosition();
-    const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
-    const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
-    const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];
+    const viewPosition = Tr2Renderer.GetViewPosition();
+    const x = viewPosition[0] - this.worldTransform[12];
+    const y = viewPosition[1] - this.worldTransform[13];
+    const z = viewPosition[2] - this.worldTransform[14];
     return Math.hypot(x, y, z);
   }
 

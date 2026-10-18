@@ -21,6 +21,7 @@ import { EveComponentType, EntityComponents } from "../EntityComponents.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
 @blue.define("EveChildParticleSystem")
@@ -444,18 +445,15 @@ export class EveChildParticleSystem extends EveChildTransform
 
   /**
    * Distance from the view position to the world translation (EveChildParticleSystem.cpp:173-178).
-   *
-   * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state
-   * arrives via the threaded render context.
    */
   @blue.method
-  @meta.adapted
-  GetSortValue(renderContext = null)
+  @meta.implemented
+  GetSortValue()
   {
-    const viewPosition = renderContext?.GetViewPosition();
-    const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
-    const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
-    const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];
+    const viewPosition = Tr2Renderer.GetViewPosition();
+    const x = viewPosition[0] - this.worldTransform[12];
+    const y = viewPosition[1] - this.worldTransform[13];
+    const z = viewPosition[2] - this.worldTransform[14];
     return Math.hypot(x, y, z);
   }
 
@@ -503,7 +501,6 @@ export class EveChildParticleSystem extends EveChildTransform
    * emitter/system updates use the backend-neutral argument record.
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -513,7 +510,7 @@ export class EveChildParticleSystem extends EveChildTransform
     {
       this.UpdateTransform(parentTransform);
     }
-    applyTransformModifiers(this, updateContext, params?.boneCount ?? 0, params?.bones ?? null);
+    applyTransformModifiers(this, params?.boneCount ?? 0, params?.bones ?? null);
 
     if (this.mesh && this.mesh.GetBoundingBox(EveChildParticleSystem._boundsMin, EveChildParticleSystem._boundsMax))
     {

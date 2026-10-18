@@ -124,7 +124,6 @@ test("device render jobs preserve tick timestamps through the real scene context
   assert.equal(scene.updateContext.GetTime(), 10_000_000);
   assert.equal(scene.updateContext.GetDeltaT(), 0);
   assert.equal(scene.updateTime, 10_000_000);
-  assert.equal(scene.updateContext.renderContext, renderContext);
   assert.equal(simCurves.GetScaledTime(), 0);
   assert.equal(realCurves.GetScaledTime(), 0);
   device.OnTick(27_500_000, 12_500_000);

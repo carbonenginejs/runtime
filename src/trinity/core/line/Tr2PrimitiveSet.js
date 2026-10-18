@@ -8,7 +8,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2PickType } from "#consts/graphics/tr2PickType";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2PerObjectDataStandard } from "../rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../ITr2Renderable.js";
@@ -128,15 +128,13 @@ export class Tr2PrimitiveSet
     return true;
   }
 
-  /** Renderer-global camera state is supplied by the active JS render context. */
+  /** Distance from the view to the bounding sphere's surface (cpp:67-75). */
   @blue.method
-  @blue.contextual(["camera"])
-  @meta.adapted
-  GetSortValue(context)
+  @meta.implemented
+  GetSortValue()
   {
-    context ??= Tr2RenderContext_GetMainThreadRenderContext();
     const bound = this.GetBoundingSphere(Tr2PrimitiveSet.scratch.vec4_0);
-    const eye = context.GetViewPosition();
+    const eye = Tr2Renderer.GetViewPosition();
     return Math.hypot(eye[0] - bound[0], eye[1] - bound[1], eye[2] - bound[2]) - bound[3];
   }
 
@@ -188,24 +186,22 @@ export class Tr2PrimitiveSet
   }
 
   /**
-   * Native view-facing and distance-scaled transform (cpp:117-167). Camera
-   * state lives on the JS context; matrix composition reverses Carbon order.
+   * Native view-facing and distance-scaled transform (cpp:109-167), from the
+   * renderer's current view; matrix composition reverses Carbon order.
    */
   @blue.method
-  @blue.contextual(["camera"])
-  @meta.adapted
-  UpdateTransform(context)
+  @meta.implemented
+  UpdateTransform()
   {
-    context ??= Tr2RenderContext_GetMainThreadRenderContext();
-    const view = context.GetViewTransform(), local = this.localTransform;
+    const view = Tr2Renderer.GetViewTransform(), local = this.localTransform;
     const world = this.worldTransform, { vec3_0 } = Tr2PrimitiveSet.scratch;
     this.scale = 1;
     if (this.scaleByDistanceToView)
     {
-      const eye = context.GetViewPosition();
+      const eye = Tr2Renderer.GetViewPosition();
       this.scale = Math.abs(((eye[0] - local[12]) * view[2] +
         (eye[1] - local[13]) * view[6] + (eye[2] - local[14]) * view[10]) *
-        Tr2PrimitiveSet.primitiveDistanceScaleMultiplier * context.GetFieldOfView());
+        Tr2PrimitiveSet.primitiveDistanceScaleMultiplier * Tr2Renderer.GetFieldOfView());
     }
     if (this.viewOriented)
     {

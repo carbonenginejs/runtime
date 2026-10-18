@@ -1322,7 +1322,7 @@ export class Tr2ParticleSystem
    * Sorts live indices far-to-near and uploads full current/previous records.
    * Carbon's parallel sort becomes synchronous JS Array.sort over a reused
    * index array (resized to the live prefix, instead of native capacity).
-   * The ambient context owns the port's cached view position. Mapped bytes
+   * Mapped bytes
    * receive a Float32Array view; finally replaces native ON_BLOCK_EXIT.
    * gl-matrix returns null for a singular inverse, so NaNs explicitly retain
    * invalid coordinates instead of reusing a stale inverse.
@@ -1336,7 +1336,7 @@ export class Tr2ParticleSystem
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     const { mat4_0, vec3_0 } = Tr2ParticleSystem.scratch;
     if (!mat4.invert(mat4_0, this._worldTransform)) mat4_0.fill(NaN);
-    vec3.transformMat4(vec3_0, context.GetViewPosition(), mat4_0);
+    vec3.transformMat4(vec3_0, Tr2Renderer.GetViewPosition(), mat4_0);
     if (!this._bufferDirty && vec3.squaredDistance(vec3_0, this._sortingReferencePoint) < 0.001) return;
     vec3.copy(this._sortingReferencePoint, vec3_0);
 

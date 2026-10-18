@@ -11,10 +11,11 @@ import { gTriDev, TriDevice, Tr2RenderContext, Tr2RenderContext_GetMainThreadRen
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
-// The bracket reads the renderer's view state where Carbon reads its
-// Tr2Renderer statics; this runtime keeps them on the main-thread context.
+// The bracket reads the Tr2Renderer statics, as Carbon's does; the viewport
+// is the main-thread context's state manager's (Tr2Renderer::GetViewport).
 function freshMainContext()
 {
   Tr2RenderContext.DestroyMainThreadRenderContext();
@@ -25,11 +26,11 @@ function freshMainContext()
 function makeContext({ animationTime = 0, viewport = [ 0, 0, 100, 100 ] } = {})
 {
   const context = freshMainContext();
-  context.SetViewTransform(mat4.create());
-  context.SetProjection(mat4.create());
+  Tr2Renderer.SetViewTransform(mat4.create());
+  Tr2Renderer.SetProjectionTransform(mat4.create());
   const activeViewport = new TriViewport();
   activeViewport.__init__(...viewport);
-  context.SetViewport(activeViewport);
+  context.GetEffectStateManager().SetViewport(activeViewport);
   // The bracket reads the animation clock off the device, as Carbon's reads
   // it off BeOS - so the clock is set on the device, not on the context.
   gTriDev.device = new TriDevice();
@@ -150,9 +151,9 @@ test("EveProjectBracket applies a non-identity view and perspective divide in or
   );
   const viewport = new TriViewport();
   viewport.__init__(10, 20, 200, 80, 0.25, 0.75);
-  context.SetViewTransform(view);
-  context.SetProjection(projection);
-  context.SetViewport(viewport);
+  Tr2Renderer.SetViewTransform(view);
+  Tr2Renderer.SetProjectionTransform(projection);
+  context.GetEffectStateManager().SetViewport(viewport);
   bracket.integerCoordinates = false;
   vec3.set(bracket.trackPosition, 1, 2, -3);
 
@@ -164,7 +165,7 @@ test("EveProjectBracket applies a non-identity view and perspective divide in or
 });
 
 
-test("EveProjectBracket hides rear positions without docking and requires frame projection state", () =>
+test("EveProjectBracket hides rear positions without docking and needs a frame viewport", () =>
 {
   const bracket = new eve.EveProjectBracket();
   makeContext();
@@ -173,17 +174,12 @@ test("EveProjectBracket hides rear positions without docking and requires frame 
   assert.equal(bracket.isInFront, false);
   assert.equal(bracket.isVisible, false);
 
-  const missingViewport = freshMainContext();
-  missingViewport.SetViewTransform(mat4.create());
-  missingViewport.SetProjection(mat4.create());
-  assert.throws(() => bracket.UpdateValue(0), /active viewport/u);
-
-  const missingProjection = freshMainContext();
-  const viewport = new TriViewport();
-  viewport.__init__(0, 0, 100, 100);
-  missingProjection.SetViewTransform(mat4.create());
-  missingProjection.SetViewport(viewport);
-  assert.throws(() => bracket.UpdateValue(0), /active projection/u);
+  // Carbon always has a viewport; ours has none until one is set, and the
+  // projection read fails on it rather than guessing.
+  freshMainContext();
+  Tr2Renderer.SetViewTransform(mat4.create());
+  Tr2Renderer.SetProjectionTransform(mat4.create());
+  assert.throws(() => bracket.UpdateValue(0), TypeError);
 });
 
 

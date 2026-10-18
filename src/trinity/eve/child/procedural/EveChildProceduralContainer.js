@@ -321,12 +321,11 @@ export class EveChildProceduralContainer extends EveChildTransform
    * composition lives in EveChildTransform.UpdateTransform as
    * mat4.multiply(world, parent, local)), fold the transform modifiers, then
    * fan out to the selected child and the selection method.
-   * @param {Object} updateContext - frame context (EveUpdateContext), threaded to modifiers
+   * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params - localToWorldTransform + boneCount/bones
    * @returns {Float32Array} worldTransform
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
@@ -337,7 +336,7 @@ export class EveChildProceduralContainer extends EveChildTransform
       this.UpdateTransform(parentTransform);
     }
 
-    applyTransformModifiers(this, updateContext, params?.boneCount ?? 0, params?.bones ?? null);
+    applyTransformModifiers(this, params?.boneCount ?? 0, params?.bones ?? null);
 
     const newParams = EveChildProceduralContainer._DeriveChildParams(params);
     newParams.isVisible = (params?.isVisible !== false) && this.display;

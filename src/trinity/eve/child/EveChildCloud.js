@@ -22,6 +22,7 @@ import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { TriDevice } from "../../core/device/TriDevice.js";
 import { gTriDev } from "../../core/device/gTriDev.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
 import { EveChildCloudPerObjectData } from "../../core/rawData/perObjectData/EveChildCloudPerObjectData.js";
 
@@ -269,14 +270,14 @@ export class EveChildCloud extends EveSpaceObjectChild
     renderables.push(this);
   }
 
-  /** Camera globals live on the ambient context in this runtime (cpp:247-252). */
+  /** Distance from the renderer's view, less the scaled sorting radius (cpp:247-252). */
   @blue.method
-  @meta.adapted
-  GetSortValue(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  @meta.implemented
+  GetSortValue()
   {
     const { vec3_0 } = EveChildCloud.scratch;
     mat4.getTranslation(vec3_0, this.worldTransform);
-    return vec3.distance(renderContext.GetViewPosition(), vec3_0) - vec3.length(this.scaling) * this.sortingModifier;
+    return vec3.distance(Tr2Renderer.GetViewPosition(), vec3_0) - vec3.length(this.scaling) * this.sortingModifier;
   }
 
   /**
@@ -304,8 +305,7 @@ export class EveChildCloud extends EveSpaceObjectChild
 
   /**
    * Fills the native 19-register VS block and selects grid LOD (cpp:352-407).
-   * Adapted: camera statics come from the ambient context; RawData owns the
-   * single GPU transpose. Empty clipped bounds use a zero-area rectangle,
+   * Adapted: RawData owns the single GPU transpose. Empty clipped bounds use a zero-area rectangle,
    * replacing the donor's uninitialized points[0] read when every point is clipped.
    */
   @blue.method
@@ -315,15 +315,14 @@ export class EveChildCloud extends EveSpaceObjectChild
     const record = EveChildCloudPerObjectData.alloc(accumulator);
     if (!record) return null;
     const data = record.data;
-    const context = Tr2RenderContext_GetMainThreadRenderContext();
-    const projection = context.GetProjection();
+    const projection = Tr2Renderer.GetProjectionTransform();
     const { mat4_0, mat4_1, mat4_2, vec3_0, vec4_0, vec4_1 } = EveChildCloud.scratch;
     data.SetAndTranspose("world", this.worldTransform);
     // Carbon world * view: local first, so gl-matrix reverses the operands.
-    mat4.multiply(mat4_0, context.GetViewTransform(), this.worldTransform);
+    mat4.multiply(mat4_0, Tr2Renderer.GetViewTransform(), this.worldTransform);
     data.SetAndTranspose("worldView", mat4_0);
     mat4.transpose(mat4_1, mat4_0);
-    vec4.set(vec4_0, 0, 0, -1, -context.GetFrontClip());
+    vec4.set(vec4_0, 0, 0, -1, -Tr2Renderer.GetFrontClip());
     vec4.transformMat4(vec4_0, vec4_0, mat4_1);
     data.Set("nearPlaneLocal", vec4_0);
     if (!mat4.invert(mat4_1, mat4_0)) mat4.copy(mat4_1, mat4_0);

@@ -8,7 +8,7 @@ import { be, CjsScriptCallback } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 
 const FLOAT32_MAX = 3.4028234663852886e38;
@@ -61,11 +61,8 @@ export class EveProjectBracket
    * Carbon ignores the curve-set time and samples the OS frame clock,
    * BeOS->GetCurrentFrameTime(); so does this, through be.os.
    *
-   * Adapted: Carbon reads the Tr2Renderer view and projection statics
-   * (cpp:85, 95); this runtime keeps that state on the main-thread render
-   * context (Tr2RenderContext.js, view-state section), so it is read there.
-   * Tr2Renderer::GetViewport is itself a main-thread-context read
-   * (Tr2Renderer.cpp:1392-1396). The callback member is wrapped as a
+   * The view, projection and viewport are the Tr2Renderer statics (cpp:85,
+   * 95). Adapted: the callback member is wrapped as a
    * CjsScriptCallback at the call, which takes exactly a function or a
    * CjsScriptCallback; Carbon's optional global debug-text side effect is not
    * ported yet (Waiting: g_debugRenderer).
@@ -90,7 +87,6 @@ export class EveProjectBracket
   _UpdateValue(scratch)
   {
     const { position, projected } = scratch;
-    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
 
     if (this.trackBall)
     {
@@ -109,20 +105,12 @@ export class EveProjectBracket
       vec3.copy(position, this.trackPosition);
     }
 
-    vec3.transformMat4(position, position, renderContext.GetViewTransform());
+    vec3.transformMat4(position, position, Tr2Renderer.GetViewTransform());
     this.isInFront = position[2] <= 0;
     this.cameraDistance = Math.hypot(position[0], position[1], position[2]);
 
-    const viewport = renderContext.GetViewport();
-    if (!viewport)
-    {
-      throw new TypeError("EveProjectBracket.UpdateValue requires an active viewport");
-    }
-    const projection = renderContext.GetProjection();
-    if (!projection)
-    {
-      throw new TypeError("EveProjectBracket.UpdateValue requires an active projection");
-    }
+    const viewport = Tr2Renderer.GetViewport();
+    const projection = Tr2Renderer.GetProjectionTransform();
     projectToViewport(projected, position, projection, viewport);
 
     let x = projected[0];

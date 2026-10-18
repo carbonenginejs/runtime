@@ -13,6 +13,7 @@ import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js"
 import { mat4 } from "../../../npm/dist/global/math/mat4.js";
 import { StubResMan } from "../../support/stubResMan.js";
 import { localFileSystem } from "../../support/localFileSystem.js";
+import { Tr2Renderer } from "../../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
@@ -229,9 +230,9 @@ test("Wod bounds cache, defaults and transparency match native behavior", () =>
 
 function renderSetup(t)
 {
-  const context = Tr2RenderContext_GetMainThreadRenderContext(), oldAL = context.GetRenderContextAL(), oldView = context.GetViewTransform().slice();
-  const al = new Tr2RenderContextALStub(); al.CreateDevice(); al.BeginScene(); context.SetRenderContextAL(al); context.SetViewTransform(mat4.create());
-  t.after(() => { SharedGeometryBuffer(context).ReleaseResources(); context.SetRenderContextAL(oldAL); context.SetViewTransform(oldView); al.Destroy(); });
+  const context = Tr2RenderContext_GetMainThreadRenderContext(), oldAL = context.GetRenderContextAL(), oldView = Tr2Renderer.GetViewTransform().slice();
+  const al = new Tr2RenderContextALStub(); al.CreateDevice(); al.BeginScene(); context.SetRenderContextAL(al); Tr2Renderer.SetViewTransform(mat4.create());
+  t.after(() => { SharedGeometryBuffer(context).ReleaseResources(); context.SetRenderContextAL(oldAL); Tr2Renderer.SetViewTransform(oldView); al.Destroy(); });
   const draws = [], draw = al.DrawIndexedInstanced.bind(al);
   al.DrawIndexedInstanced = (...args) => { draws.push(args); return draw(...args); };
   const shader = { GetTechniqueIndex: () => 0, GetPassCount: () => 1, GetShaderTypeMask: () => 3, ApplyAllStateForPass() {} };

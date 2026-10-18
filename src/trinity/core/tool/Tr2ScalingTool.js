@@ -10,7 +10,7 @@ import { Tr2LineSet } from "../line/Tr2LineSet.js";
 import { Tr2SolidSet } from "../line/Tr2SolidSet.js";
 import { Tr2PrimitiveSet } from "../line/Tr2PrimitiveSet.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
 
 const AXIS_COLORS = Object.freeze({
   x: vec4.fromValues(1, 0.01, 0.01, 1),
@@ -90,7 +90,7 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
           if (!inverse) throw new RangeError("Scale tool view must be invertible.");
           const local = solid.localTransform;
           const depth = (inverse[12] - local[12]) * view[2] + (inverse[13] - local[13]) * view[6] + (inverse[14] - local[14]) * view[10];
-          const factor = Math.abs(depth * Tr2PrimitiveSet.primitiveDistanceScaleMultiplier * Tr2RenderContext_GetMainThreadRenderContext().GetFieldOfView());
+          const factor = Math.abs(depth * Tr2PrimitiveSet.primitiveDistanceScaleMultiplier * Tr2Renderer.GetFieldOfView());
           const scaled = vec3.scale(vec3.create(), point, factor); // alloc: transformed point returned to the caller.
           return vec3.transformMat4(scaled, scaled, local);
         }
@@ -166,7 +166,7 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
     try
     {
       mat4.multiply(this.worldTransform, mat4.fromTranslation(mat4.identity(mat4_0), this.pivot), this.localTransform);
-      for (const primitive of this.primitives) primitive.UpdateTransform(context);
+      for (const primitive of this.primitives) primitive.UpdateTransform();
       this.UpdateLines();
     }
     finally

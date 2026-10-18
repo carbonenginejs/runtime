@@ -14,8 +14,8 @@ import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
 import { Tr2OcclusionBuffer } from "./Tr2OcclusionBuffer.js";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriVariableContentType } from "../../../generated/trinityCore/enums.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** Scratch for PrepareRender's negated vectors. */
 const prepareScratch = vec3.create();
@@ -449,17 +449,14 @@ export class EveLensflare
    * the edge, centre, angle and x/y curves before the bindings copy.
    *
    * Carbon's row-vector `Transform( v, M )` over a row-major matrix is
-   * gl-matrix `transformMat4` over the same bytes.
-   *
-   * Adapted: Carbon reads the view from the Tr2Renderer::GetViewTransform
-   * static (cpp:229); this runtime keeps that state on the main-thread render
-   * context (Tr2RenderContext.js, view-state section), so it is read there.
+   * gl-matrix `transformMat4` over the same bytes. The view is the
+   * Tr2Renderer::GetViewTransform static (cpp:229).
    *
    * @param {TriFrustum} frustum This frame's frustum.
    * @returns {void}
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   PrepareRender(frustum)
   {
     if (!this.display) return;
@@ -478,7 +475,7 @@ export class EveLensflare
     this._directionVar.SetValue([ this.direction[0], this.direction[1], this.direction[2], this.sunSize ]);
 
     const direction = vec4.fromValues(this.direction[0], this.direction[1], this.direction[2], 0);
-    vec4.transformMat4(direction, direction, Tr2RenderContext_GetMainThreadRenderContext().GetViewTransform());
+    vec4.transformMat4(direction, direction, Tr2Renderer.GetViewTransform());
     vec4.transformMat4(direction, direction, frustum.projectionMatrix);
     direction[0] /= direction[3];
     direction[1] /= direction[3];

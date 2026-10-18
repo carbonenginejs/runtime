@@ -6,6 +6,7 @@ import { TnyTransformGizmo } from "../../npm/dist/core/gizmos/TnyTransformGizmo.
 import { Tr2ManipulationTool, Tr2Effect, TriDevice, TriProjection, TriView,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const viewport = { x: 0, y: 0, width: 1200, height: 600 };
 const fov = Math.PI / 4, depth = 1e6;
@@ -35,13 +36,13 @@ function setup(t, mode, axis, behind = false)
   const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();
   const before = new Set(TriDevice.GetResourcesRegistered()), al = new Tr2RenderContextALStub();
   context.SetRenderContextAL(al); al.CreateDevice();
-  context.PushProjection(); context.PushViewTransform();
+  Tr2Renderer.PushProjection(); Tr2Renderer.PushViewTransform();
   t.mock.method(Tr2Effect.prototype, "SetEffectPathName", function(path) { this.effectFilePath = path; });
   const projection = new TriProjection(), view = new TriView();
   projection.PerspectiveFov(fov, 2, 2, 1e8);
   view.SetLookAtPosition([300000, 200000, behind ? -depth : depth], [300000, 200000, 0], [0, 1, 0]);
-  context.SetProjection(projection.GetMatrixWithoutViewAdjustment(), fov);
-  context.SetViewTransform(view.GetTransform());
+  Tr2Renderer.SetProjectionTransform(projection.GetMatrixWithoutViewAdjustment());
+  Tr2Renderer.SetViewTransform(view.GetTransform());
   const local = mat4.fromTranslation(mat4.create(), [300000, 200000, 0]);
   mat4.scale(local, local, [100, 100, 100]);
   const gizmo = new TnyTransformGizmo({ mode, getView: () => ({ context, projection, view, viewport }) });
@@ -55,7 +56,7 @@ function setup(t, mode, axis, behind = false)
   {
     gizmo.Destroy();
     for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destroy();
-    context.PopViewTransform(); context.PopProjection(); context.SetRenderContextAL(previous);
+    Tr2Renderer.PopViewTransform(); Tr2Renderer.PopProjection(); context.SetRenderContextAL(previous);
   });
   return { gizmo, local };
 }

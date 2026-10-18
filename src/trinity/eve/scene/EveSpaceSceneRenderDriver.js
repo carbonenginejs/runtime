@@ -776,11 +776,6 @@ export class EveSpaceSceneRenderDriver
 
     const target = Array.isArray(destinations) ? destinations[0] ?? null : destinations;
 
-    // Step 1 of EveSpaceScene's driver order: the update context carries the
-    // frame's render context, whose view the scene's view-dependent updates
-    // read (billboards, the flare occluders' transforms).
-    this.scene.updateContext.renderContext = renderContext;
-
     // RENDERING DISABLED (cpp:408-419): camera onto the renderer and the scene
     // update, so simulation keeps running - and nothing else. No target borrow,
     // no clear, no camera update.
@@ -1094,7 +1089,7 @@ export class EveSpaceSceneRenderDriver
       // BeginRender jitters the camera's projection and draws with the result
       // (EveSpaceScene.cpp:1329-1331).
       this.scene.Jitter(renderContext);
-      renderContext.SetProjection(this.scene.jitteredProjection);
+      Tr2Renderer.SetProjectionTransform(this.scene.jitteredProjection);
       this.scene.BlendLightingOverrides();
       // Carbon's volumetrics block (EveSpaceScene.cpp:1374-1379): the fog settings, the scene's variable store, then
       // the fog's Mie environment map.
@@ -1112,7 +1107,7 @@ export class EveSpaceSceneRenderDriver
       {
         Tr2LightManager.deleteInstance();
       }
-      this.scene.UpdateVisibility(renderContext.GetInverseViewTransform());
+      this.scene.UpdateVisibility(Tr2Renderer.GetInverseViewTransform());
 
       map = this._Collect(this.scene.GetRenderables([], renderContext), renderContext);
       // Carbon GatherBatches (EveSpaceScene.cpp:1525-1531): after the
@@ -1150,7 +1145,7 @@ export class EveSpaceSceneRenderDriver
       // The dynamic lights, after the gather (EveSpaceScene.cpp:1398-1416).
       lightManager = Tr2LightManager.getInstance();
 
-      if (lightManager) this.scene.GatherLights(lightManager);
+      if (lightManager) this.scene.GatherLights(lightManager, renderContext);
     }
 
     if (offscreen) offscreen.velocity = this._GetVelocityMapIfNeeded(offscreen.size);
@@ -1310,7 +1305,7 @@ export class EveSpaceSceneRenderDriver
 
       // EveSpaceScene.cpp:2754-2774: cloud composition precedes transparency;
       // both sampled volumes stay alive through distortion and GPU particles.
-      renderContext.SetProjection(this.scene.jitteredProjection);
+      Tr2Renderer.SetProjectionTransform(this.scene.jitteredProjection);
       this.scene.PopulateAndApplyPerFrameData(renderContext);
       const volumes = offscreen ? this.scene.RenderVolumetrics(offscreen.depth.Get(), this._gpuResourcePool, renderContext) : null;
       const store = Tr2VariableStore.globalStore();
@@ -1826,16 +1821,11 @@ export class EveSpaceSceneRenderDriver
   {
     // Carbon (cpp:384-391): the camera's TriProjection and TriView when there
     // is a camera, else this driver's own pair - Validate guarantees one.
-    //
-    // Carbon calls projection->SetProjection( renderContext ), which also
-    // folds the bound viewport into the projection (TriProjection.cpp:71-106);
-    // that adjustment is not ported, so the projection's transform is set as
-    // it stands.
-    const projection = (this.camera ? this.camera.GetProjection() : this.projection).GetTransform();
+    const projection = this.camera ? this.camera.GetProjection() : this.projection;
     const view = (this.camera ? this.camera.GetViewMatrix() : this.view).GetTransform();
 
-    renderContext.SetProjection(projection);
-    renderContext.SetViewTransform(view);
+    projection.SetProjection__RenderContext(renderContext);
+    Tr2Renderer.SetViewTransform(view);
 
     // Against the viewport the scene target just bound (the camera is set
     // after BeginOffscreen, as Carbon's is after BeginRenderPass).
@@ -1843,7 +1833,7 @@ export class EveSpaceSceneRenderDriver
     // a target, as on the disabled path or a frame with no destination.
     const viewport = renderContext.GetViewport();
 
-    if (viewport) this._frustum.DeriveFrustum(view, renderContext.GetViewPosition(), projection, viewport);
+    if (viewport) this._frustum.DeriveFrustum(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetViewPosition(), Tr2Renderer.GetProjectionTransform(), viewport);
 
     this.scene.StampFrameContext({ frustum: this._frustum });
   }

@@ -20,8 +20,10 @@
 // let the frame body be ported at all - a static reaching the ambient render
 // context is the whole mechanism.
 //
-// The rest of the class is still instance members: the register map below, the
-// projection and view state; the blitter is process-wide again. That is not a second decision, it is
+// The view and projection state went static on 2026-10-18 (Ruling 9), with
+// Carbon's setters, getters and save stacks; it had lived on each
+// Tr2RenderContext. The register map below is still instance members; the
+// blitter is process-wide again. That is not a second decision, it is
 // unfinished work, tracked as a known wrong shape.
 //
 // WHY THE REGISTER MAP IS HERE AND NOT IN AN ENGINE. Carbon keeps these six
@@ -44,6 +46,10 @@ import { SharedGeometryBuffer } from "./mesh/TriGeometryResAllocations.js";
 import { TR2SHADERMODEL, TriStorageFlags } from "#consts/graphics";
 import { ShaderType } from "#consts/render-context";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
+import { PROJECTION_TYPE } from "../generated/shader/enums.js";
+import { mat4 } from "#math/mat4";
+import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 
 
 /** perFrameVS, owned by the scene. */
@@ -63,6 +69,17 @@ export const PER_OBJECT_PS = 4;
 
 /** GUI transform-array vertex constants, Carbon s_perObjectVSGUIStartRegister. */
 export const PER_OBJECT_VS_GUI = 6;
+
+/** The default viewportAdjustment, Carbon's IdentityMatrix() (Tr2Renderer.h:139-157). Never written. */
+const IDENTITY = mat4.create();
+
+/** The six frustum-plane variable names, by Carbon's plane index (Tr2Renderer.cpp:341-346). */
+const FRUSTUM_PLANES = [ "FrustumPlane0", "FrustumPlane1", "FrustumPlane2", "FrustumPlane3", "FrustumPlane4", "FrustumPlane5" ];
+
+// Scratch for ProjectWorldToScreen and SetProjectionDerivedValues, and for the
+// frustum planes; the variable store copies what it is given.
+const PROJECT_SCRATCH = new Float32Array(4);
+const PLANE_SCRATCH = new Float32Array(4);
 
 // THERE WAS A REVERSE MAP HERE AND IT IS GONE. A register-number-to-name table
 // looked necessary because a caller reading a pipeline's DECLARED bindings has a
@@ -204,8 +221,8 @@ export class Tr2Renderer
    * `InitializeTrinity`: registers the renderer's global variables - `Time`,
    * then the camera matrices and frustum planes - once, at start-up.
    *
-   * Adapted: the variables are the same objects the render context and
-   * `BeginFrame` use, which still create them on first use for code that runs
+   * Adapted: the variables are the same objects the view and projection
+   * setters and `BeginFrame` use, which still create them on first use for code that runs
    * without `InitializeTrinity` (tests building a context directly). Not
    * ported: `s_debugTextRenderer` (no debug text renderer), `s_poolAllocator`
    * (JS allocates). The effect state manager registers `ViewportSize`
@@ -218,7 +235,7 @@ export class Tr2Renderer
   static initialize()
   {
     Tr2Renderer.#RenderTimeVariable();
-    Tr2RenderContext._CameraVariables();
+    Tr2Renderer._CameraVariables();
     return true;
   }
 
@@ -820,6 +837,751 @@ export class Tr2Renderer
 
     return true;
   }
+
+  // ------------------------------------------------------------------------
+  // THE VIEW AND PROJECTION STATICS. Source: Tr2Renderer.h:136-186 and
+  // :236-239, Tr2Renderer.cpp:51-118 (state), :155-208 (derived values),
+  // :388-600 (setters and getters) and :976-1004 (the save stacks).
+  //
+  // Carbon has no camera object. The rendering code sets the current view and
+  // projection here, one pass at a time, and everything camera-dependent reads
+  // it back from here. A second view is a second pass that sets these again,
+  // usually between a Push and a Pop; there is no per-view copy, in Carbon or
+  // here.
+  //
+  // These lived on each Tr2RenderContext until Ruling 9 (2026-10-18), and
+  // reached the camera-dependent code through an added context argument.
+  // ------------------------------------------------------------------------
+
+  /**
+   * Carbon SetPerspectiveProjection( fov, front, back, asp, viewportAdjustment )
+   * (Tr2Renderer.cpp:403-415).
+   *
+   * @param {number} fov Vertical field of view, radians.
+   * @param {number} front Near plane.
+   * @param {number} back Far plane.
+   * @param {number} asp Aspect ratio.
+   * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static SetPerspectiveProjection__FovAspect(fov, front, back, asp, viewportAdjustment = IDENTITY)
+  {
+    Tr2Renderer._currentProjectionType = PROJECTION_TYPE.PT_PERSPECTIVE;
+    Tr2Renderer._fieldOfView = fov;
+    Tr2Renderer._frontClip = front;
+    Tr2Renderer._backClip = back;
+    Tr2Renderer._aspectRatio = asp;
+
+    mat4.perspectiveFovCarbon(Tr2Renderer._projectionTransform, Tr2Renderer._fieldOfView, Tr2Renderer._aspectRatio, Tr2Renderer._frontClip, Tr2Renderer._backClip);
+    mat4.copy(Tr2Renderer._viewport2projectionAdjustment, viewportAdjustment);
+
+    Tr2Renderer._SetProjectionDerivedValues();
+  }
+
+  /**
+   * Carbon SetPerspectiveProjection( left, right, bottom, top, front, back,
+   * viewportAdjustment ) (Tr2Renderer.cpp:417-426).
+   *
+   * @param {number} left Left edge at the near plane.
+   * @param {number} right Right edge.
+   * @param {number} bottom Bottom edge.
+   * @param {number} top Top edge.
+   * @param {number} front Near plane.
+   * @param {number} back Far plane.
+   * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static SetPerspectiveProjection__LeftRightBottomTop(left, right, bottom, top, front, back, viewportAdjustment = IDENTITY)
+  {
+    Tr2Renderer._currentProjectionType = PROJECTION_TYPE.PT_PERSPECTIVE;
+    mat4.perspectiveOffCenterCarbon(Tr2Renderer._projectionTransform, left, right, bottom, top, front, back);
+    mat4.copy(Tr2Renderer._viewport2projectionAdjustment, viewportAdjustment);
+
+    Tr2Renderer._UpdateProjectionParameters(Tr2Renderer._projectionTransform);
+
+    Tr2Renderer._SetProjectionDerivedValues();
+  }
+
+  /**
+   * Carbon SetOrthoProjection( width, height, front, back, viewportAdjustment )
+   * (Tr2Renderer.cpp:428-443).
+   *
+   * @param {number} width View width.
+   * @param {number} height View height.
+   * @param {number} front Near plane.
+   * @param {number} back Far plane.
+   * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static SetOrthoProjection__WidthHeight(width, height, front, back, viewportAdjustment = IDENTITY)
+  {
+    Tr2Renderer._currentProjectionType = PROJECTION_TYPE.PT_ORTHOGONAL;
+
+    mat4.orthoCarbon(Tr2Renderer._projectionTransform, width, height, front, back);
+    mat4.copy(Tr2Renderer._viewport2projectionAdjustment, viewportAdjustment);
+
+    Tr2Renderer._orthoWidth = width;
+    Tr2Renderer._orthoHeight = height;
+    Tr2Renderer._aspectRatio = height ? width / height : 1;
+    Tr2Renderer._fieldOfView = 1;
+    Tr2Renderer._frontClip = front;
+    Tr2Renderer._backClip = back;
+
+    Tr2Renderer._SetProjectionDerivedValues();
+  }
+
+  /**
+   * Carbon SetOrthoProjection( left, right, bottom, top, front, back,
+   * viewportAdjustment ) (Tr2Renderer.cpp:445-459).
+   *
+   * @param {number} left Left edge.
+   * @param {number} right Right edge.
+   * @param {number} bottom Bottom edge.
+   * @param {number} top Top edge.
+   * @param {number} front Near plane.
+   * @param {number} back Far plane.
+   * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static SetOrthoProjection__LeftRightBottomTop(left, right, bottom, top, front, back, viewportAdjustment = IDENTITY)
+  {
+    Tr2Renderer._currentProjectionType = PROJECTION_TYPE.PT_ORTHOGONAL;
+
+    mat4.orthoOffCenterCarbon(Tr2Renderer._projectionTransform, left, right, bottom, top, front, back);
+    mat4.copy(Tr2Renderer._viewport2projectionAdjustment, viewportAdjustment);
+
+    Tr2Renderer._orthoWidth = right - left;
+    Tr2Renderer._orthoHeight = top - bottom;
+    Tr2Renderer._aspectRatio = Tr2Renderer._orthoHeight ? Tr2Renderer._orthoWidth / Tr2Renderer._orthoHeight : 1;
+    Tr2Renderer._fieldOfView = 1;
+    Tr2Renderer._frontClip = front;
+    Tr2Renderer._backClip = back;
+    Tr2Renderer._SetProjectionDerivedValues();
+  }
+
+  /**
+   * Carbon AdjustProjection (Tr2Renderer.cpp:390-401): rescales and offsets
+   * the RAW projection, as picking does to zoom onto one pixel. Carbon's `_rc`
+   * is `[(r - 1) * 4 + (c - 1)]`.
+   *
+   * Carbon quirk, reproduced: the offset goes through `_34` only and `_41
+   * _42` are left alone (:396-397), so an orthographic projection (`_34` = 0)
+   * is scaled but never recentred on the pick point. Tr2PrimitiveScene
+   * rebuilds its ortho projection instead (Tr2PrimitiveScene.cpp:158-169);
+   * ITr2PickableScene and EveSpaceScene do not.
+   *
+   * @param {ArrayLike<number>} scaling x and y scale.
+   * @param {ArrayLike<number>} translation x and y offset.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static AdjustProjection(scaling, translation)
+  {
+    const proj = mat4.copy(Tr2Renderer._projectionTransform, Tr2Renderer._projectionRawTransform);
+    proj[0] *= scaling[0];
+    proj[5] *= scaling[1];
+    proj[8] = scaling[0] * proj[8] + proj[11] * translation[0];
+    proj[9] = scaling[1] * proj[9] + proj[11] * translation[1];
+
+    Tr2Renderer._SetProjectionDerivedValues();
+  }
+
+  /**
+   * Carbon SetProjectionTransform (Tr2Renderer.cpp:461-468): an arbitrary
+   * matrix, its parameters read back from it.
+   *
+   * @param {mat4} proj The projection.
+   * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static SetProjectionTransform(proj, viewportAdjustment = IDENTITY)
+  {
+    Tr2Renderer._currentProjectionType = PROJECTION_TYPE.PT_UNKNOWN;
+    mat4.copy(Tr2Renderer._projectionTransform, proj);
+    mat4.copy(Tr2Renderer._viewport2projectionAdjustment, viewportAdjustment);
+    Tr2Renderer._UpdateProjectionParameters(proj);
+    Tr2Renderer._SetProjectionDerivedValues();
+  }
+
+  /**
+   * Carbon GetCurrentProjectionType (Tr2Renderer.cpp:470-473).
+   *
+   * @returns {number} A `PROJECTION_TYPE` value.
+   */
+  @blue.method
+  @meta.implemented
+  static GetCurrentProjectionType()
+  {
+    return Tr2Renderer._currentProjectionType;
+  }
+
+  /**
+   * Carbon GetProjectionTransform (Tr2Renderer.cpp:475-478): the projection
+   * with the viewport adjustment applied. A live matrix; callers read it.
+   *
+   * @returns {mat4} The projection.
+   */
+  @blue.method
+  @meta.implemented
+  static GetProjectionTransform()
+  {
+    return Tr2Renderer._projectionTransform;
+  }
+
+  /**
+   * Carbon GetReversedDepthProjectionTransform (Tr2Renderer.cpp:480-486):
+   * `_33` negated and offset by one, `_43` negated - indices 10 and 14.
+   * Carbon returns by value; the copy goes into `out`.
+   *
+   * @param {mat4} [out] Receives the matrix.
+   * @returns {mat4} out
+   */
+  @blue.method
+  @meta.implemented
+  static GetReversedDepthProjectionTransform(out = mat4.create())
+  {
+    const proj = mat4.copy(out, Tr2Renderer._projectionTransform);
+    proj[10] = -proj[10] - 1;
+    proj[14] = -proj[14];
+    return proj;
+  }
+
+  /**
+   * Carbon GetProjectionRawTransform (Tr2Renderer.cpp:488-491): the projection
+   * before the viewport adjustment. A live matrix; callers read it.
+   *
+   * @returns {mat4} The raw projection.
+   */
+  @blue.method
+  @meta.implemented
+  static GetProjectionRawTransform()
+  {
+    return Tr2Renderer._projectionRawTransform;
+  }
+
+  /**
+   * Carbon: ProjectWorldToScreen (trinity/trinity/Tr2Renderer.cpp:493-506)
+   *
+   * Projects a world position through the current view and projection into
+   * the viewport's pixels and depth. Row-vector `p * view * proj` applies the
+   * view first; `vec4.transformMat4` is `p * M` on the shared layout, so the
+   * two transforms are applied in Carbon's order.
+   *
+   * Carbon quirk, reproduced: the depth is `m_minZ + p.z * m_maxZ` (:505), not
+   * a lerp between the two; identical whenever minZ is 0.
+   *
+   * @param {ArrayLike<number>} worldPos The world position.
+   * @param {{x: number, y: number, width: number, height: number, minZ: number, maxZ: number}} vp The viewport.
+   * @param {vec3} [out] Receives the screen position.
+   * @returns {vec3} out
+   */
+  @blue.method
+  @meta.implemented
+  static ProjectWorldToScreen(worldPos, vp, out = vec3.create())
+  {
+    const p = vec4.set(PROJECT_SCRATCH, worldPos[0], worldPos[1], worldPos[2], 1);
+    vec4.transformMat4(p, p, Tr2Renderer.GetViewTransform());
+    vec4.transformMat4(p, p, Tr2Renderer.GetProjectionTransform());
+    if (p[3])
+    {
+      vec4.scale(p, p, 1 / p[3]);
+    }
+
+    return vec3.set(out,
+      vp.x + vp.width * (0.5 + 0.5 * p[0]),
+      vp.y + vp.height * (0.5 - 0.5 * p[1]),
+      vp.minZ + p[2] * vp.maxZ);
+  }
+
+  /**
+   * Carbon GetInverseProjectionTransform (Tr2Renderer.cpp:508-511). A live
+   * matrix; callers read it.
+   *
+   * @returns {mat4} The inverse of the adjusted projection.
+   */
+  @blue.method
+  @meta.implemented
+  static GetInverseProjectionTransform()
+  {
+    return Tr2Renderer._inverseProjectionTransform;
+  }
+
+  /**
+   * Carbon GetFrontClip (Tr2Renderer.cpp:513-516). For a reversed-depth
+   * projection set through SetProjectionTransform this is the far plane, as
+   * UpdateProjectionParameters derives it.
+   *
+   * @returns {number} The front clip.
+   */
+  @blue.method
+  @meta.implemented
+  static GetFrontClip()
+  {
+    return Tr2Renderer._frontClip;
+  }
+
+  /**
+   * Carbon GetBackClip (Tr2Renderer.cpp:518-521).
+   *
+   * @returns {number} The back clip.
+   */
+  @blue.method
+  @meta.implemented
+  static GetBackClip()
+  {
+    return Tr2Renderer._backClip;
+  }
+
+  /**
+   * Carbon GetFrustumRadius (Tr2Renderer.cpp:523-526): the length of the
+   * view-space far corner, set with the projection.
+   *
+   * @returns {number} The radius.
+   */
+  @blue.method
+  @meta.implemented
+  static GetFrustumRadius()
+  {
+    return Tr2Renderer._frustumRadius;
+  }
+
+  /**
+   * Carbon GetFrustumPlane( index, plane& ) (Tr2Renderer.cpp:528-531): read
+   * from the registered variable, as Carbon reads it. The output reference is
+   * the return value.
+   *
+   * @param {number} index The plane, 0 to 5.
+   * @param {Float32Array|number[]} [plane] Receives the plane.
+   * @returns {Float32Array|number[]} plane
+   */
+  @blue.method
+  @meta.implemented
+  static GetFrustumPlane(index, plane = vec4.create())
+  {
+    return Tr2Renderer._CameraVariables()[FRUSTUM_PLANES[index]].GetValue(plane);
+  }
+
+  /**
+   * Carbon GetFieldOfView (Tr2Renderer.cpp:533-536).
+   *
+   * @returns {number} Radians; 1 for an orthographic projection.
+   */
+  @blue.method
+  @meta.implemented
+  static GetFieldOfView()
+  {
+    return Tr2Renderer._fieldOfView;
+  }
+
+  /**
+   * Carbon GetAspectRatio (Tr2Renderer.cpp:538-541).
+   *
+   * @returns {number} Width over height.
+   */
+  @blue.method
+  @meta.implemented
+  static GetAspectRatio()
+  {
+    return Tr2Renderer._aspectRatio;
+  }
+
+  /**
+   * Carbon GetOrthoWidth (Tr2Renderer.cpp:543-546).
+   *
+   * @returns {number} The width of the last orthographic projection.
+   */
+  @blue.method
+  @meta.implemented
+  static GetOrthoWidth()
+  {
+    return Tr2Renderer._orthoWidth;
+  }
+
+  /**
+   * Carbon GetOrthoHeight (Tr2Renderer.cpp:548-551).
+   *
+   * @returns {number} The height of the last orthographic projection.
+   */
+  @blue.method
+  @meta.implemented
+  static GetOrthoHeight()
+  {
+    return Tr2Renderer._orthoHeight;
+  }
+
+  /**
+   * Carbon SetWorldTransform (Tr2Renderer.cpp:553-559): copied, and the
+   * "WorldMat" variable told.
+   *
+   * @param {mat4} m The world matrix.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static SetWorldTransform(m)
+  {
+    mat4.copy(Tr2Renderer._worldTransform, m);
+
+    // Ensure variable store is aware of the change.
+    Tr2Renderer._CameraVariables().WorldMat.SetValue(Tr2Renderer._worldTransform);
+  }
+
+  /**
+   * Carbon SetViewTransform (Tr2Renderer.cpp:561-571): the view, its inverse
+   * (Carbon's value-form Inverse, so a singular view inverts to itself), the
+   * view-projection and frustum planes, and the "ViewMat"/"ViewInvMat"
+   * variables.
+   *
+   * @param {mat4} m The view matrix.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static SetViewTransform(m)
+  {
+    mat4.copy(Tr2Renderer._viewTransform, m);
+    mat4.inverseCarbon(Tr2Renderer._inverseViewTransform, Tr2Renderer._viewTransform);
+
+    Tr2Renderer._UpdateViewProjectionTransform();
+
+    // Ensure variable store is aware of the change.
+    const variables = Tr2Renderer._CameraVariables();
+    variables.ViewMat.SetValue(Tr2Renderer._viewTransform);
+    variables.ViewInvMat.SetValue(Tr2Renderer._inverseViewTransform);
+  }
+
+  /**
+   * Carbon GetWorldTransform (Tr2Renderer.cpp:573-576). A live matrix;
+   * callers read it.
+   *
+   * @returns {mat4} The world matrix.
+   */
+  @blue.method
+  @meta.implemented
+  static GetWorldTransform()
+  {
+    return Tr2Renderer._worldTransform;
+  }
+
+  /**
+   * Carbon GetViewTransform (Tr2Renderer.cpp:578-581). A live matrix; callers
+   * read it.
+   *
+   * @returns {mat4} The view matrix.
+   */
+  @blue.method
+  @meta.implemented
+  static GetViewTransform()
+  {
+    return Tr2Renderer._viewTransform;
+  }
+
+  /**
+   * Carbon GetInverseViewTransform (Tr2Renderer.cpp:583-586). A live matrix;
+   * callers read it.
+   *
+   * @returns {mat4} The inverse view matrix.
+   */
+  @blue.method
+  @meta.implemented
+  static GetInverseViewTransform()
+  {
+    return Tr2Renderer._inverseViewTransform;
+  }
+
+  /**
+   * Carbon GetViewPosition (Tr2Renderer.cpp:588-591): a reference to the
+   * inverse view's translation row, `_41.._43`. Here it is a live view onto
+   * indices 12-14 of the same matrix, so it follows every SetViewTransform.
+   *
+   * @returns {Float32Array} The camera position, three components.
+   */
+  @blue.method
+  @meta.implemented
+  static GetViewPosition()
+  {
+    return Tr2Renderer._viewPosition;
+  }
+
+  /**
+   * Carbon GetViewLookAt (Tr2Renderer.cpp:593-600): the view's third column,
+   * `_13 _23 _33` - indices 2, 6 and 10. Carbon returns by value; the copy
+   * goes into `out`.
+   *
+   * @param {vec3} [out] Receives the direction.
+   * @returns {vec3} out
+   */
+  @blue.method
+  @meta.implemented
+  static GetViewLookAt(out = vec3.create())
+  {
+    const view = Tr2Renderer._viewTransform;
+    return vec3.set(out, view[2], view[6], view[10]);
+  }
+
+  /**
+   * Carbon GetViewport (Tr2Renderer.cpp:1392-1396): the main-thread context's
+   * authored viewport, through its state manager.
+   *
+   * @returns {object|null} The viewport, or null before one is set.
+   */
+  @blue.method
+  @meta.implemented
+  static GetViewport()
+  {
+    return Tr2RenderContext_GetMainThreadRenderContext().GetEffectStateManager().GetViewport();
+  }
+
+  /**
+   * Carbon PushProjection (Tr2Renderer.cpp:976-979): saves the RAW projection
+   * and the viewport adjustment.
+   *
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static PushProjection()
+  {
+    Tr2Renderer._projectionStack.push([
+      mat4.clone(Tr2Renderer._projectionRawTransform),
+      mat4.clone(Tr2Renderer._viewport2projectionAdjustment)
+    ]);
+  }
+
+  /**
+   * Carbon PopProjection (Tr2Renderer.cpp:981-991). Carbon quirk, reproduced:
+   * the parameters are read back from the restored matrix
+   * (UpdateProjectionParameters, :989) and the projection type, ortho width
+   * and height are not restored: a popped
+   * orthographic projection reports `2 * atan(1 / _22)` as its field of view
+   * rather than the 1 SetOrthoProjection gave it. Carbon asserts the stack is
+   * not empty and then reads it unchecked; here an empty stack throws.
+   *
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static PopProjection()
+  {
+    if (!Tr2Renderer._projectionStack.length)
+    {
+      throw new RangeError("Tr2Renderer.PopProjection: the projection stack is empty (CCP_ASSERT, Tr2Renderer.cpp:983).");
+    }
+
+    const [ projection, adjustment ] = Tr2Renderer._projectionStack.pop();
+    mat4.copy(Tr2Renderer._projectionTransform, projection);
+    mat4.copy(Tr2Renderer._viewport2projectionAdjustment, adjustment);
+    Tr2Renderer._UpdateProjectionParameters(Tr2Renderer._projectionTransform);
+    Tr2Renderer._SetProjectionDerivedValues();
+  }
+
+  /**
+   * Carbon PushViewTransform (Tr2Renderer.cpp:993-996).
+   *
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static PushViewTransform()
+  {
+    Tr2Renderer._viewTransformStack.push(mat4.clone(Tr2Renderer._viewTransform));
+  }
+
+  /**
+   * Carbon PopViewTransform (Tr2Renderer.cpp:998-1004). Carbon asserts the
+   * stack is not empty and then reads it unchecked; here an empty stack
+   * throws.
+   *
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static PopViewTransform()
+  {
+    if (!Tr2Renderer._viewTransformStack.length)
+    {
+      throw new RangeError("Tr2Renderer.PopViewTransform: the view transform stack is empty (CCP_ASSERT, Tr2Renderer.cpp:1000).");
+    }
+
+    const view = Tr2Renderer._viewTransformStack.pop();
+
+    Tr2Renderer.SetViewTransform(view);
+  }
+
+  /**
+   * Carbon's file-static UpdateProjectionParameters (Tr2Renderer.cpp:70-83):
+   * aspect, field of view and clips read back from a matrix. `_11 _22 _33
+   * _43` are indices 0, 5, 10 and 14.
+   *
+   * @param {mat4} proj The projection to read.
+   * @returns {void}
+   */
+  static _UpdateProjectionParameters(proj)
+  {
+    Tr2Renderer._aspectRatio = proj[0] ? proj[5] / proj[0] : 0;
+    Tr2Renderer._fieldOfView = proj[5] ? 2 * Math.atan(1 / proj[5]) : 0;
+    Tr2Renderer._frontClip = proj[10] ? proj[14] / proj[10] : 0;
+    Tr2Renderer._backClip = proj[14] / (1 + proj[10]);
+  }
+
+  /**
+   * Carbon's file-static UpdateViewProjectionTransform (Tr2Renderer.cpp:156-185):
+   * the view-projection and the six frustum planes drawn from its columns.
+   * Row-vector `view * proj` is gl `multiply(out, proj, view)`; Carbon's
+   * `_c` column is indices `c - 1`, `c + 3`, `c + 7`, `c + 11`.
+   *
+   * @returns {void}
+   */
+  static _UpdateViewProjectionTransform()
+  {
+    const m = mat4.multiply(Tr2Renderer._viewProjectionTransform, Tr2Renderer._projectionTransform, Tr2Renderer._viewTransform);
+    const variables = Tr2Renderer._CameraVariables();
+    variables.ViewProjectionMat.SetValue(m);
+
+    const plane = PLANE_SCRATCH;
+    variables.FrustumPlane0.SetValue(vec4.set(plane, m[2], m[6], m[10], m[14]));
+    variables.FrustumPlane1.SetValue(vec4.set(plane, m[3] + m[0], m[7] + m[4], m[11] + m[8], m[15] + m[12]));
+    variables.FrustumPlane2.SetValue(vec4.set(plane, m[3] - m[1], m[7] - m[5], m[11] - m[9], m[15] - m[13]));
+    variables.FrustumPlane3.SetValue(vec4.set(plane, m[3] - m[0], m[7] - m[4], m[11] - m[8], m[15] - m[12]));
+    variables.FrustumPlane4.SetValue(vec4.set(plane, m[3] + m[1], m[7] + m[5], m[11] + m[9], m[15] + m[13]));
+    variables.FrustumPlane5.SetValue(vec4.set(plane, m[3] + m[2], m[7] + m[6], m[11] + m[10], m[15] + m[14]));
+  }
+
+  /**
+   * Carbon's file-static SetProjectionDerivedValues (Tr2Renderer.cpp:187-208):
+   * keeps the raw projection, applies the viewport adjustment (row-vector
+   * `proj * adjustment`, gl `multiply(out, adjustment, proj)`), caches the
+   * inverse (Carbon's value-form Inverse) and the frustum radius, and tells
+   * the variable store.
+   *
+   * @returns {void}
+   */
+  static _SetProjectionDerivedValues()
+  {
+    mat4.copy(Tr2Renderer._projectionRawTransform, Tr2Renderer._projectionTransform);
+
+    // Apply scaling and offset to projection matrix. If the viewport extends
+    // the render target we need to clip the viewport and thus scale+offset the
+    // projection.
+    mat4.multiply(Tr2Renderer._projectionTransform, Tr2Renderer._viewport2projectionAdjustment, Tr2Renderer._projectionTransform);
+
+    // Cache inverse projection matrix.
+    mat4.inverseCarbon(Tr2Renderer._inverseProjectionTransform, Tr2Renderer._projectionTransform);
+
+    const corner = vec4.set(PROJECT_SCRATCH, 1, 1, 1, 1);
+    vec4.transformMat4(corner, corner, Tr2Renderer._inverseProjectionTransform);
+    Tr2Renderer._frustumRadius = Math.hypot(corner[0] / corner[3], corner[1] / corner[3], corner[2] / corner[3]);
+
+    // Ensure TriVariable store is aware of the projection transform.
+    const variables = Tr2Renderer._CameraVariables();
+    variables.ProjectionMat.SetValue(Tr2Renderer._projectionTransform);
+    variables.ProjectionInvMat.SetValue(Tr2Renderer._inverseProjectionTransform);
+    Tr2Renderer._UpdateViewProjectionTransform();
+  }
+
+  /**
+   * Carbon Initialize's camera variables (Tr2Renderer.cpp:334-346), on the
+   * global store. Registered on first use rather than only in Initialize, so
+   * code that runs without InitializeTrinity (tests building a context
+   * directly) still publishes them.
+   *
+   * @returns {Record<string, TriVariable>} The variables by name.
+   */
+  static _CameraVariables()
+  {
+    if (!Tr2Renderer._cameraVariables)
+    {
+      const store = Tr2VariableStore.globalStore();
+      const matrix = (name, value) => store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_FLOAT4X4, value);
+      const plane = name => store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_FLOAT4, [ 0, 0, 1, 0 ]);
+
+      Tr2Renderer._cameraVariables = {
+        WorldMat: matrix("WorldMat", Tr2Renderer._worldTransform),
+        ViewMat: matrix("ViewMat", Tr2Renderer._viewTransform),
+        ViewInvMat: matrix("ViewInvMat", Tr2Renderer._viewTransform),
+        ProjectionMat: matrix("ProjectionMat", Tr2Renderer._projectionTransform),
+        ProjectionInvMat: matrix("ProjectionInvMat", Tr2Renderer._projectionTransform),
+        ViewProjectionMat: matrix("ViewProjectionMat", Tr2Renderer._viewProjectionTransform),
+        FrustumPlane0: plane("FrustumPlane0"),
+        FrustumPlane1: plane("FrustumPlane1"),
+        FrustumPlane2: plane("FrustumPlane2"),
+        FrustumPlane3: plane("FrustumPlane3"),
+        FrustumPlane4: plane("FrustumPlane4"),
+        FrustumPlane5: plane("FrustumPlane5")
+      };
+    }
+    return Tr2Renderer._cameraVariables;
+  }
+
+  static _cameraVariables = null;
+
+  /** Carbon s_currentProjectionType (Tr2Renderer.cpp:51). */
+  static _currentProjectionType = PROJECTION_TYPE.PT_PERSPECTIVE;
+
+  /** Carbon s_projectionTransform (Tr2Renderer.cpp:53); Carbon's Matrix() is the identity. */
+  static _projectionTransform = mat4.create();
+
+  /** Carbon s_projectionRawTransform (Tr2Renderer.cpp:54). */
+  static _projectionRawTransform = mat4.create();
+
+  /** Carbon s_inverseProjectionTransform (Tr2Renderer.cpp:55). */
+  static _inverseProjectionTransform = mat4.create();
+
+  /** Carbon s_viewport2projectionAdjustment (Tr2Renderer.cpp:56; Initialize sets the identity, :353). */
+  static _viewport2projectionAdjustment = mat4.create();
+
+  /** Carbon s_viewTransform (Tr2Renderer.cpp:58). */
+  static _viewTransform = mat4.create();
+
+  /** Carbon s_inverseViewTransform (Tr2Renderer.cpp:59). */
+  static _inverseViewTransform = mat4.create();
+
+  /** GetViewPosition's reference into s_inverseViewTransform._41 (Tr2Renderer.cpp:590). */
+  static _viewPosition = this._inverseViewTransform.subarray(12, 15);
+
+  /** Carbon s_viewProjectionTransform (Tr2Renderer.cpp:61). */
+  static _viewProjectionTransform = mat4.create();
+
+  /** Carbon s_frontClip (Tr2Renderer.cpp:63). */
+  static _frontClip = 0;
+
+  /** Carbon s_backClip (Tr2Renderer.cpp:64). */
+  static _backClip = 0;
+
+  /** Carbon s_frustumRadius (Tr2Renderer.cpp:65). */
+  static _frustumRadius = 0;
+
+  /** Carbon s_aspectRatio (Tr2Renderer.cpp:66). */
+  static _aspectRatio = 0;
+
+  /** Carbon s_fieldOfView (Tr2Renderer.cpp:67). */
+  static _fieldOfView = 0;
+
+  /** Carbon s_orthoWidth (Tr2Renderer.cpp:68). */
+  static _orthoWidth = 0;
+
+  /** Carbon s_orthoHeight (Tr2Renderer.cpp:69). */
+  static _orthoHeight = 0;
+
+  /** Carbon s_worldTransform (Tr2Renderer.cpp:86). */
+  static _worldTransform = mat4.create();
+
+  /** Carbon s_projectionStack (Tr2Renderer.cpp:109): [ raw projection, viewport adjustment ] pairs. */
+  static _projectionStack = [];
+
+  /** Carbon s_viewTransformStack (Tr2Renderer.cpp:110). */
+  static _viewTransformStack = [];
 
   /** Carbon s_shaderModel (`Tr2Renderer.cpp:34`). */
   static #shaderModel = TR2SHADERMODEL.TR2SM_3_0_HI;

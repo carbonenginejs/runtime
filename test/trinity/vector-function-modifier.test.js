@@ -5,6 +5,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { Tr2VectorFunctionModifier } from "../../npm/dist/trinity/curves/index.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 // A position source: Carbon calls it the client ball, sampled through its Be::Time overloads. Each accessor writes a
 // distinct value so the test can tell which one the modifier called.
@@ -86,23 +87,14 @@ test("a view-space offset rotates with the view but does not pick up the eye pos
   mat4.rotateY(view, view, Math.PI / 2);
   mat4.translate(view, view, [ 0, 0, -1000 ]);
 
-  const renderContext = new Tr2RenderContext();
-  renderContext.SetViewTransform(view);
+  Tr2Renderer.SetViewTransform(view);
 
-  const offset = value.GetOffsetPosition(renderContext, vec3.create());
+  const offset = value.GetOffsetPosition(vec3.create());
 
   // w = 0, so the offset only rotates: no part of the 1000-unit eye offset
   // may appear in it.
   assert.ok(vec3.length(offset) < 1.001, `offset picked up translation: ${Array.from(offset)}`);
   assert.ok(Math.abs(vec3.length(offset) - 1) < 1e-5, "and keeps its length");
-});
-
-test("view space without a render context falls back to the authored offset", () =>
-{
-  const value = modifier({ clientBall: source(), useViewSpace: true });
-  vec3.set(value.offsetPosition, 3, 4, 0);
-
-  assert.deepEqual(Array.from(value.GetOffsetPosition(null, vec3.create())), [ 3, 4, 0 ]);
 });
 
 test("a modifier with no source still applies its own offset and scale", () =>

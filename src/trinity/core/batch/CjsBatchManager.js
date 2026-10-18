@@ -202,7 +202,7 @@ export class CjsBatchManager
           {
             if (batchType === TRANSPARENT) continue;
             renderable.GetBatches(
-              batchMap.GetAccumulator(batchType), batchType, perObjectData, reason, renderContext);
+              batchMap.GetAccumulator(batchType), batchType, perObjectData, reason);
           }
         }
 
@@ -210,7 +210,7 @@ export class CjsBatchManager
         {
           transparents.push({
             renderable,
-            distance: renderable.GetSortValue(renderContext)
+            distance: renderable.GetSortValue()
           });
         }
       }
@@ -224,7 +224,7 @@ export class CjsBatchManager
       {
         const renderable = transparents[index].renderable;
         const perObjectData = renderable.GetPerObjectData(transparentAccumulator);
-        renderable.GetBatches(transparentAccumulator, TRANSPARENT, perObjectData, reason, renderContext);
+        renderable.GetBatches(transparentAccumulator, TRANSPARENT, perObjectData, reason);
       }
     }
 

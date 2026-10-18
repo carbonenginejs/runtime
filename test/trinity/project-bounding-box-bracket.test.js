@@ -9,6 +9,7 @@ import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext, TriViewp
 import { TriCurveSet } from "../../npm/dist/trinity/curves/index.js";
 import { Tr2ProjectBoundingBoxBracket } from "../../npm/dist/trinity/ui/index.js";
 import { Tr2SpriteObjectBase } from "../../npm/dist/trinity/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 function almostEqual(actual, expected, epsilon = 1e-4)
@@ -35,7 +36,7 @@ function makeBounds(min, max, ready = true)
 
 
 // The bracket reads the renderer's view state where Carbon reads its
-// Tr2Renderer statics; this runtime keeps them on the main-thread context.
+// Tr2Renderer statics; the viewport is the main-thread context's state manager's.
 function freshMainContext()
 {
   Tr2RenderContext.DestroyMainThreadRenderContext();
@@ -46,9 +47,9 @@ function freshMainContext()
 function makeContext(view, projection, viewport)
 {
   const context = freshMainContext();
-  context.SetViewTransform(view);
-  context.SetProjection(projection);
-  context.SetViewport(viewport);
+  Tr2Renderer.SetViewTransform(view);
+  Tr2Renderer.SetProjectionTransform(projection);
+  context.GetEffectStateManager().SetViewport(viewport);
   return context;
 }
 
@@ -183,8 +184,9 @@ test("invalid bounds retain cameraDistance and missing frame state fails loudly"
   assert.equal(bracket.isProjectionValid, false);
 
   bracket.object = makeBounds([ 0, 0, 1 ], [ 1, 1, 2 ]);
-  const missingViewport = freshMainContext();
-  missingViewport.SetViewTransform(mat4.create());
-  missingViewport.SetProjection(mat4.create());
-  assert.throws(() => bracket.UpdateValue(0), /active viewport/);
+  // Carbon always has a viewport; ours has none until one is set.
+  freshMainContext();
+  Tr2Renderer.SetViewTransform(mat4.create());
+  Tr2Renderer.SetProjectionTransform(mat4.create());
+  assert.throws(() => bracket.UpdateValue(0), TypeError);
 });

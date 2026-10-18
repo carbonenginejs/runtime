@@ -2,26 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { EveSmartLightAttributeModifierCameraDependency, EveSmartLightQuad, EveUpdateContext, EveChildUpdateParams, Tr2RenderContext_GetMainThreadRenderContext, Tr2QuadRenderer, Tr2Effect } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
-test("camera-dependent lights read Tr2Renderer's view where this runtime keeps it: the main-thread context (cpp:56, 97)", () =>
+test("camera-dependent lights read the Tr2Renderer view (cpp:56, 97)", () =>
 {
   const modifier = new EveSmartLightAttributeModifierCameraDependency();
   modifier.useCameraLookAt = true;
-  Tr2RenderContext_GetMainThreadRenderContext().SetViewTransform(mat4.create());
+  Tr2Renderer.SetViewTransform(mat4.create());
   // Identity view: GetViewLookAt is +Z, so an object straight down -Z is fully looked at.
   assert.equal(modifier._GetLookAtAmplitude([0, 0, -1]), 1);
   assert.equal(modifier._GetLookAtAmplitude([0, 0, 1]), 0);
-});
-
-test("camera-dependent lights do not replace missing view results with neutral strength", t =>
-{
-  const modifier = new EveSmartLightAttributeModifierCameraDependency();
-  modifier.useCameraLookAt = true;
-  const main = Tr2RenderContext_GetMainThreadRenderContext();
-  t.mock.method(main, "GetViewTransform", () => null);
-  assert.throws(() => modifier._GetLookAtAmplitude([0, 0, -1]), TypeError);
-  t.mock.method(main, "GetViewPosition", () => null);
-  assert.throws(() => modifier._GetActivationValue([0, 0, -1], [0, 0, 1]), TypeError);
 });
 
 test("camera-dependent lights preserve the disabled look-at branch and read the real view", () =>

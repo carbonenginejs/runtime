@@ -6,7 +6,7 @@ import { ITriFunction } from "../../global/blue/ITriFunction.js";
 import { mat4 } from "#math/mat4";
 import { ITr2BoundingBox } from "#interfaces";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../core/Tr2Renderer.js";
 
 
 const CLIP_EPSILON = 1e-5;
@@ -218,17 +218,13 @@ export class Tr2ProjectBoundingBoxBracket
    * the object's world bounding box through the renderer's view, projection
    * and viewport.
    *
-   * Adapted: Carbon reads the Tr2Renderer view-position, view and projection
-   * statics (cpp:329, 339); this runtime keeps that state on the main-thread
-   * render context (Tr2RenderContext.js, view-state section), so it is read
-   * there. Tr2Renderer::GetViewport is itself a main-thread-context read
-   * (Tr2Renderer.cpp:1392-1396).
+   * The view position, view, projection and viewport are the Tr2Renderer
+   * statics (cpp:329, 339).
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   UpdateValue(_time)
   {
-    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
     if (!this.object || !this.object.IsBoundingBoxReady() || !this.object.GetWorldBoundingBox(boundsMin, boundsMax))
     {
       this.SetEmptyProjection();
@@ -238,31 +234,23 @@ export class Tr2ProjectBoundingBoxBracket
     center[0] = (boundsMax[0] + boundsMin[0]) * 0.5;
     center[1] = (boundsMax[1] + boundsMin[1]) * 0.5;
     center[2] = (boundsMax[2] + boundsMin[2]) * 0.5;
-    const viewPosition = renderContext.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     this.cameraDistance = Math.hypot(
       viewPosition[0] - center[0],
       viewPosition[1] - center[1],
       viewPosition[2] - center[2]
     );
 
-    const viewport = renderContext.GetViewport();
-    if (!viewport)
-    {
-      throw new TypeError("Tr2ProjectBoundingBoxBracket.UpdateValue requires an active viewport");
-    }
+    const viewport = Tr2Renderer.GetViewport();
     if (boundingBoxContainsPoint(boundsMin, boundsMax, viewPosition))
     {
       this.#SetFullViewportProjection(viewport);
       return;
     }
 
-    const projection = renderContext.GetProjection();
-    if (!projection)
-    {
-      throw new TypeError("Tr2ProjectBoundingBoxBracket.UpdateValue requires an active projection");
-    }
+    const projection = Tr2Renderer.GetProjectionTransform();
     // Carbon composes view * projection; gl-matrix uses column vectors.
-    mat4.multiply(viewProjection, projection, renderContext.GetViewTransform());
+    mat4.multiply(viewProjection, projection, Tr2Renderer.GetViewTransform());
     if (!projectBoundingBoxToViewport(boundsMin, boundsMax, viewProjection, viewport, projectedBounds))
     {
       this.SetEmptyProjection();

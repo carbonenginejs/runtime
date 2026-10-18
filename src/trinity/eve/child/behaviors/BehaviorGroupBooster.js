@@ -14,7 +14,6 @@ import { ITr2DebugRenderer2, Tr2DebugColor } from "#interfaces";
 import { TriBatchType, TR2SHADERMODEL } from "#consts/graphics";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { MakeBoosterBoxBuffer } from "../../attachment/booster/boosterUtilities.js";
@@ -545,8 +544,7 @@ export class BehaviorGroupBooster
       // first, reverse the composition for gl-matrix.
       mat4.fromRotationTranslationScale(HALO_TRANSFORM, HALO_ROTATION, HALO_OFFSET, GROUP_SCALE);
       mat4.multiply(HALO_TRANSFORM, agentTransform, HALO_TRANSFORM);
-      this._haloModifier.ApplyTransform({renderContext: Tr2RenderContext_GetMainThreadRenderContext()},
-        HALO_TRANSFORM, 0, null, HALO_TRANSFORM);
+      this._haloModifier.ApplyTransform(HALO_TRANSFORM, 0, null, HALO_TRANSFORM);
       if (this.haloFlareNoiseAmplitude !== 0)
       {
         brightness *= (carbonPerlin1D(time * this.haloFlareNoiseSpeed, 2, 2, this.haloFlareNoiseOctaves) + 1) / 2 * this.haloFlareNoiseAmplitude;

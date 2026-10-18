@@ -23,6 +23,7 @@ import {
 } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 const EPSILON = 1e-5;
@@ -276,7 +277,7 @@ test("EveSwarmRenderable emits ordinary batches and sorts transparent areas back
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext(), prior = context.GetRenderContextAL();
   const al = new Tr2RenderContextALStub(); context.SetRenderContextAL(al); al.CreateDevice();
-  context.SetViewTransform(mat4.create());
+  Tr2Renderer.SetViewTransform(mat4.create());
   t.after(() => { SharedGeometryBuffer(context).ReleaseResources(); context.SetRenderContextAL(prior); });
 
   // One triangle; area 1's box is centred at x = 1, area 2's at x = 10, so from the origin area 2 is the far one.

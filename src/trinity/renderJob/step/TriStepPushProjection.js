@@ -3,6 +3,7 @@
 import { meta, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 // Carbon: RenderJob/TriStepPushProjection.cpp — Execute pushes the current
 // projection (Tr2Renderer::PushProjection).
@@ -19,9 +20,10 @@ export class TriStepPushProjection extends TriRenderStep
    */
   @blue.method
   @meta.implemented
-  Execute(_realTime, _simTime, renderContext)
+  Execute(_realTime, _simTime, _renderContext)
   {
-    renderContext.PushProjection();
+    // TriStepPushProjection.cpp:9.
+    Tr2Renderer.PushProjection();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

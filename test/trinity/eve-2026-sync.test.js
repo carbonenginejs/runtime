@@ -41,6 +41,7 @@ import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 import { CarbonVertexElements } from "../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 const EPSILON = 1e-5;
@@ -769,7 +770,7 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
   vec3.set(transform.overrideBoundsMin, -1, -2, -3);
   vec3.set(transform.overrideBoundsMax, 1, 2, 3);
   vec3.set(transform.translation, 5, 6, 7);
-  transform.UpdateViewDependentData({ GetFrustum: () => null, renderContext: {} });
+  transform.UpdateViewDependentData(null);
   assert.equal(transform.GetWorldBoundingBox(min, max), true);
   assertVectorClose(min, [ 4, 4, 4 ], "transform world minimum");
   assertVectorClose(max, [ 6, 8, 10 ], "transform world maximum");
@@ -777,7 +778,8 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
   assert.equal(transform.HasTransparentBatches(), false);
   assert.equal(transform.GetBatches(
     createAccumulator(), TriBatchType.TRIBATCHTYPE_OPAQUE, null, 0), false);
-  assert.equal(transform.GetSortValue({ GetViewPosition: () => [ 5, 6, 17 ] }), 10);
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [ -5, -6, -17 ]));
+  assert.equal(transform.GetSortValue(), 10);
 
   const mesh = new Tr2Mesh();
   mesh.SetGeometryRes(createGeometry());

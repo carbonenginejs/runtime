@@ -16,13 +16,13 @@ import { CjsSchema } from "#schema/CjsSchema";
 // child-transform composition. See EveTransform.UpdateViewDependentData for
 // the reference pattern: world = parent . local.)
 //
-// Carbon reads view state from Tr2Renderer statics; we thread it explicitly and
-// read the same values from the frame context's Tr2RenderContext (context first):
-//   camPos     = Tr2Renderer::GetViewPosition()         -> renderContext.GetViewPosition()
-//   viewMatrix = Tr2Renderer::GetViewTransform()        -> renderContext.GetViewTransform()
-//   invView    = Tr2Renderer::GetInverseViewTransform() -> renderContext.GetInverseViewTransform()
+// View state is read from the Tr2Renderer statics, as Carbon reads it:
+//   camPos     = Tr2Renderer::GetViewPosition()
+//   viewMatrix = Tr2Renderer::GetViewTransform()
+//   invView    = Tr2Renderer::GetInverseViewTransform()
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 
 // Allocated once, reused in place - non-reentrant per-frame math (equivalent to
@@ -91,17 +91,15 @@ export class EveChildModifierTransformCommon
    * and (unnormalized) direction from the child to the camera. Reproduces
    * DistanceBase (EveChildModifierTransformCommon.h) - used by Booster and
    * HaloInverted.
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - child local transform (read only)
    * @param {Float32Array} outAlignMat - receives the change-of-basis matrix
    * @param {Float32Array} outD - receives camPos - transform translation (not normalized)
    * @returns {Number} distCenter - parent-space, scale-corrected distance to the camera
    */
-  static distanceBase(context, transform, outAlignMat, outD)
+  static distanceBase(transform, outAlignMat, outD)
   {
     const { camFwd, right, up } = scratch;
-    const renderContext = context.renderContext;
-    const camPos = renderContext.GetViewPosition();
+    const camPos = Tr2Renderer.GetViewPosition();
 
     outD[0] = camPos[0] - transform[12];
     outD[1] = camPos[1] - transform[13];
@@ -121,7 +119,7 @@ export class EveChildModifierTransformCommon
 
     // right = first column of the view matrix (_11,_21,_31 -> [0,4,8]), rotated
     // into the transform's basis frame.
-    const view = renderContext.GetViewTransform();
+    const view = Tr2Renderer.GetViewTransform();
     vec3.set(right, view[0], view[4], view[8]);
     EveChildModifierTransformCommon._rotateIntoBasis(right, right, transform);
 
@@ -137,18 +135,17 @@ export class EveChildModifierTransformCommon
    * Screen-aligned billboard: copies the inverse-view rotation rows into the
    * transform's 3x3 scaled by parent axis magnitudes, preserving translation.
    * Reproduces Billboard2D (EveChildModifierTransformCommon.h).
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - source (read only)
    * @param {Float32Array} out - receives the result
    * @returns {Float32Array} out
    */
-  static billboard2D(context, transform, out)
+  static billboard2D(transform, out)
   {
     const scaleX = vec3.length(transform.subarray(0, 3));
     const scaleY = vec3.length(transform.subarray(4, 7));
     const scaleZ = vec3.length(transform.subarray(8, 11));
 
-    const invView = context.renderContext.GetInverseViewTransform();
+    const invView = Tr2Renderer.GetInverseViewTransform();
 
     mat4.copy(out, transform);
     out[0] = invView[0] * scaleX;

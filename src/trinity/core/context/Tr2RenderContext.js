@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Tr2RenderContext.h (name/role)
 //   trinity/trinityal/*/Tr2RenderContext*.h (command surface)
-//   trinity/trinity/Tr2Renderer.cpp (view-state statics, relocated here)
-// Hand-maintained amalgam of three Carbon surfaces (audited 2026-07-18):
+// Hand-maintained amalgam of two Carbon surfaces (audited 2026-07-18):
 // 1. The command surface (PushRenderTarget/Clear/SetViewport/Present/
 //    SetRenderState/...) mirrors the backend AL context classes and CALLS the
 //    installed backend, as Carbon does.
@@ -10,17 +9,11 @@
 //    a compile-time platform typedef, so it cannot be missing one; ours
 //    defaults the field to the stub for the same guarantee. A bare context is
 //    therefore headless, not broken - see the field's own comment.
-// 2. The cached view state (SetViewTransform -> GetViewTransform/
-//    GetInverseViewTransform/GetViewPosition) relocates Carbon's Tr2Renderer
-//    STATICS onto this context so frame consumers read it via the threaded
-//    updateContext.renderContext instead of a global.
-// 3. Carbon's actual Tr2RenderContext.h surface. GetConstantBuffer is ported
+// 2. Carbon's actual Tr2RenderContext.h surface. GetConstantBuffer is ported
 //    (2026-09-06) and the RenderBatches family is next; GetBackBuffer is not.
 //    Fork/Join parallel encoding is deliberately omitted - it exists to spread
 //    batch encoding across threads, and there is one.
 import { CjsSchema, meta, blue } from "#schema";
-import { mat4 } from "#math/mat4";
-import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
 import { ConstantBufferSlot, TextureAddressMode, TextureFilter, Topology } from "#consts/render-context";
@@ -44,9 +37,6 @@ const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 
 /** Carbon DEFAULT_TECHNIQUE (Tr2RenderContext.h:37). */
 const DEFAULT_TECHNIQUE = "Main";
-
-/** The six frustum-plane variable names, by Carbon's plane index (Tr2Renderer.cpp:338-343). */
-const FRUSTUM_PLANES = [ "FrustumPlane0", "FrustumPlane1", "FrustumPlane2", "FrustumPlane3", "FrustumPlane4", "FrustumPlane5" ];
 
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
 @blue.define("Tr2RenderContext")
@@ -105,44 +95,15 @@ export class Tr2RenderContext
 
   _viewport = null;
 
-  _view = null;
-
-  _projection = null;
-
-  // Tr2Renderer::GetFieldOfView relocated beside the projection matrix. It is
-  // accepted from a typed TriProjection step or derived once when raw matrix
-  // state changes, not recomputed by every camera-dependent transform.
-  _fieldOfView = 0;
-
-  /** Tr2Renderer::s_frustumRadius, cached beside its projection. */
-  _frustumRadius = 0;
-
-  // Carbon-faithful cached view state (Tr2Renderer::SetViewTransform): the raw
-  // column-major view matrix, its inverse (computed once per view change, read
-  // many times per frame by camera-dependent modifiers), and the view/eye
-  // position taken from the inverse-view translation row. Allocated once and
-  // copied into - never reallocated per read (allocation rules E/F).
-  _viewTransform = mat4.create();
-
-  /** Tr2Renderer's s_worldTransform (Tr2Renderer.cpp:86). */
-  _worldTransform = mat4.create();
-
-  _inverseViewTransform = mat4.create();
-
-  _viewPosition = vec3.create();
-
-  _hasViewMatrix = false;
-
-
-  _projectionStack = [];
-
-  _viewTransformStack = [];
+  // THE VIEW AND PROJECTION STATE IS NOT HERE. It is Tr2Renderer's
+  // (Tr2Renderer.cpp:51-118), set per pass and read back through its statics;
+  // it lived here until Ruling 9 (2026-10-18).
 
   // Carbon keeps ONE pool allocator as a Tr2Renderer static, created in
   // Initialize (Tr2Renderer.cpp:345), read through GetPoolAllocator
   // (cpp:1083) and Clear()ed in EndRenderContext (cpp:1072-1081). Those
-  // renderer statics relocate onto this context (see the file header), so the
-  // pool lives here too, per context rather than per process. Created on first
+  // renderer statics relocated onto this context (Tr2Renderer.EndRenderContext
+  // records the open work), so the pool lives here, per context rather than per process. Created on first
   // request: constructing a context is not a frame, and the arena retains its
   // chunks once it exists.
   _poolAllocator = null;
@@ -589,69 +550,6 @@ export class Tr2RenderContext
   }
 
   /**
-   * The projection with its depth range reversed.
-   *
-   * Carbon `Tr2Renderer::GetReversedDepthProjectionTransform`
-   * (`Tr2Renderer.cpp:477-483`): the projection with `_33` negated and offset
-   * by one, and `_43` negated. It lives here because this runtime keeps the
-   * projection here - the same relocation as the other Tr2Renderer statics.
-   *
-   * WHO NEEDS IT: a pass reconstructing view-space position from a depth
-   * buffer written under reverse-Z, which is what Carbon renders with. The
-   * denoiser takes it to weight neighbouring samples by depth.
-   *
-   * @param {Array<number>} [out] A mat4 to receive it.
-   * @returns {Array<number>|null} The reversed projection, or null if unset.
-   */
-  GetReversedDepthProjectionTransform(out = mat4.create())
-  {
-    if (!this._projection) return null;
-
-    mat4.copy(out, this._projection);
-    // Carbon indexes _33 and _43 in row-major; column-major here puts them at
-    // 10 and 14.
-    out[10] = -out[10] - 1;
-    out[14] = -out[14];
-    return out;
-  }
-
-  /**
-   * The front clip, Carbon `Tr2Renderer::GetFrontClip` (`Tr2Renderer.cpp:510-513`),
-   * derived from the projection as `UpdateProjectionParameters` derives it
-   * (`Tr2Renderer.cpp:81`): `_43 / _33`, zero when `_33` is. Relocated here
-   * with the projection it is read from. For a reversed-depth projection the
-   * formula yields the far plane, which is why CORTAO reads its near plane
-   * from the BACK clip.
-   *
-   * @returns {number} The front clip, or zero before a projection is set.
-   */
-  GetFrontClip()
-  {
-    const projection = this._projection;
-
-    if (!projection) return 0;
-
-    // Carbon's _33 and _43 are 10 and 14 in column-major.
-    return projection[10] ? projection[14] / projection[10] : 0;
-  }
-
-  /**
-   * The back clip, Carbon `Tr2Renderer::GetBackClip` (`Tr2Renderer.cpp:515-518`),
-   * derived as `UpdateProjectionParameters` does (`Tr2Renderer.cpp:82`):
-   * `_43 / ( 1 + _33 )`.
-   *
-   * @returns {number} The back clip, or zero before a projection is set.
-   */
-  GetBackClip()
-  {
-    const projection = this._projection;
-
-    if (!projection) return 0;
-
-    return projection[14] / (1 + projection[10]);
-  }
-
-  /**
    * What the installed backend can do.
    *
    * Carbon reaches capabilities through the context and nowhere else
@@ -1044,22 +942,6 @@ export class Tr2RenderContext
   DrawIndexedInstancedIndirect(params, offset = 0)
   {
     return this._requireAL("DrawIndexedInstancedIndirect").DrawIndexedInstancedIndirect(params, offset);
-  }
-
-  /**
-   * Carbon `Tr2Renderer::GetFrustumPlane` (`Tr2Renderer.cpp:525-528`): one of
-   * the six frustum planes UpdateViewProjectionTransform derives. Carbon keeps
-   * them as Tr2Renderer statics; here the render context holds Tr2Renderer's
-   * camera state (see _UpdateViewProjectionTransform), so the plane is read
-   * from the same registered variable.
-   *
-   * @param {number} index The plane, 0 to 5.
-   * @param {Float32Array|number[]} out Receives the plane's four components.
-   * @returns {Float32Array|number[]} `out`.
-   */
-  GetFrustumPlane(index, out)
-  {
-    return Tr2RenderContext._CameraVariables()[FRUSTUM_PLANES[index]].GetValue(out);
   }
 
   /**
@@ -1600,302 +1482,6 @@ export class Tr2RenderContext
   // that saves it in another.
 
   /**
-   * Caches the view/camera/simTime record, refreshes the cached view matrix and
-   * its inverse from the view matrix.
-   */
-  SetView(view, camera = null, simTime = 0)
-  {
-    this._view = { view: view ?? null, camera: camera ?? null, simTime };
-    this._ApplyViewMatrix(view);
-    return true;
-  }
-
-  /**
-   * Caches a raw view matrix (Tr2Renderer::SetViewTransform), refreshes the
-   * inverse and eye position.
-   */
-  SetViewTransform(transform, source = null)
-  {
-    this._view = { transform: transform ?? null, source: source ?? null };
-    this._ApplyViewMatrix(transform);
-    return true;
-  }
-
-  // Mirrors Tr2Renderer::SetViewTransform: cache the view matrix, compute its
-  // inverse once, and derive the view position from the inverse-view
-  // translation row (Carbon reads _41.._43 -> column-major indices [12,13,14]).
-
-  /**
-   * Mirrors Tr2Renderer::SetViewTransform - copies the view matrix into the
-   * cached buffer, inverts it once (falling back to identity when singular) and
-   * derives the eye position from the inverse-view translation; anything that is
-   * not a 16-element matrix is ignored and leaves the cache untouched.
-   */
-  _ApplyViewMatrix(matrix)
-  {
-    if (!matrix || matrix.length !== 16)
-    {
-      return;
-    }
-
-    mat4.copy(this._viewTransform, matrix);
-
-    if (!mat4.invert(this._inverseViewTransform, this._viewTransform))
-    {
-      mat4.identity(this._inverseViewTransform);
-    }
-
-    vec3.set(
-      this._viewPosition,
-      this._inverseViewTransform[12],
-      this._inverseViewTransform[13],
-      this._inverseViewTransform[14]
-    );
-    this._hasViewMatrix = true;
-
-    // Carbon Tr2Renderer::SetViewTransform (cpp:566-576) keeps the global
-    // variable store aware of the view: effects bind ViewMat / ViewInvMat by
-    // name.
-    const variables = Tr2RenderContext._CameraVariables();
-    variables.ViewMat.SetValue(this._viewTransform);
-    variables.ViewInvMat.SetValue(this._inverseViewTransform);
-    this._UpdateViewProjectionTransform();
-  }
-
-  /**
-   * Carbon's UpdateViewProjectionTransform (Tr2Renderer.cpp:155-184): the
-   * view-projection global and the six frustum planes Carbon derives from it.
-   * Carbon's row-major `_rc` and gl-matrix's column-major array share one byte
-   * layout, so `_13` is index 2, `_43` index 14, and `view * proj` is
-   * gl-matrix `multiply(proj, view)`.
-   */
-  _UpdateViewProjectionTransform()
-  {
-    if (!this._projection) return;
-
-    const variables = Tr2RenderContext._CameraVariables();
-    const m = mat4.multiply(Tr2RenderContext._viewProjectionScratch, this._projection, this._viewTransform);
-    const column = (c, sign = 0) => sign === 0
-      ? [ m[c], m[4 + c], m[8 + c], m[12 + c] ]
-      : [ m[3] + sign * m[c], m[7] + sign * m[4 + c], m[11] + sign * m[8 + c], m[15] + sign * m[12 + c] ];
-
-    variables.ViewProjectionMat.SetValue(m);
-    variables.FrustumPlane0.SetValue(column(2));
-    variables.FrustumPlane1.SetValue(column(0, 1));
-    variables.FrustumPlane2.SetValue(column(1, -1));
-    variables.FrustumPlane3.SetValue(column(0, -1));
-    variables.FrustumPlane4.SetValue(column(1, 1));
-    variables.FrustumPlane5.SetValue(column(2, 1));
-  }
-
-  /**
-   * A shallow copy of the last view or view-transform record, or null when none
-   * has been set.
-   */
-  GetView()
-  {
-    return this._view ? { ...this._view } : null;
-  }
-
-  // Raw column-major view matrix (Tr2Renderer::GetViewTransform). Live buffer -
-  // callers read, never mutate.
-
-  /**
-   * The raw column-major view matrix (Tr2Renderer::GetViewTransform); a live
-   * buffer owned by the context that callers read and never mutate.
-   */
-  GetViewTransform()
-  {
-    return this._viewTransform;
-  }
-
-  /**
-   * Sets the world transform effects read through the "WorldMat" global, as
-   * Tr2Renderer::SetWorldTransform does (Tr2Renderer.cpp:553-559).
-   *
-   * Adapted: the context holds Tr2Renderer's camera state in this runtime, as
-   * SetViewTransform does.
-   * @param {mat4} transform The world matrix.
-   */
-  SetWorldTransform(transform)
-  {
-    mat4.copy(this._worldTransform, transform);
-    // Keep the variable store aware of the change.
-    Tr2RenderContext._CameraVariables().WorldMat.SetValue(this._worldTransform);
-  }
-
-  /**
-   * The world transform (Tr2Renderer::GetWorldTransform, Tr2Renderer.cpp:573-576);
-   * a live buffer callers read and never mutate.
-   */
-  GetWorldTransform()
-  {
-    return this._worldTransform;
-  }
-
-  // Inverse of the view matrix (Tr2Renderer::GetInverseViewTransform), cached on
-  // the last view change. Live buffer - callers read, never mutate.
-
-  /**
-   * The inverse view matrix (Tr2Renderer::GetInverseViewTransform), recomputed
-   * on each view change; a live buffer callers read and never mutate.
-   */
-  GetInverseViewTransform()
-  {
-    return this._inverseViewTransform;
-  }
-
-  // World-space view/eye position (Tr2Renderer::GetViewPosition): the
-  // inverse-view translation. Live buffer - callers read, never mutate.
-
-  /**
-   * The world-space eye position taken from the inverse-view translation; a live
-   * buffer callers read and never mutate.
-   */
-  GetViewPosition()
-  {
-    return this._viewPosition;
-  }
-
-  // Whether a view matrix has been set (camera-dependent modifiers fall back to
-  // an unchanged transform when it has not).
-
-  /**
-   * Whether a view matrix has been set; camera-dependent modifiers fall back to
-   * an unchanged transform when it has not.
-   */
-  HasViewMatrix()
-  {
-    return this._hasViewMatrix;
-  }
-
-  // Save/restore stack for the cached view transform (Carbon Push/PopViewTransform).
-  // Push snapshots the current view object, its matrix, and the has-matrix flag;
-  // pop restores them and re-derives the inverse/eye-position via ApplyViewMatrix.
-
-  /**
-   * Snapshots the current view record, its matrix and the has-matrix flag onto
-   * the view-transform stack, copying the matrix rather than aliasing the live
-   * buffer.
-   */
-  PushViewTransform()
-  {
-    this._viewTransformStack.push({
-      view: this._view,
-      hasViewMatrix: this._hasViewMatrix,
-      transform: this._hasViewMatrix ? mat4.copy(mat4.create(), this._viewTransform) : null
-    });
-    return true;
-  }
-
-  /**
-   * Restores the last pushed view transform, re-deriving the inverse and eye
-   * position (or resetting them to identity when nothing was cached); returns
-   * false when the stack is empty.
-   */
-  PopViewTransform()
-  {
-    if (!this._viewTransformStack.length) return false;
-
-    const saved = this._viewTransformStack.pop();
-    this._view = saved.view;
-    if (saved.transform)
-    {
-      this._ApplyViewMatrix(saved.transform);
-    }
-    else
-    {
-      mat4.identity(this._viewTransform);
-      mat4.identity(this._inverseViewTransform);
-      vec3.set(this._viewPosition, 0, 0, 0);
-      this._hasViewMatrix = false;
-    }
-    return true;
-  }
-
-  /** Depth of the view-transform save/restore stack. */
-  GetStackSizeViewTransform()
-  {
-    return this._viewTransformStack.length;
-  }
-
-  /**
-   * Copies the active 4x4 projection matrix.
-   * Tr2RenderContext owns this matrix so later caller mutations cannot change
-   * the state observed by frame consumers.
-   */
-  SetProjection(projection, fieldOfView = undefined)
-  {
-    if (!projection || projection.length !== 16)
-    {
-      throw new TypeError("Tr2RenderContext.SetProjection requires a 16-element matrix");
-    }
-    if (!this._projection) this._projection = mat4.create();
-    mat4.copy(this._projection, projection);
-    this._fieldOfView = fieldOfView === undefined
-      ? (projection[5] ? 2 * Math.atan(1 / projection[5]) : 0)
-      : Number(fieldOfView);
-
-    // Carbon SetProjectionDerivedValues (Tr2Renderer.cpp:195-207): "Ensure
-    // TriVariable store is aware of the projection transform" - ProjectionMat
-    // and its inverse by name, then the view-projection. Effects such as the
-    // god rays read ProjectionMat from the store; unregistered, it bound zeros.
-    const variables = Tr2RenderContext._CameraVariables();
-    const inverse = mat4.invert(Tr2RenderContext._inverseProjectionScratch, this._projection) ?? mat4.identity(Tr2RenderContext._inverseProjectionScratch);
-    // Tr2Renderer.cpp:198-201 inverse-projects the (1,1,1,1) corner.
-    const w = inverse[3] + inverse[7] + inverse[11] + inverse[15];
-    this._frustumRadius = Math.hypot(
-      (inverse[0] + inverse[4] + inverse[8] + inverse[12]) / w,
-      (inverse[1] + inverse[5] + inverse[9] + inverse[13]) / w,
-      (inverse[2] + inverse[6] + inverse[10] + inverse[14]) / w
-    );
-    variables.ProjectionMat.SetValue(this._projection);
-    variables.ProjectionInvMat.SetValue(inverse);
-    this._UpdateViewProjectionTransform();
-    return true;
-  }
-
-  /**
-   * Carbon Tr2Renderer::Initialize's camera variables (Tr2Renderer.cpp:331-343),
-   * registered once on the global store. `Time` is Tr2Renderer's own
-   * (BeginFrame); WorldMat is registered as Carbon does and follows
-   * SetWorldTransform.
-   *
-   * @returns {Record<string, TriVariable>} The variables by name.
-   */
-  static _CameraVariables()
-  {
-    if (!Tr2RenderContext._cameraVariables)
-    {
-      const store = Tr2VariableStore.globalStore();
-      const matrix = name => store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_FLOAT4X4, mat4.create());
-      const plane = name => store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_FLOAT4, [ 0, 0, 1, 0 ]);
-
-      Tr2RenderContext._cameraVariables = {
-        WorldMat: matrix("WorldMat"),
-        ViewMat: matrix("ViewMat"),
-        ViewInvMat: matrix("ViewInvMat"),
-        ProjectionMat: matrix("ProjectionMat"),
-        ProjectionInvMat: matrix("ProjectionInvMat"),
-        ViewProjectionMat: matrix("ViewProjectionMat"),
-        FrustumPlane0: plane("FrustumPlane0"),
-        FrustumPlane1: plane("FrustumPlane1"),
-        FrustumPlane2: plane("FrustumPlane2"),
-        FrustumPlane3: plane("FrustumPlane3"),
-        FrustumPlane4: plane("FrustumPlane4"),
-        FrustumPlane5: plane("FrustumPlane5")
-      };
-    }
-    return Tr2RenderContext._cameraVariables;
-  }
-
-  static _cameraVariables = null;
-
-  static _viewProjectionScratch = mat4.create();
-
-  static _inverseProjectionScratch = mat4.create();
-
-  /**
    * Sets a single render state, as `TriStepSetRenderState` does
    * (`TriStepSetRenderState.cpp:10-14`). Both arguments are coerced to
    * unsigned integers.
@@ -1949,72 +1535,6 @@ export class Tr2RenderContext
   SetWireframeRendering(enabled)
   {
     return this._esm.SetWireframeRendering(!!enabled);
-  }
-
-  /**
-   * The projection matrix last recorded on the context, or null before a pass
-   * sets one.
-   */
-  GetProjection()
-  {
-    return this._projection;
-  }
-
-  /**
-   * The vertical field of view cached when the active projection was set.
-   * This is Carbon's Tr2Renderer::GetFieldOfView state, cached on the context.
-   */
-  GetFieldOfView()
-  {
-    return this._fieldOfView;
-  }
-
-  /** Carbon's inverse-projected corner radius, relocated with context camera state. */
-  @blue.method
-  @meta.adapted
-  GetFrustumRadius()
-  {
-    return this._frustumRadius;
-  }
-
-  // Save/restore stack for the current projection (Carbon Push/PopProjection).
-
-  /** Saves the current projection on its own save/restore stack. */
-  PushProjection()
-  {
-    this._projectionStack.push({
-      projection: this._projection ? mat4.clone(this._projection) : null,
-      fieldOfView: this._fieldOfView,
-      frustumRadius: this._frustumRadius
-    });
-    return true;
-  }
-
-  /**
-   * Restores the last pushed projection; returns false when the stack is empty.
-   */
-  PopProjection()
-  {
-    if (!this._projectionStack.length) return false;
-    const saved = this._projectionStack.pop();
-    if (saved.projection)
-    {
-      if (!this._projection) this._projection = mat4.create();
-      mat4.copy(this._projection, saved.projection);
-    }
-    else
-    {
-      this._projection = null;
-    }
-    this._fieldOfView = saved.fieldOfView;
-    this._frustumRadius = saved.frustumRadius;
-    return true;
-  }
-
-  /** Depth of the projection save/restore stack. */
-  GetStackSizeProjection()
-  {
-    return this._projectionStack.length;
   }
 
   /**

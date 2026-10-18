@@ -18,6 +18,7 @@ import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriRenderBatchAccumulator } from "../../npm/dist/trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const FLOATS = 7;
 
@@ -275,9 +276,9 @@ test("the batch depth and sort value measure the world sphere centre from the vi
   const set = flatEllipseSet(make);
   set.effect = new Tr2Effect();
   set.depthOffset = 2;
-  context.SetViewTransform(mat4.fromTranslation(mat4.create(), [ 0, 0, -40 ]));
-  context.SetProjection(mat4.perspective(mat4.create(), Math.PI / 3, 1, 1, 100));
-  const radius = context.GetFrustumRadius();
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(), [ 0, 0, -40 ]));
+  Tr2Renderer.SetProjectionTransform(mat4.perspective(mat4.create(), Math.PI / 3, 1, 1, 100));
+  const radius = Tr2Renderer.GetFrustumRadius();
   assert.ok(radius > 0);
 
   // The world transform is the identity, so the world centre is the local sphere centre.

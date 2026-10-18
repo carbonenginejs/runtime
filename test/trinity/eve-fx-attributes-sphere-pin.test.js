@@ -7,6 +7,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { EveCameraFxAttributes, EveChildSpherePin, EveShip2, EveSpaceObject2, EveSpaceObjectFxAttributes, EveSpherePin } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 function closeArray(actual, expected, epsilon = 1e-6)
@@ -45,12 +46,10 @@ test("EveCameraFxAttributes uses Carbon matrix slots and child-parent precedence
   objectTransform[6] = 12;
   objectTransform[10] = 13;
 
-  const updateContext = {
-    renderContext: {
-      GetViewPosition: () => vec3.fromValues(1, 2, 3),
-      GetViewTransform: () => view,
-    },
-  };
+  // The renderer's view: these third-column slots, with the camera at (1, 2, 3).
+  mat4.translate(view, view, [ -1, -2, -3 ]);
+  Tr2Renderer.SetViewTransform(view);
+  const updateContext = null;
   const params = {
     spaceObjectParent: {
       GetModelCenterWorldPosition(out)
@@ -68,8 +67,8 @@ test("EveCameraFxAttributes uses Carbon matrix slots and child-parent precedence
 
   const vectorToObject = vec3.fromValues(9, 18, 27);
   const distance = vec3.length(vectorToObject);
-  assert.equal(attributes.distanceToCamera, distance);
-  assert.equal(attributes.lookAngleToObject, -(2 * 9 + 3 * 18 + 4 * 27) / distance);
+  assert.ok(Math.abs(attributes.distanceToCamera - distance) < 1e-4);
+  assert.ok(Math.abs(attributes.lookAngleToObject + (2 * 9 + 3 * 18 + 4 * 27) / distance) < 1e-4);
   assert.deepEqual(Array.from(attributes.rotationWithChildTransform), [7, 8, 9]);
   assert.deepEqual(Array.from(attributes.objectRotation), [11, 12, 13]);
   assert.deepEqual(Array.from(attributes.cameraRotation), [2, 3, 4]);
@@ -88,13 +87,9 @@ test("EveCameraFxAttributes preserves Carbon's zero-distance NaN", () =>
 {
   const attributes = new EveCameraFxAttributes();
   const view = mat4.create();
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(view, [ -3, -4, -5 ]));
   attributes.UpdateAsyncronous(
-    {
-      renderContext: {
-        GetViewPosition: () => vec3.fromValues(3, 4, 5),
-        GetViewTransform: () => view,
-      },
-    },
+    null,
     {
       spaceObjectParent: {
         GetModelCenterWorldPosition(out)

@@ -13,10 +13,10 @@ import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { RawData } from "../rawData/RawData.js";
 import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
 import { Tr2ConstantBufferAL } from "#trinityal";
-import { PER_FRAME_VS } from "../Tr2Renderer.js";
+import { PER_FRAME_VS, Tr2Renderer } from "../Tr2Renderer.js";
 import { TriDevice } from "../device/TriDevice.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
-import { TriProjection } from "../view/TriProjection.js";
+import { PROJECTION_TYPE } from "../../generated/shader/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
@@ -86,7 +86,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   {
     if (this.textLabels.length) throw new Error("Tr2PrimitiveText rendering is not ported.");
     const objects = this.GetPickingObjectsToRender(null, context);
-    objects.sort((a, b) => b.GetSortValue(context) - a.GetSortValue(context));
+    objects.sort((a, b) => b.GetSortValue() - a.GetSortValue());
     this.SetupPerFrameData(context);
     const esm = context.GetEffectStateManager(), inverted = esm.IsDepthTestInverted(), managed = esm.IsManagedRendering();
     esm.BeginManagedRendering();
@@ -164,26 +164,37 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     TriDevice.UnregisterResource(this);
   }
 
-  /** Native orthographic crop preserves its width-based square pixel extent. */
-  @meta.adapted
-  SetupTransformsForPicking(fx, fy, projection, view, viewport, context)
+  /**
+   * Carbon SetupTransformsForPicking (Tr2PrimitiveScene.cpp:152-183): an
+   * orthographic projection is rebuilt as a one-pixel square off-centre
+   * box, keeping its width-based extent; any other is scaled as the base
+   * does.
+   */
+  @meta.implemented
+  SetupTransformsForPicking(fx, fy, projection, view, viewport)
   {
-    const mat4_0 = mat4.alloc();
-    try
+    Tr2Renderer.SetViewTransform(view.GetTransform());
+    projection.SetProjection();
+
+    if (Tr2Renderer.GetCurrentProjectionType() === PROJECTION_TYPE.PT_ORTHOGONAL)
     {
-      if (projection.projectionType !== TriProjection.ORTHO)
-        return super.SetupTransformsForPicking(fx, fy, projection, view, viewport, context);
-      const width = projection.left, height = projection.top;
-      const halfPixel = (width / viewport.width) / 2;
-      const x = fx * width / 2, y = fy * height / 2;
-      const matrix = mat4.identity(mat4_0);
-      mat4.orthoZO(matrix, x - halfPixel, x + halfPixel, y - halfPixel, y + halfPixel, projection.zn, projection.zf);
-      context.SetViewTransform(view.GetTransform());
-      context.SetProjection(matrix, 1);
+      fx *= Tr2Renderer.GetOrthoWidth() / 2;
+      fy *= Tr2Renderer.GetOrthoHeight() / 2;
+      const metersPerPixel = (Tr2Renderer.GetOrthoWidth() / viewport.width) / 2;
+      Tr2Renderer.SetOrthoProjection__LeftRightBottomTop(fx - metersPerPixel,
+        fx + metersPerPixel,
+        fy - metersPerPixel,
+        fy + metersPerPixel,
+        Tr2Renderer.GetFrontClip(),
+        Tr2Renderer.GetBackClip());
     }
-    finally
+    else
     {
-      mat4.unalloc(mat4_0);
+      // Projection is set up to scale the image such that the viewport is
+      // covered by one pixel, translated to centre on the pick ray origin.
+      const scaling = [ viewport.width, viewport.height ];
+      const translation = [ -fx * scaling[0], -fy * scaling[1] ];
+      Tr2Renderer.AdjustProjection(scaling, translation);
     }
   }
 
@@ -196,8 +207,8 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     {
       const data = this._frameData;
       data.GetData().fill(0);
-      const view = context.GetViewTransform();
-      const projection = context.GetReversedDepthProjectionTransform();
+      const view = Tr2Renderer.GetViewTransform();
+      const projection = Tr2Renderer.GetReversedDepthProjectionTransform();
       const combined = mat4.multiply(mat4.identity(mat4_0), projection, view);
       data.SetAndTranspose("ViewMat", view);
       data.SetAndTranspose("ProjectionMat", projection);
@@ -225,7 +236,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     const objects = [];
     for (const primitive of this.primitives)
     {
-      primitive.UpdateTransform(context);
+      primitive.UpdateTransform();
       objects.push(primitive);
     }
     if (this.manipulator)

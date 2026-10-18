@@ -30,7 +30,6 @@ export class EveChildModifierBooster extends IEveChildTransformModifier
    * Reproduces EveChildModifierBooster::ApplyTransform (Carbon):
    * B = sqrt(dist^2 - r^2); scale = B / dist; trans = -r^2 / (dist * scale);
    * return translationTransform * alignMat * scalingTransform * transform.
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused
@@ -38,20 +37,12 @@ export class EveChildModifierBooster extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
-  ApplyTransform(context, transform, boneCount, bones, out)
+  ApplyTransform(transform, boneCount, bones, out)
   {
-    const renderContext = context?.renderContext;
-
-    if (!renderContext)
-    {
-      return mat4.copy(out, transform);
-    }
-
     const { alignMat, d, scaleVec, transVec, scalingTransform, translationTransform } = this.constructor.scratch;
 
-    const distCenter = EveChildModifierTransformCommon.distanceBase(context, transform, alignMat, d);
+    const distCenter = EveChildModifierTransformCommon.distanceBase(transform, alignMat, d);
 
     const radius = 0.5;
     const B = Math.sqrt(distCenter * distCenter - radius * radius);

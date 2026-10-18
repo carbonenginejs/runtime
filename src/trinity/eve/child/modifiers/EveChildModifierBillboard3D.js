@@ -6,6 +6,7 @@ import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /**
  * Transform modifier that turns a child to face the camera, either as a fixed
@@ -27,7 +28,6 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * (row-vector - scale first, transform last). Free mode: Billboard2D then
    * DistanceBase alignment: alignMat * billboard (align first).
    *
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused
@@ -35,16 +35,9 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
-  ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
+  ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
-    const renderContext = context?.renderContext;
-    if (!renderContext)
-    {
-      return mat4.copy(out, transform);
-    }
-
     const { scaleVec, scaleMat, invScaleMat, sansScale, basis, alignMat, d } = EveChildModifierBillboard3D._scratch;
     if (this.fixed)
     {
@@ -58,15 +51,15 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
       mat4.invert(invScaleMat, scaleMat);
       // Carbon (row-vector): invScale * transform - invScale first.
       mat4.multiply(sansScale, transform, invScaleMat);
-      EveChildModifierBillboard3D._Billboard3D(basis, renderContext, transform);
+      EveChildModifierBillboard3D._Billboard3D(basis, transform);
       // Carbon (row-vector): scale * billboard * transformSansScale - scale first.
       mat4.multiply(out, sansScale, basis);
       mat4.multiply(out, out, scaleMat);
       return out;
     }
 
-    EveChildModifierTransformCommon.billboard2D(context, transform, out);
-    EveChildModifierTransformCommon.distanceBase(context, out, alignMat, d);
+    EveChildModifierTransformCommon.billboard2D(transform, out);
+    EveChildModifierTransformCommon.distanceBase(out, alignMat, d);
     // Carbon (row-vector): alignMat * billboard - align first.
     mat4.multiply(out, out, alignMat);
     return out;
@@ -76,10 +69,10 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * Carbon's Billboard3D free function: camera-facing basis at the given
    * transform's position (right = up x toObject fallback (1,0,0)).
    */
-  static _Billboard3D(out, renderContext, transform)
+  static _Billboard3D(out, transform)
   {
     const { toObject, right, up } = EveChildModifierBillboard3D._scratch;
-    const camPos = renderContext.GetViewPosition();
+    const camPos = Tr2Renderer.GetViewPosition();
     vec3.set(toObject, camPos[0] - transform[12], camPos[1] - transform[13], camPos[2] - transform[14]);
     vec3.normalize(toObject, toObject);
     vec3.cross(right, EveChildModifierBillboard3D._worldUp, toObject);

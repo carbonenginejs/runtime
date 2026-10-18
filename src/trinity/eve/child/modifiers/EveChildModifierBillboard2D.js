@@ -1,5 +1,4 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard2D.cpp
-import { mat4 } from "#math/mat4";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { meta, blue } from "#schema";
 import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
@@ -17,7 +16,6 @@ export class EveChildModifierBillboard2D extends IEveChildTransformModifier
    * Screen-aligned billboard. Reproduces
    * EveChildModifierBillboard2D::ApplyTransform (Carbon), which forwards to the
    * shared Billboard2D helper.
-   * @param {Object} context - frame context; reads context.renderContext
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [bones] - Carbon signature parity, unused
@@ -25,15 +23,9 @@ export class EveChildModifierBillboard2D extends IEveChildTransformModifier
    * @returns {Float32Array} out
    */
   @blue.method
-  @blue.contextual(["camera"])
   @meta.implemented
-  ApplyTransform(context, transform, boneCount, bones, out)
+  ApplyTransform(transform, boneCount, bones, out)
   {
-    if (!context?.renderContext)
-    {
-      return mat4.copy(out, transform);
-    }
-
-    return EveChildModifierTransformCommon.billboard2D(context, transform, out);
+    return EveChildModifierTransformCommon.billboard2D(transform, out);
   }
 }

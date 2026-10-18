@@ -125,8 +125,8 @@ function makeContext({ view = mat4.create(), projection = mat4.create(), viewpor
 {
   const context = new Tr2RenderContext();
 
-  context.SetViewTransform(view);
-  context.SetProjection(projection);
+  Tr2Renderer.SetViewTransform(view);
+  Tr2Renderer.SetProjectionTransform(projection);
 
   if (viewport)
   {
@@ -239,7 +239,7 @@ test("the vertex fill stores the camera transposed, and the inverse view as-is",
   // already a transpose, so transpose(transpose(m)) == m.
   assert.deepEqual(
     Array.from(record.Copy("ViewInverseTransposeMat", new Float32Array(16))),
-    Array.from(context.GetInverseViewTransform()),
+    Array.from(Tr2Renderer.GetInverseViewTransform()),
     "ViewInverseTransposeMat is the inverse view, untransposed"
   );
 });
@@ -544,7 +544,7 @@ test("logical shadow matrices are composed once and transposed only at RawData",
   const expected = mat4.multiply(
     mat4.create(),
     logicalLvp,
-    context.GetInverseViewTransform()
+    Tr2Renderer.GetInverseViewTransform()
   );
   mat4.multiply(expected, clipToUv, expected);
   mat4.multiply(expected, atlasCell, expected);
@@ -568,7 +568,7 @@ test("Tr2ShadowMap split output reaches the packed scene record end to end", () 
   shadowMap.SplitNr0 = 80;
   const setup = shadowMap.SetupShadowSplit(
     0,
-    context.GetInverseViewTransform(),
+    Tr2Renderer.GetInverseViewTransform(),
     [ 0.2, -1, 0.35 ],
     2,
     -0.9,
@@ -593,7 +593,7 @@ test("Tr2ShadowMap split output reaches the packed scene record end to end", () 
   const expected = mat4.multiply(
     mat4.create(),
     setup.lightViewProjection,
-    context.GetInverseViewTransform()
+    Tr2Renderer.GetInverseViewTransform()
   );
   mat4.multiply(expected, clipToUv, expected);
   mat4.multiply(expected, atlasCell, expected);

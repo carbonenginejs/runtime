@@ -51,6 +51,7 @@ const FLOAT32_MAX = 3.4028234663852886e38;
 // Module scratch (per-frame paths - never allocate in the hot loop).
 const INV_SCRATCH = mat4.create();
 const WV_SCRATCH = mat4.create();
+const PROJECTION_SCRATCH = mat4.create();
 const BASIS_SCRATCH = mat4.create();
 const LIGHT_VIEW_SCRATCH = mat4.create();
 const WORLD_LIGHT_SCRATCH = mat4.create();
@@ -931,7 +932,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         this._variableStore.RegisterVariableInternal("LightMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._emptyLightMap);
       }
       const record = this._lightmapPerObjectData;
-      this.PopulatePerObjectData(record.data, 1, renderContext);
+      this.PopulatePerObjectData(record.data, 1);
       record.SetPerObjectDataToDevice([renderContext.GetConstantBuffer(0)], 1 << ShaderType.COMPUTE_SHADER, renderContext);
 
       const VOXELS_PER_UPDATE = Math.floor(6400000 * this.lightmapSizeScale ** 3);
@@ -1244,24 +1245,24 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /**
    * Fills Cloud2's native struct (cpp:526-601), including integer bit patterns.
-   * Adapted: RawData transposes matrices once; the ambient context owns camera state.
+   * Adapted: RawData transposes matrices once.
    * Noise offsets use CRT rand; zero noise size retains the existing zero guard.
    */
   @blue.method
   @meta.adapted
-  PopulatePerObjectData(data, screenSize = 1, context = Tr2RenderContext_GetMainThreadRenderContext())
+  PopulatePerObjectData(data, screenSize = 1)
   {
     const w = this.worldTransform;
     data.SetAndTranspose("world", w);
-    const projection = context.GetReversedDepthProjectionTransform();
+    const projection = Tr2Renderer.GetReversedDepthProjectionTransform(PROJECTION_SCRATCH);
     if (!mat4.invert(INV_SCRATCH, projection)) mat4.copy(INV_SCRATCH, projection);
     data.SetAndTranspose("projectionInv", INV_SCRATCH);
     // Carbon row-vector world * view: world first, so operands reverse.
-    mat4.multiply(WV_SCRATCH, context.GetViewTransform(), w);
+    mat4.multiply(WV_SCRATCH, Tr2Renderer.GetViewTransform(), w);
     if (!mat4.invert(INV_SCRATCH, WV_SCRATCH)) mat4.copy(INV_SCRATCH, WV_SCRATCH);
     data.SetAndTranspose("worldViewInv", INV_SCRATCH);
     if (!mat4.invert(INV_SCRATCH, w)) mat4.copy(INV_SCRATCH, w);
-    vec3.transformMat4(SHIFT_SCRATCH, context.GetViewPosition(), INV_SCRATCH);
+    vec3.transformMat4(SHIFT_SCRATCH, Tr2Renderer.GetViewPosition(), INV_SCRATCH);
     data.Set("viewPosition", SHIFT_SCRATCH);
     data.SetAndTranspose("lightViewProj", this.lightViewProj);
     data.Set("lightmapDimensions", [Math.max(1, Math.floor(this.lightmapWidth * this.lightmapSizeScale)),

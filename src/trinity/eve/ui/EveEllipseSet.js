@@ -34,6 +34,7 @@ import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { BoundingSphereQuery } from "../../generated/eve/enums.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 
 /** TRI_PI (Include/TriMath.h:243): Carbon's float pi, `3.141592654f`. */
@@ -614,18 +615,15 @@ export class EveEllipseSet extends EveChildTransform
    * Carbon GetSortValue (EveEllipseSet.cpp:465-471): the distance from the
    * view position to the world-space sphere centre, plus depthOffset.
    *
-   * Adapted: Carbon reads Tr2Renderer's view-position static; those statics
-   * live on the main-thread render context here (Tr2RenderContext.js head).
-   *
    * @returns {number}
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   GetSortValue()
   {
     const { vec3_0 } = EveEllipseSet.scratch;
     // vec3_0 is worldCenter, then toCamera
-    const viewPosition = Tr2RenderContext_GetMainThreadRenderContext().GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
 
     vec3.set(vec3_0, this._boundingSphere[0], this._boundingSphere[1], this._boundingSphere[2]);
     vec3.transformMat4(vec3_0, vec3_0, this.worldTransform);
@@ -678,16 +676,15 @@ export class EveEllipseSet extends EveChildTransform
     const f = Math.fround;
     const { vec3_0 } = EveEllipseSet.scratch;
     // vec3_0 is center
-    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);
 
-    const maxDepth = f(renderContext.GetFrustumRadius());
+    const maxDepth = f(Tr2Renderer.GetFrustumRadius());
     vec3.set(vec3_0, this._boundingSphere[0], this._boundingSphere[1], this._boundingSphere[2]);
     vec3.transformMat4(vec3_0, vec3_0, this.worldTransform);
-    vec3.subtract(vec3_0, vec3_0, renderContext.GetViewPosition());
+    vec3.subtract(vec3_0, vec3_0, Tr2Renderer.GetViewPosition());
     // std::min( std::max( x, 0.f ), 1.f ), where std::max(a, b) is (a < b) ? b : a and std::min(a, b) is (b < a) ? b : a.
     const ratio = f(f(f(vec3.length(vec3_0)) + f(this.depthOffset)) / maxDepth);
     const lower = ratio < 0 ? 0 : ratio;

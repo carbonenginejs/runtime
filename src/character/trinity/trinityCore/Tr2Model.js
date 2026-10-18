@@ -7,6 +7,7 @@ import { vec3 } from "#math/vec3";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
 import { CreateLodAllocations } from "../../../trinity/core/mesh/TriGeometryResAllocations.js";
+import { Tr2Renderer } from "../../../trinity/core/Tr2Renderer.js";
 
 /** Named character model record grouping its Trinity mesh objects. */
 @blue.define("Tr2Model")
@@ -125,8 +126,8 @@ export class Tr2Model
 
   /**
    * Submits authored order except transparent meshes, sorted farthest first.
-   * Adapted: view state lives on the installed Trinity context; JS batches own
-   * their references so Carbon's accumulator matrix allocation is unnecessary.
+   * Adapted: JS batches own their references so Carbon's accumulator matrix
+   * allocation is unnecessary.
    */
   @blue.method
   @meta.adapted
@@ -134,7 +135,7 @@ export class Tr2Model
   {
     if (batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT)
     {
-      const viewPosition = Tr2RenderContext_GetMainThreadRenderContext().GetViewPosition();
+      const viewPosition = Tr2Renderer.GetViewPosition();
       const { vec3_2 } = Tr2Model.scratch;
       const sorted = [];
       for (const mesh of this.meshes)

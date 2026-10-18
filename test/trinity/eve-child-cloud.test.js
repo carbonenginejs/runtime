@@ -11,6 +11,7 @@ import {
 import { Tr2RenderContextALStub, Tr2ConstantBufferAL, ALResult } from "../../npm/dist/trinityal/index.js";
 import { CjsPerObjectLayouts } from "../../npm/dist/trinity/core/rawData/CjsPerObjectLayouts.js";
 import { gTriDev } from "../../npm/dist/trinity/core/device/gTriDev.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 // Expected geometry, constants and gates below come from EveChildCloud.cpp,
 // not from the former JS shell: grid 282-352, payload 354-422, gates 218-273.
@@ -36,8 +37,8 @@ function setup(t)
   // D3D RH perspective: near=1, far=100, horizontal and vertical slopes=1.
   projection[10] = -100 / 99; projection[11] = -1;
   projection[14] = -100 / 99; projection[15] = 0;
-  context.SetViewTransform(mat4.create());
-  context.SetProjection(projection);
+  Tr2Renderer.SetViewTransform(mat4.create());
+  Tr2Renderer.SetProjectionTransform(projection);
   gTriDev.device.width = 800;
   gTriDev.device.height = 200;
   const pool = new TriPoolAllocator().RegisterCatalog();
@@ -174,7 +175,7 @@ test("nearPlaneLocal pulls the view plane through rotated nonuniform world and v
   const view = mat4.create();
   mat4.fromRotationTranslation(view,
     quat.setAxisAngle(quat.create(), [1, 0, 0], viewAngle), [-2, 3, -7]);
-  context.SetViewTransform(view);
+  Tr2Renderer.SetViewTransform(view);
 
   // Carbon cpp:367-370 pulls (0, 0, -1, -near) into local coordinates.
   // Independently expand -viewZ - 1: worldZ = -2*sin(a)*x + 4*cos(a)*z - 20,

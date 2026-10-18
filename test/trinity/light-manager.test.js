@@ -4,6 +4,7 @@ import { Tr2LightManager, TriFrustum } from "../../npm/dist/trinity/index.js";
 import { CreateLightRecord } from "../../npm/dist/trinity/eve/lights/lightConversion.js";
 import { Tr2LightProfileRes } from "../../npm/dist/resource/index.js";
 import { CjsIESFormat } from "../../npm/dist/resource/formats/ies/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 /** A loaded light profile, as Carbon's m_lightProfile is a Tr2LightProfileRes. */
 function profileResource()
@@ -362,6 +363,9 @@ test("UpdateLists fills PerFrameData, then runs Clear and one group per 16x16 ti
   addTwoLights(manager);
   context.log.length = 0;
 
+  // The renderer's camera (Tr2LightManager.cpp:410-412).
+  Tr2Renderer.SetProjectionTransform(PROJECTION);
+  Tr2Renderer.SetViewTransform([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -10, -20, -30, 1 ]);
   const depthMap = { name: "depth" };
   assert.equal(manager.UpdateLists(depthMap, context), true);
   // 33x17 pixels round up to 3x2 tiles (cpp:417-418).
@@ -376,8 +380,9 @@ test("UpdateLists fills PerFrameData, then runs Clear and one group per 16x16 ti
   const bytes = context.constants.bytes;
   const floats = new Float32Array(bytes.buffer, 0, 44);
   const words = new Uint32Array(bytes.buffer, 0, 44);
-  assert.deepEqual(Array.from(floats.subarray(0, 16)), VIEW_INVERSE_TRANSPOSED);
-  assert.deepEqual(Array.from(floats.subarray(16, 32)), PROJECTION_INVERSE_TRANSPOSED);
+  // + 0 folds the -0 Carbon's cofactor inverse produces into 0.
+  assert.deepEqual(Array.from(floats.subarray(0, 16), v => v + 0), VIEW_INVERSE_TRANSPOSED);
+  assert.deepEqual(Array.from(floats.subarray(16, 32), v => v + 0), PROJECTION_INVERSE_TRANSPOSED);
   assert.deepEqual(Array.from(floats.subarray(32, 35)), [ 10, 20, 30 ]);
   // width, height, tilesX, tilesY, lightCount, indexBufferSize.
   assert.deepEqual(Array.from(words.subarray(36, 42)), [ 33, 17, 3, 2, 2, 8 * 1024 * 1024 ]);

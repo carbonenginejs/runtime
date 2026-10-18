@@ -401,16 +401,12 @@ export class EveLineSet
 
   /**
    * Carbon GetSortValue (cpp:203-208): the distance from the view position to the world translation.
-   *
-   * Adapted: Carbon reads Tr2Renderer's view-position static; the batch collector passes the render context, and
-   * without one the value is 0.
    */
   @blue.method
-  @meta.adapted
-  GetSortValue(renderContext = null)
+  @meta.implemented
+  GetSortValue()
   {
-    if (renderContext === null) return 0;
-    const viewPosition = renderContext.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     const world = this.worldTransform;
     const dx = viewPosition[0] - world[12];
     const dy = viewPosition[1] - world[13];

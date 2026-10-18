@@ -237,14 +237,12 @@ const modifierFoldScratch = mat4.create();
  * this is a JS-only helper (zero-alloc ping-pong between worldTransform and a
  * module scratch buffer so no modifier reads and writes the same matrix), kept a
  * free function rather than a method so it stays off the Carbon method surface.
- * The frame context is threaded through to camera-dependent modifiers.
  * @param {EveChildTransform} child - owns transformModifiers + worldTransform
- * @param {Object} context - frame context (EveUpdateContext)
  * @param {Number} boneCount
  * @param {Float32Array|null} bones
  * @returns {Float32Array} child.worldTransform
  */
-export function applyTransformModifiers(child, context, boneCount, bones)
+export function applyTransformModifiers(child, boneCount, bones)
 {
   const modifiers = child.transformModifiers;
 
@@ -258,7 +256,7 @@ export function applyTransformModifiers(child, context, boneCount, bones)
 
   for (const modifier of modifiers)
   {
-    modifier.ApplyTransform(context, source, boneCount, bones, target);
+    modifier.ApplyTransform(source, boneCount, bones, target);
     const swap = source;
     source = target;
     target = swap;

@@ -23,6 +23,7 @@ import { ShaderType } from "#consts/render-context";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { Failed } from "../../trinityal/ALResult.js";
+import { Tr2Renderer } from "./Tr2Renderer.js";
 
 
 // Carbon `Tr2ScreenVertex` (Tr2RenderUtils.h:13-17): a clip-space position and
@@ -196,21 +197,18 @@ export class Tr2RenderUtils
    * vertex shader is expected to push z into w, so the corners carry the
    * unprojected depth rather than a constant.
    *
-   * ADAPTED, same reason as SetupScreenQuad: Carbon takes the projection from the
-   * `Tr2Renderer` global and the cull mode from the main-thread context; both
-   * come from the passed context here.
+   * The projection is the renderer's RAW projection (cpp:63), inverted with
+   * Carbon's value-form Inverse. ADAPTED, same reason as SetupScreenQuad: the
+   * cull mode comes from the passed context rather than the main-thread one.
    *
    * @param {Float32Array} quad Destination, at least SCREEN_QUAD_FLOATS long.
-   * @param {object} renderContext The context holding projection and cull mode.
-   * @returns {Float32Array|null} The quad, or null with no projection set.
+   * @param {object} renderContext The context holding the cull mode.
+   * @returns {Float32Array} The quad.
    */
   static setupScreenQuadInCameraSpace(quad, renderContext)
   {
-    const projection = renderContext.GetProjection();
-    if (!projection) return null;
-
-    const proj2view = mat4.invert(mat4.create(), projection);
-    if (!proj2view) return null;
+    // Transform to view space.
+    const proj2view = mat4.inverseCarbon(mat4.create(), Tr2Renderer.GetProjectionRawTransform());
 
     const tl = vec3.transformMat4(vec3.create(), [ -1, 1, 1 ], proj2view);
     const br = vec3.transformMat4(vec3.create(), [ 1, -1, 1 ], proj2view);

@@ -13,6 +13,7 @@ import { Tr2VectorFunctionModifier } from "../../npm/dist/trinity/curves/curve/T
 import { Tr2CurveConstant } from "../../npm/dist/trinity/curves/curve/Tr2CurveConstant.js";
 import { TriValueBinding } from "../../npm/dist/trinity/core/binding/TriValueBinding.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const cases = [
     ["Tr2TranslationAdapter",Tr2TranslationAdapter,ITriVectorFunction,[Tr2TranslationAdapter,ITriVectorFunction]],
@@ -137,18 +138,16 @@ test("modifier native UpdateValue is a no-op while Update__Ticks chooses the req
     modifier.clientBall={};modifier.useSystemCoordinates=false;assert.throws(()=>modifier.Update__Ticks(130_000_000,out),TypeError);
 });
 
-test("modifier requires methods on a present renderer while retaining null-context adaptation",()=>
+test("modifier rotates a view-space offset by the renderer's inverse view",()=>
 {
     const modifier=new Tr2VectorFunctionModifier();
     modifier.useViewSpace=true;modifier.offsetPosition.set([3,4,5]);
     const out=new Float32Array(3);
-    assert.equal(modifier.GetOffsetPosition(null,out),out);assert.deepEqual([...out],[3,4,5]);
-    assert.throws(()=>modifier.GetOffsetPosition({},out),TypeError);
-    const context=new Tr2RenderContext();
-    // Column-major inverse view rotates +X to +Y; translation must not affect w=0.
-    const inverse=new Float32Array([0,1,0,0,-1,0,0,0,0,0,1,0,100,200,300,1]);
-    context.GetInverseViewTransform=()=>inverse;
-    modifier.GetOffsetPosition(context,out);assert.deepEqual([...out],[-4,3,5]);
+    // Column-major view whose inverse rotates +X to +Y; translation must not affect w=0.
+    const view=new Float32Array([0,-1,0,0,1,0,0,0,0,0,1,0,-200,100,-300,1]);
+    Tr2Renderer.SetViewTransform(view);
+    assert.equal(modifier.GetOffsetPosition(out),out);
+    assert.deepEqual([...out].map(v=>Math.round(v*1e4)/1e4),[-4,3,5]);
 });
 
 test("modifier fields use native order and remain transient through shared copy and persistence",()=>

@@ -3,6 +3,7 @@
 import { meta, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 // Carbon: RenderJob/TriStepPushViewTransform.cpp — Execute pushes the current
 // view transform (Tr2Renderer::PushViewTransform).
@@ -19,9 +20,10 @@ export class TriStepPushViewTransform extends TriRenderStep
    */
   @blue.method
   @meta.implemented
-  Execute(_realTime, _simTime, renderContext)
+  Execute(_realTime, _simTime, _renderContext)
   {
-    renderContext.PushViewTransform();
+    // TriStepPushViewTransform.cpp:9.
+    Tr2Renderer.PushViewTransform();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

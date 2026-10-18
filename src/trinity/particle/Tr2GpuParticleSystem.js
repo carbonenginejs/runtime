@@ -652,7 +652,7 @@ export class Tr2GpuParticleSystem
     data.setFloat32(60, 0, true);
     for (let plane = 0; plane < 6; plane++)
     {
-      renderContext.GetFrustumPlane(plane, vec4_0);
+      Tr2Renderer.GetFrustumPlane(plane, vec4_0);
       for (let i = 0; i < 4; i++) data.setFloat32(64 + plane * 16 + i * 4, vec4_0[i], true);
     }
 

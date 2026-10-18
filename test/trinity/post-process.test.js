@@ -21,6 +21,7 @@ import {
   Tr2SSAO
 } from "../../npm/dist/trinity/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -323,7 +324,9 @@ test("CORTAO's constants follow Carbon's lock block (Tr2SSAO.cpp:569-636)", () =
   const bytes = new Uint8Array(176);
   const data = new DataView(bytes.buffer);
 
-  ssao._FillCortaoPerObjectData(data, 1920, 1080, 6, false, { GetViewTransform: () => view, GetProjection: () => projection });
+  Tr2Renderer.SetViewTransform(view);
+  Tr2Renderer.SetProjectionTransform(projection);
+  ssao._FillCortaoPerObjectData(data, 1920, 1080, 6, false, null);
 
   const float = offset => data.getFloat32(offset, true);
 

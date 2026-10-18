@@ -1,3 +1,4 @@
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {be,NotifyModified,IInitialize,INotify} from '../../npm/dist/global/blue/index.js';
@@ -27,7 +28,7 @@ function indices(index,p,r){const out={primitives:99,indices:[]};assert.equal(in
 function setup(t) {
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=be.resMan;
   const before=new Set(TriDevice.GetResourcesRegistered()),al=new Tr2RenderContextALStub();
-  al.CreateDevice();al.BeginScene();context.SetRenderContextAL(al);context.SetViewTransform(mat4.create());be.resMan=new StubResMan();
+  al.CreateDevice();al.BeginScene();context.SetRenderContextAL(al);Tr2Renderer.SetViewTransform(mat4.create());be.resMan=new StubResMan();
   t.after(()=>{
     for(const resource of TriDevice.GetResourcesRegistered().filter(x=>!before.has(x))) {
       if(CjsSchema.cast(resource,EveSpherePin))resource.Destroy();
@@ -139,7 +140,7 @@ test('visibility places pins without frustum culling and bounds remain local',t=
   const parent=mat4.fromRotationTranslation(mat4.create(),[0,0,Math.SQRT1_2,Math.SQRT1_2],[10,20,30]);
   p.UpdateVisibility({GetFrustum:()=>({IsSphereVisible(){throw Error('native does not cull');}})},parent);
   near(p.worldTransform.slice(12,15),[8,21,33]);const sphere=new Float32Array(4);assert.equal(p.GetBoundingSphere(sphere),true);near(sphere,[1,0,0,0.2]);
-  assert.ok(Math.abs(p.GetSortValue({GetViewPosition:()=>[8,23,30]})-3)<1e-5);
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(),[-8,-23,-30]));assert.ok(Math.abs(p.GetSortValue()-3)<1e-5);
   const queried=mat4.create();p.GetLocalToWorldTransform(queried);near(queried,mat4.create());assert.equal(p.GetLocalBoundingBox([],[]),false);
   assert.equal(p.GetPerObjectData({Alloc:()=>null}),null);
 });

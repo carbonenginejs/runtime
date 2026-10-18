@@ -288,7 +288,7 @@ export class Tr2Blitter
     {
       // Carbon asserts the vertex coordinates are the full quad here
       // (`cpp:126-127`), because the camera-space builder ignores them.
-      if (!Tr2RenderUtils.setupScreenQuadInCameraSpace(this.#quad, renderContext)) return false;
+      Tr2RenderUtils.setupScreenQuadInCameraSpace(this.#quad, renderContext);
     }
     else
     {

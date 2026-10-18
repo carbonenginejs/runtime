@@ -411,7 +411,7 @@ export class EveMissileWarhead extends EveTransform
 
     const frustum = context.GetFrustum();
     this._isVisible = true;
-    this.UpdateViewDependentData(context, parentTransform);
+    this.UpdateViewDependentData(frustum, parentTransform);
 
     if (this.mesh)
     {

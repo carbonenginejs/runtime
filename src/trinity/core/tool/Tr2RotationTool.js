@@ -138,7 +138,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
       for (const primitive of this.primitives)
       {
         mat4.copy(primitive.localTransform, this.localTransform);
-        primitive.UpdateTransform(context);
+        primitive.UpdateTransform();
       }
     }
     finally

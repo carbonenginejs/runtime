@@ -10,6 +10,7 @@ import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
 import { be, CcpTime } from "#blue";
+import { Tr2Renderer } from "./Tr2Renderer.js";
 
 
 // Carbon uses row vectors. A single matrix has the same flat bytes as our
@@ -110,17 +111,18 @@ export class Tr2Transform
   }
 
   /**
-   * Rebuilds local/world transforms and applies Carbon's camera modifiers.
-   * The render-context argument is the JavaScript replacement for
-   * Carbon's Tr2Renderer globals; camera-dependent modes fail when it is absent.
+   * Rebuilds local/world transforms and applies Carbon's camera modifiers from
+   * the renderer's current view (Tr2Transform.cpp:42-248). The frustum is
+   * Carbon's parameter and, as there, unread; matrix products reverse for
+   * gl-matrix semantics.
    *
-   * Adapted: Carbon renderer globals are supplied explicitly as the active render context;
-   * matrix products reverse for gl-matrix semantics.
+   * @param {TriFrustum} _frustum The update context's frustum.
+   * @param {mat4} [parentTransform] The parent's world transform.
+   * @returns {mat4} The world transform.
    */
   @blue.method
-  @blue.contextual(["camera"])
-  @meta.adapted
-  UpdateViewDependentData(context, parentTransform = Tr2Transform.#identity)
+  @meta.implemented
+  UpdateViewDependentData(_frustum, parentTransform = Tr2Transform.#identity)
   {
     const scratch = Tr2Transform.#scratch;
     const finalScale = scratch.finalScale;
@@ -129,9 +131,9 @@ export class Tr2Transform
     if (this.useDistanceBasedScale)
     {
       vec3.transformMat4(scratch.position, this.translation, parentTransform);
-      vec3.subtract(scratch.direction, scratch.position, context.GetViewPosition());
+      vec3.subtract(scratch.direction, scratch.position, Tr2Renderer.GetViewPosition());
       const distance = vec3.length(scratch.direction);
-      const fovHeight = Math.sin(context.GetFieldOfView() * 0.5) * distance;
+      const fovHeight = Math.sin(Tr2Renderer.GetFieldOfView() * 0.5) * distance;
       const scaler = this.distanceBasedScaleArg1 / Math.pow(fovHeight, this.distanceBasedScaleArg2);
       vec3.scale(finalScale, finalScale, scaler * fovHeight);
     }
@@ -144,26 +146,26 @@ export class Tr2Transform
     {
       case Tr2TransformModifier.TR2TM_BILLBOARD:
       case Tr2TransformModifier.TR2TM_SIMPLE_HALO:
-        this.#ApplyBillboard(finalScale, parentTransform, context);
+        this.#ApplyBillboard(finalScale, parentTransform);
         break;
 
       case Tr2TransformModifier.TR2TM_EVE_CAMERA_ROTATION:
-        this.#ApplyEveCameraRotation(finalScale, parentTransform, context);
+        this.#ApplyEveCameraRotation(finalScale, parentTransform);
         break;
 
       case Tr2TransformModifier.TR2TM_EVE_CAMERA_ROTATION_ALIGNED:
       case Tr2TransformModifier.TR2TM_EVE_BOOSTER:
       case Tr2TransformModifier.TR2TM_EVE_SIMPLE_HALO:
-        this.#ApplyCompatibilityModifier(finalScale, parentTransform, context);
+        this.#ApplyCompatibilityModifier(finalScale, parentTransform);
         break;
 
       case Tr2TransformModifier.TR2TM_LOOK_AT_CAMERA:
-        this.#ApplyLookAt(finalScale, parentTransform, context);
+        this.#ApplyLookAt(finalScale, parentTransform);
         break;
 
       case Tr2TransformModifier.TR2TM_TRANSLATE_WITH_CAMERA:
       {
-        const viewPosition = context.GetViewPosition();
+        const viewPosition = Tr2Renderer.GetViewPosition();
         this.worldTransform[12] = viewPosition[0];
         this.worldTransform[13] = viewPosition[1];
         this.worldTransform[14] = viewPosition[2];
@@ -173,7 +175,7 @@ export class Tr2Transform
       case Tr2TransformModifier.TR2TM_PRE_TRANSLATE_WITH_CAMERA:
         vec3.add(
           scratch.position,
-          context.GetViewPosition(),
+          Tr2Renderer.GetViewPosition(),
           this.translation
         );
         mat4.fromRotationTranslationScale(this.localTransform, this.rotation, scratch.position, finalScale);
@@ -261,17 +263,12 @@ export class Tr2Transform
     return false;
   }
 
-  /**
-   * Returns camera distance times the authored sort multiplier.
-   *
-   * Adapted: The active render context replaces Carbon's Tr2Renderer view-position global.
-   */
+  /** Returns camera distance times the authored sort multiplier (Tr2Transform.cpp:271-276). */
   @blue.method
-  @blue.contextual(["camera"])
-  @meta.adapted
-  GetSortValue(context)
+  @meta.implemented
+  GetSortValue()
   {
-    const viewPosition = context.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     const dx = viewPosition[0] - this.worldTransform[12];
     const dy = viewPosition[1] - this.worldTransform[13];
     const dz = viewPosition[2] - this.worldTransform[14];
@@ -287,7 +284,7 @@ export class Tr2Transform
   }
 
   /** Applies Carbon's billboard and squared-facing simple-halo basis. */
-  #ApplyBillboard(finalScale, parentTransform, renderContext)
+  #ApplyBillboard(finalScale, parentTransform)
   {
     const scratch = Tr2Transform.#scratch;
     vec3.set(
@@ -299,7 +296,7 @@ export class Tr2Transform
 
     if (this.modifier === Tr2TransformModifier.TR2TM_SIMPLE_HALO)
     {
-      const viewPosition = renderContext.GetViewPosition();
+      const viewPosition = Tr2Renderer.GetViewPosition();
       vec3.set(
         scratch.direction,
         viewPosition[0] - this.worldTransform[12],
@@ -313,11 +310,11 @@ export class Tr2Transform
       vec3.scale(scratch.scale, scratch.scale, facing * facing);
     }
 
-    setViewBasis(this.worldTransform, renderContext.GetInverseViewTransform(), scratch.scale);
+    setViewBasis(this.worldTransform, Tr2Renderer.GetInverseViewTransform(), scratch.scale);
   }
 
   /** Applies Carbon's EVE camera rotation while retaining world translation. */
-  #ApplyEveCameraRotation(finalScale, parentTransform, renderContext)
+  #ApplyEveCameraRotation(finalScale, parentTransform)
   {
     const scratch = Tr2Transform.#scratch;
     vec3.transformMat4(scratch.position, this.translation, parentTransform);
@@ -329,20 +326,20 @@ export class Tr2Transform
       this.localTransform[14]
     );
     // Carbon local * inverseView -> gl-matrix inverseView * local.
-    mat4.multiply(this.worldTransform, renderContext.GetInverseViewTransform(), this.localTransform);
+    mat4.multiply(this.worldTransform, Tr2Renderer.GetInverseViewTransform(), this.localTransform);
     this.worldTransform[12] = scratch.translation[0];
     this.worldTransform[13] = scratch.translation[1];
     this.worldTransform[14] = scratch.translation[2];
   }
 
   /** Applies the aligned, booster, and EVE simple-halo compatibility modes. */
-  #ApplyCompatibilityModifier(finalScale, parentTransform, renderContext)
+  #ApplyCompatibilityModifier(finalScale, parentTransform)
   {
     const scratch = Tr2Transform.#scratch;
     mat4.fromTranslation(scratch.translationMatrix, this.translation);
     mat4.multiply(this.worldTransform, parentTransform, scratch.translationMatrix);
 
-    const viewPosition = renderContext.GetViewPosition();
+    const viewPosition = Tr2Renderer.GetViewPosition();
     vec3.set(
       scratch.direction,
       viewPosition[0] - this.worldTransform[12],
@@ -357,7 +354,7 @@ export class Tr2Transform
     const distanceCenter = vec3.length(scratch.forward);
     vec3.normalize(scratch.forward, scratch.forward);
 
-    const view = renderContext.GetViewTransform();
+    const view = Tr2Renderer.GetViewTransform();
     vec3.set(scratch.right, view[0], view[4], view[8]);
     rotateIntoBasis(scratch.right, scratch.right, parentTransform);
     vec3.cross(scratch.up, scratch.forward, scratch.right);
@@ -407,7 +404,7 @@ export class Tr2Transform
   }
 
   /** Applies Carbon's look-at-camera basis, including its degenerate zero axes. */
-  #ApplyLookAt(finalScale, parentTransform, renderContext)
+  #ApplyLookAt(finalScale, parentTransform)
   {
     const scratch = Tr2Transform.#scratch;
     vec3.set(
@@ -416,7 +413,7 @@ export class Tr2Transform
       this.worldTransform[13],
       this.worldTransform[14]
     );
-    mat4.lookAtCarbon(scratch.lookAt, renderContext.GetViewPosition(), scratch.position, Tr2Transform.#worldUp);
+    mat4.lookAtCarbon(scratch.lookAt, Tr2Renderer.GetViewPosition(), scratch.position, Tr2Transform.#worldUp);
     mat4.transpose(scratch.lookAt, scratch.lookAt);
     vec3.set(
       scratch.scale,

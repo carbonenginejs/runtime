@@ -367,15 +367,12 @@ export class Tr2SSAO
    */
   _FillCortaoPerObjectData(view, width, height, mipCount, temporal, renderContext)
   {
-    const viewMatrix = renderContext.GetViewTransform();
-    const projection = renderContext.GetProjection();
-    const inverseProjection = mat4.invert(mat4.create(), projection);
+    const viewMatrix = Tr2Renderer.GetViewTransform();
+    const projection = Tr2Renderer.GetProjectionTransform();
+    const inverseProjection = mat4.inverseCarbon(mat4.create(), projection);
 
-    // Tr2Renderer's UpdateProjectionParameters (Tr2Renderer.cpp:81-82).
-    const frontClip = projection[10] ? projection[14] / projection[10] : 0;
-    const backClip = projection[14] / (1 + projection[10]);
-    const nearPlane = Math.fround(backClip);
-    const farPlane = Math.fround(frontClip);
+    const nearPlane = Math.fround(Tr2Renderer.GetBackClip());
+    const farPlane = Math.fround(Tr2Renderer.GetFrontClip());
 
     const floats = (offset, ...values) => values.forEach((value, index) => view.setFloat32(offset + index * 4, value, true));
     const uints = (offset, ...values) => values.forEach((value, index) => view.setUint32(offset + index * 4, value >>> 0, true));

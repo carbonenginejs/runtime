@@ -1,3 +1,4 @@
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {EveCircle,EveBezierCurve,EveLineChildContainer,Tr2RenderContext} from '../../npm/dist/trinity/index.js';
@@ -53,7 +54,7 @@ test('Bezier endpoint scales apply to complete paths and incomplete final record
 
 test('billboards remove only the parent rotation rather than its nonuniform scale',()=>{
   const parent=mat4.fromRotationTranslationScale(mat4.create(),quat.setAxisAngle(quat.create(),[0,0,1],Math.PI/2),[10,-3,7],[2,3,4]);
-  const context={GetViewPosition:()=>[3,4,12]};
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(),[-3,-4,-12]));const context=null;
   for(const p of [circle(),bezier()]){
     p._points=[[2,1,0],[3,1,0],[4,1,0]];p.animValue=0;p.scaleEndpoints=false;p.billboardObjects=true;
     const c=cursor(3);p.UpdateBuffer(context,c,parent,48);near(translation(c),[2,1,0]);near(forward(c),direction([3,4,5]));
@@ -62,7 +63,7 @@ test('billboards remove only the parent rotation rather than its nonuniform scal
 
 test('native forward quaternion branch gives a half-turn for an exact positive-Z billboard',()=>{
   const p=circle();p._points=[[0,0,0],[1,0,0]];p.billboardObjects=true;const c=cursor(2);
-  p.UpdateBuffer({GetViewPosition:()=>[0,0,10]},c,mat4.create(),48);
+  Tr2Renderer.SetViewTransform(mat4.fromTranslation(mat4.create(),[0,0,-10]));p.UpdateBuffer(null,c,mat4.create(),48);
   near(record(c),[1,0,0,0,0,-1,0,0,0,0,-1,0]);
 });
 

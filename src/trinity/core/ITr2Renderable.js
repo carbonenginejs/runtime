@@ -22,13 +22,13 @@ export class ITr2Renderable
   }
 
   /** Emits batches of the requested type. */
-  GetBatches(_accumulator, _batchType, _perObjectData, _reason, _renderContext) {}
+  GetBatches(_accumulator, _batchType, _perObjectData, _reason) {}
 
   /** Reports whether a transparent pass is required. */
   HasTransparentBatches() {}
 
   /** Returns the current transparent-sort value. */
-  GetSortValue(_renderContext) {}
+  GetSortValue() {}
 
   /** Returns or allocates the renderable's per-object data. */
   GetPerObjectData(_accumulator) {}

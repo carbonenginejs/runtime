@@ -26,6 +26,7 @@ import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/con
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 import { UpdateContext } from "../support/eveUpdateContext.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 
 beforeEach(t =>
@@ -37,8 +38,8 @@ beforeEach(t =>
   context.SetRenderContextAL(al);
   al.CreateDevice();
   al.BeginScene();
-  context.SetViewTransform(mat4.create());
-  context.SetProjection(mat4.create());
+  Tr2Renderer.SetViewTransform(mat4.create());
+  Tr2Renderer.SetProjectionTransform(mat4.create());
   t.after(() =>
   {
     for (const resource of TriDevice.GetResourcesRegistered())
@@ -519,13 +520,9 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
   cloud.noiseTextureSize = 0; // explicit invalid input, native default is 32
 
   const view = mat4.lookAt(mat4.create(), [3, 5, -7], [10, 2, 4], [0, 1, 0]);
-  const renderContext = {
-    GetReversedDepthProjectionTransform: () => mat4.create(),
-    GetViewTransform: () => view,
-    GetViewPosition: () => vec3.fromValues(3, 5, -7)
-  };
+  Tr2Renderer.SetViewTransform(view);
 
-  const data = cloud.PopulatePerObjectData(RawData.create("EveChildCloud2PerObjectData"), 150, renderContext);
+  const data = cloud.PopulatePerObjectData(RawData.create("EveChildCloud2PerObjectData"), 150);
 
   // Carbon: worldViewInv = Inverse(world * view), world applies FIRST - the
   // gl-matrix expression is multiply(WV, view, world).
@@ -561,7 +558,7 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
     GetLightData: () => ({ innerRadius: 2 }),
     GetBrightnessMultiplier: () => 3
   });
-  const withLights = cloud.PopulatePerObjectData(RawData.create("EveChildCloud2PerObjectData"), 1, renderContext);
+  const withLights = cloud.PopulatePerObjectData(RawData.create("EveChildCloud2PerObjectData"), 1);
   assert.equal(withLights.Get("lights").length, 32, "four native LightData structs");
   assertVecClose(withLights.GetIndex("lights", 0), [1, 2, 3, 4], "position and radius");
   assertVecClose(withLights.GetIndex("lights", 1), [12, 6, 24, 0.5], "boosted color and inner radius");
