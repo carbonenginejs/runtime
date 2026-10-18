@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { num } from "../../npm/dist/global/math/num.js";
 import { CcpTime } from "../../npm/dist/global/blue/CcpTime.js";
 import { BlueCallbackMan } from "../../npm/dist/global/blue/BlueCallbackMan.js";
+import { CjsBlueOS } from "../../npm/dist/global/blue/CjsBlueOS.js";
 import { SpatialAudioSettings } from "../../npm/dist/audio/trinity/audio/SpatialAudioSettings.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";
 import { Tr2CurveScalar } from "../../npm/dist/trinity/curves/curve/Tr2CurveScalar.js";
@@ -121,7 +122,9 @@ test("smart lights round half fields before submitting the CPU record", async ()
 test("zero elapsed queue ticks do not enter native statistics", t =>
 {
     const man = new BlueCallbackMan();
-    t.mock.method(performance,"now",()=>1);
+    // The queue stamps and measures with CcpGetTimestamp (CallbackMan.cpp:123, :408-411),
+    // which reads Blue's monotonic clock here.
+    t.mock.method(CjsBlueOS,"Monotonic",()=>1);
     man.Add(()=>{});
     man.Update();
     assert.equal(man._entriesProcessed,0);

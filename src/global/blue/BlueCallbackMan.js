@@ -23,6 +23,7 @@
 import { CjsSchema, meta, blue } from "#schema";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { BlueCallbackManThreadData } from "./BlueCallbackManThreadData.js";
+import { CjsBlueOS } from "./CjsBlueOS.js";
 
 /**
  * @typedef {object} BlueCallbackEntry
@@ -43,10 +44,16 @@ const CCP_THREAD_PRIORITY_HIGHEST = 2;
 /** The most threads `SetThreadCount` allows (CallbackMan.cpp:86-90). */
 const MAX_THREAD_COUNT = 32;
 
-/** Browser monotonic clock expressed as uint64 nanosecond ticks; frequency is 1e9. */
+/**
+ * Carbon's `CcpGetTimestamp()` (core/CcpTime.cpp:11-23), the steady counter the
+ * queue stamps and measures against (CallbackMan.cpp:123, :408-411), as uint64
+ * nanosecond ticks; its frequency, `CcpGetTimestampFrequency()`, is 1e9 here.
+ * Adapted: the counter is Blue's host monotonic clock, `CjsBlueOS.Monotonic()`
+ * (milliseconds), which every steady-clock port reads (blue-clock-epoch).
+ */
 function timestampTicks()
 {
-  return BigInt.asUintN(64, BigInt(Math.trunc(performance.now() * 1e6)));
+  return BigInt.asUintN(64, BigInt(Math.trunc(CjsBlueOS.Monotonic() * 1e6)));
 }
 
 /** The rejection a cancelled entry's promise gets. */
