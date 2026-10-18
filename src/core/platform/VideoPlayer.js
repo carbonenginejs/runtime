@@ -245,7 +245,7 @@ export class VideoPlayer
   _RequestGpuAverageColor(generation)
   {
     const resource = this.bgraTexture, texture = resource ? resource.GetTexture() : null;
-    if (!texture || typeof texture.RequestAverageColor !== "function") return false;
+    if (!texture) return false;
     const start = this._host.performance.now();
     let promise;
     try { promise = texture.RequestAverageColor(); }

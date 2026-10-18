@@ -52,7 +52,9 @@ function fixture()
     let valid = true;
     return { IsValid: () => valid, GetMemoryClass: () => 1, SetName() {},
       Destroy() {if(valid) counts.destroys++;valid=false;},
-      UpdateSubresource() {counts.uploads++;return 0;}, GetDesc: () => desc };
+      UpdateSubresource() {counts.uploads++;return 0;}, GetDesc: () => desc,
+      // Tr2TextureAL.RequestAverageColor: null selects the browser fallback.
+      RequestAverageColor: () => null };
   }};
   const player = new VideoPlayer({host, getRenderContext: () => render});
   const texture = new TriTextureRes();
