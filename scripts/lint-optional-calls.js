@@ -57,6 +57,11 @@
 // and re-record the lower number: the baseline is a ratchet, not a permission
 // slip. A shape with no sites left is written OUT of the baseline, and from then
 // on any site of that shape fails.
+//
+// HELD SITES. A file whose sites wait on a named later pass carries the reason
+// in the baseline's `held` table, keyed by file, rather than as a comment at
+// every site. `--write` keeps a held reason for as long as its file still has
+// sites, and drops it once the file is clean.
 
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -340,6 +345,19 @@ if (process.argv.includes("--write"))
     {
         if (Object.keys(counts[rule]).length) written[rule] = counts[rule];
     }
+
+    let previous = {};
+    try
+    {
+        previous = JSON.parse(await fs.readFile(baselineFile, "utf8"));
+    }
+    catch (error)
+    {
+        if (error.code !== "ENOENT") throw error;
+    }
+    const held = Object.fromEntries(Object.entries(previous.held ?? {})
+        .filter(([ file ]) => Object.keys(RULES).some(rule => counts[rule][file])));
+    if (Object.keys(held).length) written.held = held;
 
     await fs.writeFile(baselineFile, `${JSON.stringify(written, null, 2)}\n`);
     const summary = Object.keys(RULES).map(rule => `${rule} ${Object.keys(counts[rule]).length}`).join(", ");
