@@ -56,7 +56,8 @@ export function FakeWebgl2()
         bufferData(target, data, usage)
         {
             const buffer = bindings.get(target);
-            buffer.bytes = new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice();
+            // A size allocates zeroed storage, as GL's bufferData(target, size, usage) does.
+            buffer.bytes = typeof data === "number" ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice();
             buffer.usage = usage;
             calls.push([ "bufferData", target, buffer, buffer.bytes.slice(), usage ]);
         },

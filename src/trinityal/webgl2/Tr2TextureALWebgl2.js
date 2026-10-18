@@ -56,6 +56,7 @@ import { ALResult } from "../ALResult.js";
 import { Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "../Tr2HalHelperStructures/index.js";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { CopyRegion } from "../stub/Tr2TextureALStub.js";
+import { Tr2ReadbackALWebgl2 } from "./Tr2ReadbackALWebgl2.js";
 import {
   Tr2ColorSpace,
   GetBytesPerPixel,
@@ -222,7 +223,7 @@ export function UncompressedLayout(gl, format, depthStencil)
 }
 
 /** Swaps the R and B bytes of every four-byte pixel, into a new array. */
-function SwapRedBlue(source)
+export function SwapRedBlue(source)
 {
   const out = new Uint8Array(source.length);
   for (let i = 0; i + 3 < source.length; i += 4)
@@ -825,6 +826,52 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /**
+   * Copies one subresource, or a box of it, into a readback
+   * (`Tr2TextureALDx11.cpp:873-933`), with dx11's refusals in dx11's order.
+   *
+   * Adapted: the staging copy is a `readPixels` into a pack buffer (see
+   * `Tr2ReadbackALWebgl2`), and a compressed texture, which has no framebuffer
+   * attachment to read from, is refused as `MapForReading` refuses it.
+   *
+   * @param {Tr2TextureSubresource} region The subresource to copy.
+   * @param {object} renderContext The primary context.
+   * @returns {Tr2ReadbackALWebgl2|null} The readback, or null when refused.
+   */
+  @meta.adapted
+  CreateReadback(region, renderContext)
+  {
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.READ)) return null;
+
+    const al = RenderContextALOf(renderContext);
+    if (!this.IsValid() || !al || !al.IsValid()) return null;
+    if (this._desc.GetType() === TextureType.TEX_TYPE_3D) return null;
+    if (!region.IsValidForBitmap(this._desc)) return null;
+    if (!region.IsSingleSubresource()) return null;
+    if (this._layout.compressed || this._decompressed) return null;
+
+    const gl = this._gl;
+    const mip = region.startMipLevel;
+    const box = region.HasBox() ? region.box : null;
+    const x = box ? box.left : 0;
+    const y = box ? box.top : 0;
+    const width = box ? box.right - box.left : this._desc.GetMipWidth(mip);
+    const height = box ? box.bottom - box.top : this._desc.GetMipHeight(mip);
+    const pitch = width * GetBytesPerPixel(this._desc.GetFormat());
+
+    const stagingBuffer = gl.createBuffer();
+    const previous = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
+
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, stagingBuffer);
+    gl.bufferData(gl.PIXEL_PACK_BUFFER, pitch * height, gl.STREAM_READ);
+    this._BindForRead(gl, mip, region.startFace);
+    gl.readPixels(x, y, width, height, this._layout.format, this._layout.type, 0);
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, previous);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+
+    return new Tr2ReadbackALWebgl2(gl, stagingBuffer, pitch, pitch * height, this._layout.bgra, al.GetRecordingFrameNumber());
+  }
+
+  /**
    * Maps one subresource, or a box of it, for reading.
    *
    * dx11 copies into a staging texture and maps it (`:802-876`); WebGL2 reads
@@ -1360,6 +1407,7 @@ CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetDesc", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetMsaaDesc", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetGpuUsage", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetCpuUsage", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "CreateReadback", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "MapForReading", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "UnmapForReading", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "MapForWriting", blue.method);
@@ -1375,3 +1423,4 @@ CjsSchema.decorateMethod(Tr2TextureALWebgl2, "SetName", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetName", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Describe", blue.method);
 CjsSchema.blue.define(Tr2TextureALWebgl2, { className: "Tr2TextureALWebgl2", donors: [ "Tr2TextureAL" ] });
+

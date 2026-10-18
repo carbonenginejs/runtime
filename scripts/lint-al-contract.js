@@ -103,14 +103,18 @@ function declaredMethods(source)
 }
 
 /**
- * Strips the backend marker, so `Tr2BufferALStub` and `CjsWebgpuBufferAL` meet
- * at one contract name.
+ * Strips the backend marker, so `Tr2BufferALStub`, `Tr2BufferALWebgl2` and
+ * `CjsWebgpuBufferAL` meet at one contract name.
+ *
+ * `Webgl2` IS A SUFFIX TOO. The WebGL2 classes are `Tr2<Name>ALWebgl2`, and
+ * stripping only `Stub|Webgpu|WebGPU` left them as `<Name>ALWebgl2`, which met
+ * no stub contract, so rule 2 never compared the WebGL2 backend at all.
  */
 function contractName(className)
 {
     return className
         .replace(/^Cjs(?:Webgpu|Webgl2|Webgl)/u, "")
-        .replace(/(?:Stub|Webgpu|WebGPU)$/u, "")
+        .replace(/(?:Stub|Webgpu|WebGPU|Webgl2)$/u, "")
         .replace(/^Tr2/u, "")
         .replace(/AL$/u, "");
 }
@@ -267,6 +271,34 @@ for (const directory of new Set(files.map(topLevel).filter(parts => parts.length
 
 const stubSurface = await surfaceOf(stubFiles);
 
+/**
+ * Stub methods a backend class need not answer, each with the Carbon evidence.
+ *
+ * NOT A SILENT PASS. Every entry names the reason the method is absent from
+ * the backend - inherited, or a stub-only member with no counterpart in the
+ * backend's donor - and an entry that no longer matches a missing method is
+ * itself reported, so a fixed or renamed method cannot leave a stale excuse.
+ * WebGL2's donor is dx11 (`webgl2/index.js`).
+ */
+const EXEMPT = new Map([
+    [ "webgl2:Tr2PipelineStatsQueryALWebgl2.Destroy",
+        "inherited: Tr2BaseDeviceResourceAL.Destroy unregisters the resource; dx11's Destroy only drops "
+        + "m_query (Tr2PipelineStatsQueryALDx11.cpp:63-66), and WebGL2 never creates one" ],
+    [ "webgl2:Tr2SamplerStateALWebgl2.GetDescription",
+        "not Carbon: no backend declares it (Tr2SamplerStateALDx11.h:12-33, Tr2SamplerStateALStub.h:11-33); "
+        + "the stub stores the description as its own departure (Tr2SamplerStateALStub.js head comment)" ],
+    [ "webgl2:Tr2ShaderALWebgl2.SetNullShaderType",
+        "not in the donor: Carbon declares it on stub and metal only (Tr2ShaderALStub.h:42, "
+        + "Tr2ShaderALMetal.h:42); dx11's Tr2ShaderAL has none" ],
+    [ "webgl2:Tr2ShaderProgramALWebgl2.GetShaders",
+        "not Carbon: no backend declares it (Tr2ShaderProgramALDx11.h:13-49, Tr2ShaderProgramALStub.h:12-33); "
+        + "an unstamped stub accessor of ours" ],
+    [ "webgl2:Tr2VertexLayoutALWebgl2.GetDefinition",
+        "not Carbon: no backend declares it (Tr2VertexLayoutALDx11.h:24-56, Tr2VertexLayoutALStub.h:13-38); "
+        + "an unstamped stub accessor of ours, which the WebGPU backend reads off the stub layout" ]
+]);
+const exemptionsUsed = new Set();
+
 for (const backend of backends)
 {
     const backendFiles = files.filter(file => path.relative(alRoot, file).split(path.sep)[0] === backend);
@@ -280,7 +312,7 @@ for (const backend of backends)
     // had won it, masking the surface it should have checked.
     const byContract = new Map(
         [ ...surface ]
-            .filter(([ name ]) => name.endsWith("AL"))
+            .filter(([ name ]) => /AL(?:Webgl2)?$/u.test(name))
             .map(([ name, methods ]) => [ contractName(name), { name, methods } ])
     );
 
@@ -304,12 +336,27 @@ for (const backend of backends)
             // is its own bookkeeping, not something Trinity can call.
             if (method.startsWith("#") || method.startsWith("_") || theirs.methods.has(method)) continue;
 
+            const exemption = `${backend}:${theirs.name}.${method}`;
+
+            if (EXEMPT.has(exemption))
+            {
+                exemptionsUsed.add(exemption);
+                continue;
+            }
+
             problems.push(
                 `${backend}: ${theirs.name} does not answer ${method}, which ${stubClass} does. `
                 + "Backends must be interchangeable; Trinity cannot know which one it holds."
             );
         }
     }
+}
+
+for (const exemption of EXEMPT.keys())
+{
+    if (exemptionsUsed.has(exemption)) continue;
+
+    problems.push(`stale exemption ${exemption}: the method is no longer missing, so its excuse must go.`);
 }
 
 const baselineFile = path.join(packageRoot, "scripts", "al-contract-baseline.json");

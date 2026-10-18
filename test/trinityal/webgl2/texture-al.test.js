@@ -163,3 +163,41 @@ test("a texture with no initial data answers its linear texture for sRGB, Carbon
 
     assert.equal(texture.GetShaderResourceTexture(Tr2ColorSpace.COLOR_SPACE_SRGB), texture.GetGpuResource());
 });
+
+test("CreateReadback copies into a pack buffer, is ready by frame number, and maps it once", async () =>
+{
+    // Tr2TextureALDx11.cpp:873-933: refuse without CPU read, else copy into a
+    // staging resource tagged with the recording frame; Map (:348-372) reads it.
+    const { Tr2TextureSubresource } = await import("../../../npm/dist/trinityal/index.js");
+    const { gl, calls, texture } = create(dims(TextureType.TEX_TYPE_2D, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 2, 2),
+        { gpuUsage: Tr2GpuUsage.RENDER_TARGET, cpuUsage: Tr2CpuUsage.READ });
+    let rendered = 4;
+    const context = { ...FakeRenderContext(gl), GetRecordingFrameNumber: () => 5, GetRenderedFrameNumber: () => rendered };
+    const region = Tr2TextureSubresource.create__MipLevel(0);
+
+    const unreadable = create(dims(TextureType.TEX_TYPE_2D, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 2, 2), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
+    assert.equal(unreadable.texture.CreateReadback(region, context), null, "no CPU read usage, no readback");
+
+    calls.length = 0;
+    const readback = texture.CreateReadback(region, context);
+
+    assert.equal(readback.IsValid(), true);
+    assert.deepEqual(called(calls, "readPixels").map(call => call.slice(1)), [ [ 0, 0, 2, 2, gl.RGBA, gl.UNSIGNED_BYTE, 0 ] ],
+        "read into the bound pack buffer at offset 0, not into client memory");
+    assert.equal(called(calls, "bindBuffer").some(([ , target, buffer ]) => target === gl.PIXEL_PACK_BUFFER && buffer), true);
+
+    assert.equal(readback.IsReady(context), false, "the frame that recorded the copy has not finished");
+    rendered = 5;
+    assert.equal(readback.IsReady(context), true);
+
+    const mapped = readback.Map(context);
+    assert.equal(mapped.result, ALResult.S_OK);
+    assert.equal(mapped.pitch, 8);
+    assert.equal(mapped.data.length, 16);
+    assert.equal(readback.Map(context).data, mapped.data, "mapped once");
+    assert.equal(called(calls, "getBufferSubData").length, 1);
+
+    readback.Destroy();
+    assert.equal(readback.IsValid(), false);
+    assert.equal(called(calls, "deleteBuffer").length, 1);
+});
