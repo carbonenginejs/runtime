@@ -10,6 +10,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import {
+  EveChildPostProcessVolume,
   EveComponentType,
   EveEffectRoot2,
   EveEntity,
@@ -294,7 +295,9 @@ test("UpdatePostProcessAttributes: descending priority-weight blend, copy-throug
     attributes.intensity = intensity;
     attributes.bloomBrightness = bloomBrightness;
     attributes.bloomBrightnessEnabled = true;
-    const owner = new EveEntity();
+    // A real ITr2PostProcessOwner (the registry casts nominally), answering
+    // this fixture's attributes.
+    const owner = new EveChildPostProcessVolume();
     owner.GetPostProcessAttributes = () => attributes;
     return owner;
   };

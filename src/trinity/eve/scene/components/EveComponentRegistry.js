@@ -7,6 +7,8 @@ import { EveComponentCollection } from "./EveComponentCollection.js";
 import { EveComponentRequiredMethods, EveComponentType } from "../../EntityComponents.js";
 import { ITr2FroxelFogSettings } from "../../child/ITr2FroxelFogSettings.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2VolumetricRenderable } from "../../../core/ITr2VolumetricRenderable.js";
+import { ITr2PostProcessOwner } from "../../../postProcess/ITr2PostProcessOwner.js";
 
 /** Indexes Eve entities and their component collections for scene processing. */
 @blue.define("EveComponentRegistry")
@@ -160,9 +162,15 @@ export class EveComponentRegistry
 
   /**
    * Adds an entity to the named component's collection, creating the collection
-   * on demand, and throws if the entity is missing any method the component
-   * interface requires - the fail-closed stand-in for Carbon's compile-time
-   * RegisterComponent<T> constraint.
+   * on demand, and throws if the entity is not the component's interface - the
+   * fail-closed stand-in for Carbon's compile-time RegisterComponent<T>
+   * constraint. Components whose interface has a nominal root are checked with
+   * CjsSchema.cast against the interface their REGISTER_COMPONENT_TYPE row
+   * binds: ReflectionRenderable (ITr2Renderable.h:58), VolumetricRenderable
+   * (ITr2VolumetricRenderable.h:55), PostProcessOwner
+   * (PostProcess/ITr2PostProcessOwner.h:15) and FroxelFogSettings
+   * (Tr2VolumetricsRenderer.h:59). The rest check their pure-virtual method
+   * names (EveComponentRequiredMethods).
    *
    * Adapted: JavaScript passes Carbon's compile-time component name explicitly because it
    * has no C++ template specialization.
@@ -177,6 +185,22 @@ export class EveComponentRegistry
       {
         throw new TypeError(
           `EveComponentRegistry.RegisterComponent("${componentName}") expects an ITr2Renderable.`);
+      }
+    }
+    else if (componentName === EveComponentType.VolumetricRenderable)
+    {
+      if (!CjsSchema.cast(entity, ITr2VolumetricRenderable))
+      {
+        throw new TypeError(
+          `EveComponentRegistry.RegisterComponent("${componentName}") expects an ITr2VolumetricRenderable.`);
+      }
+    }
+    else if (componentName === EveComponentType.PostProcessOwner)
+    {
+      if (!CjsSchema.cast(entity, ITr2PostProcessOwner))
+      {
+        throw new TypeError(
+          `EveComponentRegistry.RegisterComponent("${componentName}") expects an ITr2PostProcessOwner.`);
       }
     }
     else if (componentName === EveComponentType.FroxelFogSettings)

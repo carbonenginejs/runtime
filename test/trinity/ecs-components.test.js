@@ -15,15 +15,17 @@ test("EveComponentType carries the nine Carbon component-name strings verbatim",
   assert.equal(EveComponentType.ShadowCaster, "ShadowCaster");
   assert.equal(EveComponentType.EveLightingOverride, "EveLightingOverride");
   assert.equal(Object.keys(EveComponentType).length, 9);
+  const NOMINAL = [ EveComponentType.ReflectionRenderable, EveComponentType.VolumetricRenderable, EveComponentType.PostProcessOwner ];
   for (const name of Object.values(EveComponentType))
   {
-    if (name === EveComponentType.ReflectionRenderable) continue;
+    // These are checked nominally (CjsSchema.cast on their interface), not by a method list.
+    if (NOMINAL.includes(name)) continue;
     assert.ok(
       Array.isArray(EveComponentRequiredMethods[name]) && EveComponentRequiredMethods[name].length > 0,
       `required-method duck list exists for ${name}`
     );
   }
-  assert.equal(Object.hasOwn(EveComponentRequiredMethods, EveComponentType.ReflectionRenderable), false);
+  for (const name of NOMINAL) assert.equal(Object.hasOwn(EveComponentRequiredMethods, name), false, `${name} has no duck list`);
 });
 
 test("reflection setting defaults to HIGH (Carbon's REFLECT_NEVER==3 init quirk, EveSpaceScene.cpp:112)", () =>

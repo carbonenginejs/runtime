@@ -868,6 +868,9 @@ export class EveChildMesh extends EveChildTransform
    *
    * Adapted: Carbon's Python tuple (or None) is an array (or null), as
    * EveChildInstancedMeshes.GetSofSourceLocator returns.
+   *
+   * Waiting: our SOF does not yet stamp BeObjectMetadata on the children it
+   * builds (EveSOF.cpp:4012, 4150), so SOF-built children return null.
    * @param {number} areaId The picked area.
    * @returns {Array|null} [hullName, locatorSetName, locatorIndex], or null.
    */

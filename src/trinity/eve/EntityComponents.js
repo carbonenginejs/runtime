@@ -32,7 +32,7 @@ export const EveComponentType = Object.freeze({
   /** ITr2LightOwner (Lights/ITr2LightOwner.h:18). */
   LightOwner: "LightOwner",
 
-  /** ITr2FroxelFogSettings (Tr2VolumetricsRenderer.h:57). */
+  /** ITr2FroxelFogSettings (Tr2VolumetricsRenderer.h:59). */
   FroxelFogSettings: "FroxelFogSettings",
 
   /** IEveShadowCaster (Eve/IEveShadowCaster.h:164). */
@@ -48,27 +48,13 @@ export const EveComponentType = Object.freeze({
  * pure-virtual surface (methods Carbon gives default implementations - e.g.
  * ITr2Renderable::IsVisible, ITr2LightOwner::AddLight/ClearLights,
  * IEveShadowCaster::PushRtGeometry/MarkRtDirty/IsShadowCastingDirty and the
- * sphere-overload IsCastingShadow - are not required). ITr2Renderable and
- * ITr2FroxelFogSettings are enforced nominally by EveComponentRegistry.
+ * sphere-overload IsCastingShadow - are not required). ITr2Renderable,
+ * ITr2VolumetricRenderable, ITr2PostProcessOwner and ITr2FroxelFogSettings
+ * are enforced nominally by EveComponentRegistry.
  */
 export const EveComponentRequiredMethods = {
-  /** ITr2VolumetricRenderable.h:44-51 pure virtuals. */
-  VolumetricRenderable: [
-    "GetSortValue",
-    "GetVolumetricBatches",
-    "UpdateVolumetricLightmap",
-    "SetSceneInformation",
-    "GetVolumetricShadowBatches",
-    "GetVolumetricShadowInfo",
-    "PrepareCloudShadowMap",
-    "SetCloudShadowMapHandle"
-  ],
-
   /** ITr2MeshMorph.h:11. */
   MeshMorph: ["UpdateMeshMorphs"],
-
-  /** PostProcess/ITr2PostProcessOwner.h:12. */
-  PostProcessOwner: ["GetPostProcessAttributes"],
 
   /** Eve/EveInstancedMeshManager.h:299. */
   InstancedMeshProvider: ["AddMeshesToManager"],

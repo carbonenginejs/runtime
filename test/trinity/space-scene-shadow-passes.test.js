@@ -269,13 +269,10 @@ test("RenderVolumetricShadowMap renders into each cloud that prepares its map, t
 
   for (const [ id, prepares ] of [ [ 1, false ], [ 2, true ] ])
   {
-    scene.componentRegistry.RegisterComponent("VolumetricRenderable", component({
-      // ITr2VolumetricRenderable's other pure virtuals, which the registry requires.
-      GetSortValue: () => 0,
-      GetVolumetricBatches() {},
-      UpdateVolumetricLightmap: () => false,
-      SetSceneInformation() {},
-      GetVolumetricShadowBatches() {},
+    // A real ITr2VolumetricRenderable; the registry casts nominally. The three
+    // methods the pass calls are overridden on the instance to record them.
+    const cloud = new trinity.EveChildCloud2();
+    Object.assign(cloud, {
       GetVolumetricShadowInfo: (shadowInfo, sunDir) =>
       {
         sequence.push(`info:${id}`);
@@ -297,7 +294,8 @@ test("RenderVolumetricShadowMap renders into each cloud that prepares its map, t
         return true;
       },
       SetCloudShadowMapHandle: () => sequence.push(`handle:${id}`)
-    }));
+    });
+    scene.componentRegistry.RegisterComponent("VolumetricRenderable", cloud);
   }
 
   scene.RenderIntoCloudShadowMap = (renderContext, shadowInfo, shadowCasters) =>

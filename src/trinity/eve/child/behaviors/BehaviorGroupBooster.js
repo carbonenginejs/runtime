@@ -275,6 +275,7 @@ export class BehaviorGroupBooster
       this.ambientFlareEffect = this._CreateFlareEffect();
       this._InitializeAmbientFlare();
     }
+    // Both default flares come from the same _CreateFlareEffect and register the same hash, so halo quads land in an identical effect's bucket and render the same; a script-set halo effect gets its own hash.
     if (this.haloFlareEffect === null)
     {
       this.haloFlareEffect = this._CreateFlareEffect();
@@ -647,32 +648,35 @@ export class BehaviorGroupBooster
   }
 
   /**
-   * Carbon AddQuadsToQuadRenderer (cpp:380-396): submits the flare lists
-   * with their independent display switches.
+   * Carbon AddQuadsToQuadRenderer (cpp:380-396): submits the flare lists,
+   * with their independent display switches, at the stored m_haloFlareHash
+   * and m_ambientFlareHash. It registers nothing: InitializeHaloFlare and
+   * InitializeAmbientFlare (cpp:131-141) register with the global quad
+   * renderer, RegisterWithQuadRenderer (cpp:365-378) with the renderer it is
+   * given. So, as in Carbon, a flare effect set after RegisterWithQuadRenderer
+   * reaches only the global renderer, and another view's renderer drops its
+   * quads until the booster is registered with it again.
    *
-   * Adapted: Carbon adds at m_haloFlareHash / m_ambientFlareHash, registered
-   * with the global quad renderer by InitializeHaloFlare and
-   * InitializeAmbientFlare. Ours also registers the effect with the renderer
-   * it is given, idempotently, so a booster shared by several scene-owned
-   * quad renderers reaches each one's bucket. Old buckets may have other
-   * owners and remain registered, as in Carbon.
+   * Adapted: Carbon copies m_flareCount Quad structs in one AddQuads; ours
+   * packs each Quad record into its instance bytes and adds them one at a
+   * time, which accumulates the same bytes.
    */
   @blue.method
   @meta.adapted
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (!this.display) return;
-    for (const [effect, display, quads] of [
-      [this.haloFlareEffect, this.displayHazeFlare, this._haloFlares],
-      [this.ambientFlareEffect, this.displayAmbientFlare, this._ambientFlares]
-    ])
+
+    if (this._haloFlares.length && this.haloFlareEffect && this.displayHazeFlare)
     {
-      if (!effect || !display || !quads.length) continue;
-      const key = effect.GetHashValue();
-      quadRenderer.RegisterEffect(key, TriBatchType.TRIBATCHTYPE_ADDITIVE,
-        QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), effect);
       for (let index = 0; index < this.flareCount; index++)
-        quadRenderer.AddQuads(key, packQuadInstanceData(quads[index], this._quadBytes), 1);
+        quadRenderer.AddQuads(this._haloFlareHash, packQuadInstanceData(this._haloFlares[index], this._quadBytes), 1);
+    }
+
+    if (this._ambientFlares.length && this.ambientFlareEffect && this.displayAmbientFlare)
+    {
+      for (let index = 0; index < this.flareCount; index++)
+        quadRenderer.AddQuads(this._ambientFlareHash, packQuadInstanceData(this._ambientFlares[index], this._quadBytes), 1);
     }
   }
 

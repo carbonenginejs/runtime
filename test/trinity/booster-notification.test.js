@@ -40,13 +40,18 @@ function draw(booster, renderer)
   return batches;
 }
 
-test("booster replacement effects reach real quad batches in every owning scene", t =>
+test("booster flares reach only renderers their stored hash was registered with (BehaviorGroupBooster.cpp:365-396)", t =>
 {
   const booster = new BehaviorGroupBooster();
   const first = effect(101), replacement = effect(102);
   CjsSchema.setValues(booster, {ambientFlareEffect: first});
   booster.RebuildFlareBuffer(2);
   const a = renderer(t), b = renderer(t);
+
+  // AddQuadsToQuadRenderer registers nothing; AddQuads at an unknown hash adds nothing.
+  assert.equal(draw(booster, a).length, 0);
+  assert.equal(a.GetEffectRecords().has(101), false, "AddQuadsToQuadRenderer must not register");
+
   booster.RegisterWithQuadRenderer(a);
   booster.RegisterWithQuadRenderer(b);
   for (const scene of [a, b])
@@ -56,19 +61,26 @@ test("booster replacement effects reach real quad batches in every owning scene"
     assert.equal(batches[0].material, first);
     assert.equal(batches[0].instanceCount, 2);
   }
+
+  // OnModified registers the replacement with the global renderer only (cpp:157-163, 137-141), so
+  // renderers registered earlier drop its quads: Carbon's multi-view limitation, kept.
   CjsSchema.setValues(booster, {ambientFlareEffect: replacement});
+  assert.equal(Tr2QuadRenderer.Instance().GetEffectRecords().get(102).effect, replacement);
   for (const scene of [a, b])
   {
-    const batches = draw(booster, scene);
-    assert.equal(batches.length, 1, "replacement must not disappear at an unregistered hash");
-    assert.equal(batches[0].material, replacement);
-    assert.equal(batches[0].instanceCount, 2);
-    assert.equal(batches[0].indexCountPerInstance, 6);
-    assert.equal(scene.GetEffectRecords().get(101).effect, first, "old effect may have other owners");
+    assert.equal(draw(booster, scene).length, 0, "the replacement hash is not registered with this renderer");
+    assert.equal(scene.GetEffectRecords().has(102), false);
   }
-  // An edit before attachment must also work in a new scene, without a global renderer.
-  const c = renderer(t);
-  assert.equal(draw(booster, c)[0].material, replacement);
+
+  // Registering again picks up the replacement; the old record stays, as it may have other owners.
+  booster.RegisterWithQuadRenderer(a);
+  const batches = draw(booster, a);
+  assert.equal(batches.length, 1);
+  assert.equal(batches[0].material, replacement);
+  assert.equal(batches[0].instanceCount, 2);
+  assert.equal(batches[0].indexCountPerInstance, 6);
+  assert.equal(a.GetEffectRecords().get(101).effect, first);
+
   booster.displayAmbientFlare = false;
   assert.equal(draw(booster, a).length, 0);
 });
@@ -107,7 +119,9 @@ test("booster mixed replacements and removals rebuild once and keep detached lis
     assert.equal(setup.mock.callCount(), 1);
     assert.equal(booster[`_${detached}Flares`].length, 0);
     assert.equal(booster[`_${retained}Flares`].length, 1);
-    assert.equal(draw(booster, renderer(t))[0].material, replacement);
+    const scene = renderer(t);
+    booster.RegisterWithQuadRenderer(scene);
+    assert.equal(draw(booster, scene)[0].material, replacement);
     // The public explicit-notification entry point supports the same batched removal.
     booster[`${retained}FlareEffect`] = null;
     NotifyModified(booster, ["haloFlareEffect", "ambientFlareEffect"]);
