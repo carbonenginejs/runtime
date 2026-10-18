@@ -132,16 +132,16 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * The path of the currently attached texture when it exposes one, falling back
-   * to the authored resourcePath - so after a redirect this can differ from what
-   * was authored.
+   * Carbon GetResourcePath (TriTextureParameter.cpp:110-118): the path of the
+   * texture in use, which may be the low-res stand-in, or "" when that texture
+   * is not a resource (a render target, say) or there is none.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   GetResourcePath()
   {
-    const resource = this.GetResource();
-    return resource?.GetPath?.() ?? resource?.path ?? resource?.resourcePath ?? this.resourcePath;
+    const resource = CjsSchema.cast(this.GetResource(), CjsResource);
+    return resource === null ? "" : resource.GetPath();
   }
 
   /**
