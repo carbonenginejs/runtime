@@ -182,7 +182,7 @@ test("bounds reject invalid JS indexes without coercing them to a valid element"
     assert.equal(list.Insert(key, b), false);
     assert.equal(list.Remove(key), false);
   }
-  for (const key of [ -1, 0.5, NaN, Infinity, "0", 1 ])
+  for (const key of [ -2, 0.5, NaN, Infinity, "0", 1 ])
   {
     assert.equal(list.GetAt(key), null);
     assert.equal(list.FindKey(a, key), -1);
@@ -194,6 +194,25 @@ test("bounds reject invalid JS indexes without coercing them to a valid element"
   assert.deepEqual(Array.from(list), [ a ]);
   assert.equal(observer.events.length, 0);
   assert.equal(list.Insert(1, b), true, "insertion allows one past the last item");
+});
+
+test("RangeCheck admits -1, which then fails at the vector access as Carbon's at() does", () =>
+{
+  const a = MakeItem(1), b = MakeItem(2), c = MakeItem(3);
+  const list = MakeList([ a, b, c ]);
+  const observer = new Observer();
+  list.SetNotify(observer);
+  assert.throws(() => list.GetAt(-1), RangeError);
+  assert.throws(() => list.FindKey(a, -1), RangeError);
+  assert.equal(list.FindKey(new UnexposedItem(), -1), -1, "the interface query fails before the iteration");
+  assert.throws(() => list.Swap(-1, 0), RangeError);
+  assert.throws(() => list.Swap(0, -1), RangeError);
+  assert.deepEqual(Array.from(list), [ a, b, c ], "Swap throws before any write");
+  assert.throws(() => list.Move(-1, 0), RangeError);
+  assert.deepEqual(Array.from(list), [ a, b, c ], "Move(from = -1) throws before any write");
+  assert.throws(() => list.Move(2, -1), RangeError);
+  assert.deepEqual(Array.from(list), [ a, a, b ], "Move(to = -1) shifts every item up, then at(-1) throws");
+  assert.equal(observer.events.length, 0);
 });
 
 test("Swap and Move report their native keys after mutation, including equal indexes", () =>
