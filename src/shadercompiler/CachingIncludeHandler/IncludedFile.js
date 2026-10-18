@@ -45,7 +45,7 @@ export class IncludedFile
     }
 }
 
-CjsSchema.blue.define(IncludedFile, {
+CjsSchema.meta.define(IncludedFile, {
     className: "IncludedFile",
     donors: ["CachingIncludeHandler::IncludedFile"]
 });

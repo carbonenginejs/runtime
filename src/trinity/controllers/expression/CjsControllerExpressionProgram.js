@@ -342,4 +342,4 @@ export class CjsControllerExpressionProgram
  * chain.
  */
 
-CjsSchema.blue.define(CjsControllerExpressionProgram, { className: "CjsControllerExpressionProgram", donors: [ "CcpParser::Program" ] });
+CjsSchema.meta.define(CjsControllerExpressionProgram, { className: "CjsControllerExpressionProgram", donors: [ "CcpParser::Program" ] });

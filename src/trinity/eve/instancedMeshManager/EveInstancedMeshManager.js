@@ -240,29 +240,29 @@ export class EveInstancedMeshManager
   /** Carbon `using MeshGroupHandle = DataHandle<struct MeshGroupTag>` (h:95). */
   static MeshGroupHandle = EveInstancedMeshManagerDataHandle;
 
-  /** Carbon StaticPerInstanceBufferElement (private, h:150-156). */
-  static _StaticPerInstanceBufferElement = EveInstancedMeshManagerStaticPerInstanceBufferElement;
+  /** Carbon EveInstancedMeshManager::StaticPerInstanceBufferElement (private, h:150-156). */
+  static StaticPerInstanceBufferElement = EveInstancedMeshManagerStaticPerInstanceBufferElement;
 
-  /** Carbon DynamicPerInstanceBufferElement (private, h:158-165). */
-  static _DynamicPerInstanceBufferElement = EveInstancedMeshManagerDynamicPerInstanceBufferElement;
+  /** Carbon EveInstancedMeshManager::DynamicPerInstanceBufferElement (private, h:158-165). */
+  static DynamicPerInstanceBufferElement = EveInstancedMeshManagerDynamicPerInstanceBufferElement;
 
-  /** Carbon MeshKey (private, h:167-189). */
-  static _MeshKey = EveInstancedMeshManagerMeshKey;
+  /** Carbon EveInstancedMeshManager::MeshKey (private, h:167-189). */
+  static MeshKey = EveInstancedMeshManagerMeshKey;
 
-  /** Carbon MeshGroup (private, h:191-204). */
-  static _MeshGroup = EveInstancedMeshManagerMeshGroup;
+  /** Carbon EveInstancedMeshManager::MeshGroup (private, h:191-204). */
+  static MeshGroup = EveInstancedMeshManagerMeshGroup;
 
-  /** Carbon InstanceBuffer (private, h:206-235). */
-  static _InstanceBuffer = EveInstancedMeshManagerInstanceBuffer;
+  /** Carbon EveInstancedMeshManager::InstanceBuffer (private, h:206-235). */
+  static InstanceBuffer = EveInstancedMeshManagerInstanceBuffer;
 
-  /** Carbon MeshData (private, h:237-249). */
-  static _MeshData = EveInstancedMeshManagerMeshData;
+  /** Carbon EveInstancedMeshManager::MeshData (private, h:237-249). */
+  static MeshData = EveInstancedMeshManagerMeshData;
 
-  /** Carbon KeyHasher (private, h:251-258). */
-  static _KeyHasher = EveInstancedMeshManagerKeyHasher;
+  /** Carbon EveInstancedMeshManager::KeyHasher (private, h:251-258). */
+  static KeyHasher = EveInstancedMeshManagerKeyHasher;
 
-  /** Carbon SphereGroup (private, h:260-269). */
-  static _SphereGroup = EveInstancedMeshManagerSphereGroup;
+  /** Carbon EveInstancedMeshManager::SphereGroup (private, h:260-269). */
+  static SphereGroup = EveInstancedMeshManagerSphereGroup;
 
   /**
    * m_meshInstances (std::unordered_map<MeshKey, MeshData, KeyHasher>, h:285).

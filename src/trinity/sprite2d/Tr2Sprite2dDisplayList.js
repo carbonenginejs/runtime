@@ -4,6 +4,7 @@
 // Tr2Sprite2dDisplayListEntry.js.
 import { meta, blue } from "#schema";
 import { Tr2BufferAL } from "#trinityal";
+import { Tr2Sprite2dDisplayListEntry } from "./Tr2Sprite2dDisplayListEntry.js";
 
 /** Carbon's captured UI geometry. Device reset callers must explicitly release it;
  * the native Tr2DeviceResource registration base has not been ported yet. */
@@ -53,4 +54,7 @@ export class Tr2Sprite2dDisplayList
     this.indexBuffer.Destroy();
     this.entries.length = 0;
   }
+
+  /** Carbon Tr2Sprite2dDisplayList::Entry (public, Tr2Sprite2dDisplayList.h:23-43). */
+  static Entry = Tr2Sprite2dDisplayListEntry;
 }

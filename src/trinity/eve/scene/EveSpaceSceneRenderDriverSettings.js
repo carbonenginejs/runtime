@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveSpaceSceneRenderDriver.h:54-71
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
@@ -14,7 +14,7 @@ import { Quality } from "../../generated/postProcess/enums.js";
  *
  * Every default is Carbon's member initializer (h:56-70).
  */
-@blue.define({ className: "EveSpaceSceneRenderDriverSettings", donors: [ "EveSpaceSceneRenderDriver::Settings" ] })
+@meta.define({ className: "EveSpaceSceneRenderDriverSettings", donors: [ "EveSpaceSceneRenderDriver::Settings" ] })
 export class EveSpaceSceneRenderDriverSettings
 {
 

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:158-165
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 
 /**
@@ -9,7 +9,7 @@ import { type, blue } from "#schema";
  * of its per-object data, and its picking indices. The manager's
  * UploadLodData writes these, byte for byte, into the instance buffer.
  */
-@blue.define({ className: "EveInstancedMeshManagerDynamicPerInstanceBufferElement", donors: [ "EveInstancedMeshManager::DynamicPerInstanceBufferElement" ] })
+@meta.define({ className: "EveInstancedMeshManagerDynamicPerInstanceBufferElement", donors: [ "EveInstancedMeshManager::DynamicPerInstanceBufferElement" ] })
 export class EveInstancedMeshManagerDynamicPerInstanceBufferElement
 {
 

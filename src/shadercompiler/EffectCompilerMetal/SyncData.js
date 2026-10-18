@@ -30,7 +30,7 @@ export class SyncData
     compiledCode = "";
 }
 
-CjsSchema.blue.define(SyncData, {
+CjsSchema.meta.define(SyncData, {
     className: "SyncData",
     donors: ["EffectCompilerMetal::SyncData"]
 });

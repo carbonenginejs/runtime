@@ -19,15 +19,15 @@ import { EveInstancedMeshManagerInstanceBufferRegion } from "./EveInstancedMeshM
  * All sizes and offsets are in bytes: the AL buffer is created with a stride
  * of 4, so its element count is a quarter of its byte size.
  */
-@blue.define({ className: "EveInstancedMeshManagerInstanceBuffer", donors: [ "EveInstancedMeshManager::InstanceBuffer" ] })
+@meta.define({ className: "EveInstancedMeshManagerInstanceBuffer", donors: [ "EveInstancedMeshManager::InstanceBuffer" ] })
 export class EveInstancedMeshManagerInstanceBuffer
 {
 
   /** Carbon InstanceBuffer::Allocation (h:209-214). */
   static Allocation = EveInstancedMeshManagerInstanceBufferAllocation;
 
-  /** Carbon InstanceBuffer::Region (private, h:223-228). */
-  static _Region = EveInstancedMeshManagerInstanceBufferRegion;
+  /** Carbon EveInstancedMeshManager::InstanceBuffer::Region (private, h:223-228). */
+  static Region = EveInstancedMeshManagerInstanceBufferRegion;
 
   /** buffer (std::unique_ptr<Tr2BufferAL>, private). Carbon starts it empty. */
   @type.rawStruct("Tr2BufferAL")

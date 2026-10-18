@@ -23,7 +23,7 @@ export class Pragma
     used = false;
 }
 
-CjsSchema.blue.define(Pragma, {
+CjsSchema.meta.define(Pragma, {
     className: "Pragma",
     donors: ["ParserState::Pragma"]
 });

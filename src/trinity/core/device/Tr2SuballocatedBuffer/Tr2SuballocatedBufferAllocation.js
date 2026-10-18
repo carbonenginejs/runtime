@@ -110,4 +110,4 @@ CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetSize", blue.method
 CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetStride", blue.method);
 CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetStartIndex", blue.method);
 CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "Update", blue.method);
-CjsSchema.blue.define(Tr2SuballocatedBufferAllocation, { className: "Tr2SuballocatedBufferAllocation", donors: ["Tr2SuballocatedBuffer::Allocation"] });
+CjsSchema.meta.define(Tr2SuballocatedBufferAllocation, { className: "Tr2SuballocatedBufferAllocation", donors: ["Tr2SuballocatedBuffer::Allocation"] });

@@ -1,4 +1,4 @@
-import { blue } from "#schema";
+import { meta } from "#schema";
 // Source: audio/src/AudObstructionOcclusion.h + AudObstructionOcclusion.cpp
 // Nested AudObstructionOcclusion::EmitterState.
 // Headless behavior port. The host supplies blockage; this class performs no
@@ -7,7 +7,7 @@ import { blue } from "#schema";
 import { FadingValue } from "./FadingValue.js";
 
 /** Obstruction/occlusion fade state retained for one registered emitter. */
-@blue.define({ className: "EmitterState", donors: ["AudObstructionOcclusion::EmitterState"] })
+@meta.define({ className: "EmitterState", donors: ["AudObstructionOcclusion::EmitterState"] })
 export class EmitterState
 {
   obstruction = new FadingValue();

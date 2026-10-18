@@ -1130,6 +1130,9 @@ export class EveBoosterSet2 extends EveEntity
     SHAPE_COUNT: 2
   });
 
+  /** Carbon EveBoosterSet2::SingleBoosterData (private, EveBoosterSet2.h:274-283). */
+  static SingleBoosterData = EveBoosterSet2SingleBoosterData;
+
 }
 
 // EveBoosterSet2_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.

@@ -2,7 +2,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec4 } from "#math/vec4";
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 import { Tr2ConstantBufferAL } from "#trinityal";
 
 /**
@@ -11,7 +11,7 @@ import { Tr2ConstantBufferAL } from "#trinityal";
  * data - kept in m_singleTurrets. Carbon fills a new one in SetLocalTransform
  * (EveTurretSet.cpp:1713-1729) before it is placed.
  */
-@blue.define({ className: "EveTurretSetSingleTurretData", donors: [ "EveTurretSet::SingleTurretData" ] })
+@meta.define({ className: "EveTurretSetSingleTurretData", donors: [ "EveTurretSet::SingleTurretData" ] })
 export class EveTurretSetSingleTurretData
 {
 

@@ -262,4 +262,10 @@ export class EveSpherePinIndexTree
     this.markedFaces.length = 0;
     return 1;
   }
+
+  /** Carbon EveSpherePinIndexTree::Face (public, declared EveSpherePinIndexTree.h:13, defined cpp:34-46). */
+  static Face = Face;
+
+  /** Carbon EveSpherePinIndexTree::TreeNode (public, declared EveSpherePinIndexTree.h:14, defined cpp:14-32). */
+  static TreeNode = TreeNode;
 }

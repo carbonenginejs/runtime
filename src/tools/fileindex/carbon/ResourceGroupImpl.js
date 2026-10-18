@@ -655,7 +655,7 @@ export class ResourceGroupImpl
     }
 }
 
-CjsSchema.blue.define(ResourceGroupImpl, {
+CjsSchema.meta.define(ResourceGroupImpl, {
   className: "ResourceGroupImpl",
   donors: ["ResourceGroup::ResourceGroupImpl"],
   fields: {},

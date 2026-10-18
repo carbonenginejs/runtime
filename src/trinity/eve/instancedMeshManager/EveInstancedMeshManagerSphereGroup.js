@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:260-269
 import { vec3 } from "#math/vec3";
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 import { TriFrustumTestResult } from "../../generated/trinityCore/enums.js";
 import { EveInstancedMeshManagerInstanceFlags } from "./EveInstancedMeshManagerInstanceFlags.js";
 
@@ -14,7 +14,7 @@ import { EveInstancedMeshManagerInstanceFlags } from "./EveInstancedMeshManagerI
  *
  * A sphere is the `{ center, radius }` record TriFrustum's sphere tests read.
  */
-@blue.define({ className: "EveInstancedMeshManagerSphereGroup", donors: [ "EveInstancedMeshManager::SphereGroup" ] })
+@meta.define({ className: "EveInstancedMeshManagerSphereGroup", donors: [ "EveInstancedMeshManager::SphereGroup" ] })
 export class EveInstancedMeshManagerSphereGroup
 {
 

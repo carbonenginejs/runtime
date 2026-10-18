@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:251-258
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { identityOf } from "#utils/hash";
 
 
@@ -31,7 +31,7 @@ import { identityOf } from "#utils/hash";
  * distinct entries for keys differing in any field - and cannot reproduce
  * the padding.
  */
-@blue.define({ className: "EveInstancedMeshManagerKeyHasher", donors: [ "EveInstancedMeshManager::KeyHasher" ] })
+@meta.define({ className: "EveInstancedMeshManagerKeyHasher", donors: [ "EveInstancedMeshManager::KeyHasher" ] })
 export class EveInstancedMeshManagerKeyHasher
 {
 

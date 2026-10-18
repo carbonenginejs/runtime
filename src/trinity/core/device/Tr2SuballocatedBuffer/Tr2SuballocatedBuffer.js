@@ -202,6 +202,9 @@ export class Tr2SuballocatedBuffer
   {
     return true;
   }
+
+  /** Carbon Tr2SuballocatedBuffer::Allocation (public, Tr2SuballocatedBuffer.h:23-66). */
+  static Allocation = Tr2SuballocatedBufferAllocation;
 }
 
 function Gcd(a, b)

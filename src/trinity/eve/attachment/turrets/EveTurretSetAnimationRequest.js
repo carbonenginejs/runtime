@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h:399-404
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 /**
  * Carbon EveTurretSet::AnimationRequest: a PlayAnimation call buffered in
@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
  * (EveTurretSet.cpp:2483-2490), replayed once it is prepared
  * (cpp:1057-1064). Carbon gives it no initializers.
  */
-@blue.define({ className: "EveTurretSetAnimationRequest", donors: [ "EveTurretSet::AnimationRequest" ] })
+@meta.define({ className: "EveTurretSetAnimationRequest", donors: [ "EveTurretSet::AnimationRequest" ] })
 export class EveTurretSetAnimationRequest
 {
 

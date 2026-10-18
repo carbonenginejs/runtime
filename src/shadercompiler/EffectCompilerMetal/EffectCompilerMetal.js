@@ -4879,6 +4879,9 @@ export class EffectCompilerMetal
         return true;
     }
 
+    /** Carbon EffectCompilerMetal::SyncData (private, EffectCompilerMetal.h:82-88). */
+    static SyncData = SyncData;
+
     // Source: trinity/shadercompiler/EffectCompilerMetal.cpp:2627-2637
     //
     // Carbon declares this enum in EffectCompilerMetal.cpp; it is not exported

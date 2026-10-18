@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h:50-55
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 /**
  * Carbon EveSmartLightAttributeModifierExpressionBucket::Arguments: the
  * expression's variable bindings, refreshed every update and read by the
  * compiled expression.
  */
-@blue.define({
+@meta.define({
   className: "EveSmartLightAttributeModifierExpressionBucketArguments",
   donors: [ "EveSmartLightAttributeModifierExpressionBucket::Arguments" ]
 })

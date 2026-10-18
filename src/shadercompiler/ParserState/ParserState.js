@@ -1264,6 +1264,12 @@ export class ParserState
     /** Carbon's public nested `ParserState::SamplerDefinition`. */
     static SamplerDefinition = SamplerDefinition;
 
+    /** Carbon ParserState::FileContents (private, ParserState.h:274-281). */
+    static FileContents = FileContents;
+
+    /** Carbon ParserState::Pragma (private, ParserState.h:284-289). */
+    static Pragma = Pragma;
+
     // Source: trinity/shadercompiler/ParserState.h
 
     /**

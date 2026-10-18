@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:46-95
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -24,7 +24,7 @@ import { meta, type, blue } from "#schema";
  * reference that never moves, so the manager's reference stays valid and
  * there is nothing to replace.
  */
-@blue.define({ className: "EveInstancedMeshManagerDataHandle", donors: [ "EveInstancedMeshManager::DataHandle" ] })
+@meta.define({ className: "EveInstancedMeshManagerDataHandle", donors: [ "EveInstancedMeshManager::DataHandle" ] })
 export class EveInstancedMeshManagerDataHandle
 {
 

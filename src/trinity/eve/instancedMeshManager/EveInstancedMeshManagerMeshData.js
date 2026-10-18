@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:237-249
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 import { EveInstancedMeshManagerInstanceBufferAllocation } from "./EveInstancedMeshManagerInstanceBufferAllocation.js";
 
 
@@ -10,7 +10,7 @@ import { EveInstancedMeshManagerInstanceBufferAllocation } from "./EveInstancedM
  * thresholds (filled on first registration), and the per-frame culling and
  * binning results the draw side fills.
  */
-@blue.define({ className: "EveInstancedMeshManagerMeshData", donors: [ "EveInstancedMeshManager::MeshData" ] })
+@meta.define({ className: "EveInstancedMeshManagerMeshData", donors: [ "EveInstancedMeshManager::MeshData" ] })
 export class EveInstancedMeshManagerMeshData
 {
 

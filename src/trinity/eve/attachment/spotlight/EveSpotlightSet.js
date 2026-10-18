@@ -683,6 +683,9 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   static _features = new LightFeatures();
 
   static _lightRecord = CreateLightRecord();
+
+  /** Carbon EveSpotlightSet::SpotlightData (private, EveSpotlightSet.h:143-148). */
+  static SpotlightData = EveSpotlightSetSpotlightData;
 }
 
 // EveSpotlightSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.

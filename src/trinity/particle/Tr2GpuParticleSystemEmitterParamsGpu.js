@@ -57,4 +57,4 @@ export class Tr2GpuParticleSystemEmitterParamsGpu
   }
 }
 
-CjsSchema.blue.define(Tr2GpuParticleSystemEmitterParamsGpu, { className: "Tr2GpuParticleSystemEmitterParamsGpu", donors: [ "Tr2GpuParticleSystem::EmitterParamsGpu" ] });
+CjsSchema.meta.define(Tr2GpuParticleSystemEmitterParamsGpu, { className: "Tr2GpuParticleSystemEmitterParamsGpu", donors: [ "Tr2GpuParticleSystem::EmitterParamsGpu" ] });

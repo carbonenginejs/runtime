@@ -1,6 +1,7 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/ITr2GenericEmitter.h
 import { CjsSchema, blue } from "#schema";
+import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitterUpdateArguments.js";
 
 
 /** Contract shared by CPU and GPU particle emitters. */
@@ -23,6 +24,9 @@ export class ITr2GenericEmitter
   /** Carbon's pure virtual `SetThreadSafeFlag()` (ITr2GenericEmitter.h:105): spawn calls may arrive from concurrent simulation. */
   @blue.abstract
   SetThreadSafeFlag() {}
+
+  /** Carbon ITr2GenericEmitter::UpdateArguments (public, ITr2GenericEmitter.h:21-51). */
+  static UpdateArguments = ITr2GenericEmitterUpdateArguments;
 }
 
 CjsSchema.blue.define(ITr2GenericEmitter, { className: "ITr2GenericEmitter" });

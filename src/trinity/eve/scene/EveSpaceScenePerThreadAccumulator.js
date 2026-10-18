@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveSpaceScene.h:194-200
-import { blue } from "#schema";
+import { meta } from "#schema";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 
@@ -18,7 +18,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/
  * and nothing constructs this class yet; it is here so the per-thread
  * gather has its donor type when one is ported.
  */
-@blue.define({ className: "EveSpaceScenePerThreadAccumulator", donors: [ "EveSpaceScene::PerThreadAccumulator" ] })
+@meta.define({ className: "EveSpaceScenePerThreadAccumulator", donors: [ "EveSpaceScene::PerThreadAccumulator" ] })
 export class EveSpaceScenePerThreadAccumulator extends TriRenderBatchAccumulator
 {
 

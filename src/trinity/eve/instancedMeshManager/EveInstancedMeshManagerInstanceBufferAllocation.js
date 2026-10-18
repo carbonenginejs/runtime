@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:209-214
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 
 /**
@@ -11,7 +11,7 @@ import { type, blue } from "#schema";
  * `uint8_t*` into the mapping: JavaScript has no pointer arithmetic, and a
  * subarray is the byte-for-byte equivalent of `mappedData + offset`.
  */
-@blue.define({ className: "EveInstancedMeshManagerInstanceBufferAllocation", donors: [ "EveInstancedMeshManager::InstanceBuffer::Allocation" ] })
+@meta.define({ className: "EveInstancedMeshManagerInstanceBufferAllocation", donors: [ "EveInstancedMeshManager::InstanceBuffer::Allocation" ] })
 export class EveInstancedMeshManagerInstanceBufferAllocation
 {
 

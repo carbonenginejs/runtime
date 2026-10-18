@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.h:143-148
 import { mat4 } from "#math/mat4";
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 /**
  * Carbon EveSpotlightSet::SpotlightData: one spotlight's transform, bone and
@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
  * items into m_spotlightData (EveSpotlightSet.cpp:279-286) for
  * AddToQuadRenderer. Carbon gives it no initializers.
  */
-@blue.define({ className: "EveSpotlightSetSpotlightData", donors: [ "EveSpotlightSet::SpotlightData" ] })
+@meta.define({ className: "EveSpotlightSetSpotlightData", donors: [ "EveSpotlightSet::SpotlightData" ] })
 export class EveSpotlightSetSpotlightData
 {
 

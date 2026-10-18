@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h:185-197
 import { mat4 } from "#math/mat4";
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 /**
  * Carbon EveTurretFiringFX::PerMuzzleData: one muzzle's firing state, source
@@ -9,7 +9,7 @@ import { type, blue } from "#schema";
  * the EveTurretFiringFX constructor (EveTurretFiringFX.cpp:50-58) writes every
  * member except elapsedTime.
  */
-@blue.define({ className: "EveTurretFiringFXPerMuzzleData", donors: [ "EveTurretFiringFX::PerMuzzleData" ] })
+@meta.define({ className: "EveTurretFiringFXPerMuzzleData", donors: [ "EveTurretFiringFX::PerMuzzleData" ] })
 export class EveTurretFiringFXPerMuzzleData
 {
 

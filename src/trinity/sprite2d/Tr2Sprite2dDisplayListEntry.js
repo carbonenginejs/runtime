@@ -10,7 +10,7 @@ import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 import { PER_OBJECT_VS_GUI } from "../core/Tr2Renderer.js";
 
 /** Carbon's nested Tr2Sprite2dDisplayList::Entry render callback. */
-@blue.define({ className: "Tr2Sprite2dDisplayListEntry", donors: ["Tr2Sprite2dDisplayList::Entry"] })
+@meta.define({ className: "Tr2Sprite2dDisplayListEntry", donors: ["Tr2Sprite2dDisplayList::Entry"] })
 export class Tr2Sprite2dDisplayListEntry
 {
   job = null;

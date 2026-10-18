@@ -749,6 +749,9 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   static _lightDataScratch = new CjsLightData();
 
   static _averageColorScratch = new Float32Array(4);
+
+  /** Carbon EvePlaneSet::VolatileData (private, EvePlaneSet.h:140-144). */
+  static VolatileData = EvePlaneSetVolatileData;
 }
 
 // EvePlaneSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.

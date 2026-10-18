@@ -6,6 +6,8 @@ import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { TriDevice } from "./device/TriDevice.js";
 import { Tr2Renderer } from "./Tr2Renderer.js";
+import { TriDebugResourceHelperVertexPos } from "./TriDebugResourceHelperVertexPos.js";
+import { TriDebugResourceHelperVertexPosColor } from "./TriDebugResourceHelperVertexPosColor.js";
 
 
 const DEBUG_EFFECT_PATH = "res:/Graphics/Effect/Managed/Utility/Debug.fx";
@@ -139,4 +141,10 @@ export class TriDebugResourceHelper
   }
 
   static _instance = null;
+
+  /** Carbon TriDebugResourceHelper::VertexPos (public, TriDebugResourceHelper.h:39-42). */
+  static VertexPos = TriDebugResourceHelperVertexPos;
+
+  /** Carbon TriDebugResourceHelper::VertexPosColor (public, TriDebugResourceHelper.h:44-48). */
+  static VertexPosColor = TriDebugResourceHelperVertexPosColor;
 }

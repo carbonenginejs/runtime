@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -12,7 +12,7 @@ import { meta, type, blue } from "#schema";
  * Carbon declares this as EveChildPartData::PartData. The JavaScript class is
  * exported under a legal identifier while retaining that nested schema name.
  */
-@blue.define({ className: "EveChildPartData.PartData", donors: [ "EveChildPartData::PartData" ] })
+@meta.define({ className: "EveChildPartData.PartData", donors: [ "EveChildPartData::PartData" ] })
 export class EveChildPartDataPartData
 {
   @meta.persist

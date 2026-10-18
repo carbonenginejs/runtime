@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:150-156
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 
 /**
@@ -9,7 +9,7 @@ import { type, blue } from "#schema";
  * data in the structured buffer, and its picking indices. The manager's
  * UploadLodData writes these, byte for byte, into the instance buffer.
  */
-@blue.define({ className: "EveInstancedMeshManagerStaticPerInstanceBufferElement", donors: [ "EveInstancedMeshManager::StaticPerInstanceBufferElement" ] })
+@meta.define({ className: "EveInstancedMeshManagerStaticPerInstanceBufferElement", donors: [ "EveInstancedMeshManager::StaticPerInstanceBufferElement" ] })
 export class EveInstancedMeshManagerStaticPerInstanceBufferElement
 {
 

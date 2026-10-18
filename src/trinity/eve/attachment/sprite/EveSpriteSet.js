@@ -723,6 +723,9 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   static _debugMissingBoneColor = vec4.fromValues(0.9, 0.2, 0.2, 0.5);
 
   static _debugMissingBoneZFailColor = vec4.fromValues(0.9, 0.2, 0.2, 0.1);
+
+  /** Carbon EveSpriteSet::SpriteData (public, EveSpriteSet.h:70-74). */
+  static SpriteData = EveSpriteSetSpriteData;
 }
 
 // EveSpriteSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:28-36
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 
 /**
@@ -10,7 +10,7 @@ import { type, blue } from "#schema";
  * its picking indices. The manager reads the provider's array in place; it
  * never copies it at registration.
  */
-@blue.define({ className: "EveInstancedMeshManagerDynamicPerInstanceData", donors: [ "EveInstancedMeshManager::DynamicPerInstanceData" ] })
+@meta.define({ className: "EveInstancedMeshManagerDynamicPerInstanceData", donors: [ "EveInstancedMeshManager::DynamicPerInstanceData" ] })
 export class EveInstancedMeshManagerDynamicPerInstanceData
 {
 

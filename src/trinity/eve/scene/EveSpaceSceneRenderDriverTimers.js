@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveSpaceSceneRenderDriver.h:155-168
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * Carbon's unnamed struct behind EveSpaceSceneRenderDriver::m_timers
@@ -24,7 +24,7 @@ import { meta, type, blue } from "#schema";
  * Carbon embeds each timer by value; once Tr2ProfileTimer exists each member
  * becomes `new Tr2ProfileTimer()`.
  */
-@blue.define({ className: "EveSpaceSceneRenderDriverTimers", donors: [ "EveSpaceSceneRenderDriver::m_timers" ] })
+@meta.define({ className: "EveSpaceSceneRenderDriverTimers", donors: [ "EveSpaceSceneRenderDriver::m_timers" ] })
 export class EveSpaceSceneRenderDriverTimers
 {
 

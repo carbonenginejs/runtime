@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * Carbon EveTrailsSet::SingleTrailData (h:88-94): one trail as
@@ -9,7 +9,7 @@ import { meta, type, blue } from "#schema";
  * private and unmapped. They persist here so values carry which boosters
  * have trails (docs: non-carbon-extensions.md).
  */
-@blue.define({ className: "EveTrailsSetSingleTrailData", donors: [ "EveTrailsSet::SingleTrailData" ] })
+@meta.define({ className: "EveTrailsSetSingleTrailData", donors: [ "EveTrailsSet::SingleTrailData" ] })
 export class EveTrailsSetSingleTrailData
 {
 

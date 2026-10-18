@@ -916,6 +916,9 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     return this._singleBoosters;
   }
 
+  /** Carbon EveChildBoosterSet::SingleBoosterData (private, EveChildBoosterSet.h:170-179). */
+  static SingleBoosterData = EveChildBoosterSetSingleBoosterData;
+
 }
 
 

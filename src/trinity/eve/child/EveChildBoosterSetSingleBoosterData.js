@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * Carbon EveChildBoosterSet::SingleBoosterData (h:169-179): one booster as
@@ -10,7 +10,7 @@ import { meta, type, blue } from "#schema";
  * private and unmapped. They persist here so values carry the boosters
  * (docs: non-carbon-extensions.md).
  */
-@blue.define({ className: "EveChildBoosterSetSingleBoosterData", donors: [ "EveChildBoosterSet::SingleBoosterData" ] })
+@meta.define({ className: "EveChildBoosterSetSingleBoosterData", donors: [ "EveChildBoosterSet::SingleBoosterData" ] })
 export class EveChildBoosterSetSingleBoosterData
 {
 

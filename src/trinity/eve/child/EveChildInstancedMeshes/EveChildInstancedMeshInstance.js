@@ -14,7 +14,7 @@
 // document rather than through AddMesh, so all five persist, and a document
 // without the three newer ones loads with Carbon's defaults.
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -22,7 +22,7 @@ import { meta, type, blue } from "#schema";
  * cull sphere in the owning mesh's instance sphere list, whether it mirrors,
  * and the mesh and instance indices its picking hits decode to.
  */
-@blue.define({ className: "EveChildInstancedMeshInstance", donors: [ "EveInstancedMeshManager::StaticPerInstanceData" ] })
+@meta.define({ className: "EveChildInstancedMeshInstance", donors: [ "EveInstancedMeshManager::StaticPerInstanceData" ] })
 export class EveChildInstancedMeshInstance
 {
 

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2DebugRenderer.h:105-117
 // Source: trinity/trinity/Tr2DebugRenderer.cpp:114-137
 import { vec3 } from "#math/vec3";
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 /**
  * Carbon Tr2DebugRenderer::Vertex: one vertex of a debug line or triangle,
@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
  * leaves every member unset; the two value constructors are the `create__`
  * factories.
  */
-@blue.define({ className: "Tr2DebugRendererVertex", donors: [ "Tr2DebugRenderer::Vertex" ] })
+@meta.define({ className: "Tr2DebugRendererVertex", donors: [ "Tr2DebugRenderer::Vertex" ] })
 export class Tr2DebugRendererVertex
 {
 

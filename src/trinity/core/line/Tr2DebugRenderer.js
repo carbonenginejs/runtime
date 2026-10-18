@@ -1380,4 +1380,7 @@ export class Tr2DebugRenderer
     return Array.from(this._defaultOptions);
   }
 
+  /** Carbon Tr2DebugRenderer::Vertex (private, Tr2DebugRenderer.h:112-124). */
+  static Vertex = Tr2DebugRendererVertex;
+
 }

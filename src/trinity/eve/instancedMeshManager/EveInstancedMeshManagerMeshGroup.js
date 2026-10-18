@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:191-204
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 
 /**
@@ -15,7 +15,7 @@ import { type, blue } from "#schema";
  * is the one stored field and `dynamicInstances` is an accessor over it;
  * writing either name writes both, as in Carbon.
  */
-@blue.define({ className: "EveInstancedMeshManagerMeshGroup", donors: [ "EveInstancedMeshManager::MeshGroup" ] })
+@meta.define({ className: "EveInstancedMeshManagerMeshGroup", donors: [ "EveInstancedMeshManager::MeshGroup" ] })
 export class EveInstancedMeshManagerMeshGroup
 {
 

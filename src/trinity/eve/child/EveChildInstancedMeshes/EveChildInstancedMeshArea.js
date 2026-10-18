@@ -3,7 +3,7 @@
 //   JS. Our name drops the donor's plural, so it reads as though Carbon had an
 //   EveChildInstancedMesh type. It does not; renaming is blocked because SOF
 //   writes this className into DNA documents as a string.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -11,7 +11,7 @@ import { meta, type, blue } from "#schema";
  * range within the mesh, its cached effect hash and the mesh-group handle it is
  * registered under.
  */
-@blue.define({ className: "EveChildInstancedMeshArea", donors: [ "EveChildInstancedMeshes::MeshArea" ] })
+@meta.define({ className: "EveChildInstancedMeshArea", donors: [ "EveChildInstancedMeshes::MeshArea" ] })
 export class EveChildInstancedMeshArea
 {
 

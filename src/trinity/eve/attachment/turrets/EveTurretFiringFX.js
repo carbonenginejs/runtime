@@ -1133,6 +1133,9 @@ export class EveTurretFiringFX extends EveEntity
    */
   static _center = vec3.create();
 
+  /** Carbon EveTurretFiringFX::PerMuzzleData (private, EveTurretFiringFX.h:185-197). */
+  static PerMuzzleData = EveTurretFiringFXPerMuzzleData;
+
 }
 
 // Native exposure includes the concrete class itself; JS has no implicit self mapping.

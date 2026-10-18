@@ -1,12 +1,12 @@
 // Source: trinity/trinity/TriDebugResourceHelper.h:36-39
 import { vec3 } from "#math/vec3";
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 /**
  * Carbon TriDebugResourceHelper::VertexPos: a position-only debug vertex, the
  * layout of GetVertexPosDecl (12 bytes). Carbon gives it no initializers.
  */
-@blue.define({ className: "TriDebugResourceHelperVertexPos", donors: [ "TriDebugResourceHelper::VertexPos" ] })
+@meta.define({ className: "TriDebugResourceHelperVertexPos", donors: [ "TriDebugResourceHelper::VertexPos" ] })
 export class TriDebugResourceHelperVertexPos
 {
 

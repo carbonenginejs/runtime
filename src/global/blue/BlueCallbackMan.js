@@ -764,6 +764,9 @@ export class BlueCallbackMan extends IBlueCallbackMan
     }
     return queue.length ? queue.shift() : null;
   }
+
+  /** Carbon BlueCallbackMan::ThreadData (private, CallbackMan.h:124-148). */
+  static ThreadData = BlueCallbackManThreadData;
 }
 
 CjsSchema.blue.interface(IBlueCallbackMan)(BlueCallbackMan);
@@ -809,4 +812,4 @@ CjsSchema.decorateMethod(BlueCallbackMan, "_ExtractFromQueue", blue.method, meta
 export const BeCallbackMan = new BlueCallbackMan();
 BeCallbackMan.SetName("BeCallbackMan");
 
-CjsSchema.blue.define(BlueCallbackManThreadData, { className: "BlueCallbackManThreadData", donors: [ "BlueCallbackMan::ThreadData" ] });
+CjsSchema.meta.define(BlueCallbackManThreadData, { className: "BlueCallbackManThreadData", donors: [ "BlueCallbackMan::ThreadData" ] });

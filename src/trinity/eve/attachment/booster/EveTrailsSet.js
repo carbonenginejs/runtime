@@ -340,4 +340,7 @@ export class EveTrailsSet
     return this._trailData.map(trail => ({ transform: mat4.clone(trail.transform), size: trail.size }));
   }
 
+  /** Carbon EveTrailsSet::SingleTrailData (private, EveTrailsSet.h:88-94). */
+  static SingleTrailData = EveTrailsSetSingleTrailData;
+
 }

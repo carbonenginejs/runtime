@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.h:140-144
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 /**
  * Carbon EvePlaneSet::VolatileData: one packed plane's local transform and
@@ -9,7 +9,7 @@ import { type, blue } from "#schema";
  * (EvePlaneSet.cpp:302-303) for AddToQuadRenderer. Carbon gives it no
  * initializers.
  */
-@blue.define({ className: "EvePlaneSetVolatileData", donors: [ "EvePlaneSet::VolatileData" ] })
+@meta.define({ className: "EvePlaneSetVolatileData", donors: [ "EvePlaneSet::VolatileData" ] })
 export class EvePlaneSetVolatileData
 {
 

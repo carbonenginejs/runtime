@@ -1831,6 +1831,12 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return effect ? Number(effect.GetHashValue()) || 0 : 0;
   }
 
+  /** Carbon EveChildInstancedMeshes::MeshArea (public, EveChildInstancedMeshes.h:74-84). */
+  static MeshArea = EveChildInstancedMeshArea;
+
+  /** Carbon EveChildInstancedMeshes::Mesh (private, EveChildInstancedMeshes.h:142-188). */
+  static Mesh = EveChildInstancedMesh;
+
 }
 
 // EveChildInstancedMeshes_Blue.cpp: native exposure.

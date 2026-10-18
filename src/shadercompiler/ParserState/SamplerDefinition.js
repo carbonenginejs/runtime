@@ -17,7 +17,7 @@ export class SamplerDefinition
     definition = null;
 }
 
-CjsSchema.blue.define(SamplerDefinition, {
+CjsSchema.meta.define(SamplerDefinition, {
     className: "SamplerDefinition",
     donors: ["ParserState::SamplerDefinition"]
 });

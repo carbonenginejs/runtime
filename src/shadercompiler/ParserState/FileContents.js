@@ -34,7 +34,7 @@ export class FileContents
     arguments = new Map();
 }
 
-CjsSchema.blue.define(FileContents, {
+CjsSchema.meta.define(FileContents, {
     className: "FileContents",
     donors: ["ParserState::FileContents"]
 });

@@ -2,7 +2,7 @@
 //   struct Mesh, nested in EveChildInstancedMeshes (line 132); flattened for JS
 //   under a name that drops the donor's plural. See EveChildInstancedMeshArea.js.
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
 import { EveInstancedMeshManagerInstanceFlags } from "../../instancedMeshManager/EveInstancedMeshManagerInstanceFlags.js";
@@ -14,7 +14,7 @@ import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js"
  * its instance placements, per-instance world cull spheres, instance flags and
  * manager registration handles.
  */
-@blue.define({ className: "EveChildInstancedMesh", donors: [ "EveChildInstancedMeshes::Mesh" ] })
+@meta.define({ className: "EveChildInstancedMesh", donors: [ "EveChildInstancedMeshes::Mesh" ] })
 export class EveChildInstancedMesh
 {
   @meta.persist

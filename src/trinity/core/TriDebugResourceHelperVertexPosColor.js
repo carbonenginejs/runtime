@@ -1,13 +1,13 @@
 // Source: trinity/trinity/TriDebugResourceHelper.h:41-45
 import { vec3 } from "#math/vec3";
-import { type, blue } from "#schema";
+import { type, meta } from "#schema";
 
 /**
  * Carbon TriDebugResourceHelper::VertexPosColor: a position and a packed
  * colour, the layout of GetVertexPosColorDecl (16 bytes). Carbon gives it no
  * initializers.
  */
-@blue.define({ className: "TriDebugResourceHelperVertexPosColor", donors: [ "TriDebugResourceHelper::VertexPosColor" ] })
+@meta.define({ className: "TriDebugResourceHelperVertexPosColor", donors: [ "TriDebugResourceHelper::VertexPosColor" ] })
 export class TriDebugResourceHelperVertexPosColor
 {
 

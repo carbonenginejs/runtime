@@ -14,7 +14,7 @@ import { meta, type, blue } from "#schema";
  * int32 and bit 31 would otherwise read back negative; the stored value stays
  * Carbon's unsigned uint32.
  */
-@blue.define({ className: "EveInstancedMeshManagerInstanceFlags", donors: [ "EveInstancedMeshManager::InstanceFlags" ] })
+@meta.define({ className: "EveInstancedMeshManagerInstanceFlags", donors: [ "EveInstancedMeshManager::InstanceFlags" ] })
 export class EveInstancedMeshManagerInstanceFlags
 {
 

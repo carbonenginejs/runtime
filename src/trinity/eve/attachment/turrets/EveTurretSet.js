@@ -2673,6 +2673,12 @@ export class EveTurretSet extends EveEntity
   static _unitZ = vec3.fromValues(0, 0, 1);
   static _closestPair = { turret: EveTurretSet.INVALID_INDEX, locator: -1 };
 
+  /** Carbon EveTurretSet::SingleTurretData (private, EveTurretSet.h:323-347). */
+  static SingleTurretData = EveTurretSetSingleTurretData;
+
+  /** Carbon EveTurretSet::AnimationRequest (private, EveTurretSet.h:399-404). */
+  static AnimationRequest = EveTurretSetAnimationRequest;
+
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:27).

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:167-189
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 
@@ -14,7 +14,7 @@ import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
  * and `isDynamic` are not among them. KeyHasher hashes all of them (see
  * EveInstancedMeshManagerKeyHasher).
  */
-@blue.define({ className: "EveInstancedMeshManagerMeshKey", donors: [ "EveInstancedMeshManager::MeshKey" ] })
+@meta.define({ className: "EveInstancedMeshManagerMeshKey", donors: [ "EveInstancedMeshManager::MeshKey" ] })
 export class EveInstancedMeshManagerMeshKey
 {
 

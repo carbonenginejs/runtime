@@ -1,9 +1,9 @@
-import { blue } from "#schema";
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/UI/EveSpherePinIndexTree.cpp
 import { vec3 } from "#math/vec3";
 
 /** Native face record; its AABB midpoint and enclosing radius are Cartesian. */
-@blue.define({ className: "Face", donors: ["EveSpherePinIndexTree::Face"] })
+@meta.define({ className: "Face", donors: ["EveSpherePinIndexTree::Face"] })
 export class Face
 {
   center = vec3.create();

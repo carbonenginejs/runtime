@@ -14,6 +14,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 
 import { CjsSchema, meta, blue } from "#schema";
 import { vec3 } from "#math/vec3";
+import { IEveSpaceObject2ParentData } from "./spaceObject/IEveSpaceObject2ParentData.js";
 
 
 const SPACE_OBJECT_DEFAULTS = [ "GetWorldVelocity", "IsPickable", "IsAudioOccluder" ];
@@ -224,6 +225,9 @@ export class IEveSpaceObject2
   InvalidateMergedLocators(_reason)
   {
   }
+
+  /** Carbon IEveSpaceObject2::ParentData (public, IEveSpaceObject2.h:31-43). */
+  static ParentData = IEveSpaceObject2ParentData;
 }
 
 

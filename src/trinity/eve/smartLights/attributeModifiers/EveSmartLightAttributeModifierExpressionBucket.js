@@ -287,4 +287,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
 
   static _velocity = vec3.create();
 
+  /** Carbon EveSmartLightAttributeModifierExpressionBucket::Arguments (private, EveSmartLightAttributeModifierExpressionBucket.h:50-55). */
+  static Arguments = EveSmartLightAttributeModifierExpressionBucketArguments;
+
 }

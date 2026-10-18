@@ -9,6 +9,7 @@ import { meta, type, blue } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2ScalarFader } from "../../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
+import { EveDamageOverlayOwnerInfo } from "./EveDamageOverlayOwnerInfo.js";
 import "../EveImpactOverlay.js";
 
 
@@ -604,6 +605,9 @@ export class EveDamageOverlay
   }
 
   static ImpactConfiguration = ImpactConfiguration;
+
+  /** Carbon EveDamageOverlay::OwnerInfo (public, EveDamageOverlay.h:63-69). */
+  static OwnerInfo = EveDamageOverlayOwnerInfo;
 }
 
 
