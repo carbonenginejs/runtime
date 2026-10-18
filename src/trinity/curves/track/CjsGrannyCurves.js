@@ -394,10 +394,11 @@ export class CjsGrannyCurves
    * The frame is `int(float(numFrames) * time / duration)` with numFrames the
    * control count over the dimension, read with no bounds check. Its caller
    * admits `time == duration` (Tr2GrannyTrack.cpp:37), so Carbon reads one
-   * frame past the end there.
+   * frame past the end there: Carbon defect CE-194 (GrannyCurveHelpers.h:17-19).
    *
    * Adapted: an unchecked frame outside the controls throws a RangeError
-   * instead of reading undefined (ruling 11). That includes the end-time read.
+   * instead of reading undefined (ruling 11). That includes the CE-194 end-time
+   * read; whether it should clamp instead is open with the operator.
    *
    * @param {number[]|Float32Array} out Caller-owned output, at least the curve dimension long.
    * @param {{controls: ArrayLike<number>, dimension: number}} curve Decoded keyframed curve.
