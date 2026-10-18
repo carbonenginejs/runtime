@@ -73,7 +73,16 @@ function volumetricsRecording(calls)
   return renderer;
 }
 
-/** Records the order the driver calls the scene's CPU steps in. */
+/**
+ * Records the order the driver calls the scene's CPU steps in.
+ *
+ * A duck fixture of EveSpaceScene, kept knowingly: every sequence test here
+ * asserts the driver's call order across about thirty scene steps, which a
+ * real scene cannot record without wrapping each method. Each stub added for
+ * a newly ported driver call can hide a scene method that is really missing,
+ * so this is on the test follow-up list for replacement with a wrapped real
+ * EveSpaceScene.
+ */
 function sceneRecording(calls)
 {
   return {
