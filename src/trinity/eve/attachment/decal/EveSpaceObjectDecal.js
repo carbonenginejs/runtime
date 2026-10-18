@@ -12,7 +12,7 @@ import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
 import { MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
-import { TriBatchType } from "#consts/graphics";
+import { TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { MeshDecalData } from "#resource/geometry";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
@@ -22,6 +22,7 @@ import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { Tr2PickType } from "#consts/graphics/tr2PickType";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
+import { TriDevice } from "../../../core/device/TriDevice.js";
 import { BuildDecalGeometry, BuildStaticDecalGeometry, FindCachedDecalGeometry } from "./decalIndices.js";
 import "#consts/graphics/trinityEnums";
 
@@ -37,26 +38,31 @@ import "#consts/graphics/trinityEnums";
 export class EveSpaceObjectDecal
 {
   /**
-   * Establishes Carbon's opaque decal batch type after schema initialization,
-   * because the schema's legacy TriBatchType default is 0.
-   */
-  /**
-   * Carbon's constructor (cpp:45-58) prepares its resources.
-   *
-   * Adapted: Carbon's Tr2DeviceResource base also registers the decal with the
-   * device (Tr2DeviceResource.cpp:6-9) and its destructor unregisters it. A
-   * JavaScript decal has no destructor and no Destroy to end its life, so a
-   * registration would hold every decal forever. It is left out: Carbon's
-   * ReleaseResources is empty for a decal, so a device reset loses only the
-   * stale-geometry check OnPrepareResources makes, which the next Initialize
-   * or prepare also makes.
+   * Carbon's constructor (cpp:45-58): registers with the device, as its
+   * Tr2DeviceResource base does (Tr2DeviceResource.cpp:6-9), and prepares its
+   * resources. Destroy unregisters.
    */
   constructor()
   {
+    TriDevice.RegisterResource(this);
     // The schema's legacy TriBatchType default is 0. Carbon's decal default is
     // the opaque batch (1), so establish it after model/schema initialization.
     this.batchType = 1;
     this.PrepareResources();
+  }
+
+  /**
+   * Carbon's destructor (cpp:61-64) and its Tr2DeviceResource base's
+   * (Tr2DeviceResource.cpp:11-14): releases everything, then unregisters.
+   *
+   * Ours: JavaScript has no destructor, so the owner calls this when it drops
+   * the decal. No owner does yet: EveSpaceObject2, which holds decals, has no
+   * Destroy of its own, so a dropped decal stays registered until one is added.
+   */
+  Destroy()
+  {
+    this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
+    TriDevice.UnregisterResource(this);
   }
 
   /**
