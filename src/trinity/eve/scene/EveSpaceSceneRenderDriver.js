@@ -11,7 +11,9 @@
 // reflection, depth prepass, shadows, SSAO, light lists, distortion, the main
 // colour pass, overlays, lensflare occlusion, post-process and 3D UI. This
 // implements the frame sequence through scene overlays and post-processing.
-// Unported upscaling, named outputs and 3D UI remain explicit limitations.
+// Upscaling is ported against the AL's upscaling surface, which creates no
+// context yet; named outputs, profiling sections and 3D UI remain explicit
+// limitations.
 //
 // It does not own the passes Carbon's scene owns. CarbonEngineJS splits
 // Carbon's BeginRender/GatherBatches into scene-owned CPU methods that a driver
@@ -22,7 +24,8 @@ import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { CcpTime } from "#blue";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
-import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { DepthStencilFormat, INVALID_UPSCALING_CONTEXT_ID, PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction, UpscalingTechnique } from "#consts/render-context";
+import { TriStorageFlags } from "#consts/graphics";
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData, Tr2TextureSubresource, Tr2TextureAL } from "#trinityal";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
@@ -34,7 +37,13 @@ import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
 import { Tr2GpuResourcePool } from "../../core/Tr2GpuResourcePool/Tr2GpuResourcePool.js";
+import { TextureSize2D } from "../../core/Tr2GpuResourcePool/TextureSize2D.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+// Tr2DeviceResource imports TriDevice, so TriDevice must never import this
+// file; it reaches scene classes by registered name for that reason.
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
+import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
 import { COMPUTE_LIGHT_LISTS_EFFECT_PATH } from "#consts/effectPaths";
@@ -45,6 +54,8 @@ import { Tr2PPTaaEffect } from "../../postProcess/effect/Tr2PPTaaEffect.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 // A cycle with EveSpaceScene.js; each side reads the other only inside methods.
 import { EveSpaceScene } from "./EveSpaceScene.js";
+import { EveSpaceSceneRenderDriverSettings } from "./EveSpaceSceneRenderDriverSettings.js";
+import { EveSpaceSceneRenderDriverTimers } from "./EveSpaceSceneRenderDriverTimers.js";
 import { be } from "#blue";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import "../../postProcess/effect/Tr2PPEffect.js";
@@ -52,10 +63,22 @@ import "#consts/renderContext/formats";
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
 @blue.define({ className: "EveSpaceSceneRenderDriver", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
-@blue.inherit(ITr2RenderNode)
+@blue.inherit(ITr2RenderNode, Tr2DeviceResource)
 @blue.interface(ITr2RenderNode)
 export class EveSpaceSceneRenderDriver
 {
+
+  /**
+   * Carbon's constructor (EveSpaceSceneRenderDriver.cpp:143-160) takes
+   * Tr2DeviceResource as its second C++ base (h:27-29), whose constructor
+   * registers with the device (Tr2DeviceResource.cpp:6-9). `@blue.inherit`
+   * has no constructor to run, so the registration is made here; Destroy
+   * unregisters, where Carbon's base destructor would.
+   */
+  constructor()
+  {
+    TriDevice.RegisterResource(this);
+  }
 
   /** m_settings.aoQuality (AmbientOcclusionQuality - enum AmbientOcclusionQuality) [READWRITE, ENUM] */
   @blue.readwrite
@@ -105,11 +128,56 @@ export class EveSpaceSceneRenderDriver
   @type.enum("trinity.Tr2VolumerticQuality")
   volumetricQuality = 0;
 
-  /** m_scene (EveSpaceScenePtr) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * m_scene (EveSpaceScenePtr): the persisted backing member,
+   * MAP_ATTRIBUTE( "scene", m_scene, "", Be::PERSISTONLY )
+   * (EveSpaceSceneRenderDriver_Blue.cpp:84), which Carbon maps "purely for
+   * blue.Find methods to work". Script reads and writes go through the
+   * same-name property below.
+   */
+  @blue.attribute("scene")
   @blue.persistOnly
   @type.rootRef("EveSpaceScene")
-  scene = null;
+  _scene = null;
+
+  /**
+   * Carbon MAP_PROPERTY "scene" over GetScene/SetScene
+   * (EveSpaceSceneRenderDriver_Blue.cpp:78-82): the scene to render.
+   */
+  @blue.property()
+  @type.rootRef("EveSpaceScene")
+  @meta.implemented
+  get scene()
+  {
+    return this.GetScene();
+  }
+
+  /** Assigns the scene through Carbon's SetScene. */
+  @meta.implemented
+  set scene(value)
+  {
+    this.SetScene(value);
+  }
+
+  /**
+   * Carbon MAP_PROPERTY "debugMode" over GetDebugMode/SetDebugMode
+   * (EveSpaceSceneRenderDriver_Blue.cpp:263-267): in debug mode the pool
+   * stops sharing temporary GPU resources.
+   */
+  @blue.property()
+  @type.boolean
+  @meta.implemented
+  get debugMode()
+  {
+    return this.GetDebugMode();
+  }
+
+  /** Toggles the pool's debug mode through Carbon's SetDebugMode. */
+  @meta.implemented
+  set debugMode(value)
+  {
+    this.SetDebugMode(value);
+  }
 
   /** m_name (std::string) [READWRITE] */
   @blue.readwrite
@@ -223,12 +291,264 @@ export class EveSpaceSceneRenderDriver
   @type.boolean
   enableRendering = true;
 
-  /** Carbon method GetAllTempTextures (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon GetAllTempTextures (EveSpaceSceneRenderDriver.cpp:725-740, mapped
+   * MAP_METHOD_AND_WRAP at _Blue.cpp:258-261): every temp texture the pool
+   * holds, each wrapped in a new Tr2TextureReference. For debugging.
+   *
+   * Adapted: Carbon copy-assigns the AL value through the reference
+   * GetTexture returns (`*texRef->GetTexture() = tex`). JavaScript cannot
+   * assign through a returned reference, so the reference's by-value
+   * `texture` member is replaced with a copy of the pool's value, which is
+   * what the assignment leaves behind. The pool's out-vector is its return
+   * value.
+   *
+   * @returns {Tr2TextureReference[]} One reference per pooled temp texture.
+   */
   @blue.method
-  @meta.notImplemented
-  GetAllTempTextures(...args)
+  @meta.adapted
+  GetAllTempTextures()
   {
-    throw new Error("EveSpaceSceneRenderDriver.GetAllTempTextures is not implemented in CarbonEngineJS.");
+    const textures = this._gpuResourcePool.DebugGetAllTempTextures();
+
+    const result = [];
+    for (const tex of textures)
+    {
+      const texRef = new Tr2TextureReference();
+      texRef.texture = new Tr2TextureAL({ copy: tex });
+      result.push(texRef);
+    }
+    return result;
+  }
+
+  /**
+   * Carbon SetSettings (EveSpaceSceneRenderDriver.h:81-84): replaces
+   * m_settings whole.
+   *
+   * Adapted: this driver keeps m_settings' members flat on itself, as the
+   * driver attributes Carbon's Blue map makes of them
+   * (EveSpaceSceneRenderDriver_Blue.cpp:148-231), so the record is copied
+   * member by member in Carbon's declaration order (h:56-70). The colour is
+   * copied by value, as Carbon's struct assignment does.
+   *
+   * @param {EveSpaceSceneRenderDriverSettings} settings The settings to render with.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.adapted
+  SetSettings(settings)
+  {
+    this.shadowQuality = settings.shadowQuality;
+    this.antiAliasingQuality = settings.antiAliasingQuality;
+    this.aoQuality = settings.aoQuality;
+    this.postProcessingQuality = settings.postProcessingQuality;
+    this.volumetricQuality = settings.volumetricQuality;
+
+    vec4.copy(this.clearColor, settings.clearColor);
+
+    this.forceOpaqueBuffer = settings.forceOpaqueBuffer;
+    this.forceNormalMap = settings.forceNormalMap;
+    this.forceVelocityMap = settings.forceVelocityMap;
+    this.enableUpscaling = settings.enableUpscaling;
+    this.enableDistortion = settings.enableDistortion;
+    this.showFPS = settings.showFPS;
+    this.visualizeMethod = settings.visualizeMethod;
+  }
+
+  /**
+   * Carbon SetDebugMode (EveSpaceSceneRenderDriver.cpp:742-748): forwards to
+   * the pool only when the mode changes.
+   *
+   * @param {boolean} enable Whether temporary GPU resources stop being shared.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  SetDebugMode(enable)
+  {
+    if (enable !== this.GetDebugMode())
+    {
+      this._gpuResourcePool.SetDebugMode(enable);
+    }
+  }
+
+  /**
+   * Carbon GetDebugMode (EveSpaceSceneRenderDriver.cpp:750-753).
+   *
+   * @returns {boolean} The pool's debug mode.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugMode()
+  {
+    return this._gpuResourcePool.GetDebugMode();
+  }
+
+  /**
+   * Carbon GetScene (EveSpaceSceneRenderDriver.cpp:755-758).
+   *
+   * @returns {EveSpaceScene|null} The scene this driver renders.
+   */
+  @blue.method
+  @meta.implemented
+  GetScene()
+  {
+    return this._scene;
+  }
+
+  /**
+   * Carbon SetScene (EveSpaceSceneRenderDriver.cpp:760-767): assigns the
+   * scene unless it is already the one held.
+   *
+   * @param {EveSpaceScene|null} scene The scene to render.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  SetScene(scene)
+  {
+    if (this._scene === scene)
+    {
+      return;
+    }
+    this._scene = scene;
+  }
+
+  /**
+   * Carbon ReleaseResources (EveSpaceSceneRenderDriver.cpp:167-174), the
+   * Tr2DeviceResource override: a full release deletes the upscaling
+   * context.
+   *
+   * Carbon quirk, reproduced: the storage is compared for equality with
+   * TRISTORAGE_ALL (cpp:169) rather than tested as a mask, as
+   * EveSpaceScene's ReleaseResources tests it, so a TRISTORAGE_VIDEOMEMORY
+   * release before a device reset keeps the upscaling context.
+   *
+   * @param {number} s TriStorageFlags.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  ReleaseResources(s)
+  {
+    if (s === TriStorageFlags.TRISTORAGE_ALL)
+    {
+      EveSpaceSceneRenderDriver.deleteUpscalingContext(this._upscalingContext);
+      this._upscalingContext = null;
+    }
+  }
+
+  /**
+   * Carbon OnPrepareResources (EveSpaceSceneRenderDriver.cpp:176-179): the
+   * driver creates nothing eagerly.
+   *
+   * @returns {boolean} True.
+   */
+  @blue.method
+  @meta.implemented
+  OnPrepareResources()
+  {
+    return true;
+  }
+
+  /**
+   * Carbon's anonymous-namespace DeleteUpscalingContext
+   * (EveSpaceSceneRenderDriver.cpp:48-56): detaches the HUD-less texture and
+   * deletes the context through the main-thread render context.
+   *
+   * Waiting: Tr2UpscalingContextAL (Tr2UpscalingAL.h:166-190) is not in the
+   * AL, and every backend's CreateUpscalingContext returns null, so no
+   * context reaches this today; the body is Carbon's for when one does.
+   *
+   * @param {object|null} context A Tr2UpscalingContextAL, or null.
+   * @returns {void}
+   */
+  @meta.implemented
+  static deleteUpscalingContext(context)
+  {
+    if (context)
+    {
+      const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+      context.SetHudLessTexture(null);
+      renderContext.GetRenderContextAL().DeleteUpscalingContext(context.GetID());
+    }
+  }
+
+  /**
+   * Carbon's private SetupUpscaling (EveSpaceSceneRenderDriver.cpp:181-210):
+   * with upscaling enabled, (re)creates the context whenever the display
+   * size differs from the context's; with it disabled, deletes any context.
+   *
+   * Adapted: Carbon's Tr2RenderContext is its AL context, so the AL calls go
+   * through GetRenderContextAL(). Tr2UpscalingContextAL's out-parameter
+   * GetDisplayDimensions becomes a returned { width, height }.
+   *
+   * Waiting: Tr2UpscalingAL::UpscalingContextParams (Tr2UpscalingAL.h:110-121,
+   * constructor Tr2UpscalingAL.cpp:89-97) and Tr2UpscalingContextAL
+   * (Tr2UpscalingAL.h:166-190) are not in the AL. The params are written as
+   * a record of Carbon's members, and the AL's CreateUpscalingContext returns
+   * null on every backend, so `_upscalingContext` stays null.
+   *
+   * @param {TextureSize2D} displaySize The destination size.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.adapted
+  _SetupUpscaling(displaySize)
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    if (this.enableUpscaling)
+    {
+      let width = 0;
+      let height = 0;
+      if (this._upscalingContext)
+      {
+        ({ width, height } = this._upscalingContext.GetDisplayDimensions());
+      }
+      if (width !== displaySize.width || height !== displaySize.height)
+      {
+        const al = renderContext.GetRenderContextAL();
+        const params = {
+          displayWidth: displaySize.width,
+          displayHeight: displaySize.height,
+          sourceFormat: this.internalPixelFormat,
+          depthFormat: DepthStencilFormat.DSFMT_D32F,
+          allowFramegen: true,
+          renderContext: al
+        };
+
+        this._upscalingContext = al.CreateUpscalingContext(params, this._upscalingContext ? this._upscalingContext.GetID() : INVALID_UPSCALING_CONTEXT_ID);
+      }
+    }
+    else if (this._upscalingContext)
+    {
+      EveSpaceSceneRenderDriver.deleteUpscalingContext(this._upscalingContext);
+      this._upscalingContext = null;
+    }
+  }
+
+  /**
+   * Carbon's private GetRenderSize (EveSpaceSceneRenderDriver.cpp:393-402):
+   * the upscaling context's render size, or the display size without one.
+   *
+   * Adapted: Tr2UpscalingContextAL's out-parameter GetRenderDimensions
+   * becomes a returned { width, height }. Waiting: that class is not in the
+   * AL (Tr2UpscalingAL.h:174), so today this is always the display size.
+   *
+   * @param {TextureSize2D} displaySize The destination size.
+   * @returns {TextureSize2D} The size the scene renders at.
+   */
+  @blue.method
+  @meta.adapted
+  _GetRenderSize(displaySize)
+  {
+    if (this._upscalingContext)
+    {
+      const { width, height } = this._upscalingContext.GetRenderDimensions();
+      return new TextureSize2D(width, height);
+    }
+    return displaySize;
   }
 
   /** The frustum this driver derives each frame; Carbon keeps one per driver. */
@@ -239,6 +559,15 @@ export class EveSpaceSceneRenderDriver
 
   /** m_gpuResourcePool: the scene's colour and depth, and every post-process target. */
   _gpuResourcePool = new Tr2GpuResourcePool();
+
+  /**
+   * m_upscalingContext (Tr2UpscalingContextAL*, h:127), nullptr in Carbon.
+   * SetupUpscaling creates it; ReleaseResources and Destroy delete it.
+   */
+  _upscalingContext = null;
+
+  /** m_timers (h:155-168): one profile timer per frame section, embedded by value. */
+  _timers = new EveSpaceSceneRenderDriverTimers();
 
   /** Carbon's Tr2Renderer is static; ours is an instance, prepared per context. */
   _renderer = new Tr2Renderer();
@@ -265,7 +594,12 @@ export class EveSpaceSceneRenderDriver
   /** Explicit final retirement; Execute cannot restart an owner after teardown. */
   _destroyed = false;
 
-  /** Releases this driver's values after its render job has stopped. */
+  /**
+   * Releases this driver's values after its render job has stopped. Carbon's
+   * destructor deletes the upscaling context (cpp:162-165), and its
+   * Tr2DeviceResource base unregisters from the device
+   * (Tr2DeviceResource.cpp:11-14).
+   */
   Destroy()
   {
     if (this._destroyed) return;
@@ -274,11 +608,15 @@ export class EveSpaceSceneRenderDriver
     this._depthMapReference.SetTexture(null);
     this._ssaoMapReference.SetTexture(null);
     this._normalMapReference.SetTexture(null);
+    this._customStencilReference.SetTexture(null);
     this._opaqueMapReference.SetTexture(null);
     this._distortionEffect.Destroy();
     this.postProcess.Destroy();
     this._gpuResourcePool.Destroy();
     this._preparedContext = null;
+    EveSpaceSceneRenderDriver.deleteUpscalingContext(this._upscalingContext);
+    this._upscalingContext = null;
+    TriDevice.UnregisterResource(this);
   }
 
   /** The provider "DepthMap" is registered with; it holds this frame's scene depth. */
@@ -289,6 +627,9 @@ export class EveSpaceSceneRenderDriver
 
   /** The provider "SpaceSceneNormalMap" is registered with: the depth pass's normals. */
   _normalMapReference = new Tr2TextureReference();
+
+  /** The provider "SpaceSceneCustomStencil" is registered with: the depth pass's custom stencil. */
+  _customStencilReference = new Tr2TextureReference();
 
   /** The provider "EveSpaceSceneOpaqueMap" is registered with: the opaque colour copy. */
   _opaqueMapReference = new Tr2TextureReference();
@@ -359,9 +700,11 @@ export class EveSpaceSceneRenderDriver
 
   /**
    * Validates the frame and its child nodes before the render job executes it
-   * (EveSpaceSceneRenderDriver.cpp:299-345).
-   * Adapted: destination spans contain JS dimension records. Upscaling and
-   * named outputs are not ported, so render size is the destination size.
+   * (EveSpaceSceneRenderDriver.cpp:299-345). The upscaler is set up against
+   * the display size first, and the children validate at the render size it
+   * gives (cpp:321-324).
+   * Adapted: destination spans contain JS dimension records. Named outputs
+   * are not ported, so Carbon's output-name check (cpp:346-356) is absent.
    * @param {Array<object>} destinationDimensions Destination descriptions.
    * @param {Array<string>} _outputs Named outputs, not yet supported.
    * @param {number} realTime Real time in Blue ticks.
@@ -376,7 +719,11 @@ export class EveSpaceSceneRenderDriver
     if (!this.enableRendering) return true;
     if (!this.scene || !(this.camera || (this.view && this.projection))) return false;
 
-    const { width, height } = destinationDimensions[0];
+    const displaySize = new TextureSize2D(destinationDimensions[0].width, destinationDimensions[0].height);
+
+    this._SetupUpscaling(displaySize);
+    const { width, height } = this._GetRenderSize(displaySize);
+
     // EveSpaceSceneRenderDriver.cpp:326-333: background validates first.
     if (this.background && !this.background.Validate([
       { width, height, depth: 1, mipCount: 1, arraySize: 1, type: TextureType.TEX_TYPE_2D, format: this.internalPixelFormat }
@@ -406,8 +753,13 @@ export class EveSpaceSceneRenderDriver
    * updates, so simulation keeps running while nothing is drawn (cpp:408-419).
    *
    * Adapted: the scene's CPU gather is split across driver and scene methods;
-   * upscaling, named outputs and 3D UI remain unported. A null destination is
-   * retained only for isolated legacy tests. JS returns a submission boolean.
+   * named outputs and 3D UI remain unported. A null destination is retained
+   * only for isolated legacy tests. JS returns a submission boolean.
+   *
+   * Waiting: Carbon brackets eleven sections with TimeSection over m_timers
+   * (cpp:72-114, 478-612). Tr2ProfileTimer (Tr2ProfileTimer.h:7-41) is not
+   * ported, and the render-job step hands this driver no root timer, so the
+   * sections are not timed; see EveSpaceSceneRenderDriverTimers.
    * @returns {boolean} Whether anything was submitted.
    */
   @blue.method
@@ -473,6 +825,10 @@ export class EveSpaceSceneRenderDriver
     esm.PushRenderTarget__Current(0);
     esm.PushRenderTarget__Current(1);
     esm.PushDepthStencilBuffer__Current();
+
+    // cpp:459. Carbon's Tr2Renderer::SetUpscalingContextID static lives on
+    // the render context here, as TriStepSetUpscalingContextID calls it.
+    renderContext.SetUpscalingContextID(this._upscalingContext ? this._upscalingContext.GetID() : INVALID_UPSCALING_CONTEXT_ID);
 
     try
     {
@@ -596,6 +952,14 @@ export class EveSpaceSceneRenderDriver
       {
         this._gpuResourcePool.Free(offscreen.normal);
         offscreen.normal = null;
+      }
+
+      // So is the custom stencil (cpp:516), emptied as a global first (cpp:523).
+      this._customStencilReference.SetTexture(null);
+      if (offscreen?.customStencil)
+      {
+        this._gpuResourcePool.Free(offscreen.customStencil);
+        offscreen.customStencil = null;
       }
 
       // So is the distortion map (cpp:499, 552).
@@ -809,16 +1173,23 @@ export class EveSpaceSceneRenderDriver
     }
 
     // THE DEPTH PASS (cpp:514-521): depth and, when AO or a forced map wants
-    // it, the normal map, before shadows and SSAO read them. The depth
-    // buffer stays bound; the scene colour is back in slot 0 afterwards.
+    // it, the normal map, plus the custom stencil when its format is set,
+    // before shadows and SSAO read them. The depth buffer stays bound; the
+    // scene colour is back in slot 0 afterwards.
     if (offscreen && map)
     {
       offscreen.normal = this._GetNormalMapIfNeeded(offscreen.size);
-      this.scene.RenderDepthPass(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, null, renderContext, this.depthPassTechnique, map);
+      offscreen.customStencil = this._GetCustomStencilMapIfNeeded(offscreen.size);
+      this.scene.RenderDepthPass(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, offscreen.customStencil?.Get() ?? null, renderContext, this.depthPassTechnique, map);
     }
 
     this._normalMapReference.SetTexture(offscreen?.normal?.Get() ?? null);
     Tr2VariableStore.globalStore().RegisterVariableInternal("SpaceSceneNormalMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._normalMapReference);
+
+    // cpp:522-523: the custom stencil is a global until Execute returns, when
+    // Carbon's ON_BLOCK_EXIT empties it (Execute's finally, here).
+    this._customStencilReference.SetTexture(offscreen?.customStencil?.Get() ?? null);
+    Tr2VariableStore.globalStore().RegisterVariableInternal("SpaceSceneCustomStencil", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._customStencilReference);
 
     // Carbon gates the main pass on the scene's display flag AND this switch
     // (cpp:527).
@@ -1065,8 +1436,8 @@ export class EveSpaceSceneRenderDriver
    * depth and normal maps with depth bound read-only, or the empty SSAO when
    * there is none.
    *
-   * Adapted: Carbon's `temporal` is also true under a temporal upscaler,
-   * which is not ported, so only the post process's TAA sets it.
+   * Adapted: Carbon asks the primary render context for the upscaling info
+   * (cpp:367); this runtime has one context per frame, so its AL answers.
    *
    * @param {object} depthMap The scene depth.
    * @param {object|null} normalMap The depth pass's normal map.
@@ -1082,8 +1453,9 @@ export class EveSpaceSceneRenderDriver
     {
       renderContext.SetReadOnlyDepth(true);
 
+      const upscalingInfo = renderContext.GetRenderContextAL().GetUpscalingInfo(this._upscalingContext ? this._upscalingContext.GetID() : INVALID_UPSCALING_CONTEXT_ID);
       const scenePostProcess = this.scene.postprocess;
-      const temporal = scenePostProcess !== null && scenePostProcess.GetTaaIfAvailable() !== null;
+      const temporal = upscalingInfo.temporal || (scenePostProcess !== null && scenePostProcess.GetTaaIfAvailable() !== null);
 
       ssao = this.SSAO.Filter(depthMap, normalMap, this._gpuResourcePool, renderContext, temporal);
       renderContext.SetReadOnlyDepth(false);
@@ -1115,37 +1487,66 @@ export class EveSpaceSceneRenderDriver
   }
 
   /**
-   * Carbon's GetVelocityMapIfNeeded (cpp:653-668): an R16G16_FLOAT map while
-   * anti-aliasing is on, or when forced.
+   * Carbon's GetVelocityMapIfNeeded (cpp:653-670): an R16G16_FLOAT map while
+   * anti-aliasing is on, under a temporal upscaler, or when forced.
    *
-   * Adapted: Carbon also allocates it for a temporal upscaler and for a named
-   * render-job output; neither exists here.
+   * Adapted: Carbon reads the upscaling info from the main-thread render
+   * context's AL, as here; it also allocates the map for a named render-job
+   * output, which does not exist here.
    *
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
   @blue.method
+  @meta.adapted
   _GetVelocityMapIfNeeded(size)
   {
-    if (this.antiAliasingQuality === AntiAliasingQuality.Disabled && !this.forceVelocityMap) return null;
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+    const upscalingInfo = renderContext.GetRenderContextAL().GetUpscalingInfo(this._upscalingContext ? this._upscalingContext.GetID() : INVALID_UPSCALING_CONTEXT_ID);
+    const needsVelocityMap = this.antiAliasingQuality !== AntiAliasingQuality.Disabled || (upscalingInfo.technique !== UpscalingTechnique.NONE && upscalingInfo.temporal);
+
+    if (!needsVelocityMap && !this.forceVelocityMap) return null;
 
     return this._TempTexture("velocityMap", size, PixelFormat.PIXEL_FORMAT_R16G16_FLOAT);
   }
 
   /**
-   * Carbon's GetOpaqueColorMapIfNeeded (cpp:702-719): a copy of the scene
-   * colour at anti-aliasing Medium and above, or when forced.
+   * Carbon's GetCustomStencilMapIfNeeded (cpp:687-700): a target in
+   * customStencilFormat whenever that format is not PIXEL_FORMAT_UNKNOWN.
    *
-   * Adapted: Carbon also allocates it for an upscaler, a named output, and a
-   * frame with SSSSS opaque batches; none exists here.
+   * Adapted: Carbon also allocates it for a named "CustomStencilMap"
+   * render-job output; none exists here.
+   *
+   * @param {{width: number, height: number}} size The render size.
+   * @returns {GpuResourceHandle|null} The map, or null.
+   */
+  @blue.method
+  @meta.adapted
+  _GetCustomStencilMapIfNeeded(size)
+  {
+    if (this.customStencilFormat === PixelFormat.PIXEL_FORMAT_UNKNOWN) return null;
+
+    return this._TempTexture("customStencil", size, this.customStencilFormat);
+  }
+
+  /**
+   * Carbon's GetOpaqueColorMapIfNeeded (cpp:702-723): a copy of the scene
+   * colour under an upscaling context, at anti-aliasing Medium and above, or
+   * when forced.
+   *
+   * Adapted: Carbon also allocates it for a named output and a frame with
+   * SSSSS opaque batches; neither exists here.
    *
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The copy, or null.
    */
   @blue.method
+  @meta.adapted
   _GetOpaqueColorMapIfNeeded(size)
   {
-    if (this.antiAliasingQuality < AntiAliasingQuality.Medium && !this.forceOpaqueBuffer) return null;
+    const needsOpaqueBackBuffer = this._upscalingContext !== null || this.antiAliasingQuality >= AntiAliasingQuality.Medium || this.forceOpaqueBuffer;
+
+    if (!needsOpaqueBackBuffer) return null;
 
     return this._TempTexture("opaqueBackBuffer", size, this.internalPixelFormat);
   }
@@ -1221,9 +1622,10 @@ export class EveSpaceSceneRenderDriver
   }
 
   /**
-   * Borrows scene colour (cpp:461); Execute borrows depth after the background
-   * node (cpp:471). Adapted: JS groups the native local pool handles in one
-   * frame record for explicit cleanup instead of C++ RAII.
+   * Borrows scene colour (cpp:461) at the render size (cpp:439-440); Execute
+   * borrows depth after the background node (cpp:471). Adapted: JS groups
+   * the native local pool handles in one frame record for explicit cleanup
+   * instead of C++ RAII.
    */
   _BeginOffscreen(target, renderContext)
   {
@@ -1231,7 +1633,7 @@ export class EveSpaceSceneRenderDriver
 
     this._PrepareContext(renderContext);
 
-    const size = { width: target.GetWidth(), height: target.GetHeight() };
+    const size = this._GetRenderSize(new TextureSize2D(target.GetWidth(), target.GetHeight()));
     const texture = (name, format, gpuUsage) => pool.GetTempTexture__Size(name, size, format, gpuUsage);
 
     return {
@@ -1243,6 +1645,8 @@ export class EveSpaceSceneRenderDriver
       opaque: null,
       // Borrowed for the depth pass when AO needs it; the driver's to free.
       normal: null,
+      // Borrowed for the depth pass when customStencilFormat is set; the driver's to free.
+      customStencil: null,
       // The shadow pass's ShadowResources; the driver's to free.
       shadows: null,
       // The distortion map and whether the main pass drew into it.
@@ -1276,7 +1680,7 @@ export class EveSpaceSceneRenderDriver
     this._opaqueMapReference.SetTexture(null);
     Tr2VariableStore.globalStore().RegisterVariableInternal("EveSpaceSceneOpaqueMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._opaqueMapReference);
 
-    this.postProcess.Execute(target, offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque, this.scene, null, this._gpuResourcePool, renderContext, this._renderer);
+    this.postProcess.Execute(target, offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque, this.scene, this._upscalingContext, this._gpuResourcePool, renderContext, this._renderer);
   }
 
   /**
@@ -1435,6 +1839,9 @@ export class EveSpaceSceneRenderDriver
 
     this.scene.StampFrameContext({ frustum: this._frustum });
   }
+
+  /** Carbon's nested EveSpaceSceneRenderDriver::Settings (h:54-71). */
+  static Settings = EveSpaceSceneRenderDriverSettings;
 
   static AmbientOcclusionQuality = AmbientOcclusionQuality;
 

@@ -22,10 +22,11 @@ import {
   Tr2VariableStore,
   Tr2VolumetricsRenderer,
   TriProjection,
-  TriView, TriRenderJob, Tr2StepExecuteRenderNode, Tr2RenderTarget, Tr2Renderer
+  TriView, TriRenderJob, Tr2StepExecuteRenderNode, Tr2RenderTarget, Tr2Renderer,
+  TriDevice
 } from "../../npm/dist/trinity/index.js";
-import { RenderingMode, TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
-import { PixelFormat, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
+import { RenderingMode, TriBatchType, TriStorageFlags } from "../../npm/dist/global/consts/graphics/index.js";
+import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { StubContext, StubTarget } from "../support/stubContext.js";
 
 /**
@@ -110,7 +111,7 @@ function sceneRecording(calls)
     Jitter() { calls.push([ "Jitter" ]); },
     EndRender() { calls.push([ "EndRender" ]); },
     RunLensflareOcclusionQueries() { calls.push([ "RunLensflareOcclusionQueries" ]); },
-    RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName) { calls.push([ "RenderDepthPass", normalMap, techniqueName ]); },
+    RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName) { calls.push([ "RenderDepthPass", normalMap, techniqueName, customStencil ]); },
     RenderShadows() { calls.push([ "RenderShadows" ]); return null; },
     UpdateVariableStore() { calls.push([ "UpdateVariableStore" ]); },
     // EveSpaceScene.h:522-525; no GPU particle system in these frames.
@@ -1010,4 +1011,217 @@ test("render job bypasses child validation when rendering is disabled but still 
   };
   assert.equal(job.Run(13, 19, context), TriRenderJob.Status.RJ_DONE);
   assert.deepEqual(calls.map(x => x[0]), ["StampFrameContext", "Update"]);
+});
+
+test("the driver is a device resource: registered on construction, unregistered by Destroy (Tr2DeviceResource.cpp:6-14)", () =>
+{
+  const driver = new EveSpaceSceneRenderDriver();
+
+  assert.ok(TriDevice.GetResourcesRegistered().includes(driver));
+  // Carbon OnPrepareResources (EveSpaceSceneRenderDriver.cpp:176-179) creates nothing.
+  assert.equal(driver.OnPrepareResources(), true);
+  assert.equal(driver.PrepareResources(), true);
+  // GetDescription is the base's: the driver does not override it.
+  assert.equal(driver.GetDescription(), "<Unknown>");
+
+  driver.Destroy();
+  assert.equal(TriDevice.GetResourcesRegistered().includes(driver), false);
+});
+
+test("ReleaseResources deletes the upscaling context only for exactly TRISTORAGE_ALL (cpp:167-174)", () =>
+{
+  const driver = new EveSpaceSceneRenderDriver();
+  const detached = [];
+  const context = { GetID: () => 7, SetHudLessTexture(texture) { detached.push(texture); } };
+
+  driver._upscalingContext = context;
+  driver.ReleaseResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
+  assert.equal(driver._upscalingContext, context);
+  assert.deepEqual(detached, []);
+
+  driver.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
+  assert.equal(driver._upscalingContext, null);
+  assert.deepEqual(detached, [ null ], "DeleteUpscalingContext detaches the HUD-less texture (cpp:48-56)");
+
+  driver.Destroy();
+});
+
+test("scene is a property over GetScene/SetScene, backed by the persist-only member (_Blue.cpp:78-84)", () =>
+{
+  const driver = new EveSpaceSceneRenderDriver();
+  const first = sceneRecording([]);
+  const second = sceneRecording([]);
+
+  assert.equal(driver.GetScene(), null);
+
+  driver.SetScene(first);
+  assert.equal(driver.GetScene(), first);
+  assert.equal(driver.scene, first);
+  assert.equal(driver._scene, first);
+
+  driver.scene = second;
+  assert.equal(driver.GetScene(), second);
+
+  // SetScene returns early for the scene already held (cpp:760-767).
+  driver.SetScene(second);
+  assert.equal(driver._scene, second);
+
+  driver.scene = null;
+  assert.equal(driver.GetScene(), null);
+
+  driver.Destroy();
+});
+
+test("debugMode toggles the pool's debug mode, forwarding only on change (cpp:742-753)", () =>
+{
+  const driver = new EveSpaceSceneRenderDriver();
+  const forwarded = [];
+  const setDebugMode = driver._gpuResourcePool.SetDebugMode.bind(driver._gpuResourcePool);
+  driver._gpuResourcePool.SetDebugMode = (enable) => { forwarded.push(enable); return setDebugMode(enable); };
+
+  assert.equal(driver.debugMode, false);
+  assert.equal(driver.GetDebugMode(), false);
+
+  driver.debugMode = true;
+  assert.equal(driver.debugMode, true);
+  assert.equal(driver._gpuResourcePool.GetDebugMode(), true);
+
+  driver.SetDebugMode(true);
+  assert.deepEqual(forwarded, [ true ], "an unchanged mode is not forwarded");
+
+  driver.SetDebugMode(false);
+  assert.equal(driver.GetDebugMode(), false);
+  assert.deepEqual(forwarded, [ true, false ]);
+
+  driver.Destroy();
+});
+
+test("GetAllTempTextures wraps every pooled temp texture in a Tr2TextureReference (cpp:725-740)", () =>
+{
+  const driver = new EveSpaceSceneRenderDriver();
+
+  assert.deepEqual(driver.GetAllTempTextures(), []);
+
+  const pool = driver._gpuResourcePool;
+  pool.SetRenderContext(StubContext());
+  const first = pool.GetTempTexture__WidthHeight("first", 4, 4, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE);
+  const second = pool.GetTempTexture__WidthHeight("second", 8, 2, PixelFormat.PIXEL_FORMAT_R16G16_FLOAT, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE);
+
+  const references = driver.GetAllTempTextures();
+
+  assert.equal(references.length, 2);
+  assert.ok(references[0].GetTexture().Equals(first.Get()));
+  assert.ok(references[1].GetTexture().Equals(second.Get()));
+  assert.deepEqual(references.map(reference => [ reference.GetWidth(), reference.GetHeight() ]), [ [ 4, 4 ], [ 8, 2 ] ]);
+
+  pool.Free(first);
+  pool.Free(second);
+  driver.Destroy();
+});
+
+test("SetSettings replaces every Settings member; the record holds Carbon's defaults (h:54-84)", () =>
+{
+  const settings = new EveSpaceSceneRenderDriver.Settings();
+
+  assert.equal(settings.shadowQuality, 2, "SHADOW_HIGH");
+  assert.equal(settings.antiAliasingQuality, EveSpaceSceneRenderDriver.AntiAliasingQuality.High);
+  assert.equal(settings.aoQuality, EveSpaceSceneRenderDriver.AmbientOcclusionQuality.High);
+  assert.equal(settings.postProcessingQuality, EveSpaceSceneRenderDriver.Quality.HIGH);
+  assert.equal(settings.volumetricQuality, EveSpaceSceneRenderDriver.Tr2VolumerticQuality.High);
+  assert.deepEqual(Array.from(settings.clearColor), [ 0, 0, 0, 1 ]);
+  assert.equal(settings.enableUpscaling, true);
+  assert.equal(settings.enableDistortion, true);
+  assert.equal(settings.visualizeMethod, EveSpaceSceneRenderDriver.EveVisualizeMethod.VM_NONE);
+
+  const driver = new EveSpaceSceneRenderDriver();
+  const clearColor = driver.clearColor;
+  settings.clearColor[0] = 0.5;
+  settings.forceNormalMap = true;
+  settings.showFPS = true;
+
+  driver.SetSettings(settings);
+
+  for (const name of [ "shadowQuality", "antiAliasingQuality", "aoQuality", "postProcessingQuality", "volumetricQuality",
+    "forceOpaqueBuffer", "forceNormalMap", "forceVelocityMap", "enableUpscaling", "enableDistortion", "showFPS", "visualizeMethod" ])
+  {
+    assert.equal(driver[name], settings[name], name);
+  }
+  assert.equal(driver.clearColor, clearColor, "the colour is copied by value");
+  assert.deepEqual(Array.from(driver.clearColor), [ 0.5, 0, 0, 1 ]);
+
+  driver.Destroy();
+});
+
+test("Validate sets up upscaling and the render size is the display size without a context (cpp:321-324, 393-402)", () =>
+{
+  const driver = driverOver([]);
+
+  driver.enableUpscaling = true;
+  assert.equal(driver.Validate([{ width: 32, height: 16 }]), true);
+  // Every AL backend's CreateUpscalingContext creates none.
+  assert.equal(driver._upscalingContext, null);
+  assert.deepEqual({ ...driver._GetRenderSize({ width: 32, height: 16 }) }, { width: 32, height: 16 });
+
+  // With a context, its render dimensions win; disabling upscaling deletes it.
+  const detached = [];
+  driver._upscalingContext = {
+    GetID: () => 3,
+    GetDisplayDimensions: () => ({ width: 32, height: 16 }),
+    GetRenderDimensions: () => ({ width: 16, height: 8 }),
+    SetHudLessTexture(texture) { detached.push(texture); }
+  };
+  const render = driver._GetRenderSize({ width: 32, height: 16 });
+  assert.deepEqual([ render.width, render.height ], [ 16, 8 ]);
+
+  driver.enableUpscaling = false;
+  assert.equal(driver.Validate([{ width: 32, height: 16 }]), true);
+  assert.equal(driver._upscalingContext, null);
+  assert.deepEqual(detached, [ null ]);
+
+  driver.Destroy();
+});
+
+test("a custom stencil format gives the depth pass a custom stencil target, published as SpaceSceneCustomStencil (cpp:516-523, 687-700)", () =>
+{
+  const calls = [];
+  const driver = driverOver(calls);
+
+  // PIXEL_FORMAT_UNKNOWN (Carbon's default, h:144): none.
+  driver.Execute([ StubTarget() ], null, 0, 0, null, StubContext());
+  assert.equal(calls.find(([ name ]) => name === "RenderDepthPass")[3], null);
+
+  calls.length = 0;
+  driver.customStencilFormat = PixelFormat.PIXEL_FORMAT_R8_UINT;
+  let published = null;
+  let formatAtDepthPass = null;
+  const depthPass = driver.scene.RenderDepthPass;
+  driver.scene.RenderDepthPass = function (depthMap, normalMap, customStencil, ...rest)
+  {
+    formatAtDepthPass = customStencil ? customStencil.GetFormat() : null;
+    return depthPass.call(this, depthMap, normalMap, customStencil, ...rest);
+  };
+  const store = Tr2VariableStore.globalStore();
+  const register = store.RegisterVariableInternal.bind(store);
+  store.RegisterVariableInternal = (name, type, value) =>
+  {
+    if (name === "SpaceSceneCustomStencil") published = value.GetTexture().IsValid();
+    return register(name, type, value);
+  };
+  try
+  {
+    driver.Execute([ StubTarget() ], null, 0, 0, null, StubContext());
+  }
+  finally
+  {
+    delete store.RegisterVariableInternal;
+  }
+
+  const customStencil = calls.find(([ name ]) => name === "RenderDepthPass")[3];
+  assert.notEqual(customStencil, null);
+  assert.equal(formatAtDepthPass, PixelFormat.PIXEL_FORMAT_R8_UINT);
+  assert.equal(published, true);
+  // Emptied when Execute returns (cpp:523).
+  assert.equal(driver._customStencilReference.GetTexture().IsValid(), false);
+
+  driver.Destroy();
 });

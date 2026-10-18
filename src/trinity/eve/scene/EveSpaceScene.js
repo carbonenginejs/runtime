@@ -67,6 +67,7 @@ import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALRes
 import { Tr2CpuUsage } from "#consts/render-context";
 import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import "./EveSpaceSceneRenderDriver.js";
+import { EveSpaceScenePerThreadAccumulator } from "./EveSpaceScenePerThreadAccumulator.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 
 
@@ -284,11 +285,38 @@ export class EveSpaceScene
   @type.color
   ambientColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
-  /** m_shLightingManager (Tr2ShLightingManagerPtr) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * m_shLightingManager (Tr2ShLightingManagerPtr, h:625), persisted under its
+   * exposed name by MAP_ATTRIBUTE "shLightingManager" PERSISTONLY
+   * (EveSpaceScene_Blue.cpp:175-179). Readers write it directly, bypassing
+   * the setter; Initialize replays it through SetShLightingManager
+   * (cpp:3252-3257).
+   */
+  @blue.attribute("shLightingManager")
   @blue.persistOnly
   @type.rootRef("Tr2ShLightingManager")
-  shLightingManager = null;
+  _shLightingManager = null;
+
+  /**
+   * Carbon MAP_PROPERTY "shLightingManager" over
+   * GetShLightingManager/SetShLightingManager (EveSpaceScene_Blue.cpp:169-173):
+   * the setter moves the planets' and objects' secondary light sources to the
+   * new manager.
+   */
+  @blue.property()
+  @type.rootRef("Tr2ShLightingManager")
+  @meta.implemented
+  get shLightingManager()
+  {
+    return this.GetShLightingManager();
+  }
+
+  /** Re-registers the scene's secondary light sources with the replacement manager. */
+  @meta.implemented
+  set shLightingManager(value)
+  {
+    this.SetShLightingManager(value);
+  }
 
   /** m_combinedPostProcessAttributes (Tr2PostProcessAttributesPtr) [READ] -
    * default-constructed like Carbon's ctor CreateInstance (cpp:297); refreshed
@@ -318,6 +346,19 @@ export class EveSpaceScene
    * may null it. */
   @type.rootRef("EveEffectRoot2")
   cameraAttachmentParent = new EveEffectRoot2();
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "cameraAttachments" over GetCameraAttachments
+   * (EveSpaceScene_Blue.cpp:164-167): the effect children of the camera
+   * attachment parent.
+   */
+  @blue.property()
+  @type.list("IEveSpaceObjectChild")
+  @meta.implemented
+  get cameraAttachments()
+  {
+    return this._GetCameraAttachments();
+  }
 
   /** m_postProcessDebug (BluePy) - protected Carbon debug payload. */
   @type.rawStruct("BluePy")
@@ -589,6 +630,40 @@ export class EveSpaceScene
 
   /** m_reflectionShadowMap (h:406): reflections' own cascaded map, made by EnableShadowsInReflections. */
   _reflectionShadowMap = null;
+
+  /**
+   * Carbon MAP_PROPERTY "shadowsInReflections" over
+   * IsShadowsInReflectionsEnabled/EnableShadowsInReflections
+   * (EveSpaceScene_Blue.cpp:532-537): whether reflections own a cascaded
+   * shadow map (used only while shadows are enabled).
+   */
+  @blue.property()
+  @type.boolean
+  @meta.implemented
+  get shadowsInReflections()
+  {
+    return this.IsShadowsInReflectionsEnabled();
+  }
+
+  /** Creates or drops the reflection shadow map. */
+  @meta.implemented
+  set shadowsInReflections(value)
+  {
+    this.EnableShadowsInReflections(value);
+  }
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "quadRenderer" over GetQuadRenderer
+   * (EveSpaceScene_Blue.cpp:448-451): the shared quad renderer that batches
+   * space object attachments.
+   */
+  @blue.property()
+  @type.rootRef("Tr2QuadRenderer")
+  @meta.implemented
+  get quadRenderer()
+  {
+    return this.GetQuadRenderer();
+  }
 
   /** g_lensflaresInReflections (cpp:115-116): draw lens flares into ULTRA reflections. */
   @meta.setting("lensflaresInReflections")
@@ -1044,23 +1119,40 @@ export class EveSpaceScene
     this._reflectionMaskMapHandle.Clear();
   }
 
-  /** Registers/unregisters light sources and clears receiver lighting (EveSpaceScene.cpp:3373-3432). */
-  @blue.method
+  /**
+   * Carbon GetShLightingManager (EveSpaceScene.cpp:3368-3371).
+   *
+   * @returns {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager|null} The scene's SH lighting manager, or null.
+   */
+  @meta.implemented
+  GetShLightingManager()
+  {
+    return this._shLightingManager;
+  }
+
+  /**
+   * Carbon SetShLightingManager (EveSpaceScene.cpp:3373-3423): unregisters the
+   * planets' and objects' secondary light sources from the old manager and
+   * clears the objects' SH lighting, then registers them with the new one.
+   *
+   * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager|null} manager The replacement manager, or null.
+   * @returns {void}
+   */
   @meta.implemented
   SetShLightingManager(manager)
   {
-    if (this.shLightingManager === manager) return;
-    if (this.shLightingManager)
+    if (this._shLightingManager === manager) return;
+    if (this._shLightingManager)
     {
       for (const planet of this.planets)
-        CjsSchema.cast(planet, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this.shLightingManager);
+        CjsSchema.cast(planet, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this._shLightingManager);
       for (const object of this.objects)
       {
-        CjsSchema.cast(object, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this.shLightingManager);
+        CjsSchema.cast(object, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this._shLightingManager);
         CjsSchema.cast(object, ITr2ShLightingReceiver)?.ClearShLighting();
       }
     }
-    this.shLightingManager = manager;
+    this._shLightingManager = manager;
     if (manager)
     {
       for (const planet of this.planets)
@@ -1788,7 +1880,7 @@ export class EveSpaceScene
   @meta.adapted
   UpdateShLighting(objects = [])
   {
-    if (!this.shLightingManager)
+    if (!this._shLightingManager)
     {
       return 0;
     }
@@ -1802,7 +1894,7 @@ export class EveSpaceScene
       {
         continue;
       }
-      receiver.UpdateShLighting(this.shLightingManager, this.updateContext);
+      receiver.UpdateShLighting(this._shLightingManager, this.updateContext);
       updated++;
     }
 
@@ -2081,6 +2173,15 @@ export class EveSpaceScene
       this.envMap3 = be.resMan.GetResource(this.envMap3ResPath, { requirement: ResourceRequirement.TEXTURE });
     }
 
+    // cpp:3252-3257: a reader stored the persisted manager without its
+    // setter, so it is cleared and set again to register the light sources.
+    if (this._shLightingManager)
+    {
+      const manager = this._shLightingManager;
+      this._shLightingManager = null;
+      this.SetShLightingManager(manager);
+    }
+
     // cpp:3247-3263: every object entity joins the scene's component registry
     // - its light owners, post-process owners, shadow casters - and so does
     // the camera attachment parent. Without it GatherLights finds no owners
@@ -2300,12 +2401,23 @@ export class EveSpaceScene
     quadRenderer.BeginRendering(renderContext);
   }
 
-  /** Carbon GetQuadRenderer (cpp:1759-1762): the shared quad renderer. */
-  @blue.method
+  /** Carbon GetQuadRenderer (cpp:1765-1768): the shared quad renderer. */
   @meta.implemented
   GetQuadRenderer()
   {
     return Tr2QuadRenderer.Instance();
+  }
+
+  /**
+   * Carbon GetCameraAttachments (protected, EveSpaceScene.cpp:304-307): the
+   * camera attachment parent's effect-child list, as the list's own root.
+   *
+   * @returns {Array} The camera attachment parent's effect children.
+   */
+  @meta.implemented
+  _GetCameraAttachments()
+  {
+    return this.cameraAttachmentParent.GetChildren();
   }
 
   /** m_secondaryBatches[TRIBATCHTYPE_ADDITIVE]: the accumulator EndRender's
@@ -2606,7 +2718,6 @@ export class EveSpaceScene
   }
 
   /** Carbon EnableShadowsInReflections (cpp:4154-4168): a 512 cascaded map for reflections, or none. */
-  @blue.method
   @meta.implemented
   EnableShadowsInReflections(enable)
   {
@@ -2625,7 +2736,6 @@ export class EveSpaceScene
   }
 
   /** Carbon IsShadowsInReflectionsEnabled (cpp:4170-4173). */
-  @blue.method
   @meta.implemented
   IsShadowsInReflectionsEnabled()
   {
@@ -4128,11 +4238,11 @@ export class EveSpaceScene
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_UNLOADSTART:
-        if (this.shLightingManager)
+        if (this._shLightingManager)
         {
           for (const item of list)
           {
-            CjsSchema.cast(item, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this.shLightingManager);
+            CjsSchema.cast(item, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this._shLightingManager);
             CjsSchema.cast(item, ITr2ShLightingReceiver)?.ClearShLighting();
           }
         }
@@ -4142,9 +4252,9 @@ export class EveSpaceScene
         }
         break;
       case BLUELISTEVENT.BELIST_INSERTED:
-        if (this.shLightingManager)
+        if (this._shLightingManager)
         {
-          CjsSchema.cast(value, ITr2SecondaryLightSource)?.RegisterSecondaryLightSource(this.shLightingManager);
+          CjsSchema.cast(value, ITr2SecondaryLightSource)?.RegisterSecondaryLightSource(this._shLightingManager);
         }
         CjsSchema.cast(value, IEveSpaceObject2)?.RegisterWithQuadRenderer(Tr2QuadRenderer.Instance());
         if (entityList && this.componentRegistry)
@@ -4153,9 +4263,9 @@ export class EveSpaceScene
         }
         break;
       case BLUELISTEVENT.BELIST_REMOVED:
-        if (this.shLightingManager)
+        if (this._shLightingManager)
         {
-          CjsSchema.cast(value, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this.shLightingManager);
+          CjsSchema.cast(value, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this._shLightingManager);
           CjsSchema.cast(value, ITr2ShLightingReceiver)?.ClearShLighting();
         }
         if (entityList && this.componentRegistry)
@@ -4240,6 +4350,9 @@ export class EveSpaceScene
 
   /** EveSpaceScene::VisualizerEffect::VisualizerType (h:573-578). */
   static VisualizerType = VisualizerType;
+
+  /** Carbon EveSpaceScene::PerThreadAccumulator (public, h:194-200). */
+  static PerThreadAccumulator = EveSpaceScenePerThreadAccumulator;
 
   /** g_eveSpaceSceneGammaBrightness (TRI_REGISTER_SETTING "eveSpaceSceneGammaBrightness",
    * cpp:102-103): the tonemapper's OutputGamma and the per-frame GammaBrightness. */
