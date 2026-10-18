@@ -886,6 +886,101 @@ mat4.lookAtCarbon = function (out, eye, at, up)
     return out;
 };
 
+/**
+ * Carbon: PerspectiveFovMatrix (math/include/Matrix_inline.h:704-714)
+ *
+ * Right-handed, zero-to-one depth, w takes -z. Carbon's `m[r][c]` is
+ * `out[r * 4 + c]` on the shared layout.
+ *
+ * @param {mat4} out Receives the matrix.
+ * @param {number} fovy Vertical field of view, radians.
+ * @param {number} aspect Width over height.
+ * @param {number} zn Near plane.
+ * @param {number} zf Far plane.
+ * @returns {mat4} out
+ */
+mat4.perspectiveFovCarbon = function (out, fovy, aspect, zn, zf)
+{
+    mat4.identity(out);
+    out[0] = 1 / (aspect * Math.tan(fovy / 2));
+    out[5] = 1 / Math.tan(fovy / 2);
+    out[10] = zf / (zn - zf);
+    out[11] = -1;
+    out[14] = (zf * zn) / (zn - zf);
+    out[15] = 0;
+    return out;
+};
+
+/**
+ * Carbon: PerspectiveOffCenterMatrix (math/include/Matrix_inline.h:717-735)
+ *
+ * @param {mat4} out Receives the matrix.
+ * @param {number} l Left edge at the near plane.
+ * @param {number} r Right edge.
+ * @param {number} b Bottom edge.
+ * @param {number} t Top edge.
+ * @param {number} zn Near plane.
+ * @param {number} zf Far plane.
+ * @returns {mat4} out
+ */
+mat4.perspectiveOffCenterCarbon = function (out, l, r, b, t, zn, zf)
+{
+    mat4.identity(out);
+    out[0] = 2 * zn / (r - l);
+    out[5] = -2 * zn / (b - t);
+    out[8] = 1 + 2 * l / (r - l);
+    out[9] = -1 - 2 * t / (b - t);
+    out[10] = zf / (zn - zf);
+    out[14] = (zn * zf) / (zn - zf);
+    out[11] = -1;
+    out[15] = 0;
+    return out;
+};
+
+/**
+ * Carbon: OrthoMatrix (math/include/Matrix_inline.h:738-746)
+ *
+ * @param {mat4} out Receives the matrix.
+ * @param {number} w Width.
+ * @param {number} h Height.
+ * @param {number} zn Near plane.
+ * @param {number} zf Far plane.
+ * @returns {mat4} out
+ */
+mat4.orthoCarbon = function (out, w, h, zn, zf)
+{
+    mat4.identity(out);
+    out[0] = 2 / w;
+    out[5] = 2 / h;
+    out[10] = 1 / (zn - zf);
+    out[14] = zn / (zn - zf);
+    return out;
+};
+
+/**
+ * Carbon: OrthoOffCenterMatrix (math/include/Matrix_inline.h:749-765)
+ *
+ * @param {mat4} out Receives the matrix.
+ * @param {number} l Left edge.
+ * @param {number} r Right edge.
+ * @param {number} b Bottom edge.
+ * @param {number} t Top edge.
+ * @param {number} zn Near plane.
+ * @param {number} zf Far plane.
+ * @returns {mat4} out
+ */
+mat4.orthoOffCenterCarbon = function (out, l, r, b, t, zn, zf)
+{
+    mat4.identity(out);
+    out[0] = 2 / (r - l);
+    out[5] = 2 / (t - b);
+    out[10] = 1 / (zn - zf);
+    out[12] = -1 - 2 * l / (r - l);
+    out[13] = 1 + 2 * t / (b - t);
+    out[14] = zn / (zn - zf);
+    return out;
+};
+
 /** Carbon's Normalize over three components: a zero vector stays zero. */
 function normalizeOrZeroVec3(out, x, y, z)
 {
@@ -1473,6 +1568,10 @@ export const {
     orthoD3D,
     lookAtD3D,
     lookAtCarbon,
+    perspectiveFovCarbon,
+    perspectiveOffCenterCarbon,
+    orthoCarbon,
+    orthoOffCenterCarbon,
     perspectiveRHD3D,
     setLookRotation,
     maxScaleOnAxis,
