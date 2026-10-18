@@ -46,3 +46,34 @@ test("source indexing retains imported-first donors and exposes their enum decla
     assert.equal(enums[0].owner, "Owner");
     assert.deepEqual([...enums[0].members], [["FIRST", 3], ["SECOND", 7]]);
 });
+
+test("blue.define donors declare a ported donor; meta.define donors do not", async t =>
+{
+    const directory = await mkdtemp(join(tmpdir(), "carbon-provenance-"));
+    t.after(() =>
+    {
+        const target = resolve(directory);
+        assert.equal(dirname(target), resolve(tmpdir()));
+        assert.ok(basename(target).startsWith("carbon-provenance-"));
+        return rm(target, { recursive: true, force: true });
+    });
+    const packageRoot = join(directory, "package"), carbonRoot = join(directory, "carbon");
+    await mkdir(join(packageRoot, "src", "dropped"), { recursive: true });
+    await mkdir(join(carbonRoot, "donor"), { recursive: true });
+    await writeFile(join(carbonRoot, "donor", "Owner.h"), "class Owner {};\n");
+    await writeFile(join(packageRoot, "src", "Ported.js"),
+        "export class CjsPorted {}\nCjsSchema.blue.define(CjsPorted, {\n  className: \"CjsPorted\",\n  donors: [ \"Replicated\" ],\n  fields: {}\n});\n" +
+        "@blue.define({ className: \"CjsDecorated\", donors: [\"Decorated\"] })\nexport class CjsDecorated {}\n");
+    await writeFile(join(packageRoot, "src", "Modelled.js"),
+        "export class CjsModelled {}\nCjsSchema.meta.define(CjsModelled, { className: \"CjsModelled\", donors: [ \"Modelled\" ] });\n" +
+        "@meta.define({ className: \"CjsNested\", carbon: \"Nested\" })\nexport class CjsNested {}\n");
+    await writeFile(join(packageRoot, "src", "dropped", "Record.js"),
+        "@meta.define({ className: \"Record\", carbon: \"RecordDonor\" })\nexport class Record {}\n");
+    const { classes } = await sourceIndex(packageRoot, carbonRoot);
+    for (const donor of [ "Replicated", "Decorated", "Nested" ])
+    {
+        assert.ok((classes.get(donor) ?? []).some(entry => entry.declared && !entry.dropped), `${donor} is declared`);
+    }
+    assert.ok(classes.get("RecordDonor").some(entry => entry.declared && entry.dropped));
+    assert.equal(classes.has("Modelled"), false, "a meta.define donor is modelled on, not ported");
+});

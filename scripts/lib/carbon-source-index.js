@@ -17,6 +17,42 @@ export async function filesUnder(directory, extensions)
 }
 
 
+/**
+ * The Carbon donors a file's class definitions declare as ported.
+ *
+ * Two spellings count. `donors: [ "X" ]` in a `blue.define` names the one
+ * Carbon class a renamed port replicates (ruling 2026-10-15, which replaced
+ * `carbon:`); CjsSchema folds it into the definition's `carbon`. A bare
+ * `carbon: "X"` still declares a `meta` class that replicates a Carbon type
+ * Carbon does not expose, and every dropped/ record.
+ *
+ * `donors` in a `meta.define` (the old `modelledOn:`) deliberately does NOT
+ * count. It declares that a class declines to replicate the donor's surface,
+ * so it cannot answer whether the donor is ported - and counting it hid a real
+ * gap: a WebGPU encode state "modelled on" Tr2RenderContextBase satisfied
+ * coverage for a Trinity base that was never written. A modelled donor is
+ * written into a dropped/ tree like any other, with the reason.
+ *
+ * @param {string} source File contents.
+ * @returns {string[]} Declared donor class names.
+ */
+function declaredDonors(source)
+{
+    const donors = [];
+    for (const [ , donor ] of source.matchAll(/\bcarbon:\s*"(\w+)"/g)) donors.push(donor);
+
+    const blocks = [
+        ...source.matchAll(/@blue\.define\(\s*\{([\s\S]*?)\}\s*\)/g),
+        ...source.matchAll(/CjsSchema\.blue\.define\(\s*\w+\s*,\s*\{([\s\S]*?)\}\s*\)/g)
+    ];
+    for (const [ , body ] of blocks)
+    {
+        const donor = body.match(/\bdonors:\s*\[\s*"(\w+)"\s*\]/);
+        if (donor) donors.push(donor[1]);
+    }
+    return donors;
+}
+
 /** Enumerate the dropped trees, which filesUnder deliberately skips. */
 async function droppedFiles(root)
 {
@@ -61,19 +97,12 @@ export async function sourceIndex(packageRoot, carbonRoot)
             if (!classes.has(node.id.name)) classes.set(node.id.name, []);
             classes.get(node.id.name).push({ file: relative, node });
         }
-        // A class may declare the donor it ports under a different name, with
-        // `carbon:` in its type.define / CjsSchema.define. That declaration is
-        // the author's, and it is the only thing tying a deliberately renamed
-        // port back to its donor - CjsScriptCallback to BlueScriptCallback, or
-        // every Tr2*ALStub to the one Tr2*AL name Carbon gives all backends.
-        // `modelledOn:` deliberately does NOT count. It declares that a class
-        // declines to replicate the donor's surface, so it cannot answer whether
-        // the donor is ported - and counting it hid a real gap: a WebGPU encode
-        // state "modelled on" Tr2RenderContextBase satisfied coverage for a
-        // Trinity base that was never written. A modelled donor is written into
-        // a dropped/ tree like any other, with the reason.
-        // Without it a renamed port reads here as a missing one.
-        for (const [ , donor ] of source.matchAll(/\bcarbon:\s*"(\w+)"/g))
+        // A class may declare the donor it ports under a different name. That
+        // declaration is the author's, and it is the only thing tying a
+        // deliberately renamed port back to its donor - CjsScriptCallback to
+        // BlueScriptCallback, or every Tr2*ALStub to the one Tr2*AL name Carbon
+        // gives all backends. Without it a renamed port reads here as a missing one.
+        for (const donor of declaredDonors(source))
         {
             if (!classes.has(donor)) classes.set(donor, []);
             classes.get(donor).push({ file: relative, node: null, declared: true });
@@ -109,7 +138,7 @@ export async function sourceIndex(packageRoot, carbonRoot)
             if (!classes.has(node.id.name)) classes.set(node.id.name, []);
             classes.get(node.id.name).push({ file: relative, node, dropped: true });
         }
-        for (const [ , donor ] of source.matchAll(/\bcarbon:\s*"(\w+)"/g))
+        for (const donor of declaredDonors(source))
         {
             if (!classes.has(donor)) classes.set(donor, []);
             classes.get(donor).push({ file: relative, node: null, declared: true, dropped: true });
