@@ -14,8 +14,8 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * its owner's parameter map, builds a weak TriValueBinding and starts copying
  * after a configured delay.
  *
- * Times are Be::Time, Blue 100ns ticks. Held gap: native constructor/destructor
- * OS rebase registration is absent.
+ * Times are Be::Time, Blue 100ns ticks. Every instance takes part in sim-time
+ * rebasing from construction, as Carbon's does.
  */
 @blue.define("Tr2DynamicBinding")
 @blue.inherit(ISimTimeRebaseNotify)
@@ -145,6 +145,41 @@ export class Tr2DynamicBinding extends INotify
 
   /** Portable validity cache refreshed from the weak endpoint. */
   _isSourceValid = false;
+
+  /** The OS the constructor registered with, so Destroy unregisters from that same one. */
+  _rebaseOS = null;
+
+  /**
+   * Carbon's constructor (Tr2DynamicBinding.cpp:172-183): defaults on the fields,
+   * then `BeOS->RegisterForSimTimeRebase( this )`, so the pending binding time
+   * follows a sim-clock rebase.
+   */
+  constructor()
+  {
+    super();
+    this._rebaseOS = be.os;
+    this._rebaseOS.RegisterForSimTimeRebase(this);
+  }
+
+  /**
+   * Carbon's destructor (Tr2DynamicBinding.cpp:185-190): unregisters from sim-time
+   * rebasing, drops the owner and unlinks.
+   *
+   * Adapted: JavaScript has no deterministic destructor, so the holder that
+   * abandons a binding calls this; until then the OS keeps it registered.
+   * @returns {void}
+   */
+  @meta.adapted
+  Destroy()
+  {
+    if (this._rebaseOS)
+    {
+      this._rebaseOS.UnregisterForSimTimeRebase(this);
+      this._rebaseOS = null;
+    }
+    this._owner = null;
+    this.Unlink();
+  }
 
   /**
    * Unlinks, resolves both object paths against the owner's parameter map and
