@@ -460,7 +460,7 @@ test("GetBatches commits the hull LOD's vertices with the decal's own indices (c
   decal.batchType = 1;
   decal.SetIndices([ [ 3, 4, 5, 6, 7, 8 ] ]);
 
-  const vertexAllocation = { GetBuffer: () => "hull-vb", GetStride: () => 28, GetOffset: () => 28 * 100, IsValid: () => true };
+  const vertexAllocation = { GetBuffer: () => "hull-vb", GetStride: () => 28, GetOffset: () => 28 * 100, GetStartIndex: () => 100, IsValid: () => true };
   const hull = {
     GetMeshData: () => ({ lodMask: 1, lods: [ {} ] }),
     GetLodIndexForScreenSize: () => 0,

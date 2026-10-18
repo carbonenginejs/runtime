@@ -38,36 +38,24 @@ export function OrderOf(ref)
   return id;
 }
 
-// THE ALLOCATION TYPE IS A PORT GAP, AND THESE TWO HELPERS ARE WHERE IT SHOWS.
-//
-// Carbon's `SetGeometry__Allocation` takes a `Tr2SuballocatedBuffer::Allocation`
-// (`Tr2SuballocatedBuffer.h:23-66`) and simply calls `GetBuffer()`, `GetOffset()`,
-// `GetStride()` and `GetStartIndex()` on it - no probing, because the type is the
-// argument. We have no such class: it needs `Tr2VirtualAllocator`, which in
-// Carbon is a thin wrapper over VMA's virtual-block suballocator, so porting it
-// means writing a real suballocator rather than translating one.
-//
-// Until then a caller passes either a shaped allocation or a bare buffer, and
-// these ask WHICH rather than hedging on a method one of our own classes might
-// be missing. When the class lands, both helpers delete and the call sites go
-// back to Carbon's four direct accessor calls.
+// THE TWO GEOMETRY FORMS ARE CARBON'S OVERLOADS (rule 11). SetGeometry takes
+// buffers and strides (TriRenderBatch.h:68); SetGeometry__Allocation and
+// SetGeometry__AllocationSecondStream take Tr2SuballocatedBufferAllocation
+// values (h:69-70, Tr2SuballocatedBuffer.h:23-66) and call their accessors
+// directly, as TriRenderBatch.cpp:96-106 does. A caller holding a bare buffer
+// uses SetGeometry. An allocation slot may be null here where a LOD has no
+// index data; Carbon's references cannot be.
 
-/** The buffer an allocation lends, or the argument itself when it IS a buffer. */
+/** `vb.GetBuffer()` (TriRenderBatch.cpp:98), or null for no allocation. */
 function AllocationBuffer(allocation)
 {
-  if (!allocation) return null;
-
-  return typeof allocation.GetBuffer === "function" ? allocation.GetBuffer() : allocation;
+  return allocation ? allocation.GetBuffer() : null;
 }
 
-/** An allocation's element stride, however the caller's shape spells it. */
+/** `vb.GetStride()` (TriRenderBatch.cpp:98), or 0 for no allocation. */
 function AllocationStride(allocation)
 {
-  if (!allocation) return 0;
-
-  if (typeof allocation.GetStride === "function") return allocation.GetStride();
-
-  return allocation.stride ?? 0;
+  return allocation ? allocation.GetStride() : 0;
 }
 
 // A single draw's worth of CPU descriptor state. Faithful to Carbon's
@@ -426,30 +414,13 @@ export class Tr2RenderBatch
   }
 
   /**
-   * The start index of a realized suballocation, or zero when the geometry is
-   * unrealized or the engine allocates per mesh rather than from a shared
-   * buffer; Carbon reads Allocation::GetStartIndex.
+   * The start index of a realized suballocation, Carbon's
+   * Allocation::GetStartIndex (Tr2SuballocatedBuffer.h), or zero when the
+   * geometry is unrealized and holds no allocation.
    */
   static startIndexOf(allocation)
   {
-    if (!allocation) return 0;
-
-    if (typeof allocation.GetStartIndex === "function")
-    {
-      return allocation.GetStartIndex() >>> 0;
-    }
-
-    // GetStartIndex() IS offset / stride; Carbon hand-inlines exactly this for
-    // the base vertex (Tr2MeshBase.cpp:391).
-    const stride = AllocationStride(allocation);
-
-    if (!stride) return 0;
-
-    const offset = typeof allocation.GetOffset === "function"
-      ? allocation.GetOffset()
-      : allocation.offset ?? 0;
-
-    return (offset / stride) >>> 0;
+    return allocation ? allocation.GetStartIndex() >>> 0 : 0;
   }
 }
 

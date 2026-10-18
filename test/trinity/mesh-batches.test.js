@@ -120,12 +120,19 @@ function pooledGeometry({ reversedIndicesValid = true } = {})
       { firstIndex: 30, primitiveCount: 12 },
       { firstIndex: 66, primitiveCount: 8 }
     ],
-    indexAllocation: { GetStartIndex: () => 900 },
-    reversedIndexAllocation: { GetStartIndex: () => 5000 },
-    vertexAllocation: { offset: 2048, stride: 32 }
+    // Complete Tr2SuballocatedBufferAllocation stand-ins: buffer, stride,
+    // offset and start index (offset / stride).
+    indexAllocation: Allocation("ib", 2, 900),
+    reversedIndexAllocation: Allocation("ib", 2, 5000),
+    vertexAllocation: Allocation("vb", 32, 64)
   };
 
   return { lod, GetMeshLod__ScreenSize: () => lod, GetMeshVertexElements: () => null };
+}
+
+function Allocation(buffer, stride, startIndex)
+{
+  return { GetBuffer: () => buffer, GetStride: () => stride, GetOffset: () => startIndex * stride, GetStartIndex: () => startIndex };
 }
 
 test("CreateGeometryBatch fills Carbon's draw arguments from a realized LOD", () =>
