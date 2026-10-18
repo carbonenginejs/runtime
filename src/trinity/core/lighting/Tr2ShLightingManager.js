@@ -240,24 +240,17 @@ export class Tr2ShLightingManager
       });
     }
 
+    // Carbon calls GetLight on every m_lights entry (cpp:424-431); ours
+    // returns Carbon's three out-params as one record (Tr2Light.GetLight).
     for (const light of this.lights)
     {
-      if (typeof light?.GetLight !== "function")
-      {
-        continue;
-      }
-
-      const position = vec3.create();
-      const radius = [ 0 ];
-      const color = [ 0, 0, 0, 0 ];
-
-      light.GetLight(position, radius, color);
+      const { position, radius, color } = light.GetLight();
 
       const emissive = vec3.scale(vec3.create(), color, this.primaryIntensity);
 
       this.#sourceData.push({
         position,
-        radius: readFloat(radius),
+        radius,
         albedo: vec3.create(),
         cutoffMultiplier: 0,
         emissive,

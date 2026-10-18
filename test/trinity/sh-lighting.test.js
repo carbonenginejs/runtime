@@ -12,7 +12,7 @@ import {createHash} from "node:crypto";
 import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
-import { EveEffectRoot2, EvePlanet, EveSpaceObject2, EveSpaceScene, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";
+import { EveEffectRoot2, EvePlanet, EveSpaceObject2, EveSpaceScene, Tr2PointLight, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";
 
 
 const SQRT_PI = Math.sqrt(Math.PI);
@@ -140,14 +140,9 @@ test("the cutoff radius culls spheres but never point lights", () =>
 
   // cutoffMultiplier is 0 for a light, so the same cutoff cannot reach it.
   const lit = makeManager();
-  lit.lights.push({
-    GetLight(position, radius, color)
-    {
-      vec3.set(position, 0, 0, 10);
-      radius[0] = 4;
-      color[0] = color[1] = color[2] = 1;
-    }
-  });
+  const light = new Tr2PointLight();
+  light.SetLightData({ position: [ 0, 0, 10 ], radius: 4, brightness: 1, color: [ 1, 1, 1, 1 ] });
+  lit.lights.push(light);
   lit.UpdateSourceData();
   out.fill(0);
   lit.GetLighting(vec3.create(), 1, 100, out);
