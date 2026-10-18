@@ -1,7 +1,8 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriVariable.h
 // Source: trinity/trinity/TriVariable.cpp
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { ITr2EffectValue, ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
@@ -233,34 +234,38 @@ export class TriVariable extends ITr2EffectValue
   }
 
   /**
-   * The provider's texture, realized through the context if it has resolved but not yet been created; null otherwise.
-   * Custom: preserves the existing JavaScript provider admission and realization adapter.
+   * The TEXTURE_RES variable's provider texture (Carbon m_texture), realized
+   * through the context when the provider is a resource that has resolved but
+   * not yet been created; null with no provider.
+   * Custom: Carbon's resource creates its texture in DoPrepare; ours is made at
+   * first bind (Tr2ImageIOHelpers.RealizeTexture), so only a resource realizes.
    * @param {object|null} [renderContext] Optional texture realization context.
-   * @returns {object|null} Variable result.
+   * @returns {object|null} The provider's texture.
    */
   _Texture(renderContext = null)
   {
     const provider = this.value;
 
-    if (typeof provider?.GetTexture !== "function") return null;
+    if (!provider) return null;
 
     const texture = provider.GetTexture();
 
-    if (texture || !renderContext || typeof provider.IsPrepared !== "function") return texture;
+    if (texture || !renderContext || !CjsSchema.cast(provider, CjsResource)) return texture;
 
     return RealizeTexture(provider, renderContext);
   }
 
   /**
-   * The provider's first buffer, which is the index Carbon passes.
-   * Custom: preserves the existing JavaScript provider admission and realization adapter.
-   * @returns {object|null} Variable result.
+   * The GPUBUFFER variable's first buffer (Carbon m_gpuBuffer), which is the
+   * index Carbon passes; null with no provider.
+   * Custom: names the read CopyToResourceSet and ApplyUav share.
+   * @returns {object|null} The provider's buffer.
    */
   _GpuBuffer()
   {
     const provider = this.value;
 
-    return typeof provider?.GetGpuBuffer === "function" ? provider.GetGpuBuffer(0) : null;
+    return provider ? provider.GetGpuBuffer(0) : null;
   }
 
   /**
@@ -298,55 +303,63 @@ export class TriVariable extends ITr2EffectValue
     return this.GetTypeSize();
   }
 
-  /**
-   * Maps a script value onto a Carbon content type the way the Python
-   * bridge does: integers and booleans register as INT (Python bools are
-   * ints), other numbers as FLOAT, arrays by length, texture-provider
-   * shapes as TEXTURE_RES. Unknown values map to INVALID, which
-   * RegisterVariable treats as unsupported; the existing GPU-buffer adapter
-   * recognizes providers exposing GetGpuBuffer.
-   * Adapted: Classifies portable JavaScript payloads for the script registration bridge instead of using native C++ type overloads.
-   * @param {*} value Portable value payload.
-   * @returns {number} Variable result.
-   */
-  @meta.adapted
-  static getVariableType(value)
+  // Carbon's GetVariableType overloads (TriVariable.h:28-71), free functions
+  // the C++ compiler picks by the argument's static type. JavaScript cannot
+  // see that type, so each overload is its own static (rule 11) and the caller,
+  // which knows what it holds, names the one it means.
+
+  /** GetVariableType( const ITr2TextureProvider* ) (TriVariable.h:28-31). @returns {number} TRIVARIABLE_TEXTURE_RES. */
+  static getVariableType__ITr2TextureProvider()
   {
-    if (typeof value === "boolean")
-    {
-      return TriVariableContentType.TRIVARIABLE_INT;
-    }
-    if (typeof value === "number")
-    {
-      return Number.isInteger(value)
-        ? TriVariableContentType.TRIVARIABLE_INT
-        : TriVariableContentType.TRIVARIABLE_FLOAT;
-    }
-    if (value && typeof value.length === "number")
-    {
-      switch (value.length)
-      {
-        case 2: return TriVariableContentType.TRIVARIABLE_FLOAT2;
-        case 3: return TriVariableContentType.TRIVARIABLE_FLOAT3;
-        case 4: return TriVariableContentType.TRIVARIABLE_FLOAT4;
-        case 16: return TriVariableContentType.TRIVARIABLE_FLOAT4X4;
-      }
-      return TriVariableContentType.TRIVARIABLE_INVALID;
-    }
-    if (value && typeof value === "object")
-    {
-      if (typeof value.GetTexture === "function" || typeof value.RequestResolution === "function")
-      {
-        return TriVariableContentType.TRIVARIABLE_TEXTURE_RES;
-      }
-      // Carbon GetVariableType( const ITr2GpuBuffer* ) (TriVariable.h:33): a
-      // ring buffer registered as BoneTransforms (EveSpaceScene.cpp:257).
-      if (typeof value.GetGpuBuffer === "function")
-      {
-        return TriVariableContentType.TRIVARIABLE_GPUBUFFER;
-      }
-    }
-    return TriVariableContentType.TRIVARIABLE_INVALID;
+    return TriVariableContentType.TRIVARIABLE_TEXTURE_RES;
+  }
+
+  /** GetVariableType( const ITr2GpuBuffer* ) (TriVariable.h:33-36). @returns {number} TRIVARIABLE_GPUBUFFER. */
+  static getVariableType__ITr2GpuBuffer()
+  {
+    return TriVariableContentType.TRIVARIABLE_GPUBUFFER;
+  }
+
+  /** GetVariableType( const int& ) (TriVariable.h:38-41). @returns {number} TRIVARIABLE_INT. */
+  static getVariableType__int()
+  {
+    return TriVariableContentType.TRIVARIABLE_INT;
+  }
+
+  /** GetVariableType( const float& ) (TriVariable.h:43-46). @returns {number} TRIVARIABLE_FLOAT. */
+  static getVariableType__float()
+  {
+    return TriVariableContentType.TRIVARIABLE_FLOAT;
+  }
+
+  /** GetVariableType( const Matrix& ) (TriVariable.h:48-51). @returns {number} TRIVARIABLE_FLOAT4X4. */
+  static getVariableType__Matrix()
+  {
+    return TriVariableContentType.TRIVARIABLE_FLOAT4X4;
+  }
+
+  /** GetVariableType( const Vector2& ) (TriVariable.h:53-56). @returns {number} TRIVARIABLE_FLOAT2. */
+  static getVariableType__Vector2()
+  {
+    return TriVariableContentType.TRIVARIABLE_FLOAT2;
+  }
+
+  /** GetVariableType( const Vector3& ) (TriVariable.h:58-61). @returns {number} TRIVARIABLE_FLOAT3. */
+  static getVariableType__Vector3()
+  {
+    return TriVariableContentType.TRIVARIABLE_FLOAT3;
+  }
+
+  /** GetVariableType( const Vector4& ) (TriVariable.h:63-66). @returns {number} TRIVARIABLE_FLOAT4. */
+  static getVariableType__Vector4()
+  {
+    return TriVariableContentType.TRIVARIABLE_FLOAT4;
+  }
+
+  /** GetVariableType( const Color& ) (TriVariable.h:68-71). @returns {number} TRIVARIABLE_COLOR. */
+  static getVariableType__Color()
+  {
+    return TriVariableContentType.TRIVARIABLE_COLOR;
   }
 
   /**
