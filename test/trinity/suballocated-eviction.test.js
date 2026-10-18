@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { TriGeometryRes as SourceTriGeometryRes } from "../../src/resource/geometry/TriGeometryRes.js";
+import { CjsMotherLode as SourceCjsMotherLode } from "../../src/global/blue/CjsMotherLode.js";
 import { Tr2VirtualAllocator } from "../../src/trinity/core/device/Tr2VirtualAllocator.js";
 import { Tr2SuballocatedBuffer } from "../../npm/dist/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
@@ -146,7 +147,10 @@ test("suballocated buffer ReleaseResources honours managed storage and detaches 
   buffer.ReleaseResources();
 });
 
-for (const [ source, Geometry ] of [ [ "source", SourceTriGeometryRes ], [ "dist", TriGeometryRes ] ])
+// Each geometry is registered with the MotherLode of its own module graph: the
+// registry casts what it holds to its CjsResource, and a src class is not the
+// dist one.
+for (const [ source, Geometry, MotherLode ] of [ [ "source", SourceTriGeometryRes, SourceCjsMotherLode ], [ "dist", TriGeometryRes, CjsMotherLode ] ])
 test(`${source} geometry evict/reload cycles return every LOD's used bytes to the live-resource baseline`, () =>
 {
   const renderContext = context();
@@ -155,7 +159,7 @@ test(`${source} geometry evict/reload cycles return every LOD's used bytes to th
   const baseline = usedBytes(buffer);
   const liveBuffer = live.GetBuffer();
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
-  const motherLode = new CjsMotherLode({ now: () => 0, cacheSize: 0 });
+  const motherLode = new MotherLode({ now: () => 0, cacheSize: 0 });
   const geometry = new Geometry();
   geometry.Initialize("res:/synthetic/eviction.cmf");
 

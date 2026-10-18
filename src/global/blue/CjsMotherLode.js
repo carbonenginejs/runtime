@@ -8,6 +8,7 @@ import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/valida
 import { normalizeResourcePath } from "#utils/path";
 import { CjsBlueOS } from "./CjsBlueOS.js";
 import { ICacheable } from "./ICacheable.js";
+import { CjsResource } from "./CjsResource.js";
 import { IRoot } from "./IRoot.js";
 
 /** mMaxMemUsage's initial value (MotherLode.cpp:44). */
@@ -747,7 +748,7 @@ export class CjsMotherLode
         purgedKeys.push(key);
         try
         {
-          record.resource?.MarkPurged?.();
+          CastResource(record.resource)?.MarkPurged();
         }
         catch (cause)
         {
@@ -973,7 +974,7 @@ export class CjsMotherLode
 
     try
     {
-      record.resource?.MarkPurged?.();
+      CastResource(record.resource)?.MarkPurged();
     }
     catch (cause)
     {
@@ -1498,16 +1499,29 @@ function isInactive(lastFrame, lastTime, frame, time, maxFrames, maxMilliseconds
 }
 
 /**
- * Return whether a resource currently exposes a releasable CPU payload.
+ * The registered object as a {@link CjsResource}, or null. Carbon's registry
+ * holds any `IRoot` (IMotherLode.h:60) and reaches a narrower interface by
+ * cast (MotherLode.cpp:77, 340); payload, adapter and lifecycle ownership are
+ * CjsResource's, so they are reached the same way.
+ *
+ * @param {object|Function} resource Registered object.
+ * @returns {CjsResource|null} The resource, or null.
+ */
+function CastResource(resource)
+{
+  return CjsSchema.cast(resource, CjsResource);
+}
+
+/**
+ * Return whether a resource currently holds a releasable CPU payload.
  *
  * @param {object|Function} resource Candidate resource.
  * @returns {boolean} Whether `ReleasePayload()` can remove an attached payload.
  */
 function hasOwnedPayload(resource)
 {
-  return typeof resource?.HasPayload === "function"
-    && typeof resource?.ReleasePayload === "function"
-    && Boolean(resource.HasPayload());
+  const owned = CastResource(resource);
+  return owned !== null && owned.HasPayload();
 }
 
 /**
@@ -1518,7 +1532,7 @@ function hasOwnedPayload(resource)
  */
 function detachResourceLifecycle(resource)
 {
-  resource?.SetLifecycleController?.(null);
+  CastResource(resource)?.SetLifecycleController(null);
 }
 
 function cleanupOwnedResource(resource, options)
@@ -1530,23 +1544,25 @@ function cleanupOwnedResource(resource, options)
     return;
   }
 
+  const owned = CastResource(resource);
+  if (owned === null) return;
   const errors = [];
-  if (options.destroyAdapters !== false && typeof resource?.DestroyAdapterResources === "function")
+  if (options.destroyAdapters !== false)
   {
     try
     {
-      resource.DestroyAdapterResources({ destroy: true });
+      owned.DestroyAdapterResources({ destroy: true });
     }
     catch (error)
     {
       errors.push(error);
     }
   }
-  if (options.releasePayload !== false && typeof resource?.ReleasePayload === "function")
+  if (options.releasePayload !== false)
   {
     try
     {
-      resource.ReleasePayload();
+      owned.ReleasePayload();
     }
     catch (error)
     {

@@ -959,13 +959,12 @@ test("CjsMotherLode replacement and removal clean displaced resource ownership",
   assert.equal(motherLode.Delete(retainedKey), true);
 
   const failingKey = getMotherLodeKey("res:/data/failing-cleanup.bin");
-  const failingOwner = {
-    ReleasePayload()
-    {
-      throw new Error("expected cleanup failure");
-    }
+  const failingOwner = new CjsResource().Initialize("res:/data/failing-cleanup.bin");
+  failingOwner.ReleasePayload = () =>
+  {
+    throw new Error("expected cleanup failure");
   };
-  const rejectedReplacement = {};
+  const rejectedReplacement = new CjsResource().Initialize("res:/data/failing-cleanup.bin");
   motherLode.Insert(failingKey, failingOwner);
 
   assert.throws(
