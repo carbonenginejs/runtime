@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 8,
-    "skipped": 708
+    "skipped": 720
   },
   "enums": {
     "written": 15,
@@ -195,11 +195,6 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "core",
-      "className": "IWorldPosition",
-      "reason": "hand-maintained source exists"
-    },
-    {
       "family": "curves",
       "className": "ITr2CurveSetOwner",
       "reason": "hand-maintained source exists"
@@ -207,11 +202,6 @@
     {
       "family": "curves",
       "className": "ITr2FollowCurveKey",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "curves",
-      "className": "ITriDuration",
       "reason": "hand-maintained source exists"
     },
     {
@@ -396,16 +386,6 @@
     },
     {
       "family": "curves",
-      "className": "Tr2VectorFunctionModifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "curves",
-      "className": "TriColorSequencer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "curves",
       "className": "TriCurveSet",
       "reason": "hand-maintained source exists"
     },
@@ -420,8 +400,13 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "curves",
-      "className": "TriVectorSequencer",
+      "family": "eve",
+      "className": "Allign",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "ApproachGroup",
       "reason": "hand-maintained source exists"
     },
     {
@@ -431,7 +416,82 @@
     },
     {
       "family": "eve",
+      "className": "BackAndForth",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "BackAndForthData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "BehaviorGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "BehaviorGroupBooster",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "CollisionAvoidance",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "DecalMeshCache",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "DroneAgent",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "DroneAvoidance",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBannerItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBannerLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBannerSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBaseDistributionMethod",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveBasicPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBezierCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBoosterSet2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveBoosterSet2Renderable",
       "reason": "hand-maintained source exists"
     },
     {
@@ -441,7 +501,32 @@
     },
     {
       "family": "eve",
+      "className": "EveBoxVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCameraFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildAudio",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildBehaviorSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildBoosterSet",
       "reason": "hand-maintained source exists"
     },
     {
@@ -451,12 +536,267 @@
     },
     {
       "family": "eve",
+      "className": "EveChildBulletStorm",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveChildBulletStormPerObjectData",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "eve",
+      "className": "EveChildCloud",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildCloud2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildEffectPropagator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildExplosion",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildFogVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildInheritProperties",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildInstanceContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildInstancedMeshes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildInstanceMeshRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildInstanceTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildLightingOverride",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildLink",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierAttachToBone",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierBillboard2D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierBillboard3D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierBooster",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierCameraOrientedRotationConstrained",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierHalo",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierHaloInverted",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierSRT",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildModifierTranslateWithCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildPartData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildPartData.PartData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildParticleSphere",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildParticleSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildPlug",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildPostProcessVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildProceduralContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildQuad",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildRef",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildSmartLightSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildSocket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildSpherePin",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveChildSpherePinPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildTurret",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveChildUpdateParams",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCircle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCloudEditableVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCloudVolumeBall",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCloudVolumeTextureParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveComponentCollection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveComponentRegistry",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveConnector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCurveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCustomMask",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDamageOverlay",
       "reason": "hand-maintained source exists"
     },
     {
@@ -471,7 +811,182 @@
     },
     {
       "family": "eve",
+      "className": "EveDistributionModifierProcessLifetime",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionModifierScaleBySpaceObjectParent",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionModifierTransformOffset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionPlacementGeneratorLocators",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionPlacementGeneratorParentLocators",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionPlacementGeneratorVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnerBurst",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnerControllerTrigger",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnerInterval",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnerTriggerPlane",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnerTriggerSnake",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnerTriggerSphere",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnModifierLifeTimeOffset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnModifierRandomOffset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnModifierRandomRotation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistributionSpawnModifierRandomScale",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveEffectRoot2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveEllipseDefinition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveEllipseSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveEllipsoidVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveEntity",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveFiringEffectElementContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveHazeSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveHazeSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveHazeSetLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveImpactOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveInstancedMeshManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveKDdroneManagementTree",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLensflare",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLineChildContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLineContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLocalPositionCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLocator2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveLocatorSets",
       "reason": "hand-maintained source exists"
     },
     {
@@ -481,12 +996,47 @@
     },
     {
       "family": "eve",
+      "className": "EveMeshOverlayEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveMissile",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveMissileWarhead",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveMissileWarheadPerObjectData",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "eve",
+      "className": "EveMobile",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveModularObjectModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveMultiEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveMultiEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveOccluder",
       "reason": "hand-maintained source exists"
     },
     {
@@ -506,7 +1056,252 @@
     },
     {
       "family": "eve",
+      "className": "EvePendingPickingReadback",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePickingContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePlaneLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePlaneSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePlaneSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePlanet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProceduralMethodAttributeMap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProceduralMethodAttributeMapParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProceduralMethodCycling",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProceduralMethodCyclingParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProceduralMethodRandom",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProceduralMethodRandomParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProceduralMethodThresholdParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProceduralMethodThresholds",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveProjectBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveRemotePositionCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveRootTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSceneStaticParticles",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveSceneStaticParticlesPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveShip2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightAttributeModifierBucket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightAttributeModifierCameraDependency",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightAttributeModifierColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightAttributeModifierControllerVariableListener",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightAttributeModifierExpressionBucket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightAttributeModifierNoise",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightBaseAttributeModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightBaseGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightColorShareGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightPointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightQuad",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSmartLightSpotLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterBindingBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterBool",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterFilePath",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterFloat",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterInt",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterString",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterVector2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterVector3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSocketParameterVector4",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpaceObject2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpaceObjectChild",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpaceObjectDecal",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpaceObjectFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpaceScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpaceSceneRenderDriver",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpherePin",
       "reason": "hand-maintained source exists"
     },
     {
@@ -521,6 +1316,116 @@
     },
     {
       "family": "eve",
+      "className": "EveSphereVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpotlightLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpotlightSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpotlightSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpriteLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpriteLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpriteLineSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpriteSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSpriteSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveStarfield",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveStation2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveStretch2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveStretch3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSwarm",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveSwarmRenderable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTacticalOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTacticalOverlayTrackObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTacticalTrails",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveThrottleable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTrailsSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveTriggerVolume",
       "reason": "hand-maintained source exists"
     },
@@ -531,7 +1436,27 @@
     },
     {
       "family": "eve",
+      "className": "EveTurretFiringFX",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTurretSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "EveTurretSetPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveTurretTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveUiObject",
       "reason": "hand-maintained source exists"
     },
     {
@@ -541,7 +1466,167 @@
     },
     {
       "family": "eve",
+      "className": "EveVirtualCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourFloatAdd",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourFloatBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourFloatDamping",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourFloatNoise",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourFloatSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3Base",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3Damping",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3Inertia",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3MoveBetween",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3MoveForward",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3MoveRight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3MoveUp",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3Offset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3Orbit",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraBehaviourVector3Shake",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraTransitionBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraTransitionCut",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveVirtualCameraTransitionLerp",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "FollowASpline",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "FollowASplineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "Formation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "FormationData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IBehavior",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "IEveBallpark",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveChildTransformModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveComponentCollection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveDistributionMethod",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveDistributionModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveDistributionPlacementGenerators",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveDistributionSpawner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveDistributionSpawnModifier",
       "reason": "hand-maintained source exists"
     },
     {
@@ -556,12 +1641,32 @@
     },
     {
       "family": "eve",
+      "className": "IEveFxAttribute",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "IEveInheritPropertiesOwner",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "eve",
+      "className": "IEveInstanceMeshProvider",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "IEveLightingOverride",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveLineSetPath",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveProceduralSelectionMethod",
       "reason": "hand-maintained source exists"
     },
     {
@@ -576,12 +1681,77 @@
     },
     {
       "family": "eve",
+      "className": "IEveShadowFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveSmartLightGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveSmartLightGroupAttributeModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveSocketParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "IEveSpaceObject2",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "eve",
+      "className": "IEveSpaceObjectAttachment",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveSpaceObjectAttachmentOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveSpaceObjectChild",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveSpaceObjectDecalOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "IEveTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "IEveVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "InclusionVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "Inertia",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "InertiaData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "InitialPlacement",
       "reason": "hand-maintained source exists"
     },
     {
@@ -601,12 +1771,52 @@
     },
     {
       "family": "eve",
+      "className": "Locator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "LocatorData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "PlacementDataWithIdentifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "PlayFX",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "PlayFXData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "ProcessLifetime",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "eve",
       "className": "ProcessLifetimeData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "SeekTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "SeekTargetData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "SpawnDrones",
       "reason": "hand-maintained source exists"
     },
     {
@@ -626,6 +1836,21 @@
     },
     {
       "family": "eve",
+      "className": "SwarmVehicle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "SwarmVehicleDebug",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "Tr2OcclusionBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
       "className": "TriShadowFrustum",
       "reason": "hand-maintained source exists"
     },
@@ -635,1268 +1860,8 @@
       "reason": "hand-maintained source exists"
     },
     {
-      "family": "eve/attachment",
-      "className": "IEveSpaceObjectAttachment",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/banners",
-      "className": "EveBannerItem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/banners",
-      "className": "EveBannerLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/banners",
-      "className": "EveBannerSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/boosters",
-      "className": "EveBoosterSet2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/boosters",
-      "className": "EveBoosterSet2Renderable",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/boosters",
-      "className": "EveTrailsSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/decal",
-      "className": "DecalMeshCache",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/decal",
-      "className": "EveSpaceObjectDecal",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/haze",
-      "className": "EveHazeSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/haze",
-      "className": "EveHazeSetItem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/haze",
-      "className": "EveHazeSetLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/planes",
-      "className": "EvePlaneLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/planes",
-      "className": "EvePlaneSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/planes",
-      "className": "EvePlaneSetItem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/spotlights",
-      "className": "EveSpotlightLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/spotlights",
-      "className": "EveSpotlightSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/spotlights",
-      "className": "EveSpotlightSetItem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/sprites",
-      "className": "EveSpriteLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/sprites",
-      "className": "EveSpriteLineSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/sprites",
-      "className": "EveSpriteLineSetItem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/sprites",
-      "className": "EveSpriteSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/sprites",
-      "className": "EveSpriteSetItem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/turrets",
-      "className": "EveTurretFiringFX",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/turrets",
-      "className": "EveTurretSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/attachment/turrets",
-      "className": "EveTurretTarget",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildAudio",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildBehaviorSystem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildBoosterSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildBulletStorm",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildCloud",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildCloud2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildContainer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildEffectPropagator",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildExplosion",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildFogVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInheritProperties",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInstanceContainer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInstancedMeshes",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInstanceMeshRenderer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildInstanceTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildLightingOverride",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildLineSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildLink",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildMesh",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildPartData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildPartData.PartData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildParticleSphere",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildParticleSystem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildPlug",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildPostProcessVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildQuad",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildRef",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildSocket",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildSpherePin",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildTurret",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveChildUpdateParams",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveCloudEditableVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveCloudVolumeBall",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveCloudVolumeTextureParameter",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "EveSpaceObjectChild",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child",
-      "className": "IEveSpaceObjectChild",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "Allign",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "ApproachGroup",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "BackAndForth",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "BackAndForthData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "BehaviorGroup",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "BehaviorGroupBooster",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "CollisionAvoidance",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "DroneAgent",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "DroneAvoidance",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "EveKDdroneManagementTree",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "FollowASpline",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "FollowASplineData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "Formation",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "FormationData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "IBehavior",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "InclusionVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "Inertia",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "InertiaData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "LocatorData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "PlayFX",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "PlayFXData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "SeekTarget",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "SeekTargetData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
-      "className": "SpawnDrones",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/behaviors",
+      "family": "eve",
       "className": "Wander",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/lineSetPaths",
-      "className": "EveBezierCurve",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/lineSetPaths",
-      "className": "EveCircle",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/lineSetPaths",
-      "className": "EveLineChildContainer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/lineSetPaths",
-      "className": "IEveLineSetPath",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierAttachToBone",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierBillboard2D",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierBillboard3D",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierBooster",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierCameraOrientedRotationConstrained",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierHalo",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierHaloInverted",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierSRT",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierStretch",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "EveChildModifierTranslateWithCamera",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/modifiers",
-      "className": "IEveChildTransformModifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural",
-      "className": "EveChildProceduralContainer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural",
-      "className": "IEveProceduralSelectionMethod",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural/selection",
-      "className": "EveProceduralMethodAttributeMap",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural/selection",
-      "className": "EveProceduralMethodAttributeMapParameter",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural/selection",
-      "className": "EveProceduralMethodCycling",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural/selection",
-      "className": "EveProceduralMethodCyclingParameter",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural/selection",
-      "className": "EveProceduralMethodRandom",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural/selection",
-      "className": "EveProceduralMethodRandomParameter",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural/selection",
-      "className": "EveProceduralMethodThresholdParameter",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/child/procedural/selection",
-      "className": "EveProceduralMethodThresholds",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution",
-      "className": "EveBaseDistributionMethod",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution",
-      "className": "IEveDistributionMethod",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution",
-      "className": "IEveDistributionModifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution",
-      "className": "IEveDistributionPlacementGenerators",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution",
-      "className": "IEveDistributionSpawner",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution",
-      "className": "IEveDistributionSpawnModifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/attributeModifiers",
-      "className": "EveDistributionModifierProcessLifetime",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/attributeModifiers",
-      "className": "EveDistributionModifierScaleBySpaceObjectParent",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/attributeModifiers",
-      "className": "EveDistributionModifierTransformOffset",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/attributeModifiers",
-      "className": "InitialPlacement",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/attributeModifiers",
-      "className": "PlacementDataWithIdentifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/placement",
-      "className": "EveDistributionPlacementGeneratorLocators",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/placement",
-      "className": "EveDistributionPlacementGeneratorParentLocators",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/placement",
-      "className": "EveDistributionPlacementGeneratorVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawners",
-      "className": "EveDistributionSpawnerBurst",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawners",
-      "className": "EveDistributionSpawnerControllerTrigger",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawners",
-      "className": "EveDistributionSpawnerInterval",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawners",
-      "className": "EveDistributionSpawnerTriggerPlane",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawners",
-      "className": "EveDistributionSpawnerTriggerSnake",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawners",
-      "className": "EveDistributionSpawnerTriggerSphere",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawnModifiers",
-      "className": "EveDistributionSpawnModifierLifeTimeOffset",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawnModifiers",
-      "className": "EveDistributionSpawnModifierRandomOffset",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawnModifiers",
-      "className": "EveDistributionSpawnModifierRandomRotation",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/distribution/spawnModifiers",
-      "className": "EveDistributionSpawnModifierRandomScale",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/effect",
-      "className": "EveLensflare",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/effect",
-      "className": "EveMultiEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/effect",
-      "className": "EveMultiEffectParameter",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/effect",
-      "className": "EveOccluder",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/effect",
-      "className": "EveStarfield",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/fxAttributes",
-      "className": "EveCameraFxAttributes",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/fxAttributes",
-      "className": "EveSpaceObjectFxAttributes",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/lights",
-      "className": "LightFeatures",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/lights",
-      "className": "Tr2FactionLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/lights",
-      "className": "Tr2Light",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/lights",
-      "className": "Tr2PointLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/lights",
-      "className": "Tr2SpotLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/lights",
-      "className": "Tr2TexturedPointLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/overlays",
-      "className": "EveMeshOverlayEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/overlays/impact",
-      "className": "EveDamageOverlay",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/overlays/impact",
-      "className": "EveImpactOverlay",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveFiringEffectElementContainer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveLocalPositionCurve",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveRemotePositionCurve",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveStretch",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveStretch2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/renderable/stretch",
-      "className": "EveStretch3",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveComponentCollection",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveComponentRegistry",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveInstancedMeshManager",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EvePendingPickingReadback",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EvePickingContext",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveSceneStaticParticles",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveSpaceScene",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "EveSpaceSceneRenderDriver",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/scene",
-      "className": "Tr2OcclusionBuffer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveChildSmartLightSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveSmartLightBaseGroup",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveSmartLightColorShareGroup",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveSmartLightMesh",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveSmartLightPointLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveSmartLightQuad",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights",
-      "className": "EveSmartLightSpotLight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights/attributeModifiers",
-      "className": "EveSmartLightAttributeModifierBucket",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights/attributeModifiers",
-      "className": "EveSmartLightAttributeModifierCameraDependency",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights/attributeModifiers",
-      "className": "EveSmartLightAttributeModifierColor",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights/attributeModifiers",
-      "className": "EveSmartLightAttributeModifierControllerVariableListener",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights/attributeModifiers",
-      "className": "EveSmartLightAttributeModifierExpressionBucket",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights/attributeModifiers",
-      "className": "EveSmartLightAttributeModifierNoise",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights/attributeModifiers",
-      "className": "EveSmartLightBaseAttributeModifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/smartLights/attributeModifiers",
-      "className": "IEveSmartLightGroupAttributeModifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterBindingBase",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterBool",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterColor",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterFilePath",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterFloat",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterInt",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterString",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterVector2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterVector3",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "EveSocketParameterVector4",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/socket",
-      "className": "IEveSocketParameter",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveCustomMask",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveEffectRoot2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveMissile",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveMissileWarhead",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveMobile",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EvePlanet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveRootTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveShip2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveSpaceObject2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveStation2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "EveTransform",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject",
-      "className": "IEveFxAttribute",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject/swarm",
-      "className": "EveSwarm",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject/swarm",
-      "className": "EveSwarmRenderable",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject/swarm",
-      "className": "SwarmVehicle",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/spaceObject/swarm",
-      "className": "SwarmVehicleDebug",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveConnector",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveCurveLineSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveEllipseDefinition",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveEllipseSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveLineContainer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveLineData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveLineSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveProjectBracket",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveSpherePin",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveSprite2dBracket",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveSprite2dBracketRenderer",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveTacticalOverlay",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveTacticalOverlayTrackObject",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveTacticalTrails",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/ui",
-      "className": "EveUiObject",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/utils",
-      "className": "EveLocator2",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/utils",
-      "className": "EveLocatorSets",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/utils",
-      "className": "EveThrottleable",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/utils",
-      "className": "Locator",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera",
-      "className": "EveVirtualCamera",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera",
-      "className": "EveVirtualCameraSystem",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourFloatAdd",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourFloatBase",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourFloatDamping",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourFloatNoise",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourFloatSet",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3Base",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3Damping",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3Inertia",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3MoveBetween",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3MoveForward",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3MoveRight",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3MoveUp",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3Offset",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3Orbit",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/behaviour",
-      "className": "EveVirtualCameraBehaviourVector3Shake",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/transition",
-      "className": "EveVirtualCameraTransitionBase",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/transition",
-      "className": "EveVirtualCameraTransitionCut",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/virtualCamera/transition",
-      "className": "EveVirtualCameraTransitionLerp",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/volume",
-      "className": "EveBoxVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/volume",
-      "className": "EveEllipsoidVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/volume",
-      "className": "EveSphereVolume",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve/volume",
-      "className": "IEveVolume",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1921,6 +1886,26 @@
     },
     {
       "family": "include",
+      "className": "ITr2GpuBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITr2MultiPassScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITr2PoseModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITr2Scene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
       "className": "ITr2Updateable",
       "reason": "hand-maintained source exists"
     },
@@ -1937,6 +1922,11 @@
     {
       "family": "include",
       "className": "ITriDevice",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriDuration",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1966,6 +1956,11 @@
     },
     {
       "family": "include",
+      "className": "ITriTargetable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
       "className": "ITriVector",
       "reason": "hand-maintained source exists"
     },
@@ -1981,16 +1976,6 @@
     },
     {
       "family": "include",
-      "className": "Tr2DebugColor",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "include",
-      "className": "Tr2DebugObjectReference",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "include",
       "className": "Tr2Rect",
       "reason": "hand-maintained source exists"
     },
@@ -2002,6 +1987,36 @@
     {
       "family": "lights",
       "className": "ITr2LightOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "lights",
+      "className": "LightFeatures",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "lights",
+      "className": "Tr2FactionLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "lights",
+      "className": "Tr2Light",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "lights",
+      "className": "Tr2PointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "lights",
+      "className": "Tr2SpotLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "lights",
+      "className": "Tr2TexturedPointLight",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2176,11 +2191,6 @@
     },
     {
       "family": "postProcess",
-      "className": "Tr2PostProcess",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "postProcess",
       "className": "Tr2PostProcess2",
       "reason": "hand-maintained source exists"
     },
@@ -2287,16 +2297,6 @@
     {
       "family": "renderJob",
       "className": "Tr2RenderJobs",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "renderJob",
-      "className": "Tr2RenderNodeEffect",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "renderJob",
-      "className": "Tr2RenderNodeSprite2dScene",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2856,12 +2856,32 @@
     },
     {
       "family": "trinityCore",
+      "className": "EveSprite2dBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "EveSprite2dBracketRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "GrannyBoneOffset",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
+      "className": "IRenderCallback",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "ITr2AtlasTextureNotifyTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2AttributeGenerator",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2886,17 +2906,22 @@
     },
     {
       "family": "trinityCore",
+      "className": "ITr2GpuBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2GrannyAnimationOwner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "ITr2ImpostorSource",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
       "className": "ITr2InstanceData",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore",
-      "className": "ITr2MultiPassScene",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2912,11 +2937,6 @@
     {
       "family": "trinityCore",
       "className": "ITr2Renderable",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore",
-      "className": "ITr2Scene",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2961,7 +2981,7 @@
     },
     {
       "family": "trinityCore",
-      "className": "ITriTargetable",
+      "className": "IWorldPosition",
       "reason": "hand-maintained source exists"
     },
     {
@@ -3011,6 +3031,11 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2DeviceResource",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2DirectInstanceData",
       "reason": "hand-maintained source exists"
     },
@@ -3027,6 +3052,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2DynamicRingBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2EffectStateManager",
       "reason": "hand-maintained source exists"
     },
     {
@@ -3062,6 +3092,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2GrannyAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2GrannyAnimationLayer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -3151,6 +3186,11 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2PostProcess",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2PrimaryRenderContext",
       "reason": "hand-maintained source exists"
     },
@@ -3202,6 +3242,16 @@
     {
       "family": "trinityCore",
       "className": "Tr2Renderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RenderNodeEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RenderNodeSprite2dScene",
       "reason": "hand-maintained source exists"
     },
     {
@@ -3346,6 +3396,11 @@
     },
     {
       "family": "trinityCore",
+      "className": "Tr2VectorFunctionModifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "Tr2VirtualAllocator",
       "reason": "hand-maintained source exists"
     },
@@ -3371,7 +3426,17 @@
     },
     {
       "family": "trinityCore",
+      "className": "TriColorSequencer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "TriDebugResourceHelper",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriDebugTextRenderer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -3481,22 +3546,17 @@
     },
     {
       "family": "trinityCore",
+      "className": "TriVectorSequencer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "TriView",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
       "className": "TriViewport",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore/animation",
-      "className": "ITr2PoseModifier",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "trinityCore/animation",
-      "className": "Tr2GrannyAnimationLayer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -6140,42 +6200,42 @@
   "generatedClasses": [
     {
       "className": "Tr2GpuProfiler",
-      "family": "trinityCore",
+      "family": null,
       "file": "trinity/generated/trinityCore/Tr2GpuProfiler.js"
     },
     {
       "className": "Tr2PrimitiveText",
-      "family": "trinityCore",
+      "family": null,
       "file": "trinity/generated/trinityCore/Tr2PrimitiveText.js"
     },
     {
       "className": "Tr2RaytracingGeometry",
-      "family": "raytracing",
+      "family": null,
       "file": "trinity/generated/raytracing/Tr2RaytracingGeometry.js"
     },
     {
       "className": "Tr2RaytracingManager",
-      "family": "raytracing",
+      "family": null,
       "file": "trinity/generated/raytracing/Tr2RaytracingManager.js"
     },
     {
       "className": "Tr2RaytracingPipelineStateManager",
-      "family": "raytracing",
+      "family": null,
       "file": "trinity/generated/raytracing/Tr2RaytracingPipelineStateManager.js"
     },
     {
       "className": "Tr2SSSSS",
-      "family": "trinityCore",
+      "family": null,
       "file": "trinity/generated/trinityCore/Tr2SSSSS.js"
     },
     {
       "className": "Tr2TransientTextureReference",
-      "family": "trinityCore",
+      "family": null,
       "file": "trinity/generated/trinityCore/Tr2TransientTextureReference.js"
     },
     {
       "className": "TriStepRemoteUpdate",
-      "family": "renderJob",
+      "family": null,
       "file": "trinity/generated/renderJob/TriStepRemoteUpdate.js"
     }
   ],

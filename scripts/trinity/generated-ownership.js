@@ -25,26 +25,66 @@ function literal(object, name)
   return member?.value?.type === "StringLiteral" ? member.value.value : null;
 }
 
-/** Reads explicit model identity from Stage-3 declarations or CjsSchema.define. */
+/**
+ * The namespace a `define` callee names: `meta` or `blue` for the decorator
+ * (`@blue.define`), `CjsSchema`, `CjsSchema.meta` or `CjsSchema.blue` for the
+ * explicit registration. Anything else (`meta.struct.define`) is not a class
+ * define.
+ *
+ * @param {object} callee Call expression callee.
+ * @param {string[]} owners The accepted namespace spellings.
+ * @returns {boolean} Whether the callee is `<owner>.define`.
+ */
+function isDefine(callee, owners)
+{
+  if (callee?.type !== "MemberExpression" || callee.computed || callee.property?.name !== "define") return false;
+  const object = callee.object;
+  const name = object?.type === "Identifier"
+    ? object.name
+    : object?.type === "MemberExpression" && !object.computed && object.object?.type === "Identifier"
+      ? `${object.object.name}.${object.property?.name}`
+      : null;
+  return owners.includes(name);
+}
+
+/**
+ * Stores a define's metadata under its JS class. A class defined twice (a
+ * decorator and an explicit call, or two explicit calls) keeps the first; both
+ * name one identity, so the className alone decides.
+ *
+ * @param {Map<string, object>} result Definitions by JS class name.
+ * @param {string} name JS class name.
+ * @param {object} metadata The define's first object or string argument.
+ */
+function remember(result, name, metadata)
+{
+  if (!result.has(name)) result.set(name, metadata);
+}
+
+/**
+ * Reads explicit model identity from the Stage-3 decorators (`@meta.define`,
+ * `@blue.define`) or the explicit registrations (`CjsSchema.define`,
+ * `CjsSchema.meta.define`, `CjsSchema.blue.define`).
+ */
 function definitions(ast)
 {
   const result = new Map();
   for (const statement of ast.program.body)
   {
     const declaration = statement.declaration ?? statement;
-    if (declaration.type === "ClassDeclaration")
+    if (declaration.type === "ClassDeclaration" && declaration.id)
     {
       for (const decorator of declaration.decorators ?? [])
       {
         const call = decorator.expression;
-        if (call.type === "CallExpression" && call.callee?.object?.name === "meta" && call.callee?.property?.name === "define")
-          result.set(declaration.id.name, call.arguments[0]);
+        if (call.type === "CallExpression" && isDefine(call.callee, [ "meta", "blue" ]))
+          remember(result, declaration.id.name, call.arguments[0]);
       }
     }
     const call = statement.expression;
-    if (call?.type === "CallExpression" && call.callee?.object?.name === "CjsSchema" && call.callee?.property?.name === "define")
+    if (call?.type === "CallExpression" && isDefine(call.callee, [ "CjsSchema", "CjsSchema.meta", "CjsSchema.blue" ]))
     {
-      if (call.arguments[0]?.type === "Identifier") result.set(call.arguments[0].name, call.arguments[1]);
+      if (call.arguments[0]?.type === "Identifier") remember(result, call.arguments[0].name, call.arguments[1]);
     }
   }
   return result;
@@ -98,7 +138,7 @@ export async function readGeneratedOwnership({ sourceRoot, schemaRoot })
       }
       if (declaration.type !== "ClassDeclaration" || !declaration.id) continue;
       const metadata = defined.get(declaration.id.name);
-      const className = literal(metadata, "className") ?? declaration.id.name;
+      const className = (metadata?.type === "StringLiteral" ? metadata.value : literal(metadata, "className")) ?? declaration.id.name;
       if (!metadata && !schemas.has(className)) continue;
       const relative = path.relative(sourceRoot, file).split(path.sep).join("/");
       const parts = relative.split("/");

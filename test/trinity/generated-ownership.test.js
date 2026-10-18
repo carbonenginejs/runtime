@@ -66,6 +66,22 @@ test("canonical metadata identity overrides the JavaScript name and generation b
   assert.throws(() => assertGeneratedInstallAllowed(inventory, "NativeB", "core"), /resource\/B.js/);
 });
 
+test("every define spelling names the identity, and a class defined twice is one identity", async t =>
+{
+  const options = await fixture(t, {
+    "trinity/core/A.js": '@blue.define("NativeA") export class LocalA {}',
+    "trinity/core/B.js": '@blue.define({className:"NativeB",family:"core"}) export class LocalB {}',
+    "trinity/core/C.js": 'export class LocalC {}\nCjsSchema.blue.define(LocalC, {className:"NativeC"});',
+    "trinity/core/D.js": 'export class LocalD {}\nCjsSchema.meta.define(LocalD, {className:"NativeD"});',
+    "trinity/core/E.js": '@meta.define({className:"NativeE"}) export class LocalE {}\nCjsSchema.meta.define(LocalE, {className:"NativeE"});'
+  }, Object.fromEntries(["A", "B", "C", "D", "E"].map(name => [`core/Native${name}`, {blueClass:`Native${name}`, family:"core"}])));
+  const inventory = await readGeneratedOwnership(options);
+  for (const name of ["A", "B", "C", "D", "E"])
+    assert.equal(inventory.records.get(`Native${name}`)?.file, `trinity/core/${name}.js`, `Native${name}`);
+  assert.equal(inventory.records.get("NativeB").family, "core");
+  assert.equal([...inventory.records.keys()].some(name => name.startsWith("Local")), false);
+});
+
 test("promotion refresh is deterministic and preserves historical reservations without using stale live skips", async t =>
 {
   const options = await fixture(t, {

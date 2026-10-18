@@ -151,7 +151,7 @@ test("completed EveMeshOverlayEffect is maintained and source-backed", () =>
   const summary = JSON.parse(readFileSync(new URL("../../src/trinity/generated/summary.json", import.meta.url), "utf8"));
   assert.equal(
     summary.skipped.some(entry =>
-      entry.family === "eve/overlays" &&
+      entry.family === "eve" &&
       entry.className === "EveMeshOverlayEffect" &&
       entry.reason === "hand-maintained source exists"),
     true
