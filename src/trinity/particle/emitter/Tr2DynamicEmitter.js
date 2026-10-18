@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Particle/Tr2DynamicEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
-import { IsMatch, IInitialize, INotify } from "#blue";
+import { IsMatch, IInitialize, INotify, CcpTime } from "#blue";
 import { hasUnboundParticleElements } from "../element/particleElementBinding.js";
 import { ITr2GenericEmitterUpdateArguments, ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
@@ -20,6 +20,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 
   #isThreadSafe = false;
 
+  /** m_lastUpdate (Be::Time, Blue 100ns ticks). */
   #lastUpdate = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
@@ -102,29 +103,25 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
 
   /**
    * ITr2GenericEmitter.Update (Tr2DynamicEmitter.cpp:109-123): clamp the frame
-   * delta to 0.3s and spawn at the constant rate scaled by the LOD
-   * emit-count factor.
-   *
-   * Adapted: Be::Time is represented as float seconds on the nominal JavaScript
-   * update-arguments record.
+   * delta (TimeAsFloat of the Be::Time tick difference) to 0.3s and spawn at the
+   * constant rate scaled by the LOD emit-count factor.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   Update(updateArguments)
   {
     if (!this.isValid || !this.particleSystem)
     {
       return;
     }
-    const time = Number(updateArguments.time) || 0;
     if (this.#lastUpdate === 0)
     {
-      this.#lastUpdate = time;
+      this.#lastUpdate = updateArguments.time;
     }
-    const dt = Math.min(time - this.#lastUpdate, 0.3);
-    this.#lastUpdate = time;
-    const emitCountFactor = Number(updateArguments.emitCountFactor);
-    this.UpdateSimulation(dt * emitCountFactor);
+    const dt = Math.min(CcpTime.timeAsFloat(updateArguments.time - this.#lastUpdate), Math.fround(0.3));
+    this.#lastUpdate = updateArguments.time;
+
+    this.UpdateSimulation(dt * updateArguments.emitCountFactor);
   }
 
   /**

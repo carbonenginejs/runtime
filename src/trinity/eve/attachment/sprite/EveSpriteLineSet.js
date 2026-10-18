@@ -4,7 +4,6 @@ import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 import { EveEntity } from "../../EveEntity.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
-import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
 import { meta, type, blue } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
@@ -390,7 +389,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
         mat4.multiply(t, l.boneMatrix, t);
 
         const c = vec4.copy(DEBUG_LIGHT_COLOR, l.lightData.color);
-        const blinkScale = EveSpaceObjectAttachmentUtils.blink(Tr2Renderer.GetAnimationTime(), l.blinkRate, l.blinkPhase, l.minScale, l.maxScale);
+        const blinkScale = EveSpaceObjectAttachmentUtils.blink(l.blinkRate, l.blinkPhase, l.minScale, l.maxScale);
 
         c[3] = 0.5;
 
@@ -491,14 +490,13 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     const features = EveSpriteLineSet._features;
     features.parentBrightness = this._activationStrength;
     features.parentScale = 1;
-    const time = Tr2Renderer.GetAnimationTime();
     const quality = lightManager.GetCurrentSpaceSceneShadowQuality();
     const record = EveSpriteLineSet._lightRecord;
 
     for (const light of this.lights)
     {
       light.lightData.AsPerPointLightData(light.boneMatrix, features, quality, record);
-      const blinkScale = EveSpaceObjectAttachmentUtils.blink(time, light.blinkRate, light.blinkPhase, light.minScale, light.maxScale);
+      const blinkScale = EveSpaceObjectAttachmentUtils.blink(light.blinkRate, light.blinkPhase, light.minScale, light.maxScale);
       record.radius *= blinkScale;
       record.innerRadius *= blinkScale;
       record.lightType = Tr2Light.POINT_LIGHT;

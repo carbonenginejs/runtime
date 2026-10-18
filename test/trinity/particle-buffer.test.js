@@ -97,9 +97,10 @@ test("particle Update preserves the prior GPU record before integrating the next
   const value = system(t);
   value.SpawnParticle({ position: [2, 3, 4], velocity: [1, 0, 0], lifetime: [0, 10], size: [5, 6] });
   const args = new ITr2GenericEmitterUpdateArguments();
-  args.time = 1;
+  // UpdateArguments::time is Be::Time ticks (ITr2GenericEmitter.h:42): 1 s, then 1.1 s.
+  args.time = 10_000_000;
   value.Update(args);
-  args.time = 1.1;
+  args.time = 11_000_000;
   value.Update(args);
   const position = value.GetElement(1);
   assert.ok(Math.abs(position.buffer[0] - 2.1) < 1e-6);

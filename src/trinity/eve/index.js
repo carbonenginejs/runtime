@@ -1,7 +1,6 @@
 export * from "./ITr2SoundEmitterOwner.js";
 export * from "./ITr2DynamicBindingOwner.js";
 export * from "./BackAndForthData.js";
-export * from "./CjsEveThrottleableState.js";
 export * from "./EveChildUpdateParams.js";
 export * from "./EntityComponents.js";
 export * from "./EveCustomMask.js";

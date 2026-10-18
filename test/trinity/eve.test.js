@@ -2,9 +2,9 @@ import { Tr2CurveScalar } from "../../npm/dist/trinity/index.js";
 import { addChild, removeChild, clearChildren } from "../../npm/dist/global/blue/children.js";
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
-import { AudioGameObject, BackAndForthData, CjsEveThrottleableState, CjsLightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../../npm/dist/trinity/index.js";
+import { AudioGameObject, BackAndForthData, CjsLightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../../npm/dist/trinity/index.js";
 import { EveUpdateContext, TriView } from "../../npm/dist/trinity/index.js";
-import { ITriVectorFunction } from "../../npm/dist/global/blue/index.js";
+import { ITriVectorFunction, be } from "../../npm/dist/global/blue/index.js";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
 import { box3 } from "../../npm/dist/global/math/box3.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -240,7 +240,6 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
   assertEquals(CjsSchema.getConstructor("PlayFXData"), PlayFXData);
   assertEquals(CjsSchema.getConstructor("ProcessLifetimeData"), ProcessLifetimeData);
   assertEquals(CjsSchema.getConstructor("SeekTargetData"), SeekTargetData);
-  assertEquals(CjsSchema.getConstructor("CjsEveThrottleableState"), null);
   assertEquals(backAndForth.locatorIndex, -1);
   assertEquals(backAndForth.seek, true);
   assertEquals(backAndForth.arrived, true);
@@ -828,38 +827,34 @@ test("EveLocatorSets translates and copies locator lists", () =>
   assertVec3(set.GetLocators()[0].position, [11, 22, 33]);
   assertVec3(set.GetLocators()[1].position, [17, 28, 39]);
 });
-test("EveThrottleable mirrors Carbon update skipping", () =>
+test("EveThrottleable mirrors Carbon update skipping against Blue actual time", t =>
 {
-  const host = {
-    updateThrottle: true,
-    minUpdateFrequency: 2,
-    maxUpdateFrequency: 20,
-    currentUpdateFrequency: 10
-  };
-  const throttle = new CjsEveThrottleableState();
-  assertEquals(throttle.ShouldSkipUpdate(host, 1, 100), false);
-  assertEquals(host.currentUpdateFrequency, 20);
-  assertEquals(throttle.ShouldSkipUpdate(host, 0, 100.01), true);
-  assertEquals(host.currentUpdateFrequency, 20);
-  assertEquals(throttle.ShouldSkipUpdate(host, 0, 100.06), false);
-  assertEquals(host.currentUpdateFrequency, 2);
-  host.maxUpdateFrequency = -10;
-  host.minUpdateFrequency = -20;
-  assertEquals(throttle.ShouldSkipUpdate(host, 0.5, 101), false);
-  assertEquals(host.currentUpdateFrequency, 0.1);
-  host.updateThrottle = false;
-  assertEquals(throttle.ShouldSkipUpdate(host, 1, 101.01), false);
-});
-test("EveThrottleable exposes the source-backed class wrapper", () =>
-{
+  // ShouldSkipUpdate reads BeOS->GetActualTime() itself, in Blue 100ns ticks
+  // (EveThrottleable.cpp:19); 100 seconds is 1e9 ticks.
+  let clock = 1_000_000_000;
+  t.mock.method(be.os, "GetActualTime", () => clock);
   const throttle = new EveThrottleable();
   assertEquals(throttle.currentUpdateFrequency, 10);
   assertEquals(throttle.minUpdateFrequency, 2);
   assertEquals(throttle.maxUpdateFrequency, 20);
   assertEquals(throttle.updateThrottle, true);
-  assertEquals(throttle.ShouldSkipUpdate(1, 5), false);
+  assertEquals(throttle.ShouldSkipUpdate(1), false);
   assertEquals(throttle.currentUpdateFrequency, 20);
-  assertEquals(throttle.ShouldSkipUpdate(0.5, 5.01), true);
+  assertEquals(throttle._nextUpdateTS, clock + 500_000, "1/20 s later, through TimeFromDouble");
+  clock += 100_000;
+  assertEquals(throttle.ShouldSkipUpdate(0), true);
+  assertEquals(throttle.currentUpdateFrequency, 20);
+  clock += 500_000;
+  assertEquals(throttle.ShouldSkipUpdate(0), false);
+  assertEquals(throttle.currentUpdateFrequency, 2);
+  // uint32_t bounds: a max below the min wraps before the float cast (cpp:29).
+  throttle.maxUpdateFrequency = 2;
+  throttle.minUpdateFrequency = 3;
+  clock += 10_000_000;
+  assertEquals(throttle.ShouldSkipUpdate(0.5), false);
+  assertEquals(throttle.currentUpdateFrequency, 0.5 * 4294967295 + 3);
+  throttle.updateThrottle = false;
+  assertEquals(throttle.ShouldSkipUpdate(1), false);
 });
 test("EveRemotePositionCurve caches Carbon remote sweep values", () =>
 {

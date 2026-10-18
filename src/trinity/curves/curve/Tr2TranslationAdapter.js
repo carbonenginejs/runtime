@@ -223,7 +223,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
   RandomizeStart(range = 60)
   {
     const radius = range || 60;
-    const tickRange = Math.trunc(radius * 10_000_000);
+    const tickRange = CcpTime.timeFromDouble(radius);
     this._offset = carbonRandom.crtRand() % ((tickRange * 2) | 0) - tickRange;
   }
 

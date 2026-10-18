@@ -102,6 +102,7 @@ export class Tr2ParticleSystem
 
   _updatePeriodClock = 0;
 
+  /** m_lastUpdate (Be::Time, Blue 100ns ticks): the update-arguments time of the last simulated frame. */
   _lastUpdate = 0;
 
   /** Retains the installed clock owner so replacement/teardown unregisters correctly. */
@@ -711,8 +712,12 @@ export class Tr2ParticleSystem
   /**
    * Carbon's per-frame system update: stamps the system world transform into a
    * nominal emitter argument record, applies the visibility-driven update
-   * cadence, preserves previous-frame data, and advances CPU particles.
-   * JS timestamps are seconds; native sorting hysteresis uses that delta.
+   * cadence, preserves previous-frame data, and advances CPU particles by
+   * TimeAsFloat of the tick delta, capped at a third of a second
+   * (Tr2ParticleSystem.cpp:485-545).
+   *
+   * Adapted: the per-system argument record is a reused member rather than
+   * Carbon's stack copy.
    */
   @blue.method
   @meta.adapted
@@ -750,13 +755,12 @@ export class Tr2ParticleSystem
       }
     }
 
-    const time = Number(argumentsValue.time) || 0;
     if (this._lastUpdate === 0)
     {
-      this._lastUpdate = time;
+      this._lastUpdate = argumentsValue.time;
     }
-    const dt = Math.min(time - this._lastUpdate, 1 / 3);
-    this._lastUpdate = time;
+    const dt = Math.min(CcpTime.timeAsFloat(argumentsValue.time - this._lastUpdate), Math.fround(1 / 3));
+    this._lastUpdate = argumentsValue.time;
     if (dt > 0.035 && this._sortingAllowed) this._sortingAllowed = false;
     else if (!this._sortingAllowed && dt < 0.02) this._sortingAllowed = true;
     return this.UpdateSimulation(dt, argumentsValue);
@@ -979,12 +983,12 @@ export class Tr2ParticleSystem
     return true;
   }
 
-  /** Carbon stores Be::Time; this simulation's last-update timestamp uses seconds. */
+  /** Carbon OnSimClockRebase (Tr2ParticleSystem.cpp:474-477): moves the last-update tick time by the rebase. */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
-    this._lastUpdate += CcpTime.timeAsDouble(newTime - oldTime);
+    this._lastUpdate += newTime - oldTime;
   }
 
   /** Registers with the active clock and releases any previous installed owner. */

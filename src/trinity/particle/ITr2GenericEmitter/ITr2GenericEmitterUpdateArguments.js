@@ -6,9 +6,10 @@ import { meta, type } from "#schema";
 
 
 /** Per-frame values passed to an ITr2GenericEmitter update or spawn call. */
-@meta.define({ className: "ITr2GenericEmitterUpdateArguments", donors: ["ITr2GenericEmitter::UpdateArguments"] })
+@meta.define({ className: "ITr2GenericEmitterUpdateArguments", carbon: "ITr2GenericEmitter::UpdateArguments" })
 export class ITr2GenericEmitterUpdateArguments
 {
+  /** time (Be::Time): the current system time, in Blue 100ns ticks (ITr2GenericEmitter.h:41-42). */
   @type.float64
   time = 0;
 

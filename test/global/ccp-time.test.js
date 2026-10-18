@@ -134,3 +134,11 @@ test("TimeFromDateTime refuses dates before 1970, as the donor does", () =>
 
   assert.equal(CcpTime.timeFromDateTime(remapped).ok, false, "year 50 is year 50, not 1950");
 });
+
+test("TimeFromMS scales whole milliseconds to ticks (CcpTime.cpp:265-269)", () =>
+{
+  assert.equal(CcpTime.timeFromMS(100), 1_000_000);
+  assert.equal(CcpTime.timeFromMS(0), 0);
+  assert.equal(CcpTime.timeFromMS(2.9), 20_000, "the long parameter truncates");
+  assert.equal(CcpTime.timeFromMS(-3), -30_000);
+});

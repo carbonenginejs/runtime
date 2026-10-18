@@ -16,7 +16,6 @@ import {
 } from "./overlays/EveDamageOverlay.js";
 import { ITr2GenericEmitterUpdateArguments } from "../particle/ITr2GenericEmitter/index.js";
 import { be } from "#blue";
-import { CcpTime } from "../../global/blue/CcpTime.js";
 import { EveDamageOverlayOwnerInfo } from "./overlays/EveDamageOverlayOwnerInfo.js";
 
 
@@ -810,7 +809,7 @@ export class EveImpactOverlay
         const rateModifier = Math.min(Math.max(
           overlay.GetRenderPriority() / IMPACT_ARMOR_PARTICLE_LOD_FACTOR, 0), 1);
         const args = new ITr2GenericEmitterUpdateArguments();
-        args.time = CcpTime.timeAsDouble(updateContext.GetTime());
+        args.time = updateContext.GetTime();
         args.system = gpuParticleSystem;
         vec3.copy(args.originShift, updateContext.GetOriginShift());
         this.armorImpactEmitter.SpawnOnce(args, parentVelocityWS, scale, rateModifier);

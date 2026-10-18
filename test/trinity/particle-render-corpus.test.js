@@ -59,7 +59,7 @@ test("real Crisis Dark_Front smoke emits into Carbon's physical particle layout"
     const lifetime = system.GetParticleElement(i, 0);
     assert.ok(lifetime[1] >= 6.25 && lifetime[1] <= 8);
   }
-  const args = new ITr2GenericEmitterUpdateArguments(); args.time = 1;
+  const args = new ITr2GenericEmitterUpdateArguments(); args.time = 10_000_000;
   system.Update(args);
   const cpu = system.GetElement(1).buffer.slice();
   const stride = data.stride / 4;

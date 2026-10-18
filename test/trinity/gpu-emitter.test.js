@@ -69,16 +69,17 @@ test("GPU shared emitter preserves zeroed native colors and raw uint32 hash fiel
 
 test("GPU continuous emission clamps time but derives velocity from the full frame delta", () =>
 {
-  // Tr2GpuSharedEmitter.cpp:117-146, 193-233.
+  // Tr2GpuSharedEmitter.cpp:117-146, 193-233. UpdateArguments::time is Be::Time
+  // (ITr2GenericEmitter.h:42), Blue 100ns ticks; 1 s is 10_000_000.
   const { args, requests } = context();
   const emitter = new Tr2GpuSharedEmitter();
   emitter.rate = 30;
   emitter.inheritVelocity = 0.5;
   emitter.Initialize();
-  args.time = 10;
+  args.time = 100_000_000;
   emitter.Update(args);
   assert.equal(requests.length, 0);
-  args.time = 11;
+  args.time = 110_000_000;
   args.parentTransform[12] = 12;
   args.originShift[0] = 2;
   emitter.Update(args);
@@ -89,7 +90,7 @@ test("GPU continuous emission clamps time but derives velocity from the full fra
   emitter.Update(args);
   assert.equal(requests.length, 1, "repeated timestamp does not emit");
   emitter.Enable(false);
-  args.time = 12;
+  args.time = 120_000_000;
   emitter.Update(args);
   emitter.Enable(true);
   emitter.Update(args);
@@ -103,10 +104,10 @@ test("GPU emission retains fractional carry and bounds displacement/density", ()
   emitter.rate = 10;
   emitter.Initialize();
   emitter.Update(args);
-  args.time = 0.05;
+  args.time = 500_000;
   emitter.Update(args);
   assert.equal(requests.length, 0);
-  args.time = 0.1;
+  args.time = 1_000_000;
   emitter.Update(args);
   assert.equal(requests[0].emitter.count, 1);
   emitter.rate = 0;
@@ -114,12 +115,12 @@ test("GPU emission retains fractional carry and bounds displacement/density", ()
   emitter.maxEmissionDensity = 3;
   args.emitCountFactor = 0;
   args.parentTransform[12] = 2;
-  args.time = 0.2;
+  args.time = 2_000_000;
   emitter.Update(args);
   assert.equal(requests[1].emitter.count, 3, "Carbon density is independent of emitCountFactor");
   emitter.maxDisplacement = 1;
   args.parentTransform[12] = 5;
-  args.time = 0.3;
+  args.time = 3_000_000;
   emitter.Update(args);
   assert.equal(requests.length, 2);
   assert.equal(emitter._carryOver, 0);
@@ -166,7 +167,7 @@ test("GPU unique emitter scales temporary structs, preserves local attractor and
   args.parentTransform[12] = 10;
   args.originShift[0] = 1;
   emitter.Update(args);
-  args.time = 1;
+  args.time = 10_000_000;
   emitter.Update(args);
   assert.equal(requests[0].emitter.radius, 6);
   assert.equal(requests[0].params.gravity, 9);
@@ -290,7 +291,7 @@ test("GPU projection observes direct animated fields and vector edits without ch
   emitter.minSpeed = 4;
   emitter.sizes.set([3, 2, 1]);
   emitter.color3.set([0.1, 0.2, 0.3, 0.4]);
-  args.time = 1;
+  args.time = 10_000_000;
   emitter.Update(args);
   assert.equal(requests[0].emitter.radius, 7);
   assert.equal(requests[0].emitter.minSpeed, 4);
@@ -326,7 +327,7 @@ test("GPU hot paths reuse vectors, value structs and hash bytes after initializa
   }
   for (let i = 0; i < 100; i++)
   {
-    args.time = i / 30;
+    args.time = Math.trunc(i * 10_000_000 / 30);
     shared.Update(args);
     unique.Update(args);
     shared.SpawnParticles(args, position, velocity, 1);

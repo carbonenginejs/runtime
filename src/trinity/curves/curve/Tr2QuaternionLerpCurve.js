@@ -10,7 +10,7 @@ import { CcpTime } from "#blue";
 /**
  * Quaternion curve that spherically interpolates between two child quaternion
  * curves, ramping the blend from 0 to 1 over `length` seconds starting at
- * `start` and clamping outside that window.
+ * `start` (a Blue time) and clamping outside that window.
  */
 @blue.define("Tr2QuaternionLerpCurve")
 @blue.inherit(ITriCurveLength)
@@ -18,8 +18,8 @@ import { CcpTime } from "#blue";
 export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 {
   /**
-   * Blend-window start in the existing JavaScript seconds representation; native m_start stores
-   * Be::Time ticks.
+   * m_start (Be::Time): the blend-window start, in Blue 100ns ticks (Tr2QuaternionLerpCurve.h:16). Held as a
+   * Number, as every Be::Time is (blue-clock-epoch).
    * @type {number}
    */
   @blue.readwrite
@@ -106,9 +106,10 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
   }
 
   /**
-   * Samples into the caller-owned output without updating the cache.
-   * JavaScript combines native time overloads with seconds first and output last.
-   * The existing seconds-valued start field is retained; native Be::Time conversion remains unported.
+   * Carbon's GetValueAt(double): samples into the caller-owned output without updating the cache
+   * (Tr2QuaternionLerpCurve.cpp:62-80). The blend delta is the seconds time less TimeAsDouble(m_start), narrowed to
+   * float, and both children sample at the seconds time.
+   * Adapted: the output is the last argument and is returned, rather than Carbon's leading pointer.
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -121,7 +122,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
     {
       return out;
     }
-    const ratio = num.clamp((time - this.start) / this.length, 0, 1);
+    const delta = Math.fround(time - CcpTime.timeAsDouble(this.start));
+    const ratio = num.clamp(Math.fround(delta / this.length), 0, 1);
     const start = this.startCurve.GetValueAt(time, this._startValue);
     const end = this.endCurve.GetValueAt(time, this._endValue);
     return quat.slerp(out, start, end, ratio);
@@ -142,8 +144,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
   }
 
   /**
-   * Carbon's GetValueAt(Be::Time): the blend ratio comes from the tick time and both children sample through
-   * their Be::Time overloads (cpp:41-59). start stays in seconds here, so the delta is taken in seconds.
+   * Carbon's GetValueAt(Be::Time): the blend delta is TimeAsFloat(now - m_start), both in ticks, and both children
+   * sample through their Be::Time overloads (cpp:41-59).
    * JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination value.
@@ -156,7 +158,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
     {
       return out;
     }
-    const ratio = num.clamp(Math.fround(CcpTime.timeAsDouble(time) - this.start) / this.length, 0, 1);
+    const delta = CcpTime.timeAsFloat(time - this.start);
+    const ratio = num.clamp(Math.fround(delta / this.length), 0, 1);
     const start = this.startCurve.GetValueAt__Ticks(time, this._startValue);
     const end = this.endCurve.GetValueAt__Ticks(time, this._endValue);
     return quat.slerp(out, start, end, ratio);

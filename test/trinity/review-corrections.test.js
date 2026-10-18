@@ -101,7 +101,8 @@ test("aging-only particles carry the immediately previous lifetime into the GPU 
     system.Initialize();
     system.SpawnParticle({ lifetime: [0, 10] });
     const args = new ITr2GenericEmitterUpdateArguments();
-    for (const time of [1, 1.1, 1.2]) { args.time = time; system.Update(args); }
+    // Be::Time ticks (ITr2GenericEmitter.h:42): 1 s, 1.1 s, 1.2 s.
+    for (const time of [10_000_000, 11_000_000, 12_000_000]) { args.time = time; system.Update(args); }
     const element = system.GetElement(Tr2ParticleElementDeclaration.Type.LIFETIME);
     const half = element.instanceStride / 2;
     assert.ok(Math.abs(element.buffer[element.startOffset] - (aging ? 0.02 : 0)) < 1e-6);

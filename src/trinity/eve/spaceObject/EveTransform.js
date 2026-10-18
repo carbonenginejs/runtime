@@ -301,7 +301,7 @@ export class EveTransform extends Tr2Transform
     if (this.particleEmitters.length)
     {
       const args = EveTransform._emitterArgs;
-      args.time = CcpTime.timeAsDouble(time);
+      args.time = time;
       args.system = context.GetGpuParticleSystem();
       mat4.copy(args.parentTransform, this.worldTransform);
       vec3.copy(args.originShift, context.GetOriginShift());
@@ -311,7 +311,7 @@ export class EveTransform extends Tr2Transform
     if (this.particleSystems.length)
     {
       const args = EveTransform._systemArgs;
-      args.time = CcpTime.timeAsDouble(time);
+      args.time = time;
       args.system = context.GetGpuParticleSystem();
       mat4.identity(args.parentTransform);
       vec3.copy(args.originShift, context.GetOriginShift());

@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { DictReader } from "../../npm/dist/global/blue/index.js";
+import { DictReader, be } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
@@ -42,8 +42,11 @@ function closeArray(actual, expected, epsilon = 1e-6)
 }
 
 
-test("Tr2DynamicBinding resolves Carbon path forms and delay boundaries", () =>
+test("Tr2DynamicBinding resolves Carbon path forms and delay boundaries", t =>
 {
+  // Link reads BeOS->GetCurrentFrameTime() and adds TimeFromMS(bindingDelay); Update compares
+  // Be::Time ticks (Tr2DynamicBinding.cpp:221-251). 10 s is 100_000_000 ticks; 100 ms is 1_000_000.
+  t.mock.method(be.os, "GetCurrentFrameTime", () => 100_000_000);
   const source = {
     children: [
       { name: "first", value: 2 },
@@ -66,18 +69,18 @@ test("Tr2DynamicBinding resolves Carbon path forms and delay boundaries", () =>
   binding.bindingDelay = 100;
   binding.SetOwner(owner);
 
-  assert.equal(binding.Link(10), true);
+  assert.equal(binding.Link(), true);
   assert.equal(binding.IsSourceValid(), true);
   assert.equal(binding.IsDestinationValid(), true);
-  assert.equal(binding.Update(10.099), false);
+  assert.equal(binding.Update(100_990_000), false);
   assert.equal(destination.value, 0);
-  assert.equal(binding.Update(10.1), true);
+  assert.equal(binding.Update(101_000_000), true);
   assert.equal(destination.value, 12);
 
   binding.bindingDelay = 0;
   binding.sourceObjectPath = "Source.children[-2]";
   binding.OnModified();
-  binding.Update(10.1);
+  binding.Update(101_000_000);
   assert.equal(destination.value, 8);
 
   binding.sourceObjectPath = "Source.children[wat]";
@@ -107,8 +110,10 @@ test("Tr2DynamicBinding only relinks for Carbon NOTIFY fields", () =>
 });
 
 
-test("Tr2DynamicBinding preserves the current frame clock across delayed relinks", () =>
+test("Tr2DynamicBinding relinks from Blue's frame time at the relink", t =>
 {
+  let frameTime = 200_000_000;
+  t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
   const source = { value: 2 };
   const destination = { value: 0 };
   const binding = new Tr2DynamicBinding();
@@ -118,16 +123,17 @@ test("Tr2DynamicBinding preserves the current frame clock across delayed relinks
   binding.destinationObjectAttribute = "value";
   binding.bindingDelay = 100;
   binding.SetOwner({ GetParameterMap: () => ({ Source: source, Destination: destination }) });
-  binding.Link(20);
-  binding.Update(20.1);
+  binding.Link();
+  binding.Update(201_000_000);
   assert.equal(destination.value, 2);
 
   destination.value = 0;
+  frameTime = 201_000_000;
   binding.scale = 2;
   binding.OnModified();
-  assert.equal(binding.Update(20.199), false);
+  assert.equal(binding.Update(201_990_000), false);
   assert.equal(destination.value, 0);
-  assert.equal(binding.Update(20.201), true);
+  assert.equal(binding.Update(202_010_000), true);
   assert.equal(destination.value, 4);
 });
 
@@ -415,7 +421,9 @@ test("EveStretch3 supplies dynamic parameter roots and binding ownership", () =>
   stretch.dynamicBindings.push(binding);
   stretch.Initialize();
   const context = new EveUpdateContext();
-  context.SetTime(0);
+  // The binding is due from Blue's frame time at Link (Tr2DynamicBinding.cpp:248); the scene
+  // update time of a real frame is that same clock.
+  context.SetTime(be.os.GetCurrentFrameTime());
   stretch.UpdateSynchronous(context);
   closeArray(stretchObject.translation, [5, 2, 1]);
   assert.equal(stretch.GetParameterMap().SourceObject, sourceObject);

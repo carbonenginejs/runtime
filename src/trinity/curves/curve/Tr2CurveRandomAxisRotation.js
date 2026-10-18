@@ -162,7 +162,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    */
   GetWrappedTime(time)
   {
-    return CcpTime.timeAsDouble(time % Math.trunc(Math.abs(this.period) * 10_000_000));
+    return CcpTime.timeAsDouble(time % CcpTime.timeFromDouble(Math.abs(this.period)));
   }
 
   /**

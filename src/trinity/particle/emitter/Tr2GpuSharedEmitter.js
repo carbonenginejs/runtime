@@ -5,7 +5,7 @@
 import { ccpHashFnv1 } from "#utils/hash";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
-import { IInitialize, INotify } from "#blue";
+import { IInitialize, INotify, CcpTime } from "#blue";
 import { meta, type, blue } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
@@ -197,6 +197,7 @@ export class Tr2GpuSharedEmitter
 
   _enabled = true;
 
+  /** m_previousTime (Be::Time, Blue 100ns ticks); -1 until the first Update. */
   _previousTime = -1;
 
   /**
@@ -266,9 +267,9 @@ export class Tr2GpuSharedEmitter
   }
 
   /**
-   * Advances the emitter's clock and motion history (cpp:110-147).
-   * JavaScript update arguments carry seconds instead of native Be::Time ticks.
-   * Authored schema fields are projected onto the native structs at entry.
+   * Advances the emitter's clock and motion history (cpp:110-147); the frame
+   * delta is TimeAsFloat of the Be::Time tick difference.
+   * Adapted: authored schema fields are projected onto the native structs at entry.
    */
   @blue.method
   @meta.adapted
@@ -288,7 +289,7 @@ export class Tr2GpuSharedEmitter
     }
     if (!this._enabled) return;
     const firstUpdate = this._previousTime === -1;
-    const dt = firstUpdate ? 0 : arguments_.time - this._previousTime;
+    const dt = firstUpdate ? 0 : CcpTime.timeAsFloat(arguments_.time - this._previousTime);
     this._previousTime = arguments_.time;
     if (dt <= 0 && !firstUpdate) return;
 

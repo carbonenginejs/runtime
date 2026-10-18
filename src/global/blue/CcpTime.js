@@ -147,6 +147,19 @@ export class CcpTime
     return Math.trunc(fracpart * TICKS_PER_SECOND) + (intpart * TICKS_PER_SECOND);
   }
 
+  /**
+   * `TimeFromMS` - whole milliseconds as Blue ticks (`core/CcpTime.cpp:265-269`):
+   * `time * 10000`. The donor takes a `long`, so a fractional input is truncated
+   * first, as the C++ conversion to that parameter would.
+   *
+   * @param {number} time Milliseconds.
+   * @returns {number} Blue time, in 100ns ticks.
+   */
+  static timeFromMS(time)
+  {
+    return Math.trunc(time) * TICKS_PER_MILLISECOND;
+  }
+
 
   /**
    * `TimeAsDateTime` - a Blue timestamp broken into UTC calendar fields.

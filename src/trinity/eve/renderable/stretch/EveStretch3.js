@@ -158,7 +158,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     this.SetStretchObject(value);
   }
-  /** Be::Time is represented as numeric seconds in this JS update path. */
+  /** m_startTime (Be::Time, Blue 100ns ticks): the update time latched on the first asynchronous update (cpp:469-472). */
   @blue.read
   @type.float64
   startTime = 0;

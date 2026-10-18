@@ -147,7 +147,11 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Carbon's Update( double time ): updates playback at the supplied source
-   * time (formerly the invented name UpdateAt).
+   * time (formerly the invented name UpdateAt). Engine owners call this or the
+   * Be::Time overload with their own clock, as Carbon's C++ owners do. It is
+   * not the method Python reaches as `Update`: Carbon's exposure maps that name
+   * to UpdateWithCurrentTime (TriCurveSet_Blue.cpp:100-103), and JavaScript keeps
+   * the C++ names, so a script-style caller uses UpdateWithCurrentTime.
    * @param {number} time Source seconds before optional driver conversion.
    * @param {object|null} [renderContext=null] Active rendering context.
    * @returns {void}
@@ -516,7 +520,9 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Updates with the current frame time, as Carbon does: Update( double(
-   * BeOS->GetCurrentFrameTime() ) ) (TriCurveSet.cpp:320-322).
+   * BeOS->GetCurrentFrameTime() ) ) (TriCurveSet.cpp:320-322), reading be.os at
+   * the call. This is the method Carbon exposes to script as `Update`
+   * (TriCurveSet_Blue.cpp:100-103).
    *
    * Carbon quirk (CE-51), reproduced: the raw Be::Time tick count is cast to double and
    * passed to the seconds overload, so the set is sampled 10^7 times too far

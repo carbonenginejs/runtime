@@ -404,15 +404,14 @@ export class EveTurretTarget
   /**
    * Queues a hit/miss result for a future shot and stamps the shot time; the queue keeps at most four entries, dropping the oldest.
    * @param {boolean} missed Whether that shot will miss.
-   * Carbon stamps TimeAsDouble( BeOS->GetActualTime() ) (EveTurretTarget.cpp:407).
-   * @param {number} [timestamp] Shot time in seconds; defaults to Carbon's stamp, and may be supplied for determinism.
+   * The shot time is TimeAsDouble( BeOS->GetActualTime() ), read here as Carbon reads it (EveTurretTarget.cpp:404-414).
    */
   @blue.method
-  @meta.adapted
-  SetShotMissed(missed, timestamp = CcpTime.timeAsDouble(be.os.GetActualTime()))
+  @meta.implemented
+  SetShotMissed(missed)
   {
     this._missQueue.push(!!missed);
-    this._lastShotTime = Number(timestamp);
+    this._lastShotTime = CcpTime.timeAsDouble(be.os.GetActualTime());
     while (this._missQueue.length > 4) this._missQueue.shift();
   }
 

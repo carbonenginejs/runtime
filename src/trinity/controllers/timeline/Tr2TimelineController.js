@@ -215,9 +215,8 @@ export class Tr2TimelineController extends EveThrottleable
    * TimeAsFloat, and toggles action activity; updateables receive Blue's
    * actual and frame times in ticks (`Tr2TimelineController.cpp:171-235`).
    *
-   * Adapted: The throttle is handed Blue's actual time in seconds, because the
-   * JS EveThrottleable takes the clock as an argument where Carbon's reads
-   * BeOS itself.
+   * Adapted: the action range toggling runs through `_SetTime`, and the
+   * controller mutex and stats scopes are omitted (one JavaScript thread).
    */
   @blue.method
   @meta.adapted
@@ -227,7 +226,7 @@ export class Tr2TimelineController extends EveThrottleable
     {
       return;
     }
-    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, CcpTime.timeAsDouble(be.os.GetActualTime())))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency))
     {
       return;
     }

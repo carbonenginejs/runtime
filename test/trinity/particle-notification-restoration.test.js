@@ -24,9 +24,10 @@ test("particle batch handles sorting, clock rebasing and both emitter notificati
     assert.equal(system._indexes.length, 5);
     assert.equal(os._rebaseListeners.includes(system), true);
     assert.deepEqual(calls, ["death", "alive"]);
-    system._lastUpdate = 9;
+    // m_lastUpdate is Be::Time; the rebase adds the tick difference (Tr2ParticleSystem.cpp:474-477).
+    system._lastUpdate = 90_000_000;
     for (const listener of os._rebaseListeners) listener.OnSimClockRebase(10000000, 30000000);
-    assert.equal(system._lastUpdate, 11);
+    assert.equal(system._lastUpdate, 110_000_000);
     system.requiresSorting = false;
     system.useSimTimeRebase = false;
     system.OnModified(["requiresSorting", "useSimTimeRebase"]);

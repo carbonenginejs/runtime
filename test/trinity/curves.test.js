@@ -1033,7 +1033,8 @@ test("Tr2QuaternionLerpCurve blends child quaternion functions", () =>
   vec4.set(start.value, 0, 0, 0, 1);
   vec4.set(end.value, 0, 0, 1, 0);
   const curve = new Tr2QuaternionLerpCurve();
-  curve.start = 1;
+  // m_start is Be::Time (Tr2QuaternionLerpCurve.h:16): one second, in Blue 100ns ticks.
+  curve.start = 10_000_000;
   curve.length = 4;
   curve.startCurve = start;
   curve.endCurve = end;
@@ -1041,6 +1042,10 @@ test("Tr2QuaternionLerpCurve blends child quaternion functions", () =>
   curve.GetValueAt(3, out);
   assertAlmostEquals(out[2], Math.SQRT1_2);
   assertAlmostEquals(out[3], Math.SQRT1_2);
+  const ticksOut = quat.create();
+  curve.GetValueAt__Ticks(30_000_000, ticksOut);
+  assertAlmostEquals(ticksOut[2], Math.SQRT1_2);
+  assertAlmostEquals(ticksOut[3], Math.SQRT1_2);
   curve.Update(5, out);
   assertAlmostEquals(out[2], 1);
   assertAlmostEquals(curve.value[2], 1);

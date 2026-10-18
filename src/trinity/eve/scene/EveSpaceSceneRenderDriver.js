@@ -21,7 +21,6 @@
 // the driver it describes.
 import { meta, type, blue } from "#schema";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
-import { CcpTime } from "#blue";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { DepthStencilFormat, INVALID_UPSCALING_CONTEXT_ID, PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction, UpscalingTechnique } from "#consts/render-context";
@@ -1793,10 +1792,8 @@ export class EveSpaceSceneRenderDriver
   /**
    * Carbon UpdateGpuParticleSystem (EveSpaceSceneRenderDriver.cpp:634-642):
    * after the scene update, the per-frame data the particle kernels read, then
-   * the particle system's update. Carbon's GPU region is not ported.
-   * Adapted: scene time retains Blue ticks; the existing JS particle Update
-   * takes seconds. Convert once at this boundary; the native particle method
-   * instead converts its tick delta (Tr2GpuParticleSystem.cpp:325).
+   * the particle system's update at the scene's tick time (cpp:640).
+   * Adapted: Carbon's GPU region is not ported.
    *
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {void}
@@ -1810,7 +1807,7 @@ export class EveSpaceSceneRenderDriver
     if (!ps) return;
 
     this.scene.PopulateAndApplyPerFrameData(renderContext);
-    ps.Update(CcpTime.timeAsDouble(this.scene.updateTime), this.scene.updateContext.GetOriginShift(), renderContext);
+    ps.Update(this.scene.updateTime, this.scene.updateContext.GetOriginShift(), renderContext);
   }
 
   /**

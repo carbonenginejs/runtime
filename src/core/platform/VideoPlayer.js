@@ -299,19 +299,45 @@ export class VideoPlayer
 
   /** Carbon pause query, independent of buffering and autoplay policy. */
   IsPaused() { return this._paused; }
-  /** Browser media seconds; Blue's 100 ns frame ticks never enter this clock. */
-  GetMediaTime() { return this.video ? this.video.currentTime : 0; }
-  /** Browser duration in seconds. */
-  GetDuration() { return this.video && Number.isFinite(this.video.duration) ? this.video.duration : 0; }
-  /** Seek in media seconds, leaving presentation scheduling to the browser. */
-  Seek(time) { if (this.video) this.video.currentTime = time; }
+  /**
+   * Media playback time in nanoseconds, as Carbon's uint64_t `media_time` (VideoPlayer_Blue.cpp:88-91).
+   * Adapted: read from the browser's seconds clock and truncated to whole nanoseconds.
+   */
+  GetMediaTime() { return this.video ? VideoPlayer._secondsToNanoseconds(this.video.currentTime) : 0; }
+  /**
+   * Total media duration in nanoseconds (VideoPlayer_Blue.cpp:92-95).
+   * Adapted: read from the browser's duration in seconds; 0 while it is unknown.
+   */
+  GetDuration() { return this.video && Number.isFinite(this.video.duration) ? VideoPlayer._secondsToNanoseconds(this.video.duration) : 0; }
+  /**
+   * Seeks to a time from the video start, in nanoseconds (VideoPlayer_Blue.cpp:65-69).
+   * Adapted: the browser seeks in seconds and owns presentation scheduling.
+   * @param {number} time Seek time in nanoseconds.
+   */
+  Seek(time) { if (this.video) this.video.currentTime = time / VideoPlayer.NANOSECONDS_PER_SECOND; }
   /** Carbon state; autoplayBlocked and Validate distinguish browser policy from decode failure. */
   GetState() { return this._state; }
-  /** Furthest buffered media time, in the same seconds as GetMediaTime. */
+  /**
+   * Media time downloaded from the input stream, in nanoseconds (VideoPlayer_Blue.cpp:96-99).
+   * Adapted: the end of the browser's last buffered range, in seconds, truncated to whole nanoseconds.
+   */
   GetDownloadedMediaTime()
   {
     const ranges = this.video ? this.video.buffered : null;
-    return ranges && ranges.length ? ranges.end(ranges.length - 1) : 0;
+    return ranges && ranges.length ? VideoPlayer._secondsToNanoseconds(ranges.end(ranges.length - 1)) : 0;
+  }
+
+  /** Nanoseconds per second: Carbon's media clock unit (VideoPlayer_Blue.cpp:69,91). */
+  static NANOSECONDS_PER_SECOND = 1000000000;
+
+  /**
+   * Browser media seconds as Carbon's integer nanoseconds. Ours: the browser clock is seconds.
+   * @param {number} seconds Browser media time.
+   * @returns {number} Whole nanoseconds.
+   */
+  static _secondsToNanoseconds(seconds)
+  {
+    return Math.trunc(seconds * VideoPlayer.NANOSECONDS_PER_SECOND);
   }
 
   /** Browser metadata; hasAlpha is unknown because HTMLVideoElement does not expose it. */

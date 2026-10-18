@@ -1,12 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpaceObjectAttachmentUtils.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpaceObjectAttachmentUtils.h
 //
-// The packed-set blink/fade intensity helpers. Carbon reads the global
-// Tr2Renderer::GetAnimationTime() inside each helper; the JS port takes the
-// animation time as the first argument instead. Callers supply their frame time;
-// the blink and fade formulas preserve Carbon's arithmetic.
+// The packed-set blink/fade intensity helpers. Each reads the renderer's
+// animation clock itself, Tr2Renderer::GetAnimationTime(), as Carbon does.
 import { meta } from "#schema";
 import { be } from "#blue";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** Static attachment helpers matching Carbon's namespace. */
 @meta.define({ className: "EveSpaceObjectAttachmentUtils", donors: ["EveSpaceObjectAttachmentUtils"] })
@@ -27,14 +26,14 @@ export class EveSpaceObjectAttachmentUtils
    * 0->1 over [0, peak), 1->0 over [peak, 4*peak), 0 after; lerped into
    * [minScale, maxScale]. Phase is added AFTER the rate multiply (contrast
    * FadeIn). */
-  static blink(animationTime, blinkRate, blinkPhase, minScale, maxScale)
+  static blink(blinkRate, blinkPhase, minScale, maxScale)
   {
     if (blinkRate === 0)
     {
       return minScale;
     }
     const FLASH_PEAK_TIME = 0.05;
-    const value = animationTime * blinkRate + blinkPhase;
+    const value = Tr2Renderer.GetAnimationTime() * blinkRate + blinkPhase;
     const f = value - Math.floor(value);
 
     let peak = FLASH_PEAK_TIME * blinkRate;
@@ -58,39 +57,39 @@ export class EveSpaceObjectAttachmentUtils
 
   /** Carbon FadeIn (cpp:42-46): frac((time + phase) * rate) - the phase is
    * added BEFORE the rate multiply, unlike Blink. */
-  static fadeIn(animationTime, blinkRate, blinkPhase)
+  static fadeIn(blinkRate, blinkPhase)
   {
-    const value = (animationTime + blinkPhase) * blinkRate;
+    const value = (Tr2Renderer.GetAnimationTime() + blinkPhase) * blinkRate;
     return value - Math.floor(value);
   }
 
   /** Carbon FadeOut (cpp:48-51). */
-  static fadeOut(animationTime, blinkRate, blinkPhase)
+  static fadeOut(blinkRate, blinkPhase)
   {
-    return 1 - EveSpaceObjectAttachmentUtils.fadeIn(animationTime, blinkRate, blinkPhase);
+    return 1 - EveSpaceObjectAttachmentUtils.fadeIn(blinkRate, blinkPhase);
   }
 
   /** Carbon FadeInOut (cpp:53-57): (sin(fmod(time*rate*2pi, 2pi) + phase*2pi) + 1) / 2. */
-  static fadeInOut(animationTime, blinkRate, blinkPhase)
+  static fadeInOut(blinkRate, blinkPhase)
   {
     const twoPi = 2 * Math.PI;
-    const timeModPi = (animationTime * blinkRate * twoPi) % twoPi;
+    const timeModPi = (Tr2Renderer.GetAnimationTime() * blinkRate * twoPi) % twoPi;
     return (Math.sin(timeModPi + blinkPhase * twoPi) + 1) / 2;
   }
 
   /** Carbon Fade (cpp:59-75): FT_NONE (and anything unknown) is full intensity. */
-  static fade(animationTime, type, blinkRate, blinkPhase)
+  static fade(type, blinkRate, blinkPhase)
   {
     switch (type)
     {
       case EveSpaceObjectAttachmentUtils.FadeType.FT_BLINK:
-        return EveSpaceObjectAttachmentUtils.blink(animationTime, blinkRate, blinkPhase, 0, 1);
+        return EveSpaceObjectAttachmentUtils.blink(blinkRate, blinkPhase, 0, 1);
       case EveSpaceObjectAttachmentUtils.FadeType.FT_FADEIN:
-        return EveSpaceObjectAttachmentUtils.fadeIn(animationTime, blinkRate, blinkPhase);
+        return EveSpaceObjectAttachmentUtils.fadeIn(blinkRate, blinkPhase);
       case EveSpaceObjectAttachmentUtils.FadeType.FT_FADEOUT:
-        return EveSpaceObjectAttachmentUtils.fadeOut(animationTime, blinkRate, blinkPhase);
+        return EveSpaceObjectAttachmentUtils.fadeOut(blinkRate, blinkPhase);
       case EveSpaceObjectAttachmentUtils.FadeType.FT_FADEINOUT:
-        return EveSpaceObjectAttachmentUtils.fadeInOut(animationTime, blinkRate, blinkPhase);
+        return EveSpaceObjectAttachmentUtils.fadeInOut(blinkRate, blinkPhase);
       default:
         return 1;
     }

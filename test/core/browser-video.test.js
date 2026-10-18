@@ -69,7 +69,9 @@ test("decoded frames upload once for 100 consumers; media clock, cached light co
 {
   const f=fixture();f.player.Create(new Uint8Array([1]));
   const v=f.videos[0];assert.equal(v.muted,true);assert.equal(v.playsInline,true);
-  v.currentTime=2.5;assert.equal(f.player.GetMediaTime(),2.5);
+  // Carbon media_time is uint64_t nanoseconds (VideoPlayer_Blue.cpp:88-91).
+  v.currentTime=2.5;assert.equal(f.player.GetMediaTime(),2_500_000_000);
+  f.player.Seek(1_250_000_000);assert.equal(v.currentTime,1.25);
   v.frame(1,0);f.flush();
   assert.deepEqual(f.texture.GetAverageColor(),[1,0,0,1]);
   for(let i=0;i<100;i++) {RealizeTexture(f.texture,f.render);f.texture.GetAverageColor();}
@@ -210,12 +212,12 @@ test("GPU colour reads coalesce and discard completed results from replaced clip
   assert.deepEqual(f.texture.GetAverageColor(),[0,1,0,1]);f.player.Destroy();
 });
 
-test("Carbon player methods use media seconds, expose unknown alpha, clear and retarget storage", () =>
+test("Carbon player methods use media nanoseconds, expose unknown alpha, clear and retarget storage", () =>
 {
   const f=fixture();assert.throws(()=>f.player.GetVideoInfo(),/not yet parsed/);
   f.player.Create(new Uint8Array([1]));const v=f.videos[0];
   v.buffered={length:2,end:index=>index===1?9:3};
-  assert.equal(f.player.GetDownloadedMediaTime(),9);
+  assert.equal(f.player.GetDownloadedMediaTime(),9_000_000_000);
   assert.deepEqual(f.player.GetVideoInfo(),{width:640,height:360,hasAlpha:null});
   v.frame(1,0);f.flush();const first=f.texture.GetTexture();
   f.player.OnTick(1000000000,2000000000,null);assert.equal(f.counts.uploads,1);

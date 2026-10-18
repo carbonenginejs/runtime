@@ -288,8 +288,8 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Updates state machines, then queues updateables in native order (cpp:230-270).
-   * Adapted: the JS throttle takes actual time in seconds; queued Update receives
-   * Blue actual/frame ticks. The JS expression context retains frame seconds here.
+   * Adapted: queued Update receives Blue actual/frame ticks; the JS expression
+   * context retains frame seconds here.
    * @param {number} [normalizedUpdateFrequency=0.5] Normalized throttle detail.
    * @returns {void}
    */
@@ -301,7 +301,7 @@ export class Tr2Controller extends EveThrottleable
     {
       return;
     }
-    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, CcpTime.timeAsDouble(be.os.GetActualTime())))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency))
     {
       return;
     }

@@ -2,7 +2,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
 import { meta, type, blue } from "#schema";
-import { CjsEveThrottleableState } from "./CjsEveThrottleableState.js";
+import { be, CcpTime } from "#blue";
 
 
 /**
@@ -33,17 +33,42 @@ export class EveThrottleable
   @type.uint32
   minUpdateFrequency = 2;
 
-  _throttle = new CjsEveThrottleableState();
+  /** m_nextUpdateTS (Be::Time, Blue 100ns ticks): the actual time before which updates are skipped. */
+  _nextUpdateTS = 0;
 
   /**
-   * Whether this object should skip the current update; an update that is
-   * allowed also picks the next update time from the detail level, so callers
-   * must not call this more than once per intended update.
+   * Carbon ShouldSkipUpdate (EveThrottleable.cpp:17-35): whether this object
+   * should skip the current update, judged against Blue's actual time read
+   * here, as Carbon reads `BeOS->GetActualTime()`. An update that is allowed
+   * also picks the next update time from the detail level, so callers must
+   * not call this more than once per intended update.
+   *
+   * @param {number} [normalizedUpdateFrequency=0.5] 0..1 detail level between the min and max frequency.
+   * @returns {boolean} True to skip this update.
    */
   @blue.method
-  @meta.adapted
-  ShouldSkipUpdate(normalizedUpdateFrequency = 0.5, currentTime = 0)
+  @meta.implemented
+  ShouldSkipUpdate(normalizedUpdateFrequency = 0.5)
   {
-    return this._throttle.ShouldSkipUpdate(this, normalizedUpdateFrequency, currentTime);
+    const currentTime = be.os.GetActualTime();
+
+    if (!this.updateThrottle)
+    {
+      return false;
+    }
+
+    // Skip updates based on the current distance-related update frequency.
+    if (currentTime < this._nextUpdateTS)
+    {
+      return true;
+    }
+
+    // Carbon subtracts the two uint32_t bounds before the float cast, so a max
+    // below the min wraps (EveThrottleable.cpp:29); `>>> 0` keeps that.
+    const updateFrequency = normalizedUpdateFrequency * ((this.maxUpdateFrequency - this.minUpdateFrequency) >>> 0) + this.minUpdateFrequency;
+    // Floor: update every 10 seconds at the least (cpp:30).
+    this.currentUpdateFrequency = Math.max(updateFrequency, 0.1);
+    this._nextUpdateTS = currentTime + CcpTime.timeFromDouble(1 / this.currentUpdateFrequency);
+    return false;
   }
 }

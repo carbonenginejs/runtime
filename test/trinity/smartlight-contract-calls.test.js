@@ -54,3 +54,30 @@ test("smart-light edit mode registers changed effects with the shared quad rende
   quad.UpdateSyncronous__Distribution(update, params, null);
   assert.equal(quad._effectKey, 0);
 });
+
+test("noise modifier samples Blue's frame time in seconds while processing, not at update", async t =>
+{
+  // EveSmartLightAttributeModifierNoise.cpp:26 reads TimeAsDouble( BeOS->GetCurrentFrameTime() )
+  // inside ProcessAttributeModifier; UpdateSyncronous only advances activation (cpp:14-17).
+  const { EveSmartLightAttributeModifierNoise } = await import("../../npm/dist/trinity/index.js");
+  const { be, CcpTime } = await import("../../npm/dist/global/blue/index.js");
+  const { noise } = await import("../../npm/dist/global/math/noise.js");
+  const modifier = new EveSmartLightAttributeModifierNoise();
+  modifier.noiseAmplitude = 1;
+  modifier.noiseFrequency = 3;
+  t.mock.method(modifier, "GetActivationStrength", () => 1);
+  let frameTime = 12_345_678;
+  t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
+  const expected = time =>
+  {
+    const value = noise.carbonPerlin1D(CcpTime.timeAsDouble(time) * 3, 2, 2, 1);
+    return 1 + ((value + 1) / 2 - 1);
+  };
+  const update = new EveUpdateContext();
+  modifier.UpdateSyncronous(update, new EveChildUpdateParams(), 1);
+  frameTime = 98_765_432;
+  const attribute = [1, 1, 1];
+  modifier.ProcessAttributeModifier(attribute, {}, null, null, 1);
+  assert.ok(Math.abs(attribute[0] - expected(98_765_432)) < 1e-12, "the frame time read during processing wins");
+  assert.notEqual(expected(98_765_432), expected(12_345_678));
+});

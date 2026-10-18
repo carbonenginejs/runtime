@@ -3,6 +3,7 @@ import test from "node:test";
 import { ITr2AudEmitter } from "../../npm/dist/audio/trinity/trinityAudioApi/ITr2AudEmitter.js";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveChildTurret } from "../../npm/dist/trinity/eve/child/EveChildTurret.js";
@@ -291,7 +292,7 @@ test("clearing a child turret's target drops it to idle and controllers reach th
 });
 
 
-test("turret targets clear on null and expose the shot-time variance (Carbon 89f5a177)", () =>
+test("turret targets clear on null and expose the shot-time variance (Carbon 89f5a177)", t =>
 {
   const set = new EveTurretSet();
   const targetable = new FixedTarget(1, 0, 0);
@@ -304,7 +305,9 @@ test("turret targets clear on null and expose the shot-time variance (Carbon 89f
   // The target itself can (Carbon EveTurretTarget.cpp:62-67).
   assert.equal(set.target.SetTargetable(null), true);
   assert.ok(set.GetTargetObject() === null, "target cleared through EveTurretTarget");
-  set.target.SetShotMissed(true, 12);
+  // SetShotMissed stamps TimeAsDouble( BeOS->GetActualTime() ) (EveTurretTarget.cpp:407).
+  t.mock.method(be.os, "GetActualTime", () => 120_000_000);
+  set.target.SetShotMissed(true);
   assert.equal(set.MissQueueSize(), 1);
   assert.equal(set.GetLastShotTime(), 12);
 });

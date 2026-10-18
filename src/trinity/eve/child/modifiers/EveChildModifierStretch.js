@@ -5,6 +5,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
+import { be } from "#blue";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
@@ -29,12 +30,14 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * EveChildModifierStretch.cpp): keep the source rotation applied FIRST,
    * then a transform scaled to the stretch length, arc-rotated onto the
    * stretch direction, positioned at the midpoint - row-vector
-   * `RotationMatrix(srcRot) * TransformationMatrix(scale, arcRot, mid)`.
+   * `RotationMatrix(srcRot) * TransformationMatrix(scale, arcRot, mid)`. The
+   * destination function is sampled at Blue's frame time, read here as Carbon
+   * reads `BeOS->GetCurrentFrameTime()` (cpp:37-41).
    *
-   * Adapted: Carbon reads the global frame time; JavaScript receives the equivalent time
-   * through the threaded update context.
+   * Adapted: the frame context comes first and the result is written into the
+   * caller-owned `out`, as the IEveChildTransformModifier interface takes it.
    *
-   * @param {Object} context - frame context; reads the frame time
+   * @param {Object} _context - frame context; unused here
    * @param {Float32Array} transform - source (read only)
    * @param {Number} [_boneCount] - Carbon signature parity, unused
    * @param {Float32Array} [_bones] - Carbon signature parity, unused
@@ -43,14 +46,15 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    */
   @blue.method
   @meta.adapted
-  ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
+  ApplyTransform(_context, transform, _boneCount = 0, _bones = null, out)
   {
     const { sourceRotation, sourceTranslation, sourceScale, end, diff, arcMat, arcQuat, scale, mid, srcRotMat } =
       EveChildModifierStretch._scratch;
 
     mat4.decomposeCarbon(transform, sourceRotation, sourceTranslation, sourceScale);
     vec3.copy(end, this._destPosition);
-    if (this.dest) this.dest.GetValueAt__Ticks(context.GetTime(), end);
+    const now = be.os.GetCurrentFrameTime();
+    if (this.dest) this.dest.GetValueAt__Ticks(now, end);
 
     vec3.set(diff, end[0] - transform[12], end[1] - transform[13], end[2] - transform[14]);
     const length = vec3.length(diff);

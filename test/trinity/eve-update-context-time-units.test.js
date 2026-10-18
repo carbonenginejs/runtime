@@ -59,6 +59,21 @@ test("TriCurveSet converts selected tick clocks to double seconds before its dri
   assert.notEqual(driverTimes[2], Math.fround(0.1000001), "curve clocks retain double precision");
 });
 
+test("TriCurveSet script Update reads Blue's frame time at the call (CE-51 cast kept)", t =>
+{
+  // Carbon's exposed "Update" is UpdateWithCurrentTime (TriCurveSet_Blue.cpp:100-103):
+  // Update( double( BeOS->GetCurrentFrameTime() ) ), the raw tick count (TriCurveSet.cpp:320-322).
+  const set = new TriCurveSet();
+  const driverTimes = [];
+  set.driver = { GetCurveSetTime(time) { driverTimes.push(time); return time; } };
+  let frameTime = 40_000_000;
+  t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
+  set.UpdateWithCurrentTime();
+  frameTime = 50_000_000;
+  set.UpdateWithCurrentTime();
+  assert.deepEqual(driverTimes, [40_000_000, 50_000_000], "each call samples the clock then, not a captured value");
+});
+
 test("device render jobs preserve tick timestamps through the real scene context", t =>
 {
   const previousDevice = gTriDev.device;

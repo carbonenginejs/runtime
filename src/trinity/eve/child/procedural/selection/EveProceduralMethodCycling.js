@@ -20,9 +20,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   _selectedChildModified = false;
 
-  // Carbon m_startTime is Be::Time; this JS cursor is seconds, stamped by restart from the caller-supplied
-  // clock (frame time when the update loop reselects, wall clock for the
-  // Date.now default); UpdateAsyncronous must feed the same clock.
+  /** m_startTime (Be::Time, Blue 100ns ticks): Blue's frame time at the last selection, less the offset. */
   _startTime = 0;
 
   /** m_parameters (PEveProceduralMethodCyclingParameterVector) [READ, PERSIST] */
@@ -57,13 +55,12 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   /** Carbon method restart -> SelectParameter (MAP_METHOD_AND_WRAP,
    * cpp:36-60): randomized order picks any OTHER index (the shifted draw);
    * Random draws delegate to the matching generator in global/math/random.js.
-   *
-   * Adapted: An optional timestamp provides Carbon's current-frame clock
-   * deterministically in browser tests.
+   * The start is Blue's frame time, read here as Carbon reads
+   * BeOS->GetCurrentFrameTime(), less TimeFromDouble(startTimeOffset) (cpp:58).
    */
   @blue.method
-  @meta.adapted
-  restart(timestamp = CcpTime.timeAsDouble(be.os.GetCurrentFrameTime()))
+  @meta.implemented
+  restart()
   {
     const count = this.parameters.length;
     if (count === 0)
@@ -85,7 +82,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
       this.selectedChild = (this.selectedChild + 1) % count;
     }
 
-    this._startTime = timestamp - this.startTimeOffset;
+    this._startTime = be.os.GetCurrentFrameTime() - CcpTime.timeFromDouble(this.startTimeOffset);
     this._selectedChildModified = true;
     return true;
   }
@@ -101,12 +98,9 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::OnListModified (cpp:28-34): a
    * non-loading change to the parameter list reselects.
-   *
-   * Adapted: the reselect uses restart's default wall clock (no frame
-   * context reaches list notifies).
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list === this.parameters && (event & BELIST_LOADING) === 0)
@@ -154,28 +148,25 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::UpdateAsyncronous (cpp:89-106):
    * reselect when no valid index exists or the current parameter's play
-   * duration has elapsed on the frame clock, BeOS->GetCurrentFrameTime() (cpp:100).
-   * Adapted: the JS restart cursor, offset and durations use seconds, so the
-   * frame time is converted once here (native cpp:57,101 converts offset/delta). */
+   * duration has elapsed on the frame clock: TimeAsFloat of
+   * BeOS->GetCurrentFrameTime() less the start (cpp:100). */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
-    const now = CcpTime.timeAsDouble(be.os.GetCurrentFrameTime());
-
     if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
     {
-      this.restart(now);
+      this.restart();
       return;
     }
 
     const param = CjsSchema.cast(this.parameters[this.selectedChild], EveProceduralMethodCyclingParameter);
     if (param)
     {
-      const elapsed = now - this._startTime;
-      if (elapsed >= param.GetDuration())
+      const elapsedTime = CcpTime.timeAsFloat(be.os.GetCurrentFrameTime() - this._startTime);
+      if (elapsedTime >= param.GetDuration())
       {
-        this.restart(now);
+        this.restart();
       }
     }
   }

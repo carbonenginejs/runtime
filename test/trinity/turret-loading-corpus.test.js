@@ -421,7 +421,8 @@ test("controlled dynamic binding on real Breacher roots follows native list owne
   binding.destinationObjectPath="SourceObject";binding.destinationObjectAttribute="display";
   addChild(stretch, "dynamicBindings", binding, { listNotify: stretch });
   assert.equal(binding.isSourceValid,true);assert.equal(binding.isDestinationValid,true);
-  stretch.display=false;assert.equal(binding.Update(1),true);
+  // Update compares Be::Time ticks against the link-time frame clock (Tr2DynamicBinding.cpp:221-251).
+  stretch.display=false;assert.equal(binding.Update(be.os.GetCurrentFrameTime()),true);
   assert.equal(stretch.sourceObject.display,false);
   removeChild(stretch, "dynamicBindings", binding, { listNotify: stretch });
   assert.equal(binding.Link(),false,"removed binding no longer resolves through the stretch owner");

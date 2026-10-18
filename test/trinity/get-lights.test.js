@@ -32,7 +32,8 @@ import {
   FadeType,
   MatrixCopyFrom3x4,
   ShadowQuality,
-  Tr2PointLight
+  Tr2PointLight,
+  gTriDev
 } from "../../npm/dist/trinity/index.js";
 
 
@@ -228,20 +229,33 @@ test("Tr2Light.AddLight: flag validity, UNDEFINED inertness, bone*transform swap
   assert.equal(manager.added.length, 2, "UNDEFINED_LIGHT is silently inert");
 });
 
-test("Blink/Fade quirks: zero rate, tiny-rate peak, phase asymmetry (EveSpaceObjectAttachmentUtils.cpp:9-75)", () =>
+test("Blink/Fade quirks: zero rate, tiny-rate peak, phase asymmetry (EveSpaceObjectAttachmentUtils.cpp:9-75)", t =>
 {
-  assertClose(EveSpaceObjectAttachmentUtils.blink(123, 0, 0.5, 3, 9), 3, "zero rate returns minScale");
+  // Each helper reads Tr2Renderer::GetAnimationTime() itself (cpp:17,45,55), which is
+  // gTriDev's m_animationTime.
+  const device = gTriDev.device;
+  const previous = device.animationTime;
+  t.after(() => { device.animationTime = previous; });
+  const at = time => { device.animationTime = time; };
+
+  at(123);
+  assertClose(EveSpaceObjectAttachmentUtils.blink(0, 0.5, 3, 9), 3, "zero rate returns minScale");
   // rate 1: peak = 0.05; f = 0.025 -> ramp 0.5 -> lerp(2, 10) midpoint = 6.
-  assertClose(EveSpaceObjectAttachmentUtils.blink(0.025, 1, 0, 2, 10), 6, "ramp-up midpoint");
+  at(0.025);
+  assertClose(EveSpaceObjectAttachmentUtils.blink(1, 0, 2, 10), 6, "ramp-up midpoint");
   // f past 4*peak: 0 -> minScale.
-  assertClose(EveSpaceObjectAttachmentUtils.blink(0.5, 1, 0, 2, 10), 2, "off after the flash window");
+  at(0.5);
+  assertClose(EveSpaceObjectAttachmentUtils.blink(1, 0, 2, 10), 2, "off after the flash window");
   // Tiny rate: peak = 0.05*0.001 < 0.0001 -> peak becomes 1 (one full ramp).
-  assertClose(EveSpaceObjectAttachmentUtils.blink(500, 0.001, 0, 0, 1), 0.5, "tiny-rate degenerate full-cycle ramp");
+  at(500);
+  assertClose(EveSpaceObjectAttachmentUtils.blink(0.001, 0, 0, 1), 0.5, "tiny-rate degenerate full-cycle ramp");
 
   // FadeIn adds phase BEFORE the rate multiply; Blink adds it after.
-  assertClose(EveSpaceObjectAttachmentUtils.fade(1, FadeType.FT_FADEIN, 0.25, 1), 0.5, "EveSpaceObjectAttachmentUtils.fadeIn((t+phase)*rate)");
-  assertClose(EveSpaceObjectAttachmentUtils.fade(0, FadeType.FT_NONE, 5, 5), 1, "FT_NONE full intensity");
-  assertClose(EveSpaceObjectAttachmentUtils.fade(0, FadeType.FT_FADEOUT, 0.25, 1), 1 - 0.25, "FadeOut complement");
+  at(1);
+  assertClose(EveSpaceObjectAttachmentUtils.fade(FadeType.FT_FADEIN, 0.25, 1), 0.5, "EveSpaceObjectAttachmentUtils.fadeIn((t+phase)*rate)");
+  at(0);
+  assertClose(EveSpaceObjectAttachmentUtils.fade(FadeType.FT_NONE, 5, 5), 1, "FT_NONE full intensity");
+  assertClose(EveSpaceObjectAttachmentUtils.fade(FadeType.FT_FADEOUT, 0.25, 1), 1 - 0.25, "FadeOut complement");
 });
 
 test("Saturate: passthrough, extrapolation above 1, low-side clamp (Color_inline.h:161-172)", () =>

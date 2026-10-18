@@ -5,6 +5,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { IList } from "#blue/IList";
 import { INotify } from "#blue/INotify";
 import { ISimTimeRebaseNotify } from "#blue/ISimTimeRebaseNotify";
+import { be, CcpTime } from "#blue";
 import { TriValueBinding } from "./TriValueBinding.js";
 
 
@@ -13,8 +14,8 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * its owner's parameter map, builds a weak TriValueBinding and starts copying
  * after a configured delay.
  *
- * Held gap: native constructor/destructor OS rebase registration is absent;
- * callers retain the established explicit-seconds boundary.
+ * Times are Be::Time, Blue 100ns ticks. Held gap: native constructor/destructor
+ * OS rebase registration is absent.
  */
 @blue.define("Tr2DynamicBinding")
 @blue.inherit(ISimTimeRebaseNotify)
@@ -127,11 +128,8 @@ export class Tr2DynamicBinding extends INotify
   @type.rootRef("TriValueBinding")
   binding = null;
 
-  /** Runtime binding time state for the portable binding adapter. */
+  /** m_bindingTime (Be::Time, Blue 100ns ticks): the frame time from which Update copies; 0 while unlinked. */
   _bindingTime = 0;
-
-  /** Runtime current frame time state for the portable binding adapter. */
-  _currentFrameTime = 0;
 
   /** Runtime destination ref state for the portable binding adapter. */
   _destinationRef = null;
@@ -153,19 +151,19 @@ export class Tr2DynamicBinding extends INotify
    * builds a weak binding between the two attributes, scheduling the first copy
    * bindingDelay milliseconds after the current frame time; returns false
    * without an owner or when either endpoint fails to resolve.
-   * Adapted: Resolves Carbon Blue paths through the portable JavaScript graph and accepts current frame time explicitly instead of reading BeOS.
-   * @param {number|undefined} [currentFrameTime] Explicit frame time in seconds when supplied.
+   * The first copy is due at Blue's frame time, read here as Carbon reads
+   * BeOS->GetCurrentFrameTime(), plus TimeFromMS(bindingDelay)
+   * (Tr2DynamicBinding.cpp:229-251). Carbon quirk, kept: Unlink has just zeroed
+   * m_bindingTime, so its `m_bindingTime == 0` test always passes.
+   * Adapted: Resolves Carbon Blue paths through the portable JavaScript graph,
+   * and returns whether both endpoints resolved where native Link is void.
    * @returns {boolean} Binding result.
    */
   @blue.method
   @meta.adapted
-  Link(currentFrameTime = undefined)
+  Link()
   {
     this.Unlink();
-    if (currentFrameTime !== undefined)
-    {
-      this._currentFrameTime = Number(currentFrameTime);
-    }
     if (!this._owner)
     {
       return false;
@@ -189,7 +187,10 @@ export class Tr2DynamicBinding extends INotify
         this.destinationObjectAttribute,
         this.scale
       );
-      this._bindingTime = this._currentFrameTime + this.bindingDelay / 1000;
+      if (this._bindingTime === 0)
+      {
+        this._bindingTime = be.os.GetCurrentFrameTime() + CcpTime.timeFromMS(this.bindingDelay);
+      }
       return true;
     }
     return false;
@@ -229,18 +230,17 @@ export class Tr2DynamicBinding extends INotify
   }
 
   /**
-   * Records the current frame time and copies the bound value once the binding
-   * delay has elapsed; returns whether a copy took place.
-   * Adapted: Preserves the existing owner boundary in seconds and caches frame time for relinking; returns the copy result where native Update is void.
-   * @param {number} time Frame time in seconds.
+   * Copies the bound value once the binding time is reached
+   * (Tr2DynamicBinding.cpp:221-227).
+   * Adapted: returns the copy result where native Update is void.
+   * @param {number} time Frame time (Be::Time, Blue 100ns ticks).
    * @returns {boolean} Binding result.
    */
   @blue.method
   @meta.adapted
   Update(time)
   {
-    this._currentFrameTime = Number(time);
-    if (this.binding && this._bindingTime <= this._currentFrameTime)
+    if (this.binding && this._bindingTime <= time)
     {
       return this.binding.CopyValue();
     }
@@ -248,20 +248,17 @@ export class Tr2DynamicBinding extends INotify
   }
 
   /**
-   * Shifts the pending binding time and the cached frame time by the clock
-   * delta, so rebasing the simulation clock neither skips nor stalls the delay.
-   * Adapted: Preserves the explicit seconds boundary and rebases the cached frame time as well as the pending binding time.
-   * @param {number} oldTime Old simulation time in seconds.
-   * @param {number} newTime New simulation time in seconds.
+   * Shifts the pending binding time by the clock delta, so rebasing the
+   * simulation clock neither skips nor stalls the delay (Tr2DynamicBinding.cpp:206-209).
+   * @param {number} oldTime Old simulation time (Be::Time, Blue 100ns ticks).
+   * @param {number} newTime New simulation time (Be::Time, Blue 100ns ticks).
    * @returns {void} No return value.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
-    const adjustment = Number(newTime) - Number(oldTime);
-    this._bindingTime += adjustment;
-    this._currentFrameTime += adjustment;
+    this._bindingTime += newTime - oldTime;
   }
 
   /**
@@ -299,7 +296,7 @@ export class Tr2DynamicBinding extends INotify
   @meta.implemented
   OnModified(propertyName)
   {
-    if (this._owner) this.Link(this._currentFrameTime);
+    if (this._owner) this.Link();
     else this.Unlink();
     return true;
   }

@@ -282,7 +282,7 @@ test("a GPU particle system updates after the scene and renders in the main pass
   const names = calls.map(([ name ]) => name);
   const update = names.indexOf("Update");
   assert.deepEqual(names.slice(update, update + 3), [ "Update", "PopulateAndApplyPerFrameData", "ParticlesUpdate" ]);
-  assert.deepEqual(calls[update + 2], [ "ParticlesUpdate", 2, "shift" ], "scene ticks become particle seconds; origin shift is unchanged");
+  assert.deepEqual(calls[update + 2], [ "ParticlesUpdate", 20_000_000, "shift" ], "the scene's Be::Time ticks pass through (cpp:640); origin shift is unchanged");
   assert.equal(names.filter(name => name === "ParticlesRender").length, 1);
   assert.ok(names.indexOf("ParticlesRender") < names.indexOf("EndRender"), "within the frame, before EndRender");
 });

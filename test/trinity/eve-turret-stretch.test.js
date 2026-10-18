@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
@@ -259,7 +260,7 @@ test("EveStretch3 applies deferred controller firing state", () =>
   assert.deepEqual(calls.slice(3), ["IsFiring:0"]);
 });
 
-test("EveTurretTarget bounds the miss queue and switches projectile destination visibility", () =>
+test("EveTurretTarget bounds the miss queue and switches projectile destination visibility", t =>
 {
   const target = new EveTurretTarget();
   const targetable = new FixedTarget(100, 0, 0);
@@ -270,7 +271,10 @@ test("EveTurretTarget bounds the miss queue and switches projectile destination 
   targetable.GetImpactConfiguration = () => EveTurretTarget.ImpactConfiguration.IMPACT_ARMOR;
   assert.equal(target.SetTargetable(targetable), true);
   target.SetBehaviour(false, true, 0, EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR);
-  for (let index = 0; index < 6; index++) target.SetShotMissed(index % 2 === 0, index);
+  // SetShotMissed stamps TimeAsDouble( BeOS->GetActualTime() ) (EveTurretTarget.cpp:407).
+  let actual = 0;
+  t.mock.method(be.os, "GetActualTime", () => actual);
+  for (let index = 0; index < 6; index++) { actual = index * 10_000_000; target.SetShotMissed(index % 2 === 0); }
   assert.equal(target.MissQueueSize(), 4);
   assert.equal(target.GetLastShotTime(), 5);
   target.StartFireAtLocator(2, 0, 1, vec3.create());

@@ -496,7 +496,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
         mat4.multiply(t, l.boneMatrix, t);
 
         const c = vec4.copy(DEBUG_LIGHT_COLOR, l.lightData.color);
-        const fade = EveSpaceObjectAttachmentUtils.fade(Tr2Renderer.GetAnimationTime(), l.fadeType, l.blinkRate, l.blinkPhase);
+        const fade = EveSpaceObjectAttachmentUtils.fade(l.fadeType, l.blinkRate, l.blinkPhase);
 
         vec4.multiply(c, c, averageColor);
         EveSpaceObjectAttachmentUtils.saturate(c, c, l.saturation);
@@ -707,7 +707,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     {
       this.GetAverageColor(averageColor);
     }
-    const time = Tr2Renderer.GetAnimationTime();
     const quality = lightManager.GetCurrentSpaceSceneShadowQuality();
     const record = EvePlaneSet._lightRecord;
     const dataCopy = EvePlaneSet._lightDataScratch;
@@ -720,7 +719,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
       dataCopy.color[2] *= averageColor[2];
       dataCopy.color[3] *= averageColor[3];
       EveSpaceObjectAttachmentUtils.saturate(dataCopy.color, dataCopy.color, light.saturation);
-      dataCopy.brightness *= EveSpaceObjectAttachmentUtils.fade(time, light.fadeType, light.blinkRate, light.blinkPhase);
+      dataCopy.brightness *= EveSpaceObjectAttachmentUtils.fade(light.fadeType, light.blinkRate, light.blinkPhase);
       dataCopy.AsPerPointLightData(light.boneMatrix, features, quality, record);
       record.lightType = Tr2Light.POINT_LIGHT;
       record.lightData = light.lightData;

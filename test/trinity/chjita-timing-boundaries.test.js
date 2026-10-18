@@ -46,9 +46,10 @@ test("cycling ads keep authored seconds on the Blue-tick frame clock", t =>
   update(124);
   assert.equal(cycling.selectedChild, 0);
 
-  // Existing JS restart(timestamp) takes seconds, including startTimeOffset.
+  // restart reads the frame clock less TimeFromDouble(startTimeOffset) (cpp:58).
   cycling.startTimeOffset = 1;
-  cycling.restart(200);
+  frame = 2_000_000_000;
+  cycling.restart();
   const selected = cycling.selectedChild;
   update(210.99);
   assert.equal(cycling.selectedChild, selected);
@@ -59,7 +60,7 @@ test("cycling ads keep authored seconds on the Blue-tick frame clock", t =>
 test("scene GPU-particle handoff advances gas at real elapsed seconds", t =>
 {
   // Native driver.cpp:640 passes ticks; native particle.cpp:325 converts the
-  // delta. JS particle Update already takes seconds, so convert at its caller.
+  // tick delta with TimeAsFloat, so the delta is float precision.
   const scene = new EveSpaceScene();
   const driver = new EveSpaceSceneRenderDriver();
   const system = new Tr2GpuParticleSystem();
@@ -93,18 +94,18 @@ test("scene GPU-particle handoff advances gas at real elapsed seconds", t =>
   update(100_000_000);
   assert.equal(lifetime.lifetime, 12, "first timestamp has no elapsed time");
   update(100_100_000);
-  assert.ok(Math.abs(lifetime.lifetime - 11.99) < 1e-10,
+  assert.ok(Math.abs(lifetime.lifetime - (12 - Math.fround(0.01))) < 1e-10,
     "10ms must not hit the 1/15-second simulation clamp or be converted twice");
-  assert.equal(system._previousTime, 10.01);
+  assert.equal(system._previousTime, 100_100_000, "the particle system keeps Be::Time ticks");
   assert.equal(scene.updateTime, 100_100_000, "the scene retains raw ticks");
   update(100_100_000);
-  assert.ok(Math.abs(lifetime.lifetime - 11.99) < 1e-10);
+  assert.ok(Math.abs(lifetime.lifetime - (12 - Math.fround(0.01))) < 1e-10);
   system.enableUpdate = false;
   update(100_200_000);
-  assert.ok(Math.abs(lifetime.lifetime - 11.99) < 1e-10, "paused simulation does not age");
+  assert.ok(Math.abs(lifetime.lifetime - (12 - Math.fround(0.01))) < 1e-10, "paused simulation does not age");
   system.enableUpdate = true;
   update(110_200_000);
-  assert.ok(Math.abs(lifetime.lifetime - (11.99 - 1 / 15)) < 1e-10,
+  assert.ok(Math.abs(lifetime.lifetime - (12 - Math.fround(0.01) - 1 / 15)) < 1e-6,
     "a genuine long frame keeps Carbon's existing clamp");
   assert.equal(publications, 5);
 });

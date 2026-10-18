@@ -684,9 +684,10 @@ test("generated drone behavior controls follow Carbon's direct graph mutations",
 
   const cycling = new EveProceduralMethodCycling();
   cycling.parameters.push({}, {});
-  assert.equal(cycling.restart(100), true);
+  assert.equal(cycling.restart(), true);
   assert.equal(cycling.selectedChild, 0);
-  assert.equal(cycling.restart(101), true);
+  assert.equal(cycling._startTime, be.os.GetCurrentFrameTime(), "restart stamps Blue's frame time (cpp:58)");
+  assert.equal(cycling.restart(), true);
   assert.equal(cycling.selectedChild, 1);
 });
 

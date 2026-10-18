@@ -94,8 +94,10 @@ test("callback-only value binding keeps native invalidity while copying through 
   assert.equal(destination.value, 3);
 });
 
-test("dynamic copies retain authored paths but omit owner and weak runtime endpoints", () =>
+test("dynamic copies retain authored paths but omit owner and weak runtime endpoints", t =>
 {
+  // Be::Time ticks throughout (Tr2DynamicBinding.cpp:206-251): 10 s, 100 ms delay, a 10 s rebase.
+  t.mock.method(be.os, "GetCurrentFrameTime", () => 100_000_000);
   const dynamic = new Tr2DynamicBinding(), source = new Tr2CurveSetRange(), destination = new Tr2CurveSetRange();
   source.startTime = 5;
   dynamic.sourceObjectPath = "Source";
@@ -103,11 +105,11 @@ test("dynamic copies retain authored paths but omit owner and weak runtime endpo
   dynamic.sourceObjectAttribute = dynamic.destinationObjectAttribute = "startTime";
   dynamic.bindingDelay = 100;
   dynamic.SetOwner({ GetParameterMap: () => ({ Source: source, Destination: destination }) });
-  assert.equal(dynamic.Link(10), true);
-  assert.equal(dynamic.Update(10.099), false);
-  dynamic.OnSimClockRebase(10, 20);
-  assert.equal(dynamic.Update(20.099), false);
-  assert.equal(dynamic.Update(20.1), true);
+  assert.equal(dynamic.Link(), true);
+  assert.equal(dynamic.Update(100_990_000), false);
+  dynamic.OnSimClockRebase(100_000_000, 200_000_000);
+  assert.equal(dynamic.Update(200_990_000), false);
+  assert.equal(dynamic.Update(201_000_000), true);
   assert.equal(destination.startTime, 5);
   const seen = [];
   seen.push(dynamic, ...be.FindAllReferences(dynamic).keys());
@@ -118,7 +120,7 @@ test("dynamic copies retain authored paths but omit owner and weak runtime endpo
   assert.equal(copy.source, null);
   assert.equal(copy.destination, null);
   assert.equal(copy.binding, null);
-  assert.equal(copy.Link(0), false, "owner is runtime state");
+  assert.equal(copy.Link(), false, "owner is runtime state");
 });
 
 test("dynamic installed owner must implement its required parameter-map method", () =>

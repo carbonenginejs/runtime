@@ -19,7 +19,8 @@ function setup(t, cpuPosition = false, withPosition = true)
   system.elements.push(Object.assign(new Tr2ParticleElementDeclaration(), {customName: "tag"}));
   system.Initialize();
   for (const x of [1, 3, 2]) system.SpawnParticle({position: [x, 0, 0], tag: x * 10});
-  const args = new ITr2GenericEmitterUpdateArguments(); args.time = 1;
+  // Be::Time ticks (ITr2GenericEmitter.h:42): one second.
+  const args = new ITr2GenericEmitterUpdateArguments(); args.time = 10_000_000;
   system.Update(args);
   t.after(() => {system.ReleaseResources(); context.SetRenderContextAL(previous); context.SetViewTransform(view);});
   const buffer = system.GetGpuBuffer();
@@ -102,7 +103,7 @@ test("sorting gates preserve native camera threshold, invisible order, and faile
 test("sorting hysteresis disables above35ms and stays disabled until below20ms", t =>
 {
   const {system, state, args} = setup(t);
-  for (const [dt, expected] of [[0.04, [10, 30, 20]], [0.025, [10, 30, 20]], [0.01, [30, 20, 10]]])
+  for (const [dt, expected] of [[400_000, [10, 30, 20]], [250_000, [10, 30, 20]], [100_000, [30, 20, 10]]])
   {
     args.time += dt; system.Update(args);
     system.SetParticleElement(0, "tag", 10);

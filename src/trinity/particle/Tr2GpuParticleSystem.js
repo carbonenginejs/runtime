@@ -2,7 +2,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.h
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.cpp
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp
-import { IsMatch, INotify } from "#blue";
+import { IsMatch, INotify, CcpTime } from "#blue";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 //
@@ -271,7 +271,7 @@ export class Tr2GpuParticleSystem
   /** m_clearRequested */
   _clearRequested = true;
 
-  /** m_previousTime; -1 until the first Update. */
+  /** m_previousTime (Be::Time, Blue 100ns ticks); -1 until the first Update. */
   _previousTime = -1;
 
   /** m_variableStore: the local store the effects read the buffers from. */
@@ -523,7 +523,8 @@ export class Tr2GpuParticleSystem
    * Carbon Update (cpp:318-375): clears if asked, emits the frame's requests,
    * simulates, sorts and prepares the draw arguments.
    *
-   * @param {number} time The scene's update time, in seconds (Carbon's Be::Time through TimeAsFloat).
+   * @param {number} time The scene's update time (Be::Time, Blue 100ns ticks); the frame delta is TimeAsFloat of
+   *   the tick difference.
    * @param {Float32Array|number[]} originShift The world origin shift since the previous frame.
    * @param {object} renderContext The Tr2RenderContext.
    */
@@ -536,7 +537,7 @@ export class Tr2GpuParticleSystem
       return;
     }
 
-    let dt = (this._previousTime === -1 || !this.enableUpdate) ? 0 : time - this._previousTime;
+    let dt = (this._previousTime === -1 || !this.enableUpdate) ? 0 : CcpTime.timeAsFloat(time - this._previousTime);
     dt = Math.min(dt, MAXIMUM_FRAME_TIME);
     this._previousTime = time;
 

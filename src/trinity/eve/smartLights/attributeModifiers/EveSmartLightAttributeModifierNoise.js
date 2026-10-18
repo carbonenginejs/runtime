@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierNoise.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
+import { be, CcpTime } from "#blue";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { carbonPerlin1D } from "#math/noise";
@@ -30,30 +31,22 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
   @type.uint32
   noiseOctaves = 1;
 
-  /** Frame time captured per update; Carbon reads BeOS->GetCurrentFrameTime(). */
-  _frameTime = 0;
-
   /**
-   * Advances the crossfade state machine and captures the frame time for the
-   * per-placement noise sample
+   * Advances the crossfade state machine by the frame delta
    * (EveSmartLightAttributeModifierNoise.cpp:14-17).
-   *
-   * Adapted: Carbon samples BeOS->GetCurrentFrameTime() inside ProcessAttributeModifier; the
-   * frame time is captured from the update context here because ProcessAttributeModifier
-   * carries no context.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
-    this._frameTime = Number(updateContext.GetTime());
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
   }
 
   /**
    * Scales the attribute by a Perlin-noise brightness pulse
-   * (EveSmartLightAttributeModifierNoise.cpp:19-30). PerlinNoise1D(x, 2, 2, n)
-   * maps to the shared carbonPerlin1D port.
+   * (EveSmartLightAttributeModifierNoise.cpp:19-30), sampled at Blue's frame time
+   * in seconds, read here as Carbon reads TimeAsDouble( BeOS->GetCurrentFrameTime() ).
+   * PerlinNoise1D(x, 2, 2, n) maps to the shared carbonPerlin1D port.
    */
   @blue.method
   @meta.implemented
@@ -64,7 +57,7 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
 
     if (activationAdjustedAmplitude > 0)
     {
-      const noise = carbonPerlin1D(this._frameTime * this.noiseFrequency, 2, 2, this.noiseOctaves);
+      const noise = carbonPerlin1D(CcpTime.timeAsDouble(be.os.GetCurrentFrameTime()) * this.noiseFrequency, 2, 2, this.noiseOctaves);
       const noisifiedBrightness = ((noise + 1) / 2) * activationAdjustedAmplitude;
       const scale = 1 + activationStrength * (noisifiedBrightness - 1);
       attribute[0] *= scale;
