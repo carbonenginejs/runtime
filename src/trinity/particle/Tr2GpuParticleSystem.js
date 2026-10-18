@@ -961,6 +961,9 @@ export class Tr2GpuParticleSystem
    *
    * Not implemented: Tr2ProfileTimer's GPU timing is not ported; WebGPU
    * timestamps need a query set resolved and read back asynchronously.
+   * Waiting: the emitTime, updateTime, sortTime and renderTime
+   * MAP_PROPERTY_READONLY rows (Tr2GpuParticleSystem_Blue.cpp:89-104) stay
+   * unconverted until these Gets exist, since a reading getter would throw.
    */
   @blue.method
   @meta.notImplemented
@@ -969,7 +972,7 @@ export class Tr2GpuParticleSystem
     throw new Error("Tr2GpuParticleSystem.GetEmitTime is not implemented: Tr2ProfileTimer is not ported.");
   }
 
-  /** Carbon GetUpdateTime (cpp:737-740); see GetEmitTime. */
+  /** Carbon GetUpdateTime (cpp:737-740); see GetEmitTime. Waiting: its "updateTime" property. */
   @blue.method
   @meta.notImplemented
   GetUpdateTime()
@@ -977,7 +980,7 @@ export class Tr2GpuParticleSystem
     throw new Error("Tr2GpuParticleSystem.GetUpdateTime is not implemented: Tr2ProfileTimer is not ported.");
   }
 
-  /** Carbon GetSortTime (cpp:742-745); see GetEmitTime. */
+  /** Carbon GetSortTime (cpp:742-745); see GetEmitTime. Waiting: its "sortTime" property. */
   @blue.method
   @meta.notImplemented
   GetSortTime()
@@ -985,7 +988,7 @@ export class Tr2GpuParticleSystem
     throw new Error("Tr2GpuParticleSystem.GetSortTime is not implemented: Tr2ProfileTimer is not ported.");
   }
 
-  /** Carbon GetRenderTime (cpp:747-750); see GetEmitTime. */
+  /** Carbon GetRenderTime (cpp:747-750); see GetEmitTime. Waiting: its "renderTime" property. */
   @blue.method
   @meta.notImplemented
   GetRenderTime()
@@ -1004,6 +1007,14 @@ export class Tr2GpuParticleSystem
   HasParticles()
   {
     return this._liveTime > 0;
+  }
+
+  /** Carbon MAP_PROPERTY_READONLY "hasParticles" over HasParticles (Tr2GpuParticleSystem_Blue.cpp:117). */
+  @blue.property()
+  @type.boolean
+  get hasParticles()
+  {
+    return this.HasParticles();
   }
 
   /** The next emit request record, growing the pool when every record is live. */

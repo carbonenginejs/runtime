@@ -152,26 +152,35 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /**
-   * Sets and compiles the authored expression
-   * (EveSmartLightAttributeModifierExpressionBucket.cpp:134-164). An invalid
-   * expression compiles to an invalid program, which UpdateSyncronous skips -
-   * matching Carbon's keep-running-on-parse-error behavior.
+   * Carbon SetExpression (EveSmartLightAttributeModifierExpressionBucket.cpp:134-164):
+   * - an empty expression is stored and returns early, so the previously
+   *   compiled program keeps running (cpp:136-140);
+   * - a parse error is logged and returns, so both the old expression and the
+   *   old program stay (cpp:157-161);
+   * - otherwise the new program and expression replace them (cpp:162-163).
    *
-   * Adapted: the shared CjsControllerExpressionProgram VM replaces CcpParser;
-   * parse errors are retained on the program and reported through CcpLog.
+   * Adapted: the shared CjsControllerExpressionProgram VM replaces CcpParser,
+   * and its temp arena (cpp:162) has no counterpart.
    */
   @blue.method
   @meta.adapted
   SetExpression(expression)
   {
-    this._expression = String(expression ?? "");
-    this._program = this._expression
-      ? CjsControllerExpressionProgram.Compile(this._expression, { emptyValue: 0 })
-      : null;
-    if (this._program && !this._program.IsValid())
+    const text = String(expression ?? "");
+    if (text === "")
     {
-      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "EveSmartLightAttributeModifierExpressionBucket::SetExpression invalid expression \"%s\": %s", this._expression, this._program.error);
+      this._expression = text;
+      return;
     }
+
+    const program = CjsControllerExpressionProgram.Compile(text, { emptyValue: 0 });
+    if (!program.IsValid())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "EveSmartLightAttributeModifierExpressionBucket::SetExpression invalid expression \"%s\": %s", text, program.error);
+      return;
+    }
+    this._program = program;
+    this._expression = text;
   }
 
   /** Regenerates the random constant (Carbon jessica hook, h:34). */

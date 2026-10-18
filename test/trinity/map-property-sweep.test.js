@@ -16,6 +16,7 @@ import {
   EveMultiEffectParameter,
   EveShip2,
   EveSmartLightAttributeModifierExpressionBucket,
+  Tr2GpuParticleSystem,
   EveSpaceObject2,
   EveVirtualCamera,
   Tr2CapsuleShapeAttributeGenerator,
@@ -408,4 +409,31 @@ test("Tr2DynamicEmitter.emittedParticles is a getter over Carbon's GetEmittedPar
   AssertReadOnly(emitter, "emittedParticles");
   // Tr2GpuParticleSystem's timer rows wait on their Get methods (GPU timing), so they stay unconverted.
 
+});
+
+test("ExpressionBucket.SetExpression keeps the old program on an empty expression and both on a parse error (cpp:134-164)", () =>
+{
+  const bucket = new EveSmartLightAttributeModifierExpressionBucket();
+  bucket.SetExpression("time + 1");
+  const program = bucket._program;
+  assert.notEqual(program, null);
+
+  bucket.SetExpression("");
+  assert.equal(bucket._expression, "", "the empty expression is stored");
+  assert.equal(bucket._program, program, "and the compiled program keeps running");
+
+  bucket.SetExpression("time + 2");
+  const second = bucket._program;
+  bucket.SetExpression("(");
+  assert.equal(bucket._expression, "time + 2", "a parse error keeps the old expression");
+  assert.equal(bucket._program, second, "and the old program");
+});
+
+test("Tr2GpuParticleSystem.hasParticles is a read-only getter over HasParticles (Blue.cpp:117)", () =>
+{
+  const system = new Tr2GpuParticleSystem();
+  assert.equal(system.hasParticles, false, "m_liveTime starts at 0 (cpp:752-755)");
+  system._liveTime = 1;
+  assert.equal(system.hasParticles, true);
+  AssertReadOnly(system, "hasParticles");
 });
