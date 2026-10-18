@@ -37,7 +37,7 @@ export class EveThrottleable
   _nextUpdateTS = 0;
 
   /**
-   * Carbon ShouldSkipUpdate (EveThrottleable.cpp:17-35): whether this object
+   * Carbon ShouldSkipUpdate (EveThrottleable.cpp:16-35): whether this object
    * should skip the current update, judged against Blue's actual time read
    * here, as Carbon reads `BeOS->GetActualTime()`. An update that is allowed
    * also picks the next update time from the detail level, so callers must
@@ -63,11 +63,15 @@ export class EveThrottleable
       return true;
     }
 
-    // Carbon subtracts the two uint32_t bounds before the float cast, so a max
-    // below the min wraps (EveThrottleable.cpp:29); `>>> 0` keeps that.
-    const updateFrequency = normalizedUpdateFrequency * ((this.maxUpdateFrequency - this.minUpdateFrequency) >>> 0) + this.minUpdateFrequency;
-    // Floor: update every 10 seconds at the least (cpp:30).
-    this.currentUpdateFrequency = Math.max(updateFrequency, 0.1);
+    // Carbon quirk (CE-193), reproduced: the bounds are uint32_t
+    // (EveThrottleable.h:18-19) and are subtracted before the float cast, so a
+    // max below the min wraps (EveThrottleable.cpp:31); `>>> 0` keeps that.
+    // The sum is float arithmetic, and its 0.1f floor is a comparison (cpp:31-32),
+    // so each step narrows with Math.fround.
+    const range = Math.fround((this.maxUpdateFrequency - this.minUpdateFrequency) >>> 0);
+    const updateFrequency = Math.fround(Math.fround(Math.fround(normalizedUpdateFrequency) * range) + Math.fround(this.minUpdateFrequency));
+    // Floor: update every 10 seconds at the least (cpp:32).
+    this.currentUpdateFrequency = Math.max(updateFrequency, Math.fround(0.1));
     this._nextUpdateTS = currentTime + CcpTime.timeFromDouble(1 / this.currentUpdateFrequency);
     return false;
   }

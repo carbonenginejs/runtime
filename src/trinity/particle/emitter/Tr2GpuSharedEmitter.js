@@ -9,6 +9,9 @@ import { IInitialize, INotify, CcpTime } from "#blue";
 import { meta, type, blue } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
+/** Carbon `const float MAXIMUM_FRAME_TIME = 1.f / 15.f` (Tr2GpuSharedEmitter.cpp:8): the float clamp on a frame delta. */
+const MAXIMUM_FRAME_TIME = Math.fround(1 / 15);
+
 
 /**
  * Authored parameters of a GPU particle emitter: emission cone and rate,
@@ -309,7 +312,7 @@ export class Tr2GpuSharedEmitter
     {
       const start = vec3.add(UPDATE_START, this._prevPosition, arguments_.originShift);
       this._carryOver = this._SpawnParticles(this._emitter, arguments_, start, position,
-        this._prevVelocity, velocity, this._carryOver, Math.min(dt, 1 / 15));
+        this._prevVelocity, velocity, this._carryOver, Math.min(dt, MAXIMUM_FRAME_TIME));
     }
     vec3.copy(this._prevPosition, position);
     vec3.copy(this._prevVelocity, velocity);
@@ -377,7 +380,7 @@ export class Tr2GpuSharedEmitter
       vec3.subtract(endVelocity, endVelocity, arguments_.originShift);
     }
     this._carryOver = this._SpawnParticles(emitter, arguments_, start, end,
-      startVelocity, endVelocity, this._carryOver, Math.min(deltaTime, 1 / 15));
+      startVelocity, endVelocity, this._carryOver, Math.min(deltaTime, MAXIMUM_FRAME_TIME));
   }
 
   /** Carbon's protected SpawnParticles overload, with a distinct JS name. */

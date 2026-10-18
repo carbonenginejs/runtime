@@ -852,7 +852,8 @@ test("EveThrottleable mirrors Carbon update skipping against Blue actual time", 
   throttle.minUpdateFrequency = 3;
   clock += 10_000_000;
   assertEquals(throttle.ShouldSkipUpdate(0.5), false);
-  assertEquals(throttle.currentUpdateFrequency, 0.5 * 4294967295 + 3);
+  // CE-193: the wrapped range, in float arithmetic (cpp:31).
+  assertEquals(throttle.currentUpdateFrequency, Math.fround(Math.fround(0.5 * Math.fround(4294967295)) + 3));
   throttle.updateThrottle = false;
   assertEquals(throttle.ShouldSkipUpdate(1), false);
 });

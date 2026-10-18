@@ -164,7 +164,8 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     if (param)
     {
       const elapsedTime = CcpTime.timeAsFloat(be.os.GetCurrentFrameTime() - this._startTime);
-      if (elapsedTime >= param.GetDuration())
+      // Both sides are float in Carbon: TimeAsFloat and the float GetDuration (cpp:100-101).
+      if (elapsedTime >= Math.fround(param.GetDuration()))
       {
         this.restart();
       }

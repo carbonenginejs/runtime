@@ -803,8 +803,9 @@ export class Tr2ParticleSystem
     }
     const dt = Math.min(CcpTime.timeAsFloat(argumentsValue.time - this._lastUpdate), Math.fround(1 / 3));
     this._lastUpdate = argumentsValue.time;
-    if (dt > 0.035 && this._sortingAllowed) this._sortingAllowed = false;
-    else if (!this._sortingAllowed && dt < 0.02) this._sortingAllowed = true;
+    // Carbon compares the float dt with float literals (Tr2ParticleSystem.cpp:534-541).
+    if (dt > Math.fround(0.035) && this._sortingAllowed) this._sortingAllowed = false;
+    else if (!this._sortingAllowed && dt < Math.fround(0.02)) this._sortingAllowed = true;
     return this.UpdateSimulation(dt, argumentsValue);
   }
 
