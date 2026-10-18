@@ -2086,7 +2086,7 @@ function copyVector(value)
  */
 function flattenParameterValue(parameter)
 {
-  // External data shape: tools-core and its tests hand EveSOF.Create plain {name, value} records.
+  // SOF accepts plain data and real objects by design (operator, 2026-10-18).
   if (typeof parameter?.GetValue === "function") return Array.from(parameter.GetValue());
   const value = parameter?.value;
   if (typeof value === "boolean")
