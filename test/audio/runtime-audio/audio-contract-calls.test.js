@@ -70,12 +70,20 @@ test("stretch lookup requires its initialized emitter receivers", () =>
   assert.throws(() => stretch.FindEmitterByName("stretch_dest_sfx"), TypeError);
 });
 
-test("UI completion invokes functions and nominal Blue callbacks", () =>
+test("UI completion stores a script callback and invokes it", () =>
 {
   const names = [];
-  AudUIPlayer._InvokeCallback(name => names.push(name), "function_event");
-  AudUIPlayer._InvokeCallback(new CjsScriptCallback(name => names.push(name)), "blue_event");
+  const player = new AudUIPlayer();
+  // A function is wrapped where it enters (Carbon's m_callback is a BlueScriptCallback).
+  player.eventSenderCallback = name => names.push(name);
+  assert.ok(player.eventSenderCallback instanceof CjsScriptCallback);
+  AudUIPlayer._InvokeCallback(player.eventSenderCallback, "function_event");
+  const blue = new CjsScriptCallback(name => names.push(name));
+  player.eventSenderCallback = blue;
+  assert.equal(player.eventSenderCallback, blue);
+  AudUIPlayer._InvokeCallback(blue, "blue_event");
   assert.deepEqual(names, [ "function_event", "blue_event" ]);
+  assert.throws(() => { player.eventSenderCallback = { CallVoid() {} }; }, /function or a CjsScriptCallback/u);
 });
 
 test("UI completion fails when a Blue callback loses CallVoid", () =>

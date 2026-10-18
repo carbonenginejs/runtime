@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
+import { CjsScriptCallback } from "#blue";
 
 /** A render step that draws a set of line graphs with a shared scale and legend. */
 @blue.define("TriStepRenderLineGraph")
@@ -45,10 +46,22 @@ export class TriStepRenderLineGraph extends TriRenderStep
   @type.float32
   maxLegend = 1000000000000;
 
-  /** m_scaleChangeCallback (BlueScriptCallback) [READWRITE] */
+  /** Carbon's m_scaleChangeCallback storage: a CjsScriptCallback, or null. */
+  _scaleChangeCallback = null;
+
+  /** m_scaleChangeCallback (BlueScriptCallback) [READWRITE]: the stored script callback, or null. */
   @blue.readwrite
   @type.rawStruct("BlueScriptCallback")
-  scaleChangeCallback = null;
+  get scaleChangeCallback()
+  {
+    return this._scaleChangeCallback;
+  }
+
+  /** Stores a function (wrapped) or a CjsScriptCallback (CjsScriptCallback.from). */
+  set scaleChangeCallback(value)
+  {
+    this._scaleChangeCallback = CjsScriptCallback.from(value);
+  }
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
   @blue.method
@@ -96,8 +109,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
       if (nextScale !== this.scale)
       {
         this.scale = nextScale;
-        if (typeof this.scaleChangeCallback === "function") this.scaleChangeCallback();
-        else this.scaleChangeCallback?.CallVoid();
+        this.scaleChangeCallback?.CallVoid();
       }
     }
     throw new Error("TriStepRenderLineGraph.Execute is not ported yet; drawing the graphs needs Tr2Renderer::PrintfImmediate and fonts.");

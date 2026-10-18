@@ -3,6 +3,7 @@
 // Verify against audio/AudUIPlayer.json.
 import { meta, type, blue } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
+import { CjsScriptCallback } from "#blue";
 
 export const UI_GAME_OBJ_ID = 2;
 
@@ -15,12 +16,24 @@ const FLOAT_MAX = 3.4028234663852886e38;
 export class AudUIPlayer extends AudEmitter
 {
 
-  /** m_callback (BlueScriptCallback) [READWRITE] */
-  @blue.readwrite
-  @type.rawStruct("BlueScriptCallback")
-  eventSenderCallback = null;
+  /** Carbon's m_callback storage: a CjsScriptCallback, or null. */
+  _eventSenderCallback = null;
 
   _callbackEvents = new Map();
+
+  /** m_callback (BlueScriptCallback) [READWRITE]: the stored script callback, or null. */
+  @blue.readwrite
+  @type.rawStruct("BlueScriptCallback")
+  get eventSenderCallback()
+  {
+    return this._eventSenderCallback;
+  }
+
+  /** Stores a function (wrapped) or a CjsScriptCallback (CjsScriptCallback.from). */
+  set eventSenderCallback(value)
+  {
+    this._eventSenderCallback = CjsScriptCallback.from(value);
+  }
 
   /** Creates Carbon's fixed-id UI emitter at its authored origin pose. */
   constructor()
@@ -132,26 +145,16 @@ export class AudUIPlayer extends AudEmitter
   }
 
   /**
-   * Invokes one function or Blue UI completion callback.
+   * Invokes one UI completion callback.
    * Carbon PropagatePythonCallback (AudUIPlayer.cpp:100-104) calls CallVoid.
    *
-   * Adapted: A supplied JavaScript function is invoked directly; Blue callback
-   * objects must provide CallVoid.
-   *
-   * @param {Function|CjsScriptCallback} callback Completion callback.
+   * @param {CjsScriptCallback} callback Completion callback.
    * @param {string} eventName Completed event name.
    * @returns {void}
    */
   static _InvokeCallback(callback, eventName)
   {
-    if (typeof callback === "function")
-    {
-      callback(eventName);
-    }
-    else
-    {
-      callback.CallVoid(eventName);
-    }
+    callback.CallVoid(eventName);
   }
 
 }

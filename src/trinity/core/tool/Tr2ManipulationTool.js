@@ -5,6 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
+import { CjsScriptCallback } from "#blue";
 
 /** The interactive manipulator base: axis selection, drag handling and the callback a move reports through. */
 @blue.define("Tr2ManipulationTool")
@@ -17,7 +18,7 @@ export class Tr2ManipulationTool
   @type.string
   selectedAxis = "";
 
-  /** Browser callback replacing BlueScriptCallback. */
+  /** Carbon's move callback (BlueScriptCallback): a CjsScriptCallback, or null. */
   @type.rawStruct("BlueScriptCallback")
   moveCallback = null;
 
@@ -57,7 +58,7 @@ export class Tr2ManipulationTool
   @meta.adapted
   SetMoveCallback(callback)
   {
-    this.moveCallback = callback ?? null;
+    this.moveCallback = CjsScriptCallback.from(callback);
   }
 
   /** Carbon method SelectAxis (MAP_METHOD_AND_WRAP). */
@@ -162,10 +163,6 @@ export class Tr2ManipulationTool
     if (!this.moveCallback)
     {
       return true;
-    }
-    if (typeof this.moveCallback === "function")
-    {
-      return this.moveCallback(currentTransform, nextTransform) !== false;
     }
     return this.moveCallback.Call(currentTransform, nextTransform) !== false;
   }
