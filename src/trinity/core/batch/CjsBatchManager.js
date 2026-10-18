@@ -87,11 +87,6 @@ export class CjsBatchManager
       const type = entry?.type;
       if (typeof type !== "string" || !type) fail("producer entry requires a non-empty string type");
       if (this.#producers.has(type)) fail(`producer type "${type}" is already registered`);
-      if (typeof entry.Build !== "function") fail(`producer "${type}" requires a Build function`);
-      if (entry.Realize !== undefined && typeof entry.Realize !== "function")
-      {
-        fail(`producer "${type}" Realize must be a function when provided`);
-      }
       this.#producers.set(type, { Build: entry.Build, Realize: entry.Realize ?? null });
     }
     return this;
@@ -110,7 +105,6 @@ export class CjsBatchManager
     if (this.#initialized) fail("RegisterCollector must be called before Initialize");
     if (typeof name !== "string" || !name) fail("collector requires a non-empty string name");
     if (this.#collectors.has(name)) fail(`collector "${name}" is already registered`);
-    if (typeof collector?.Collect !== "function") fail(`collector "${name}" requires a Collect function`);
     this.#collectors.set(name, collector);
     return this;
   }
@@ -261,25 +255,17 @@ export class CjsBatchManager
     return Array.from(this.#batchTypes);
   }
 
-  // A renderable DECLARES its producer type (method or plain property); it never
-  // owns builder code. Returns null when undeclared (the renderable's own
+  // A renderable DECLARES its producer type (a batchProducerType property); it
+  // never owns builder code. Returns null when undeclared (the renderable's own
   // GetBatches implementation applies).
 
   /**
-   * Looks up the producer a renderable declares through GetBatchProducerType or
-   * a batchProducerType property; null means the renderable's GetBatches path
-   * applies.
+   * Looks up the producer a renderable declares through its batchProducerType
+   * property; null means the renderable's GetBatches path applies.
    */
   #ProducerFor(renderable)
   {
-    // An EXPLICIT PROBE, not a hedge: no class in this runtime declares
-    // `GetBatchProducerType`. It is a shape a CALLER's renderable may offer,
-    // so asking whether it is there is the actual question - where `?.()` would
-    // have read as "one of ours might be missing it".
-    const declared = typeof renderable.GetBatchProducerType === "function"
-      ? renderable.GetBatchProducerType()
-      : null;
-    const type = declared ?? renderable.batchProducerType ?? null;
+    const type = renderable.batchProducerType ?? null;
     return type ? this.#producers.get(type) ?? null : null;
   }
 

@@ -72,15 +72,10 @@ function makeProducer(type, { withRealize = true } = {})
   return entry;
 }
 
-test("Register validates entries and rejects duplicates", () =>
+test("Register validates entry types and rejects duplicates", () =>
 {
   const manager = new CjsBatchManager();
   assert.throws(() => manager.Register([{ type: "" }]), /non-empty string type/);
-  assert.throws(() => manager.Register([{ type: "geometry" }]), /requires a Build function/);
-  assert.throws(
-    () => manager.Register([{ type: "geometry", Build() {}, Realize: 1 }]),
-    /Realize must be a function/
-  );
 
   manager.Register([{ type: "geometry", Build() {} }]);
   assert.throws(() => manager.Register([{ type: "geometry", Build() {} }]), /already registered/);
@@ -130,21 +125,6 @@ test("registered producers get Realize before Build, with per-object data and re
   assert.equal(producer.calls.build[0].reason, 7);
   assert.equal(seenPool[0], batchMap.GetAccumulator(OPAQUE), "pool accumulator is OPAQUE");
   assert.equal(batchMap.GetAccumulator(OPAQUE).GetBatchCount(), 1);
-});
-
-test("GetBatchProducerType() method form also dispatches", () =>
-{
-  const producer = makeProducer("geometry", { withRealize: false });
-  const manager = new CjsBatchManager();
-  manager.Register([ producer ]).Initialize();
-
-  manager.Collect([ makeRenderable({
-    GetBatchProducerType()
-    {
-      return "geometry";
-    }
-  }) ]);
-  assert.equal(producer.calls.build.length, 1);
 });
 
 test("undeclared renderables fall back to Carbon-style GetBatches per batch type", () =>
