@@ -59,8 +59,11 @@ test("descriptions allocate from maps and retain inactive fields and qualifiers"
   const sampler = new Tr2RenderContextALStub().CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1 });
   assert.equal(new Tr2ResourceSetDescriptionAL().SetSrv__TextureAL(1, 3, texture), false);
   assert.equal(desc.SetSrv__TextureAL(1, 31, texture), false);
-  assert.equal(desc.SetSrv__TextureAL(99, 3, texture), false);
-  assert.equal(desc.SetSrv__TextureAL(1, -1, texture), false);
+  assert.throws(() => desc.SetSrv__TextureAL(99, 3, texture), RangeError, "Carbon's map lookup is unchecked");
+  assert.throws(() => desc.SetSrv__TextureAL(1, -1, texture), RangeError);
+  assert.throws(() => desc.SetSrv__TextureAL(1, 32, texture), RangeError);
+  assert.throws(() => desc.SetSampler(1, 32, sampler), RangeError);
+  assert.throws(() => desc.SetUavHeapView(99, 4), RangeError);
   assert.equal(desc.SetSrv__TextureAL(1, 3, texture), true);
   assert.equal(desc.SetSrv__TextureAL(1, 3, texture), false);
   assert.equal(desc.SetSrv__TextureAL(1, 3, texture, 1), true);
@@ -101,6 +104,8 @@ test("copy and move preserve Carbon's array-identity equality quirk", t =>
   t.after(() => moved.ClearResources());
   assert.equal(first._srv, null);
   assert.equal(first._registerMap.srvCount, 2, "native moved-from map is not reset");
+  assert.throws(() => first.ClearResources(), TypeError, "Carbon dereferences the moved-from null storage");
+  assert.throws(() => first.ComputeHash(), TypeError);
   assert.equal(new Tr2ResourceSetDescriptionAL().Equals(new Tr2ResourceSetDescriptionAL()), true);
 });
 

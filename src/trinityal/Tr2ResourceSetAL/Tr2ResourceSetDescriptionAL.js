@@ -63,8 +63,13 @@ export class Tr2ResourceSetDescriptionAL
    * Carbon's SetSrv( stage, registerIndex, const Tr2BufferAL& buffer )
    * (Tr2ResourceSetAL.h:57).
    *
-   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access.
+   * Carbon's own checks return false: no mapped resources of the kind, or a
+   * register that maps to no resource. The stage/register lookup itself is
+   * unchecked in Carbon, so a stage or register outside the map throws a
+   * RangeError (ruling 11).
+   *
+   * Adapted: the record keeps its own copy of the handle and destroys the one it
+   * replaces; JavaScript has no copy assignment or destructors.
    *
    * @returns {boolean} Whether the record changed.
    */
@@ -85,8 +90,13 @@ export class Tr2ResourceSetDescriptionAL
    * Carbon's SetSrv( stage, registerIndex, const Tr2TextureAL& texture, colorSpace = COLOR_SPACE_LINEAR )
    * (Tr2ResourceSetAL.h:58).
    *
-   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access.
+   * Carbon's own checks return false: no mapped resources of the kind, or a
+   * register that maps to no resource. The stage/register lookup itself is
+   * unchecked in Carbon, so a stage or register outside the map throws a
+   * RangeError (ruling 11).
+   *
+   * Adapted: the record keeps its own copy of the handle and destroys the one it
+   * replaces; JavaScript has no copy assignment or destructors.
    *
    * @returns {boolean} Whether the record changed.
    */
@@ -104,11 +114,16 @@ export class Tr2ResourceSetDescriptionAL
     return true;
   }
 
-  /** The Srv record mapped to a stage register, or null out of range. */
+  /**
+   * The Srv record mapped to a stage register, or null where Carbon's checks
+   * return false.
+   * @throws {RangeError} When the stage or register is outside the map.
+   */
   _SrvRecord(stage, registerIndex)
   {
-    const index = this._registerMap.srvs[stage]?.[registerIndex];
-    if (this._registerMap.srvCount === 0 || index === undefined || index >= this._registerMap.srvCount) return null;
+    if (this._registerMap.srvCount === 0) return null;
+    const index = RegisterAt(this._registerMap.srvs, stage, registerIndex);
+    if (index >= this._registerMap.srvCount) return null;
     return this._srv[index];
   }
 
@@ -116,8 +131,13 @@ export class Tr2ResourceSetDescriptionAL
    * Carbon's SetUav( stage, registerIndex, const Tr2BufferAL& buffer )
    * (Tr2ResourceSetAL.h:59).
    *
-   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access.
+   * Carbon's own checks return false: no mapped resources of the kind, or a
+   * register that maps to no resource. The stage/register lookup itself is
+   * unchecked in Carbon, so a stage or register outside the map throws a
+   * RangeError (ruling 11).
+   *
+   * Adapted: the record keeps its own copy of the handle and destroys the one it
+   * replaces; JavaScript has no copy assignment or destructors.
    *
    * @returns {boolean} Whether the record changed.
    */
@@ -138,8 +158,12 @@ export class Tr2ResourceSetDescriptionAL
    * Carbon's SetUav( stage, registerIndex, const Tr2TextureAL& texture, mip = 0 )
    * (Tr2ResourceSetAL.h:60). colorSpace stores Carbon's union member mip.
    *
-   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access. JS has no unions: colorSpace stores the shared mip/colour-space word.
+   * Carbon's own checks return false: no mapped resources of the kind, or a
+   * register that maps to no resource. The stage/register lookup itself is
+   * unchecked in Carbon, so a stage or register outside the map throws a
+   * RangeError (ruling 11).
+   *
+   * Adapted: JS has no unions: colorSpace stores the shared mip/colour-space word.
    *
    * @returns {boolean} Whether the record changed.
    */
@@ -157,11 +181,16 @@ export class Tr2ResourceSetDescriptionAL
     return true;
   }
 
-  /** The Uav record mapped to a stage register, or null out of range. */
+  /**
+   * The Uav record mapped to a stage register, or null where Carbon's checks
+   * return false.
+   * @throws {RangeError} When the stage or register is outside the map.
+   */
   _UavRecord(stage, registerIndex)
   {
-    const index = this._registerMap.uavs[stage]?.[registerIndex];
-    if (this._registerMap.uavCount === 0 || index === undefined || index >= this._registerMap.uavCount) return null;
+    if (this._registerMap.uavCount === 0) return null;
+    const index = RegisterAt(this._registerMap.uavs, stage, registerIndex);
+    if (index >= this._registerMap.uavCount) return null;
     return this._uav[index];
   }
 
@@ -170,8 +199,12 @@ export class Tr2ResourceSetDescriptionAL
    * (Tr2ResourceSetAL.h:64, Tr2ResourceSetAL.cpp:413-430): assigns the mapped
    * sampler by value and reports whether its type or implementation changed.
    *
-   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access. The record keeps its own copy of the handle, as the C++ assignment does.
+   * Carbon's own checks return false: no mapped resources of the kind, or a
+   * register that maps to no resource. The stage/register lookup itself is
+   * unchecked in Carbon, so a stage or register outside the map throws a
+   * RangeError (ruling 11).
+   *
+   * Adapted: the record keeps its own copy of the handle, as the C++ assignment does.
    *
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The sampler register.
@@ -181,8 +214,9 @@ export class Tr2ResourceSetDescriptionAL
   @meta.adapted
   SetSampler(stage, registerIndex, sampler)
   {
-    const index = this._registerMap.samplers[stage]?.[registerIndex];
-    if (this._registerMap.samplerCount === 0 || index === undefined || index >= this._registerMap.samplerCount) return false;
+    if (this._registerMap.samplerCount === 0) return false;
+    const index = RegisterAt(this._registerMap.samplers, stage, registerIndex);
+    if (index >= this._registerMap.samplerCount) return false;
     const current = this._samplers[index];
     if (current.type === 1 && current.sampler.Equals(sampler)) return false;
     current.sampler = new Tr2SamplerStateAL({ copy: sampler });
@@ -193,14 +227,17 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Marks the mapped shader resource as a descriptor-heap view.
    *
-   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access.
+   * Carbon's own checks return false: no mapped resources of the kind, or a
+   * register that maps to no resource. The stage/register lookup itself is
+   * unchecked in Carbon, so a stage or register outside the map throws a
+   * RangeError (ruling 11).
    */
-  @meta.adapted
+  @meta.implemented
   SetSrvHeapView(stage, registerIndex)
   {
-    const index = this._registerMap.srvs[stage]?.[registerIndex];
-    if (this._registerMap.srvCount === 0 || index === undefined || index >= this._registerMap.srvCount) return false;
+    if (this._registerMap.srvCount === 0) return false;
+    const index = RegisterAt(this._registerMap.srvs, stage, registerIndex);
+    if (index >= this._registerMap.srvCount) return false;
     if (this._srv[index].type === 3) return false;
     this._srv[index].type = 3;
     return true;
@@ -209,14 +246,17 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Marks the mapped unordered-access resource as a descriptor-heap view.
    *
-   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access.
+   * Carbon's own checks return false: no mapped resources of the kind, or a
+   * register that maps to no resource. The stage/register lookup itself is
+   * unchecked in Carbon, so a stage or register outside the map throws a
+   * RangeError (ruling 11).
    */
-  @meta.adapted
+  @meta.implemented
   SetUavHeapView(stage, registerIndex)
   {
-    const index = this._registerMap.uavs[stage]?.[registerIndex];
-    if (this._registerMap.uavCount === 0 || index === undefined || index >= this._registerMap.uavCount) return false;
+    if (this._registerMap.uavCount === 0) return false;
+    const index = RegisterAt(this._registerMap.uavs, stage, registerIndex);
+    if (index >= this._registerMap.uavCount) return false;
     if (this._uav[index].type === 3) return false;
     this._uav[index].type = 3;
     return true;
@@ -225,14 +265,17 @@ export class Tr2ResourceSetDescriptionAL
   /**
    * Marks the mapped sampler as a descriptor-heap view.
    *
-   * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access.
+   * Carbon's own checks return false: no mapped resources of the kind, or a
+   * register that maps to no resource. The stage/register lookup itself is
+   * unchecked in Carbon, so a stage or register outside the map throws a
+   * RangeError (ruling 11).
    */
-  @meta.adapted
+  @meta.implemented
   SetSamplerHeapView(stage, registerIndex)
   {
-    const index = this._registerMap.samplers[stage]?.[registerIndex];
-    if (this._registerMap.samplerCount === 0 || index === undefined || index >= this._registerMap.samplerCount) return false;
+    if (this._registerMap.samplerCount === 0) return false;
+    const index = RegisterAt(this._registerMap.samplers, stage, registerIndex);
+    if (index >= this._registerMap.samplerCount) return false;
     if (this._samplers[index].type === 2) return false;
     this._samplers[index].type = 2;
     return true;
@@ -254,18 +297,21 @@ export class Tr2ResourceSetDescriptionAL
 
   /**
    * Clears resource types and handles while retaining the map, qualifiers and
-   * samplers.
+   * samplers (Tr2ResourceSetAL.cpp:439-455). Carbon loops the map's counts over
+   * the arrays; a moved-from description keeps its counts with null storage,
+   * so this throws there as Carbon dereferences null (ruling 11).
    *
-   * Adapted: Moved-from descriptions have null storage with unchanged counts. JS treats that
-   * storage as empty instead of dereferencing a native null pointer.
+   * Adapted: the handles are destroyed explicitly; JavaScript has no
+   * destructors.
    */
   @meta.adapted
   ClearResources()
   {
-    for (const records of [ this._srv, this._uav ])
+    for (const [ records, count ] of [ [ this._srv, this._registerMap.srvCount ], [ this._uav, this._registerMap.uavCount ] ])
     {
-      for (const record of records ?? [])
+      for (let i = 0; i < count; i++)
       {
+        const record = records[i];
         if (record.texture) record.texture.Destroy();
         if (record.buffer) record.buffer.Destroy();
         record.type = 0;
@@ -279,19 +325,24 @@ export class Tr2ResourceSetDescriptionAL
    * Hashes dense resource identities and heap-view enums with Carbon's ordering
    * and omissions.
    *
+   * Carbon loops the map's counts over the arrays (Tr2ResourceSetAL.cpp:457-480);
+   * moved-from storage is null with unchanged counts, so this throws there as
+   * Carbon dereferences null (ruling 11).
+   *
    * Adapted: JavaScript has no implementation pointer bytes; stable backend identities use
-   * process-local 32-bit IDs. Distinct invalid backend identities are retained; moved-from
-   * storage is treated as empty. Traversal, zero seed, signed-byte FNV and donor omissions
-   * are preserved.
+   * process-local 32-bit IDs. Distinct invalid backend identities are retained. Traversal,
+   * zero seed, signed-byte FNV and donor omissions are preserved.
    */
   @meta.adapted
   ComputeHash()
   {
     let hash = 0;
-    for (const [ records, sampler ] of [ [ this._srv, false ], [ this._uav, false ], [ this._samplers, true ] ])
+    const map = this._registerMap;
+    for (const [ records, count, sampler ] of [ [ this._srv, map.srvCount, false ], [ this._uav, map.uavCount, false ], [ this._samplers, map.samplerCount, true ] ])
     {
-      for (const record of records ?? [])
+      for (let i = 0; i < count; i++)
       {
+        const record = records[i];
         if (record.type === 0) continue;
         const heap = record.type === (sampler ? 2 : 3);
         const object = sampler ? record.sampler.TrinityALImpl_GetObject()
@@ -312,6 +363,24 @@ export class Tr2ResourceSetDescriptionAL
     }
     return hash >>> 0;
   }
+}
+
+/**
+ * Reads `map[stage][registerIndex]`, a fixed C array lookup Carbon does not
+ * check (Tr2ResourceSetAL.h:38-40). Outside the array it throws a RangeError
+ * instead of reading undefined (ruling 11).
+ * @param {Uint8Array[]} table The srvs, uavs or samplers table.
+ * @param {number} stage A `ShaderType`.
+ * @param {number} registerIndex The register.
+ * @returns {number} The dense resource index; 255 when unmapped.
+ * @throws {RangeError} When stage or registerIndex is outside the table.
+ */
+function RegisterAt(table, stage, registerIndex)
+{
+  const row = table[stage];
+  const index = row === undefined ? undefined : row[registerIndex];
+  if (index === undefined) throw new RangeError(`Tr2ResourceSetDescriptionAL: stage ${stage} register ${registerIndex} is outside the register map.`);
+  return index;
 }
 
 /** Native AL equality compares implementation identity, not value-object identity. */
