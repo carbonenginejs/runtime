@@ -14,6 +14,7 @@ import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
 import { Tr2OcclusionBuffer } from "./Tr2OcclusionBuffer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriVariableContentType } from "../../../generated/trinityCore/enums.js";
 
 /** Scratch for PrepareRender's negated vectors. */
@@ -367,8 +368,8 @@ export class EveLensflare
     if (!this.display) return;
 
     const occlusionBuffer = Tr2OcclusionBuffer.getInstance();
-    if (this.occlusionOffset === null) this.occlusionOffset = occlusionBuffer.AllocateOffset(renderContext);
-    if (this.backgroundOcclusionOffset === null) this.backgroundOcclusionOffset = occlusionBuffer.AllocateOffset(renderContext);
+    if (this.occlusionOffset === null) this.occlusionOffset = occlusionBuffer.AllocateOffset();
+    if (this.backgroundOcclusionOffset === null) this.backgroundOcclusionOffset = occlusionBuffer.AllocateOffset();
 
     let index = 0;
     for (const occluder of this.occluders)
@@ -394,7 +395,7 @@ export class EveLensflare
 
     if (this.backgroundOcclusionOffset === null)
     {
-      this.backgroundOcclusionOffset = Tr2OcclusionBuffer.getInstance().AllocateOffset(renderContext);
+      this.backgroundOcclusionOffset = Tr2OcclusionBuffer.getInstance().AllocateOffset();
     }
 
     let index = 0;
@@ -450,16 +451,16 @@ export class EveLensflare
    * Carbon's row-vector `Transform( v, M )` over a row-major matrix is
    * gl-matrix `transformMat4` over the same bytes.
    *
-   * The render context is an ADDED argument: Carbon reads the view from
-   * Tr2Renderer::GetViewTransform, a static this runtime keeps on the context.
+   * Adapted: Carbon reads the view from the Tr2Renderer::GetViewTransform
+   * static (cpp:229); this runtime keeps that state on the main-thread render
+   * context (Tr2RenderContext.js, view-state section), so it is read there.
    *
    * @param {TriFrustum} frustum This frame's frustum.
-   * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
   @blue.method
   @meta.adapted
-  PrepareRender(frustum, renderContext)
+  PrepareRender(frustum)
   {
     if (!this.display) return;
 
@@ -477,7 +478,7 @@ export class EveLensflare
     this._directionVar.SetValue([ this.direction[0], this.direction[1], this.direction[2], this.sunSize ]);
 
     const direction = vec4.fromValues(this.direction[0], this.direction[1], this.direction[2], 0);
-    vec4.transformMat4(direction, direction, renderContext.GetViewTransform());
+    vec4.transformMat4(direction, direction, Tr2RenderContext_GetMainThreadRenderContext().GetViewTransform());
     vec4.transformMat4(direction, direction, frustum.projectionMatrix);
     direction[0] /= direction[3];
     direction[1] /= direction[3];

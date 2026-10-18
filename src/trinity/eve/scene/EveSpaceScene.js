@@ -216,10 +216,8 @@ function EmptyShadowResources()
 //     so the blended sun colour is current. The engine binds the two records at
 //     Tr2Renderer::GetPerFrame{VS,PS}StartRegister; their layouts are published
 //     on the `/perframe` subpath.
-// 11. (driver) `for (const lf of scene.lensflares)
-//     lf.PrepareRender(frustum)` (cpp:1419-1422). EveLensflare still needs that
-//     Carbon method ported; its absence is an explicit driver-readiness gap,
-//     not an optional capability to hide with a guarded call.
+// 11. (scene) `for (const lf of scene.lensflares)
+//     lf.PrepareRender(frustum)` in BeginRender (cpp:1428-1431).
 // 12. (engine) reads registry collections directly: "ShadowCaster" (cascade
 //     gate cpp:614-621, RT push cpp:1544-1547), "VolumetricRenderable",
 //     "FroxelFogSettings", "MeshMorph" (engine may call
@@ -956,7 +954,7 @@ export class EveSpaceScene
 
     for (const curveSet of this.curveSets)
     {
-      curveSet.Update__RealTimeSimTime(realTime, simTime, context.renderContext);
+      curveSet.Update__RealTimeSimTime(realTime, simTime);
     }
 
     for (const object of this.objects)
@@ -4490,7 +4488,7 @@ export class EveSpaceScene
     esm.BeginManagedRendering();
     esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
 
-    for (const lensflare of this.lensflares) lensflare.PrepareRender(this.updateContext.GetFrustum(), renderContext);
+    for (const lensflare of this.lensflares) lensflare.PrepareRender(this.updateContext.GetFrustum());
 
     this.PopulatePerFramePSData(this._perFramePS, renderContext);
     this.PopulatePerFrameVSData(this._perFrameVS, renderContext);

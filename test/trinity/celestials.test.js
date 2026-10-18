@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { EvePlanet, EveLensflare, EveSpaceScene, EveChildContainer, EveChildMesh, Tr2RenderContext } from '../../npm/dist/trinity/index.js';
+import { EvePlanet, EveLensflare, EveSpaceScene, EveChildContainer, EveChildMesh, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from '../../npm/dist/trinity/index.js';
 import { mat4 } from '../../npm/dist/global/math/mat4.js';
 import { quat } from '../../npm/dist/global/math/quat.js';
 import { vec3 } from '../../npm/dist/global/math/vec3.js';
@@ -249,14 +249,16 @@ test('lensflare controller initialization, insertion replay and destruction pres
 test('lensflare distance law reaches both global and per-object glare scale', () =>
 {
   const flare = new EveLensflare();
-  const {context, view, projection} = camera();
+  const {view, projection} = camera();
+  // PrepareRender reads Tr2Renderer's view where this runtime keeps it: the main-thread context.
+  Tr2RenderContext_GetMainThreadRenderContext().SetViewTransform(view);
   const frustum = {viewPos: [0,0,0], viewDir: [0,0,1], projectionMatrix: projection};
   for (const au of [0.1,1,10]) {
     flare.translationCurve = { Update__Ticks: (_time,out) => out.set([0,0,-au * 0.1495978707e12]) };
     flare.Update(10,20);
     const expected = 1.5 / Math.log(vec3.length(flare.position) / 0.1495978707e12 + 2.71);
     assert.equal(flare.sunSize,expected);
-    flare.PrepareRender(frustum,context);
+    flare.PrepareRender(frustum);
     close(flare._directionVar.GetValue(), [0,0,1,expected]);
     let global;
     const data = {Set(name,value) { if(name === 'directionScale') global = value[3]; },SetIndex() {}};

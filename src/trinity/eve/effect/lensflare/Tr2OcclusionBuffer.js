@@ -17,6 +17,7 @@ import { OCCLUDER_MANAGEMENT_EFFECT_PATH } from "#consts/effectPaths";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
 import { Tr2GpuBuffer } from "../../../core/device/Tr2GpuBuffer.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../../../generated/trinityCore/enums.js";
 
@@ -68,17 +69,13 @@ export class Tr2OcclusionBuffer
    * none is free, queued for Clear. Carbon returns a shared_ptr whose deleter
    * gives the slot back; JS has no RAII, so the holder calls DestroyOffset.
    *
-   * The render context is an ADDED argument: ResizeBuffer creates the buffer,
-   * which Carbon does on the main-thread context; the caller's is that one.
-   *
-   * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number|null} The slot base, or null when none could be made.
    */
   @blue.method
   @meta.adapted
-  AllocateOffset(renderContext)
+  AllocateOffset()
   {
-    if (!this.free.length) this.ResizeBuffer(renderContext);
+    if (!this.free.length) this.ResizeBuffer();
     if (!this.free.length) return null;
 
     const offset = this.free.pop();
@@ -156,19 +153,27 @@ export class Tr2OcclusionBuffer
    * Carbon ResizeBuffer (cpp:93-122): four slots at first, doubled after;
    * the old contents are copied into the new buffer, and the new slots join
    * the free list in ascending order, so pop hands out the highest first.
+   * Both the creation and the copy run on the main-thread render context, as
+   * Carbon's do (Tr2GpuBuffer.cpp:164 inside Create; EveOccluder.cpp:114).
    *
-   * @param {Tr2RenderContext} renderContext The context to create on.
+   * Adapted: the old buffer is an explicit AL copy destroyed once copied,
+   * because JS has no value-member destructor; Tr2GpuBuffer.Create still takes
+   * the context as an added argument, so the main-thread context its Carbon
+   * CreateBuffer reaches itself is handed to it; the copy goes through the AL
+   * the context composes (renderContextAL.js) where Carbon's context IS the AL.
+   *
    * @returns {void}
    */
   @blue.method
   @meta.adapted
-  ResizeBuffer(renderContext)
+  ResizeBuffer()
   {
     const oldSize = this.size;
     this.size = this.size ? this.size * 2 : INITIAL_SIZE * ELEMENT_SIZE;
 
     const previous = this.buffer.GetGpuBuffer(0);
     const old = previous ? new Tr2BufferAL({ copy: previous }) : null;
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
 
     try
     {
