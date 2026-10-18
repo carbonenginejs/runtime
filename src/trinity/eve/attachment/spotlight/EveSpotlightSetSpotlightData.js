@@ -8,7 +8,7 @@ import { type, meta } from "#schema";
  * items into m_spotlightData (EveSpotlightSet.cpp:279-286) for
  * AddToQuadRenderer. Carbon gives it no initializers.
  */
-@meta.define({ className: "EveSpotlightSetSpotlightData", donors: [ "EveSpotlightSet::SpotlightData" ] })
+@meta.define({ className: "EveSpotlightSetSpotlightData", carbon: "EveSpotlightSet::SpotlightData" })
 export class EveSpotlightSetSpotlightData
 {
 

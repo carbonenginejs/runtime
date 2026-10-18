@@ -24,7 +24,7 @@ import { meta, type } from "#schema";
  * Carbon embeds each timer by value; once Tr2ProfileTimer exists each member
  * becomes `new Tr2ProfileTimer()`.
  */
-@meta.define({ className: "EveSpaceSceneRenderDriverTimers", donors: [ "EveSpaceSceneRenderDriver::m_timers" ] })
+@meta.define({ className: "EveSpaceSceneRenderDriverTimers", carbon: "EveSpaceSceneRenderDriver::m_timers" })
 export class EveSpaceSceneRenderDriverTimers
 {
 

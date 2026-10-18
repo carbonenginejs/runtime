@@ -41,4 +41,4 @@ CjsSchema.decorateField(Tr2VertexDefinitionItem, "offset", type.uint32);
 CjsSchema.decorateField(Tr2VertexDefinitionItem, "stream", type.uint32);
 CjsSchema.decorateField(Tr2VertexDefinitionItem, "instanceStepRate", type.uint32);
 CjsSchema.decorateField(Tr2VertexDefinitionItem, "type", type.string);
-CjsSchema.meta.define(Tr2VertexDefinitionItem, { className: "Tr2VertexDefinitionItem", donors: ["Tr2VertexDefinition::Item"] });
+CjsSchema.meta.define(Tr2VertexDefinitionItem, { className: "Tr2VertexDefinitionItem", carbon: "Tr2VertexDefinition::Item" });

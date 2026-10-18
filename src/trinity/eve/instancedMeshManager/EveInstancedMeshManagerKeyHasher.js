@@ -31,7 +31,7 @@ import { identityOf } from "#utils/hash";
  * distinct entries for keys differing in any field - and cannot reproduce
  * the padding.
  */
-@meta.define({ className: "EveInstancedMeshManagerKeyHasher", donors: [ "EveInstancedMeshManager::KeyHasher" ] })
+@meta.define({ className: "EveInstancedMeshManagerKeyHasher", carbon: "EveInstancedMeshManager::KeyHasher" })
 export class EveInstancedMeshManagerKeyHasher
 {
 

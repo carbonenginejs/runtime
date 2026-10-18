@@ -8,7 +8,7 @@ import { type, meta } from "#schema";
  */
 @meta.define({
   className: "EveSmartLightAttributeModifierExpressionBucketArguments",
-  donors: [ "EveSmartLightAttributeModifierExpressionBucket::Arguments" ]
+  carbon: "EveSmartLightAttributeModifierExpressionBucket::Arguments"
 })
 export class EveSmartLightAttributeModifierExpressionBucketArguments
 {

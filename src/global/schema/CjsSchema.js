@@ -1670,7 +1670,9 @@ function fieldDecorator(namespace, value)
  * given a constructor - the explicit registration for a class without
  * decorators. `blue` stamps the class as Carbon's; `donors` lists the Carbon
  * classes it draws on: for `blue`, the one Carbon class a renamed port
- * replicates; for `meta`, the classes ours is built from.
+ * replicates; for `meta`, the classes ours is built from. A `meta` class that
+ * replicates one Carbon type Carbon does not expose (a nested struct) names it
+ * with `carbon:` instead, which records the provenance and stamps nothing.
  *
  * @param {Function|string|object} definitionOrConstructor Constructor, class name or definition.
  * @param {string|object} [definition] The definition, with a constructor.

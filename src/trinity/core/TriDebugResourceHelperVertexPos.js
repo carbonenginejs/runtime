@@ -6,7 +6,7 @@ import { type, meta } from "#schema";
  * Carbon TriDebugResourceHelper::VertexPos: a position-only debug vertex, the
  * layout of GetVertexPosDecl (12 bytes). Carbon gives it no initializers.
  */
-@meta.define({ className: "TriDebugResourceHelperVertexPos", donors: [ "TriDebugResourceHelper::VertexPos" ] })
+@meta.define({ className: "TriDebugResourceHelperVertexPos", carbon: "TriDebugResourceHelper::VertexPos" })
 export class TriDebugResourceHelperVertexPos
 {
 

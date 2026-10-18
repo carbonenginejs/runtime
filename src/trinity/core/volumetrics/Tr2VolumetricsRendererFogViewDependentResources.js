@@ -46,4 +46,4 @@ CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "rtCalc
 CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "filterFroxels", type.rootRef("Tr2Effect"));
 CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "raymarchFroxels", type.rootRef("Tr2Effect"));
 CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "applyFroxels", type.rootRef("Tr2Effect"));
-CjsSchema.meta.define(Tr2VolumetricsRendererFogViewDependentResources, { className: "Tr2VolumetricsRendererFogViewDependentResources", donors: ["Tr2VolumetricsRenderer::FogViewDependentResources"] });
+CjsSchema.meta.define(Tr2VolumetricsRendererFogViewDependentResources, { className: "Tr2VolumetricsRendererFogViewDependentResources", carbon: "Tr2VolumetricsRenderer::FogViewDependentResources" });

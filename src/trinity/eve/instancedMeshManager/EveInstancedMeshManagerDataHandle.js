@@ -24,7 +24,7 @@ import { meta, type } from "#schema";
  * reference that never moves, so the manager's reference stays valid and
  * there is nothing to replace.
  */
-@meta.define({ className: "EveInstancedMeshManagerDataHandle", donors: [ "EveInstancedMeshManager::DataHandle" ] })
+@meta.define({ className: "EveInstancedMeshManagerDataHandle", carbon: "EveInstancedMeshManager::DataHandle" })
 export class EveInstancedMeshManagerDataHandle
 {
 

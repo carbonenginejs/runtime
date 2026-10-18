@@ -14,7 +14,7 @@ import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js"
  * its instance placements, per-instance world cull spheres, instance flags and
  * manager registration handles.
  */
-@meta.define({ className: "EveChildInstancedMesh", donors: [ "EveChildInstancedMeshes::Mesh" ] })
+@meta.define({ className: "EveChildInstancedMesh", carbon: "EveChildInstancedMeshes::Mesh" })
 export class EveChildInstancedMesh
 {
   @meta.persist

@@ -7,7 +7,7 @@ import { type, meta } from "#schema";
  * EveSpriteSet keeps them in m_spriteData for culling and debug drawing.
  * Carbon gives it no initializers.
  */
-@meta.define({ className: "EveSpriteSetSpriteData", donors: [ "EveSpriteSet::SpriteData" ] })
+@meta.define({ className: "EveSpriteSetSpriteData", carbon: "EveSpriteSet::SpriteData" })
 export class EveSpriteSetSpriteData
 {
 

@@ -36,5 +36,5 @@ export class FileContents
 
 CjsSchema.meta.define(FileContents, {
     className: "FileContents",
-    donors: ["ParserState::FileContents"]
+    carbon: "ParserState::FileContents"
 });

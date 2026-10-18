@@ -32,5 +32,5 @@ export class SyncData
 
 CjsSchema.meta.define(SyncData, {
     className: "SyncData",
-    donors: ["EffectCompilerMetal::SyncData"]
+    carbon: "EffectCompilerMetal::SyncData"
 });

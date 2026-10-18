@@ -25,5 +25,5 @@ export class Pragma
 
 CjsSchema.meta.define(Pragma, {
     className: "Pragma",
-    donors: ["ParserState::Pragma"]
+    carbon: "ParserState::Pragma"
 });

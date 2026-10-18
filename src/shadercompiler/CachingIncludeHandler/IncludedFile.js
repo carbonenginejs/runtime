@@ -47,5 +47,5 @@ export class IncludedFile
 
 CjsSchema.meta.define(IncludedFile, {
     className: "IncludedFile",
-    donors: ["CachingIncludeHandler::IncludedFile"]
+    carbon: "CachingIncludeHandler::IncludedFile"
 });

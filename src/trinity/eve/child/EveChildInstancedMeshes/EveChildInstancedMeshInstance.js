@@ -22,7 +22,7 @@ import { meta, type } from "#schema";
  * cull sphere in the owning mesh's instance sphere list, whether it mirrors,
  * and the mesh and instance indices its picking hits decode to.
  */
-@meta.define({ className: "EveChildInstancedMeshInstance", donors: [ "EveInstancedMeshManager::StaticPerInstanceData" ] })
+@meta.define({ className: "EveChildInstancedMeshInstance", carbon: "EveInstancedMeshManager::StaticPerInstanceData" })
 export class EveChildInstancedMeshInstance
 {
 

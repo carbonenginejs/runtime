@@ -18,7 +18,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/
  * and nothing constructs this class yet; it is here so the per-thread
  * gather has its donor type when one is ported.
  */
-@meta.define({ className: "EveSpaceScenePerThreadAccumulator", donors: [ "EveSpaceScene::PerThreadAccumulator" ] })
+@meta.define({ className: "EveSpaceScenePerThreadAccumulator", carbon: "EveSpaceScene::PerThreadAccumulator" })
 export class EveSpaceScenePerThreadAccumulator extends TriRenderBatchAccumulator
 {
 

@@ -11,7 +11,7 @@ import { meta, type } from "#schema";
  * private and unmapped. They persist here so values carry the boosters
  * (docs: non-carbon-extensions.md).
  */
-@meta.define({ className: "EveBoosterSet2SingleBoosterData", donors: [ "EveBoosterSet2::SingleBoosterData" ] })
+@meta.define({ className: "EveBoosterSet2SingleBoosterData", carbon: "EveBoosterSet2::SingleBoosterData" })
 export class EveBoosterSet2SingleBoosterData
 {
 

@@ -9,7 +9,7 @@ import { meta, type } from "#schema";
  * private and unmapped. They persist here so values carry which boosters
  * have trails (docs: non-carbon-extensions.md).
  */
-@meta.define({ className: "EveTrailsSetSingleTrailData", donors: [ "EveTrailsSet::SingleTrailData" ] })
+@meta.define({ className: "EveTrailsSetSingleTrailData", carbon: "EveTrailsSet::SingleTrailData" })
 export class EveTrailsSetSingleTrailData
 {
 

@@ -19,7 +19,7 @@ import { EveInstancedMeshManagerInstanceBufferRegion } from "./EveInstancedMeshM
  * All sizes and offsets are in bytes: the AL buffer is created with a stride
  * of 4, so its element count is a quarter of its byte size.
  */
-@meta.define({ className: "EveInstancedMeshManagerInstanceBuffer", donors: [ "EveInstancedMeshManager::InstanceBuffer" ] })
+@meta.define({ className: "EveInstancedMeshManagerInstanceBuffer", carbon: "EveInstancedMeshManager::InstanceBuffer" })
 export class EveInstancedMeshManagerInstanceBuffer
 {
 

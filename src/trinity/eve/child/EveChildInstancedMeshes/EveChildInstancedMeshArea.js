@@ -11,7 +11,7 @@ import { meta, type } from "#schema";
  * range within the mesh, its cached effect hash and the mesh-group handle it is
  * registered under.
  */
-@meta.define({ className: "EveChildInstancedMeshArea", donors: [ "EveChildInstancedMeshes::MeshArea" ] })
+@meta.define({ className: "EveChildInstancedMeshArea", carbon: "EveChildInstancedMeshes::MeshArea" })
 export class EveChildInstancedMeshArea
 {
 

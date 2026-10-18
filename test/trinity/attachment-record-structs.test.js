@@ -18,7 +18,8 @@ const IDENTITY = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ];
 function assertRegistration(Class, className, donor)
 {
   assert.equal(CjsSchema.getClassName(Class), className);
-  assert.deepEqual(CjsSchema.getSchema(Class).donors, [ donor ]);
+  assert.equal(CjsSchema.getSchema(Class).carbon, donor);
+  assert.equal(CjsSchema.getSchema(Class).blue, undefined, "Carbon does not expose a nested struct");
 }
 
 test("EveTurretSet::SingleTurretData (EveTurretSet.h:323-347)", () =>

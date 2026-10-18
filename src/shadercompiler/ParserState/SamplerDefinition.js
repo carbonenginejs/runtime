@@ -19,5 +19,5 @@ export class SamplerDefinition
 
 CjsSchema.meta.define(SamplerDefinition, {
     className: "SamplerDefinition",
-    donors: ["ParserState::SamplerDefinition"]
+    carbon: "ParserState::SamplerDefinition"
 });
