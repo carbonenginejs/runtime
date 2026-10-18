@@ -17,8 +17,23 @@ function emptySetup()
   return Tr2RenderStateSetup.fromKeyValues([]);
 }
 
+/**
+ * A complete stand-in for a CjsWebgpuShaderProgramAL: every query the
+ * description asks, answering "no outputs known, no overrides".
+ */
+function Program(fields = {})
+{
+  return {
+    IsValid: () => true,
+    GetFragmentOutputs: () => null,
+    GetUnormTargetOverrides: () => [],
+    HasCoverageDiscardOverride: () => false,
+    ...fields
+  };
+}
+
 /** One program and one layout, as Carbon keys them by pointer. */
-const PROGRAM = { IsValid: () => true, id: "program" };
+const PROGRAM = Program({ id: "program" });
 const LAYOUT = { GetDefinition: () => [ { stream: 0 } ] };
 
 /** Stream strides with stream 0 at the given stride. */
@@ -59,7 +74,7 @@ test("an incomplete description names what is missing rather than half-building"
   assert.match(pso.GetMissing(), /shader program/u);
   assert.equal(pso.GetKey(), null);
 
-  pso.shaderProgram = { IsValid: () => true };
+  pso.shaderProgram = Program();
   assert.match(pso.GetMissing(), /render-state setup/u);
 
   pso.renderStateSetup = emptySetup();
@@ -101,7 +116,7 @@ test("two equal descriptions key the same, and any difference splits them", () =
 
   // One negative control per slot of the hashable block.
   const cases = [
-    [ "shader program", { shaderProgram: { IsValid: () => true, id: "other" } } ],
+    [ "shader program", { shaderProgram: Program({ id: "other" }) } ],
     [ "vertex layout", { vertexLayout: { GetDefinition: () => [ { stream: 0 } ] } } ],
     [ "topology", { topology: Topology.TOP_TRIANGLES } ],
     [ "render-state content", { renderStateSetup: Object.assign(emptySetup(), { cull: "cw" }) } ],
@@ -169,7 +184,7 @@ test("an override changes the key, so the two variants are distinct entries", ()
 test("a different shader program splits the key even with identical state", () =>
 {
   const first = description();
-  const second = description({ shaderProgram: { IsValid: () => true, id: "other" } });
+  const second = description({ shaderProgram: Program({ id: "other" }) });
 
   assert.notEqual(first.GetKey(), second.GetKey());
 });
@@ -221,8 +236,8 @@ test("a bound target the pixel shader does not write gets writeMask 0", () =>
 {
   // The velocity scope: colour at 0, velocity at 1. A decal writes only
   // SV_Target0; D3D11 leaves RTV 1 untouched, WebGPU needs its mask at 0.
-  const decal = { IsValid: () => true, GetIdentity: () => "decal", GetFragmentOutputs: () => [ 0 ] };
-  const quadV5 = { IsValid: () => true, GetIdentity: () => "quadv5", GetFragmentOutputs: () => [ 0, 1 ] };
+  const decal = Program({ GetIdentity: () => "decal", GetFragmentOutputs: () => [ 0 ] });
+  const quadV5 = Program({ GetIdentity: () => "quadv5", GetFragmentOutputs: () => [ 0, 1 ] });
   const formats = [ "rgba16float", "rg16float" ];
 
   const [ decalColour, decalVelocity ] = description({ shaderProgram: decal, colorFormats: formats }).BuildRecipe().fragment.targets;
@@ -239,12 +254,11 @@ test("a float stand-in for a UNORM target sets the shader's UNORM override for i
   // 0; WebGPU renders it into rgba16float. TAA's history kept a NaN forever
   // (the operator's AA-then-post black screen) until the pipeline told the
   // shader to store as UNORM does.
-  const program = {
-    IsValid: () => true,
+  const program = Program({
     id: "program",
     GetFragmentOutputs: () => [ 0, 1 ],
     GetUnormTargetOverrides: () => [ 0 ]
-  };
+  });
   const pso = description({ shaderProgram: program, colorFormats: [ "rgba16float", "rgba16float" ] });
 
   // No stand-in bound: no constants.
@@ -258,7 +272,7 @@ test("a float stand-in for a UNORM target sets the shader's UNORM override for i
   assert.notEqual(pso.GetKey(), description({ shaderProgram: program, colorFormats: [ "rgba16float", "rgba16float" ] }).GetKey());
 
   // A hand-written program declares none, so none is set.
-  pso.shaderProgram = { IsValid: () => true, id: "hand", GetFragmentOutputs: () => [ 0 ], GetUnormTargetOverrides: () => [] };
+  pso.shaderProgram = Program({ id: "hand", GetFragmentOutputs: () => [ 0 ] });
   assert.equal(pso.BuildRecipe().fragment.constants, undefined);
 });
 
@@ -267,13 +281,11 @@ test("the depth-of-field layer pass's coverage discard is a pipeline constant, s
   // Not Carbon (after ccpwgl 89973207): a transparent (1) or additive (2)
   // material run with this set discards invisible output, so its layer depth
   // is written only where it shows.
-  const program = {
-    IsValid: () => true,
+  const program = Program({
     id: "program",
     GetFragmentOutputs: () => [ 0 ],
-    GetUnormTargetOverrides: () => [],
     HasCoverageDiscardOverride: () => true
-  };
+  });
   const pso = description({ shaderProgram: program });
 
   assert.equal(pso.BuildRecipe().fragment.constants, undefined, "off by default: the shader is unchanged");

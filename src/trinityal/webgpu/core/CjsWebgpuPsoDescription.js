@@ -276,9 +276,7 @@ export class CjsWebgpuPsoDescription
     // blend. D3D11 leaves such an RTV untouched; WebGPU rejects the pipeline
     // unless its mask is 0. That is what lets the velocity target stay bound at
     // slot 1 through opaque draws whose shaders never output SV_Target1.
-    const outputs = typeof this.shaderProgram.GetFragmentOutputs === "function"
-      ? this.shaderProgram.GetFragmentOutputs()
-      : null;
+    const outputs = this.shaderProgram.GetFragmentOutputs();
     const colourTarget = (format, index) =>
     {
       if (!format) return null;
@@ -290,9 +288,7 @@ export class CjsWebgpuPsoDescription
     // shader's per-target override clamps the output to [0, 1] and makes NaN 0,
     // as D3D does writing to UNORM. TAA's R16G16B16A16_UNORM history kept a
     // NaN forever without it. Only overrides the module declares may be set.
-    const overrides = typeof this.shaderProgram.GetUnormTargetOverrides === "function"
-      ? this.shaderProgram.GetUnormTargetOverrides()
-      : [];
+    const overrides = this.shaderProgram.GetUnormTargetOverrides();
     const constants = {};
 
     for (const location of overrides)
@@ -300,8 +296,7 @@ export class CjsWebgpuPsoDescription
       if (this.unormTargets[location]) constants[`${CARBON_BACKEND_UNORM_TARGET_OVERRIDE}${location}`] = 1;
     }
 
-    if (this.coverageDiscard && typeof this.shaderProgram.HasCoverageDiscardOverride === "function"
-      && this.shaderProgram.HasCoverageDiscardOverride())
+    if (this.coverageDiscard && this.shaderProgram.HasCoverageDiscardOverride())
     {
       constants[CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE] = this.coverageDiscard;
     }
