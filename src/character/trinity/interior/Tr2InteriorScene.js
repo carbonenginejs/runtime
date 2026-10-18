@@ -16,6 +16,7 @@ import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
 import { Tr2DepthStencil } from "../../../trinity/core/device/Tr2DepthStencil.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
+import { Tr2DebugRenderer } from "../../../trinity/core/line/Tr2DebugRenderer.js";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -362,6 +363,75 @@ export class Tr2InteriorScene
     if (this._lightDepthStencil) this._lightDepthStencil.Destroy();
     this._lightDepthStencil = new Tr2DepthStencil();
     this._lightDepthStencil.Create(this.shadowSize, this.shadowSize, DepthStencilFormat.DSFMT_D32, 0, 0, 0, renderContext);
+  }
+
+  /**
+   * Carbon's ITr2Scene `RenderDebugInfo( Tr2RenderContext& renderContext )`
+   * (Tr2InteriorScene.cpp:831-883): the scene's debug pass. Without a debug
+   * renderer it creates one only when shadow maps are to be shown, and
+   * otherwise does nothing (cpp:833-845).
+   *
+   * Carbon also overloads RenderDebugInfo with ITr2DebugRenderable's
+   * `( ITr2DebugRenderer2& )` form; the render-job step calls this one by the
+   * bare name through ITr2Scene, so the other is RenderDebugInfo__Renderer.
+   *
+   * Waiting: R9 (Tr2Renderer view statics). Past the early out, Carbon fills
+   * the debug per-frame data from Tr2Renderer's view and projection
+   * transforms, swaps the projection around the draws and ends with
+   * Tr2Renderer::RenderDebugInfo (cpp:847-882); none of those exist yet, so
+   * that path throws rather than drawing nothing.
+   * @param {Tr2RenderContext} _renderContext
+   */
+  @blue.method
+  @meta.notImplemented
+  RenderDebugInfo(_renderContext)
+  {
+    if (!this.debugRenderer)
+    {
+      if (this.debugRenderShadowMaps)
+      {
+        // Need to create a debug renderer
+        this.debugRenderer = new Tr2DebugRenderer();
+      }
+      else
+      {
+        return;
+      }
+    }
+    throw new Error("Tr2InteriorScene.RenderDebugInfo: waiting on R9 (Tr2Renderer view/projection statics and Tr2Renderer.RenderDebugInfo).");
+  }
+
+  /**
+   * Carbon GetDebugOptions (Tr2InteriorScene.cpp:1428-1431).
+   * @param {Set<string>} options
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Shadow Maps");
+  }
+
+  /**
+   * Carbon's ITr2DebugRenderable `RenderDebugInfo( ITr2DebugRenderer2& renderer )`
+   * (Tr2InteriorScene.cpp:1433-1449): under "Shadow Maps" (or the scene's
+   * own flag), each light render target drawn as a 200x200 tile down the
+   * left edge.
+   *
+   * Waiting: Tr2Renderer::DrawTexture( renderContext, texture ) is not
+   * ported, so with any light render target this throws instead of drawing.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @meta.notImplemented
+  RenderDebugInfo__Renderer(renderer)
+  {
+    if (renderer.HasOption(this, "Shadow Maps") || this.debugRenderShadowMaps)
+    {
+      if (this.lightRenderTargets.length !== 0)
+      {
+        throw new Error("Tr2InteriorScene.RenderDebugInfo__Renderer: waiting on Tr2Renderer.DrawTexture( renderContext, texture ).");
+      }
+    }
   }
 
   /** Explicit JS final lifetime releases the shadow wrappers owned by this scene. */
