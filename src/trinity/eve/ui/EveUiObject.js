@@ -34,12 +34,12 @@ export class EveUiObject extends EveSpaceObject2
    * the distance from the view position to the world position, applied
    * first, in the object's own space - so the translation is unchanged.
    *
-   * Carbon quirk, reproduced: the scale is applied even when the base
+   * Carbon quirk (CE-190), reproduced: the scale is applied even when the base
    * returned early because the transform was already built for this time
    * (EveSpaceObject2.cpp:3055-3058), so a second update in one frame - as
    * UpdateModelCenterWorldPosition makes (cpp:2992-2995) - scales the
-   * already-scaled transform again. The inverse world transform the base
-   * computed is not refreshed, so it stays unscaled.
+   * already-scaled transform again. Carbon quirk (CE-191): the inverse world
+   * transform the base computed is not refreshed, so it stays unscaled.
    *
    * Adapted: Carbon reads Tr2Renderer's view-position static; it lives on the
    * main-thread render context here (Tr2RenderContext.js head). Carbon
@@ -76,7 +76,7 @@ export class EveUiObject extends EveSpaceObject2
    * visible and in the frustum, at TR2_LOD_HIGH with and without children,
    * and not an impostor, whatever was calculated.
    *
-   * Carbon quirk, reproduced: the forced state also holds for a hidden object,
+   * Carbon quirk (CE-192), reproduced: the forced state also holds for a hidden object,
    * for which the base returns before computing anything
    * (EveSpaceObject2.cpp:1596-1599); display still gates its renderables.
    *
