@@ -1134,7 +1134,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     esm.PushRenderTarget__TextureAL(null);
     esm.PushDepthStencilBuffer__TextureAL(this.shadowMapDS.GetTexture());
     esm.UpdateRenderTargetViewport(this.shadowMapDS.GetWidth(), this.shadowMapDS.GetHeight());
-    renderContext.Clear({ depth: true, clearDepth: 1, clearStencil: 0 });
+    // Carbon: Clear( CLEARFLAGS_ZBUFFER, 0xffffffff, 1, 0 ) (EveChildCloud2.cpp:801).
+    renderContext.Clear({ clearDepth: true, color: 0xffffffff, depth: 1 });
     renderContext.SetReadOnlyDepth(false);
     esm.SetViewport({ width: this.shadowMapDS.GetWidth(), height: this.shadowMapDS.GetHeight(),
       x: 0, y: 0, minZ: 0, maxZ: 1 });

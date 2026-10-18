@@ -507,7 +507,8 @@ export class Tr2ShadowMap
     esm.UpdateRenderTargetViewport(cascadedShadowDepth.Get().GetWidth(), cascadedShadowDepth.Get().GetHeight());
 
     // Carbon wants a clean depth buffer for this pass and says so.
-    renderContext.Clear({ depth: true, clearDepth: 1, clearStencil: 0 });
+    // Carbon: Clear( CLEARFLAGS_ZBUFFER, 0xffffffff, 1, 0 ) (Tr2ShadowMap.cpp:246).
+    renderContext.Clear({ clearDepth: true, color: 0xffffffff, depth: 1 });
     renderContext.SetReadOnlyDepth(false);
 
     return cascadedShadowDepth;

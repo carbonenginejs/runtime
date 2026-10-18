@@ -586,7 +586,11 @@ test("PrepareCloudShadowMap creates and binds native D32F storage through the st
   assert.equal(cloud.shadowMapDS.IsValid(), true);
   assert.equal(cloud.shadowMapDS.GetWidth(), 512);
   assert.equal(cloud.shadowMapDS.GetHeight(), 512);
-  assert.deepEqual(clears, [{ depth: true, clearDepth: 1, clearStencil: 0 }]);
+  // Carbon's depth-only clear (EveChildCloud2.cpp:801): the flag is a boolean,
+  // the value is the depth; a swapped pair would fail the type checks.
+  assert.deepEqual(clears, [{ clearDepth: true, color: 0xffffffff, depth: 1 }]);
+  assert.equal(typeof clears[0].clearDepth, "boolean");
+  assert.equal(typeof clears[0].depth, "number");
   assert.equal(context.GetEffectStateManager().GetViewport().width, 512);
   cloud.SetCloudShadowMapHandle();
   assert.equal(cloud.depthShadowMapHandle.GetValue(), cloud.shadowMapDS);

@@ -254,6 +254,8 @@ test("shadow rendering sets its own device state, as Carbon's does", () =>
     [ "PushViewport", "PushRenderTarget__TextureAL", "PushDepthStencilBuffer__TextureAL", "UpdateRenderTargetViewport", "Clear", "SetReadOnlyDepth" ]
   );
   assert.deepEqual(calls[3], [ "UpdateRenderTargetViewport", 4096, 2048 ]);
+  // Carbon's depth-only clear (Tr2ShadowMap.cpp:246): flag boolean, value numeric.
+  assert.deepEqual(calls[4], [ "Clear", { clearDepth: true, color: 0xffffffff, depth: 1 } ]);
   // The texture is bound, not the pool handle: Carbon's handle converts to its
   // Tr2TextureAL implicitly, and the AL cannot use the handle itself.
   assert.equal(calls[2][1], texture);
