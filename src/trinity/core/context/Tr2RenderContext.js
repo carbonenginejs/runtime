@@ -17,7 +17,7 @@ import { CjsSchema, meta, blue } from "#schema";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
 import { ConstantBufferSlot, TextureAddressMode, TextureFilter, Topology } from "#consts/render-context";
-import { RenderingMode } from "#consts/graphics";
+import { RenderingMode, TriStorageFlags } from "#consts/graphics";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
@@ -193,10 +193,10 @@ export class Tr2RenderContext
     // context were all created through the stub. Left in place, WebGPU met a
     // stub buffer at a uniform slot and a stub program at the resource set.
     // The by-value handles are reset, so the next fill creates against the new
-    // backend (FillAndSetConstants, Tr2RenderUtils.cpp:106-110).
-    for (const buffer of this._perObjectConstantBuffers) buffer.Destroy();
-    this._esm.ReleaseRealizedObjects();
-    this._esm.Destruct();
+    // backend (FillAndSetConstants, Tr2RenderUtils.cpp:106-110). A new backend
+    // is a device replacement, where Carbon releases the state manager's device
+    // resources (TriDevice.cpp:528, Tr2EffectStateManager.cpp:982-1023).
+    this._esm.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
 
     return this._al;
   }

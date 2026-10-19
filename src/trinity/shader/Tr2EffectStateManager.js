@@ -126,7 +126,9 @@ const shaderObjects = new WeakMap();
  * may hold a realized object.
  *
  * The tables are shared and the realized objects are per context (multiple
- * contexts are our extension; Carbon has one table and one backend). The
+ * contexts are our extension; Carbon has one table and one backend). Only one
+ * backend (WebGPU or WebGL2) exists at a time, never one per context
+ * (operator rule), so every context realized its objects on that backend. The
  * static `releaseDeviceResources` truncates the tables, which frees every
  * handle number for the next registration, so it must release the objects
  * every context realized under those numbers - not only the calling

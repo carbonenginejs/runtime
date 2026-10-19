@@ -8,9 +8,15 @@ import { ShaderType } from "../../npm/dist/global/consts/renderContext/index.js"
 
 // A REGISTERED program, so a bind can be told from the default-constructed
 // program BeginManagedRendering binds to unbind (Tr2EffectStateManager.cpp:674).
-const program = Tr2EffectStateManager.registerShaderProgram([
-  Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, new Uint8Array([ 0x9C, 1 ]))
-]);
+// Registered after the backend is installed: one backend exists at a time, and
+// installing it is a device replacement that releases every registration made
+// before it (ReleaseDeviceResources, TriDevice.cpp:528).
+function registerProgram()
+{
+  return Tr2EffectStateManager.registerShaderProgram([
+    Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, new Uint8Array([ 0x9C, 1 ]))
+  ]);
+}
 
 for (const managed of [false, true])
 {
@@ -21,6 +27,7 @@ for (const managed of [false, true])
       const context = new Tr2RenderContext(), al = new Tr2RenderContextALStub();
       context.SetRenderContextAL(al);
       al.CreateDevice();
+      const program = registerProgram();
       const esm = context.GetEffectStateManager(), scene = new Tr2PrimitiveScene();
       const object = new Tr2PrimitiveSet(), projection = new TriProjection(), view = new TriView(), viewport = new TriViewport();
       viewport.width = 800; viewport.height = 600;
