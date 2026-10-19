@@ -15,6 +15,12 @@ export class CjsUnusedMethodError extends CjsError
     /** Stable error identity independent of minified constructor names. */
     static className = "CjsUnusedMethodError";
 
+    /** The declaring class's registered name; set by the constructor. */
+    className = "";
+
+    /** The Carbon method name; set by the constructor. */
+    methodName = "";
+
     /**
      * @param {string} className The declaring class's registered name.
      * @param {string} methodName The Carbon method name.

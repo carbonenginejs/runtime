@@ -43,7 +43,22 @@ export class CjsResourceProbe
    */
   constructor(values = null)
   {
-    Object.assign(this, normalizeReport(values));
+    const report = normalizeReport(values);
+
+    this.format = report.format;
+    this.source = report.source;
+    this.recognized = report.recognized;
+    this.output = report.output;
+    this.supported = report.supported;
+    this.verified = report.verified;
+    this.preferredOutput = report.preferredOutput;
+    this.reason = report.reason;
+    this.metadata = report.metadata;
+    this.capability = report.capability;
+    this.outputs = report.outputs;
+    this.warnings = report.warnings;
+    this.errors = report.errors;
+    this.error = report.error;
   }
 
   /**

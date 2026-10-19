@@ -75,6 +75,54 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
     static BodyReader = CjsCarbonEffectBodyReader;
 
     /**
+     * Container version, 8..15; set by the constructor.
+     * @type {number}
+     */
+    version = 0;
+
+    /**
+     * The v15 four-byte shader-compiler version; null for older headers.
+     * @type {number[]|null}
+     */
+    compilerVersion = null;
+
+    /**
+     * The v15 ASCII-hex MD5 source hash; null for older headers.
+     * @type {Uint8Array|null}
+     */
+    sourceHash = null;
+
+    /**
+     * The string-table arena bytes; set by the constructor.
+     * @type {Uint8Array}
+     */
+    stringTableBytes = new Uint8Array(0);
+
+    /**
+     * Permutation axes; set by the constructor.
+     * @type {Array}
+     */
+    permutations = [];
+
+    /**
+     * Offset-table rows; set by the constructor.
+     * @type {Array}
+     */
+    records = [];
+
+    /**
+     * Byte offset where the header ends; set by the constructor.
+     * @type {number}
+     */
+    headerEnd = 0;
+
+    /**
+     * Offset-table diagnostics from `_inspect`; set by the constructor.
+     * @type {object|null}
+     */
+    diagnostics = null;
+
+    /**
      * Reads the container header, arena, permutation axes and offset table.
      *
      * @param {ArrayBuffer|ArrayBufferView|Uint8Array} bytes Container bytes.
@@ -98,16 +146,12 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
         }
 
         // The compiler version and source hash are the v15 header additions;
-        // an older header goes straight from the version to the arena.
+        // an older header goes straight from the version to the arena and
+        // leaves both null.
         if (this.version === CARBON_EFFECT_DATA_VERSION)
         {
             this.compilerVersion = Array.from(this.ReadRaw(4));
             this.sourceHash = Uint8Array.from(this.ReadRaw(CARBON_EFFECT_SOURCE_HASH_BYTES));
-        }
-        else
-        {
-            this.compilerVersion = null;
-            this.sourceHash = null;
         }
 
         this.stringTableSize = this.ReadUint32();

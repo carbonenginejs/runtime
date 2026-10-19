@@ -13,6 +13,12 @@ import { CjsSchema } from "#schema/CjsSchema";
 export class CjsReader
 {
     /**
+     * Reader options; set by the constructor.
+     * @type {object}
+     */
+    options = {};
+
+    /**
      * Creates a CjsReader over caller-provided resource bytes and reader
      * options.
      *

@@ -551,7 +551,8 @@ export class CjsSchema
     /** Writes declared fields onto any decorated class, without a model base. */
     static setValuesFromSchema(target, values = {}, options = {})
     {
-        const canonical = {};
+        // Keyed by incoming value names, so a null-prototype dictionary.
+        const canonical = Object.create(null);
         for (const [name, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(values)))
         {
             const field = findValuesDeclaration(target.constructor, name);

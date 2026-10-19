@@ -29,7 +29,7 @@ export class CjsFileIndex
     #entriesByPath;
 
     /**
-     * Freezes the entries and indexes them by logical path, rejecting a duplicate
+     * Normalizes the entries and indexes them by logical path, rejecting a duplicate
      * logical path or an entry whose root disagrees with the index root; entries
      * keep their declaration order and plain objects are upgraded to entries.
      * @param {Iterable} entries CjsFileIndexEntry instances or entry option objects.
@@ -64,8 +64,6 @@ export class CjsFileIndex
 
             this.#entriesByPath.set(entry.logicalPath, entry);
         }
-
-        this;
     }
 
     /**
@@ -269,7 +267,7 @@ export class CjsFileIndex
 
     /**
      * Loads every resfileindex an appfileindex declares, in parallel, and returns
-     * frozen { name, declaration, index } records. It never guesses where the
+     * { name, declaration, index } records. It never guesses where the
      * declared files are hosted, so one of baseURL or resolveURL is required.
      * @param {object} options baseURL or resolveURL(entry, name), plus the fetch
      * and requestInit forwarded to each load.

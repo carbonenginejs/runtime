@@ -20,7 +20,7 @@ export class CjsFileIndexOverlay
     sourceID = null;
 
     /**
-     * Wraps one caller-supplied resfileindex as a named layer and freezes it; the
+     * Wraps one caller-supplied resfileindex as a named layer; the
      * index must be res-rooted, and the mode fixes precedence for the layer's
      * whole lifetime.
      * @param {string} mode "override" wins over the official indexes, "fallback"
@@ -42,8 +42,6 @@ export class CjsFileIndexOverlay
         this.sourceID = sourceID === null
             ? null
             : CjsFileIndexSource.normalizeID(sourceID);
-
-        this;
     }
 
     /**

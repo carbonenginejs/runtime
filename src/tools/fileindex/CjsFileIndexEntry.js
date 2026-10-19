@@ -35,7 +35,7 @@ export class CjsFileIndexEntry
     lineNumber = null;
 
     /**
-     * Normalizes and freezes one row: the root and logical path first, then the
+     * Normalizes one row: the root and logical path first, then the
      * storage location, an optional 32-hex checksum and non-negative sizes.
      * @param {string} sourceLogicalPath The path exactly as written in the file,
      * retained for diagnostics; logicalPath is the normalized lookup key.
@@ -66,8 +66,6 @@ export class CjsFileIndexEntry
         this.compressedSize = normalizeOptionalInteger(compressedSize, "compressedSize", lineNumber);
         this.binaryOperation = normalizeOptionalInteger(binaryOperation, "binaryOperation", lineNumber);
         this.lineNumber = lineNumber;
-
-        this;
     }
 
     /**

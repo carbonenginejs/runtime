@@ -120,6 +120,36 @@ export class CjsBitReader extends CjsReader
     static endOfDataMessage = "Unexpected end of bitstream";
 
     /**
+     * Source payload; set by the constructor.
+     * @type {Uint8Array}
+     */
+    bytes = new Uint8Array(0);
+
+    /**
+     * Current absolute bit position, counted from the start of `bytes`.
+     * @type {number}
+     */
+    bitPosition = 0;
+
+    /**
+     * Exclusive end bit position; set by the constructor.
+     * @type {number}
+     */
+    endBit = 0;
+
+    /**
+     * Source name used in error details; set by the constructor.
+     * @type {string}
+     */
+    source = "";
+
+    /**
+     * Bit position at construction; `totalBitsRead` counts from here.
+     * @type {number}
+     */
+    startBit = 0;
+
+    /**
      * Creates a bit cursor over a byte payload.
      *
      * @param {ArrayBuffer|ArrayBufferView|Uint8Array} bytes Source payload.

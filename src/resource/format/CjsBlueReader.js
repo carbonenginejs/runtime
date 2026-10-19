@@ -47,6 +47,73 @@ import { CjsReader } from "./CjsReader.js";
 export class CjsBlueReader extends CjsReader
 {
     /**
+     * Schema registry used to build shapes, or null; set by the constructor.
+     * @type {object|null}
+     */
+    schemaRegistry = null;
+
+    /**
+     * Shape map built from the schema registry; set by the constructor.
+     * @type {Map}
+     */
+    schemaShapes = new Map();
+
+    /**
+     * Class registry used when options give none, or null; set by the constructor.
+     * @type {object|null}
+     */
+    defaultRegistry = null;
+
+    /** Pass the shape in runtime contexts; set by the constructor. */
+    includeShapeContext = false;
+
+    /** Keep the source shape on fallback targets; set by the constructor. */
+    includeSourceShape = false;
+
+    /** Emit the type field for empty kinds; set by the constructor. */
+    includeEmptyPayloadType = false;
+
+    /** Always assign the reference ID; set by the constructor. */
+    requirePayloadReferenceTarget = false;
+
+    /** Use a values field for sequence identity; set by the constructor. */
+    includePayloadValuesField = false;
+
+    /** Reject payload field collisions; set by the constructor. */
+    validatePayloadReservedFields = false;
+
+    /**
+     * Reserved payload field names by marker role, built lazily by
+     * `ValidatePayloadConfiguration`; null until then or when validation is off.
+     * @type {Map<string, string>|null}
+     */
+    payloadReservedFields = null;
+
+    /**
+     * Hydration adapter resolved from the options; set by the constructor.
+     * @type {object|null}
+     */
+    adapter = null;
+
+    /**
+     * Options passed to hydration; set by the constructor.
+     * @type {object|null}
+     */
+    hydrationOptions = null;
+
+    /**
+     * Reports collected during the current read; reset by `ResetBlueReadState`.
+     * @type {Array}
+     */
+    reports = [];
+
+    /**
+     * Runtime instances awaiting finalization; reset by `ResetBlueReadState`.
+     * @type {Array}
+     */
+    runtimeInstances = [];
+
+    /**
      * Creates a CjsBlueReader over caller-provided resource bytes and reader
      * options.
      *
@@ -77,7 +144,6 @@ export class CjsBlueReader extends CjsReader
         this.requirePayloadReferenceTarget = Boolean(config.requirePayloadReferenceTarget);
         this.includePayloadValuesField = Boolean(config.includePayloadValuesField);
         this.validatePayloadReservedFields = Boolean(config.validatePayloadReservedFields);
-        this.payloadReservedFields = null;
         this.adapter = resolveHydrationAdapter(options);
         this.hydrationOptions = {
             ...options,

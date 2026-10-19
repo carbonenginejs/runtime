@@ -45,7 +45,7 @@ export class CjsTexturePackConstructor extends IBlueDynamicResourceConstructor
   constructor(resourceManager)
   {
     super();
-    this._resourceManager = resourceManager;
+    this._resourceManager = resourceManager ?? null;
   }
 
   /**

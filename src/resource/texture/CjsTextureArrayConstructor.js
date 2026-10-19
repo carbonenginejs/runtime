@@ -38,7 +38,7 @@ export class CjsTextureArrayConstructor extends IBlueDynamicResourceConstructor
   constructor(resourceManager)
   {
     super();
-    this._resourceManager = resourceManager;
+    this._resourceManager = resourceManager ?? null;
   }
 
   /**

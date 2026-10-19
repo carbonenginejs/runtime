@@ -13,6 +13,9 @@ export const CJS_OPERATION_CANCELLED = "CJS_OPERATION_CANCELLED";
 export class CjsCancellationError extends CjsError
 {
 
+    /** The platform cancellation name, so abort checks keyed on it match. */
+    name = "AbortError";
+
     /**
      * Creates a cancellation error with stable code `CJS_OPERATION_CANCELLED`.
      *
@@ -22,7 +25,6 @@ export class CjsCancellationError extends CjsError
     constructor(message = DEFAULT_CANCELLATION_MESSAGE, options = {})
     {
         super(CJS_OPERATION_CANCELLED, message, options);
-        this.name = "AbortError";
     }
 
     /**

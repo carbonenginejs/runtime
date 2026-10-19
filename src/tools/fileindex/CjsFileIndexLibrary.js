@@ -42,7 +42,7 @@ export class CjsFileIndexLibrary
 
     /**
      * Composes one build's appfileindex, its loaded resfileindexes and any manual
-     * overlays into a frozen resolver. A "default" source built from the provider
+     * overlays into one resolver. A "default" source built from the provider
      * res base URL is always prepended, overlay and index names share one
      * namespace, and duplicate layer names or source IDs are rejected.
      * @param {object} buildReference Result of resolveBuild; its build field
@@ -58,7 +58,7 @@ export class CjsFileIndexLibrary
 
         this.provider = normalizeProvider(provider);
         this.buildReference = freezeDeep(buildReference);
-        this.build = buildReference.build;
+        this.build = buildReference.build ?? null;
         this.appIndex = appIndex;
         this.resFileIndexes = Array.from(resFileIndexes, normalizeLoadedIndex);
         this.overlays = Array.from(overlays, overlay =>
@@ -105,8 +105,6 @@ export class CjsFileIndexLibrary
 
             this.#sourcesByID.set(source.id, source);
         }
-
-        this;
     }
 
     /**
@@ -145,7 +143,7 @@ export class CjsFileIndexLibrary
     /**
      * Resolves a logical path through the layer precedence override overlays,
      * then the official resfileindexes, then fallback overlays, and returns a
-     * frozen record { logicalPath, indexName, overlay, mode, sourceID,
+     * record { logicalPath, indexName, overlay, mode, sourceID,
      * sourceURL, entry } or null when no layer declares it.
      * @param {object} options indexName pins the lookup to one named overlay or
      * official index and skips precedence entirely.
@@ -218,7 +216,7 @@ export class CjsFileIndexLibrary
     }
 
     /**
-     * Turns one layer hit into the frozen resolution record, taking the source
+     * Turns one layer hit into the resolution record, taking the source
      * from the location prefix, else the layer sourceID, else "default", and
      * failing on an unknown source ID.
      */
@@ -253,7 +251,7 @@ export class CjsFileIndexLibrary
      * short-circuits with no network at all; "latest" reads each configured
      * client's remote metadata and keeps the highest build, and a client name
      * reads only that client. Passing both client and a named build is rejected.
-     * @returns {object} Frozen { buildRef, build, client, metadataToken,
+     * @returns {object} { buildRef, build, client, metadataToken,
      * metadataURL, metadata, source } where source records how it was decided.
      */
     static async resolveBuild(providerValue, options = {})

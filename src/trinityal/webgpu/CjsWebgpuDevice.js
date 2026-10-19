@@ -127,8 +127,8 @@ export class CjsWebgpuDevice
     this._gpu = options.gpu || null;
     this._adapter = options.adapter || null;
     this._device = options.device;
-    this._adapterOptions = options.adapterOptions;
-    this._deviceDescriptor = options.deviceDescriptor;
+    this._adapterOptions = options.adapterOptions ?? null;
+    this._deviceDescriptor = options.deviceDescriptor ?? null;
     this._bufferUsage = options.bufferUsage || globalThis.GPUBufferUsage || null;
     this._textureUsage = options.textureUsage || globalThis.GPUTextureUsage || null;
     this._WatchDevice(this._device, this._generation);
@@ -322,8 +322,8 @@ export class CjsWebgpuDevice
     this._gpu = gpu;
     this._adapter = adapter;
     this._device = device;
-    this._adapterOptions = adapterOptions;
-    this._deviceDescriptor = deviceDescriptor;
+    this._adapterOptions = adapterOptions ?? null;
+    this._deviceDescriptor = deviceDescriptor ?? null;
     this._generation += 1;
     this._state = "ready";
     this._lostInfo = null;

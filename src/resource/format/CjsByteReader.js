@@ -41,6 +41,48 @@ export class CjsByteReader extends CjsReader
     static endOfDataMessage = "Unexpected end of data";
 
     /**
+     * Source payload; set by the constructor.
+     * @type {Uint8Array}
+     */
+    bytes = new Uint8Array(0);
+
+    /**
+     * Little-endian view over `bytes`; set by the constructor.
+     * @type {DataView|null}
+     */
+    view = null;
+
+    /**
+     * Current byte offset.
+     * @type {number}
+     */
+    offset = 0;
+
+    /**
+     * Exclusive end offset; set by the constructor.
+     * @type {number}
+     */
+    end = 0;
+
+    /**
+     * Source name used in error details; set by the constructor.
+     * @type {string}
+     */
+    source = "";
+
+    /**
+     * String-table arena, or null when none is attached.
+     * @type {Uint8Array|null}
+     */
+    stringTable = null;
+
+    /**
+     * Valid arena byte count.
+     * @type {number}
+     */
+    stringTableSize = 0;
+
+    /**
      * Creates a reader over a byte payload and optional shared string table.
      *
      * @param {ArrayBuffer|ArrayBufferView|Uint8Array} bytes Source payload.

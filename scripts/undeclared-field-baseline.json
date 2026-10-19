@@ -6,11 +6,6 @@
     "src/audio/internal/CjsMusicEngineScheduledClip.js": 36,
     "src/audio/internal/CjsMusicEngineScheduledSegment.js": 23,
     "src/audio/internal/MusicInstance.js": 38,
-    "src/resource/format/CjsBitReader.js": 9,
-    "src/resource/format/CjsBlueReader.js": 16,
-    "src/resource/format/CjsByteReader.js": 16,
-    "src/resource/format/CjsReader.js": 1,
-    "src/resource/format/carbonEffect/CjsCarbonEffectReader.js": 11,
     "src/resource/formats/black/core/CjsBlackBinaryReader.js": 13,
     "src/resource/formats/black/core/CjsBlackReader.js": 16,
     "src/resource/formats/black/core/CjsBlackSchemaRegistry.js": 1,
@@ -53,15 +48,10 @@
     "src/resource/formats/yaml/core/CjsYamlReader.js": 4
   },
   "unresolvedBase": {
-    "src/global/utils/errors/CjsCancellationError.js": 1,
-    "src/global/utils/errors/CjsError.js": 1,
-    "src/global/utils/errors/CjsUnusedMethodError.js": 2,
-    "src/resource/format/CjsFormatError.js": 9,
     "src/resource/formats/dxbc/core/DxbcReadError.js": 2,
     "src/resource/formats/hlsl/core/HlslEffectReadError.js": 2,
     "src/resource/formats/webgl/core/WebglReadError.js": 2,
-    "src/resource/formats/webgpu/core/WebgpuReadError.js": 2,
-    "src/resource/formats/wem/core/bitStream.js": 2
+    "src/resource/formats/webgpu/core/WebgpuReadError.js": 2
   },
   "defineProperty": {
     "src/audio/CjsAudioMan.js": 1,
@@ -74,7 +64,7 @@
     "src/global/compose/runtimeState.js": 1,
     "src/global/math/mesh.js": 1,
     "src/global/model/lifecycle/CjsLifecycleState.js": 1,
-    "src/global/schema/CjsSchema.js": 2,
+    "src/global/schema/CjsSchema.js": 1,
     "src/global/schema/hydration.js": 1,
     "src/global/schema/types/carbonTypes.js": 2,
     "src/global/utils/errors/CjsError.js": 2,
@@ -94,10 +84,24 @@
     "src/resource/formats/yaml/core/helpers.js": 1
   },
   "assignThis": {
-    "src/audio/library/CjsAudioLibrary.js": 1,
-    "src/resource/format/CjsResourceProbe.js": 1
+    "src/audio/library/CjsAudioLibrary.js": 1
   },
   "held": {
-    "src/global/blue/BlueObjectMetadata.js": "__bluemetadata__ is Carbon per-object metadata added to any class after construction; moving it changes how readers and writers see it. Held for the operator (Ruru, 2026-10-19)."
+    "src/global/blue/BlueObjectMetadata.js": "__bluemetadata__ is Carbon per-object metadata added to any class after construction; moving it changes how readers and writers see it. Held for the operator (Ruru, 2026-10-19).",
+    "src/audio/CjsAudioMan.js": "awaiting ruling: drop the duration shim on the platform AudioBuffer and give test fakes a finite duration, or exempt as a platform-object shim.",
+    "src/audio/CjsSfxEngine.js": "awaiting ruling: WeakMap side table for the authored playback rate and pitch now stamped as symbol expandos on selection records.",
+    "src/audio/library/CjsAudioLibrary.js": "awaiting ruling: declared fields for the schema-v2 document sections, with GetValues omitting absent optional sections (Object.assign copies the open document today).",
+    "src/character/library/CjsCharacterLibraryDocuments.js": "awaiting ruling: declared _documentRevisions field (becomes enumerable beside the document lists) or WeakMap side table.",
+    "src/character/library-builder/CjsCharacterLibraryBuilder.js": "awaiting ruling: exempt DefineValue as a data-keyed JSON record write, or build the records with Object.create(null) (changes their prototype).",
+    "src/global/compose/abstract.js": "awaiting ruling: exempt as class-level install; installAbstractMethod writes a thrower onto a prototype or class.",
+    "src/global/compose/notify.js": "awaiting ruling: declared field on a runtime-state class instead of the HasListener own-method override on the __state record.",
+    "src/global/compose/runtimeState.js": "awaiting ruling: WeakMap side table, or a declared __state field on a common base, for the __state expando on any instance.",
+    "src/global/math/mesh.js": "awaiting ruling: return handedness beside the tangents instead of an expando on the returned Float32Array (public generateTangents API).",
+    "src/global/model/lifecycle/CjsLifecycleState.js": "awaiting ruling: declared lifecycle field on a runtime-state class, decided with runtimeState.js.",
+    "src/global/schema/CjsSchema.js": "awaiting ruling: exempt as decorator-metadata install, or WeakMap side table; describeDecorator stamps metadata on a decorator function.",
+    "src/global/schema/hydration.js": "awaiting ruling: Map-only storage for reader map members, or exempt the data-keyed write into a plain-object dictionary member.",
+    "src/global/schema/types/carbonTypes.js": "awaiting ruling: WeakMap side table for the raw-struct brand now stamped as non-enumerable symbols on a plain value record.",
+    "src/global/utils/errors/CjsError.js": "awaiting ruling: code and details are own non-writable properties and details clones are read-only records; a field, accessor or null-prototype clone changes writability, enumerability or prototype.",
+    "src/resource/format/CjsBlueReader.js": "awaiting ruling: exempt payload-dictionary writes, or build payload objects with Object.create(null); DefinePayloadProperty writes wire keys onto payload objects."
   }
 }

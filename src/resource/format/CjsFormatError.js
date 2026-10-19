@@ -9,6 +9,17 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class CjsFormatReadError extends Error
 {
+    name = "CjsFormatReadError";
+
+    /** Stable machine-readable error code. */
+    code = "CJS_FORMAT_READ_ERROR";
+
+    /**
+     * Extra reader state; set by the constructor.
+     * @type {object}
+     */
+    details = {};
+
     /**
      * Creates a read error with structured reader-state details.
      *
@@ -18,8 +29,6 @@ export class CjsFormatReadError extends Error
     constructor(message, details = {})
     {
         super(message);
-        this.name = "CjsFormatReadError";
-        this.code = "CJS_FORMAT_READ_ERROR";
         this.details = details;
     }
 }
@@ -46,6 +55,17 @@ export class CjsFormatReadError extends Error
  */
 export class CjsFormatRangeError extends RangeError
 {
+    name = "CjsFormatRangeError";
+
+    /** Stable machine-readable error code. */
+    code = "CJS_FORMAT_RANGE_ERROR";
+
+    /**
+     * Extra reader state; set by the constructor.
+     * @type {object}
+     */
+    details = {};
+
     /**
      * Creates a bounds error with structured reader-state details.
      *
@@ -55,8 +75,6 @@ export class CjsFormatRangeError extends RangeError
     constructor(message, details = {})
     {
         super(message);
-        this.name = "CjsFormatRangeError";
-        this.code = "CJS_FORMAT_RANGE_ERROR";
         this.details = details;
     }
 }
@@ -66,6 +84,17 @@ export class CjsFormatRangeError extends RangeError
  */
 export class CjsFormatWriteError extends Error
 {
+    name = "CjsFormatWriteError";
+
+    /** Stable machine-readable error code. */
+    code = "CJS_FORMAT_WRITE_ERROR";
+
+    /**
+     * Extra writer state; set by the constructor.
+     * @type {object}
+     */
+    details = {};
+
     /**
      * Creates a write error with structured writer-state details.
      *
@@ -75,8 +104,6 @@ export class CjsFormatWriteError extends Error
     constructor(message, details = {})
     {
         super(message);
-        this.name = "CjsFormatWriteError";
-        this.code = "CJS_FORMAT_WRITE_ERROR";
         this.details = details;
     }
 }

@@ -21,6 +21,9 @@ export class CjsError extends Error
     /** Stable error identity independent of minified constructor names. */
     static className = "CjsError";
 
+    /** The constructing class's registered name; set by the constructor. */
+    name = "CjsError";
+
     /**
      * Creates an operational error.
      *

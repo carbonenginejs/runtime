@@ -14,15 +14,13 @@ export class CjsFileIndexSource
 
     /**
      * Binds a compact source ID to a plain HTTP(S) base URL - credentials, query
-     * and fragment are refused and the trailing slash is stripped - then freezes
-     * the pair so every later Resolve shares one containment boundary.
+     * and fragment are refused and the trailing slash is stripped - so every
+     * later Resolve shares one containment boundary.
      */
     constructor({ id, baseURL })
     {
         this.id = CjsFileIndexSource.normalizeID(id);
         this.baseURL = normalizeHTTPURL(baseURL);
-
-        this;
     }
 
     /**
@@ -70,7 +68,7 @@ export class CjsFileIndexSource
     }
 
     /**
-     * Normalizes a location and splits it into a frozen { sourceID, path }
+     * Normalizes a location and splits it into a { sourceID, path }
      * record, where sourceID is null when the location names no source.
      */
     static parseLocation(value)
