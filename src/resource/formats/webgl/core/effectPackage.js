@@ -1113,9 +1113,10 @@ const OVERRIDABLE_TEXTURE = /^PatternMask\d*Map$/iu;
  * Returns null when nothing needs emulating, which is the common case - 492 of
  * 537 shipped effects - and keeps those shaders byte-identical to before.
  *
- * Waiting: this gate is authored-only, as the WGSL one was until 119a2d046; a
- * DYNAMIC sampler (an override can give it border, e.g. EveSOF's ship-pattern
- * override) likely needs the same wrap here.
+ * Coverage differs from WGSL by design: this gates authored modes plus the SOF
+ * pattern-layer family matched by resource name (the second pass below), while
+ * WGSL gates every DYNAMIC sampler (119a2d046). Aligning this to the dynamic
+ * rule is optional; patterns are already covered.
  *
  * @param {object[]} samplers Container sampler descriptors, keyed by register.
  * @returns {{samplerModes:object}|null}
