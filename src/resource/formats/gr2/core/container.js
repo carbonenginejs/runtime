@@ -153,6 +153,54 @@ export function gr2Variant(type, value)
 class SectionSerializer
 {
     /**
+     * Every type the graph uses; set by the constructor.
+     * @type {Array<object>}
+     */
+    types = [];
+
+    /**
+     * Section byte writer.
+     * @type {CjsByteWriter}
+     */
+    writer = new CjsByteWriter();
+
+    /**
+     * Written offset per type.
+     * @type {Map<object, number>}
+     */
+    typeOffsets = new Map();
+
+    /**
+     * Written offset per string.
+     * @type {Map<string, number>}
+     */
+    stringOffsets = new Map();
+
+    /**
+     * Written offset per object.
+     * @type {Map<object, number>}
+     */
+    objectOffsets = new Map();
+
+    /**
+     * Cached byte size per type.
+     * @type {Map<object, number>}
+     */
+    sizeCache = new Map();
+
+    /**
+     * Pointer fixups to relocate.
+     * @type {object[]}
+     */
+    fixups = [];
+
+    /**
+     * Mixed-marshalling fixups to relocate.
+     * @type {object[]}
+     */
+    mixedFixups = [];
+
+    /**
      * Create a serializer for a closed set of reflected types.
      *
      * @param {import("./helpers.js").Gr2WriterType[]} types Every type the graph uses.
@@ -160,13 +208,6 @@ class SectionSerializer
     constructor(types)
     {
         this.types = types;
-        this.writer = new CjsByteWriter();
-        this.typeOffsets = new Map();
-        this.stringOffsets = new Map();
-        this.objectOffsets = new Map();
-        this.sizeCache = new Map();
-        this.fixups = [];
-        this.mixedFixups = [];
     }
 
     /**

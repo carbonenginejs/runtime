@@ -27,6 +27,42 @@ const BLUE_OBJECT_METADATA_KEY = "__bluemetadata__";
 export class CjsBlackReader extends CjsBlueReader
 {
     /**
+     * Binary read cursor; set by the constructor.
+     * @type {CjsBlackBinaryReader|null}
+     */
+    reader = null;
+
+    /**
+     * Objects already read, keyed by Black reference; cleared per read.
+     * @type {Map<number, object>}
+     */
+    references = new Map();
+
+    /**
+     * Header and string tables; cached by Inspect.
+     * @type {BlackInspection|null}
+     */
+    info = null;
+
+    /**
+     * Whether reads build payloads or runtime objects.
+     * @type {"payload"|"runtime"}
+     */
+    readMode = "payload";
+
+    /**
+     * Current payload nesting depth.
+     * @type {number}
+     */
+    payloadDepth = 0;
+
+    /**
+     * Root fields selected for the payload; null until resolved, false when every field is kept.
+     * @type {Set<string>|false|null}
+     */
+    payloadRootFields = null;
+
+    /**
      * Creates a CjsBlackReader over caller-provided Black bytes and reader
      * options.
      *
@@ -44,11 +80,6 @@ export class CjsBlackReader extends CjsBlueReader
             requirePayloadReferenceTarget: true
         });
         this.reader = CjsBlackBinaryReader.from(input, this);
-        this.references = new Map();
-        this.info = null;
-        this.readMode = "payload";
-        this.payloadDepth = 0;
-        this.payloadRootFields = null;
     }
 
     /**

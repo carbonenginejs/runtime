@@ -6,15 +6,28 @@ import { CjsSchema } from "#schema/CjsSchema";
 export class HlslEffectTechnique
 {
     /**
-   * Creates an empty technique record.
-   */
-    constructor()
-    {
-        this.name = "";
-        this.passes = [];
-        this.libraries = [];
-        this.shaderTypeMask = 0;
-    }
+     * Technique name (Shader/Tr2EffectDescription.h:241).
+     * @type {string}
+     */
+    name = "";
+
+    /**
+     * Passes (Shader/Tr2EffectDescription.h:242).
+     * @type {HlslPass[]}
+     */
+    passes = [];
+
+    /**
+     * Ray-tracing libraries (Shader/Tr2EffectDescription.h:243).
+     * @type {HlslEffectLibrary[]}
+     */
+    libraries = [];
+
+    /**
+     * Shader-stage bit mask (Shader/Tr2EffectDescription.h:237).
+     * @type {number}
+     */
+    shaderTypeMask = 0;
 
     /**
    * Returns a JSON-safe technique metadata snapshot.

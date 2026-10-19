@@ -2182,6 +2182,30 @@ function copyInflatedBytes(state, distance, length)
 class DeflateBitReader
 {
     /**
+     * Raw deflate stream bytes; set by the constructor.
+     * @type {Uint8Array|null}
+     */
+    bytes = null;
+
+    /**
+     * Next byte to load into the bit buffer.
+     * @type {number}
+     */
+    byteOffset = 0;
+
+    /**
+     * Pending bits, least significant first.
+     * @type {number}
+     */
+    bitBuffer = 0;
+
+    /**
+     * Number of pending bits in the bit buffer.
+     * @type {number}
+     */
+    bitCount = 0;
+
+    /**
      * Creates a DeflateBitReader over caller-provided FBX bytes and reader
      * options.
      *
@@ -2190,9 +2214,6 @@ class DeflateBitReader
     constructor(bytes)
     {
         this.bytes = bytes;
-        this.byteOffset = 0;
-        this.bitBuffer = 0;
-        this.bitCount = 0;
     }
 
     /**
@@ -2278,6 +2299,18 @@ class DeflateBitReader
 class DeflateHuffmanTable
 {
     /**
+     * Symbols by code length, then by bit-reversed code.
+     * @type {Array<number[]>}
+     */
+    tables = [];
+
+    /**
+     * Longest code length in use.
+     * @type {number}
+     */
+    maxBits = 0;
+
+    /**
      * Creates a DeflateHuffmanTable with caller-provided initial state.
      *
      * @param {number[]} lengths Code length per symbol; 0 marks an unused symbol.
@@ -2285,9 +2318,6 @@ class DeflateHuffmanTable
      */
     constructor(lengths)
     {
-        this.tables = [];
-        this.maxBits = 0;
-
         const counts = new Array(16).fill(0);
         for (const length of lengths)
         {

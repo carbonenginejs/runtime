@@ -67,6 +67,48 @@ for (let i = 0; i <= 32; i++)
 class FrequencyModel
 {
     /**
+     * Total symbols V; set by the constructor.
+     * @type {number}
+     */
+    symbolCount = 0;
+
+    /**
+     * Cumulative frequency table cum[0..V]; set by the constructor.
+     * @type {Uint16Array|null}
+     */
+    cum = null;
+
+    /**
+     * Per-symbol accumulators; set by the constructor.
+     * @type {Uint16Array|null}
+     */
+    acc = null;
+
+    /**
+     * Adaptation tick counter.
+     * @type {number}
+     */
+    tick = 0;
+
+    /**
+     * Per-symbol increment; set by the constructor.
+     * @type {number}
+     */
+    inc = 0;
+
+    /**
+     * Increment for the last symbol; set by the constructor.
+     * @type {number}
+     */
+    lastInc = 0;
+
+    /**
+     * Fast symbol-search lookup table; set by the constructor.
+     * @type {Uint16Array|null}
+     */
+    lookup = null;
+
+    /**
      * @param {number} symbolCount Total symbols V.
      * @param {number} minProbCount Trailing minimum-probability symbols M.
      */

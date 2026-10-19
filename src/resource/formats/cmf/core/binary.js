@@ -38,6 +38,18 @@ export function asUint8Array(input)
 export class BinaryReader
 {
     /**
+     * CMF file bytes; set by the constructor.
+     * @type {Uint8Array|null}
+     */
+    bytes = null;
+
+    /**
+     * Little-endian view over the bytes; set by the constructor.
+     * @type {DataView|null}
+     */
+    view = null;
+
+    /**
      * Creates a BinaryReader over caller-provided CMF bytes.
      *
      * @param {Uint8Array|ArrayBuffer|ArrayBufferView} bytes CMF file bytes.

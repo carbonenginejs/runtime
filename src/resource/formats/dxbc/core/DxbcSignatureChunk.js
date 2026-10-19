@@ -40,14 +40,22 @@ export const DxbcComponentTypeNames = Object.freeze([ "unknown", "uint32", "int3
 export class DxbcSignatureChunk
 {
     /**
-     * Creates an empty signature chunk; call a read entry point to populate its parameter records.
+     * Chunk four-character code.
+     * @type {string}
      */
-    constructor()
-    {
-        this.fourCC = "";
-        this.elements = [];
-        this.source = "memory";
-    }
+    fourCC = "";
+
+    /**
+     * Signature element records.
+     * @type {object[]}
+     */
+    elements = [];
+
+    /**
+     * Source name used in error details.
+     * @type {string}
+     */
+    source = "memory";
 
     /**
    * Reads a signature chunk payload into semantic/register element records.

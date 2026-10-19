@@ -38,6 +38,36 @@ const SPECIAL_OPERAND_NAMES = {
 export class DxbcGlslOperandFormatter
 {
     /**
+     * Declared component type per operand; null when not supplied.
+     * @type {function(object): (string|null)|null}
+     */
+    componentMap = null;
+
+    /**
+     * Whether temporary integer lanes are read from uint companions.
+     * @type {boolean}
+     */
+    integerTemps = false;
+
+    /**
+     * Vertex-input register index to "int"|"uint" for float-lowered integer inputs; null when none.
+     * @type {Map<number, string>|null}
+     */
+    integerInputs = null;
+
+    /**
+     * Input register index to GLSL integer built-in; null when none.
+     * @type {Map<number, string>|null}
+     */
+    systemIntegerInputs = null;
+
+    /**
+     * Register-name builders; set by the constructor from its defaults and options.names.
+     * @type {object|null}
+     */
+    names = null;
+
+    /**
    * @param {object} [options] Naming overrides.
    * @param {object} [options.names] Partial override of the register-name builders.
    * @param {boolean} [options.integerTemps] Read temporary integer lanes from uint companions.

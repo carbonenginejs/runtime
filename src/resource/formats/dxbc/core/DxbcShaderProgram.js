@@ -24,19 +24,52 @@ export const DxbcProgramTypeNames = Object.freeze([
 export class DxbcShaderProgram
 {
     /**
-     * Creates an empty shader program; call a read entry point to populate its version, stage, and instructions.
+     * Chunk four-character code (`SHEX` or `SHDR`).
+     * @type {string}
      */
-    constructor()
-    {
-        this.fourCC = "";
-        this.majorVersion = 0;
-        this.minorVersion = 0;
-        this.programType = 0;
-        this.programTypeName = "unknown";
-        this.lengthDwords = 0;
-        this.tokens = new Uint32Array(0);
-        this.source = "memory";
-    }
+    fourCC = "";
+
+    /**
+     * Shader model major version.
+     * @type {number}
+     */
+    majorVersion = 0;
+
+    /**
+     * Shader model minor version.
+     * @type {number}
+     */
+    minorVersion = 0;
+
+    /**
+     * Program type from the version token.
+     * @type {number}
+     */
+    programType = 0;
+
+    /**
+     * Program type name from DxbcProgramTypeNames.
+     * @type {string}
+     */
+    programTypeName = "unknown";
+
+    /**
+     * Program length in dwords.
+     * @type {number}
+     */
+    lengthDwords = 0;
+
+    /**
+     * Instruction token stream.
+     * @type {Uint32Array}
+     */
+    tokens = new Uint32Array(0);
+
+    /**
+     * Source name used in error details.
+     * @type {string}
+     */
+    source = "memory";
 
     /**
    * Reads the program version header and copies the aligned token stream.

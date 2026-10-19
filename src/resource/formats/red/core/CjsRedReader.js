@@ -14,6 +14,42 @@ import { parseRed, isTypedTable, decodeTypedTable, isStrippedKey } from "./redGr
 export class CjsRedReader extends CjsBlueReader
 {
     /**
+     * Parsed Red graph root; set by the constructor.
+     * @type {*}
+     */
+    root = null;
+
+    /**
+     * Whether reads build payloads or runtime objects.
+     * @type {string}
+     */
+    mode = "payload";
+
+    /**
+     * Source object to hydrated target; reset per read.
+     * @type {Map<object, object>}
+     */
+    refs = new Map();
+
+    /**
+     * Source object to reference id; reset per read.
+     * @type {Map<object, number>}
+     */
+    ids = new Map();
+
+    /**
+     * Reference counts per payload object; reset per read.
+     * @type {WeakMap<object, number>}
+     */
+    payloadReferenceCounts = new WeakMap();
+
+    /**
+     * Next reference id; reset per read from options.firstId.
+     * @type {number}
+     */
+    nextId = 1;
+
+    /**
      * Creates a CjsRedReader over caller-provided RED bytes and reader options.
      *
      * @param {unknown} input Parsed Red object, YAML string, or UTF-8 bytes.
@@ -26,7 +62,6 @@ export class CjsRedReader extends CjsBlueReader
             validatePayloadReservedFields: true
         });
         this.root = parseRed(input, options);
-        this.mode = "payload";
         this.ResetReadState();
     }
 

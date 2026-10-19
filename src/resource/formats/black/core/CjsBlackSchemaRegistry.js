@@ -10,6 +10,12 @@ import { CjsBlackPropertyReaders } from "./CjsBlackPropertyReaders.js";
 export class CjsBlackSchemaRegistry
 {
     /**
+     * Source shapes by class name and alias; set by the constructor.
+     * @type {Map<string, BlackSourceShape>}
+     */
+    shapes = new Map();
+
+    /**
      * Derives Black decoder records from Blue's stored declarations.
      * Native IRootReader::FindEntry selects the first inherited PERSIST entry
      * (IRootReader.cpp:303-320), a `MAP_PROPERTY_PERSISTED` property included;

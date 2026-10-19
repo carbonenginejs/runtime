@@ -60,6 +60,30 @@ function defineMappingValue(target, key, value)
 export class CjsYamlReader extends CjsReader
 {
     /**
+     * YAML source text; set by the constructor.
+     * @type {string}
+     */
+    source = "";
+
+    /**
+     * Line counter the parser fills; set by the constructor.
+     * @type {LineCounter|null}
+     */
+    lineCounter = null;
+
+    /**
+     * Parsed YAML document; set by the constructor.
+     * @type {object|null}
+     */
+    document = null;
+
+    /**
+     * Tags, anchors, aliases, warnings and errors; set by the constructor.
+     * @type {object|null}
+     */
+    inventory = null;
+
+    /**
      * Creates a CjsYamlReader over caller-provided YAML bytes and reader
      * options.
      *

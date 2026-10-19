@@ -9,14 +9,22 @@ import { ANY_TECHNIQUE, HlslEffectDescription } from "./HlslEffectDescription.js
 export class HlslShader
 {
     /**
-   * Creates an empty shader wrapper.
-   */
-    constructor()
-    {
-        this.m_sortValue = 0;
-        this.m_effect = new HlslEffectDescription();
-        this.m_hasVertexBufferAccessInRtShadow = false;
-    }
+     * Sort value (Shader/Tr2Shader.cpp:15).
+     * @type {number}
+     */
+    m_sortValue = 0;
+
+    /**
+     * Effect description, embedded by value (Shader/Tr2Shader.h:46).
+     * @type {HlslEffectDescription}
+     */
+    m_effect = new HlslEffectDescription();
+
+    /**
+     * Whether ray-traced shadows read the vertex buffer (Shader/Tr2Shader.cpp:16).
+     * @type {boolean}
+     */
+    m_hasVertexBufferAccessInRtShadow = false;
 
     /**
    * Finds a technique index by name, or returns the first technique for `ANY_TECHNIQUE`.

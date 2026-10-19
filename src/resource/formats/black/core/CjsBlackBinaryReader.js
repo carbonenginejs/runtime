@@ -7,6 +7,24 @@ import { CjsSchema } from "#schema/CjsSchema";
 export class CjsBlackBinaryReader
 {
     /**
+     * Bytes the cursor reads; set by the constructor.
+     * @type {DataView|null}
+     */
+    data = null;
+
+    /**
+     * Object-graph reader that owns the string tables and nested reads.
+     * @type {CjsBlackReader|null}
+     */
+    context = null;
+
+    /**
+     * Current byte offset.
+     * @type {number}
+     */
+    offset = 0;
+
+    /**
      * Creates a CjsBlackBinaryReader over caller-provided Black bytes and reader
      * options.
      *
@@ -23,7 +41,6 @@ export class CjsBlackBinaryReader
 
         this.data = dataView;
         this.context = context;
-        this.offset = 0;
     }
 
     /**

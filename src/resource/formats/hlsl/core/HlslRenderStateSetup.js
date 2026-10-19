@@ -6,6 +6,12 @@ import { CjsSchema } from "#schema/CjsSchema";
 export class HlslRenderStateSetup
 {
     /**
+     * Render-state values keyed by render-state enum; set by the constructor.
+     * @type {Map<number, number>}
+     */
+    states = new Map();
+
+    /**
    * Creates a render-state table from a Map or plain object.
    *
    * @param {Map<number, number>|object} [states] Render-state key/value pairs.

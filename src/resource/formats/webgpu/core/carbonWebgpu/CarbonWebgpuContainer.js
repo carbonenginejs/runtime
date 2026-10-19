@@ -96,18 +96,46 @@ function optionIndicesFor(axes, permutationIndex)
 export class CarbonWebgpuContainer
 {
     /**
-     * Creates an empty container reader.
+     * Error caught by the last Read; null when it succeeded.
+     * @type {Error|null}
      */
-    constructor()
-    {
-        this.readError = null;
-        this.sourcePath = "";
-        this.containerVersion = 0;
-        this.bytes = null;
-        this.carbon = null;
-        this._descriptions = new Map();
-        this._bodyKeyByOffset = null;
-    }
+    readError = null;
+
+    /**
+     * Source path for diagnostics.
+     * @type {string}
+     */
+    sourcePath = "";
+
+    /**
+     * Container version.
+     * @type {number}
+     */
+    containerVersion = 0;
+
+    /**
+     * Container bytes; null until Read.
+     * @type {Uint8Array|null}
+     */
+    bytes = null;
+
+    /**
+     * Shared container reader; null until Read succeeds.
+     * @type {CjsCarbonEffectReader|null}
+     */
+    carbon = null;
+
+    /**
+     * Decoded descriptions by stored body offset; a lazy cache.
+     * @type {Map<number, object>}
+     */
+    _descriptions = new Map();
+
+    /**
+     * Body key by stored offset; a lazy cache, null until bodyKeyByOffset builds it.
+     * @type {Map<number, string>|null}
+     */
+    _bodyKeyByOffset = null;
 
     /**
      * Reads a container from bytes.

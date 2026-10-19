@@ -6,6 +6,30 @@ import { CjsSchema } from "#schema/CjsSchema";
 export class HlslResourceSetDescription
 {
     /**
+     * Shader stage enum values participating in the set; set by the constructor.
+     * @type {number[]}
+     */
+    shaderTypes = [];
+
+    /**
+     * Stage signatures read from the effect body; set by the constructor.
+     * @type {object[]}
+     */
+    signatures = [];
+
+    /**
+     * Static sampler bindings recorded by SetSampler.
+     * @type {Array<{stageType: number, registerIndex: number, sampler: object}>}
+     */
+    samplers = [];
+
+    /**
+     * Heap-view bindings recorded by the Set*HeapView methods.
+     * @type {Array<{kind: string, stageType: number, registerIndex: number}>}
+     */
+    heapViews = [];
+
+    /**
    * Creates an empty resource-set description for the supplied shader stages.
    *
    * @param {number[]} [shaderTypes] Shader stage enum values participating in the set.
@@ -15,8 +39,6 @@ export class HlslResourceSetDescription
     {
         this.shaderTypes = shaderTypes.slice();
         this.signatures = signatures.slice();
-        this.samplers = [];
-        this.heapViews = [];
     }
 
     /**

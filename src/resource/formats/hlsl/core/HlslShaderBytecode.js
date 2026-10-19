@@ -8,6 +8,42 @@ import { asUint8Array } from "#utils/bytes";
 export class HlslShaderBytecode
 {
     /**
+     * Trinity shader stage enum value, or null when unknown; set by the constructor.
+     * @type {number|null}
+     */
+    stageType = null;
+
+    /**
+     * Friendly stage name, or null when unknown; set by the constructor.
+     * @type {string|null}
+     */
+    stageName = null;
+
+    /**
+     * Shader bytecode bytes; set by the constructor.
+     * @type {Uint8Array}
+     */
+    bytes = new Uint8Array(0);
+
+    /**
+     * Original bytecode size from the effect; set by the constructor.
+     * @type {number}
+     */
+    shaderSize = 0;
+
+    /**
+     * Offset into the effect string table, or null; set by the constructor.
+     * @type {number|null}
+     */
+    stringTableOffset = null;
+
+    /**
+     * Source effect name or path; set by the constructor.
+     * @type {string}
+     */
+    effectName = "";
+
+    /**
    * Captures bytecode and metadata for one compiled shader stage or library.
    *
    * @param {object} [options] Bytecode metadata.

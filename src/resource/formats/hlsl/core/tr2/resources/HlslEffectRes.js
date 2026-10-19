@@ -19,26 +19,94 @@ export class HlslEffectRes
     static globalEffectOptions = [];
 
     /**
-   * Creates an empty effect resource ready to load a compiled `.sm_*` payload.
-   */
-    constructor()
-    {
-        this.m_data = new Uint8Array(0);
-        this.m_reader = null;
-        this.m_version = 0;
-        this.m_stringTable = new Uint8Array(0);
-        this.m_stringTableSize = 0;
-        this.m_offsets = [];
-        this.m_offsetCount = 0;
-        this.m_permutations = [];
-        this.m_shaders = new Map();
-        this.m_compilerVersion = null;
-        this.m_compilerVersionBytes = null;
-        this.m_hash = new Uint8Array(0);
-        this.sourcePath = "";
-        this.loadError = null;
-        this.effectStateManager = new HlslEffectStateManager();
-    }
+     * Owned copy of the loaded effect bytes (CcpMallocBuffer, Resources/Tr2EffectRes.h:75).
+     * @type {Uint8Array}
+     */
+    m_data = new Uint8Array(0);
+
+    /**
+     * Container reader that parsed the header; ours, null until DoLoad.
+     * @type {CjsCarbonEffectReader|null}
+     */
+    m_reader = null;
+
+    /**
+     * Container version (Resources/Tr2EffectRes.cpp:37).
+     * @type {number}
+     */
+    m_version = 0;
+
+    /**
+     * String-table bytes; Carbon's pointer starts null (Resources/Tr2EffectRes.cpp:38), ours is an empty byte array.
+     * @type {Uint8Array}
+     */
+    m_stringTable = new Uint8Array(0);
+
+    /**
+     * String-table size in bytes (Resources/Tr2EffectRes.cpp:39).
+     * @type {number}
+     */
+    m_stringTableSize = 0;
+
+    /**
+     * Per-permutation file records; Carbon's pointer starts null (Resources/Tr2EffectRes.cpp:41), ours is an empty array.
+     * @type {Array<{index: number, offset: number, size: number, end: number}>}
+     */
+    m_offsets = [];
+
+    /**
+     * Number of file records (Resources/Tr2EffectRes.cpp:40).
+     * @type {number}
+     */
+    m_offsetCount = 0;
+
+    /**
+     * Permutation axes (Resources/Tr2EffectRes.h:84).
+     * @type {Array<HlslShaderPermutation>}
+     */
+    m_permutations = [];
+
+    /**
+     * Decoded shaders keyed by permutation index (Resources/Tr2EffectRes.h:85).
+     * @type {Map<number, HlslShader>}
+     */
+    m_shaders = new Map();
+
+    /**
+     * Compiler version as a little-endian uint32; ours, null when the container carries none.
+     * @type {number|null}
+     */
+    m_compilerVersion = null;
+
+    /**
+     * Raw compiler-version bytes; ours, null when the container carries none.
+     * @type {Uint8Array|null}
+     */
+    m_compilerVersionBytes = null;
+
+    /**
+     * Source hash bytes; ours, empty when the container carries none.
+     * @type {Uint8Array}
+     */
+    m_hash = new Uint8Array(0);
+
+    /**
+     * Source path used in reports; ours.
+     * @type {string}
+     */
+    sourcePath = "";
+
+    /**
+     * Error caught by the last DoLoad; ours, null when it succeeded.
+     * @type {Error|null}
+     */
+    loadError = null;
+
+    /**
+     * Registry that receives decoded state; ours.
+     * @type {HlslEffectStateManager}
+     */
+    effectStateManager = new HlslEffectStateManager();
 
     /**
    * Reads the effect header, string table, permutation axes, and body offsets.

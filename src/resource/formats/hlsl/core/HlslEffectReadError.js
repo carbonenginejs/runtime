@@ -5,6 +5,14 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class HlslEffectReadError extends Error
 {
+    name = "HlslEffectReadError";
+
+    /**
+     * Extra reader state; set by the constructor.
+     * @type {object}
+     */
+    details = {};
+
     /**
    * Creates an effect-read error with structured location details.
    *
@@ -14,7 +22,6 @@ export class HlslEffectReadError extends Error
     constructor(message, details = {})
     {
         super(message);
-        this.name = "HlslEffectReadError";
         this.details = details;
     }
 }

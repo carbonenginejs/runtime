@@ -18,17 +18,40 @@ export const ANY_TECHNIQUE = "";
 export class HlslEffectDescription
 {
     /**
-   * Creates an empty decoded effect description.
-   */
-    constructor()
-    {
-        this.techniques = [];
-        this.annotations = new Map();
-        this.version = 0;
-        this.effectName = "";
-        this.readError = null;
-        this.effectStateManager = null;
-    }
+     * Techniques (Shader/Tr2EffectDescription.cpp:20).
+     * @type {HlslEffectTechnique[]}
+     */
+    techniques = [];
+
+    /**
+     * Parameter name to annotations (Shader/Tr2EffectDescription.cpp:21).
+     * @type {Map<string, HlslEffectParameterAnnotation[]>}
+     */
+    annotations = new Map();
+
+    /**
+     * Container version; ours.
+     * @type {number}
+     */
+    version = 0;
+
+    /**
+     * Effect name or path; ours.
+     * @type {string}
+     */
+    effectName = "";
+
+    /**
+     * Read failure; ours, null when the body decoded.
+     * @type {Error|null}
+     */
+    readError = null;
+
+    /**
+     * Registry that received decoded state; ours, null until assembled.
+     * @type {object|null}
+     */
+    effectStateManager = null;
 
     /**
    * Returns a JSON-safe summary of decoded techniques and annotations.

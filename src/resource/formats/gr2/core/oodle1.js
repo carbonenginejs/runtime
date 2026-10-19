@@ -28,6 +28,36 @@ export const OODLE1_OUTPUT_SLACK = 512;
 class Decoder
 {
     /**
+     * Padded compressed stream; set by the constructor.
+     * @type {Uint8Array|null}
+     */
+    stream = null;
+
+    /**
+     * Read position in the stream; set by the constructor.
+     * @type {number}
+     */
+    pos = 0;
+
+    /**
+     * Arithmetic numerator; set by the constructor.
+     * @type {number}
+     */
+    numer = 0;
+
+    /**
+     * Arithmetic denominator; set by the constructor.
+     * @type {number}
+     */
+    denom = 0;
+
+    /**
+     * Denominator step of the last decode; set by the constructor.
+     * @type {number}
+     */
+    nextDenom = 0;
+
+    /**
      * Create an arithmetic decoder over a padded compressed stream.
      *
      * @param {Uint8Array} stream Compressed payload after the parameter header.
@@ -94,6 +124,66 @@ class Decoder
  */
 class WeighWindow
 {
+    /**
+     * Sum of the symbol weights; set by the constructor.
+     * @type {number}
+     */
+    weightTotal = 0;
+
+    /**
+     * Maximum number of weighted entries; set by the constructor.
+     * @type {number}
+     */
+    countCap = 0;
+
+    /**
+     * Arithmetic ranges per entry; set by the constructor.
+     * @type {number[]|null}
+     */
+    ranges = null;
+
+    /**
+     * Weight per entry; set by the constructor.
+     * @type {number[]|null}
+     */
+    weights = null;
+
+    /**
+     * Symbol value per entry; set by the constructor.
+     * @type {number[]|null}
+     */
+    values = null;
+
+    /**
+     * Reusable tryDecode result carrier; set by the constructor.
+     * @type {{newIndex: number, value: number}|null}
+     */
+    result = null;
+
+    /**
+     * Weight increase per decode; set by the constructor.
+     * @type {number}
+     */
+    threshIncrease = 0;
+
+    /**
+     * Decode count before the ranges rebuild; set by the constructor.
+     * @type {number}
+     */
+    threshRangeRebuild = 0;
+
+    /**
+     * Weight total before the weights rebuild; set by the constructor.
+     * @type {number}
+     */
+    threshWeightRebuild = 0;
+
+    /**
+     * Cap on the weight increase; set by the constructor.
+     * @type {number}
+     */
+    threshIncreaseCap = 0;
+
     /**
      * Create an adaptive window for values up to a maximum symbol.
      *
@@ -295,6 +385,78 @@ const BACKREF_SIZES = OODLE1_BACKREF_SIZES;
  */
 class Dictionary
 {
+    /**
+     * Decoded bytes so far; set by the constructor.
+     * @type {number}
+     */
+    decodedSize = 0;
+
+    /**
+     * Back-reference bytes so far; set by the constructor.
+     * @type {number}
+     */
+    backrefSize = 0;
+
+    /**
+     * Maximum decoded literal value; set by the constructor.
+     * @type {number}
+     */
+    decodedValueMax = 0;
+
+    /**
+     * Maximum back-reference value; set by the constructor.
+     * @type {number}
+     */
+    backrefValueMax = 0;
+
+    /**
+     * Maximum low-bit value; set by the constructor.
+     * @type {number}
+     */
+    lowbitValueMax = 0;
+
+    /**
+     * Maximum mid-bit value; set by the constructor.
+     * @type {number}
+     */
+    midbitValueMax = 0;
+
+    /**
+     * Maximum high-bit value; set by the constructor.
+     * @type {number}
+     */
+    highbitValueMax = 0;
+
+    /**
+     * Low-bit symbol window; set by the constructor.
+     * @type {WeighWindow|null}
+     */
+    lowbitWindow = null;
+
+    /**
+     * High-bit symbol window; set by the constructor.
+     * @type {WeighWindow|null}
+     */
+    highbitWindow = null;
+
+    /**
+     * Mid-bit symbol windows; set by the constructor.
+     * @type {WeighWindow[]|null}
+     */
+    midbitWindows = null;
+
+    /**
+     * Decoded-literal symbol windows; set by the constructor.
+     * @type {WeighWindow[]|null}
+     */
+    decodedWindows = null;
+
+    /**
+     * Size symbol windows; set by the constructor.
+     * @type {WeighWindow[]|null}
+     */
+    sizeWindows = null;
+
     /**
      * Create a dictionary from one decoded Oodle1 parameter block.
      *

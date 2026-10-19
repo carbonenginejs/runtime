@@ -5,6 +5,14 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class DxbcReadError extends Error
 {
+    name = "DxbcReadError";
+
+    /**
+     * Extra reader state; set by the constructor.
+     * @type {object}
+     */
+    details = {};
+
     /**
    * Creates a bytecode-read error with structured location details.
    *
@@ -14,7 +22,6 @@ export class DxbcReadError extends Error
     constructor(message, details = {})
     {
         super(message);
-        this.name = "DxbcReadError";
         this.details = details;
     }
 }

@@ -8,19 +8,52 @@ import { HlslRenderStateSetup } from "./HlslRenderStateSetup.js";
 export class HlslEffectStateManager
 {
     /**
-   * Creates empty registries for shaders, programs, render states, and libraries.
-   */
-    constructor()
-    {
-        this._nextShader = 1;
-        this._nextProgram = 1;
-        this._nextRenderState = 1;
-        this._nextLibrary = 1;
-        this.shaders = new Map();
-        this.shaderPrograms = new Map();
-        this.renderStates = new Map();
-        this.shaderLibraries = new Map();
-    }
+     * Registered shader stages by handle; ours.
+     * @type {Map<number, object>}
+     */
+    shaders = new Map();
+
+    /**
+     * Registered shader programs by handle; ours.
+     * @type {Map<number, object>}
+     */
+    shaderPrograms = new Map();
+
+    /**
+     * Registered render-state setups by handle; ours.
+     * @type {Map<number, HlslRenderStateSetup>}
+     */
+    renderStates = new Map();
+
+    /**
+     * Registered shader libraries by handle; ours.
+     * @type {Map<number, object>}
+     */
+    shaderLibraries = new Map();
+
+    /**
+     * Next shader handle; handles start at 1.
+     * @type {number}
+     */
+    _nextShader = 1;
+
+    /**
+     * Next shader-program handle; handles start at 1.
+     * @type {number}
+     */
+    _nextProgram = 1;
+
+    /**
+     * Next render-state handle; handles start at 1.
+     * @type {number}
+     */
+    _nextRenderState = 1;
+
+    /**
+     * Next library handle; handles start at 1.
+     * @type {number}
+     */
+    _nextLibrary = 1;
 
     /**
    * Registers a shader stage payload and returns a stable numeric handle.

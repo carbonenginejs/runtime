@@ -13,6 +13,14 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class WebglReadError extends Error
 {
+    name = "WebglReadError";
+
+    /**
+     * Extra reader state; set by the constructor.
+     * @type {object}
+     */
+    details = {};
+
     /**
    * Creates a read/emit error with structured location details.
    *
@@ -22,7 +30,6 @@ export class WebglReadError extends Error
     constructor(message, details = {})
     {
         super(message);
-        this.name = "WebglReadError";
         this.details = details;
     }
 }

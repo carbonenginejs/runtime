@@ -20,17 +20,40 @@ const fourCCDecoder = new TextDecoder("latin1");
 export class DxbcContainer
 {
     /**
-     * Creates an empty container; call a read entry point to populate it from bytes.
+     * Container bytes.
+     * @type {Uint8Array}
      */
-    constructor()
-    {
-        this.bytes = new Uint8Array(0);
-        this.checksum = new Uint8Array(0);
-        this.version = 0;
-        this.totalSize = 0;
-        this.chunks = [];
-        this.source = "memory";
-    }
+    bytes = new Uint8Array(0);
+
+    /**
+     * Container checksum bytes.
+     * @type {Uint8Array}
+     */
+    checksum = new Uint8Array(0);
+
+    /**
+     * Container version.
+     * @type {number}
+     */
+    version = 0;
+
+    /**
+     * Total container size in bytes.
+     * @type {number}
+     */
+    totalSize = 0;
+
+    /**
+     * Chunk directory records.
+     * @type {Array<{fourCC: string, bytes: Uint8Array}>}
+     */
+    chunks = [];
+
+    /**
+     * Source name used in error details.
+     * @type {string}
+     */
+    source = "memory";
 
     /**
    * Checks whether a byte payload starts with the DXBC container magic.

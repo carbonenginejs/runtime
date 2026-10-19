@@ -6,6 +6,14 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class WebgpuReadError extends Error
 {
+    name = "WebgpuReadError";
+
+    /**
+     * Extra reader state; set by the constructor.
+     * @type {object}
+     */
+    details = {};
+
     /**
    * Creates a read/analysis error with structured location details.
    *
@@ -15,7 +23,6 @@ export class WebgpuReadError extends Error
     constructor(message, details = {})
     {
         super(message);
-        this.name = "WebgpuReadError";
         this.details = details;
     }
 }

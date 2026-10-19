@@ -112,16 +112,23 @@ const SUBSAMPLINGS = { "4:2:0": [ 2, 2 ], "4:4:4": [ 1, 1 ] };
 /** Collects bytes and packs Huffman codes, stuffing 0x00 after every 0xFF. */
 class BitWriter
 {
+    /**
+     * Bytes written so far.
+     * @type {number[]}
+     */
+    bytes = [];
 
     /**
-     * An empty writer, with nothing accumulated.
+     * Pending bits not yet flushed to a byte.
+     * @type {number}
      */
-    constructor()
-    {
-        this.bytes = [];
-        this.accumulator = 0;
-        this.count = 0;
-    }
+    accumulator = 0;
+
+    /**
+     * Number of pending bits in the accumulator.
+     * @type {number}
+     */
+    count = 0;
 
     /**
      * Appends one byte.

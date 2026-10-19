@@ -197,6 +197,11 @@ function rootSource(input)
  */
 class DisjointSet
 {
+    /**
+     * Parent index per element; set by the constructor.
+     * @type {number[]}
+     */
+    parent = [];
 
     /**
      * Creates a DisjointSet with caller-provided initial state.

@@ -9,26 +9,82 @@ import { HlslResourceSetDescription } from "../../HlslResourceSetDescription.js"
 export class HlslEffectLibrary
 {
     /**
-   * Creates an empty shader-library metadata record.
-   */
-    constructor()
-    {
-        this.payloadSize = 0;
-        this.libraryHandle = 0;
-        this.rayGenName = "";
-        this.missName = "";
-        this.closestHitName = "";
-        this.anyHitName = "";
-        this.intersectionName = "";
-        this.hitGroupName = "";
-        this.exports = [];
-        this.globalInput = new HlslEffectStageInput();
-        this.localInput = new HlslEffectStageInput();
-        // Carbon embeds globalResourceSetDesc by value
-        // (trinity/trinity/Shader/Tr2EffectDescription.h:229).
-        this.globalResourceSetDesc = new HlslResourceSetDescription();
-        this.cjsShaderBytecode = null;
-    }
+     * Ray payload size (Shader/Tr2EffectDescription.h:217). Carbon leaves it unset.
+     * @type {number}
+     */
+    payloadSize = 0;
+
+    /**
+     * Registered library handle (Shader/Tr2EffectDescription.h:218). Carbon leaves it unset.
+     * @type {number}
+     */
+    libraryHandle = 0;
+
+    /**
+     * Ray-generation export name (Shader/Tr2EffectDescription.h:220).
+     * @type {string}
+     */
+    rayGenName = "";
+
+    /**
+     * Miss export name (Shader/Tr2EffectDescription.h:221).
+     * @type {string}
+     */
+    missName = "";
+
+    /**
+     * Closest-hit export name (Shader/Tr2EffectDescription.h:222).
+     * @type {string}
+     */
+    closestHitName = "";
+
+    /**
+     * Any-hit export name (Shader/Tr2EffectDescription.h:223).
+     * @type {string}
+     */
+    anyHitName = "";
+
+    /**
+     * Intersection export name (Shader/Tr2EffectDescription.h:224).
+     * @type {string}
+     */
+    intersectionName = "";
+
+    /**
+     * Hit-group export name (Shader/Tr2EffectDescription.h:225).
+     * @type {string}
+     */
+    hitGroupName = "";
+
+    /**
+     * Library export records; ours.
+     * @type {object[]}
+     */
+    exports = [];
+
+    /**
+     * Global stage input, embedded by value (Shader/Tr2EffectDescription.h:227).
+     * @type {HlslEffectStageInput}
+     */
+    globalInput = new HlslEffectStageInput();
+
+    /**
+     * Local stage input, embedded by value (Shader/Tr2EffectDescription.h:228).
+     * @type {HlslEffectStageInput}
+     */
+    localInput = new HlslEffectStageInput();
+
+    /**
+     * Global resource-set description, embedded by value (Shader/Tr2EffectDescription.h:229).
+     * @type {HlslResourceSetDescription}
+     */
+    globalResourceSetDesc = new HlslResourceSetDescription();
+
+    /**
+     * Captured library bytecode; ours, null until registered.
+     * @type {object|null}
+     */
+    cjsShaderBytecode = null;
 
     /**
    * Returns a JSON-safe shader-library metadata snapshot.

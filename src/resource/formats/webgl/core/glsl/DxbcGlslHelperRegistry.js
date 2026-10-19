@@ -12,13 +12,16 @@ import { WebglReadError } from "../WebglReadError.js";
 export class DxbcGlslHelperRegistry
 {
     /**
-     * Initializes an empty helper-definition registry and requirement set.
+     * Helper definitions by name.
+     * @type {Map<string, {source: string, deps: string[]}>}
      */
-    constructor()
-    {
-        this._definitions = new Map();
-        this._required = new Set();
-    }
+    _definitions = new Map();
+
+    /**
+     * Names of helpers required by the current shader.
+     * @type {Set<string>}
+     */
+    _required = new Set();
 
     /**
    * Defines a helper function.

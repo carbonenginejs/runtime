@@ -60,6 +60,30 @@ export function readWwiseVar(bytes, offset = 0)
 export class WwiseCursor
 {
     /**
+     * Payload bytes; set by the constructor.
+     * @type {Uint8Array|null}
+     */
+    bytes = null;
+
+    /**
+     * Little-endian view over the payload; set by the constructor.
+     * @type {DataView|null}
+     */
+    view = null;
+
+    /**
+     * Current byte offset.
+     * @type {number}
+     */
+    at = 0;
+
+    /**
+     * Exclusive ending offset; set by the constructor.
+     * @type {number}
+     */
+    end = 0;
+
+    /**
      * Creates a cursor over a bounded portion of a Wwise payload.
      *
      * @param {Uint8Array} bytes Payload bytes.

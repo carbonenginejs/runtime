@@ -6,6 +6,18 @@ import { CjsSchema } from "#schema/CjsSchema";
 export class HlslShaderOption
 {
     /**
+     * Permutation axis name (Shader/Tr2EffectDescription.h:274); set by the constructor.
+     * @type {string}
+     */
+    name = "";
+
+    /**
+     * Selected option value (Shader/Tr2EffectDescription.h:275); set by the constructor.
+     * @type {string}
+     */
+    value = "";
+
+    /**
    * Creates a shader option selection.
    *
    * @param {string} [name] Permutation axis name.

@@ -8,13 +8,16 @@ import { HlslSamplerDescription } from "./HlslSamplerDescription.js";
 export class HlslSamplerSetup
 {
     /**
-   * Creates a sampler setup with an empty name and default descriptor.
-   */
-    constructor()
-    {
-        this.name = null;
-        this.sampler = new HlslSamplerDescription();
-    }
+     * Sampler name (Shader/Tr2EffectDescription.h:114); null for a non-dynamic sampler.
+     * @type {string|null}
+     */
+    name = null;
+
+    /**
+     * Sampler descriptor (Shader/Tr2EffectDescription.h:115).
+     * @type {HlslSamplerDescription}
+     */
+    sampler = new HlslSamplerDescription();
 
     /**
    * Returns a JSON-safe sampler binding.

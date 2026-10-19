@@ -11,6 +11,30 @@ import { HlslRenderContextEnum, hlslShaderStageName } from "../HlslRenderContext
 export class HlslEffectBindingManifest
 {
     /**
+     * Effect name or path; set by the constructor.
+     * @type {string}
+     */
+    effectName = "";
+
+    /**
+     * Effect container version; set by the constructor.
+     * @type {number}
+     */
+    version = 0;
+
+    /**
+     * Pass render-state manifest records; set by the constructor.
+     * @type {object[]}
+     */
+    passes = [];
+
+    /**
+     * Stage binding manifest records; set by the constructor.
+     * @type {object[]}
+     */
+    stages = [];
+
+    /**
    * Builds a manifest from a loaded `HlslEffectRes`.
    *
    * @param {object} effectRes Loaded effect resource with `GetShader()`.

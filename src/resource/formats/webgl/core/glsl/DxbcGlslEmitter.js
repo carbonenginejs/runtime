@@ -103,6 +103,18 @@ const COORD_MASK_BY_DIMENSION = {
 export class DxbcGlslEmitter
 {
     /**
+     * GLSL helper functions this emitter can require.
+     * @type {DxbcGlslHelperRegistry}
+     */
+    helpers = new DxbcGlslHelperRegistry();
+
+    /**
+     * Target-runtime profile; set by the constructor from its defaults and options.profile.
+     * @type {object|null}
+     */
+    profile = null;
+
+    /**
    * @param {object} [options] Emitter options.
    * @param {object} [options.profile] Target-runtime profile overrides.
    * @param {"array"|"std140"} [options.profile.constantBufferStyle] `uniform vec4 cbN[]`
@@ -116,7 +128,6 @@ export class DxbcGlslEmitter
    */
     constructor(options = {})
     {
-        this.helpers = new DxbcGlslHelperRegistry();
         this._defineHelpers();
         this.profile = {
             constantBufferStyle: "array",

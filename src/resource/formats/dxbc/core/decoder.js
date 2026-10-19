@@ -399,14 +399,46 @@ function requirePositiveDwordAligned(value, fieldName, fail)
 export class DxbcInstructionDecoder
 {
     /**
-     * Creates an empty instruction decoder; call a read entry point to decode a token stream.
+     * Token stream of the decoded program.
+     * @type {Uint32Array}
      */
-    constructor()
-    {
-        this.tokens = new Uint32Array(0);
-        this.instructions = [];
-        this.source = "memory";
-    }
+    tokens = new Uint32Array(0);
+
+    /**
+     * Decoded instructions.
+     * @type {object[]}
+     */
+    instructions = [];
+
+    /**
+     * Source name used in error details.
+     * @type {string}
+     */
+    source = "memory";
+
+    /**
+     * Program type copied from the decoded program.
+     * @type {number}
+     */
+    programType = 0;
+
+    /**
+     * Program type name copied from the decoded program.
+     * @type {string}
+     */
+    programTypeName = "unknown";
+
+    /**
+     * Shader model major version copied from the decoded program.
+     * @type {number}
+     */
+    majorVersion = 0;
+
+    /**
+     * Shader model minor version copied from the decoded program.
+     * @type {number}
+     */
+    minorVersion = 0;
 
     /**
    * Decodes every instruction in a shader program token stream.

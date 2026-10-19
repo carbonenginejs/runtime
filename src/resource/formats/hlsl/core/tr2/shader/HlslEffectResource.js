@@ -27,16 +27,34 @@ export class HlslEffectResource
     });
 
     /**
-   * Creates an empty shader resource record with Carbon-compatible defaults.
-   */
-    constructor()
-    {
-        this.name = "";
-        this.type = HlslEffectResource.Type.TEXTURE_2D;
-        this.arrayElements = 1;
-        this.isSRGB = false;
-        this.isAutoregister = false;
-    }
+     * Resource name (Shader/Tr2EffectDescription.h:96). Carbon leaves it unset.
+     * @type {string}
+     */
+    name = "";
+
+    /**
+     * Resource type (Shader/Tr2EffectDescription.h:98). Carbon leaves it unset; ours starts as TEXTURE_2D.
+     * @type {number}
+     */
+    type = HlslEffectResource.Type.TEXTURE_2D;
+
+    /**
+     * Array element count (Shader/Tr2EffectDescription.h:99); the wire's own default is 1 (shadercompiler/EffectData.h:361).
+     * @type {number}
+     */
+    arrayElements = 1;
+
+    /**
+     * sRGB-to-linear request (Shader/Tr2EffectDescription.h:101). Carbon leaves it unset.
+     * @type {boolean}
+     */
+    isSRGB = false;
+
+    /**
+     * Autoregister annotation value (Shader/Tr2EffectDescription.h:103). Carbon leaves it unset.
+     * @type {boolean}
+     */
+    isAutoregister = false;
 
     /**
    * Returns a JSON-safe resource metadata snapshot.

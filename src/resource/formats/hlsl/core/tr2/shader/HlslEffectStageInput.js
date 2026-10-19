@@ -10,29 +10,87 @@ export class HlslEffectStageInput
     static shaderConstantsMax = 256 * 16;
 
     /**
-   * Creates an empty stage input record.
-   */
-    constructor()
-    {
-        this.m_exists = false;
-        this.resources = new Map();
-        this.uavs = new Map();
-        this.samplers = new Map();
-        this.m_shader = HlslEffectStageInput.invalid;
-        this.constants = [];
-        this.m_constantValueSize = 0;
-        this.constantValues = new Uint8Array(0);
-        this.sourceConstantValueSize = 0;
-        this.sourceConstantValues = new Uint8Array(0);
-        this.signature = {
-            pipelineInputs: [],
-            registers: [],
-            samplers: [],
-            threadGroupSize: { x: 0, y: 0, z: 0 }
-        };
-        this.annotation = [];
-        this.cjsShaderBytecode = null;
-    }
+     * Whether the stage was loaded from the effect file (Shader/Tr2EffectDescription.cpp:14).
+     * @type {boolean}
+     */
+    m_exists = false;
+
+    /**
+     * Textures by register (Shader/Tr2EffectDescription.h:178).
+     * @type {Map<number, HlslEffectResource>}
+     */
+    resources = new Map();
+
+    /**
+     * UAVs by register (Shader/Tr2EffectDescription.h:180).
+     * @type {Map<number, HlslEffectResource>}
+     */
+    uavs = new Map();
+
+    /**
+     * Samplers by register (Shader/Tr2EffectDescription.h:182).
+     * @type {Map<number, HlslSamplerSetup>}
+     */
+    samplers = new Map();
+
+    /**
+     * Shader handle; INVALID until registered (Shader/Tr2EffectDescription.cpp:14).
+     * @type {number}
+     */
+    m_shader = HlslEffectStageInput.invalid;
+
+    /**
+     * Constants used by the shader (Shader/Tr2EffectDescription.h:186).
+     * @type {HlslEffectConstant[]}
+     */
+    constants = [];
+
+    /**
+     * Default constant buffer size in bytes (Shader/Tr2EffectDescription.cpp:14).
+     * @type {number}
+     */
+    m_constantValueSize = 0;
+
+    /**
+     * Default constant buffer contents (Shader/Tr2EffectDescription.h:190); ours is sized to the data.
+     * @type {Uint8Array}
+     */
+    constantValues = new Uint8Array(0);
+
+    /**
+     * Constant buffer size as stored in the source; ours.
+     * @type {number}
+     */
+    sourceConstantValueSize = 0;
+
+    /**
+     * Constant buffer contents as stored in the source; ours.
+     * @type {Uint8Array}
+     */
+    sourceConstantValues = new Uint8Array(0);
+
+    /**
+     * Shader pipeline inputs (Shader/Tr2EffectDescription.h:192).
+     * @type {{pipelineInputs: object[], registers: object[], samplers: object[], threadGroupSize: {x: number, y: number, z: number}}}
+     */
+    signature = {
+        pipelineInputs: [],
+        registers: [],
+        samplers: [],
+        threadGroupSize: { x: 0, y: 0, z: 0 }
+    };
+
+    /**
+     * Stage annotations (Shader/Tr2EffectDescription.h:193).
+     * @type {HlslEffectParameterAnnotation[]}
+     */
+    annotation = [];
+
+    /**
+     * Captured stage bytecode; ours, null until registered.
+     * @type {object|null}
+     */
+    cjsShaderBytecode = null;
 
     /**
    * Returns a JSON-safe stage input metadata snapshot.

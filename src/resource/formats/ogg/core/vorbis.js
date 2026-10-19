@@ -184,21 +184,58 @@ class PacketReader extends CjsBitReader
 class Codebook
 {
     /**
-     * Creates an empty Codebook whose fields are filled by the codebook
-     * parser.
+     * Vector dimension count.
+     * @type {number}
      */
-    constructor()
-    {
-        this.dimensions = 0;
-        this.entries = 0;
-        this.lookupType = 0;
-        this.sequenceP = false;
-        this.quantvals = 0;
-        this.values = null;
-        this.fastTable = null;
-        this.treeNodes = null;
-        this.maxLength = 0;
-    }
+    dimensions = 0;
+
+    /**
+     * Codebook entry count.
+     * @type {number}
+     */
+    entries = 0;
+
+    /**
+     * VQ lookup type.
+     * @type {number}
+     */
+    lookupType = 0;
+
+    /**
+     * Whether VQ values accumulate along the sequence.
+     * @type {boolean}
+     */
+    sequenceP = false;
+
+    /**
+     * Number of quantized values per dimension.
+     * @type {number}
+     */
+    quantvals = 0;
+
+    /**
+     * VQ lookup vectors; null until the parser builds them.
+     * @type {Float32Array|null}
+     */
+    values = null;
+
+    /**
+     * Fast Huffman lookup table; null until built.
+     * @type {Int32Array|null}
+     */
+    fastTable = null;
+
+    /**
+     * Huffman decode tree nodes; null until built.
+     * @type {number[]|null}
+     */
+    treeNodes = null;
+
+    /**
+     * Longest codeword length.
+     * @type {number}
+     */
+    maxLength = 0;
 
     /**
      * Builds the canonical Vorbis Huffman decode tree for this codebook for the
