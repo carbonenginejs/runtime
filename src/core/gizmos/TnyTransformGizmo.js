@@ -15,6 +15,49 @@ export class TnyTransformGizmo
 {
   scene = new Tr2PrimitiveScene();
   target = null;
+
+  /**
+   * The active transform mode: "translation", "rotation", "scaling" or "off".
+   * Set through SetMode, which the constructor calls.
+   * @type {string}
+   */
+  mode = "off";
+
+  /**
+   * The native tool for the active mode, or null when the mode is "off".
+   * @type {Tr2TranslationTool|Tr2RotationTool|Tr2ScalingTool|null}
+   */
+  tool = null;
+
+  /**
+   * Edit space, "local" or "world"; set by the constructor.
+   * @type {string}
+   */
+  space = "local";
+
+  /**
+   * Returns the current view for picking and dragging; set by the constructor.
+   * @type {Function|null}
+   */
+  getView = null;
+
+  /**
+   * Called with (target, phase) as an edit progresses, or null.
+   * @type {Function|null}
+   */
+  onChange = null;
+
+  /**
+   * Called when a click selects an object, or null.
+   * @type {Function|null}
+   */
+  onSelect = null;
+
+  /**
+   * Resolves the object under (x, y, view) for click-select, or null.
+   * @type {Function|null}
+   */
+  pickObject = null;
   _input = null;
   _consumer = null;
   _drag = null;
@@ -26,7 +69,7 @@ export class TnyTransformGizmo
   _keyBindings = null;
 
   /** No DOM listeners or scene installation occurs during construction. */
-  constructor({ mode = "translation", space = "local", getView, onChange = null, onSelect = null, pickObject = null, keyBindings = {} } = {})
+  constructor({ mode = "translation", space = "local", getView = null, onChange = null, onSelect = null, pickObject = null, keyBindings = {} } = {})
   {
     if (space !== "local" && space !== "world") throw new TypeError("Gizmo space must be local or world.");
     this.space = space;

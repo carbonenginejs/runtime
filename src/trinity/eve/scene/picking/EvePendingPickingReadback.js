@@ -28,6 +28,14 @@ export class EvePendingPickingReadback
   debugLineObjects = [];
   debugTriangleObjects = [];
 
+  /**
+   * Which picking framework this request serves: "objectId" owns the legacy
+   * request buffers, "pointer" uses a JS sequence in place of a process
+   * pointer. Set from the constructor argument.
+   * @type {string}
+   */
+  framework = "pointer";
+
   /** Native coordinates; framework selects legacy buffers or a JS sequence replacing a process pointer. */
   constructor(pickedX = 0, pickedY = 0, framework = "pointer")
   {

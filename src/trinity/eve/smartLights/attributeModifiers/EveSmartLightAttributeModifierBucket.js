@@ -32,8 +32,8 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
   @meta.implemented
   SetActive(isActive)
   {
-    this.isChangingActivation = isActive !== this.active;
-    if (this.isChangingActivation)
+    this._isChangingActivation = isActive !== this.active;
+    if (this._isChangingActivation)
     {
       this.ResetPlayTime(isActive);
     }

@@ -18,19 +18,48 @@ const CSS_CURSOR_KEYWORDS = new Set([
  */
 export class Tr2MouseCursor
 {
+    /**
+     * The browser CSS cursor value, or null when no representation resolved.
+     * Stands in for Carbon's platform m_cursor handle (Tr2MouseCursor.h:31).
+     * @type {string|null}
+     */
+    cssCursor = null;
+
+    /**
+     * Hotspot x offset in pixels of the selected representation.
+     * @type {number}
+     */
+    hotspotX = 0;
+
+    /**
+     * Hotspot y offset in pixels of the selected representation.
+     * @type {number}
+     */
+    hotspotY = 0;
+
+    /**
+     * Width in pixels of the selected representation, or 0 when unknown.
+     * @type {number}
+     */
+    width = 0;
+
+    /**
+     * Height in pixels of the selected representation, or 0 when unknown.
+     * @type {number}
+     */
+    height = 0;
+
+    /**
+     * Object URL this cursor created and must revoke, or null.
+     * @type {string|null}
+     */
+    #objectUrl = null;
+
     /** Creates an optional browser CSS cursor from one or more representations. */
     constructor(bitmap = null, hotspotX = 0, hotspotY = 0, representations = [])
     {
-        this.cssCursor = null;
-        this.hotspotX = 0;
-        this.hotspotY = 0;
-        this.width = 0;
-        this.height = 0;
-        this.#objectUrl = null;
         if (bitmap !== null) this.Create(bitmap, hotspotX, hotspotY, representations);
     }
-
-    #objectUrl;
 
     /** Initializes this cursor using Carbon's constructor-style method name. */
     __init__(bitmap, hotspotX = 0, hotspotY = 0, representations = [])

@@ -5,7 +5,7 @@ import { IBlueEvents } from "../global/blue/IBlueEvents.js";
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Windows.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
-import { Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
+import { Tr2ImeState_MacOS, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
 import { CjsScriptCallback } from "#blue";
 import { GetUIScancode, UIScancode } from "./UIScancode.js";
 import { Tr2MainWindowState } from "./Tr2MainWindowState.js";
@@ -34,26 +34,206 @@ const EMPTY_CALLBACK = new CjsScriptCallback();
  */
 export class Tr2MainWindow
 {
+    /**
+     * macOS IME state (Carbon m_imeState_MacOS, Tr2MainWindow.h:253, default
+     * Tr2ImeState_MacOS::DISABLED).
+     * @type {number}
+     */
+    imeState_MacOS = Tr2ImeState_MacOS.DISABLED;
+
+    #window = null;
+    #document = null;
+    #target = null;
+    #screen = null;
+    #state = new Tr2MainWindowState();
+    #storedStates = new Map();
+    #minimumSize = { width: 100, height: 100 };
+    #pressed = new Set();
+    #toggled = new Set();
+    #cursor = null;
+    #cursorPosition = [ 0, 0 ];
+    #listeners = [];
+    #closed = false;
+    #backBufferFormat = null;
+    #callbacks = new Map();
+    #callbackValues = new Map();
+
+    // The callback fields are prototype accessors so every assignment is
+    // normalized once through #setCallback.
+
+    /**
+     * Key-down callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onKeyDown()
+    {
+        return this.#callbackValues.get("onKeyDown");
+    }
+
+    set onKeyDown(value)
+    {
+        this.#setCallback("onKeyDown", value);
+    }
+
+    /**
+     * Key-up callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onKeyUp()
+    {
+        return this.#callbackValues.get("onKeyUp");
+    }
+
+    set onKeyUp(value)
+    {
+        this.#setCallback("onKeyUp", value);
+    }
+
+    /**
+     * Character-input callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onChar()
+    {
+        return this.#callbackValues.get("onChar");
+    }
+
+    set onChar(value)
+    {
+        this.#setCallback("onChar", value);
+    }
+
+    /**
+     * Mouse-button-down callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onMouseDown()
+    {
+        return this.#callbackValues.get("onMouseDown");
+    }
+
+    set onMouseDown(value)
+    {
+        this.#setCallback("onMouseDown", value);
+    }
+
+    /**
+     * Mouse-button-up callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onMouseUp()
+    {
+        return this.#callbackValues.get("onMouseUp");
+    }
+
+    set onMouseUp(value)
+    {
+        this.#setCallback("onMouseUp", value);
+    }
+
+    /**
+     * Mouse-move callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onMouseMove()
+    {
+        return this.#callbackValues.get("onMouseMove");
+    }
+
+    set onMouseMove(value)
+    {
+        this.#setCallback("onMouseMove", value);
+    }
+
+    /**
+     * Mouse-wheel callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onMouseWheel()
+    {
+        return this.#callbackValues.get("onMouseWheel");
+    }
+
+    set onMouseWheel(value)
+    {
+        this.#setCallback("onMouseWheel", value);
+    }
+
+    /**
+     * Close callback; a literal false return cancels beforeunload. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onClose()
+    {
+        return this.#callbackValues.get("onClose");
+    }
+
+    set onClose(value)
+    {
+        this.#setCallback("onClose", value);
+    }
+
+    /**
+     * Focus-change callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onFocusChange()
+    {
+        return this.#callbackValues.get("onFocusChange");
+    }
+
+    set onFocusChange(value)
+    {
+        this.#setCallback("onFocusChange", value);
+    }
+
+    /**
+     * Window-state-change callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onWindowStateChange()
+    {
+        return this.#callbackValues.get("onWindowStateChange");
+    }
+
+    set onWindowStateChange(value)
+    {
+        this.#setCallback("onWindowStateChange", value);
+    }
+
+    /**
+     * Pointer-cancel callback (browser capture ended without a mouse-up). Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onPointerCancel()
+    {
+        return this.#callbackValues.get("onPointerCancel");
+    }
+
+    set onPointerCancel(value)
+    {
+        this.#setCallback("onPointerCancel", value);
+    }
+
+    /**
+     * IME composition-start callback. Reads return the assigned value; writes normalize it once.
+     * @type {*}
+     */
+    get onCompositionStart()
+    {
+        return this.#callbackValues.get("onCompositionStart");
+    }
+
+    set onCompositionStart(value)
+    {
+        this.#setCallback("onCompositionStart", value);
+    }
+
     /** Creates a browser main-window adapter and optionally attaches host listeners. */
     constructor(options = {})
     {
-        for (const field of CALLBACK_FIELDS)
-        {
-            Object.defineProperty(this, field, {
-                enumerable: true,
-                get: () => this.#callbackValues.get(field),
-                set: value => this.#setCallback(field, value)
-            });
-            this[field] = null;
-        }
-        this.imeState_MacOS = 0;
-        this.#state = options.state ? options.state.Clone() : new Tr2MainWindowState();
-        this.#storedStates = new Map();
-        this.#minimumSize = { width: 100, height: 100 };
-        this.#pressed = new Set();
-        this.#toggled = new Set();
-        this.#cursorPosition = [ 0, 0 ];
-        this.#listeners = [];
+        for (const field of CALLBACK_FIELDS) this[field] = null;
+        if (options.state) this.#state = options.state.Clone();
         this.#backBufferFormat = options.backBufferFormat ?? null;
         for (const field of CALLBACK_FIELDS)
         {
@@ -61,23 +241,6 @@ export class Tr2MainWindow
         }
         if (options.window || options.document || options.target) this.Attach(options);
     }
-
-    #window = null;
-    #document = null;
-    #target = null;
-    #screen = null;
-    #state;
-    #storedStates;
-    #minimumSize;
-    #pressed;
-    #toggled;
-    #cursor = null;
-    #cursorPosition;
-    #listeners;
-    #closed = false;
-    #backBufferFormat;
-    #callbacks = new Map();
-    #callbackValues = new Map();
 
     /** Attaches keyboard, pointer, window, and visibility listeners to injected hosts. */
     Attach(options = {})

@@ -7,6 +7,25 @@ export class EveSOFUtilsParameterName
 {
 
   /**
+   * Direct copy of the original name (Carbon m_fullname, EveSOFUtils.h:32).
+   * @type {string}
+   */
+  fullname = "";
+
+  /**
+   * Name without the material prefix (Carbon m_shortname, EveSOFUtils.h:34).
+   * @type {string}
+   */
+  shortname = "";
+
+  /**
+   * Original material index, -1 when no prefix matched (Carbon m_materialIdx,
+   * EveSOFUtils.h:36; initialised to -1 in the ctor init list, EveSOFUtils.cpp:13).
+   * @type {number}
+   */
+  materialIdx = -1;
+
+  /**
    * Parses a parameter name against case-insensitive material prefixes,
    * retaining its full name, unprefixed suffix, and matched index.
    */
@@ -14,7 +33,6 @@ export class EveSOFUtilsParameterName
   {
     this.fullname = parameterName;
     this.shortname = parameterName;
-    this.materialIdx = -1;
 
     for (let index = 0; index < prefixes.length; index++)
     {

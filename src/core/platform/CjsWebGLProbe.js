@@ -55,6 +55,36 @@ export const WEBGL2_PARAMETERS = Object.freeze([
 /** A privacy-safe snapshot of one WebGL2 context's advertised capabilities. */
 export class CjsWebGLProbe
 {
+    /**
+     * Whether a WebGL2 context was acquired.
+     * @type {boolean}
+     */
+    available = false;
+
+    /**
+     * The context type that was acquired, or null.
+     * @type {string|null}
+     */
+    contextType = null;
+
+    /**
+     * Advertised WebGL2 parameters by GL name.
+     * @type {Object<string, number>}
+     */
+    limits = {};
+
+    /**
+     * Advertised extension names, sorted.
+     * @type {string[]}
+     */
+    extensions = [];
+
+    /**
+     * Probe failure message, or null.
+     * @type {string|null}
+     */
+    probeError = null;
+
     /** Creates a WebGL2 capability snapshot from already-read values. */
     constructor(values = {})
     {

@@ -17,20 +17,47 @@ import { Tr2VideoAdapter } from "./Tr2VideoAdapter.js";
  */
 export class Tr2VideoAdapters
 {
+    /**
+     * Index of the default video adapter (Carbon const DEFAULT_ADAPTER,
+     * Tr2VideoAdapters.h:47, initialised from Tr2VideoAdapterInfo::DEFAULT_ADAPTER
+     * at Tr2VideoAdapters.cpp:16).
+     * @type {number}
+     */
+    DEFAULT_ADAPTER = Tr2VideoAdapters.DEFAULT_ADAPTER;
+
+    /**
+     * Detected adapter snapshots; at most the one the browser selects.
+     * @type {Tr2VideoAdapter[]}
+     */
+    adapters = [];
+
+    /**
+     * Current-screen display-mode snapshots; at most one.
+     * @type {Tr2DisplayMode[]}
+     */
+    displayModes = [];
+
+    /**
+     * Platform capability snapshot from the last refresh, or null before one.
+     * @type {Tr2PlatformInfo|null}
+     */
+    platformInfo = null;
+
+    /**
+     * Adapter request failure message from the last refresh, or null.
+     * @type {string|null}
+     */
+    probeError = null;
+
+    #options = {};
+
     static DEFAULT_ADAPTER = 0;
 
     /** Creates an adapter and display-mode facade with optional injected hosts. */
     constructor(options = {})
     {
-        this.DEFAULT_ADAPTER = Tr2VideoAdapters.DEFAULT_ADAPTER;
-        this.adapters = [];
-        this.displayModes = [];
-        this.platformInfo = null;
-        this.probeError = null;
         this.#options = { ...options };
     }
-
-    #options;
 
     /** Refreshes browser adapter, display-mode, and capability snapshots. */
     async Refresh(options = {})

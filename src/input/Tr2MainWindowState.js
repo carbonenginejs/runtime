@@ -12,22 +12,60 @@ import "#consts/renderContext/window";
  */
 export class Tr2MainWindowState
 {
+    // Defaults are Carbon's State() init list (Tr2MainWindow.cpp:128-136), in
+    // Carbon's member order (Tr2MainWindow.h:67-82).
+
+    /**
+     * Window mode.
+     * @type {number}
+     */
+    windowMode = Tr2WindowMode.FULL_SCREEN;
+
+    /**
+     * Video adapter index (see Tr2VideoAdapterInfo).
+     * @type {number}
+     */
+    adapter = 0;
+
+    /**
+     * Window back buffer width.
+     * @type {number}
+     */
+    width = 0;
+
+    /**
+     * Window back buffer height.
+     * @type {number}
+     */
+    height = 0;
+
+    /**
+     * Present interval.
+     * @type {number}
+     */
+    presentInterval = PresentInterval.PRESENT_INTERVAL_ONE;
+
+    /**
+     * Window left coordinate (not the client area), used for windowed mode.
+     * @type {number}
+     */
+    left = 0;
+
+    /**
+     * Window top coordinate (not the client area), used for windowed mode.
+     * @type {number}
+     */
+    top = 0;
+
+    /**
+     * Window show state.
+     * @type {number}
+     */
+    showState = Tr2WindowShowState.NORMAL;
+
     static PresentInterval = PresentInterval;
     static Tr2WindowMode = Tr2WindowMode;
     static Tr2WindowShowState = Tr2WindowShowState;
-
-    /** Creates a main-window state record with Carbon's State defaults. */
-    constructor()
-    {
-        this.adapter = 0;
-        this.presentInterval = PresentInterval.PRESENT_INTERVAL_ONE;
-        this.height = 0;
-        this.width = 0;
-        this.left = 0;
-        this.showState = Tr2WindowShowState.NORMAL;
-        this.windowMode = Tr2WindowMode.FULL_SCREEN;
-        this.top = 0;
-    }
 
     /**
      * Returns an independent copy of this state, as Carbon copies its State

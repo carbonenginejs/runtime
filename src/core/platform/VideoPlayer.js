@@ -70,6 +70,49 @@ export class VideoPlayer
 
   stats = { frames: 0, samples: 0, samplingMilliseconds: 0 };
 
+  /**
+   * The injected browser host (window-like); set by the constructor.
+   * @type {object|null}
+   */
+  _host = null;
+
+  /**
+   * Average-colour sample edge length in pixels; set by the constructor.
+   * @type {number}
+   */
+  _sampleSize = 0;
+
+  /**
+   * Minimum milliseconds between average-colour samples; set by the constructor.
+   * @type {number}
+   */
+  _sampleInterval = 0;
+
+  /**
+   * Milliseconds without a frame before the stall watchdog fires; set by the
+   * constructor.
+   * @type {number}
+   */
+  _stallTimeout = 0;
+
+  /**
+   * Returns the render context used for uploads; set by the constructor.
+   * @type {Function|null}
+   */
+  _getRenderContext = null;
+
+  /**
+   * Whether playback keeps the media's audio; set by the constructor.
+   * @type {boolean}
+   */
+  _withSound = false;
+
+  /**
+   * The texture storage the last average-colour sample was taken from, or null.
+   * @type {object|null}
+   */
+  _averageTexture = null;
+
   /** Browser host injection keeps imports headless and permits deterministic lifecycle tests. */
   constructor({ host = globalThis, sampleSize = 32, sampleInterval = 125, stallTimeout = 15000,
     getRenderContext = Tr2RenderContext_GetMainThreadRenderContext, withSound = false } = {})

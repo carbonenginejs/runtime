@@ -90,6 +90,31 @@ for (const [ browserCode, virtualKey, name, description ] of [
  */
 export class UIScancode
 {
+    /**
+     * Virtual-key value, low byte (Carbon mDIK, Scancodes.h:332). Carbon leaves
+     * it unset.
+     * @type {number}
+     */
+    mDIK = 0;
+
+    /**
+     * Carbon key name (Scancodes.h:333). Carbon leaves it unset.
+     * @type {string}
+     */
+    mName = "";
+
+    /**
+     * Human-readable key description (Scancodes.h:334). Carbon leaves it unset.
+     * @type {string}
+     */
+    mDescription = "";
+
+    /**
+     * The browser KeyboardEvent.code this record maps, or null.
+     * @type {string|null}
+     */
+    browserCode = null;
+
     /** Creates a Carbon-compatible keyboard scancode record. */
     constructor(mDIK = 0, mName = "", mDescription = "", browserCode = null)
     {

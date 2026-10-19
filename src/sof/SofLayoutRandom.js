@@ -52,13 +52,23 @@ export function planSofLayouts(dna, options = {})
 class SofLayoutRandom
 {
   /**
+   * The current integer recurrence state.
+   * @type {number}
+   */
+  state = 0;
+
+  /**
+   * The number of draws taken since construction.
+   * @type {number}
+   */
+  drawCount = 0;
+
+  /**
    * Initializes deterministic layout random state and draw accounting from the
    * supplied seed.
    */
   constructor(seed)
   {
-    this.state = 0;
-    this.drawCount = 0;
     this.srand(seed);
   }
 

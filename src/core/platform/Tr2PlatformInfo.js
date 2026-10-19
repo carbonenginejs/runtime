@@ -88,6 +88,50 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 @blue.inherit(IRoot)
 export class Tr2PlatformInfo
 {
+    /**
+     * Which backend this report describes (Tr2PlatformInfo.Backend).
+     * @type {string}
+     */
+    backend = Tr2PlatformInfo.Backend.NONE;
+
+    /**
+     * The platform name for the described backend, or null for none.
+     * @type {string|null}
+     */
+    platformName = null;
+
+    /**
+     * Carbon's TRINITY_PLATFORM build constant; always 0 here (see the constructor).
+     * @type {number}
+     */
+    platformID = 0;
+
+    /**
+     * Whether the described platform is low-end.
+     * @type {boolean}
+     */
+    isLowPerformance = false;
+
+    /**
+     * The probed WebGPU adapter snapshot, or null.
+     * @type {Tr2VideoAdapter|null}
+     */
+    adapter = null;
+
+    /**
+     * The WebGL2 probe, or null when none ran.
+     * @type {CjsWebGLProbe|null}
+     */
+    webgl = null;
+
+    /**
+     * Probe failure message, or null.
+     * @type {string|null}
+     */
+    probeError = null;
+
+    #staticCaps = new Map();
+
     static StaticCap = PlatformStaticCap;
 
     /**
@@ -164,11 +208,8 @@ export class Tr2PlatformInfo
         this.adapter = values.adapter ?? null;
         this.webgl = values.webgl ?? null;
         this.probeError = values.probeError ?? null;
-        this.#staticCaps = new Map();
         for (const name of Object.keys(PlatformStaticCap)) this.#staticCaps.set(name, values.staticCaps?.[name] === true);
     }
-
-    #staticCaps;
 
     /** Reports one named or numeric static platform capability. */
     @blue.method

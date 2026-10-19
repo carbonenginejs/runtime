@@ -17,6 +17,31 @@ const MOTION = {
 /** Shared viewport interaction policy around Carbon's EveCamera motion and projection. */
 export class TnyCameraControls
 {
+  /**
+   * The borrowed camera; set by the constructor, which requires one.
+   * @type {EveCamera|null}
+   */
+  camera = null;
+
+  /**
+   * Returns the viewport size for panning and framing, or null.
+   * @type {Function|null}
+   */
+  getViewport = null;
+
+  /**
+   * Returns the world-space bounding sphere for framing, or null.
+   * @type {Function|null}
+   */
+  getBounds = null;
+
+  /**
+   * Interaction preferences: the constructor's defaults merged with the
+   * caller's overrides.
+   * @type {Object<string, *>}
+   */
+  preferences = {};
+
   _input = null;
   _consumer = null;
   _gesture = null;
@@ -38,6 +63,9 @@ export class TnyCameraControls
   _pendingFrame = false;
   _viewportWidth = 0;
   _viewportHeight = 0;
+
+  /** The far clip a zoom never fits below: the camera's own, or a restored pose's. */
+  _baseBackClip = 0;
 
   /** An eased flight to a framing pose, advanced by Update, or null. */
   _flight = null;
