@@ -3682,7 +3682,8 @@ function isPlainObject(value)
 {
     if (!value || typeof value !== "object") return false;
     const prototype = Object.getPrototypeOf(value);
-    if (prototype === Object.prototype) return true;
+    // A null-prototype data dictionary (a reader's payload) is a plain bag.
+    if (prototype === Object.prototype || prototype === null) return true;
     // Another realm's Object.prototype is the root of its chain and is itself
     // an ordinary object; a class instance's prototype is never the root.
     return prototype !== null

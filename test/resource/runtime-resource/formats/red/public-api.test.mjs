@@ -4,6 +4,9 @@ import { readFile } from "node:fs/promises";
 
 import CjsRedFormat, { CjsRedFormat as NamedCjsRedFormat } from "../../../../../npm/dist/resource/formats/red/index.js";
 
+/** A reader payload: a null-prototype data dictionary. */
+const bag = values => Object.assign(Object.create(null), values);
+
 // A shared node referenced by identity models a YAML anchor/alias: the same
 // object appears in two places in the graph.
 function makeGraph()
@@ -122,10 +125,10 @@ test("typed tables decode to row objects keyed by column name", () =>
     const payload = CjsRedFormat.read(makeGraph());
 
     const curve = payload.object.curveSets[0].curves[0];
-    assert.deepEqual(curve.keys, [ { time: 0.0, value: 0.5 }, { time: 1.0, value: 1.0 } ]);
+    assert.deepEqual(curve.keys, [ bag({ time: 0.0, value: 0.5 }), bag({ time: 1.0, value: 1.0 }) ]);
 
     const options = payload.object.effect.options;
-    assert.deepEqual(options, [ { name: "SPACE_OBJECT_CLIPPING", value: "SOC_DISABLED" } ]);
+    assert.deepEqual(options, [ bag({ name: "SPACE_OBJECT_CLIPPING", value: "SOC_DISABLED" }) ]);
 });
 
 test("shared nodes emit a full object once and references thereafter", () =>

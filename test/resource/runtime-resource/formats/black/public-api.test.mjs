@@ -5,6 +5,9 @@ import { CjsSchema } from "../../../../../npm/dist/global/schema/CjsSchema.js";
 
 import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/resource/formats/black/index.js";
 
+/** A reader payload: a null-prototype data dictionary. */
+const bag = values => Object.assign(Object.create(null), values);
+
 class Root {}
 class ObjectNode {}
 class TestRootRuntime {}
@@ -143,11 +146,11 @@ test("readPayload can load selected root fields", () =>
         rootFields: [ "name", "count" ]
     });
 
-    assert.deepEqual(payload.object, {
+    assert.deepEqual(payload.object, bag({
         _type: "TestRoot",
         name: "root",
         count: 7
-    });
+    }));
 });
 
 test("readRuntime constructs caller-supplied classes", () =>
@@ -191,10 +194,10 @@ test("compact storage projections do not rewrite decoded chooser keys", () =>
     const payload = CjsBlackFormat.readPayload(input, { schema });
 
     assert.deepEqual(schema.EmptyConcrete, {});
-    assert.deepEqual(payload.object, {
+    assert.deepEqual(payload.object, bag({
         _type: "TestIndexed",
         Primary: 0.5
-    });
+    }));
 });
 
 test("runtime hydration applies explicit storage mappings after preserving wire keys", () =>
@@ -219,9 +222,9 @@ test("runtime hydration applies explicit storage mappings after preserving wire 
     const input = builder.Finish(builder.Object(1, "BlackExactKeyRecord", [["N", i32(17)], ["Primary", f32(0.5)]]));
     for (const source of [schema, null])
     {
-        assert.deepEqual(CjsBlackFormat.readPayload(input, { schema: source }).object, {
+        assert.deepEqual(CjsBlackFormat.readPayload(input, { schema: source }).object, bag({
             _type: "BlackExactKeyRecord", N: 17, Primary: 0.5
-        });
+        }));
         const object = CjsBlackFormat.readRuntime(input, { schema: source }).root;
         assert.equal(object.count, 17);
         assert.deepEqual(object.slots, [0.5]);
@@ -239,7 +242,7 @@ test("known wire fields missing from a runtime class fail instead of disappearin
     const schema = { BlackMissingMemberRecord: { Missing: "int" } };
     const builder = new BlackFixtureBuilder();
     const input = builder.Finish(builder.Object(1, "BlackMissingMemberRecord", [["Missing", i32(17)]]));
-    assert.deepEqual(CjsBlackFormat.readPayload(input, { schema }).object, { _type: "BlackMissingMemberRecord", Missing: 17 });
+    assert.deepEqual(CjsBlackFormat.readPayload(input, { schema }).object, bag({ _type: "BlackMissingMemberRecord", Missing: 17 }));
     assert.throws(() => CjsBlackFormat.readRuntime(input, { schema }), /Invalid attribute: Missing/);
 });
 
@@ -259,11 +262,11 @@ test("an indexed attribute that is its own field reads as a plain value", () =>
         [ "color1", f32(0.5) ]
     ]));
 
-    assert.deepEqual(CjsBlackFormat.readPayload(input, { schema }).object, {
+    assert.deepEqual(CjsBlackFormat.readPayload(input, { schema }).object, bag({
         _type: "TestColors",
         color0: 0.25,
         color1: 0.5
-    });
+    }));
 });
 
 test("compact fields without C++ names keep their own type", () =>
@@ -299,7 +302,7 @@ test("empty objects do not need class definitions", () =>
 
     const payload = CjsBlackFormat.readPayload(input, { schema: null });
 
-    assert.deepEqual(payload.object, { _type: "NoDefinitionNeeded" });
+    assert.deepEqual(payload.object, bag({ _type: "NoDefinitionNeeded" }));
 });
 
 test("the removed document and raw outputs are refused", () =>

@@ -338,13 +338,18 @@ export class CjsBlueReader extends CjsReader
     /**
      * Creates payload target for the current Blue graph reader.
      *
+     * A payload is a data dictionary with no prototype, so a member named
+     * `__proto__` (or any `Object.prototype` name) assigns as plain data.
+     *
      * @param {string|null} kind Persisted class name.
-     * @returns {object} An empty payload object, tagged with its type when configured.
+     * @returns {object} An empty null-prototype payload object, tagged with its type when configured.
      */
     CreatePayloadTarget(kind)
     {
+        const target = Object.create(null);
         const typeField = this.GetPayloadTypeField();
-        return typeField && (kind || this.includeEmptyPayloadType) ? { [typeField]: kind } : {};
+        if (typeField && (kind || this.includeEmptyPayloadType)) target[typeField] = kind;
+        return target;
     }
 
     /**
@@ -522,7 +527,7 @@ export class CjsBlueReader extends CjsReader
         for (const [ field, value ] of Object.entries(values))
         {
             this.AssertPayloadFieldAvailable(field);
-            this.DefinePayloadProperty(targetObject, field, value);
+            targetObject[field] = value;
         }
     }
 
@@ -539,7 +544,7 @@ export class CjsBlueReader extends CjsReader
     {
         if (!Object.hasOwn(targetObject, idField))
         {
-            this.DefinePayloadProperty(targetObject, idField, referenceId);
+            targetObject[idField] = referenceId;
             return;
         }
         if (!this.validatePayloadReservedFields) return;
@@ -563,23 +568,6 @@ export class CjsBlueReader extends CjsReader
         const error = new TypeError(`${code}: ${message}`);
         error.code = code;
         return error;
-    }
-
-    /**
-     * Defines payload property on the current Blue graph reader result.
-     *
-     * @param {object} targetObject Payload object.
-     * @param {string} field Property name.
-     * @param {*} value Property value.
-     */
-    DefinePayloadProperty(targetObject, field, value)
-    {
-        Object.defineProperty(targetObject, field, {
-            value,
-            enumerable: true,
-            configurable: true,
-            writable: true
-        });
     }
 
     /**
@@ -629,14 +617,7 @@ export class CjsBlueReader extends CjsReader
         this.AssertPayloadFieldAvailable(target.unknown ? target.wireName : target.field.name);
         if (target.unknown)
         {
-            if (this.validatePayloadReservedFields)
-            {
-                this.DefinePayloadProperty(targetObject, target.wireName, value);
-            }
-            else
-            {
-                targetObject[target.wireName] = value;
-            }
+            targetObject[target.wireName] = value;
             return;
         }
 
@@ -648,28 +629,14 @@ export class CjsBlueReader extends CjsReader
             if (!current || typeof current !== "object")
             {
                 current = Number.isInteger(target.index) ? [] : {};
-                if (this.validatePayloadReservedFields)
-                {
-                    this.DefinePayloadProperty(targetObject, target.field.name, current);
-                }
-                else
-                {
-                    targetObject[target.field.name] = current;
-                }
+                targetObject[target.field.name] = current;
             }
 
             current[target.key] = value;
             return;
         }
 
-        if (this.validatePayloadReservedFields)
-        {
-            this.DefinePayloadProperty(targetObject, target.field.name, value);
-        }
-        else
-        {
-            targetObject[target.field.name] = value;
-        }
+        targetObject[target.field.name] = value;
     }
 
     /**

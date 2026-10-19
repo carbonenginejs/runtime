@@ -29,8 +29,7 @@ CjsSchema.define(ValuesInputParent, { className: "ValuesInputParent" });
 const NOT_VALUES = [
   [ "a live instance", () => CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "x" }) ],
   [ "an array", () => [ { label: "x" } ] ],
-  [ "a string", () => "label" ],
-  [ "a null-prototype object", () => Object.assign(Object.create(null), { label: "x" }) ]
+  [ "a string", () => "label" ]
 ];
 
 test("a plain values object is accepted at every top-level entry point", () =>
@@ -55,6 +54,9 @@ test("a plain values object from another realm is still values", () =>
   assert.deepEqual([ ...CjsSchema.setValues(model, foreign) ], [ "label" ]);
   assert.equal(model.label, "from another realm");
   assert.equal(CjsSchema.from("ValuesInputParent", runInNewContext("({ label: \"built\" })")).label, "built");
+  // A null-prototype data dictionary (a Black/Red payload) is a plain values bag.
+  assert.deepEqual([ ...CjsSchema.setValues(model, Object.assign(Object.create(null), { label: "no prototype" })) ], [ "label" ]);
+  assert.equal(CjsSchema.from("ValuesInputParent", Object.assign(Object.create(null), { label: "bare" })).label, "bare");
   assert.throws(() => CjsSchema.setValues(model, runInNewContext("new (class Live { label = \"x\"; })()")),
     { name: "TypeError", message: /requires a plain values object/ });
 });

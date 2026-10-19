@@ -18,6 +18,9 @@ import { CjsRedReader } from "../../../../src/resource/formats/red/core/CjsRedRe
 import { parseRed } from "../../../../src/resource/formats/red/core/redGraph.js";
 import { CjsYamlReader } from "../../../../src/resource/formats/yaml/core/CjsYamlReader.js";
 
+/** A reader payload: a null-prototype data dictionary. */
+const bag = values => Object.assign(Object.create(null), values);
+
 test("Blue format readers share hydration and output infrastructure", () =>
 {
     assert.equal(CjsBlackReader.prototype instanceof CjsBlueReader, true);
@@ -171,7 +174,7 @@ test("Red preserves typed-table identity around decoded rows", () =>
     const payload = new CjsRedReader(root).ReadPayload();
     assert.deepEqual(payload.object.table, {
         _id: 1,
-        _values: [ { self: { _ref: 1 } } ]
+        _values: [ bag({ self: { _ref: 1 } }) ]
     });
     assert.deepEqual(payload.object.again, { _ref: 1 });
     assert.doesNotThrow(() => JSON.stringify(payload));
@@ -204,7 +207,7 @@ test("Red preserves typed-table identity around decoded rows", () =>
         }
     }).ReadPayload().object;
     assert.equal(Array.isArray(unique.table), true);
-    assert.deepEqual(unique.table, [ { value: 7 } ]);
+    assert.deepEqual(unique.table, [ bag({ value: 7 }) ]);
 
     const metadataColumn = new CjsRedReader({
         type: "Root",
@@ -213,7 +216,7 @@ test("Red preserves typed-table identity around decoded rows", () =>
             items: [ [ "private", 7 ] ]
         }
     }).ReadPayload().object;
-    assert.deepEqual(metadataColumn.table, [ { value: 7 } ]);
+    assert.deepEqual(metadataColumn.table, [ bag({ value: 7 }) ]);
 });
 
 test("Red payload reference IDs remain lazily encounter-ordered", () =>
