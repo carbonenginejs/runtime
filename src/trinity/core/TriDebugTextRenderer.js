@@ -111,7 +111,8 @@ export class TriDebugTextRenderer
       font,
       rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom },
       format,
-      color: colorMath.clone(color),
+      // e.m_color = color (cpp:75): the entry keeps its own copy.
+      color: colorMath.fromValues(color[0], color[1], color[2], color[3]),
       text: FormatTruncated(msg, args)
     });
   }

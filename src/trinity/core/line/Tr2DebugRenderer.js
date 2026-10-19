@@ -22,7 +22,9 @@ import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RingVertexBuffer } from "../device/Tr2RingVertexBuffer.js";
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition/index.js";
 import { Tr2DebugRendererVertex } from "./Tr2DebugRendererVertex.js";
-import { TriDebugTextRenderer } from "../TriDebugTextRenderer.js";
+import { TriDebugTextRenderer, TriDebugFontStyle } from "../TriDebugTextRenderer.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** VERTEX_BUFFER_INITIAL_SIZE (cpp:14). */
 const VERTEX_BUFFER_INITIAL_SIZE = 4 * 1024 * 1024;
@@ -48,6 +50,7 @@ const LINE_START = vec3.create();
 const LINE_END = vec3.create();
 const SPEAKER_BASE = vec3.create();
 const SPEAKER_OFFSET = vec3.create();
+const TEXT_SCREEN_POS = vec3.create();
 
 /** The axis colours DrawAxis passes (cpp:662-664). */
 const AXIS_X_COLOR = colorMath.fromValues(1, 0, 0, 1);
@@ -1240,23 +1243,36 @@ export class Tr2DebugRenderer
   }
 
   /**
-   * Carbon DrawText (cpp:723-745): projects the world position to the screen
-   * and queues the formatted text there on the shared text renderer, when the
-   * point is between the clip planes.
-   *
-   * Not implemented: it needs Tr2Renderer::ProjectWorldToScreen (Tr2Renderer.cpp:493-506)
-   * and the view and projection statics it reads, which are not ported.
-   * @param {number} _font A TriDebugFont value.
-   * @param {vec3} _pos
-   * @param {Float32Array} _color
-   * @param {string} _msg printf format.
-   * @param {...*} _args
+   * Carbon DrawText (cpp:723-745): projects the world position through the
+   * main-thread context's viewport and queues the formatted text on the shared
+   * text renderer, left-aligned in a 1024x512 rect whose top-left is the
+   * projected point. Text is queued only when the projected depth is strictly
+   * between 0 and 1; the int32_t casts truncate toward zero. The variadic
+   * arguments arrive as a rest array, which Vprintf takes in place of the
+   * va_list.
+   * @param {number} font A TriDebugFont value.
+   * @param {vec3} pos World position.
+   * @param {Float32Array} color RGBA colour.
+   * @param {string} msg printf format.
+   * @param {...*} args Format arguments.
    */
   @blue.method
-  @meta.notImplemented
-  DrawText(_font, _pos, _color, _msg, ..._args)
+  @meta.implemented
+  DrawText(font, pos, color, msg, ...args)
   {
-    throw new Error("Tr2DebugRenderer.DrawText is not implemented: Tr2Renderer.ProjectWorldToScreen is not ported.");
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+    const vp = renderContext.GetViewport();
+
+    const screenPos = Tr2Renderer.ProjectWorldToScreen(pos, vp, TEXT_SCREEN_POS);
+
+    if (screenPos[2] > 0 && screenPos[2] < 1)
+    {
+      const top = Math.trunc(screenPos[1]);
+      const left = Math.trunc(screenPos[0]);
+      const rect = { top, left, bottom: top + 512, right: left + 1024 };
+
+      GetDebugTextRenderer().Vprintf(font, rect, TriDebugFontStyle.TRI_DFS_LEFT, color, msg, args);
+    }
   }
 
   /**
