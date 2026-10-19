@@ -6,8 +6,11 @@
  */
 export class CjsControllerExpressionEvaluateError extends Error
 {
-  expression;
-  reason;
+  /** Error.prototype.name is shadowed with the class's own name. */
+  name = "CjsControllerExpressionEvaluateError";
+
+  expression = "";
+  reason = "";
 
   /**
    * Formats the message as the reason and the full expression; unlike compile
@@ -16,7 +19,6 @@ export class CjsControllerExpressionEvaluateError extends Error
   constructor(data)
   {
     super(`Error evaluating expression: ${data.reason} (${data.expression})`);
-    this.name = "CjsControllerExpressionEvaluateError";
     this.expression = data.expression;
     this.reason = data.reason;
   }

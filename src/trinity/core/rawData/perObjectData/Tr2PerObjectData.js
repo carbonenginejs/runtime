@@ -24,12 +24,17 @@ import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
 @blue.define({ className: "Tr2PerObjectData", abstract: true })
 export class Tr2PerObjectData
 {
-  /** Starts with a zero object id. */
-  constructor()
-  {
-    this.pickingPointer = 0n;
-    this.userData = 0;
-  }
+  /**
+   * Carbon `uint64_t m_pickingPointer`, init list `m_pickingPointer( 0 )`
+   * (Tr2PerObjectData.h:13, :33), held as a BigInt.
+   */
+  pickingPointer = 0n;
+
+  /**
+   * Pre-92483097 Tr2PerObjectData.h: the uint32 collision-set index. The
+   * current header has no such member, so 0 is a neutral default.
+   */
+  userData = 0;
 
   /** Pre-92483097 Tr2PerObjectData.h: the uint32 collision-set index. */
   @meta.implemented

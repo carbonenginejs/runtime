@@ -16,21 +16,23 @@ import { CjsSchema, meta, blue } from "#schema";
 @blue.define({ className: "ITriRenderBatchAccumulator", abstract: true })
 export class ITriRenderBatchAccumulator
 {
+  // Fields in Carbon's member order (TriRenderBatch.h:291-293), with the
+  // constructor's init list (TriRenderBatch.h:228-231).
+
+  /** Carbon `m_userData( 0x0 )` (TriRenderBatch.h:229). */
+  userData = 0;
+
   /**
-   * Starts with zero user data, RM_ANY rendering mode and no per-object-data
-   * store bound.
+   * Carbon `m_allocator`, which its constructor takes as an argument
+   * (TriRenderBatch.h:230). The per-object-data store (a TriPoolAllocator) is
+   * set once from the render context at scene setup through
+   * SetTriPoolAllocator, so it starts null. The engine builds it from its own
+   * struct reflection; Trinity never defines a struct here.
    */
-  constructor()
-  {
-    this.userData = 0;
+  rawDataStore = null;
 
-    this.renderingMode = RenderingMode.RM_ANY;
-
-    // The per-object-data store (a TriPoolAllocator), set once from the render
-    // context at scene setup. The engine builds it from its own struct
-    // reflection; Trinity never defines a struct here.
-    this.rawDataStore = null;
-  }
+  /** Carbon `m_renderingMode( RM_ANY )` (TriRenderBatch.h:231). */
+  renderingMode = RenderingMode.RM_ANY;
 
   // Bind the per-object-data store (from the render context). Carbon's pool
   // allocator (Tr2Renderer::GetPoolAllocator) relocates onto this store.

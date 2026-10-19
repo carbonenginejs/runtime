@@ -6,9 +6,12 @@
  */
 export class CjsControllerExpressionCompileError extends Error
 {
-  expression;
-  reason;
-  position;
+  /** Error.prototype.name is shadowed with the class's own name. */
+  name = "CjsControllerExpressionCompileError";
+
+  expression = "";
+  reason = "";
+  position = 0;
 
   /**
    * Formats the message as the position, reason and full expression so a failed
@@ -17,7 +20,6 @@ export class CjsControllerExpressionCompileError extends Error
   constructor(data)
   {
     super(`Error compiling expression at ${data.position}: ${data.reason} (${data.expression})`);
-    this.name = "CjsControllerExpressionCompileError";
     this.expression = data.expression;
     this.reason = data.reason;
     this.position = data.position;

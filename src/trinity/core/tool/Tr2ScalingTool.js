@@ -26,6 +26,27 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   _initialLength = 1;
   _initialScale = vec3.fromValues(1, 1, 1);
 
+  /** Carbon `Tr2SolidSetPtr m_xBox` (Tr2ScalingTool.h:31); GenLineSets creates it. */
+  xBox = null;
+
+  /** Carbon `Tr2SolidSetPtr m_yBox` (Tr2ScalingTool.h:32); GenLineSets creates it. */
+  yBox = null;
+
+  /** Carbon `Tr2SolidSetPtr m_zBox` (Tr2ScalingTool.h:33); GenLineSets creates it. */
+  zBox = null;
+
+  /** Carbon `Tr2SolidSetPtr m_wBox` (Tr2ScalingTool.h:34); GenLineSets creates it. */
+  wBox = null;
+
+  /** Carbon `Tr2LineSetPtr m_xLine` (Tr2ScalingTool.h:35); GenLineSets creates it. */
+  xLine = null;
+
+  /** Carbon `Tr2LineSetPtr m_yLine` (Tr2ScalingTool.h:36); GenLineSets creates it. */
+  yLine = null;
+
+  /** Carbon `Tr2LineSetPtr m_zLine` (Tr2ScalingTool.h:37); GenLineSets creates it. */
+  zLine = null;
+
   /** Native constructor creates the scale boxes and guide lines. */
   constructor()
   {

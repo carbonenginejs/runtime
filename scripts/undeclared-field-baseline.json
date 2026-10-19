@@ -72,13 +72,6 @@
     "src/tools/fileindex/CjsFileIndexLibrary.js": 9,
     "src/tools/fileindex/CjsFileIndexOverlay.js": 4,
     "src/tools/fileindex/CjsFileIndexSource.js": 2,
-    "src/trinity/core/batch/TriRenderBatch/ITriRenderBatchAccumulator.js": 6,
-    "src/trinity/core/batch/TriRenderBatch/Tr2RenderBatch.js": 43,
-    "src/trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js": 5,
-    "src/trinity/core/batch/TriRenderBatchMap.js": 1,
-    "src/trinity/core/rawData/perObjectData/Tr2PerObjectData.js": 4,
-    "src/trinity/core/scene/Tr2PickBuffer.js": 3,
-    "src/trinity/core/tool/Tr2ScalingTool.js": 7,
     "src/trinityal/webgpu/CjsWebgpuBackendCandidate.js": 2,
     "src/trinityal/webgpu/CjsWebgpuDevice.js": 28,
     "src/trinityal/webgpu/CjsWebgpuShaderAL.js": 1,
@@ -98,9 +91,7 @@
     "src/resource/formats/hlsl/core/HlslEffectReadError.js": 2,
     "src/resource/formats/webgl/core/WebglReadError.js": 2,
     "src/resource/formats/webgpu/core/WebgpuReadError.js": 2,
-    "src/resource/formats/wem/core/bitStream.js": 2,
-    "src/trinity/controllers/expression/CjsControllerExpressionCompileError.js": 1,
-    "src/trinity/controllers/expression/CjsControllerExpressionEvaluateError.js": 1
+    "src/resource/formats/wem/core/bitStream.js": 2
   },
   "defineProperty": {
     "src/audio/CjsAudioMan.js": 1,

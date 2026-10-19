@@ -18,6 +18,12 @@ import { TriRenderBatchAccumulator, DefaultKeyGenerator, EffectKeyGenerator } fr
  */
 export class TriRenderBatchMap
 {
+  /**
+   * Carbon's BatchMap (EveSpaceScene.h): the accumulator for each collected
+   * TriBatchType, filled by the constructor.
+   */
+  accumulators = new Map();
+
   // batchTypes: iterable of TriBatchType values to collect. createAccumulator:
   // optional (batchType) => accumulator factory. The default matches Carbon's
   // key-generator selection: order-preserving for TRANSPARENT (the producer
@@ -30,8 +36,6 @@ export class TriRenderBatchMap
    */
   constructor(batchTypes, createAccumulator = null)
   {
-    this.accumulators = new Map();
-
     const factory = createAccumulator ?? ((batchType) => new TriRenderBatchAccumulator(
       batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT ? DefaultKeyGenerator : EffectKeyGenerator));
     for (const batchType of batchTypes)

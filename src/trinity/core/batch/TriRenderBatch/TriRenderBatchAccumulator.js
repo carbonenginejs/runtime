@@ -23,6 +23,19 @@ import { CanBeBinned, OrderOf, Tr2GdprBatchFullPartition } from "./Tr2RenderBatc
 export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
 {
   /**
+   * Carbon `m_keyGen` (TriRenderBatch.h:422), the template parameter that
+   * decides sorting and GDPR eligibility; Carbon's template default is
+   * DefaultKeyGenerator (TriRenderBatch.h:307).
+   */
+  keyGenerator = DefaultKeyGenerator;
+
+  /** Carbon `std::vector<Tr2RenderBatch> m_gdprBatches` (TriRenderBatch.h:424). */
+  gdprBatches = [];
+
+  /** Carbon `std::vector<Tr2RenderBatch> m_batches` (TriRenderBatch.h:425). */
+  batches = [];
+
+  /**
    * Creates an empty accumulator whose key generator decides sorting and GDPR
    * eligibility, defaulting to Carbon's unsorted policy.
    */
@@ -30,10 +43,6 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
   {
     super();
     this.keyGenerator = keyGenerator;
-
-    this.gdprBatches = [];
-
-    this.batches = [];
   }
 
   /**

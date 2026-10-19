@@ -9,9 +9,25 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 /** Native picking attachments and their explicit device-resource lifetime. */
 export class Tr2PickBuffer
 {
-  _pickTarget = new Tr2TextureAL();
-  _depthBuffer = new Tr2TextureAL();
+  // Fields in Carbon's member order (Tr2PickBuffer.h:51-57).
+
+  /** Carbon `int m_size`, the constructor's `size = 1` (Tr2PickBuffer.h:14, :51). */
+  _size = 1;
+
+  /**
+   * Carbon `m_format`, the constructor's `format = PIXEL_FORMAT_UNKNOWN`
+   * (Tr2PickBuffer.h:14, :52).
+   */
+  _format = PixelFormat.PIXEL_FORMAT_UNKNOWN;
+
+  /** Carbon `m_clearColor( 0xFFFFFFFF )` (Tr2PickBuffer.cpp:13). */
   _clearColor = 0xffffffff;
+
+  /** Carbon `Tr2TextureAL m_pickTarget`, by value (Tr2PickBuffer.h:56). */
+  _pickTarget = new Tr2TextureAL();
+
+  /** Carbon `Tr2TextureAL m_depthBuffer`, by value (Tr2PickBuffer.h:57). */
+  _depthBuffer = new Tr2TextureAL();
 
   /** The native lock object is unnecessary in JavaScript. */
   constructor(format = PixelFormat.PIXEL_FORMAT_UNKNOWN, size = 1)

@@ -69,55 +69,90 @@ function AllocationStride(allocation)
  */
 export class Tr2RenderBatch
 {
+  // Fields in Carbon's struct order and with its initializers
+  // (TriRenderBatch.h:90-114); geometrySource is ours and follows the geometry members.
+
+  /** Carbon `m_material = nullptr` (TriRenderBatch.h:90). */
+  material = null;
+
+  /** Carbon `m_shader = nullptr` (TriRenderBatch.h:91). */
+  shader = null;
+
+  /** Carbon `m_vertexDeclaration = 0` (TriRenderBatch.h:93). */
+  vertexDeclaration = 0;
+
+  /** Carbon `m_vertexStreams[2] = {}` (TriRenderBatch.h:94). */
+  vertexStreams = [ null, null ];
+
+  /** Carbon `m_stride[2] = {}` (TriRenderBatch.h:95). */
+  stride = [ 0, 0 ];
+
+  /** Carbon `m_indexBuffer = nullptr` (TriRenderBatch.h:96). */
+  indexBuffer = null;
+
+  /** Carbon `m_indexStride = 0` (TriRenderBatch.h:97). */
+  indexStride = 0;
+
   /**
-   * Creates an empty batch with no material or geometry, RM_ANY rendering mode,
-   * triangle-list topology and a group count of 1.
+   * Ours. Carbon's Tr2MeshBase::CreateGeometryBatch bakes the buffer
+   * allocations and computed draw arguments into the batch during collection.
+   * Here a mesh batch records only a geometry-resource and area-range
+   * descriptor; Tr2RenderContext.SubmitGeometry realizes it at first submit
+   * through RealizeBatchGeometry (TriGeometryResAllocations.js), which sets the
+   * streams and re-resolves the draw arguments with resolveDrawArguments.
    */
-  constructor()
-  {
-    this.material = null;
-    this.shader = null;
+  geometrySource = null;
 
-    this.vertexDeclaration = 0;
-    this.vertexStreams = [ null, null ];
-    this.stride = [ 0, 0 ];
-    this.indexBuffer = null;
-    this.indexStride = 0;
+  /** Carbon `m_objectData = nullptr` (TriRenderBatch.h:99). */
+  objectData = null;
 
-    // Carbon's Tr2MeshBase::CreateGeometryBatch bakes the buffer allocations and
-    // computed draw arguments into the batch during collection. Here a mesh
-    // batch records only a geometry-resource and area-range descriptor;
-    // Tr2RenderContext.SubmitGeometry realizes it at first submit through
-    // RealizeBatchGeometry (TriGeometryResAllocations.js), which sets the
-    // streams and re-resolves the draw arguments with resolveDrawArguments.
-    this.geometrySource = null;
+  /** Carbon `m_renderingMode = RM_ANY` (TriRenderBatch.h:100). */
+  renderingMode = RenderingMode.RM_ANY;
 
-    this.objectData = null;
-    this.renderingMode = RenderingMode.RM_ANY;
-    // THE VOCABULARY IS THE ABSTRACTION LAYER'S, NOT D3D'S. This field held a
-    // `D3dPrimitiveTopology` until 2026-09-05, and everything drew correctly
-    // because the WebGPU engine translated on the way out. Carbon does not
-    // translate: `SubmitGeometry` hands `batch.m_topology` straight to
-    // `SetTopology` (`Tr2RenderContext.cpp:86`), so the two numberings have to
-    // BE the same one, and the AL owns it. The old numbering collided rather
-    // than merely disagreed - D3D's 4 is TRIANGLELIST, the AL's 4 is TOP_LINES.
-    this.topology = Topology.TOP_TRIANGLES;
+  /**
+   * Carbon `m_topology = TOP_TRIANGLES` (TriRenderBatch.h:101).
+   *
+   * THE VOCABULARY IS THE ABSTRACTION LAYER'S, NOT D3D'S. This field held a
+   * `D3dPrimitiveTopology` until 2026-09-05, and everything drew correctly
+   * because the WebGPU engine translated on the way out. Carbon does not
+   * translate: `SubmitGeometry` hands `batch.m_topology` straight to
+   * `SetTopology` (`Tr2RenderContext.cpp:86`), so the two numberings have to
+   * BE the same one, and the AL owns it. The old numbering collided rather
+   * than merely disagreed - D3D's 4 is TRIANGLELIST, the AL's 4 is TOP_LINES.
+   */
+  topology = Topology.TOP_TRIANGLES;
 
-    this.indexCountPerInstance = 0;
-    this.instanceCount = 0;
-    this.startIndexLocation = 0;
-    this.baseVertexLocation = 0;
-    this.startInstanceLocation = 0;
+  /** Carbon `m_indexCountPerInstance = 0` (TriRenderBatch.h:103). */
+  indexCountPerInstance = 0;
 
-    this.pickingData = 0;
-    this.depth = 0;
-    this.priority = 0;
+  /** Carbon `m_instanceCount = 0` (TriRenderBatch.h:104). */
+  instanceCount = 0;
 
-    // Default 1; the effect-sort partition rewrites this on the first batch of
-    // each bin-run to the run length so dispatch can stride one state-set over
-    // several draws. Meaningless on non-leading batches of a run.
-    this.groupCount = 1;
-  }
+  /** Carbon `m_startIndexLocation = 0` (TriRenderBatch.h:105). */
+  startIndexLocation = 0;
+
+  /** Carbon `m_baseVertexLocation = 0` (TriRenderBatch.h:106). */
+  baseVertexLocation = 0;
+
+  /** Carbon `m_startInstanceLocation = 0` (TriRenderBatch.h:107). */
+  startInstanceLocation = 0;
+
+  /** Carbon `m_pickingData = 0` (TriRenderBatch.h:109). */
+  pickingData = 0;
+
+  /** Carbon `m_depth = 0` (TriRenderBatch.h:110). */
+  depth = 0;
+
+  /** Carbon `m_priority = 0` (TriRenderBatch.h:112). */
+  priority = 0;
+
+  /**
+   * Carbon `m_groupCount = 1` (TriRenderBatch.h:114). The effect-sort
+   * partition rewrites this on the first batch of each bin-run to the run
+   * length so dispatch can stride one state-set over several draws.
+   * Meaningless on non-leading batches of a run.
+   */
+  groupCount = 1;
 
   // Sets material and derives the shader key from it. Normally the shader is the
   // material's shader-state interface; before one is resolved the material
