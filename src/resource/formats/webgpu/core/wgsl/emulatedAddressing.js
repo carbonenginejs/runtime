@@ -193,9 +193,10 @@ export function ModesExpression(bufferSymbol, resourceRegister, components)
  * caller forces.
  *
  * Two independent reasons, mirroring the GLSL profile. The container's own
- * modes are the ordinary case. The forced list is for a sampler whose mode can
+ * modes are the ordinary case. The forced entry is for a sampler whose mode can
  * CHANGE - a quad pattern's does - where the container gives no reason to gate
- * but a user can still select border or mirror-once later.
+ * but an override can still select border or mirror-once later; a dynamic
+ * sampler's `samplerModes` entry (withEmulatedAddressing) is passed as one.
  *
  * @param {number[]} modes Container modes for the sampler, if known.
  * @param {object|null} forced The caller's entry for this texture, if it forced one.
@@ -223,16 +224,29 @@ const SAMPLE_OPCODES = new Set([ "sample", "sample_b", "sample_l", "sample_d" ])
 
 /**
  * The pixel program with emulated addressing switched on: when one of its
- * samples goes through a sampler whose AUTHORED state has a border or
- * mirror-once axis, the program gains the modes buffer as a uniform binding
- * at `ADDRESS_MODES_REGISTER`, and `emulatedAddressing` names those samplers.
+ * samples goes through a sampler that can carry a border or mirror-once axis,
+ * the program gains the modes buffer as a uniform binding at
+ * `ADDRESS_MODES_REGISTER`, and `emulatedAddressing` names those samplers.
+ *
+ * A sampler can carry one in two ways, and both are gated:
+ *
+ * - its AUTHORED state has the mode; or
+ * - it is DYNAMIC, so a sampler override can give it the mode. Carbon nulls the
+ *   name of a non-dynamic sampler at read (`Tr2EffectDescription.cpp:428-433`),
+ *   and `Tr2Effect::RebuildSamplerOverrides` finds its target by that name
+ *   (`Tr2Effect.cpp:626-629`), so "dynamic" is exactly "an override can reach
+ *   it". This is how a ship pattern gets border: `quadv5` authors
+ *   `PatternMask1MapSampler` wrap/wrap, and EveSOF's pattern override
+ *   (`EveSOF.cpp:639`) writes the layer's projection mode over it. Gating on
+ *   the authored state alone left that draw on plain clamp-to-edge, so the
+ *   mask's edge texels smeared across the hull.
  *
  * KEYED BY SAMPLER REGISTER, as Carbon keys an override: its
  * `Tr2Effect::RebuildSamplerOverrides` writes the sampler register, so every
  * texture on a shared sampler changes together. The backend fills
- * `modes[samplerRegister]` from the sampler state actually bound there, so an
- * override that keeps an emulated mode is honoured; one that adds border to a
- * sampler the container did not author with it is not gated here.
+ * `modes[samplerRegister]` from the sampler state actually bound there, so
+ * the shader tests whichever mode the bound sampler has, authored or
+ * overridden; a wrap or clamp mode there tests as "nothing to emulate".
  *
  * @param {object} program CJS shader IR.
  * @param {object[]} semanticBindings The stage's effect-description bindings.
@@ -250,12 +264,14 @@ export function withEmulatedAddressing(program, semanticBindings)
         if (!state) continue;
 
         const axes = [ state.addressU, state.addressV, state.addressW ];
-        if (!NeedsEmulation(axes)) continue;
+        const overridable = binding.dynamic === true;
+        if (!NeedsEmulation(axes) && !overridable) continue;
 
         samplerModes[binding.registerIndex] = {
             u: axes[0],
             v: axes[1],
             w: axes[2],
+            overridable,
             borderColor: [ ...(state.borderColor ?? [ 0, 0, 0, 0 ]) ]
         };
     }

@@ -5,6 +5,7 @@ import {
     ADDRESS_COORD_3,
     BorderColorLiteral,
     ModesExpression,
+    NeedsEmulation,
     ShouldEmulate
 } from "./emulatedAddressing.js";
 import { fixedSourceLanes } from "../ir/sourceLanes.js";
@@ -1334,7 +1335,7 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         {
             throw new Error(`WGSL gather4 instruction ${instruction.index} supports only 2d textures`);
         }
-        if (program.emulatedAddressing?.samplerModes?.[sampler.registerIndex])
+        if (authoredEmulation(program, sampler.registerIndex))
         {
             throw new Error(`WGSL gather4 instruction ${instruction.index} cannot gather under emulated sampler addressing`);
         }
@@ -1394,7 +1395,10 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         const profile = program.emulatedAddressing ?? null;
         const declared = profile?.samplerModes?.[sampler.registerIndex] ?? null;
         const axes = [ declared?.u, declared?.v, declared?.w ];
-        const forced = profile?.textures?.find((entry) => entry.registerIndex === resource.registerIndex) ?? null;
+        // A dynamic sampler is gated because an override can give it border
+        // (withEmulatedAddressing), so its entry counts as forced.
+        const forced = profile?.textures?.find((entry) => entry.registerIndex === resource.registerIndex)
+            ?? (declared?.overridable ? declared : null);
         // Not a cube: its coordinate is a direction, where a [0, 1] border test
         // is meaningless (decalholev5 samples its interior cube through the
         // decals' bordered sampler). The WebGL2 emitter refuses it the same way.
@@ -1450,7 +1454,7 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         {
             throw new Error(`WGSL fragment instruction ${instruction.index} compares through a non-depth texture or a non-comparison sampler`);
         }
-        if (program.emulatedAddressing?.samplerModes?.[sampler.registerIndex])
+        if (authoredEmulation(program, sampler.registerIndex))
         {
             throw new Error(`WGSL fragment instruction ${instruction.index} needs emulated addressing on a comparison sampler, which is not supported`);
         }
@@ -2952,4 +2956,22 @@ function lowerProgramBody(program, options, compute)
         requiresDerivativeUniformityOptOut: context.requiresDerivativeUniformityOptOut,
         statements
     };
+}
+
+/**
+ * Whether the sampler at a register is AUTHORED with a mode that has to be
+ * emulated. A register gated only because it is dynamic (withEmulatedAddressing)
+ * does not count: gather and compare samples have no emulated form, and a
+ * sampler authored without border cannot be refused for a mode an override
+ * might add.
+ *
+ * @param {object} program CJS shader IR.
+ * @param {number} registerIndex Sampler register.
+ * @returns {boolean} True when the authored modes need emulation.
+ */
+function authoredEmulation(program, registerIndex)
+{
+    const entry = program.emulatedAddressing?.samplerModes?.[registerIndex] ?? null;
+
+    return entry !== null && NeedsEmulation([ entry.u, entry.v, entry.w ]);
 }

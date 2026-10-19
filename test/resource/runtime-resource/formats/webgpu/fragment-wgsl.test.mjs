@@ -2819,6 +2819,33 @@ test("a sampler authored with border addressing samples through the modes buffer
   assert.equal(code.match(/cjsAddressBorder2\(textureSample/gu).length, 2, "both samples");
 });
 
+test("a dynamic sampler authored without border is still wrapped, because an override can give it border", async () =>
+{
+  // quadv5 authors PatternMask1MapSampler wrap/wrap and EveSOF's pattern
+  // override writes clamp-to-border over it by name (EveSOF.cpp:639). Carbon
+  // lets an override reach only a dynamic sampler (Tr2EffectDescription.cpp:428-433
+  // nulls the others' names), so dynamic is exactly "may become border". Gating
+  // on authored modes alone left pattern masks on clamp-to-edge.
+  const { withEmulatedAddressing, ADDRESS_MODES_SYMBOL } = await import("../../../../../src/resource/formats/webgpu/core/wgsl/emulatedAddressing.js");
+  const ir = CjsWebgpuFormat.buildShaderIr(fragmentFixture(), { source: "synthetic-dynamic-sampler" });
+  const sampler = (dynamic) => [ {
+    kind: "sampler",
+    registerIndex: 0,
+    registerSpace: 0,
+    dynamic,
+    carbon: { name: "PatternMask1MapSampler", sampler: { addressU: 1, addressV: 1, addressW: 3, borderColor: [ 0, 0, 0, 0 ], isDynamic: dynamic } }
+  } ];
+
+  assert.equal(withEmulatedAddressing(ir, sampler(false)), ir, "a non-dynamic wrap sampler is the GPU sampler's alone");
+
+  const program = withEmulatedAddressing(ir, sampler(true));
+  const code = CjsWebgpuFormat.buildWgsl(program).code;
+
+  assert.match(code, new RegExp(`var<uniform> ${ADDRESS_MODES_SYMBOL}: array<vec4<f32>, 1>`, "u"));
+  assert.equal(code.match(/cjsAddressBorder2\(textureSample\(t0, s0, /gu).length, 2, "both samples read the bound modes");
+  assert.ok(code.includes(`${ADDRESS_MODES_SYMBOL}[0].xy, vec4<f32>(0.0, 0.0, 0.0, 0.0))`), "with the declared border colour");
+});
+
 // The API contracts are independent of either shader emitter:
 // D3D11.3 section 15.2 position and WGSL position-builtin-value.
 // https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm
