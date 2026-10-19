@@ -4,7 +4,6 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { be } from "../../npm/dist/global/blue/index.js";
-import { CJS_ENUM_NAME } from "../../npm/dist/global/blue/enums/CjsBlueEnumRegistry.js";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const inputs = JSON.parse(await readFile(new URL("../../scripts/trinity/enum-registration-inputs.json", import.meta.url), "utf8"));
@@ -20,7 +19,7 @@ test("generated definition registers without domain classes: " + module.file, ()
   const result = spawnSync(process.execPath, [
     "--experimental-loader", "data:text/javascript," + encodeURIComponent(guard), "--input-type=module", "--eval",
     `import assert from "node:assert/strict";
-      import {blueEnums, CJS_ENUM_NAME} from "./npm/dist/global/blue/enums/CjsBlueEnumRegistry.js";
+      import {blueEnums} from "./npm/dist/global/blue/enums/CjsBlueEnumRegistry.js";
       for (const name of ["fetch", "setTimeout", "setInterval", "requestAnimationFrame"])
         globalThis[name] = () => { throw new Error("Enum import activated " + name); };
       const module = ${JSON.stringify(module)};
@@ -30,10 +29,10 @@ test("generated definition registers without domain classes: " + module.file, ()
         const values = exports[selector.name], registration = module.registrations.find(r => r.exportName === selector.name);
         assert.equal(Object.isFrozen(values), true);
         assert.ok(Object.values(values).every(Number.isInteger));
-        assert.equal(values[CJS_ENUM_NAME], registration?.name);
+        assert.equal(blueEnums.GetEnumName(values), registration?.name ?? null);
         if (registration) {
           assert.equal(blueEnums.Get(registration.name), values);
-          assert.equal(Object.getOwnPropertyDescriptor(values, CJS_ENUM_NAME).enumerable, false);
+          assert.deepEqual(Reflect.ownKeys(values), Object.keys(values), "the name adds no property");
           const expected = structuredClone(registration.definition), info = blueEnums.GetEnumInfo(registration.name);
           for (const key of ["members", "chooser"]) if (expected[key]) expected[key] = expected[key].map(({member, ...rest}) => ({name: rest.name, value: values[member], ...(rest.description === undefined ? {} : {description: rest.description})}));
           for (const [key, value] of Object.entries(expected)) assert.deepEqual(info[key], value);
@@ -147,5 +146,5 @@ test("generated enum retains consumer alias: " + exported, async () =>
   let value = await import("../../npm/dist/" + file);
   for (const member of exported.split(".")) value = value[member];
   assert.equal(value, be.enums.Get(name));
-  assert.equal(value[CJS_ENUM_NAME], name);
+  assert.equal(be.enums.GetEnumName(value), name);
 });

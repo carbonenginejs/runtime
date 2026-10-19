@@ -75,7 +75,6 @@
     "src/trinityal/webgpu/core/CjsWebgpuRenderTarget.js": 2
   },
   "unresolvedBase": {
-    "src/global/blue/BlueList.js": 1,
     "src/global/utils/errors/CjsCancellationError.js": 1,
     "src/global/utils/errors/CjsError.js": 1,
     "src/global/utils/errors/CjsUnusedMethodError.js": 2,
@@ -92,7 +91,6 @@
     "src/character/library-builder/CjsCharacterLibraryBuilder.js": 1,
     "src/character/library/CjsCharacterLibraryDocuments.js": 1,
     "src/global/blue/BlueObjectMetadata.js": 1,
-    "src/global/blue/enums/CjsBlueEnumRegistry.js": 1,
     "src/global/compose/abstract.js": 1,
     "src/global/compose/notify.js": 1,
     "src/global/compose/runtimeState.js": 1,
@@ -122,5 +120,8 @@
   "assignThis": {
     "src/audio/library/CjsAudioLibrary.js": 1,
     "src/resource/format/CjsResourceProbe.js": 1
+  },
+  "held": {
+    "src/global/blue/BlueObjectMetadata.js": "__bluemetadata__ is Carbon per-object metadata added to any class after construction; moving it changes how readers and writers see it. Held for the operator (Ruru, 2026-10-19)."
   }
 }

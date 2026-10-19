@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { CjsFormat } from "../../src/resource/format/CjsFormat.js";
 import { StreamType } from "../../src/global/consts/media/metadata.js";
-import { blueEnums, CJS_ENUM_NAME } from "../../src/global/blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums } from "../../src/global/blue/enums/CjsBlueEnumRegistry.js";
 import { StreamType as VideoStreamType } from "../../src/resource/video/enums.js";
 import { CjsMp4Format } from "../../src/resource/formats/mp4/CjsMp4Format.js";
 import { CjsWebmFormat } from "../../src/resource/formats/webm/CjsWebmFormat.js";
@@ -17,8 +17,9 @@ const { STREAM_AUDIO, STREAM_VIDEO, STREAM_AUDIO_VIDEO } = StreamType;
 test("format stream declarations reuse Carbon flags and derive both checks", () => {
   assert.equal(StreamType, VideoStreamType);
   assert.equal(blueEnums.Get("videoplayer.StreamType"), StreamType);
-  assert.equal(StreamType[CJS_ENUM_NAME], "videoplayer.StreamType");
-  assert.equal(Object.getOwnPropertyDescriptor(StreamType, CJS_ENUM_NAME).enumerable, false);
+  // The name lives in the registry; the enum object gains no property (class-shape rule).
+  assert.equal(blueEnums.GetEnumName(StreamType), "videoplayer.StreamType");
+  assert.deepEqual(Reflect.ownKeys(StreamType), Object.keys(StreamType));
   assert.deepEqual(Object.values(StreamType), [1, 2, 3]);
   assert.equal(STREAM_AUDIO | STREAM_VIDEO, STREAM_AUDIO_VIDEO);
   for (const Format of [CjsMp4Format, CjsWebmFormat, CjsOggFormat]) {

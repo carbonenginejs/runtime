@@ -12,9 +12,6 @@
 // initialization, because schema and Blue both need this storage while their
 // modules load.
 
-/** Stable enum identity, shared by definition sites and schema without an import cycle. */
-export const CJS_ENUM_NAME = Symbol.for("carbonenginejs.enum.name");
-
 /** Native enum exposure flags, retained as metadata without Python module mutation. */
 export const EnumRegistrationType = Object.freeze({
     ENUM_REG_VALUES_ON_MODULE: 1,
@@ -65,18 +62,18 @@ export class CjsBlueEnumRegistry
      */
     Register(name, values, definition = {})
     {
-        return this._Register(name, values, definition, false);
+        return this._Register(name, values, definition);
     }
 
     /**
      * Creates a named, frozen flat enum at its definition site (BLUE_REGISTER_ENUM).
-     * The supplied literal retains its identity; its non-enumerable symbol is
-     * installed only after all registration checks pass, before freezing.
-     * Pre-frozen unnamed objects must use Register or provide an unfrozen literal.
+     * The supplied literal retains its identity and gains no property: its name
+     * lives in this registry (GetEnumName), as nothing may add a property to an
+     * object after its construction (class-shape rule, 2026-10-19).
      */
     Create(name, values, definition = {})
     {
-        return this._Register(name, values, definition, true);
+        return this._Register(name, values, definition);
     }
 
     /** Sets a registration using the same conflict checks; never silently replaces a type. */
@@ -110,7 +107,7 @@ export class CjsBlueEnumRegistry
     }
 
     /** Validates the full registration before mutating either the enum or registry. */
-    _Register(name, values, definition, create)
+    _Register(name, values, definition)
     {
         if (typeof name !== "string" || !name || name.trim() !== name)
         {
@@ -187,15 +184,6 @@ export class CjsBlueEnumRegistry
             else if (typeof definition[key] !== "string") throw new TypeError(`Enum ${key} must be a string.`);
             info[key] = definition[key];
         }
-        const identity = Object.getOwnPropertyDescriptor(values, CJS_ENUM_NAME);
-        if (identity && (!Object.hasOwn(identity, "value") || identity.value !== name || (create && identity.enumerable)))
-        {
-            throw new TypeError("Enum object already has a canonical name.");
-        }
-        if (create && !identity && !Object.isExtensible(values))
-        {
-            throw new TypeError("Create requires an unfrozen enum literal or an already named enum.");
-        }
         const existing = this._byName.get(name);
         if (existing)
         {
@@ -206,10 +194,6 @@ export class CjsBlueEnumRegistry
             return values;
         }
         if (this._byObject.has(values)) throw new TypeError("Enum object already has a canonical name.");
-        if (create && !identity)
-        {
-            Object.defineProperty(values, CJS_ENUM_NAME, { value: name });
-        }
         Object.freeze(values);
         this._byName.set(name, info);
         this._byObject.set(values, name);

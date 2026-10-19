@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { be } from "../../npm/dist/global/blue/index.js";
-import { CJS_ENUM_NAME } from "../../npm/dist/global/blue/enums/CjsBlueEnumRegistry.js";
 
 // Existing public definitions and class-static aliases must acquire the name
-// used by schema without copying values or adding a JSON-visible member.
+// used by schema without copying values or adding any member: the registry
+// holds the name (class-shape rule, 2026-10-19).
 const definitions = [
   [
     "sof/faction/EveSOFDataFactionColorSet.js",
@@ -265,9 +265,8 @@ test("definition-site enum identity: " + name, async () =>
   for (const member of exported.split(".")) values = values[member];
   assert.equal(typeof values, "object");
   assert.equal(be.enums.Get(name), values);
-  const property = Object.getOwnPropertyDescriptor(values, CJS_ENUM_NAME);
-  assert.equal(property?.value, name);
-  assert.equal(property.enumerable, false);
+  assert.equal(be.enums.GetEnumName(values), name);
+  assert.deepEqual(Reflect.ownKeys(values), Object.keys(values));
   assert.equal(Object.isFrozen(values), true);
   const persisted = JSON.parse(JSON.stringify(values));
   assert.deepEqual(Object.keys(persisted), Object.keys(values));

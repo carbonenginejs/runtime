@@ -315,6 +315,17 @@ function baseOf(record)
     return base;
 }
 
+/**
+ * Whether a class's chain ends at the global Array. Array declares its own
+ * `length` on every instance, so a write to it adds nothing (ruling,
+ * 2026-10-19); BlueList truncates through it.
+ */
+function extendsGlobalArray(record)
+{
+    const superClass = record.superClass;
+    return superClass?.type === "Identifier" && superClass.name === "Array" && !record.scope.getBinding("Array");
+}
+
 /** "yes", "no" or "unresolved": whether a class or its bases declare a name. */
 function declared(record, name, isStatic, seen = new Set())
 {
@@ -325,7 +336,7 @@ function declared(record, name, isStatic, seen = new Set())
         seen.add(current);
         const base = baseOf(current);
         if (base === null) return "no";
-        if (base === "unresolved") return "unresolved";
+        if (base === "unresolved") return extendsGlobalArray(current) && !isStatic && name === "length" ? "yes" : "unresolved";
         current = base;
     }
 }

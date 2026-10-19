@@ -15,7 +15,7 @@ import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } fr
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, mappedInterfaces } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport, isExportableField, isTransportedDeclaration, isWritableField } from "../compose/values.js";
-import { blueEnums, CjsBlueEnumRegistry, CJS_ENUM_NAME } from "../blue/enums/CjsBlueEnumRegistry.js";
+import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
 import { CjsUnusedMethodError } from "../utils/errors/CjsUnusedMethodError.js";
 import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../blue/classes/registry.js";
@@ -58,7 +58,6 @@ const CONSUMED_DECORATOR_METADATA = new WeakSet();
 // any const declared after the class is initialized.
 const DECORATOR_METADATA = Symbol("carbonenginejs.schema.decoratorMetadata");
 
-export { CJS_ENUM_NAME } from "../blue/enums/CjsBlueEnumRegistry.js";
 
 /**
  * Cross-copy carrier for a declared class name.
@@ -585,7 +584,7 @@ export class CjsSchema
     {
         if (typeof values === "string") return values;
         return values && typeof values === "object"
-            ? blueEnums.GetEnumName(values) || blueEnums.GetEnumName(values.Type) || values[CJS_ENUM_NAME] || values.Source?.name || values.name || null
+            ? blueEnums.GetEnumName(values) || blueEnums.GetEnumName(values.Type) || values.Source?.name || values.name || null
             : null;
     }
 
@@ -3329,7 +3328,7 @@ function normalizeEnumSchema(values, definition)
         ? definition.members.map(member => ({ ...member }))
         : [];
     const result = {
-        name: definition.name || values?.[CJS_ENUM_NAME] || values?.Source?.name || values?.name || null,
+        name: definition.name || blueEnums.GetEnumName(values) || values?.Source?.name || values?.name || null,
         type,
         members
     };

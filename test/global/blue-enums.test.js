@@ -386,15 +386,14 @@ test("curve enum fields resolve through Blue, and audio shares Blue's TRIEXTRAPO
 });
 
 
-test("definition-site Create stamps a hidden immutable name and preserves flat enum values", () =>
+test("definition-site Create names the enum in the registry and adds no property", () =>
 {
     const registry = new CjsBlueEnumRegistry();
     const values = { ZERO: 0, FIRST: 1, ALIAS: 1, SECOND: 2 };
     assert.equal(registry.Create("test.Created", values), values);
-    const symbol = Symbol.for("carbonenginejs.enum.name");
-    assert.deepEqual(Object.getOwnPropertyDescriptor(values, symbol), {
-        value: "test.Created", enumerable: false, writable: false, configurable: false
-    });
+    // The name lives in the registry: nothing adds a property after construction.
+    assert.equal(registry.GetEnumName(values), "test.Created");
+    assert.deepEqual(Reflect.ownKeys(values), Object.keys(values));
     assert.equal(JSON.stringify(values), '{"ZERO":0,"FIRST":1,"ALIAS":1,"SECOND":2}');
     assert.deepEqual(Object.keys(values), ["ZERO", "FIRST", "ALIAS", "SECOND"]);
     assert.ok(Object.isFrozen(values));
@@ -404,34 +403,30 @@ test("definition-site Create stamps a hidden immutable name and preserves flat e
     assert.equal(registry.Set("test.Created", values), values);
     assert.equal(registry.GetValueName("test.Created", 1), "FIRST | ALIAS");
     assert.equal(registry.GetValueNameAsBitMask("test.Created", 3), "FIRST | ALIAS | SECOND");
-    assert.equal(CjsSchema.getEnumName(values), "test.Created", "symbol travels across registry instances");
+    assert.equal(CjsSchema.getEnumName(values), null, "schema reads the one global registry");
     assert.equal(be.enums.HasEnum("test.Created"), false, "local registry must not publish globally");
 });
 
 test("Create and Set reject conflicting registrations without freezing or naming rejected values", () =>
 {
-    const registry = new CjsBlueEnumRegistry(), symbol = Symbol.for("carbonenginejs.enum.name");
+    const registry = new CjsBlueEnumRegistry();
     const original = registry.Create("test.Atomic", { A: 1 });
     for (const method of ["Create", "Register", "Set"])
     {
         const rejected = { A: 1 };
         assert.throws(() => registry[method]("test.Atomic", rejected), /conflicts/);
         assert.equal(Object.isFrozen(rejected), false);
-        assert.equal(Object.hasOwn(rejected, symbol), false);
+        assert.deepEqual(Reflect.ownKeys(rejected), [ "A" ]);
         assert.equal(registry.Get("test.Atomic"), original);
     }
     const invalid = { A: 1 };
     assert.throws(() => registry.Create("test.Bad", invalid, {chooser: [{name: "B", value: 2}]}), TypeError);
-    assert.equal(Object.hasOwn(invalid, symbol), false);
+    assert.deepEqual(Reflect.ownKeys(invalid), [ "A" ]);
     assert.equal(Object.isFrozen(invalid), false);
     assert.equal(registry.HasEnum("test.Bad"), false);
-    const other = new CjsBlueEnumRegistry();
-    assert.throws(() => other.Create("test.Wrong", original), /canonical name/);
-    assert.equal(other.Create("test.Atomic", original), original);
-    const visibleName = { A: 1, [symbol]: "test.Visible" };
-    assert.throws(() => registry.Create("test.Visible", visibleName), /canonical name/);
-    assert.equal(Object.isFrozen(visibleName), false);
+    // One object, one name, within a registry; there is one registry in production.
+    assert.throws(() => registry.Create("test.Wrong", original), /canonical name/);
+    // Create no longer writes to the literal, so an already-frozen one is accepted.
     const frozen = Object.freeze({ A: 1 });
-    assert.throws(() => registry.Create("test.Frozen", frozen), /unfrozen/);
-    assert.equal(registry.Register("test.Frozen", frozen), frozen, "legacy registrations may already be frozen");
+    assert.equal(registry.Create("test.Frozen", frozen), frozen);
 });
