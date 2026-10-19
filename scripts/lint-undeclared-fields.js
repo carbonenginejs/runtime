@@ -71,7 +71,13 @@
 //   - `globalThis`, `window`, `self`, `global` and any unbound global name
 //     (a platform constructor such as `Error`) are globals;
 //   - `context.metadata` (or `context?.metadata`), `X[Symbol.metadata]`, and
-//     variables initialized from either, are decorator metadata.
+//     variables initialized from either, are decorator metadata;
+//   - a variable initialized from `Object.create(null)` in the same function
+//     as the call is a null-prototype dictionary, not an instance. Keys that
+//     come from data belong in a Map (Ruru, 2026-10-20); where a dictionary
+//     object is kept instead, it is built this way, and that is the only
+//     dictionary this check exempts. A `{}` literal, or a dictionary that
+//     arrives as a parameter or member, still counts.
 // Everything else - a parameter, a local object, a member such as `this.map`,
 // a call or `new` result - counts. A parameter that in practice receives a
 // prototype or a function is still counted: nothing at the site says so.
@@ -433,6 +439,13 @@ function isMetadata(node)
         && keyName(node.property.property, node.property.computed) === "metadata";
 }
 
+/** Whether a node is `Object.create(null)`. */
+function isNullPrototypeCreate(node)
+{
+    return node?.type === "CallExpression" && isObjectCall(node, "create")
+        && node.arguments.length === 1 && node.arguments[0].type === "NullLiteral";
+}
+
 function isPrototype(node)
 {
     if (node?.type === "MemberExpression" && keyName(node.property, node.computed) === "prototype") return true;
@@ -458,6 +471,7 @@ function isInstanceTarget(targetPath, file)
         const init = bound.init;
         if (/^(Class|Function|ArrowFunction)Expression$/u.test(init?.type ?? "") || isPrototype(init) || isMetadata(init)) return false;
         if (init?.type === "Identifier" && resolveIdentifier(binding.path.scope, init.name, file, new Set()) !== null) return false;
+        if (isNullPrototypeCreate(init) && binding.path.getFunctionParent()?.node === targetPath.getFunctionParent()?.node) return false;
     }
     return true;
 }

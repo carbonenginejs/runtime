@@ -36,5 +36,5 @@ test("dynamic constant extraction requires the native constant writer", () =>
 test("dynamic constant extraction consumes a nominal parameter", () =>
 {
   const { effect, reflected } = extractionFixture();
-  assert.deepEqual(extractTr2EffectConstantValues(effect, reflected).Value, [1, 2, 3, 4]);
+  assert.deepEqual(extractTr2EffectConstantValues(effect, reflected).get("Value"), [1, 2, 3, 4]);
 });

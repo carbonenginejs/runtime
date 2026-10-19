@@ -34,6 +34,21 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
 
   _readTimeout = null;
 
+  /** The resource manager the texture is published through; set by the constructor. Ours. */
+  _resourceManager = null;
+
+  /** The injected browser player factory; set by the constructor. Ours. @type {Function|null} */
+  _createPlayer = null;
+
+  /** The timer host (`globalThis` by default); set by the constructor. Ours. */
+  _host = null;
+
+  /** Milliseconds before retrying after a failure; the constructor's default. Ours. */
+  _retryDelay = 1000;
+
+  /** Milliseconds before a load is abandoned; the constructor's default. Ours. */
+  _loadTimeout = 30000;
+
   /** Fixed list is host policy; browser construction is injected to retain headless resource imports. */
   constructor(playlist, { resourceManager = null, createPlayer = null, host = globalThis,
     retryDelay = 1000, loadTimeout = 30000 } = {})

@@ -9,6 +9,33 @@ import { CjsFileIndexSource } from "./CjsFileIndexSource.js";
 export class CjsFileIndexLibrary
 {
 
+    /** The normalized provider; set by the constructor. @type {object|null} */
+    provider = null;
+
+    /** The resolveBuild result; set by the constructor. @type {object|null} */
+    buildReference = null;
+
+    /** The library build, from the build reference; set by the constructor. @type {object|null} */
+    build = null;
+
+    /** The appfileindex; set by the constructor. @type {CjsFileIndex|null} */
+    appIndex = null;
+
+    /** The loaded resfileindex records; set by the constructor. @type {object[]} */
+    resFileIndexes = [];
+
+    /** The manual overlays; set by the constructor. @type {CjsFileIndexOverlay[]} */
+    overlays = [];
+
+    /** The sources, "default" first; set by the constructor. @type {CjsFileIndexSource[]} */
+    sources = [];
+
+    /** The loaded resfileindex names; set by the constructor. @type {string[]} */
+    indexNames = [];
+
+    /** The overlay names; set by the constructor. @type {string[]} */
+    overlayNames = [];
+
     #overlaysByName;
     #resFileIndexesByName;
     #sourcesByID;

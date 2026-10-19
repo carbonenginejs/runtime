@@ -36,6 +36,9 @@ const CHANNEL_INDEX = { r: 0, g: 1, b: 2, a: 3 };
 export class CjsTexturePackConstructor extends IBlueDynamicResourceConstructor
 {
 
+  /** The `CjsBlueResMan` that loads the sources; set by the constructor. */
+  _resourceManager = null;
+
   /**
    * @param {object} resourceManager The `CjsBlueResMan` that loads the sources.
    */

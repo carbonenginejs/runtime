@@ -199,6 +199,9 @@ export class CjsWebgpuShaderAL
   /** The colour locations whose UNORM override the stage declares. */
   _unormOverrides = [];
 
+  /** Whether a pixel stage declares the coverage-discard override; set by Create. */
+  _coverageDiscard = false;
+
   _webgpu = null;
 
   /**

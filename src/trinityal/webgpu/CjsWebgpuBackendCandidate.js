@@ -27,6 +27,19 @@ export class CjsWebgpuBackendCandidate extends CjsBackendCandidate
   name = "webgpu";
 
   /**
+   * Optional caller label. Set by the constructor from `options.label`.
+   * @type {string|null}
+   */
+  label = null;
+
+  /**
+   * Browser acquisition inputs forwarded to CjsWebgpuDevice.Request. Set by
+   * the constructor as a copy of `options.requestOptions`.
+   * @type {object}
+   */
+  requestOptions = {};
+
+  /**
    * @param {object} [options]
    * @param {string} [options.label]
    * @param {object} [options.limits]

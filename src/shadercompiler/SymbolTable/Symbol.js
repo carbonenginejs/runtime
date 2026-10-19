@@ -33,33 +33,40 @@ export class Symbol
 
     packOffset = new PackOffset();
 
+    /** Carbon's `registerSpecifier` (SymbolTable.h:73), by value. @type {CjsFxStdMap} */
+    registerSpecifier = new CjsFxStdMap();
+
+    /** Carbon's `annotations( nullptr )` (SymbolTable.cpp:75). @type {import("./SymbolAnnotation.js").SymbolAnnotation[]|null} */
+    annotations = null;
+
+    /** Carbon's `type` (SymbolTable.h:77), by value; the constructor sets it from token type 0. */
+    type = new Type();
+
+    /** Carbon's `definition( nullptr )` (SymbolTable.cpp:76). @type {import("../ASTNode/ASTNode.js").ASTNode|null} */
+    definition = null;
+
+    /**
+     * Carbon's `intrinsicType( nullptr )` (SymbolTable.cpp:77).
+     * @type {((call: import("../ASTNode/ASTNode.js").ASTNode, argIndex: number) => Type)|null}
+     */
+    intrinsicType = null;
+
+    /** Carbon's `addressSpace( AddressSpace::None )` (SymbolTable.cpp:78). Specific to Metal shaders. */
+    addressSpace = Symbol.AddressSpace.None;
+
+    /** Carbon's `resourceRefWrapped( false )` (SymbolTable.cpp:79). */
+    resourceRefWrapped = false;
+
+    /** Carbon's `used( false )` (SymbolTable.cpp:80). */
+    used = false;
+
     /** Initializes an unused symbol with empty type and register declarations. */
     constructor()
     {
         this.packOffset.subComponent = -1;
 
-        /** @type {CjsFxStdMap} */
-        this.registerSpecifier = new CjsFxStdMap();
-
-        /** @type {import("./SymbolAnnotation.js").SymbolAnnotation[]|null} */
-        this.annotations = null;
-
         // SymbolTable.cpp:89
-        this.type = new Type();
         this.type.FromTokenType(0);
-
-        /** @type {import("../ASTNode/ASTNode.js").ASTNode|null} */
-        this.definition = null;
-
-        /** @type {((call: import("../ASTNode/ASTNode.js").ASTNode, argIndex: number) => Type)|null} */
-        this.intrinsicType = null;
-
-        // Specific to Metal shaders.
-        this.addressSpace = Symbol.AddressSpace.None;
-
-        this.resourceRefWrapped = false;
-
-        this.used = false;
     }
 
     // Source: trinity/shadercompiler/SymbolTable.h

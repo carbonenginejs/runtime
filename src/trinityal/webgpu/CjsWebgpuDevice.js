@@ -18,6 +18,80 @@ function alignedBufferSize(byteLength)
  */
 export class CjsWebgpuDevice
 {
+
+  /**
+   * The GPU provider (`navigator.gpu` or an injected one), kept for
+   * Recreate. Set by the constructor.
+   * @type {GPU|null}
+   */
+  _gpu = null;
+
+  /**
+   * The adapter the device came from, when known. Set by the constructor.
+   * @type {GPUAdapter|null}
+   */
+  _adapter = null;
+
+  /**
+   * The native device; null once destroyed. Set by the constructor.
+   * @type {GPUDevice|null}
+   */
+  _device = null;
+
+  /**
+   * The adapter request options, reused by Recreate. Set by the constructor.
+   * @type {object|null}
+   */
+  _adapterOptions = null;
+
+  /**
+   * The device descriptor, reused by Recreate. Set by the constructor.
+   * @type {object|null}
+   */
+  _deviceDescriptor = null;
+
+  /**
+   * The `GPUBufferUsage` table. Set by the constructor.
+   * @type {object|null}
+   */
+  _bufferUsage = null;
+
+  /**
+   * The `GPUTextureUsage` table. Set by the constructor.
+   * @type {object|null}
+   */
+  _textureUsage = null;
+
+  /**
+   * Device generation; advances on every recreate and on destruct.
+   * @type {number}
+   */
+  _generation = 1;
+
+  /**
+   * Lifecycle state: "ready", "lost" or "destroyed".
+   * @type {string}
+   */
+  _state = "ready";
+
+  /**
+   * The accepted device-loss record, if any.
+   * @type {GPUDeviceLostInfo|null}
+   */
+  _lostInfo = null;
+
+  /**
+   * Serial of the latest Recreate request; supersedes older ones.
+   * @type {number}
+   */
+  _recreateSerial = 0;
+
+  /**
+   * Advances on destruct so an in-flight Recreate is rejected.
+   * @type {number}
+   */
+  _lifecycleVersion = 0;
+
   /**
    * Requests or accepts a WebGPU adapter and device, then returns a ready
    * engine boundary.
@@ -57,11 +131,6 @@ export class CjsWebgpuDevice
     this._deviceDescriptor = options.deviceDescriptor;
     this._bufferUsage = options.bufferUsage || globalThis.GPUBufferUsage || null;
     this._textureUsage = options.textureUsage || globalThis.GPUTextureUsage || null;
-    this._generation = 1;
-    this._state = "ready";
-    this._lostInfo = null;
-    this._recreateSerial = 0;
-    this._lifecycleVersion = 0;
     this._WatchDevice(this._device, this._generation);
   }
 

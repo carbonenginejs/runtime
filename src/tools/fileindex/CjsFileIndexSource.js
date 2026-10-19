@@ -6,6 +6,12 @@ import { CjsFileIndexEntry } from "./CjsFileIndexEntry.js";
 export class CjsFileIndexSource
 {
 
+    /** The compact source ID; set by the constructor. */
+    id = "";
+
+    /** The HTTP(S) base URL, without a trailing slash; set by the constructor. */
+    baseURL = "";
+
     /**
      * Binds a compact source ID to a plain HTTP(S) base URL - credentials, query
      * and fragment are refused and the trailing slash is stripped - then freezes

@@ -56,9 +56,9 @@ test("Tr2Effect extraction preserves dynamic rerouting, sRGB conversion, and con
     reflected("Fixed", 2)
   ]);
 
-  assert.deepEqual(values.Rerouted, [5, 6, 7, 8]);
-  assert.deepEqual(values.Srgb, Array.from(srgb.linearValue));
-  assert.deepEqual(values.Fixed, [9, 10]);
+  assert.deepEqual(values.get("Rerouted"), [5, 6, 7, 8]);
+  assert.deepEqual(values.get("Srgb"), Array.from(srgb.linearValue));
+  assert.deepEqual(values.get("Fixed"), [9, 10]);
 });
 
 test("Tr2Effect extraction fails closed on missing, duplicate, and unsupported constants", () =>
@@ -91,7 +91,7 @@ test("Tr2Effect extraction fails closed on missing, duplicate, and unsupported c
   );
 });
 
-test("Tr2Effect extraction preserves reflected names as own data properties", () =>
+test("Tr2Effect extraction keys reflected names in a Map", () =>
 {
   const effect = new Tr2Effect();
   const parameter = new Tr2Vector4Parameter();
@@ -100,9 +100,9 @@ test("Tr2Effect extraction preserves reflected names as own data properties", ()
   effect.parameters = [parameter];
   const values = extractTr2EffectConstantValues(effect, [reflected("__proto__", 1)]);
 
-  assert.equal(Object.hasOwn(values, "__proto__"), true);
-  assert.deepEqual(values.__proto__, [42]);
-  assert.equal(Object.getPrototypeOf(values), Object.prototype);
+  assert.ok(values instanceof Map);
+  assert.equal(values.has("__proto__"), true);
+  assert.deepEqual(values.get("__proto__"), [42]);
 });
 
 test("space-object Main extraction maps object aliases, shared values, and custom masks", () =>

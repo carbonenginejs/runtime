@@ -121,9 +121,9 @@ function copyParameterValue(entry, constant)
  *
  * @param {object} effect Tr2Effect-like material instance.
  * @param {object[]} reflectedConstants Reflected constants for one local buffer.
- * @returns {object} Plain name-to-number-array values. Each property is
- *   non-writable and non-configurable; the object is not frozen, and the
- *   arrays are detached copies that stay mutable.
+ * @returns {Map<string, number[]>} Name-to-number-array values, keyed by the
+ *   reflected constant names. The keys come from shader data, so they live in
+ *   a Map rather than as object properties; the arrays are detached copies.
  */
 export function extractTr2EffectConstantValues(effect, reflectedConstants)
 {
@@ -138,7 +138,7 @@ export function extractTr2EffectConstantValues(effect, reflectedConstants)
 
   const parameters = indexParameters(effect);
   const names = new Set();
-  const result = {};
+  const result = new Map();
   for (const reflected of reflectedConstants)
   {
     const constant = validateConstant(reflected, names);
@@ -147,12 +147,7 @@ export function extractTr2EffectConstantValues(effect, reflectedConstants)
     {
       fail(`parameter ${JSON.stringify(constant.name)} is missing`, "CJS_TRINITY_EFFECT_CONSTANT_MISSING");
     }
-    Object.defineProperty(result, constant.name, {
-      value: copyParameterValue(entry, constant),
-      enumerable: true,
-      configurable: false,
-      writable: false
-    });
+    result.set(constant.name, copyParameterValue(entry, constant));
   }
   return result;
 }

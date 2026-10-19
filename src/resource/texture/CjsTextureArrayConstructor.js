@@ -29,6 +29,9 @@ export const TextureArrayPrefix = "dynamic:/texturearray/";
 export class CjsTextureArrayConstructor extends IBlueDynamicResourceConstructor
 {
 
+  /** The `CjsBlueResMan` that loads the layers; set by the constructor. */
+  _resourceManager = null;
+
   /**
    * @param {object} resourceManager The `CjsBlueResMan` that loads the layers.
    */

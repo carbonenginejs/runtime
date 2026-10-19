@@ -4,6 +4,36 @@ import { CjsSchema } from "#schema/CjsSchema";
 export class CjsFileIndexEntry
 {
 
+    /** The normalized lookup key, such as `res:/a/b.dds`; set by the constructor. */
+    logicalPath = "";
+
+    /** The path exactly as written in the file, for diagnostics; set by the constructor. */
+    sourceLogicalPath = "";
+
+    /** The entry root, "res" or "app"; set by the constructor. */
+    root = "";
+
+    /** The logical path without its root prefix; set by the constructor. */
+    relativePath = "";
+
+    /** The storage location; set by the constructor. */
+    location = "";
+
+    /** The 32-hex checksum, or null; set by the constructor. @type {string|null} */
+    checksum = null;
+
+    /** The uncompressed size, or null; set by the constructor. @type {number|null} */
+    uncompressedSize = null;
+
+    /** The compressed size, or null; set by the constructor. @type {number|null} */
+    compressedSize = null;
+
+    /** The binary operation, or null; set by the constructor. @type {number|null} */
+    binaryOperation = null;
+
+    /** The source row, or null; set by the constructor. @type {number|null} */
+    lineNumber = null;
+
     /**
      * Normalizes and freezes one row: the root and logical path first, then the
      * storage location, an optional 32-hex checksum and non-negative sizes.

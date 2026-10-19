@@ -60,7 +60,7 @@ function positiveSize(value, name)
 /** Owns a WebGPU presentation surface and its per-frame attachments. */
 export class CjsWebgpuRenderTarget
 {
-  _webgpu;
+  _webgpu = null;
 
   _canvas = null;
 
@@ -71,6 +71,12 @@ export class CjsWebgpuRenderTarget
   _alphaMode = "opaque";
 
   _extraUsage = 0;
+
+  /** The `GPUTextureUsage` constants; set by the constructor. */
+  _textureUsage = null;
+
+  /** The `navigator.gpu`-like object, for the preferred canvas format; set by the constructor. */
+  _gpu = null;
 
   _sampleCount = 1;
 

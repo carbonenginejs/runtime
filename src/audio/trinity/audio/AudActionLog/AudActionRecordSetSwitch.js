@@ -9,6 +9,18 @@ import { AudActionRecord } from "./AudActionRecord.js";
 export class AudActionRecordSetSwitch extends AudActionRecord
 {
 
+  /** Carbon's `m_time` (AudActionLog.h:43); the constructor's default argument (AudActionLog.h:48). */
+  time = 0;
+
+  /** Carbon's `m_emitterID` (AudActionLog.h:44); the constructor's default argument (AudActionLog.h:48). */
+  emitterID = 0;
+
+  /** Carbon's `m_group` (AudActionLog.h:45); the constructor's default argument (AudActionLog.h:48). */
+  group = "";
+
+  /** Carbon's `m_state` (AudActionLog.h:46); the constructor's default argument (AudActionLog.h:48). */
+  state = "";
+
   /** Creates one emitter-local switch record. */
   constructor(time = 0, emitterID = 0, group = "", state = "")
   {

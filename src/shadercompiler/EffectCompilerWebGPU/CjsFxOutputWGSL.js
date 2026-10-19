@@ -114,6 +114,9 @@ export class CjsFxOutputWGSL
     /** `out` and `inout` parameters, read through their pointer. @type {Set<object>} */
     _pointerParams = new Set();
 
+    /** The return type of the function being printed, or null outside one. @type {Type|null} */
+    _returnType = null;
+
     /**
      * @param {object} options The stage.
      * @param {import("../ParserState/ParserState.js").ParserState} options.state The parse, after the WebGPU passes; used symbols are marked for this stage.

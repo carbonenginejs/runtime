@@ -9,6 +9,18 @@ import { AudActionRecord } from "./AudActionRecord.js";
 export class AudActionRecordExecuteActionOnPlayingID extends AudActionRecord
 {
 
+  /** Carbon's `m_time` (AudActionLog.h:32); the constructor's default argument (AudActionLog.h:37). */
+  time = 0;
+
+  /** Carbon's `m_emitterID` (AudActionLog.h:33); the constructor's default argument (AudActionLog.h:37). */
+  emitterID = 0;
+
+  /** Carbon's `m_playID` (AudActionLog.h:34); the constructor's default argument (AudActionLog.h:37). */
+  playID = 0;
+
+  /** Carbon's `m_action` (AudActionLog.h:35); the constructor's default argument (AudActionLog.h:37). */
+  action = "";
+
   /** Creates one playing-id action record. */
   constructor(time = 0, emitterID = 0, playID = 0, action = "")
   {

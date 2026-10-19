@@ -9,6 +9,21 @@ import { AudActionRecord } from "./AudActionRecord.js";
 export class AudActionRecordSetRTPC extends AudActionRecord
 {
 
+  /** Carbon's `m_time` (AudActionLog.h:64); the constructor's default argument (AudActionLog.h:70). */
+  time = 0;
+
+  /** Carbon's `m_emitterID` (AudActionLog.h:65); the constructor's default argument (AudActionLog.h:70). */
+  emitterID = 0;
+
+  /** Carbon's `m_name` (AudActionLog.h:66); the constructor's default argument (AudActionLog.h:70). */
+  name = "";
+
+  /** Carbon's `m_value` (AudActionLog.h:67); the constructor's default argument (AudActionLog.h:70). */
+  value = 0;
+
+  /** Carbon's `m_playID` (AudActionLog.h:68); the constructor's default argument (AudActionLog.h:70). */
+  playID = 0;
+
   /** Creates one global or emitter-local RTPC record. */
   constructor(time = 0, emitterID = 0, name = "", value = 0, playID = 0)
   {

@@ -35,6 +35,24 @@ export class CjsWebgpuVideoColorSampler
 
   _destroyed = false;
 
+  /** The `GPUDevice` the reductions run on; set by the constructor. */
+  _device = null;
+
+  /** The partial and finish compute pipelines, shared per device; set by the constructor. */
+  _pipeline = null;
+
+  /** The 64 per-workgroup partial means; set by the constructor. */
+  _partial = null;
+
+  /** The 16-byte final mean; set by the constructor. */
+  _result = null;
+
+  /** The mappable copy of the result; set by the constructor. */
+  _staging = null;
+
+  /** The two bind groups; set by the constructor, null after Destruct. */
+  _bindings = null;
+
   /** Allocate reusable reductions and bind groups once for this texture's lifetime. */
   constructor(device, texture)
   {

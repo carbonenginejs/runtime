@@ -9,6 +9,15 @@ import { AudActionRecord } from "./AudActionRecord.js";
 export class AudActionRecordSetState extends AudActionRecord
 {
 
+  /** Carbon's `m_time` (AudActionLog.h:54); the constructor's default argument (AudActionLog.h:58). */
+  time = 0;
+
+  /** Carbon's `m_group` (AudActionLog.h:55); the constructor's default argument (AudActionLog.h:58). */
+  group = "";
+
+  /** Carbon's `m_state` (AudActionLog.h:56); the constructor's default argument (AudActionLog.h:58). */
+  state = "";
+
   /** Creates one global state record. */
   constructor(time = 0, group = "", state = "")
   {

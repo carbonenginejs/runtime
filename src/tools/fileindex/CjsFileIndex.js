@@ -8,6 +8,24 @@ import { CjsFileIndexEntry } from "./CjsFileIndexEntry.js";
 export class CjsFileIndex
 {
 
+    /** The index root, "res" or "app"; set by the constructor. */
+    root = "";
+
+    /** The index kind, such as "resfileindex"; set by the constructor. */
+    kind = "";
+
+    /** The index name; set by the constructor. */
+    name = "";
+
+    /** Where the index was loaded from, or null; set by the constructor. */
+    sourceURL = null;
+
+    /** The entries in declaration order; set by the constructor. @type {CjsFileIndexEntry[]} */
+    entries = [];
+
+    /** The number of entries; set by the constructor. */
+    count = 0;
+
     #entriesByPath;
 
     /**

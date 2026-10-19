@@ -119,9 +119,81 @@ function format(formatText, args)
  */
 export class ParserState
 {
+    /** Carbon's `m_newLine( true )` (ParserState.h:248, ParserState.cpp:249). */
+    newLine = true;
+
+    /** Carbon's `m_mode( HLSL )` (ParserState.h:249, ParserState.cpp:250). */
+    mode = ParserState.Mode.HLSL;
+
+    /**
+     * Carbon's `m_preprocessorConditionResult` (ParserState.h:250). Carbon
+     * leaves it unset.
+     */
+    preprocessorConditionResult = 0;
+
+    /** Carbon's `m_expandMacros( true )` (ParserState.h:251, ParserState.cpp:251). */
+    expandMacros = true;
+
+    /** Defines by name: Carbon's `m_defines` (ParserState.h:253). @type {CjsFxStdMap} */
+    defines = new CjsFxStdMap();
+
+    /**
+     * Carbon's `m_prepocessorConditions` (ParserState.h:254), misspelling and all.
+     * @type {import("./PreprocessorCondition.js").PreprocessorCondition[]}
+     */
+    prepocessorConditions = [];
+
+    /** Carbon's `m_bindlessSamplers` (ParserState.h:261). @type {SamplerDefinition[]} */
+    bindlessSamplers = [];
+
     _includeHandler = null;
 
     _messages = null;
+
+    /**
+     * Carbon's `m_fileStack` (ParserState.h:282); the constructor pushes the
+     * source file.
+     * @type {FileContents[]}
+     */
+    _fileStack = [];
+
+    /** Carbon's `m_pragmas` (ParserState.h:290). @type {Pragma[]} */
+    _pragmas = [];
+
+    /** Carbon's `m_symbols` (ParserState.h:292), created in the constructor body (ParserState.cpp:270). */
+    _symbols = new SymbolTable();
+
+    /** Carbon's `m_root( nullptr )` (ParserState.h:293, ParserState.cpp:253). @type {ASTNode|null} */
+    _root = null;
+
+    /**
+     * Carbon's `m_offlineStatements( nullptr )` (ParserState.h:294,
+     * ParserState.cpp:254); the constructor creates the block node.
+     * @type {ASTNode|null}
+     */
+    _offlineStatements = null;
+
+    /** Carbon's `m_hasErrors( false )` (ParserState.h:295, ParserState.cpp:255). */
+    _hasErrors = false;
+
+    /** Carbon's `m_inPreprocessorCondition( false )` (ParserState.h:296, ParserState.cpp:256). */
+    _inPreprocessorCondition = false;
+
+    /** Carbon's `m_inDiscoverMode( false )` (ParserState.h:297, ParserState.cpp:257). */
+    _inDiscoverMode = false;
+
+    /** Carbon's `m_strings` (ParserState.h:299): every string this state allocated; names count them. */
+    _strings = [];
+
+    /** Carbon's `m_dx9TextureFunctions` (ParserState.h:300). @type {Set<import("../SymbolTable/Symbol.js").Symbol>} */
+    _dx9TextureFunctions = new Set();
+
+    /**
+     * Carbon's `m_dx9Functions` (ParserState.h:301). Carbon keys this map by
+     * string-literal address; here by name.
+     * @type {Map<string, import("../SymbolTable/Symbol.js").Symbol>}
+     */
+    _dx9Functions = new Map();
 
     /**
      * @param {InlineString} code The source. Its buffer must hold Carbon's
@@ -142,50 +214,9 @@ export class ParserState
         fileContents.location = location;
         fileContents.code = InlineString.makeInlineString__StartEnd(code.buffer, code.start - 1, code.end);
         fileContents.position = code.start - 1;
-        /** @type {FileContents[]} */
-        this._fileStack = [fileContents];
-
-        this.newLine = true;
-
-        this.mode = ParserState.Mode.HLSL;
-
-        this.preprocessorConditionResult = 0;
-
-        this.expandMacros = true;
-
-        /** Defines by name. @type {CjsFxStdMap} */
-        this.defines = new CjsFxStdMap();
-
-        /** @type {import("./PreprocessorCondition.js").PreprocessorCondition[]} */
-        this.prepocessorConditions = [];
-
-        /** @type {SamplerDefinition[]} */
-        this.bindlessSamplers = [];
-
-        /** @type {Pragma[]} */
-        this._pragmas = [];
-
-        this._symbols = new SymbolTable();
-
-        /** @type {ASTNode|null} */
-        this._root = null;
+        this._fileStack.push(fileContents);
 
         this._offlineStatements = new ASTNode(ASTNode.ASTNodeType.NT_BLOCK, location, null, null);
-
-        this._hasErrors = false;
-
-        this._inPreprocessorCondition = false;
-
-        this._inDiscoverMode = false;
-
-        /** Carbon's `m_strings`: every string this state allocated; names count them. */
-        this._strings = [];
-
-        /** @type {Set<import("../SymbolTable/Symbol.js").Symbol>} */
-        this._dx9TextureFunctions = new Set();
-
-        /** Carbon keys this map by string-literal address; here by name. @type {Map<string, import("../SymbolTable/Symbol.js").Symbol>} */
-        this._dx9Functions = new Map();
 
         this._AddIntrinsics();
     }

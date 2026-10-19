@@ -122,6 +122,20 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   _name = "";
 
   /**
+   * The device generation a video frame was last uploaded under, or null when
+   * the texture has never held a video frame. Ours.
+   * @type {number|null}
+   */
+  _videoGeneration = null;
+
+  /**
+   * The GPU average-colour sampler, made on the first RequestAverageColor.
+   * Ours.
+   * @type {CjsWebgpuVideoColorSampler|null}
+   */
+  _videoSampler = null;
+
+  /**
    * Creates the texture and uploads its initial data.
    * Adapted: core WebGPU lacks rg8unorm storage, so StorageFormatFor widens
    * that UAV format to rgba8unorm, retaining its 8-bit normalized precision.

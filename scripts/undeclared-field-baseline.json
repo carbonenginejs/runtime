@@ -6,11 +6,6 @@
     "src/audio/internal/CjsMusicEngineScheduledClip.js": 36,
     "src/audio/internal/CjsMusicEngineScheduledSegment.js": 23,
     "src/audio/internal/MusicInstance.js": 38,
-    "src/audio/trinity/audio/AudActionLog/AudActionRecordExecuteActionOnPlayingID.js": 4,
-    "src/audio/trinity/audio/AudActionLog/AudActionRecordPostEvent.js": 5,
-    "src/audio/trinity/audio/AudActionLog/AudActionRecordSetRTPC.js": 5,
-    "src/audio/trinity/audio/AudActionLog/AudActionRecordSetState.js": 3,
-    "src/audio/trinity/audio/AudActionLog/AudActionRecordSetSwitch.js": 4,
     "src/resource/format/CjsBitReader.js": 9,
     "src/resource/format/CjsBlueReader.js": 16,
     "src/resource/format/CjsByteReader.js": 16,
@@ -55,24 +50,7 @@
     "src/resource/formats/webgl/core/glsl/DxbcGlslHelperRegistry.js": 2,
     "src/resource/formats/webgl/core/glsl/DxbcGlslOperandFormatter.js": 5,
     "src/resource/formats/webgpu/core/carbonWebgpu/CarbonWebgpuContainer.js": 17,
-    "src/resource/formats/yaml/core/CjsYamlReader.js": 4,
-    "src/resource/texture/CjsTextureArrayConstructor.js": 1,
-    "src/resource/texture/CjsTexturePackConstructor.js": 1,
-    "src/resource/video/VideoPlaylistController.js": 5,
-    "src/shadercompiler/EffectCompilerWebGPU/CjsFxOutputWGSL.js": 2,
-    "src/shadercompiler/ParserState/ParserState.js": 27,
-    "src/shadercompiler/SymbolTable/Symbol.js": 8,
-    "src/tools/fileindex/CjsFileIndex.js": 6,
-    "src/tools/fileindex/CjsFileIndexEntry.js": 10,
-    "src/tools/fileindex/CjsFileIndexLibrary.js": 9,
-    "src/tools/fileindex/CjsFileIndexOverlay.js": 4,
-    "src/tools/fileindex/CjsFileIndexSource.js": 2,
-    "src/trinityal/webgpu/CjsWebgpuBackendCandidate.js": 2,
-    "src/trinityal/webgpu/CjsWebgpuDevice.js": 28,
-    "src/trinityal/webgpu/CjsWebgpuShaderAL.js": 1,
-    "src/trinityal/webgpu/CjsWebgpuTextureAL.js": 4,
-    "src/trinityal/webgpu/CjsWebgpuVideoColorSampler.js": 7,
-    "src/trinityal/webgpu/core/CjsWebgpuRenderTarget.js": 2
+    "src/resource/formats/yaml/core/CjsYamlReader.js": 4
   },
   "unresolvedBase": {
     "src/global/utils/errors/CjsCancellationError.js": 1,
@@ -113,8 +91,7 @@
     "src/resource/formats/hlsl/core/carbonDescriptionToRuntime.js": 1,
     "src/resource/formats/pickle/core/pickleCommon.js": 2,
     "src/resource/formats/yaml/core/CjsYamlReader.js": 1,
-    "src/resource/formats/yaml/core/helpers.js": 1,
-    "src/trinity/shader/extractTr2EffectConstantValues.js": 1
+    "src/resource/formats/yaml/core/helpers.js": 1
   },
   "assignThis": {
     "src/audio/library/CjsAudioLibrary.js": 1,

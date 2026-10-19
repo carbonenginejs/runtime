@@ -7,6 +7,18 @@ import { CjsFileIndexSource } from "./CjsFileIndexSource.js";
 export class CjsFileIndexOverlay
 {
 
+    /** The layer name; set by the constructor. */
+    name = "";
+
+    /** "override" or "fallback"; set by the constructor. */
+    mode = "fallback";
+
+    /** The res-rooted index this layer wraps; set by the constructor. @type {CjsFileIndex|null} */
+    index = null;
+
+    /** The source for unprefixed locations, or null for the library default; set by the constructor. @type {string|null} */
+    sourceID = null;
+
     /**
      * Wraps one caller-supplied resfileindex as a named layer and freezes it; the
      * index must be res-rooted, and the mode fixes precedence for the layer's
