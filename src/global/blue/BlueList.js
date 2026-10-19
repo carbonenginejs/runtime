@@ -20,6 +20,18 @@ import { ICopierCustomAssignment } from "./ICopierCustomAssignment.js";
  */
 export class BlueList extends Array
 {
+  /** Element-interface constructor items must expose. Set by the constructor. */
+  _itemType = null;
+
+  /** Optional native element CLSID, or null. Set by the constructor. */
+  _className = null;
+
+  /** ListInfo listOps flag word; metadata only. Set by the constructor. */
+  _listOps = 0;
+
+  /** The single IListNotify observer, or null (SetNotify). */
+  _notify = null;
+
   /**
    * Creates an empty list with an exact element-interface identity.
    * Adapted: className explicitly supplies the optional native element CLSID;
@@ -39,7 +51,6 @@ export class BlueList extends Array
     this._itemType = ItemType;
     this._className = className;
     this._listOps = listOps;
-    this._notify = null;
   }
 
   /** @returns {number} The number of stored items. */

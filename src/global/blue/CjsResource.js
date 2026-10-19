@@ -60,6 +60,27 @@ export class CjsResource
   _notifyTargets = [];
 
   /**
+   * Engine-adapter resources keyed by adapter name (SetAdapterResource). A
+   * null-prototype dictionary: the keys are caller data.
+   */
+  __adapterResources = Object.create(null);
+
+  /** Format store bound by SetFormatStore for a self-driven load, or null. */
+  __formatStore = null;
+
+  /** Manager object loader bound by SetObjectLoader, or null. */
+  __objectLoader = null;
+
+  /** Compact reconstruction request bound with the object loader, or null. */
+  __objectRequest = null;
+
+  /** Manager lifecycle callbacks while canonically owned, or null when detached. */
+  __lifecycleController = null;
+
+  /** Manager reload callback, kept after ownership ends; null when detached. */
+  __reloadHook = null;
+
+  /**
    * How many times a purged or failed resource reloads itself before giving up.
    *
    * Per class so a subclass can be more or less patient. Counted per resource
@@ -111,6 +132,20 @@ export class CjsResource
   state = CjsResource.State.EMPTY;
 
   /**
+   * The last load failure, or null. SetError stores it; Initialize clears it.
+   * @type {Error|null}
+   */
+  error = null;
+
+  /**
+   * Compatibility alias for the published outcome: the payload, or this
+   * resource for a RESOURCE-mode route (CjsBlueResMan publication). SetPayload
+   * and ReleasePayload keep it in step while it aliases the payload.
+   * @type {*}
+   */
+  object = null;
+
+  /**
    * Identifies this class as a runtime resource.
    *
    * Static, so a schema field declared as `@type.rootRef("TriGeometryRes")`
@@ -135,42 +170,6 @@ export class CjsResource
    * @param {object|null} [values=null] Initial decorated schema-field values.
    */
   constructor(values = null) {
-    Object.defineProperty(this, "__adapterResources", {
-      value: Object.create(null),
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-    Object.defineProperty(this, "__formatStore", {
-      value: null,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-    Object.defineProperty(this, "__objectLoader", {
-      value: null,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-    Object.defineProperty(this, "__objectRequest", {
-      value: null,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-    Object.defineProperty(this, "__lifecycleController", {
-      value: null,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-    Object.defineProperty(this, "__reloadHook", {
-      value: null,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
     if (values)
     {
       this.SetValues(values);

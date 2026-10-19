@@ -31,6 +31,21 @@ import { normalizeResourceExtension } from "#utils/path";
  */
 class CjsFormatRoute
 {
+  /** Format facade constructor this route reads through. Set by the constructor. */
+  Format = null;
+
+  /** Name of the static reader on `Format` to call. */
+  read = "read";
+
+  /** Output capability passed as `emit` unless the caller names one; null for none. */
+  output = null;
+
+  /** Content probe: a function, the name of a static on `Format`, or null to fall back to `Format.is`. */
+  accepts = null;
+
+  /** Display name, `<ClassName>.<read>` unless the options name one. Set by the constructor. */
+  name = "";
+
   /**
    * Create one immutable format routing choice.
    * @param {typeof CjsFormat} Format Format facade constructor.

@@ -34,9 +34,37 @@ const DEFAULT_WORKER_OPTIONS = {
  */
 export class CjsResManWorkerLoader
 {
-  _boundError;
-  _boundMessage;
+  /** Main-thread loader that serves operations the worker cannot. Set by the constructor. */
+  fallback = null;
+
+  /** Creates the Worker from `workerUrl` and `workerOptions`. Set by the constructor. */
+  workerFactory = null;
+
+  /** Module worker entry URL. Set by the constructor. */
+  workerUrl = null;
+
+  /** Options passed to the Worker constructor. Set by the constructor. */
+  workerOptions = null;
+
+  /** Whether worker execution may be used. */
+  enabled = true;
+
+  /** Whether worker creation or the worker itself failed; reads use the fallback until Reset(). */
+  failed = false;
+
+  /** The attached Worker-compatible instance, or null before Enable(). */
+  worker = null;
+
+  /** `_OnError` bound to this loader for add/removeEventListener. Set by the constructor. */
+  _boundError = null;
+
+  /** `_OnMessage` bound to this loader for add/removeEventListener. Set by the constructor. */
+  _boundMessage = null;
+
+  /** Next request id to send. */
   _nextId = 1;
+
+  /** Pending requests by id. */
   _pending = new Map();
 
   /**

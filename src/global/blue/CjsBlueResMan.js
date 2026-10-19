@@ -266,6 +266,68 @@ export class CjsBlueResMan
   // Carbon keeps it: FileExistsLocally is IBluePaths.h:38, a different
   // service behind a different extern.
 
+  /**
+   * The parsed-object and resource cache. Carbon's by-value
+   * `PMotherLode m_loadObjectCache` (BlueResMan.h:123), created with its owner
+   * (`PARENTLOCK( m_loadObjectCache )`, BlueResMan.cpp:70); Register may
+   * replace it.
+   */
+  motherLode = new CjsMotherLode();
+
+  /** Default source for later requests, or null for be.paths (SetSource). */
+  source = null;
+
+  /** Resource classes keyed by semantic requirement (RegisterResourceType). */
+  resourceTypes = new Map();
+
+  /** Object loaders keyed by extension (RegisterObjectLoader). */
+  objectLoaders = new Map();
+
+  /** Format registrations keyed by extension (RegisterFormat). */
+  formats = new Map();
+
+  /** In-flight object loads, deduplicated per resource. Clear() replaces it. */
+  objectOperations = new WeakMap();
+
+  /** In-flight source reads, deduplicated per resource. Clear() replaces it. */
+  sourceOperations = new WeakMap();
+
+  /** Queued source reads, deduplicated per resource. Clear() replaces it. */
+  queuedSourceOperations = new WeakMap();
+
+  /** In-flight format reads, deduplicated per resource. Clear() replaces it. */
+  formatOperations = new WeakMap();
+
+  /** Direct execution strategy (SetMainThreadLoader). */
+  mainThreadLoader = new CjsResManMainThreadLoader();
+
+  /** Worker execution strategy, falling back to the main-thread loader; null when removed. */
+  workerLoader = new CjsResManWorkerLoader({ fallback: this.mainThreadLoader });
+
+  /** The selected execution strategy: the worker loader or the main-thread loader. */
+  resourceLoader = this.workerLoader;
+
+  /** Background-queue concurrency. */
+  maxConcurrentLoads = 8;
+
+  /**
+   * Main-thread prepare time slice in seconds. The value of Carbon's
+   * `m_mainThreadTimeSlice( 0.005f )` (BlueResMan.cpp:77).
+   */
+  maxPrepareTime = 0.005;
+
+  /** Prepare items per tick; 0 for no limit. */
+  maxPrepareItemsPerTick = 0;
+
+  /** Whether the main-thread queue schedules its own pumps. */
+  autoPumpMainThreadQueue = true;
+
+  /** Schedules a main-thread pump callback. */
+  queueScheduler = defaultQueueScheduler;
+
+  /** `m_urgentResourceLoads( false )` (BlueResMan.h:128, BlueResMan.cpp:73). */
+  urgentResourceLoads = false;
+
   _autoPurgePolicy = null;
   _activeResourceOperations = 0;
   _invalidResourceOwnership = new WeakSet();
@@ -298,49 +360,42 @@ export class CjsBlueResMan
   _objectBuilders = new WeakMap();
 
   /**
+   * The default source: the file through be.paths, the bytes Carbon's
+   * DoOpenStream gets from BePaths->GetStreamFromPathW.
+   */
+  _bluePathsSource = { Read: (path, readOptions = {}) => readThroughBluePaths(CjsBlueResMan.getBluePaths(), path, readOptions) };
+
+  /**
+   * Loaders registered through RegisterObjectBuilder: their result is a
+   * builder, kept as the payload, never handed to a caller.
+   */
+  _objectBuilderLoaders = new WeakSet();
+
+  /** Whether a background-queue pump is already scheduled. */
+  _backgroundPumpScheduled = false;
+
+  /** Whether a main-thread-queue pump is already scheduled. */
+  _mainThreadPumpScheduled = false;
+
+  /** Background load queue. */
+  _loadQueue = new CjsResManWorkQueue(CjsResManQueue.BACKGROUND, {
+    concurrency: this.maxConcurrentLoads,
+    onReady: () => this.ScheduleBackgroundQueue()
+  });
+
+  /** Main-thread prepare queue. */
+  _prepareQueue = new CjsResManWorkQueue(CjsResManQueue.MAIN, {
+    concurrency: 1,
+    onReady: () => this.ScheduleMainThreadQueue()
+  });
+
+  /**
    * Create a GPU-free resource manager and apply its initial registration.
    *
    * @param {object} [options={}] Configuration forwarded to {@link CjsBlueResMan#Register}.
    * @throws {TypeError} If registration, queue, source, or format options are invalid.
    */
   constructor(options = {}) {
-    this.motherLode = new CjsMotherLode();
-    // The default source: the file through be.paths, the bytes Carbon's
-    // DoOpenStream gets from BePaths->GetStreamFromPathW.
-    this._bluePathsSource = { Read: (path, readOptions = {}) => readThroughBluePaths(CjsBlueResMan.getBluePaths(), path, readOptions) };
-    this.source = null;
-    this.resourceTypes = new Map();
-    this.objectLoaders = new Map();
-    // Loaders registered through RegisterObjectBuilder: their result is a
-    // builder, kept as the payload, never handed to a caller.
-    this._objectBuilderLoaders = new WeakSet();
-    this.formats = new Map();
-    this.objectOperations = new WeakMap();
-    this.sourceOperations = new WeakMap();
-    this.queuedSourceOperations = new WeakMap();
-    this.formatOperations = new WeakMap();
-    this.mainThreadLoader = new CjsResManMainThreadLoader();
-    this.workerLoader = new CjsResManWorkerLoader({
-      fallback: this.mainThreadLoader
-    });
-    this.resourceLoader = this.workerLoader;
-    this.maxConcurrentLoads = 8;
-    this.maxPrepareTime = 0.005;
-    this.maxPrepareItemsPerTick = 0;
-    this.autoPumpMainThreadQueue = true;
-    this.queueScheduler = defaultQueueScheduler;
-    this.urgentResourceLoads = false;
-    this._backgroundPumpScheduled = false;
-    this._mainThreadPumpScheduled = false;
-    this._loadQueue = new CjsResManWorkQueue(CjsResManQueue.BACKGROUND, {
-      concurrency: this.maxConcurrentLoads,
-      onReady: () => this.ScheduleBackgroundQueue()
-    });
-    this._prepareQueue = new CjsResManWorkQueue(CjsResManQueue.MAIN, {
-      concurrency: 1,
-      onReady: () => this.ScheduleMainThreadQueue()
-    });
-
     this.Register(options);
   }
 

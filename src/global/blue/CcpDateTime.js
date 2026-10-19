@@ -24,33 +24,32 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class CcpDateTime
 {
-  /** Initializes each calendar component to zero. */
-  constructor()
-  {
-    /** Full year, e.g. 2026. Not offset from 1900, unlike the `tm` it is built from. */
-    this.year = 0;
+  // Carbon's struct has no initializers (CcpTime.h:25-35), so every member is
+  // unset there; 0 is the neutral value.
 
-    /** 1-12. One-based, unlike `tm_mon`. */
-    this.month = 0;
+  /** Full year, e.g. 2026. Not offset from 1900, unlike the `tm` it is built from. Carbon leaves it unset. */
+  year = 0;
 
-    /** 0-6, Sunday first. Output only - see the class note. */
-    this.dayOfWeek = 0;
+  /** 1-12. One-based, unlike `tm_mon`. Carbon leaves it unset. */
+  month = 0;
 
-    /** 1-31. */
-    this.day = 0;
+  /** 0-6, Sunday first. Output only - see the class note. Carbon leaves it unset. */
+  dayOfWeek = 0;
 
-    /** 0-23. */
-    this.hour = 0;
+  /** 1-31. Carbon leaves it unset. */
+  day = 0;
 
-    /** 0-59. */
-    this.minute = 0;
+  /** 0-23. Carbon leaves it unset. */
+  hour = 0;
 
-    /** 0-59. */
-    this.second = 0;
+  /** 0-59. Carbon leaves it unset. */
+  minute = 0;
 
-    /** 0-999. */
-    this.milliseconds = 0;
-  }
+  /** 0-59. Carbon leaves it unset. */
+  second = 0;
+
+  /** 0-999. Carbon leaves it unset. */
+  milliseconds = 0;
 }
 
 CjsSchema.blue.define(CcpDateTime, { className: "CcpDateTime" });
