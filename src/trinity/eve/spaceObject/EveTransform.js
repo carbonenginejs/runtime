@@ -609,8 +609,9 @@ export class EveTransform extends Tr2Transform
    *
    * Two Carbon quirks are reproduced. The sphere centre is
    * Vector3( sphere.x, sphere.x, sphere.x ) (cpp:236), so it is drawn off its
-   * real centre unless x, y and z coincide. The name is placed at the local
-   * maxBounds, never transformed into world space (cpp:240-248).
+   * real centre unless x, y and z coincide. Carbon bug (CE-175), reproduced:
+   * the name is placed at the local maxBounds, never transformed into world
+   * space (cpp:240-248).
    *
    * The text goes through renderer.DrawText as Carbon's does; the renderer
    * decides whether it can draw it.
@@ -684,6 +685,7 @@ export class EveTransform extends Tr2Transform
       {
         this.mesh.GetBoundingBox(minBounds, maxBounds);
       }
+      // Carbon bug (CE-175, EveTransform.cpp:240-249): mesh-space maxBounds as a world position, reproduced.
       renderer.DrawText(
         TriDebugFont.TRI_DBG_FONT_SMALL,
         maxBounds,

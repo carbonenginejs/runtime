@@ -22,6 +22,13 @@ import { ITr2DebugRenderer2 } from "#interfaces";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { mat4 } from "#math/mat4";
+import { ShaderType } from "#consts/render-context";
+import { RenderingMode } from "#consts/graphics";
+import { Tr2ConstantBufferAL } from "#trinityal";
+import { PER_FRAME_VS, Tr2Renderer } from "../../../trinity/core/Tr2Renderer.js";
+import { Tr2RenderUtils } from "../../../trinity/core/Tr2RenderUtils.js";
+import { RawData } from "../../../trinity/core/rawData/RawData.js";
 
 /**
  * Interior-scene state record for authored dynamics, lights, environment, fog,
@@ -305,6 +312,13 @@ export class Tr2InteriorScene
   /** Native depth-stencil owner, replaced whenever shadow targets are rebuilt. */
   _lightDepthStencil = null;
 
+  /**
+   * m_perFrameVSBuffer (Tr2InteriorScene.h:304).
+   * Waiting: Carbon replaces it in ReleaseResources( TRISTORAGE_ALL )
+   * (cpp:287-293); this scene has no ReleaseResources yet.
+   */
+  _perFrameVSBuffer = new Tr2ConstantBufferAL();
+
   /** Native initialization acquires the background, without allocating shadows. */
   @blue.method
   @meta.implemented
@@ -371,18 +385,21 @@ export class Tr2InteriorScene
    * Carbon's ITr2Scene `RenderDebugInfo( Tr2RenderContext& renderContext )`
    * (Tr2InteriorScene.cpp:831-883): the scene's debug pass. Without a debug
    * renderer it creates one only when shadow maps are to be shown, and
-   * otherwise does nothing (cpp:833-845).
+   * otherwise does nothing (cpp:833-845). Past the early out it uploads the
+   * debug per-frame block - the transposed view-projection and the untransposed
+   * inverse view, which the shader reads column-major (cpp:847-856) - then,
+   * with the projection re-set from its own transform and restored afterwards
+   * (cpp:858-861, ON_BLOCK_EXIT becomes finally), lets every debug-renderable
+   * light and dynamic draw, draws the scene's own debug info under full-screen
+   * states, and ends with the debug renderer's EndRender and
+   * Tr2Renderer.RenderDebugInfo (cpp:862-882).
    *
-   *
-   * Waiting: R9 (Tr2Renderer view statics). Past the early out, Carbon fills
-   * the debug per-frame data from Tr2Renderer's view and projection
-   * transforms, swaps the projection around the draws and ends with
-   * Tr2Renderer::RenderDebugInfo (cpp:847-882); none of those exist yet, so
-   * that path throws rather than drawing nothing.
-   * @param {Tr2RenderContext} _renderContext
+   * Carbon's row-vector `view * projection` is gl-matrix's
+   * `multiply(projection, view)`.
+   * @param {Tr2RenderContext} renderContext
    */
-  @meta.notImplemented
-  RenderDebugInfo__RenderContext(_renderContext)
+  @meta.implemented
+  RenderDebugInfo__RenderContext(renderContext)
   {
     if (!this.debugRenderer)
     {
@@ -396,7 +413,50 @@ export class Tr2InteriorScene
         return;
       }
     }
-    throw new Error("Tr2InteriorScene.RenderDebugInfo: waiting on R9 (Tr2Renderer view/projection statics and Tr2Renderer.RenderDebugInfo).");
+
+    // Display the debug meshes for the lights
+    const debugPerFrameData = RawData.create("Tr2PerFrameVSDataDebug");
+    const viewProjection = mat4.multiply(mat4.create(), Tr2Renderer.GetProjectionTransform(), Tr2Renderer.GetViewTransform());
+    debugPerFrameData.SetAndTranspose("ViewProjectionMat", viewProjection);
+
+    // attention: need the transposed, but shader also needs column_major, so it is transpose(transpose(m)) == m
+    debugPerFrameData.SetWithoutTransposing("ViewInverseTransposeMat", Tr2Renderer.GetInverseViewTransform());
+
+    const bytes = debugPerFrameData.GetData();
+    Tr2RenderUtils.fillAndSetConstants(this._perFrameVSBuffer, bytes, bytes.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_FRAME_VS, renderContext);
+
+    this.debugRenderer.BeginRender();
+    const bkProjection = mat4.clone(Tr2Renderer.GetProjectionRawTransform());
+
+    Tr2Renderer.SetProjectionTransform(Tr2Renderer.GetProjectionTransform());
+    try
+    {
+      for (const light of this.lights)
+      {
+        const renderable = CjsSchema.cast(light, ITr2DebugRenderable);
+        if (renderable)
+        {
+          renderable.RenderDebugInfo(this.debugRenderer);
+        }
+      }
+      for (const dynamic of this.dynamics)
+      {
+        const renderable = CjsSchema.cast(dynamic, ITr2DebugRenderable);
+        if (renderable)
+        {
+          renderable.RenderDebugInfo(this.debugRenderer);
+        }
+      }
+      renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+      this.RenderDebugInfo__Renderer(this.debugRenderer);
+
+      this.debugRenderer.EndRender(renderContext);
+      Tr2Renderer.RenderDebugInfo(renderContext);
+    }
+    finally
+    {
+      Tr2Renderer.SetProjectionTransform(bkProjection);
+    }
   }
 
   /**
@@ -436,21 +496,28 @@ export class Tr2InteriorScene
    * Carbon's ITr2DebugRenderable `RenderDebugInfo( ITr2DebugRenderer2& renderer )`
    * (Tr2InteriorScene.cpp:1433-1449): under "Shadow Maps" (or the scene's
    * own flag), each light render target drawn as a 200x200 tile down the
-   * left edge.
-   *
-   * Waiting: Tr2Renderer::DrawTexture( renderContext, texture ) is not
-   * ported, so with any light render target this throws instead of drawing.
+   * left edge, the viewport pushed around the tiles (cpp:1437-1447).
+   * Carbon's DrawTexture( renderContext, texture ) with its default
+   * coordinates and point filter is Tr2Renderer.drawTexture with no options.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @meta.notImplemented
+  @meta.implemented
   RenderDebugInfo__Renderer(renderer)
   {
     if (renderer.HasOption(this, "Shadow Maps") || this.debugRenderShadowMaps)
     {
-      if (this.lightRenderTargets.length !== 0)
+      const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+      const esm = renderContext.GetEffectStateManager();
+      esm.PushViewport();
+      let i = 0;
+      for (const target of this.lightRenderTargets)
       {
-        throw new Error("Tr2InteriorScene.RenderDebugInfo__Renderer: waiting on Tr2Renderer.DrawTexture( renderContext, texture ).");
+        esm.SetViewport({ width: 200, height: 200, x: 10, y: 10 + i * 210, minZ: 0.0, maxZ: 1.0 });
+        const tex = target.GetTexture();
+        Tr2Renderer.drawTexture(renderContext, tex);
+        i++;
       }
+      esm.PopViewport();
     }
   }
 

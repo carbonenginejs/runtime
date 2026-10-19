@@ -35,6 +35,8 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta, blue } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
+import { TriDebugTextRenderer } from "./TriDebugTextRenderer.js";
+import { TriLineSet } from "./line/TriLineSet.js";
 import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
 import { Tr2RenderUtils } from "./Tr2RenderUtils.js";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
@@ -216,6 +218,12 @@ export class Tr2Renderer
   /** Carbon process-wide s_blitter (Tr2Renderer.cpp:25). */
   static #blitter = null;
 
+  /** Carbon s_debugTextRenderer (Tr2Renderer.cpp:96), created by initialize. */
+  static #debugTextRenderer = null;
+
+  /** Carbon s_debugLineSet (Tr2Renderer.cpp:98), created by prepareDeviceResources. */
+  static #debugLineSet = null;
+
   /**
    * Carbon `Initialize` (Tr2Renderer.cpp:330-356), called from
    * `InitializeTrinity`: registers the renderer's global variables - `Time`,
@@ -224,8 +232,7 @@ export class Tr2Renderer
    * Adapted: the variables are the same objects the view and projection
    * setters and `BeginFrame` use, which still create them on first use for code that runs
    * without `InitializeTrinity` (tests building a context directly). Not
-   * ported: `s_debugTextRenderer` (no debug text renderer), `s_poolAllocator`
-   * (JS allocates). The effect state manager registers `ViewportSize`
+   * ported: `s_poolAllocator` (JS allocates). The effect state manager registers `ViewportSize`
    * (Tr2EffectStateManager.cpp:631-637) at construction so standalone contexts
    * also publish it before material mapping.
    *
@@ -234,20 +241,24 @@ export class Tr2Renderer
   @meta.adapted
   static initialize()
   {
+    Tr2Renderer.#debugTextRenderer = new TriDebugTextRenderer();
     Tr2Renderer.#RenderTimeVariable();
     Tr2Renderer._CameraVariables();
     return true;
   }
 
   /**
-   * Releases the fullscreen blitter from native Shutdown (cpp:354-369).
-   * Partial: debug renderers and the renderer-owned pool are still unported.
+   * Releases the fullscreen blitter, the debug text renderer and the debug
+   * line set from native Shutdown (cpp:358-373).
+   * Partial: the renderer-owned pool is still unported.
    */
   @meta.adapted
   static shutdown()
   {
     if (Tr2Renderer.#blitter) Tr2Renderer.#blitter.Destruct();
     Tr2Renderer.#blitter = null;
+    Tr2Renderer.#debugTextRenderer = null;
+    Tr2Renderer.#debugLineSet = null;
   }
 
   /**
@@ -259,12 +270,12 @@ export class Tr2Renderer
    * That holds for us too - there is always a device by this point, the stub
    * backend included, which is a real device and not an absence.
    *
-   * Carbon also allocates its quad vertex buffer and its debug line set here.
-   * Those are not ported; this creates the blitter and reserves the quad-list
-   * index buffer.
+   * Carbon also allocates its quad vertex buffer here, which is not ported;
+   * this creates the blitter and the debug line set (cpp:1293-1296) and
+   * reserves the quad-list index buffer.
    *
-   * Adapted: Carbon also allocates the quad vertex buffer and the debug line set here; only
-   * the blitter and the quad-list index buffer are ported.
+   * Adapted: Carbon also allocates the quad vertex buffer here; only the
+   * blitter, the debug line set and the quad-list index buffer are ported.
    *
    * @param {object} [renderContext] The context to prepare the blitter against.
    * @returns {Tr2Blitter} The renderer's blitter.
@@ -275,6 +286,8 @@ export class Tr2Renderer
   {
     Tr2Renderer.#blitter ??= new Tr2Blitter();
     if (renderContext) Tr2Renderer.#blitter.PrepareResources(renderContext);
+
+    Tr2Renderer.#debugLineSet ??= new TriLineSet();
 
     // "just call the Get* function, it will do the alloc" (cpp:1300-1301).
     Tr2Renderer.ReserveQuadListIndexBuffer(128);
@@ -537,10 +550,12 @@ export class Tr2Renderer
   /**
    * Ends the frame, clearing the debug drawing accumulated during it.
    *
-   * Adapted: Carbon clears two of its own statics, s_debugTextRenderer and s_debugLineSet
-   * (Tr2Renderer.cpp:1053-1064). Neither type is ported; the installed debug renderer on the
-   * ambient context is the only thing here that accumulates per-frame debug drawing, so it
-   * is what gets cleared.
+   * Carbon clears its two statics, s_debugTextRenderer and s_debugLineSet
+   * (Tr2Renderer.cpp:1056-1067), and so does this.
+   *
+   * Adapted: before those statics were ported, this cleared the debug renderer
+   * installed on the ambient context instead, and it still does; Carbon's
+   * EndFrame does not touch that renderer.
    *
    * @returns {void}
    */
@@ -555,6 +570,41 @@ export class Tr2Renderer
     // than hedged, because the question really is "does this thing clear".
     const debugRenderer = renderContext.GetDebugRenderer();
     if (typeof debugRenderer?.Clear === "function") debugRenderer.Clear();
+
+    // Carbon EndFrame's own clears (cpp:1056-1067).
+    if (Tr2Renderer.#debugTextRenderer)
+    {
+      Tr2Renderer.#debugTextRenderer.Clear();
+    }
+
+    if (Tr2Renderer.#debugLineSet)
+    {
+      Tr2Renderer.#debugLineSet.Clear();
+    }
+  }
+
+  /**
+   * Carbon RenderDebugInfo (Tr2Renderer.cpp:1377-1390): draws, then clears,
+   * the debug text and debug lines queued on the renderer during the frame.
+   *
+   * @param {Tr2RenderContext} renderContext The context to draw through.
+   * @returns {void}
+   */
+  @blue.method
+  @meta.implemented
+  static RenderDebugInfo(renderContext)
+  {
+    if (Tr2Renderer.#debugTextRenderer)
+    {
+      Tr2Renderer.#debugTextRenderer.Render(renderContext);
+      Tr2Renderer.#debugTextRenderer.Clear();
+    }
+
+    if (Tr2Renderer.#debugLineSet)
+    {
+      Tr2Renderer.#debugLineSet.Render(renderContext);
+      Tr2Renderer.#debugLineSet.Clear();
+    }
   }
 
   /**
