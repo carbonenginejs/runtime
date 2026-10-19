@@ -491,12 +491,13 @@ function CloneJSON(value, label, active)
     else
     {
         RequirePlainObject(value, label);
-        result = {};
+        const record = {};
 
         for (const [ key, child ] of Object.entries(value))
         {
-            DefineValue(result, key, CloneJSON(child, `${label}.${key}`, active));
+            DefineValue(record, key, CloneJSON(child, `${label}.${key}`, active));
         }
+        result = record;
     }
 
     active.delete(value);
@@ -654,6 +655,15 @@ function CompareIdentities(left, right)
     return CompareText(a, b);
 }
 
+/**
+ * Writes one data key into a plain JSON output record as an ordinary own data
+ * property, so a key such as `__proto__` stays data instead of replacing the
+ * record's prototype. The records stay ordinary objects for their consumers.
+ *
+ * @param {object} target A fresh plain JSON output record.
+ * @param {string} key The data key.
+ * @param {*} value The JSON value.
+ */
 function DefineValue(target, key, value)
 {
     Object.defineProperty(target, key, {

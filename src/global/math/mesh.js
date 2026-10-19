@@ -289,7 +289,9 @@ export function generateNormals(positions, indices)
  * @param {ArrayLike<number>} normals Flat xyz normals.
  * @param {ArrayLike<number>} uvs Flat uv coordinates.
  * @param {ArrayLike<number>} indices Flat triangle indices.
- * @returns {Float32Array} Flat xyz tangents.
+ * @returns {{tangents: Float32Array, handedness: Float32Array}} Flat xyz
+ * tangents, and each vertex's UV handedness (`1` or `-1`), which
+ * generateBiNormals takes as `options.handedness`.
  */
 export function generateTangents(positions, normals, uvs, indices)
 {
@@ -397,8 +399,7 @@ export function generateTangents(positions, normals, uvs, indices)
         ) < 0 ? -1 : 1;
     }
 
-    Object.defineProperty(tangents, "handedness", { value: handedness });
-    return tangents;
+    return { tangents, handedness };
 }
 
 /**
@@ -414,8 +415,7 @@ export function generateTangents(positions, normals, uvs, indices)
 export function generateTangentFrames(positions, normals, uvs, indices, options)
 {
     const
-        tangents = generateTangents(positions, normals, uvs, indices),
-        handedness = tangents.handedness,
+        { tangents, handedness } = generateTangents(positions, normals, uvs, indices),
         binormals = generateBiNormals(normals, tangents, { ...options, handedness });
 
     return { tangents, binormals, handedness };
@@ -428,6 +428,8 @@ export function generateTangentFrames(positions, normals, uvs, indices, options)
  * @param {ArrayLike<number>} tangents Flat xyz tangents.
  * @param {object} [options] Generation options.
  * @param {"right"|"left"} [options.uvHandedness] Handedness of generated basis.
+ * @param {ArrayLike<number>|null} [options.handedness] Per-vertex UV handedness
+ * from generateTangents; every vertex counts as `1` when absent.
  * @returns {number[]} Flat xyz binormals.
  */
 export function generateBiNormals(normals, tangents, options = {})
@@ -444,7 +446,7 @@ export function generateBiNormals(normals, tangents, options = {})
     for (let i = 0; i < normals.length; i += 3)
     {
         const
-            vertexSign = options.handedness?.[i / 3] ?? tangents.handedness?.[i / 3] ?? 1,
+            vertexSign = options.handedness?.[i / 3] ?? 1,
             sign = conventionSign * vertexSign;
         const b = normalize(
             [ 0, 0, 0 ],

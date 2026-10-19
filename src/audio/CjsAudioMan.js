@@ -2156,15 +2156,7 @@ function CreateTimedSilenceAudioBuffer(context)
     const sampleRate = Number(context.sampleRate) > 0
         ? Number(context.sampleRate)
         : 48000;
-    const buffer = context.createBuffer(1, 1, sampleRate);
-
-    if (!Number.isFinite(Number(buffer.duration)))
-    {
-        Object.defineProperty(buffer, "duration", {
-            value: 1 / sampleRate,
-        });
-    }
-    return buffer;
+    return context.createBuffer(1, 1, sampleRate);
 }
 
 function DecodeAudioData(context, bytes)

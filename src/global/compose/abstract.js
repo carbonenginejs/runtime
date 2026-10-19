@@ -232,7 +232,7 @@ export function decorateAbstractMethod(value, context)
  * entry): replaces `target[methodName]` with a thrower. The declaring class is
  * the target's own.
  *
- * @param {object|Function} target A prototype, or a class for a static.
+ * @param {Function|Function["prototype"]} target A class's prototype, or the class for a static.
  * @param {string} methodName The abstract method's name.
  * @returns {Function} The installed thrower.
  */

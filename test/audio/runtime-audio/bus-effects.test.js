@@ -146,6 +146,7 @@ function Context()
                 numberOfChannels,
                 length,
                 sampleRate,
+                duration: length / sampleRate,
                 getChannelData(index) { return channels[index]; },
             };
 

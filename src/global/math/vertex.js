@@ -53,7 +53,7 @@ export function calculateNormals(indices, positions)
  * @param {ArrayLike<number>} uvs Flat uv coordinates.
  * @param {Array<object>} [areas] Optional index ranges to use.
  * @param {ArrayLike<number>} [normals] Flat xyz normals; generated when absent.
- * @returns {number[]} Flat xyz tangents.
+ * @returns {Float32Array} Flat xyz tangents.
  */
 export function calculateTangents(indices, positions, uvs, areas, normals)
 {
@@ -63,7 +63,7 @@ export function calculateTangents(indices, positions, uvs, areas, normals)
         normals && normals.length ? normals : generateNormals(positions, faces),
         uvs,
         faces
-    );
+    ).tangents;
 }
 
 /**

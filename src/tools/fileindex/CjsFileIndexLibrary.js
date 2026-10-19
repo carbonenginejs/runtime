@@ -57,7 +57,7 @@ export class CjsFileIndexLibrary
         }
 
         this.provider = normalizeProvider(provider);
-        this.buildReference = freezeDeep(buildReference);
+        this.buildReference = buildReference;
         this.build = buildReference.build ?? null;
         this.appIndex = appIndex;
         this.resFileIndexes = Array.from(resFileIndexes, normalizeLoadedIndex);
@@ -265,7 +265,7 @@ export class CjsFileIndexLibrary
         if (isExactBuild(buildRef))
         {
             const client = clientRef ? resolveProviderClient(provider, clientRef) : null;
-            return freezeDeep({
+            return {
                 buildRef,
                 build: buildRef,
                 client: client?.id ?? null,
@@ -273,7 +273,7 @@ export class CjsFileIndexLibrary
                 metadataURL: null,
                 metadata: null,
                 source: "exact"
-            });
+            };
         }
 
         if (buildRef !== "latest" && clientRef)
@@ -296,7 +296,7 @@ export class CjsFileIndexLibrary
         candidates.sort((left, right) => compareExactBuilds(right.build, left.build));
         const selected = candidates[0];
 
-        return freezeDeep({
+        return {
             buildRef,
             build: selected.build,
             client: selected.client.id,
@@ -304,7 +304,7 @@ export class CjsFileIndexLibrary
             metadataURL: selected.metadataURL,
             metadata: selected.metadata,
             source: buildRef === "latest" && !clientRef ? "latest-remote-metadata" : "remote-metadata"
-        });
+        };
     }
 
     /**
@@ -402,7 +402,7 @@ function normalizeProvider(value)
         };
     }
 
-    return freezeDeep({
+    return {
         game: value.game === undefined ? null : String(value.game),
         id: normalizeName(value.id),
         defaultBuildRef: normalizeBuildReference(value.defaultBuildRef ?? "latest"),
@@ -413,7 +413,7 @@ function normalizeProvider(value)
             resBaseURL: normalizeHTTPURL(value.remote.resBaseURL, "resBaseURL")
         },
         clients
-    });
+    };
 }
 
 function resolveProviderClient(provider, reference)
@@ -514,14 +514,6 @@ function normalizeRequiredString(value, label)
 function joinURL(baseURL, relativePath)
 {
     return `${String(baseURL).replace(/\/+$/u, "")}/${String(relativePath).replace(/^\/+/, "")}`;
-}
-
-function freezeDeep(value, seen = new Set())
-{
-    if (!value || typeof value !== "object" || seen.has(value)) return value;
-    seen.add(value);
-    for (const item of Object.values(value)) freezeDeep(item, seen);
-    return value;
 }
 
 CjsSchema.meta.define(CjsFileIndexLibrary, { className: "CjsFileIndexLibrary" });

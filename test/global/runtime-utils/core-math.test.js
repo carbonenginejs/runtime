@@ -74,8 +74,8 @@ test("mesh generates normals, tangents, and binormals", () =>
 {
     const
         normals = mesh.generateNormals(POSITIONS, INDICES),
-        tangents = mesh.generateTangents(POSITIONS, normals, UVS, INDICES),
-        binormals = mesh.generateBiNormals(normals, tangents);
+        { tangents, handedness } = mesh.generateTangents(POSITIONS, normals, UVS, INDICES),
+        binormals = mesh.generateBiNormals(normals, tangents, { handedness });
 
     almostEqualArray(normals, [
         0, 0, 1,
@@ -109,7 +109,7 @@ test("vertex compatibility delegates to shared mesh math", () =>
 {
     almostEqualArray(
         vertex.calculateTangents(INDICES, POSITIONS, UVS),
-        mesh.generateTangents(POSITIONS, mesh.generateNormals(POSITIONS, INDICES), UVS, INDICES)
+        mesh.generateTangents(POSITIONS, mesh.generateNormals(POSITIONS, INDICES), UVS, INDICES).tangents
     );
 });
 
@@ -186,8 +186,8 @@ test("tangent packs and decodes a GR2-style tangent frame", () =>
 {
     const
         normals = mesh.generateNormals(POSITIONS, INDICES),
-        tangents = mesh.generateTangents(POSITIONS, normals, UVS, INDICES),
-        binormals = mesh.generateBiNormals(normals, tangents),
+        { tangents, handedness } = mesh.generateTangents(POSITIONS, normals, UVS, INDICES),
+        binormals = mesh.generateBiNormals(normals, tangents, { handedness }),
         packed = tangent.packTangentFrames(normals, tangents, binormals),
         decoded = tangent.decodeTangentFrame(packed.slice(0, 4));
 

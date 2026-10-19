@@ -659,7 +659,7 @@ function rebuildMeshTangents(mesh, meshIndex)
         uvs = requireVertexChannel(mesh, meshIndex, "texcoord0", "rebuildMissingTangents"),
         faces = triangleFaces(mesh, meshIndex, "rebuildMissingTangents");
 
-    mesh.vertex.tangent = Array.from(tangents.generateTangents(positions, normals, uvs, faces));
+    mesh.vertex.tangent = Array.from(tangents.generateTangents(positions, normals, uvs, faces).tangents);
 }
 
 /**

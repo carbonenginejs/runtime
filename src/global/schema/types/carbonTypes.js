@@ -1,8 +1,15 @@
 import { getArrayBufferViewName } from "#utils/bytes";
 import { isTag } from "#utils/is";
 
-export const CARBON_META = Symbol.for("carbonenginejs.type");
-export const CARBON_RAW_STRUCT_TYPE = Symbol.for("carbonenginejs.rawStructType");
+/**
+ * The raw-struct brand: each branded plain value record mapped to its declared
+ * native type name (or null). A side table, so the record holds only its data.
+ * It is kept on `globalThis` under a registry symbol so that every copy of
+ * this module in one realm (separately bundled runtimes) shares one brand, as
+ * the `Symbol.for` property brand it replaces did.
+ * @type {WeakMap<object, string|null>}
+ */
+const CARBON_RAW_STRUCT_TYPES = globalThis[Symbol.for("carbonenginejs.rawStructTypes")] ??= new WeakMap();
 
 export const CARBON_TYPE = Object.freeze({
     UNKNOWN: "unknown",
@@ -572,29 +579,20 @@ export function exportCarbonValue(value, getField = null, type = null)
 export function createCarbonRawStruct(typeName, values = {})
 {
     const result = { ...values };
-    Object.defineProperty(result, CARBON_META, {
-        value: CARBON_TYPE.RAW_STRUCT,
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(result, CARBON_RAW_STRUCT_TYPE, {
-        value: typeName || null,
-        enumerable: false,
-        configurable: true
-    });
+    CARBON_RAW_STRUCT_TYPES.set(result, typeName || null);
     return result;
 }
 
 /** Reports whether a value carries the Carbon raw-struct brand. */
 export function isCarbonRawStruct(value)
 {
-    return Boolean(value && typeof value === "object" && value[CARBON_META] === CARBON_TYPE.RAW_STRUCT);
+    return Boolean(value && typeof value === "object" && CARBON_RAW_STRUCT_TYPES.has(value));
 }
 
 /** Returns the declared native type name of a branded raw struct. */
 export function getCarbonRawStructType(value)
 {
-    return isCarbonRawStruct(value) ? value[CARBON_RAW_STRUCT_TYPE] : null;
+    return isCarbonRawStruct(value) ? CARBON_RAW_STRUCT_TYPES.get(value) : null;
 }
 
 /** Formats a portable Carbon value as a deterministic JavaScript expression. */

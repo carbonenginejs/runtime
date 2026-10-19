@@ -80,7 +80,42 @@
 //     arrives as a parameter or member, still counts.
 // Everything else - a parameter, a local object, a member such as `this.map`,
 // a call or `new` result - counts. A parameter that in practice receives a
-// prototype or a function is still counted: nothing at the site says so.
+// prototype or a function is still counted unless its own JSDoc says so (the
+// first exemption below).
+//
+// TWO EXEMPTIONS (Ruru, 2026-10-20). Each matches one exact shape, so a site
+// outside it still counts:
+//
+//   class-definition install. The ruling: a property installed at class-
+//   definition time on a prototype, a class or a decorator function is not an
+//   instance property. Mechanically: the target is a parameter of the
+//   function declaration that holds the call, and that function's JSDoc
+//   `@param` types the parameter only with `Function` (a class or decorator
+//   function) and `Function["prototype"]` (a class's prototype), alone or as
+//   a union. The JSDoc is the declaration at the site that the bare parameter
+//   lacks. `{object|Function}` does not qualify: `object` admits instances.
+//   Sites: installAbstractMethod (compose/abstract.js) and describeDecorator
+//   (CjsSchema.js).
+//
+//   JSON output record. The ruling: a write of a data key into a plain JSON
+//   output record, which is data and never a class instance, is not a class
+//   property. Defining rather than assigning keeps a key such as `__proto__`
+//   as data while the record stays an ordinary object for its consumers.
+//   Mechanically, all of:
+//     - the call is `Object.defineProperty(target, key, { value, enumerable:
+//       true, writable: true, configurable: true })` (any key order), where
+//       target, key and value are the three parameters of the function that
+//       holds it, and the call is that function's only statement;
+//     - the function is declared at module level and not exported;
+//     - its JSDoc declares the target with `@param {object} <target>` and a
+//       description containing "JSON output record";
+//     - every reference to the function in its module is a direct call whose
+//       first argument is a `const` initialized with an empty `{}` - a fresh
+//       plain record this module builds.
+//   The JSDoc clause keeps the exemption to helpers someone has declared as
+//   JSON output writers: the same helper shape also builds decoded FSD records
+//   and YAML mappings, which are not covered by this ruling.
+//   Site: DefineValue (character/library-builder/CjsCharacterLibraryBuilder.js).
 //
 // HOW THE BASELINE WORKS. The existing sites are frozen per file and per kind,
 // the same ratchet as lint-optional-calls, and the check fails only when a
@@ -476,6 +511,95 @@ function isInstanceTarget(targetPath, file)
     return true;
 }
 
+/** The last JSDoc block attached above a function declaration or its export, or "". */
+function leadingJSDoc(functionPath)
+{
+    let comments = functionPath.node.leadingComments;
+    if (!comments?.length && functionPath.parentPath.isExportNamedDeclaration()) comments = functionPath.parent.leadingComments;
+    const blocks = (comments ?? []).filter(comment => comment.type === "CommentBlock" && comment.value.startsWith("*"));
+    return blocks.length ? blocks[blocks.length - 1].value : "";
+}
+
+/** One parameter's JSDoc `@param`: its whitespace-free type and its description line, or null. */
+function paramJSDoc(functionPath, name)
+{
+    for (const match of leadingJSDoc(functionPath).matchAll(/@param\s+\{([^}]*)\}\s+\[?([A-Za-z_$][\w$]*)\]?([^\n]*)/gu))
+    {
+        if (match[2] === name) return { type: match[1].replace(/\s+/gu, ""), description: match[3].trim() };
+    }
+    return null;
+}
+
+const CLASS_DEFINITION_TYPES = new Set([ "Function", "Function[\"prototype\"]" ]);
+
+/** The class-definition install exemption (see the header). */
+function isClassDefinitionInstall(targetPath)
+{
+    const node = targetPath.node;
+    if (node.type !== "Identifier") return false;
+    const binding = targetPath.scope.getBinding(node.name);
+    if (binding?.kind !== "param") return false;
+    const functionPath = binding.scope.path;
+    if (!functionPath.isFunctionDeclaration()) return false;
+    const param = paramJSDoc(functionPath, node.name);
+    return param !== null && param.type.split("|").every(member => CLASS_DEFINITION_TYPES.has(member));
+}
+
+/** The JSON output record exemption (see the header). */
+function isJsonRecordWrite(callPath)
+{
+    const call = callPath.node;
+    if (call.callee.property.name !== "defineProperty" || call.arguments.length !== 3) return false;
+
+    const functionPath = callPath.getFunctionParent();
+    if (!functionPath?.isFunctionDeclaration() || !functionPath.parentPath.isProgram()) return false;
+    const helper = functionPath.node;
+    if (helper.params.length !== 3 || helper.params.some(param => param.type !== "Identifier")) return false;
+    const body = helper.body.body;
+    if (body.length !== 1 || body[0].type !== "ExpressionStatement" || body[0].expression !== call) return false;
+
+    const [ target, key, value ] = helper.params.map(param => param.name);
+    const targetDoc = paramJSDoc(functionPath, target);
+    if (targetDoc?.type !== "object" || !targetDoc.description.includes("JSON output record")) return false;
+
+    const [ targetArgument, keyArgument, descriptor ] = call.arguments;
+    if (targetArgument.type !== "Identifier" || targetArgument.name !== target) return false;
+    if (keyArgument.type !== "Identifier" || keyArgument.name !== key) return false;
+    if (descriptor.type !== "ObjectExpression" || descriptor.properties.length !== 4) return false;
+
+    const names = new Set();
+    for (const property of descriptor.properties)
+    {
+        if (property.type !== "ObjectProperty" || property.computed) return false;
+        const name = keyName(property.key, false);
+        if (name === "value")
+        {
+            if (property.value.type !== "Identifier" || property.value.name !== value) return false;
+        }
+        else if (name === "enumerable" || name === "writable" || name === "configurable")
+        {
+            if (property.value.type !== "BooleanLiteral" || property.value.value !== true) return false;
+        }
+        else return false;
+        names.add(name);
+    }
+    if (names.size !== 4) return false;
+
+    const binding = functionPath.parentPath.scope.getBinding(helper.id.name);
+    if (!binding?.referencePaths.length) return false;
+    return binding.referencePaths.every(reference =>
+    {
+        const parent = reference.parentPath;
+        if (!parent.isCallExpression() || parent.node.callee !== reference.node) return false;
+        const record = parent.node.arguments[0];
+        if (record?.type !== "Identifier") return false;
+        const recordBinding = parent.scope.getBinding(record.name);
+        if (recordBinding?.kind !== "const") return false;
+        const init = recordBinding.path.node.init;
+        return init?.type === "ObjectExpression" && init.properties.length === 0;
+    });
+}
+
 function findSites(module)
 {
     const sites = { undeclared: [], unresolvedBase: [], defineProperty: [], assignThis: [] };
@@ -534,7 +658,8 @@ function findSites(module)
                 if (first.node.type === "ThisExpression" && thisIsInstance(first)) sites.assignThis.push({ line: c.node.loc.start.line, name: "" });
                 return;
             }
-            if (isObjectCall(c.node, "defineProperty", "defineProperties") && isInstanceTarget(first, file))
+            if (isObjectCall(c.node, "defineProperty", "defineProperties") && isInstanceTarget(first, file)
+                && !isClassDefinitionInstall(first) && !isJsonRecordWrite(c))
             {
                 const property = c.node.arguments[1];
                 const name = c.node.callee.property.name === "defineProperty" && property?.type === "StringLiteral" ? property.value : "";

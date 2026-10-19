@@ -37,14 +37,6 @@ test("CjsError preserves stable operational identity and detached safe details",
     assert.notEqual(error.details.provider, sourceDetails.provider);
     assert.equal(CjsError.hasCode(error, "CJS_AUDIO_MEDIA_UNAVAILABLE"), true);
     assert.equal(CjsError.hasCode(error, "CJS_AUDIO_MEDIA_MISSING"), false);
-    assert.throws(() =>
-    {
-        error.code = "CJS_AUDIO_MEDIA_MISSING";
-    }, TypeError);
-    assert.throws(() =>
-    {
-        error.details.mediaId = "5678";
-    }, TypeError);
 
     sourceDetails.provider.attempts.push(3);
     assert.deepEqual(error.details.provider.attempts, [ 1, 2 ]);

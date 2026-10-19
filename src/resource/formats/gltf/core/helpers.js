@@ -399,10 +399,11 @@ function tangentXyz(mesh)
  *
  * @param {object} mesh Shared mesh.
  * @param {CjsGltfValues} values Reader values; `values.uvHandedness` applies to 3-wide tangents.
+ * @param {Float32Array|null} [handedness] Per-vertex UV handedness, when this pass generated the 3-wide tangents.
  * @returns {Array<number>} XYZ binormals.
  * @throws {Error} When the tangent channel is not 3 or 4 components wide.
  */
-function generatedBiNormalsForMesh(mesh, values)
+function generatedBiNormalsForMesh(mesh, values, handedness = null)
 {
     const
         normals = requireVertexChannel(mesh, 0, "normal", "binormal generation"),
@@ -412,7 +413,7 @@ function generatedBiNormalsForMesh(mesh, values)
 
     if (width === 3)
     {
-        return generateBiNormals(normals, tangent, { uvHandedness: values.uvHandedness });
+        return generateBiNormals(normals, tangent, { uvHandedness: values.uvHandedness, handedness });
     }
 
     if (width !== 4) throw new Error("CjsGltfFormat: tangent channel must have 3 or 4 components per vertex");
@@ -467,17 +468,22 @@ function rebuildMeshData(format, root, mesh, meshIndex, lodIndex, values)
         );
     }
 
+    // Handedness of tangents generated here, for the binormals below.
+    let tangentHandedness = null;
+
     if (!hasVertexChannel(mesh, "tangent") && (shouldApplyMeshRule(
         format,
         values.rebuildMissingTangents,
         { ...common, feature: "rebuildMissingTangents", channel: "tangent" }) || shouldPackTangents))
     {
-        mesh.vertex.tangent = generateTangents(
+        const generated = generateTangents(
             requireVertexChannel(mesh, meshIndex, "position", "rebuildMissingTangents"),
             requireVertexChannel(mesh, meshIndex, "normal", "rebuildMissingTangents"),
             requireVertexChannel(mesh, meshIndex, "texcoord0", "rebuildMissingTangents"),
             triangleFaces(mesh, meshIndex, "rebuildMissingTangents")
         );
+        mesh.vertex.tangent = generated.tangents;
+        tangentHandedness = generated.handedness;
     }
 
     if (!hasVertexChannel(mesh, "binormal") && (shouldApplyMeshRule(
@@ -485,7 +491,7 @@ function rebuildMeshData(format, root, mesh, meshIndex, lodIndex, values)
         values.rebuildMissingBiNormals,
         { ...common, feature: "rebuildMissingBiNormals", channel: "binormal" }) || shouldPackTangents))
     {
-        mesh.vertex.binormal = generatedBiNormalsForMesh(mesh, values);
+        mesh.vertex.binormal = generatedBiNormalsForMesh(mesh, values, tangentHandedness);
     }
 
     if (shouldPackTangents)

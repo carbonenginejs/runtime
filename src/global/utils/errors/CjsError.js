@@ -12,7 +12,7 @@ const
  * resolution work that actually failed. `AggregateError` stays the aggregate.
  *
  * Each package owns its `CJS_*` codes; there is no central code registry, and
- * only the code's shape is validated. `details` is cloned and frozen but not
+ * only the code's shape is validated. `details` is cloned but not
  * redacted, so callers must keep credentials and private payloads out of it.
  * The class does not log, serialize, choose HTTP statuses or retry.
  */
@@ -24,10 +24,16 @@ export class CjsError extends Error
     /** The constructing class's registered name; set by the constructor. */
     name = "CjsError";
 
+    /** Stable uppercase `CJS_*` machine-readable code; set by the constructor. */
+    code = "";
+
+    /** Detached JSON-safe copy of the constructor's details, or null; set by the constructor. */
+    details = null;
+
     /**
      * Creates an operational error.
      *
-     * Details are detached and deeply frozen JSON-safe data. Cause identity is
+     * Details are a detached deep copy of JSON-safe data. Cause identity is
      * preserved through the native `Error` cause property when supplied.
      *
      * @param {string} code Stable uppercase `CJS_*` machine-readable code.
@@ -47,21 +53,8 @@ export class CjsError extends Error
         super(normalizedMessage, errorOptions);
 
         this.name = new.target.className;
-
-        Object.defineProperties(this, {
-            code: {
-                value: normalizedCode,
-                enumerable: true,
-                configurable: false,
-                writable: false
-            },
-            details: {
-                value: CjsError._NormalizeDetails(normalizedOptions.details),
-                enumerable: true,
-                configurable: false,
-                writable: false
-            }
-        });
+        this.code = normalizedCode;
+        this.details = CjsError._NormalizeDetails(normalizedOptions.details);
     }
 
     /**
@@ -126,7 +119,7 @@ export class CjsError extends Error
         return value;
     }
 
-    /** Converts optional details into detached deeply frozen data. */
+    /** Converts optional details into a detached deep copy. */
     static _NormalizeDetails(value)
     {
         if (value === undefined || value === null)
@@ -219,10 +212,14 @@ export class CjsError extends Error
         return clone;
     }
 
-    /** Clones one plain JSON-safe details record. */
+    /**
+     * Clones one plain JSON-safe details record. The copy is built with
+     * Object.fromEntries, which creates each key as an own data property, so a
+     * `__proto__` key stays data rather than replacing the prototype.
+     */
     static _CloneDetailsRecord(value, path, active)
     {
-        const clone = {};
+        const entries = [];
 
         for (const key of Reflect.ownKeys(value))
         {
@@ -238,19 +235,14 @@ export class CjsError extends Error
                 throw new TypeError(`${path} must contain only enumerable data properties.`);
             }
 
-            Object.defineProperty(clone, key, {
-                value: CjsError._CloneDetailsValue(
-                    descriptor.value,
-                    `${path}[${JSON.stringify(key)}]`,
-                    active
-                ),
-                enumerable: true,
-                configurable: false,
-                writable: false
-            });
+            entries.push([ key, CjsError._CloneDetailsValue(
+                descriptor.value,
+                `${path}[${JSON.stringify(key)}]`,
+                active
+            ) ]);
         }
 
-        return clone;
+        return Object.fromEntries(entries);
     }
 
 }

@@ -8544,6 +8544,7 @@ test("Sound-local RoomVerb is opt-in, channel-aware, and voice-owned", async () 
       numberOfChannels,
       length,
       sampleRate,
+      duration: length / sampleRate,
       getChannelData: channel => channels[channel],
     };
 

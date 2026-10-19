@@ -2821,7 +2821,7 @@ function generateBaseTangents(positions, normal, texcoord0, triangleFaces)
     {
         return [];
     }
-    return cleanNumericArray(generateTangents(positions, normal, texcoord0, triangleFaces));
+    return cleanNumericArray(generateTangents(positions, normal, texcoord0, triangleFaces).tangents);
 }
 
 /**
@@ -3007,7 +3007,7 @@ function buildMorphTargetVertexChannels(name, shape, indexes, geometry, owner, d
     }
 
     const tangent = normal.length && hasArrayValues(baseVertex.tangent) && hasArrayValues(baseVertex.texcoord0)
-        ? cleanNumericArray(generateTangents(positions, normal, baseVertex.texcoord0, triangleFaces))
+        ? cleanNumericArray(generateTangents(positions, normal, baseVertex.texcoord0, triangleFaces).tangents)
         : [];
     const binormal = normal.length && tangent.length && hasArrayValues(baseVertex.binormal)
         ? cleanNumericArray(generateBiNormals(normal, tangent))

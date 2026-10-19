@@ -333,28 +333,35 @@ function rebuildMissingMeshData(format, json, values)
             );
         }
 
+        // Handedness of tangents generated here, for the binormals below.
+        let tangentHandedness = null;
+
         if (!hasVertexChannel(mesh, "tangent") && shouldApplyMeshRule(
             format,
             values.rebuildMissingTangents,
             { ...common, feature: "rebuildMissingTangents", channel: "tangent" }))
         {
-            mesh.vertex.tangent = generateTangents(
+            const generated = generateTangents(
                 requireVertexChannel(mesh, meshIndex, "position", "rebuildMissingTangents"),
                 requireVertexChannel(mesh, meshIndex, "normal", "rebuildMissingTangents"),
                 requireVertexChannel(mesh, meshIndex, "texcoord0", "rebuildMissingTangents"),
                 triangleFaces(mesh, meshIndex, "rebuildMissingTangents"),
                 { uvHandedness: values.uvHandedness }
             );
+            mesh.vertex.tangent = generated.tangents;
+            tangentHandedness = generated.handedness;
         }
         else if (!hasVertexChannel(mesh, "tangent") && shouldPackTangents)
         {
-            mesh.vertex.tangent = generateTangents(
+            const generated = generateTangents(
                 requireVertexChannel(mesh, meshIndex, "position", "packTangents"),
                 requireVertexChannel(mesh, meshIndex, "normal", "packTangents"),
                 requireVertexChannel(mesh, meshIndex, "texcoord0", "packTangents"),
                 triangleFaces(mesh, meshIndex, "packTangents"),
                 { uvHandedness: values.uvHandedness }
             );
+            mesh.vertex.tangent = generated.tangents;
+            tangentHandedness = generated.handedness;
         }
 
         if (!hasVertexChannel(mesh, "binormal") && shouldApplyMeshRule(
@@ -365,7 +372,7 @@ function rebuildMissingMeshData(format, json, values)
             mesh.vertex.binormal = generateBiNormals(
                 requireVertexChannel(mesh, meshIndex, "normal", "rebuildMissingBiNormals"),
                 requireVertexChannel(mesh, meshIndex, "tangent", "rebuildMissingBiNormals"),
-                { uvHandedness: values.uvHandedness }
+                { uvHandedness: values.uvHandedness, handedness: tangentHandedness }
             );
         }
         else if (!hasVertexChannel(mesh, "binormal") && shouldPackTangents)
@@ -373,7 +380,7 @@ function rebuildMissingMeshData(format, json, values)
             mesh.vertex.binormal = generateBiNormals(
                 requireVertexChannel(mesh, meshIndex, "normal", "packTangents"),
                 requireVertexChannel(mesh, meshIndex, "tangent", "packTangents"),
-                { uvHandedness: values.uvHandedness }
+                { uvHandedness: values.uvHandedness, handedness: tangentHandedness }
             );
         }
 

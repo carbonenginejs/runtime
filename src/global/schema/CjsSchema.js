@@ -1539,6 +1539,15 @@ function wrappableTypeDecorator(kind)
     return decorator;
 }
 
+/**
+ * Stamps a decorator function with the namespace and value it installs, so the
+ * same decorator can be read as data (getDecoratorMetadata).
+ *
+ * @param {Function} decorator The decorator function.
+ * @param {string} namespace The namespace it installs into.
+ * @param {*} value The value it installs.
+ * @returns {Function} The same decorator.
+ */
 function describeDecorator(decorator, namespace, value)
 {
     Object.defineProperty(decorator, DECORATOR_METADATA, {

@@ -310,9 +310,11 @@ function readerMemberValue(current, value, member)
         }
         case "map":
         {
+            // Map storage only: a member's dictionary keys come from data, so
+            // they belong in a Map, never as properties of a plain object
+            // (Ruru, 2026-10-20).
             const result = current == null ? new Map() : current;
-            const mapTarget = result instanceof Map;
-            if (!mapTarget && (typeof result !== "object" || Array.isArray(result)))
+            if (!(result instanceof Map))
             {
                 throw new TypeError(`Reader member ${member.name} has incompatible map storage.`);
             }
@@ -321,12 +323,7 @@ function readerMemberValue(current, value, member)
             {
                 // BlackReader::ReadDict retains old entries and ignores nulls.
                 if (item == null) continue;
-                if (mapTarget) result.set(key, item);
-                else
-                {
-                    readerDataValue(result, key);
-                    Object.defineProperty(result, key, { value: item, writable: true, enumerable: true, configurable: true });
-                }
+                result.set(key, item);
             }
             return result;
         }

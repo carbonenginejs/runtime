@@ -113,6 +113,7 @@ function FakeContext(log)
                 channels,
                 sampleCount,
                 sampleRate,
+                duration: sampleCount / sampleRate,
                 copyToChannel(values, channel)
                 {
                     data[channel].set(values);

@@ -20,25 +20,29 @@ const MIN_RELATIVE_PITCH_CENTS = -2400;
 const MAX_RELATIVE_PITCH_CENTS = 2400;
 const MIN_FILTER_PERCENT = 0;
 const MAX_FILTER_PERCENT = 100;
-const AUTHORED_PLAYBACK_RATE = Symbol("authoredPlaybackRate");
-const AUTHORED_PITCH_CENTS = Symbol("authoredPitchCents");
+/**
+ * The authored playback rate and pitch of a selection record whose public
+ * `authoredPlaybackRate`/`pitchCents` keys were left out, keyed by the record.
+ * A side table rather than a property: selection records are plain objects
+ * rebuilt by spreads, and a spread copy must not carry these values unless
+ * PreserveAuthoredPitch passes them on.
+ * @type {WeakMap<object, { playbackRate: number, pitchCents: number }>}
+ */
+const AUTHORED_PITCH = new WeakMap();
 
 function PreserveAuthoredPitch(source, target)
 {
+    const authored = AUTHORED_PITCH.get(source);
     const authoredPlaybackRate = source?.authoredPlaybackRate
-        ?? source?.[AUTHORED_PLAYBACK_RATE];
+        ?? authored?.playbackRate;
     const authoredPitchCents = source?.pitchCents
-        ?? source?.[AUTHORED_PITCH_CENTS];
+        ?? authored?.pitchCents;
 
     if (authoredPlaybackRate !== undefined)
     {
-        Object.defineProperties(target, {
-            [AUTHORED_PLAYBACK_RATE]: {
-                value: authoredPlaybackRate,
-            },
-            [AUTHORED_PITCH_CENTS]: {
-                value: authoredPitchCents,
-            },
+        AUTHORED_PITCH.set(target, {
+            playbackRate: authoredPlaybackRate,
+            pitchCents: authoredPitchCents,
         });
     }
     return target;
@@ -800,10 +804,11 @@ export class CjsSfxEngine
         at = undefined,
     )
     {
+        const authored = AUTHORED_PITCH.get(selection);
         const authoredPlaybackRate = selection?.authoredPlaybackRate
-            ?? selection?.[AUTHORED_PLAYBACK_RATE];
+            ?? authored?.playbackRate;
         const authoredPitchCents = selection?.pitchCents
-            ?? selection?.[AUTHORED_PITCH_CENTS];
+            ?? authored?.pitchCents;
         const actionPitch = voicePitchCents === undefined
             ? Number(
                 controls.getVoicePitchCents(selection?.matchIds),
@@ -1063,13 +1068,9 @@ export class CjsSfxEngine
                     : {}),
             };
 
-            Object.defineProperties(selection, {
-                [AUTHORED_PLAYBACK_RATE]: {
-                    value: node.playbackRate ?? 1,
-                },
-                [AUTHORED_PITCH_CENTS]: {
-                    value: terms.pitchCents,
-                },
+            AUTHORED_PITCH.set(selection, {
+                playbackRate: node.playbackRate ?? 1,
+                pitchCents: terms.pitchCents,
             });
             selection.playbackRate = this.EvaluatePlaybackRate(
                 selection,
