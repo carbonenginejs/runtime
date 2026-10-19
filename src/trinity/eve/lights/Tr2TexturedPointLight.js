@@ -2,9 +2,6 @@
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight.cpp
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight_Blue.cpp
 import { IsMatch, IInitialize, INotify } from "#blue";
-// Flattened LightData surface (2026-07-23 decision): texturePath joins the
-// flat fields inherited from Tr2PointLight, verified against
-// lights/Tr2TexturedPointLight.json (tools-core schema build).
 import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { be } from "#blue";
@@ -21,21 +18,29 @@ import { Tr2PointLight } from "./Tr2PointLight.js";
 @blue.interface(Tr2Light, IInitialize, INotify)
 export class Tr2TexturedPointLight extends Tr2PointLight
 {
-  static LightDataFields = [
-    ...Tr2PointLight.LightDataFields,
-    "texturePath"
-  ];
-
   @blue.read
   @type.rootRef("TriTextureRes")
   texture = null;
 
-  /** m_lightData.texturePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
+  // Carbon maps this row into the embedded LightData m_lightData
+  // (Tr2Light.h:102), an attribute over that path; the point light's rows are
+  // inherited (Tr2TexturedPointLight_Blue.cpp:17-37 repeats them).
+
+  /** m_lightData.texturePath (std::wstring) [READWRITE, PERSIST, NOTIFY] (Tr2TexturedPointLight_Blue.cpp:33). */
   @blue.notify
   @blue.readwrite
   @blue.persist
   @type.wpath("TriTextureRes")
-  texturePath = "";
+  get texturePath()
+  {
+    return this._lightData.texturePath;
+  }
+
+  /** Writes m_lightData.texturePath. */
+  set texturePath(value)
+  {
+    this._lightData.texturePath = value;
+  }
 
   @type.boolean
   isDynamic = true;
@@ -63,9 +68,9 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   @meta.implemented
   Initialize()
   {
-    if (this.texturePath)
+    if (this._lightData.texturePath)
     {
-      this.SetTexturePath(this.texturePath);
+      this.SetTexturePath(this._lightData.texturePath);
     }
     return super.Initialize();
   }
@@ -73,14 +78,14 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon SetLightData (cpp:25-29): the point light's copy, then the texture
    * is refetched from the new data's path.
-   * @param {CjsLightData} lightData
+   * @param {LightData} lightData
    */
   @blue.method
   @meta.implemented
   SetLightData(lightData)
   {
     super.SetLightData(lightData);
-    this.SetTexturePath(this.texturePath);
+    this.SetTexturePath(this._lightData.texturePath);
   }
 
   /**
@@ -90,7 +95,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   @meta.implemented
   OnModified(propertyName)
   {
-    if (IsMatch(propertyName, "texturePath")) this.SetTexturePath(this.texturePath);
+    if (IsMatch(propertyName, "texturePath")) this.SetTexturePath(this._lightData.texturePath);
     return super.OnModified(propertyName);
   }
 
@@ -121,7 +126,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   Update()
   {
     if (!this.texture) return;
-    color.saturate(this.color, this.texture.GetAverageColor(), this._saturation);
+    color.saturate(this._lightData.color, this.texture.GetAverageColor(), this._saturation);
   }
 }
 

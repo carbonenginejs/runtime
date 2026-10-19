@@ -51,7 +51,7 @@ function TransformNormal(out, v, m)
 }
 import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { LightFeatures } from "../../lights/LightFeatures.js";
-import { CjsLightData } from "../../lights/CjsLightData.js";
+import { LightData } from "../../lights/LightData.js";
 
 
 /**
@@ -1022,7 +1022,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
   static _lightRecord = CreateLightRecord();
 
-  static _lightDataScratch = new CjsLightData();
+  static _lightDataScratch = new LightData();
 
   static _averageColorScratch = new Float32Array(4);
 

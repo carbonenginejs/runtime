@@ -2,9 +2,9 @@
 //   AsPerPointLightData cpp:37-69, AsPerSpotLightData cpp:71-80)
 // Source: trinity/trinity/Tr2LightManager.h (PerLightData h:55-85)
 //
-// The per-light record CjsLightData.AsPerPointLightData /
-// AsPerSpotLightData write (Carbon LightData's own methods, ported onto
-// CjsLightData). The record follows the EveSmartLightPointLight convention:
+// The per-light record LightData.AsPerPointLightData /
+// AsPerSpotLightData write (Carbon LightData's own methods). The record
+// follows the EveSmartLightPointLight convention:
 // typed CPU floats, flags unpacked, the light profile carried by reference;
 // Carbon's Float_16 narrowing and profileIndex << 4 packing wait on the light
 // manager's port. Records are scratch; Tr2LightManager.AddLight copies them,

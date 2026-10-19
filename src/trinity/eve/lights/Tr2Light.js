@@ -2,11 +2,12 @@
 // Source: trinity/trinity/Lights/Tr2Light.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { color } from "#math/color";
 import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { IsMatch, be, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
-import { CjsLightData, createCjsLightDataView } from "./CjsLightData.js";
+import { LightData } from "./LightData.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
 import { CreateLightRecord, MatrixCopyFrom3x4 } from "./lightConversion.js";
 import { LightFeatures } from "./LightFeatures.js";
@@ -22,8 +23,6 @@ import { LightFeatures } from "./LightFeatures.js";
 @blue.interface()
 export class Tr2Light
 {
-  static LightDataFields = [];
-
   static LightType = {
     UNDEFINED_LIGHT: 0,
     POINT_LIGHT: 1,
@@ -68,10 +67,13 @@ export class Tr2Light
   @type.enum("trinity.Tr2Light.LIGHT_TYPE")
   type = Tr2Light.UNDEFINED_LIGHT;
 
-  // Compat view over the flattened light fields (2026-07-23 flatten
-  // decision): the flat decorated fields on the concrete light classes are
-  // the real storage; this keeps Carbon's GetLightData() reference surface.
-  _lightDataView = null;
+  /**
+   * m_lightData (LightData), held by value (Tr2Light.h:102) and reset by the
+   * constructor (Tr2Light.cpp:90). The concrete lights map their Blue
+   * attributes into it as accessors (Tr2PointLight_Blue.cpp:18-34 and
+   * siblings).
+   */
+  _lightData = new LightData();
 
   /**
    * Captures the construction frame in Blue ticks.
@@ -83,50 +85,16 @@ export class Tr2Light
   }
 
   /**
-   * Compat LightData view over the concrete light's flattened fields, built on
-   * first access and redirecting both reads and writes back to this object.
-   */
-  get lightData()
-  {
-    this._lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
-    return this._lightDataView;
-  }
-
-  /**
-   * Carbon's SetLightData (Tr2Light.cpp:93-96): copies a whole LightData. A
-   * field the given record lacks takes LightData's default, as every field of
-   * a C++ struct is always present.
+   * Carbon's SetLightData (Tr2Light.cpp:93-96): `m_lightData = baseData`, a
+   * copy of the whole record.
    *
-   * Adapted: the light keeps some LightData fields flattened onto itself
-   * (`LightDataFields`); those are written to the light, the rest to its
-   * LightData view, whose fields are Carbon's `m_lightData` storage.
-   *
-   * @param {CjsLightData|object} lightData The light data to copy.
+   * @param {LightData} lightData The light data to copy.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   SetLightData(lightData)
   {
-    const defaults = new CjsLightData();
-    for (const name of Object.keys(defaults))
-    {
-      this._CopyLightDataField(name, Object.hasOwn(lightData, name) ? lightData[name] : defaults[name]);
-    }
-  }
-
-  /**
-   * Writes one LightData field where this light stores it: flattened on the
-   * light, or on its LightData view. Vectors are copied into existing storage.
-   *
-   * @param {string} name The LightData field.
-   * @param {*} value The value to copy.
-   */
-  _CopyLightDataField(name, value)
-  {
-    const target = this.constructor.LightDataFields.includes(name) ? this : this.lightData;
-    const current = target[name];
-    if (ArrayBuffer.isView(current) && current.length === value.length) current.set(value);
-    else target[name] = ArrayBuffer.isView(value) ? value.slice() : value;
+    this._lightData.Copy(lightData);
   }
 
   /**
@@ -143,30 +111,26 @@ export class Tr2Light
   /**
    * Carbon's ChangeLightColor (Tr2Light.cpp:114-117): assigns the LightData colour.
    *
-   * @param {Float32Array|number[]} color The new colour.
+   * @param {Float32Array|number[]} value The new colour.
    */
   @blue.method
   @meta.implemented
-  ChangeLightColor(color)
+  ChangeLightColor(value)
   {
-    this._CopyLightDataField("color", color);
+    color.copy(this._lightData.color, value);
   }
 
   /**
-   * Returns the live LightData view, which aliases this light's fields instead
-   * of copying them.
+   * Carbon's GetLightData (Tr2Light.h:98): the stored `m_lightData`, by
+   * reference.
    *
-   * Adapted: Carbon returns its stored `m_lightData` (Tr2Light.h:102). Carbon's
-   * exposure already dissolves that struct into flat attributes on the light
-   * (Tr2PointLight_Blue.cpp:18-34), so here the flat fields are the storage and
-   * this view stands in for the struct. The flattening applies only to a light's
-   * one-to-one LightData; attachment lights keep theirs nested.
+   * @returns {LightData}
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   GetLightData()
   {
-    return this.lightData;
+    return this._lightData;
   }
 
   /**
@@ -190,7 +154,7 @@ export class Tr2Light
   @meta.implemented
   SetBoneMatrix(bones, boneCount)
   {
-    const boneIndex = this.lightData.boneIndex ?? -1;
+    const boneIndex = this._lightData.boneIndex;
     if (bones && boneIndex >= 0 && boneIndex < boneCount)
     {
       mat4.identity(this.boneTransform);
@@ -247,7 +211,7 @@ export class Tr2Light
     {
       this.Update();
     }
-    if (!Tr2LightManager.areLightFlagsValid(this.lightData.flags ?? 0))
+    if (!Tr2LightManager.areLightFlagsValid(this._lightData.flags))
     {
       return;
     }
@@ -263,12 +227,12 @@ export class Tr2Light
     const record = Tr2Light._lightRecord;
     if (this.type === Tr2Light.POINT_LIGHT)
     {
-      this.lightData.AsPerPointLightData(Tr2Light._lightTransformScratch, features,
+      this._lightData.AsPerPointLightData(Tr2Light._lightTransformScratch, features,
         lightManager.GetCurrentSpaceSceneShadowQuality(), record);
     }
     else if (this.type === Tr2Light.SPOT_LIGHT)
     {
-      this.lightData.AsPerSpotLightData(Tr2Light._lightTransformScratch, features,
+      this._lightData.AsPerSpotLightData(Tr2Light._lightTransformScratch, features,
         lightManager.GetCurrentSpaceSceneShadowQuality(), record);
     }
     else
@@ -276,7 +240,7 @@ export class Tr2Light
       return;
     }
     record.lightType = this.type;
-    record.lightData = this.lightData;
+    record.lightData = this._lightData;
     record.lightProfile = this.lightProfile;
     record.owner = this;
     lightManager?.AddLight(record);
@@ -297,18 +261,13 @@ export class Tr2Light
   @meta.adapted
   GetLight(out = { position: vec3.create(), radius: 0, color: vec3.create() })
   {
-    const lightData = this.lightData;
-    const position = lightData.position;
-    if (position)
-    {
-      vec3.copy(out.position, position);
-    }
-    out.radius = lightData.radius ?? 0;
-    const brightness = lightData.brightness ?? 0;
-    const color = lightData.color;
-    out.color[0] = (color?.[0] ?? 0) * brightness;
-    out.color[1] = (color?.[1] ?? 0) * brightness;
-    out.color[2] = (color?.[2] ?? 0) * brightness;
+    const lightData = this._lightData;
+    vec3.copy(out.position, lightData.position);
+    out.radius = lightData.radius;
+    const brightness = lightData.brightness;
+    out.color[0] = lightData.color[0] * brightness;
+    out.color[1] = lightData.color[1] * brightness;
+    out.color[2] = lightData.color[2] * brightness;
     return out;
   }
 

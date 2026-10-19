@@ -1,9 +1,6 @@
 // Source: trinity/trinity/Lights/Tr2SpotLight.cpp
 // Source: trinity/trinity/Lights/Tr2SpotLight_Blue.cpp
 import { IInitialize, INotify } from "#blue";
-// Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
-// attributes are real decorated fields here, verified against
-// lights/Tr2SpotLight.json (tools-core schema build).
 import { meta, type, blue } from "#schema";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
@@ -30,19 +27,14 @@ const TRI_2PI = Math.fround(6.283185307);
 
 
 /**
- * Cone light, adding inner and outer cone angles to the flattened point-light
- * attribute set.
+ * Cone light. Its LightData attributes, the cone angles among them, are
+ * accessors over the embedded record Tr2Light holds
+ * (Tr2SpotLight_Blue.cpp:18-37).
  */
 @blue.define("Tr2SpotLight")
 @blue.interface(Tr2Light, IInitialize, INotify)
 export class Tr2SpotLight extends Tr2Light
 {
-  static LightDataFields = [
-    "flags", "position", "rotation", "boneIndex", "radius", "innerRadius",
-    "innerAngle", "outerAngle", "color", "brightness", "noiseAmplitude",
-    "noiseFrequency", "noiseOctaves", "castsShadows", "isVolumetric"
-  ];
-
   @blue.readwrite
   @blue.persist
   @type.string
@@ -58,102 +50,242 @@ export class Tr2SpotLight extends Tr2Light
   @type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
-  /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
-  @type.int32
-  @type.enum("trinity.PerLightShadowSetting")
-  castsShadows = 0;
+  // Carbon maps these rows into the embedded LightData m_lightData
+  // (Tr2Light.h:102). Each is an attribute over that path, as Tr2SkinnedObject's
+  // m_lod rows are: the accessors only read and write the record, and maths
+  // values are copied into the record's own storage.
 
   /** m_lightData.flags (uint16_t) [READWRITE, PERSIST], with Tr2LightFlagChooser and no ENUM bit (Tr2SpotLight_Blue.cpp:18). */
   @blue.readwrite
   @blue.persist
   @type.uint16
   @blue.chooser("trinity.Tr2LightFlags")
-  flags = 1;
+  get flags()
+  {
+    return this._lightData.flags;
+  }
 
-  /** m_lightData.position (Vector3) [READWRITE, PERSIST] */
+  /** Writes m_lightData.flags. */
+  set flags(value)
+  {
+    this._lightData.flags = value;
+  }
+
+  /** m_lightData.position (Vector3) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:19). */
   @blue.readwrite
   @blue.persist
   @type.vec3
-  position = vec3.create();
+  get position()
+  {
+    return this._lightData.position;
+  }
 
-  /** m_lightData.rotation (Quaternion) [READWRITE, PERSIST] */
+  /** Writes m_lightData.position in place. */
+  set position(value)
+  {
+    vec3.copy(this._lightData.position, value);
+  }
+
+  /** m_lightData.rotation (Quaternion) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:20). */
   @blue.readwrite
   @blue.persist
   @type.quat
-  rotation = quat.create();
+  get rotation()
+  {
+    return this._lightData.rotation;
+  }
 
-  /** m_lightData.boneIndex (int32_t) [READWRITE, PERSIST, NOTIFY] */
+  /** Writes m_lightData.rotation in place. */
+  set rotation(value)
+  {
+    quat.copy(this._lightData.rotation, value);
+  }
+
+  /** m_lightData.boneIndex (int32_t) [READWRITE, PERSIST, NOTIFY] (Tr2SpotLight_Blue.cpp:21). */
   @blue.notify
   @blue.readwrite
   @blue.persist
   @type.int32
-  boneIndex = -1;
+  get boneIndex()
+  {
+    return this._lightData.boneIndex;
+  }
 
-  /** m_lightData.radius (float) [READWRITE, PERSIST] */
+  /** Writes m_lightData.boneIndex. */
+  set boneIndex(value)
+  {
+    this._lightData.boneIndex = value;
+  }
+
+  /** m_lightData.radius (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:23). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  radius = 0;
+  get radius()
+  {
+    return this._lightData.radius;
+  }
 
-  /** m_lightData.innerRadius (float) [READWRITE, PERSIST] */
+  /** Writes m_lightData.radius. */
+  set radius(value)
+  {
+    this._lightData.radius = value;
+  }
+
+  /** m_lightData.innerRadius (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:24). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  innerRadius = 0;
+  get innerRadius()
+  {
+    return this._lightData.innerRadius;
+  }
 
-  /** m_lightData.innerAngle (float) [READWRITE, PERSIST] */
+  /** Writes m_lightData.innerRadius. */
+  set innerRadius(value)
+  {
+    this._lightData.innerRadius = value;
+  }
+
+  /** m_lightData.innerAngle (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:26). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  innerAngle = 0;
+  get innerAngle()
+  {
+    return this._lightData.innerAngle;
+  }
 
-  /** m_lightData.outerAngle (float) [READWRITE, PERSIST] */
+  /** Writes m_lightData.innerAngle. */
+  set innerAngle(value)
+  {
+    this._lightData.innerAngle = value;
+  }
+
+  /** m_lightData.outerAngle (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:27). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  outerAngle = 0;
+  get outerAngle()
+  {
+    return this._lightData.outerAngle;
+  }
 
-  /** m_lightData.color (Color) [READWRITE, PERSIST, NOTIFY] */
+  /** Writes m_lightData.outerAngle. */
+  set outerAngle(value)
+  {
+    this._lightData.outerAngle = value;
+  }
+
+  /** m_lightData.color (Color) [READWRITE, PERSIST, NOTIFY] (Tr2SpotLight_Blue.cpp:29). */
   @blue.notify
   @blue.readwrite
   @blue.persist
   @type.color
-  color = color.createLinear();
+  get color()
+  {
+    return this._lightData.color;
+  }
 
-  /** m_lightData.brightness (float) [READWRITE, PERSIST, NOTIFY] */
+  /** Writes m_lightData.color in place. */
+  set color(value)
+  {
+    color.copy(this._lightData.color, value);
+  }
+
+  /** m_lightData.brightness (float) [READWRITE, PERSIST, NOTIFY] (Tr2SpotLight_Blue.cpp:30). */
   @blue.notify
   @blue.readwrite
   @blue.persist
   @type.float32
-  brightness = 1;
+  get brightness()
+  {
+    return this._lightData.brightness;
+  }
 
-  /** m_lightData.noiseAmplitude (float) [READWRITE, PERSIST] */
+  /** Writes m_lightData.brightness. */
+  set brightness(value)
+  {
+    this._lightData.brightness = value;
+  }
+
+  /** m_lightData.noiseAmplitude (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:32). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  noiseAmplitude = 0;
+  get noiseAmplitude()
+  {
+    return this._lightData.noiseAmplitude;
+  }
 
-  /** m_lightData.noiseFrequency (float) [READWRITE, PERSIST] */
+  /** Writes m_lightData.noiseAmplitude. */
+  set noiseAmplitude(value)
+  {
+    this._lightData.noiseAmplitude = value;
+  }
+
+  /** m_lightData.noiseFrequency (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:33). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  noiseFrequency = 1;
+  get noiseFrequency()
+  {
+    return this._lightData.noiseFrequency;
+  }
 
-  /** m_lightData.noiseOctaves (uint32_t) [READWRITE, PERSIST] */
+  /** Writes m_lightData.noiseFrequency. */
+  set noiseFrequency(value)
+  {
+    this._lightData.noiseFrequency = value;
+  }
+
+  /** m_lightData.noiseOctaves (uint32_t) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:34). */
   @blue.readwrite
   @blue.persist
   @type.uint32
-  noiseOctaves = 1;
+  get noiseOctaves()
+  {
+    return this._lightData.noiseOctaves;
+  }
 
-  /** m_lightData.isVolumetric (bool) [READWRITE, NOTIFY, PERSIST] */
+  /** Writes m_lightData.noiseOctaves. */
+  set noiseOctaves(value)
+  {
+    this._lightData.noiseOctaves = value;
+  }
+
+  /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM], with PerLightShadowSettingChooser (Tr2SpotLight_Blue.cpp:36). */
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.PerLightShadowSetting")
+  get castsShadows()
+  {
+    return this._lightData.castsShadows;
+  }
+
+  /** Writes m_lightData.castsShadows. */
+  set castsShadows(value)
+  {
+    this._lightData.castsShadows = value;
+  }
+
+  /** m_lightData.isVolumetric (bool) [READWRITE, PERSIST, NOTIFY] (Tr2SpotLight_Blue.cpp:37). */
   @blue.notify
   @blue.readwrite
   @blue.persist
   @type.boolean
-  isVolumetric = false;
+  get isVolumetric()
+  {
+    return this._lightData.isVolumetric;
+  }
+
+  /** Writes m_lightData.isVolumetric. */
+  set isVolumetric(value)
+  {
+    this._lightData.isVolumetric = value;
+  }
 
   @type.int32
   @type.enum("trinity.Tr2Light.LIGHT_TYPE")
@@ -178,28 +310,28 @@ export class Tr2SpotLight extends Tr2Light
   @meta.implemented
   RenderDebugInfo(renderer, worldMatrix, bones = null, boneCount = 0)
   {
-    const baseColor = color.scale(DEBUG_BASE_COLOR, this.color, this.brightness);
+    const baseColor = color.scale(DEBUG_BASE_COLOR, this._lightData.color, this._lightData.brightness);
     baseColor[3] = 0.025;
     const colorMod = DEBUG_COLOR_MOD;
 
     const boneMatrix = mat4.copy(DEBUG_BONE_MATRIX, this.boneTransform);
-    if (this.boneIndex >= 0 && this.boneIndex < boneCount)
+    if (this._lightData.boneIndex >= 0 && this._lightData.boneIndex < boneCount)
     {
-      MatrixCopyFrom3x4(boneMatrix, bones, this.boneIndex);
+      MatrixCopyFrom3x4(boneMatrix, bones, this._lightData.boneIndex);
     }
 
     // Carbon (row-vector): RotationMatrix( rotation ) * TranslationMatrix( position ) * boneMatrix * worldMatrix.
-    const lightMatrix = mat4.fromRotationTranslation(DEBUG_LIGHT_MATRIX, this.rotation, this.position);
+    const lightMatrix = mat4.fromRotationTranslation(DEBUG_LIGHT_MATRIX, this._lightData.rotation, this._lightData.position);
     mat4.multiply(lightMatrix, boneMatrix, lightMatrix);
     mat4.multiply(lightMatrix, worldMatrix, lightMatrix);
 
-    const outerAngle = Math.fround(Math.fround(TRI_2PI * this.outerAngle) / 360);
-    const innerAngle = Math.fround(Math.fround(TRI_2PI * this.innerAngle) / 360);
+    const outerAngle = Math.fround(Math.fround(TRI_2PI * this._lightData.outerAngle) / 360);
+    const innerAngle = Math.fround(Math.fround(TRI_2PI * this._lightData.innerAngle) / 360);
 
     renderer.DrawCone__TransformAngle(
       Tr2DebugObjectReference.create__Object(this),
       lightMatrix,
-      this.radius,
+      this._lightData.radius,
       outerAngle,
       15,
       15,
@@ -208,7 +340,7 @@ export class Tr2SpotLight extends Tr2Light
     renderer.DrawCone__TransformAngle(
       Tr2DebugObjectReference.create__Object(this),
       lightMatrix,
-      this.innerRadius,
+      this._lightData.innerRadius,
       innerAngle,
       15,
       15,

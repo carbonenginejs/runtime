@@ -18,7 +18,7 @@ import { vec4 } from "#math/vec4";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { Tr2Light } from "../lights/Tr2Light.js";
 import { EveComponentType } from "../EntityComponents.js";
-import { createCjsLightDataView } from "../lights/CjsLightData.js";
+import { LightData } from "../lights/LightData.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
@@ -29,29 +29,77 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
 @blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightPointLight extends EveEntity
 {
-  /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST] */
+  /**
+   * m_lightGroupData (LightData), held by value
+   * (EveSmartLightPointLight.h:41).
+   */
+  _lightGroupData = new LightData();
+
+  // Carbon maps these rows into the embedded LightData m_lightGroupData
+  // (EveSmartLightPointLight.h:41). Each is an attribute over that path, as
+  // Tr2SkinnedObject's m_lod rows are: the accessors only read and write the
+  // record.
+
+  /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST], with Tr2LightFlagChooser and no ENUM bit (EveSmartLightPointLight_Blue.cpp:24). */
   @blue.readwrite
   @blue.persist
   @type.uint16
-  flags = 1;
+  @blue.chooser("trinity.Tr2LightFlags")
+  get flags()
+  {
+    return this._lightGroupData.flags;
+  }
 
-  /** m_lightGroupData.innerRadius (float) [READWRITE, PERSIST] */
+  /** Writes m_lightGroupData.flags. */
+  set flags(value)
+  {
+    this._lightGroupData.flags = value;
+  }
+
+  /** m_lightGroupData.radius (float) [READWRITE, PERSIST] (EveSmartLightPointLight_Blue.cpp:26). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  innerRadius = 0;
+  get radius()
+  {
+    return this._lightGroupData.radius;
+  }
 
-  /** m_lightGroupData.brightness (float) [READWRITE, PERSIST] */
+  /** Writes m_lightGroupData.radius. */
+  set radius(value)
+  {
+    this._lightGroupData.radius = value;
+  }
+
+  /** m_lightGroupData.innerRadius (float) [READWRITE, PERSIST] (EveSmartLightPointLight_Blue.cpp:27). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  brightness = 1;
+  get innerRadius()
+  {
+    return this._lightGroupData.innerRadius;
+  }
 
-  /** m_lightGroupData.radius (float) [READWRITE, PERSIST] */
+  /** Writes m_lightGroupData.innerRadius. */
+  set innerRadius(value)
+  {
+    this._lightGroupData.innerRadius = value;
+  }
+
+  /** m_lightGroupData.brightness (float) [READWRITE, PERSIST] (EveSmartLightPointLight_Blue.cpp:29). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  radius = 0;
+  get brightness()
+  {
+    return this._lightGroupData.brightness;
+  }
+
+  /** Writes m_lightGroupData.brightness. */
+  set brightness(value)
+  {
+    this._lightGroupData.brightness = value;
+  }
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */
   @blue.read
@@ -138,11 +186,6 @@ export class EveSmartLightPointLight extends EveEntity
 
   /** Last lightProfilePath the settle hook applied (JS-only change detection). */
 
-  // Compat view over the flattened m_lightGroupData fields (2026-07-23
-  // flatten decision); light-manager records and the pre-flatten hydration
-  // shape keep reading a LightData-shaped object.
-  _lightDataView = null;
-
   /** IEveSmartLightGroup default: point-light groups have no async work. */
   @meta.noop
   @blue.method
@@ -177,16 +220,6 @@ export class EveSmartLightPointLight extends EveEntity
   @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
-  }
-
-  /**
-   * A lazily built compatibility view over the flattened light-group fields,
-   * shaped like the pre-flatten light-data object its readers still expect.
-   */
-  get lightData()
-  {
-    this._lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
-    return this._lightDataView;
   }
 
   /**
@@ -362,7 +395,7 @@ export class EveSmartLightPointLight extends EveEntity
    * Registers one light per distribution placement with the injected light
    * manager (EveSmartLightPointLight.cpp:65-131). The submitted record keeps
    * typed CPU state (float32 color, half-rounded direction, unpacked flags, the
-   * CjsLightData and unresolved profile reference); Carbon's Float_16/
+   * LightData and unresolved profile reference); Carbon's Float_16/
    * Vector3_16 values are rounded before submission. Physical storage and profile-index flag packing
    * (GetTextureIndex() + 1 << 4) are renderer/resource-adapter concerns.
    * The record is scratch - the manager must copy, as Carbon's
@@ -405,9 +438,9 @@ export class EveSmartLightPointLight extends EveEntity
       let perLightScaling = Math.max(placement.initialScale[0], placement.initialScale[1], placement.initialScale[2]);
       perLightScaling *= Math.max(placement.additionalScale[0], placement.additionalScale[1], placement.additionalScale[2]);
 
-      record.radius = this.radius * scaling * perLightScaling;
-      record.innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(Math.fround(this.innerRadius * scaling) * perLightScaling)));
-      record.flags = this.flags;
+      record.radius = this._lightGroupData.radius * scaling * perLightScaling;
+      record.innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(Math.fround(this._lightGroupData.innerRadius * scaling) * perLightScaling)));
+      record.flags = this._lightGroupData.flags;
 
       // Carbon (row-vector): initialRotation * additionalRotation - initialRotation first.
       quat.multiply(rotation, placement.additionalRotation, placement.initialRotation);
@@ -438,7 +471,7 @@ export class EveSmartLightPointLight extends EveEntity
         record.direction[axis] = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(record.direction[axis]));
       }
 
-      const strength = this.brightness * this._activationStrength;
+      const strength = this._lightGroupData.brightness * this._activationStrength;
       vec3.set(record.color, groupColor[0] * strength, groupColor[1] * strength, groupColor[2] * strength);
 
       for (const attributeModifier of this.attributeModifiers)
@@ -451,12 +484,12 @@ export class EveSmartLightPointLight extends EveEntity
 
       if (this.lightType === Tr2Light.SPOT_LIGHT)
       {
-        record.outerAngle = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this.outerAngle) / 360))));
-        record.innerAngle = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this.innerAngle) / 360))));
+        record.outerAngle = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this._lightGroupData.outerAngle) / 360))));
+        record.innerAngle = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this._lightGroupData.innerAngle) / 360))));
       }
 
       record.lightType = this.lightType;
-      record.lightData = this.lightData;
+      record.lightData = this._lightGroupData;
       record.lightProfile = this.lightProfile;
       record.owner = this;
 
@@ -494,7 +527,7 @@ export class EveSmartLightPointLight extends EveEntity
     }
 
     const statics = EveSmartLightPointLight;
-    const baseColor = color.scale(statics._debugBaseColor, this.GetGroupColor(), this.brightness);
+    const baseColor = color.scale(statics._debugBaseColor, this.GetGroupColor(), this._lightGroupData.brightness);
     baseColor[3] = 0.03;
     const selectedColor = vec4.scaleAndAdd(statics._debugSelectedColor, statics._debugSelectedOffset, baseColor, 1.5);
     const lightTransform = mat4.copy(statics._debugLightTransform, this._worldTransform);
@@ -512,8 +545,8 @@ export class EveSmartLightPointLight extends EveEntity
       let perLightScaling = Math.max(placement.initialScale[0], placement.initialScale[1], placement.initialScale[2]);
       perLightScaling = Math.fround(perLightScaling * Math.max(placement.additionalScale[0], placement.additionalScale[1], placement.additionalScale[2]));
 
-      const radius = Math.fround(this.radius * perLightScaling);
-      const innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(this.innerRadius * perLightScaling)));
+      const radius = Math.fround(this._lightGroupData.radius * perLightScaling);
+      const innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(this._lightGroupData.innerRadius * perLightScaling)));
 
       renderer.DrawSphere__TransformCenterRadius(
         Tr2DebugObjectReference.create__Object(this),
@@ -533,8 +566,6 @@ export class EveSmartLightPointLight extends EveEntity
         Tr2DebugColor.create__ColorZFail(selectedColor, baseColor));
     }
   }
-
-  static LightDataFields = ["flags", "innerRadius", "brightness", "radius"];
 
   /** TriVectorRotateMatrix (TriMath.cpp:81-94): basis-rows multiply, no translation. */
   static _TransformNormal(out, direction, matrix)

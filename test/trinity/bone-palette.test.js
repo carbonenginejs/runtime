@@ -177,8 +177,8 @@ test("a bone-parented light is placed by its bone", () =>
   const { bones, boneCount } = getBoneList(animation);
   const light = new Tr2Light();
 
-  // The bone index lives on lightData, matching Carbon's m_lightData.boneIndex.
-  light.lightData.boneIndex = 1;
+  // The bone index lives on the embedded LightData, Carbon's m_lightData.boneIndex.
+  light.GetLightData().boneIndex = 1;
   light.SetBoneMatrix(bones, boneCount);
 
   const placed = light.boneTransform;

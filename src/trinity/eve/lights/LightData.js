@@ -1,10 +1,10 @@
-// Source: trinity/trinity/Lights/Tr2Light.h
-// Source: trinity/trinity/Lights/Tr2Light.cpp
+// Source: trinity/trinity/Lights/Tr2Light.h:27-58
+// Source: trinity/trinity/Lights/Tr2Light.cpp:9-80
 import { be } from "#blue";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { mat4 } from "#math/mat4";
 import { noise } from "#math/noise";
@@ -23,75 +23,86 @@ const TRI_2PI = Math.fround(6.283185307);
 
 
 /**
- * Full authored attribute set of a light - position, colour, brightness and
- * noise, radii, orientation and cone angles, texture path, bone index, flags,
- * shadow setting and volumetric flag - used as the compat view over a light's
- * flattened fields.
+ * Carbon LightData (Tr2Light.h:27-58): one light's authored values - position,
+ * colour, brightness and noise, radii, orientation and cone angles, texture
+ * path, bone index, flags, start time, shadow setting and volumetric flag.
+ *
+ * Carbon does not expose it to Blue. Its owners embed it by value
+ * (Tr2Light::m_lightData, Tr2Light.h:102; EveSmartLightPointLight::
+ * m_lightGroupData, EveSmartLightPointLight.h:41; the attachment sets' light
+ * structs, e.g. EveBannerSet.h:34) and map their Blue attributes into its
+ * members.
  */
-@blue.define({
-  className: "CjsLightData",
-  donors: ["LightData"],
-  sourceClass: "LightData",
-  aliases: ["LightData"]
-})
-export class CjsLightData
+@meta.define({ className: "LightData", carbon: "LightData" })
+export class LightData
 {
-  static Fields = [
-    "position", "color", "brightness", "noiseAmplitude", "noiseFrequency",
-    "noiseOctaves", "radius", "innerRadius", "rotation", "outerAngle",
-    "innerAngle", "texturePath", "boneIndex", "flags", "startTime",
-    "castsShadows", "isVolumetric"
-  ];
 
+  /** position (Vector3) = (0, 0, 0) (Tr2Light.cpp:10). */
   @type.vec3
   position = vec3.create();
 
+  /** color (Color) = (0, 0, 0, 1) (Tr2Light.cpp:11). */
   @type.color
-  color = color.createLinear();
+  color = color.fromValues(0, 0, 0, 1);
 
+  /** brightness (float) = 1 (Tr2Light.cpp:12). */
   @type.float32
   brightness = 1;
 
+  /** noiseAmplitude (float) = 0 (Tr2Light.cpp:13). */
   @type.float32
   noiseAmplitude = 0;
 
+  /** noiseFrequency (float) = 1 (Tr2Light.cpp:14). */
   @type.float32
   noiseFrequency = 1;
 
+  /** noiseOctaves (uint32_t) = 1 (Tr2Light.cpp:15). */
   @type.uint32
   noiseOctaves = 1;
 
+  /** radius (float) = 0 (Tr2Light.cpp:16). */
   @type.float32
   radius = 0;
 
+  /** innerRadius (float) = 0 (Tr2Light.cpp:17). */
   @type.float32
   innerRadius = 0;
 
+  /** rotation (Quaternion) = (0, 0, 0, 1) (Tr2Light.cpp:18). */
   @type.quat
   rotation = quat.create();
 
+  /** outerAngle (float) = 0 (Tr2Light.cpp:20). */
   @type.float32
   outerAngle = 0;
 
+  /** innerAngle (float) = 0 (Tr2Light.cpp:19). */
   @type.float32
   innerAngle = 0;
 
+  /** texturePath (std::wstring) = L"" (Tr2Light.cpp:21). */
   @type.wpath("TriTextureRes")
   texturePath = "";
 
+  /** boneIndex (int32_t) = -1 (Tr2Light.cpp:22). */
   @type.int32
   boneIndex = -1;
 
+  /** flags (uint16_t) = Tr2LightManager::FLAG_DEFAULT (Tr2Light.cpp:23). */
   @type.uint16
-  flags = 1;
+  flags = Tr2LightManager.FLAG_DEFAULT;
 
+  /** startTime (Be::Time) = BeOS->GetCurrentFrameTime(), set by the constructor (Tr2Light.cpp:24). */
   @type.float64
   startTime = 0;
 
+  /** castsShadows (PerLightShadowSetting) = DISABLED (Tr2Light.cpp:25). */
   @type.int32
   @type.enum("trinity.PerLightShadowSetting")
-  castsShadows = 0;
+  castsShadows = PerLightShadowSetting.DISABLED;
 
+  /** isVolumetric (bool) = false (Tr2Light.cpp:26). */
   @type.boolean
   isVolumetric = false;
 
@@ -107,9 +118,9 @@ export class CjsLightData
   /**
    * Carbon's implicit LightData copy assignment, which JavaScript cannot
    * overload: every member copied, vectors into this record's own storage
-   * (Tr2Light.h:27-55).
-   * @param {CjsLightData} other
-   * @returns {CjsLightData} this
+   * (Tr2Light.h:27-58).
+   * @param {LightData} other
+   * @returns {LightData} this
    */
   @meta.renamed("operator=")
   Copy(other)
@@ -237,45 +248,4 @@ export class CjsLightData
     return out;
   }
 
-  static PerLightShadowSetting = PerLightShadowSetting;
 }
-
-/**
- * Builds the compat LightData view over an owner's flattened light fields.
- *
- * The 2026-07-23 flatten decision makes the flat decorated fields the real
- * storage on every light parent; this view keeps the Carbon
- * `GetLightData() -> const LightData&` surface (and the SOF layer's
- * separate-node hydration contract) alive by redirecting the owner's
- * flattened field names into the owner. Fields the owner does not flatten
- * keep their own constructor-default storage on the view.
- */
-export function createCjsLightDataView(owner, fieldNames)
-{
-  const view = new CjsLightData();
-  const descriptors = {};
-  for (const fieldName of fieldNames)
-  {
-    delete view[fieldName];
-    descriptors[fieldName] = {
-      configurable: true,
-      enumerable: true,
-      get()
-      {
-        return owner[fieldName];
-      },
-      set(value)
-      {
-        // A plain LightData field assignment: vectors copy into the owner's storage.
-        if (ArrayBuffer.isView(owner[fieldName]) && owner[fieldName].length === value.length) owner[fieldName].set(value);
-        else owner[fieldName] = value;
-      }
-    };
-  }
-  Object.defineProperties(view, descriptors);
-  return view;
-}
-
-// Carbon registers this in Tr2Light_Blue.cpp:14. It is registered here because
-// the attachment lights load this module without Tr2Light, and Tr2Light
-// imports this module, so the reverse import would be a cycle.

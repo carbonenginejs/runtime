@@ -1,4 +1,4 @@
-export * from "./CjsLightData.js";
+export * from "./LightData.js";
 export * from "./LightFeatures.js";
 export * from "./ITr2LightOwner.js";
 export * from "./Tr2Light.js";

@@ -328,7 +328,7 @@ export class CjsSOFUpdater
       for (let item = 0; item < value.lights.length; item++)
       {
         const target = live.lights[item], source = resolve(value.lights[item]);
-        if (!matches(target, source) || !matches(target.lightData, { _type: "CjsLightData", ...source.lightData })
+        if (!matches(target, source) || !matches(target.lightData, { _type: "LightData", ...source.lightData })
           || !color(target.lightData, "color", source.lightData.color)) return false;
       }
     }

@@ -2,7 +2,7 @@ import { Tr2CurveScalar } from "../../npm/dist/trinity/index.js";
 import { addChild, removeChild, clearChildren } from "../../npm/dist/global/blue/children.js";
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
-import { AudioGameObject, BackAndForthData, CjsLightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../../npm/dist/trinity/index.js";
+import { AudioGameObject, BackAndForthData, LightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../../npm/dist/trinity/index.js";
 import { EveUpdateContext, TriView } from "../../npm/dist/trinity/index.js";
 import { ITriVectorFunction, be } from "../../npm/dist/global/blue/index.js";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
@@ -472,7 +472,7 @@ test("EveBannerSet preserves the authored physical attachment graph", () =>
   set.AddLightFromSOF({ index: 0, boneMatrix: mat4.create() });
   assert(set.lights[0] instanceof EveBannerLight);
   const bannerLight = EveBannerLight.FromSOF({ lightData: { flags: 1 }, saturation: 0.5 });
-  assert(bannerLight.lightData instanceof CjsLightData);
+  assert(bannerLight.lightData instanceof LightData);
   assertEquals(bannerLight.saturation, 0.5);
   assertEquals(new EveBannerLight().saturation, 1);
   assertEquals(set.Initialize(), true);
@@ -515,7 +515,7 @@ test("EvePlaneSet preserves authored quad and SOF-light intent without GPU state
   set.AddLightFromSOF({ index: 0, boneMatrix: mat4.create() });
   assert(set.lights[0] instanceof EvePlaneLight);
   const planeLight = EvePlaneLight.FromSOF({ lightData: { flags: 1 }, fadeType: EvePlaneLight.FT_FADEINOUT });
-  assert(planeLight.lightData instanceof CjsLightData);
+  assert(planeLight.lightData instanceof LightData);
   assertEquals(planeLight.saturation, 1);
   assertEquals(planeLight.fadeType, 4);
   assertEquals(EvePlaneLight.FadeType.FT_BLINK, 1);
@@ -560,7 +560,7 @@ test("EveSpotlightSet preserves authored cone, glow, and SOF-light intent", () =
     boosterGainInfluence: true
   };
   const light = EveSpotlightLight.FromSOF(rawLight);
-  assert(light.lightData instanceof CjsLightData);
+  assert(light.lightData instanceof LightData);
   assertVec3(light.lightData.position, [1, 2, 3]);
   assertEquals(light.index, 7);
   assertEquals(light.lightProfilePath, "res:/profile.lp");
@@ -623,7 +623,7 @@ test("EveSpriteLineSet expands Carbon line and circle positions and packs them a
     lightProfilePath: "res:/sprite-profile.lp"
   };
   const light = EveSpriteLight.FromSOF(rawLight);
-  assert(light.lightData instanceof CjsLightData);
+  assert(light.lightData instanceof LightData);
   assertVec3(light.lightData.position, [4, 5, 6]);
   assertEquals(light.index, 2);
   assertEquals(light.lightProfilePath, "res:/sprite-profile.lp");
@@ -666,7 +666,10 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   const spot = new Tr2SpotLight();
   const textured = new Tr2TexturedPointLight();
 
-  assert(base.lightData instanceof CjsLightData);
+  // Owners hold Carbon's embedded LightData m_lightData (Tr2Light.h:102); the
+  // Blue-mapped members are accessors over it.
+  assert(base.GetLightData() instanceof LightData);
+  assertEquals(CjsSchema.getClassName(LightData), "LightData");
   assertEquals(base.type, Tr2Light.UNDEFINED_LIGHT);
   assertEquals(point.type, Tr2Light.POINT_LIGHT);
   assertEquals(spot.type, Tr2Light.SPOT_LIGHT);
@@ -682,9 +685,8 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   const texturedDefaults = CjsSchema.getDefaults(Tr2TexturedPointLight);
   assertEquals(texturedDefaults.type, Tr2Light.POINT_LIGHT);
   assertEquals(texturedDefaults.isDynamic, true);
-
-  // Flattened storage (2026-07-23 decision): the Blue-mapped LightData
-  // members are real decorated fields on the concrete light classes.
+  // The Blue-mapped LightData members are accessors over the light's embedded
+  // record, reading and writing it in place.
   assertEquals(point.flags, 1);
   assertEquals(spot.flags, 1);
   assertEquals(textured.flags, 1);
@@ -693,46 +695,45 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   assertEquals(point.noiseOctaves, 1);
   assertEquals(point.boneIndex, -1);
   assertVec4(point.color, [0, 0, 0, 1]);
-  assertEquals(Object.hasOwn(point, "position"), true, "flat fields are the real instance storage");
-  assertEquals(Object.hasOwn(spot, "outerAngle"), true, "flat fields are the real instance storage");
-  // The compat view shares the owner's math buffers and mirrors its values.
-  assert(point.position === point.lightData.position, "the compat view returns the flat math buffer");
-  assert(point.color === point.lightData.color, "the compat view returns the flat math buffer");
-  vec3.set(point.position, 1, 2, 3);
-  assertVec3(point.lightData.position, [1, 2, 3]);
+  assertEquals(Object.hasOwn(point, "position"), false, "the record holds the storage, not the light");
+  assertEquals(Object.hasOwn(spot, "outerAngle"), false, "the record holds the storage, not the light");
+  assert(point.position === point.GetLightData().position, "the accessor returns the record's math buffer");
+  assert(point.color === point.GetLightData().color, "the accessor returns the record's math buffer");
+  const positionBuffer = point.position;
+  point.position = [1, 2, 3];
+  assert(point.position === positionBuffer, "the setter copies into the record's own buffer");
+  assertVec3(point.GetLightData().position, [1, 2, 3]);
   point.brightness = 2.5;
-  assertEquals(point.lightData.brightness, 2.5);
-  // The flat fields carry the Carbon Blue persistence flags: this is what
-  // fixes the light round-trip asymmetry (CARBON-PARITY-REVIEW §3.2).
+  assertEquals(point.GetLightData().brightness, 2.5);
+  // The accessors carry the Carbon Blue persistence flags.
   assertEquals(CjsSchema.getField(Tr2PointLight, "position")?.edit?.persist, true);
   assertEquals(CjsSchema.getField(Tr2PointLight, "brightness")?.edit?.persist, true);
   assertEquals(CjsSchema.getField(Tr2SpotLight, "outerAngle")?.edit?.persist, true);
   assertEquals(CjsSchema.getField(Tr2TexturedPointLight, "texturePath")?.edit?.persist, true);
-  assertEquals(CjsSchema.getField(Tr2Light, "lightData"), null, "the separate node is a compat view, not a schema field");
+  assertEquals(CjsSchema.getField(Tr2Light, "lightData"), null, "the record is not a Blue attribute");
   assertEquals(CjsSchema.getField(Tr2TexturedPointLight, "texture")?.edit?.read, true);
 
-  const lightDataIdentity = point.lightData;
+  const lightDataIdentity = point.GetLightData();
   const positionIdentity = point.position;
-  const data = new CjsLightData();
+  const data = new LightData();
   data.radius = 12;
   data.position.set([9, 8, 7]);
   point.SetLightData(data);
   data.radius = 99;
   data.position[0] = 99;
-  assertEquals(point.lightData, lightDataIdentity, "SetLightData retains the stable compat view");
-  assertEquals(point.position, positionIdentity, "SetLightData coerces into the existing math buffers");
+  assertEquals(point.GetLightData(), lightDataIdentity, "SetLightData copies into the held record");
+  assertEquals(point.position, positionIdentity, "SetLightData copies into the existing math buffers");
   assertEquals(point.GetLightData().radius, 12, "Carbon SetLightData copies the value struct");
   assertVec3(point.position, [9, 8, 7]);
-  assertEquals(point.GetLightData(), point.lightData, "Carbon GetLightData returns the stable value member");
   point.SetBrightnessMultiplier(0.25);
   assertEquals(point.GetBrightnessMultiplier(), 0.25);
   point.ChangeLightColor([0.1, 0.2, 0.3, 0.4]);
   assertVec4(point.color, [0.1, 0.2, 0.3, 0.4]);
-  assertVec4(point.lightData.color, [0.1, 0.2, 0.3, 0.4]);
+  assertVec4(point.GetLightData().color, [0.1, 0.2, 0.3, 0.4]);
 
   const hydrated = CjsSchema.from("Tr2PointLight", { position: [4, 5, 6], brightness: 3 });
   assertVec3(hydrated.position, [4, 5, 6]);
-  assertVec3(hydrated.lightData.position, [4, 5, 6]);
+  assertVec3(hydrated.GetLightData().position, [4, 5, 6]);
   assertEquals(hydrated.brightness, 3);
   assert(hydrated.position !== point.position, "light instances keep independent mutable values");
   // The pre-flatten nested `lightData` shape left with Tr2Light.SetValues
@@ -742,7 +743,7 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   catch (error) { nestedError = error; }
   assert(/Invalid attribute: lightData/.test(String(nestedError?.message)), "nested lightData is not a Blue member");
   const values = CjsSchema.getValues(hydrated);
-  assertEquals(Object.hasOwn(values, "lightData"), false, "flattened fields serialize flat");
+  assertEquals(Object.hasOwn(values, "lightData"), false, "the Blue rows serialize by name, not as a nested record");
   assertVec3(values.position, [4, 5, 6]);
 });
 

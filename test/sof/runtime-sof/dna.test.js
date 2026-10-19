@@ -2868,7 +2868,7 @@ test("SOF emits and hydrates Carbon sprite sets with SOF6 light metadata", {
   assert.equal(getRegisteredClassName(hydrated.root.attachments[0].constructor), "EveSpriteSet");
   assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EveSpriteLight");
   assert.equal(hydrated.root.attachments[0].lights[0].index, 1);
-  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "LightData");
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.position.constructor.name, "Float32Array");
   assert.deepEqual(Array.from(hydrated.root.attachments[1].sprites[0].position), [11, 0, 0]);
 });
@@ -3009,7 +3009,7 @@ test("SOF emits and hydrates Carbon SOF6 spotlight sets with public typed lights
   assert.equal(hydrated.root.attachments[0].spotlightItems.length, 2);
   assert.equal(hydrated.root.attachments[0].lights.length, 1);
   assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EveSpotlightLight");
-  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "LightData");
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.rotation.constructor.name, "Float32Array");
 });
 
@@ -3162,7 +3162,7 @@ test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and 
   assert.equal(getRegisteredClassName(hydrated.root.attachments[0].constructor), "EvePlaneSet");
   assert.deepEqual(Array.from(hydrated.root.attachments[0].planes[0].blinkData), [0.25, 0.5, 1, 1]);
   assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EvePlaneLight");
-  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "LightData");
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.position.constructor.name, "Float32Array");
 });
 
@@ -3419,7 +3419,7 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   ]);
   assert.equal(hydrated.root.attachments[0].lights.length, 1);
   assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].constructor), "EveHazeSetLight");
-  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "CjsLightData");
+  assert.equal(getRegisteredClassName(hydrated.root.attachments[0].lights[0].lightData.constructor), "LightData");
   assert.equal(hydrated.root.attachments[0].lights[0].lightData.color.constructor.name, "Float32Array");
 });
 
@@ -3665,8 +3665,8 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
   assert.deepEqual(lights.map(node => node.type), [1, 1, 2, 1]);
   assert.equal(lights[1].isDynamic, true);
 
-  // Flattened emission (2026-07-23 decision): hull lights carry Carbon's
-  // flat Blue-persisted shape; no nested lightData bag.
+  // Hull lights carry Carbon's Blue rows by name; the light's accessors write
+  // them into its embedded LightData. No nested lightData bag.
   const pointFields = fieldsOf(lights[0]);
   assert.equal(Object.hasOwn(pointFields, "lightData"), false, "hull lights emit the flattened Blue shape");
   assert.deepEqual(pointFields.position, [1, 2, 3]);
@@ -3687,8 +3687,8 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
   const trinity = await import(new URL("../../../npm/dist/trinity/index.js", import.meta.url));
   const audioTrinity = await import(new URL("../../../npm/dist/audio/trinity/index.js", import.meta.url));
   const hydrated = { root: CjsSchema.from(document._type, document) };
-  assert.equal(getRegisteredClassName(hydrated.root.lights[0].lightData.constructor), "CjsLightData");
-  assert.deepEqual(Array.from(hydrated.root.lights[0].lightData.position), [1, 2, 3]);
+  assert.equal(getRegisteredClassName(hydrated.root.lights[0].GetLightData().constructor), "LightData");
+  assert.deepEqual(Array.from(hydrated.root.lights[0].GetLightData().position), [1, 2, 3]);
   assert.equal(hydrated.root.lights[1].isDynamic, true);
 });
 

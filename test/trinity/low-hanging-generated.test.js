@@ -1272,11 +1272,11 @@ test("CPU plane and sphere constraints resolve penetrations and reflect velocity
   assert.deepEqual(Array.from(sphereSystem.GetParticleElement(0, "velocity")), [3, 0, 0]);
 });
 
-test("Carbon light accessors remain backed by one shared CjsLightData", () =>
+test("Carbon light accessors write through to the embedded LightData", () =>
 {
   const light = new Tr2FactionLight();
   light.radius = 12;
-  assert.equal(light.lightData.radius, 12);
+  assert.equal(light.GetLightData().radius, 12);
   light.factionColor = 0;
   light.saturation = 0;
   light.SetInheritProperties([[1, 0, 0, 0.5]]);
@@ -1298,11 +1298,11 @@ test("Carbon light accessors remain backed by one shared CjsLightData", () =>
   smartSpot.outerAngle = 40;
   assert.equal(smartSpot.innerAngle, 20);
   assert.equal(smartSpot.outerAngle, 40);
-  // Flattened storage (2026-07-23 decision): the m_lightGroupData members are
-  // real persisted fields; lightData is the LightData-shaped compat view.
-  assert.equal(getRegisteredClassName(smartSpot.lightData.constructor), "CjsLightData");
-  assert.equal(smartSpot.lightData.innerAngle, 20);
-  assert.equal(Object.hasOwn(smartSpot, "innerAngle"), true);
+  // The m_lightGroupData members are accessors over the embedded LightData
+  // (EveSmartLightPointLight.h:41).
+  assert.equal(getRegisteredClassName(smartSpot._lightGroupData.constructor), "LightData");
+  assert.equal(smartSpot._lightGroupData.innerAngle, 20);
+  assert.equal(Object.hasOwn(smartSpot, "innerAngle"), false);
   assert.equal(CjsSchema.getField(EveSmartLightSpotLight, "innerAngle")?.edit?.persist, true);
   assert.equal(CjsSchema.getField(EveSmartLightSpotLight, "brightness")?.edit?.persist, true);
 });

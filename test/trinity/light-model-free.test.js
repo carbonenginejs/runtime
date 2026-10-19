@@ -7,13 +7,13 @@ import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { Tr2Light, Tr2PointLight, Tr2SpotLight, Tr2TexturedPointLight, Tr2FactionLight, IEveInheritPropertiesOwner } from "../../npm/dist/trinity/index.js";
 
-test("real chain point light preserves flat storage and carries no values methods", () =>
+test("real chain point light reads into its embedded LightData and carries no values methods", () =>
 {
   const values = JSON.parse(readFileSync(new URL("../support/pointLightAsset.json", import.meta.url), "utf8")).object;
   const flat = CjsSchema.from(values._type, values);
   assert.equal(flat.radius, 6666);
   assert.deepEqual(Array.from(flat.color), values.color);
-  assert.equal(flat.lightData.radius, flat.radius);
+  assert.equal(flat.GetLightData().radius, flat.radius);
   assert.equal(Object.hasOwn(CjsSchema.getValues(flat), "lightData"), false);
   assert.equal("GetValues" in flat, false);
   assert.equal("SetValues" in flat, false, "Carbon classes carry no values methods of ours (operator, 2026-10-17)");

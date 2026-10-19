@@ -114,7 +114,6 @@
     "src/resource/formats/pickle/core/pickleCommon.js": 2,
     "src/resource/formats/yaml/core/CjsYamlReader.js": 1,
     "src/resource/formats/yaml/core/helpers.js": 1,
-    "src/trinity/eve/lights/CjsLightData.js": 1,
     "src/trinity/shader/extractTr2EffectConstantValues.js": 1
   },
   "assignThis": {

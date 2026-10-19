@@ -22,17 +22,40 @@ const TRI_2PI = Math.fround(6.283185307);
 export class EveSmartLightSpotLight extends EveSmartLightPointLight
 {
 
-  /** m_lightGroupData.innerAngle (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
-  @type.float32
-  innerAngle = 0;
+  // Carbon maps these rows into the embedded LightData m_lightGroupData
+  // (EveSmartLightPointLight.h:41). Each is an attribute over that path, as
+  // Tr2SkinnedObject's m_lod rows are: the accessors only read and write the
+  // record.
 
-  /** m_lightGroupData.outerAngle (float) [READWRITE, PERSIST] */
+  /** m_lightGroupData.innerAngle (float) [READWRITE, PERSIST] (EveSmartLightSpotLight_Blue.cpp:33). */
   @blue.readwrite
   @blue.persist
   @type.float32
-  outerAngle = 0;
+  get innerAngle()
+  {
+    return this._lightGroupData.innerAngle;
+  }
+
+  /** Writes m_lightGroupData.innerAngle. */
+  set innerAngle(value)
+  {
+    this._lightGroupData.innerAngle = value;
+  }
+
+  /** m_lightGroupData.outerAngle (float) [READWRITE, PERSIST] (EveSmartLightSpotLight_Blue.cpp:34). */
+  @blue.readwrite
+  @blue.persist
+  @type.float32
+  get outerAngle()
+  {
+    return this._lightGroupData.outerAngle;
+  }
+
+  /** Writes m_lightGroupData.outerAngle. */
+  set outerAngle(value)
+  {
+    this._lightGroupData.outerAngle = value;
+  }
 
   /** m_lightType override - the constructor's only job (EveSmartLightSpotLight.cpp:7-11). */
   lightType = Tr2Light.SPOT_LIGHT;
@@ -66,7 +89,7 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
     }
 
     const statics = EveSmartLightSpotLight;
-    const baseColor = color.scale(statics._debugBaseColor, this.GetGroupColor(), this.brightness);
+    const baseColor = color.scale(statics._debugBaseColor, this.GetGroupColor(), this._lightGroupData.brightness);
     baseColor[3] = 0.03;
     const colorMod = statics._debugColorMod;
 
@@ -77,11 +100,11 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
       let perLightScaling = Math.max(Math.max(placement.initialScale[0], placement.initialScale[1]), placement.initialScale[2]);
       perLightScaling = Math.fround(perLightScaling * Math.max(Math.max(placement.additionalScale[0], placement.additionalScale[1]), placement.additionalScale[2]));
 
-      const radius = Math.fround(this.radius * perLightScaling);
-      const innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(this.innerRadius * perLightScaling)));
+      const radius = Math.fround(this._lightGroupData.radius * perLightScaling);
+      const innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(this._lightGroupData.innerRadius * perLightScaling)));
 
-      const outerAngle = Math.fround(Math.fround(TRI_2PI * this.outerAngle) / 360);
-      const innerAngle = Math.fround(Math.fround(TRI_2PI * this.innerAngle) / 360);
+      const outerAngle = Math.fround(Math.fround(TRI_2PI * this._lightGroupData.outerAngle) / 360);
+      const innerAngle = Math.fround(Math.fround(TRI_2PI * this._lightGroupData.innerAngle) / 360);
 
       // Carbon's own spelling of the local (cpp:35).
       const ligtPosition = vec3.set(statics._debugPosition, 0, 0, 0);
@@ -141,12 +164,6 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
   static _debugInnerColor = color.create();
 
   static _debugInnerZFailColor = color.create();
-
-  static LightDataFields = [
-    ...EveSmartLightPointLight.LightDataFields,
-    "innerAngle",
-    "outerAngle"
-  ];
 
 }
 

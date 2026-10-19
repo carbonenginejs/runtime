@@ -3,7 +3,7 @@
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { meta, type, blue } from "#schema";
-import { CjsLightData } from "../../lights/CjsLightData.js";
+import { LightData } from "../../lights/LightData.js";
 import { FadeType } from "../EveSpaceObjectAttachmentUtils.js";
 
 
@@ -24,8 +24,8 @@ export class EvePlaneLight
   static FT_FADEINOUT = 4;
 
   @meta.owned
-  @type.root("CjsLightData")
-  lightData = new CjsLightData();
+  @type.root("LightData")
+  lightData = new LightData();
 
   @type.float32
   saturation = 1;

@@ -17,7 +17,7 @@ import { noise } from "../../npm/dist/global/math/noise.js";
 import { CcpTime } from "../../npm/dist/global/blue/CcpTime.js";
 import { be } from "../../npm/dist/global/blue/index.js";
 import {
-  CjsLightData,
+  LightData,
   EveSpaceObjectAttachmentUtils,
   CreateLightRecord,
   EveBannerSet,
@@ -106,7 +106,7 @@ function MakeLightManager({ shadowQuality = 0, animationTime = 0 } = {})
 function MakeLightData(overrides = {})
 {
   // A real LightData: the conversions are its own methods (Tr2Light.h:30-31).
-  return Object.assign(new CjsLightData(), {
+  return Object.assign(new LightData(), {
     position: [1, 2, 3],
     color: [0.5, 0.25, 1, 1],
     brightness: 2,
@@ -198,7 +198,7 @@ test("AsPerPointLightData flickers brightness with Carbon's fixed-seed Perlin no
 test("Tr2Light.AddLight: flag validity, UNDEFINED inertness, bone*transform swap, sticky bone (Tr2Light.cpp:98-149)", () =>
 {
   const light = new Tr2PointLight();
-  light.SetLightData({ position: [1, 0, 0], radius: 5, brightness: 1, color: [1, 1, 1, 1], flags: 1, boneIndex: 0 });
+  light.SetLightData(Object.assign(new LightData(), { position: [1, 0, 0], radius: 5, brightness: 1, color: [1, 1, 1, 1], flags: 1, boneIndex: 0 }));
   const manager = MakeLightManager();
 
   // Invalid flags (neither surfaces nor particles) submit nothing (cpp:126).
@@ -223,7 +223,7 @@ test("Tr2Light.AddLight: flag validity, UNDEFINED inertness, bone*transform swap
 
   // UNDEFINED_LIGHT submits nothing (cpp:139-148).
   const inert = new Tr2PointLight();
-  inert.SetLightData({ flags: 1 });
+  inert.SetLightData(Object.assign(new LightData(), { flags: 1 }));
   inert.type = 0;
   inert.AddLight(manager, mat4.create(), 1);
   assert.equal(manager.added.length, 2, "UNDEFINED_LIGHT is silently inert");
@@ -434,7 +434,7 @@ test("EveSpaceObject2.GetLights: one-frame activation-strength lag (cpp:3549-355
   object.display = true;
   object.activationStrength = 0.5;
   const light = new Tr2PointLight();
-  light.SetLightData({ position: [0, 0, 0], radius: 5, brightness: 1, color: [1, 1, 1, 1], flags: 1 });
+  light.SetLightData(Object.assign(new LightData(), { position: [0, 0, 0], radius: 5, brightness: 1, color: [1, 1, 1, 1], flags: 1 }));
   object.lights.push(light);
 
   const manager = MakeLightManager();

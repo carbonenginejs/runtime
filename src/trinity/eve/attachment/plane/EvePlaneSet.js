@@ -26,7 +26,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { LightFeatures } from "../../lights/LightFeatures.js";
-import { CjsLightData } from "../../lights/CjsLightData.js";
+import { LightData } from "../../lights/LightData.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 const WHITE = new Float32Array([1, 1, 1, 1]);
@@ -745,7 +745,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 
   static _lightRecord = CreateLightRecord();
 
-  static _lightDataScratch = new CjsLightData();
+  static _lightDataScratch = new LightData();
 
   static _averageColorScratch = new Float32Array(4);
 

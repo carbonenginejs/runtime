@@ -6,7 +6,7 @@ import {
   EveHazeSet,
   EveHazeSetItem,
   EveHazeSetLight,
-  CjsLightData,
+  LightData,
   Tr2Effect,
 } from "../../npm/dist/trinity/index.js";
 
@@ -55,7 +55,7 @@ test("EveHazeSet exposes authored haze and light state as persisted graph fields
   assert.equal(set.Initialize(), true);
 });
 
-test("EveHazeSetLight detaches Carbon CjsLightData and profile intent", () => {
+test("EveHazeSetLight detaches Carbon LightData and profile intent", () => {
   const source = {
     lightData: {
       position: [1, 2, 3],
@@ -75,7 +75,7 @@ test("EveHazeSetLight detaches Carbon CjsLightData and profile intent", () => {
     ],
   };
   const light = EveHazeSetLight.FromSOF(source);
-  assert.ok(light.lightData instanceof CjsLightData);
+  assert.ok(light.lightData instanceof LightData);
   assert.deepEqual(Array.from(light.lightData.position), [1, 2, 3]);
   assert.deepEqual(Array.from(light.lightData.color), [4, 5, 6, 7]);
   assert.equal(light.lightData.brightness, 2);

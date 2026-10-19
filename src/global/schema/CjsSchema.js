@@ -3090,7 +3090,7 @@ function normalizeClassDefinition(Constructor, definition)
     // provenance unrecorded.
     //
     // NEITHER IS `sourceClass`, which is SERIALIZATION identity - the name a
-    // document calls this class on the wire (`CjsLightData`'s `"LightData"`).
+    // document calls this class on the wire, where it differs from className.
     // A donor is not a wire name: writing `MetalWorkQueue` there would tell
     // dehydration the class serializes under that name.
     for (const [ key, what ] of [ [ "carbon", "replicates" ], [ "modelledOn", "is modelled on" ] ])

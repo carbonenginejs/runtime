@@ -17,6 +17,7 @@ import {
   EveChildCloud2,
   EveUpdateContext,
   Tr2PointLight,
+  LightData,
   Tr2RenderReason, Tr2RenderContext, TriDevice, TriFrustum, TriPoolAllocator, RawData,
   Tr2RenderContext_GetMainThreadRenderContext, TriRenderBatchAccumulator,
   TriTextureParameter, Tr2TextureReference, Tr2EffectStateManager
@@ -599,7 +600,7 @@ test("PrepareCloudShadowMap creates and binds native D32F storage through the st
 test("Tr2Light.GetLight returns lightData position/radius and brightness-scaled rgb (Tr2Light.cpp:152-163)", () =>
 {
   const light = new Tr2PointLight();
-  light.SetLightData({ position: [1, 2, 3], radius: 5, brightness: 2, color: [0.5, 0.25, 1, 1] });
+  light.SetLightData(Object.assign(new LightData(), { position: [1, 2, 3], radius: 5, brightness: 2, color: [0.5, 0.25, 1, 1] }));
   const out = light.GetLight();
   assertVecClose(out.position, [1, 2, 3], "position");
   assertClose(out.radius, 5, "radius");

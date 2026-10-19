@@ -4283,12 +4283,12 @@ export class EveSOF
             const ignoredScale = vec3.create();
             mat4.decomposeCarbon(transform, rotation, position, ignoredScale);
 
-            // Flattened emission (2026-07-23 LightData flatten decision): the
-            // Tr2 light classes persist the Blue-mapped LightData members as
-            // flat fields, so hull lights emit Carbon's flat Blue shape. The
-            // packed-set light items above still emit nested lightData bags
-            // until their classes migrate. startTime carries the injected
-            // buildTime, matching Carbon's GetCurrentTime() stamp at build.
+            // Hull lights emit Carbon's Blue rows, which map into the light's
+            // embedded LightData m_lightData (Tr2PointLight_Blue.cpp:18-34);
+            // the light's accessors write them into that record. The packed-set
+            // light items above emit their structs' nested lightData. startTime
+            // carries the injected buildTime, matching Carbon's
+            // GetCurrentTime() stamp at build.
             const lightFields = {
               startTime: this.buildTime,
               flags: Number(item.flags ?? 1),
