@@ -42,7 +42,7 @@ test("a pending handle pick serializes moves and exclusively owns the drag", asy
   assert.equal(seen[1].x, 105);
   assert.equal(camera.length, 0);
   assert.equal(input._owner, null);
-  input.Destroy();
+  input.Destruct();
 });
 
 test("cancellation during an awaited pick cannot claim capture or replay queued input", async () =>
@@ -63,7 +63,7 @@ test("cancellation during an awaited pick cannot claim capture or replay queued 
   assert.deepEqual(seen, ["pointerdown"]);
   assert.deepEqual(cancelled, ["focus-lost"]);
   assert.equal(input._owner, null);
-  input.Destroy();
+  input.Destruct();
 });
 
 test("a missed handle passes the same drag to the Carbon camera consumer", async t =>
@@ -81,8 +81,8 @@ test("a missed handle passes the same drag to the Carbon camera consumer", async
   assert.equal(calls[0][0], "orbit");
   assert.ok(calls[0].slice(1).every(Number.isFinite));
   assert.equal(input._owner, null);
-  controls.Destroy();
-  input.Destroy();
+  controls.Destruct();
+  input.Destruct();
 });
 
 test("with the real camera and gizmo composed, a drag on an object orbits and a click selects it", async t =>
@@ -114,8 +114,8 @@ test("with the real camera and gizmo composed, a drag on an object orbits and a 
   assert.equal(orbits.length, 1, "a click does not orbit");
 
   gizmo.Uninstall();
-  controls.Destroy();
-  input.Destroy();
+  controls.Destruct();
+  input.Destruct();
 });
 
 for (const mode of ["translation", "rotation", "scaling"])
@@ -142,7 +142,7 @@ for (const mode of ["translation", "rotation", "scaling"])
     }
     assert.deepEqual(pans, [[12, 8], [12, 8]]);
     assert.equal(pick.mock.callCount(), 0, "camera pan must not wait for GPU picking");
-    controls.Destroy(); gizmo.Uninstall(); input.Destroy();
+    controls.Destruct(); gizmo.Uninstall(); input.Destruct();
   });
 }
 
@@ -171,7 +171,7 @@ function setupGizmo(t, mode)
   const gizmo = new TnyTransformGizmo({ mode, getView: () => ({ context }) });
   t.after(() =>
   {
-    gizmo.Destroy();
+    gizmo.Destruct();
     for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destruct();
     context.SetRenderContextAL(previous);
   });
@@ -229,7 +229,7 @@ test("gizmo Q/W/E/R defaults rebind atomically and ignore modified chords and re
   await press("KeyE");
   assert.equal(gizmo.mode, "rotation");
   gizmo.Uninstall();
-  input.Destroy();
+  input.Destruct();
 });
 
 test("off destroys handles, rolls back a drag and keeps object selection active", async t =>
@@ -266,7 +266,7 @@ test("off destroys handles, rolls back a drag and keeps object selection active"
   assert.equal(gizmo.scene.manipulator, gizmo.tool);
   gizmo.SetMode("off");
   gizmo.Uninstall();
-  input.Destroy();
+  input.Destruct();
 });
 
 test("a drag that starts on an object orbits instead of selecting it", async t =>
@@ -337,7 +337,7 @@ test("focused host routes pan, normalized wheel, FOV and gizmo defaults without 
   controls.Frame();
   camera.Update(0, 4 / 3);
   gizmo.Install(input);
-  t.after(() => { gizmo.Uninstall(); controls.Destroy(); input.Destroy(); });
+  t.after(() => { gizmo.Uninstall(); controls.Destruct(); input.Destruct(); });
   assert.equal(window.emit("keydown", { code: "KeyW" }).defaultPrevented, true);
   assert.equal(gizmo.mode, "scaling", "browser dispatch only queues the mode switch");
   await input.Update(1 / 60);
@@ -385,8 +385,8 @@ test("camera key-up reaches its consumer during another consumer's pointer captu
   input.Enqueue(pointer("pointerup"));
   await input.Update(0.02);
   assert.equal(moves.length, 1, "released keys must not resume after pointer capture ends");
-  controls.Destroy();
-  input.Destroy();
+  controls.Destruct();
+  input.Destruct();
 });
 
 for (const mode of ["translation", "rotation", "scaling"])
@@ -493,7 +493,7 @@ test("zooming out is not capped by the far clip: a huge selection can be left, a
   assert.ok(camera.backClip >= (camera.translationFromParent + 1.889e7) * 1.05 - 1, "the far clip covers the bounds from the new distance");
   for (let step = 0; step < 200; step++) controls.Dolly(20000);
   assert.equal(camera.translationFromParent, controls.preferences.maxDistance);
-  controls.Destroy();
+  controls.Destruct();
 });
 
 test("D flies to the framing pose, eased, landing where F frames; framing leaves the near clip alone", () =>
@@ -527,5 +527,5 @@ test("D flies to the framing pose, eased, landing where F frames; framing leaves
   controls.Fly(); controls.Update(0.05); controls.Orbit(1, 0);
   const stopped = camera.translationFromParent; controls.Update(0.05);
   assert.equal(camera.translationFromParent, stopped);
-  controls.Destroy();
+  controls.Destruct();
 });

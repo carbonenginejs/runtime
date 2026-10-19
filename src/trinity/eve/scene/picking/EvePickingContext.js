@@ -72,11 +72,17 @@ export class EvePickingContext
     return this.lastPickedExtraData2;
   }
 
-  /** Explicit cancellation replaces destruction of Carbon's owning vector. */
+  /**
+   * Explicit cancellation replaces destruction of Carbon's owning vector.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
-    for (const request of this.readbacks) request.Destroy();
+    for (const request of this.readbacks) request.Destruct();
     this.readbacks.length = 0;
     this.UpdateResult(0, 0, null, 0, 0);
   }

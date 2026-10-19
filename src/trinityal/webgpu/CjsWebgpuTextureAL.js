@@ -921,7 +921,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /** Retires platform storage after queued commands have been submitted. */
   _Reset()
   {
-    if (this._videoSampler) this._videoSampler.Destroy();
+    if (this._videoSampler) this._videoSampler.Destruct();
     this._videoSampler = null;
     // Cached bind groups that bind any of this texture's views go with it.
     for (const view of this._views.values()) ForgetBindingResource(view);

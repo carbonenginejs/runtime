@@ -146,7 +146,7 @@ test("the arena turns a page when one is full, and a buffer too big for a page i
   assert.equal(arena.GetTotalUploadedSize(), CONST_PAGE_SIZE + CONST_PAGE_SIZE / 2);
   assert.throws(() => arena.Allocate(new Uint8Array(CONST_PAGE_SIZE + 1)), /does not fit/);
 
-  arena.Destroy();
+  arena.Destruct();
   assert.equal(calls.filter(call => call[0] === "destroy").length, 2);
 });
 

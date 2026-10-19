@@ -137,8 +137,14 @@ export class CjsOverlay2D extends IBlueEvents
     this.Render();
   }
 
-  /** Stops ticking and observing, and removes the canvas. */
-  Destroy()
+  /**
+   * Stops ticking and observing, and removes the canvas.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     if (this._ticking) be.os.UnregisterForTicks(this, "CjsOverlay2D");
     this._ticking = false;
@@ -152,5 +158,5 @@ export class CjsOverlay2D extends IBlueEvents
 CjsSchema.decorateMethod(CjsOverlay2D, "OnTick", blue.method);
 CjsSchema.meta.define(CjsOverlay2D, {
   className: "CjsOverlay2D",
-  methods: Object.fromEntries([ "Sync", "AddDrawer", "RemoveDrawer", "Render", "OnTick", "Destroy" ].map(name => [ name, [] ]))
+  methods: Object.fromEntries([ "Sync", "AddDrawer", "RemoveDrawer", "Render", "OnTick", "Destruct" ].map(name => [ name, [] ]))
 });

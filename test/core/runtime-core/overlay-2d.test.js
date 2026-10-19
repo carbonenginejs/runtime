@@ -29,7 +29,7 @@ test("the overlay sits after the 3D canvas with its backing size and CSS box", (
   assert.deepEqual([ overlay.style.left, overlay.style.top, overlay.style.width, overlay.style.height ],
     [ "11px", "21px", "533px", "400px" ]);
   assert.equal(overlay.style.position, "absolute");
-  view.Destroy();
+  view.Destruct();
   assert.equal(overlay.removed, true);
 });
 
@@ -54,7 +54,7 @@ test("each frame clears, then runs the drawers in order; a resize frame skips th
   calls.length = 0;
   view.Render();
   assert.deepEqual(calls, [ [ "a", true, true ] ]);
-  view.Destroy();
+  view.Destruct();
 });
 
 
@@ -68,7 +68,7 @@ test("it draws on every Blue pump and stops when destroyed; the library creates 
   be.os.PumpOS();
   be.os.PumpOS();
   assert.equal(frames, 2);
-  view.Destroy();
+  view.Destruct();
   assert.equal(be.os.IsRegisteredForTicks(view), false);
   be.os.PumpOS();
   assert.equal(frames, 2);

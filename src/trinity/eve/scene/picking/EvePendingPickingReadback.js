@@ -71,7 +71,7 @@ export class EvePendingPickingReadback
   @meta.adapted
   MapMain(_synchronize, context)
   {
-    this.readback.Destroy();
+    this.readback.Destruct();
     this.readback = this.mainPickBuffer.CreateReadback(context);
   }
 
@@ -79,7 +79,7 @@ export class EvePendingPickingReadback
   @meta.adapted
   MapDebug(_synchronize, context)
   {
-    this.debugReadback.Destroy();
+    this.debugReadback.Destruct();
     this.debugReadback = this.debugPickBuffer.CreateReadback(context);
   }
 
@@ -133,13 +133,19 @@ export class EvePendingPickingReadback
   @meta.adapted
   Unmap(_context)
   {
-    this.readback.Destroy();
-    this.debugReadback.Destroy();
+    this.readback.Destruct();
+    this.debugReadback.Destruct();
   }
 
-  /** Explicit unique_ptr/shared_ptr destruction, including retained root objects. */
+  /**
+   * Explicit unique_ptr/shared_ptr destruction, including retained root objects.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     this.Unmap();
     if (this.mainPickBuffer) this.mainPickBuffer.Destruct();

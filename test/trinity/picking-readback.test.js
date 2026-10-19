@@ -29,11 +29,11 @@ test("stub readbacks own immutable snapshots and shared facade ownership", () =>
   const first = new Tr2ReadbackAL({ implementation: impl });
   const second = new Tr2ReadbackAL({ copy: first });
   original.fill(0);
-  first.Destroy();
+  first.Destruct();
   assert.equal(first.IsValid(), false);
   assert.equal(second.IsReady(), true);
   assert.deepEqual([...second.Map().data], [1, 2, 3, 4]);
-  second.Destroy();
+  second.Destruct();
   assert.equal(impl.IsRegistered(), false);
 });
 
@@ -96,7 +96,7 @@ test("request identity validates both words and releases retained roots", () =>
   context.readbacks.push(first, second);
   context.UpdateResult(1, 2, object, 53, 7);
   assert.equal(context.GetExtraData2(), 7);
-  context.Destroy();
+  context.Destruct();
   assert.equal(first.blueObjects.length, 0);
   assert.equal(second.blueObjects.length, 0);
   assert.equal(context.GetObject(), null);

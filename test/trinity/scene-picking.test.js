@@ -122,7 +122,7 @@ test("immediate EVE picks await their own request and restore the view before aw
 test("EVE polling submits new work while returning the latest completed result", t =>
 {
   const h = setup(t), listener = new EvePickingContext();
-  t.after(() => listener.Destroy());
+  t.after(() => listener.Destruct());
   assert.equal(h.scene.PickAsyncObjectAndExtraData(listener, ...h.args), null);
   h.snapshots[0].complete();
   assert.deepEqual(h.scene.PickAsyncObjectAndExtraData(listener, ...h.args), [h.object, 53, 7]);
@@ -137,7 +137,7 @@ test("destroying an EVE listener during mapping drops the hit and releases roots
   const h = setup(t), listener = new EvePickingContext();
   const pending = h.scene.PerformPicking(listener, true, ...h.args);
   const request = listener.readbacks[0];
-  listener.Destroy();
+  listener.Destruct();
   assert.deepEqual(await pending, [null, 0, 0]);
   assert.equal(request.blueObjects.length, 0);
   assert.equal(h.snapshots[0].isValid(), false);
@@ -153,7 +153,7 @@ test("failed picking draws restore context state and remove the failed request",
   assert.equal(esm.IsDepthTestInverted(), inverted);
   assert.equal(esm.IsManagedRendering(), managed);
   assert.equal(listener.readbacks.length, 0);
-  listener.Destroy();
+  listener.Destruct();
 });
 
 test("legacy EVE picks use retained collision indices and BGRA request-owned attachments", async t =>
@@ -170,7 +170,7 @@ test("legacy EVE picks use retained collision indices and BGRA request-owned att
   assert.deepEqual(await pending, [h.object, 53, 0], "a setting change cannot reinterpret an in-flight request");
   assert.equal(request.mainPickBuffer._pickTarget.IsValid(), false);
   assert.equal(request.collisionSet.length, 0);
-  listener.Destroy();
+  listener.Destruct();
 });
 
 test("legacy polling retains each request until ready and cancellation releases buffers", t =>
@@ -180,7 +180,7 @@ test("legacy polling retains each request until ready and cancellation releases 
   h.snapshots[0].complete();
   assert.deepEqual(h.scene.PickAsyncObjectAndExtraData(listener, ...h.args), [h.object, 53, 0]);
   const pending = listener.readbacks[0];
-  listener.Destroy();
+  listener.Destruct();
   assert.equal(pending.mainPickBuffer._pickTarget.IsValid(), false);
   assert.equal(pending.collisionSet.length, 0);
 });
@@ -188,7 +188,7 @@ test("legacy polling retains each request until ready and cancellation releases 
 test("a mixed pointer and objectId queue decodes each request with its own framework", t =>
 {
   const h = setup(t), listener = new EvePickingContext();
-  t.after(() => listener.Destroy());
+  t.after(() => listener.Destruct());
   assert.equal(h.scene.PickAsyncObjectAndExtraData(listener, ...h.args), null);
   Tr2RenderContext.eveSpacePickingFramework = "objectId";
   assert.equal(h.scene.PickAsyncObjectAndExtraData(listener, ...h.args), null);

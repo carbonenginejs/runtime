@@ -485,8 +485,14 @@ export class TnyCameraControls
     this.camera.SetOrbit(this.camera.yaw, this.camera.pitch);
   }
 
-  /** Releases routing and observers; the borrowed camera remains host-owned. */
-  Destroy()
+  /**
+   * Releases routing and observers; the borrowed camera remains host-owned.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this.Uninstall();
     this._listeners.clear();
@@ -523,5 +529,5 @@ CjsSchema.meta.define(TnyCameraControls, {
   className: "TnyCameraControls",
   methods: Object.fromEntries(["Install", "Uninstall", "SetKeyBindings", "GetKeyBindings", "HandleInput", "Update",
     "Orbit", "Pan", "Dolly", "SetFieldOfView", "AdjustFieldOfView", "GetPose", "SetPose", "Frame", "Resize", "Reset",
-    "TargetChanged", "Subscribe", "Cancel", "Destroy"].map(name => [name, []]))
+    "TargetChanged", "Subscribe", "Cancel", "Destruct"].map(name => [name, []]))
 });

@@ -70,7 +70,7 @@ test("CjsWebgpuDevice cannot be resurrected by an in-flight recreation", async (
   const webgpu = new CjsWebgpuDevice({ gpu, device: first.device });
   const recreation = webgpu.Recreate();
   await Promise.resolve();
-  webgpu.Destroy();
+  webgpu.Destruct();
   adapterGate.resolve({ requestDevice: async () => acquired.device });
   await assert.rejects(recreation, /recreation was superseded/i);
   assert.equal(webgpu.IsReady(), false);

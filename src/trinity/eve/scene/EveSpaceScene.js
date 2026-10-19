@@ -1034,7 +1034,7 @@ export class EveSpaceScene
     }
     finally
     {
-      listener.Destroy();
+      listener.Destruct();
     }
   }
 
@@ -1296,7 +1296,7 @@ export class EveSpaceScene
     catch (error)
     {
       listener.readbacks.splice(listener.readbacks.indexOf(request), 1);
-      request.Destroy();
+      request.Destruct();
       throw error;
     }
     finally
@@ -1431,7 +1431,7 @@ export class EveSpaceScene
     catch (error)
     {
       listener.readbacks.splice(listener.readbacks.indexOf(request), 1);
-      request.Destroy();
+      request.Destruct();
       throw error;
     }
     finally
@@ -1453,7 +1453,7 @@ export class EveSpaceScene
       const pending = listener.readbacks[0];
       if (pending.framework === "pointer" && !pending.readback.IsValid())
       {
-        listener.readbacks.shift().Destroy();
+        listener.readbacks.shift().Destruct();
         continue;
       }
       if (pending.readback.IsValid() && !pending.readback.IsReady(renderContext)) break;
@@ -1490,7 +1490,7 @@ export class EveSpaceScene
       : mainData ? pending.DecodeResult(mainData) : [null, 0, 0];
     listener.UpdateResult(pending.pickedX, pending.pickedY, ...result);
     listener.readbacks.shift();
-    pending.Destroy();
+    pending.Destruct();
   }
 
   /**

@@ -95,7 +95,7 @@ async function fixture(t, options = {})
   compositeStep.clearTargetOnFailure = false;
   const job = new TriRenderJob();
   job.steps.push(driverStep, compositeStep);
-  t.after(() => { outline.Destroy(); driver.Destruct(); target.Destroy(); resMan.restore(); SetEffectPathDefaults(null); });
+  t.after(() => { outline.Destruct(); driver.Destruct(); target.Destroy(); resMan.restore(); SetEffectPathDefaults(null); });
   return { outline, context, al, driver, target, job, resMan };
 }
 
@@ -207,7 +207,7 @@ test("destroyed outline rejects validation and disposes its owned mask", async t
   outline.hovered = hull("hover", []);
   job.Run(1, 2, context);
   const mask = outline._mask;
-  outline.Destroy();
+  outline.Destruct();
   assert.equal(mask.IsValid(), false);
   assert.equal(job.Run(2, 3, context), TriRenderJob.Status.RJ_FAILED);
 });

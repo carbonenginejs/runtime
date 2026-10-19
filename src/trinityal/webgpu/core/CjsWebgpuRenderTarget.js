@@ -385,8 +385,14 @@ export class CjsWebgpuRenderTarget
     return this;
   }
 
-  /** Releases every attachment this target created. The canvas is the caller's. */
-  Destroy()
+  /**
+   * Releases every attachment this target created. The canvas is the caller's.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     if (this._destroyed) return this;
     this._destroyed = true;

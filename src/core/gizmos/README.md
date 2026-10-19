@@ -59,7 +59,7 @@ Object selection and handle selection use GPU pick buffers. They do not
 require a retained CPU geometry copy. Resource ray queries are a separate
 capability and belong on the geometry resource.
 
-Call `Destroy()` on the gizmo, camera controls and input manager when disposing
+Call `Destruct()` on the gizmo, camera controls and input manager when disposing
 the viewport. The helpers release their own registrations and resources; the
 camera and target remain host-owned. The initial implementation supports
 translation, rotation, scaling and shared camera controls. Text labels, snapping,

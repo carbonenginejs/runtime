@@ -155,8 +155,14 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
     this._readTimeout = null;
   }
 
-  /** Carbon _destroy; called by resource purge, never by an individual billboard. */
-  Destroy()
+  /**
+   * Carbon _destroy; called by resource purge, never by an individual billboard.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this._generation++;
     this._CancelRead();
@@ -173,7 +179,7 @@ CjsSchema.blue.define(VideoPlaylistController, {
   className: "VideoPlaylistController",
   donors: [ "_VideoPlaylistController" ],
   methods: {
-  GetResource: [blue.method, meta.adapted], IsCacheable: [], SetPlaylist: [], Destroy: [meta.adapted]
+  GetResource: [blue.method, meta.adapted], IsCacheable: [], SetPlaylist: [], Destruct: [meta.adapted]
 }
 });
 
@@ -198,7 +204,7 @@ export function RegisterVideoPlaylists(resourceManager, playlists, { random = ca
       if (previous)
       {
         if (previous._texture) previous._texture.ReleasePayload();
-        else previous.Destroy();
+        else previous.Destruct();
       }
       registered.delete(key);
       resourceManager.UnregisterResourceConstructor(name);

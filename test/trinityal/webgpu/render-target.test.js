@@ -231,9 +231,9 @@ test("CjsWebgpuRenderTarget refuses work it cannot do", () =>
   assert.throws(() => target.CreateRenderPassDescriptor(frame, { clearDepth: 1 }), /no depth attachment/i);
   assert.throws(() => target.Configure({ width: 0, height: 32 }), /positive integer/i);
 
-  target.Destroy();
+  target.Destruct();
   assert.throws(() => target.AcquireFrame(), /destroyed/i);
-  target.Destroy();
+  target.Destruct();
 });
 
 test("CjsWebgpuRenderTarget releases what it created and leaves the canvas alone", () =>
@@ -241,7 +241,7 @@ test("CjsWebgpuRenderTarget releases what it created and leaves the canvas alone
   const { canvas, context, created, target } = fakeSetup({ sampleCount: 4, depthFormat: "depth24plus" });
   target.Configure({ width: 64, height: 64 });
 
-  target.Destroy();
+  target.Destruct();
 
   assert.deepEqual(created.map(texture => texture.destroyed), [ 1, 1 ]);
   assert.equal(context.unconfigured, 1);
@@ -271,7 +271,7 @@ test("the canvas pass supplies depth and restores it after an offscreen depth bi
   assert.equal(al._Descriptor(null).depthStencilAttachment.view, canvasDepth);
   depth.Destroy();
   al.Destroy();
-  target.Destroy();
+  target.Destruct();
 });
 
 test("canvas colour and implicit depth clear on consecutive frames and after an offscreen pick", () =>
@@ -313,7 +313,7 @@ test("canvas colour and implicit depth clear on consecutive frames and after an 
   }
   offscreen.Destroy();
   al.Destroy();
-  target.Destroy();
+  target.Destruct();
 });
 
 test("a colour-only canvas still rejects a requested depth clear", () =>
@@ -326,7 +326,7 @@ test("a colour-only canvas still rejects a requested depth clear", () =>
   al.BeginScene();
   assert.equal(al.Clear({ clearColor: true, clearDepth: true }), ALResult.E_FAIL);
   al.Destroy();
-  target.Destroy();
+  target.Destruct();
 });
 
 for (const submit of [true, false]) test(submit
@@ -369,5 +369,5 @@ for (const submit of [true, false]) test(submit
   assert.equal(storage.destroyed, 1);
   al.Destroy();
   assert.equal(storage.destroyed, 1);
-  target.Destroy();
+  target.Destruct();
 });

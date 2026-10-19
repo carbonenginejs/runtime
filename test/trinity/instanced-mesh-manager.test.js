@@ -556,6 +556,6 @@ test("GetPickingBatches commits one pointer-picking batch per group LOD slot (cp
   words.setUint32(4, readback.sequence, true);
   assert.equal(readback.DecodeResult(pixel)[0], owner, "the request decodes the hit to the group's owner");
   assert.doesNotThrow(() => batches.GetBatches()[0].objectData.ApplyConstantBuffers(null, null), "PickingPerObjectData uploads nothing (cpp:25-27)");
-  readback.Destroy();
+  readback.Destruct();
 });
 

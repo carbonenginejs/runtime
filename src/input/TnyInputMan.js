@@ -117,8 +117,14 @@ export class TnyInputMan
     if (target && pointer !== null && target.hasPointerCapture?.(pointer)) target.releasePointerCapture(pointer);
   }
 
-  /** Releases host listeners and all registered consumers. */
-  Destroy()
+  /**
+   * Releases host listeners and all registered consumers.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this.Detach();
     this._consumers.length = 0;
@@ -215,5 +221,5 @@ export class TnyInputMan
 
 CjsSchema.meta.define(TnyInputMan, {
   className: "TnyInputMan",
-  methods: Object.fromEntries(["Attach", "Detach", "Register", "Unregister", "Enqueue", "Update", "Cancel", "Destroy"].map(name => [name, []]))
+  methods: Object.fromEntries(["Attach", "Detach", "Register", "Unregister", "Enqueue", "Update", "Cancel", "Destruct"].map(name => [name, []]))
 });

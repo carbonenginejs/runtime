@@ -103,7 +103,7 @@ export class Tr2PickBuffer
       const mapped = await readback.Map(context);
       return { ...mapped, data: mapped.data ? mapped.data.slice() : null };
     }
-    finally { readback.Destroy(); }
+    finally { readback.Destruct(); }
   }
 
   /** JS submission snapshot for polling without starting an awaited map. */

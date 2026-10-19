@@ -38,8 +38,14 @@ export class Tr2ReadbackAL
       : { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
   }
 
-  /** Explicit release replaces shared_ptr destruction; other copies remain valid. */
-  Destroy()
+  /**
+   * Explicit release replaces shared_ptr destruction; other copies remain valid.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     const readback = this._readback;
     this._readback = null;
@@ -55,5 +61,5 @@ CjsSchema.decorateMethod(Tr2ReadbackAL, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ReadbackAL, "Map", blue.method);
 CjsSchema.blue.define(Tr2ReadbackAL, {
   className: "Tr2ReadbackAL",
-  methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted], Destroy: [meta.adapted] }
+  methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted], Destruct: [meta.adapted] }
 });

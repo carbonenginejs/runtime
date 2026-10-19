@@ -2998,7 +2998,7 @@ export class CjsWebgpuRenderContextAL
     this._frame = null;
     this._ReleasePipelines();
     this._samplerStates.clear();
-    this._constantArena?.Destroy();
+    this._constantArena?.Destruct();
     this._constantArena = null;
     // Carbon's backends destroy the helper with the context too (DX12's
     // destructor runs `Tr2DrawUPHelper::Destroy`), and its scratch buffers are
@@ -3097,7 +3097,7 @@ export class CjsWebgpuRenderContextAL
     this._ReleasePipelines();
     this._computePipelines = new WeakMap();
     this._mipGenerator = null;
-    if (this._constantArena) this._constantArena.Destroy();
+    if (this._constantArena) this._constantArena.Destruct();
     this._constantArena = null;
     this._drawUP.Destroy();
 

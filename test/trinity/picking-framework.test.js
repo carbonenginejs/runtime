@@ -32,7 +32,7 @@ test("one non-Carbon setting defaults to objectId and routes the scene wrapper",
 test("legacy BGRA decode preserves both byte pairs and native minus-one offsets", t =>
 {
   const request = new EvePendingPickingReadback(0, 0, "objectId");
-  t.after(() => request.Destroy());
+  t.after(() => request.Destruct());
   assert.equal(request.mainPickBuffer._format, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
   assert.equal(request.debugPickBuffer._format, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT);
   const expected = {}, seen = [];
@@ -52,7 +52,7 @@ test("legacy BGRA decode preserves both byte pairs and native minus-one offsets"
 test("legacy debug precedence and immediate versus retained instanced traceback follow the old revision", t =>
 {
   const request = new EvePendingPickingReadback(0, 0, "objectId");
-  t.after(() => request.Destroy());
+  t.after(() => request.Destruct());
   const hull = {}, debugObject = {}, owner = {};
   request.collisionSet.push([{ GetID() { return hull; } }, null]);
   request.debugLineObjects.push({ object: debugObject, area: 8 });

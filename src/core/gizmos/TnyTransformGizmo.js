@@ -295,8 +295,14 @@ export class TnyTransformGizmo
     if (drag && this.onChange) this.onChange(drag.target, "cancel");
   }
 
-  /** Releases owned tools/scenes and borrowed target references. */
-  Destroy()
+  /**
+   * Releases owned tools/scenes and borrowed target references.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this.Uninstall();
     if (this.tool) this.tool.Destruct();
@@ -355,5 +361,5 @@ export class TnyTransformGizmo
 
 CjsSchema.meta.define(TnyTransformGizmo, {
   className: "TnyTransformGizmo",
-  methods: Object.fromEntries(["SetKeyBindings", "GetKeyBindings", "SetMode", "SetTarget", "Install", "Uninstall", "Sync", "Render", "HandleInput", "Cancel", "Destroy"].map(name => [name, []]))
+  methods: Object.fromEntries(["SetKeyBindings", "GetKeyBindings", "SetMode", "SetTarget", "Install", "Uninstall", "Sync", "Render", "HandleInput", "Cancel", "Destruct"].map(name => [name, []]))
 });

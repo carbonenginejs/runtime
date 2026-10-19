@@ -54,7 +54,7 @@ function setup(t, mode, axis, behind = false)
   t.mock.method(gizmo.scene, "PickObject", async () => gizmo.tool.primitives.find(item => item.name === axis));
   t.after(() =>
   {
-    gizmo.Destroy();
+    gizmo.Destruct();
     for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destruct();
     Tr2Renderer.PopViewTransform(); Tr2Renderer.PopProjection(); context.SetRenderContextAL(previous);
   });

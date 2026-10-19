@@ -250,8 +250,14 @@ export class TnyOutlineHelper extends ITr2RenderNode
     }
   }
 
-  /** Releases owned textures/effects; detaching the nodes from the job is the caller's job. */
-  Destroy()
+  /**
+   * Releases owned textures/effects; detaching the nodes from the job is the caller's job.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     if (this._destroyed) return;
     this._destroyed = true;
@@ -271,5 +277,5 @@ CjsSchema.decorateMethod(TnyOutlineHelper, "Validate", blue.method);
 CjsSchema.decorateMethod(TnyOutlineHelper, "Execute", blue.method);
 CjsSchema.meta.define(TnyOutlineHelper, {
   className: "TnyOutlineHelper",
-  methods: Object.fromEntries(["Validate", "Execute", "Destroy", "_LoadEffects", "_Modes", "_EnsureMask", "_Composite"].map(name => [name, []]))
+  methods: Object.fromEntries(["Validate", "Execute", "Destruct", "_LoadEffects", "_Modes", "_EnsureMask", "_Composite"].map(name => [name, []]))
 });

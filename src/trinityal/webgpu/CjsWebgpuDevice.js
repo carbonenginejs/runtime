@@ -266,8 +266,12 @@ export class CjsWebgpuDevice
   /**
    * Transitions the boundary to destroyed, invalidates its generation, and
    * destroys the native device.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     if (this._state === "destroyed") return;
     const device = this._device;

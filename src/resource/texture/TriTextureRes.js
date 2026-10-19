@@ -730,7 +730,7 @@ export class TriTextureRes extends CjsResource
    */
   ReleasePayload()
   {
-    if (this.videoController) this.videoController.Destroy();
+    if (this.videoController) this.videoController.Destruct();
     this.videoController = null;
     this.ReleaseResources();
     this.loadedBitmap = null;
