@@ -30,19 +30,12 @@ const DOCUMENT_DEFINITIONS = [
 export class CjsCharacterLibraryDocuments
 {
     /**
-     * Revisions live beside the document lists, not among them: key
-     * enumeration of this object lists exactly the documents, so the state
-     * is defined non-enumerable.
+     * Revision of each document list, by document name. Not a document: the
+     * document names are `listDocumentNames()`, never this object's keys.
+     *
+     * @type {Map<string, number>}
      */
-    constructor()
-    {
-        Object.defineProperty(this, "_documentRevisions", {
-            value: new Map(),
-            writable: true,
-            configurable: true,
-            enumerable: false
-        });
-    }
+    _documentRevisions = new Map();
 
     /** Revision of library-owned list mutations, independent of edit settling. */
     GetDocumentRevision(name)

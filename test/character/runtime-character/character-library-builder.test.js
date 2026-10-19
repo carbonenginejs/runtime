@@ -386,7 +386,7 @@ test("lists document names without exporting the complete library graph", () =>
 
     assert.deepEqual(library.ListDocuments(), expected);
     assert.deepEqual(schemaFields, expected);
-    assert.deepEqual(Object.keys(library.documents), expected);
+    assert.deepEqual(CjsCharacterLibraryDocuments.listDocumentNames(), expected);
     assert.deepEqual(
         Object.keys(CjsCharacterLibraryBuilder.build(CreateDocuments()).documents),
         expected
