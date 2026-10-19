@@ -54,12 +54,9 @@
     "src/resource/formats/webgpu/core/WebgpuReadError.js": 2
   },
   "defineProperty": {
-    "src/character/library/CjsCharacterLibraryDocuments.js": 1,
-    "src/global/blue/BlueObjectMetadata.js": 1,
     "src/global/compose/notify.js": 1,
     "src/global/compose/runtimeState.js": 1,
     "src/global/model/lifecycle/CjsLifecycleState.js": 1,
-    "src/resource/format/CjsBlueReader.js": 1,
     "src/resource/formats/black/core/CjsBlackPropertyReaders.js": 1,
     "src/resource/formats/cmf/core/helpers.js": 1,
     "src/resource/formats/cmf/core/shared.js": 1,
@@ -68,18 +65,14 @@
     "src/resource/formats/gr2/core/reader.js": 1,
     "src/resource/formats/gr2/core/shared.js": 1,
     "src/resource/formats/graph/core/dataTypes.js": 1,
-    "src/resource/formats/graph/core/graph.js": 1,
     "src/resource/formats/hlsl/core/carbonDescriptionToRuntime.js": 1,
     "src/resource/formats/pickle/core/pickleCommon.js": 2,
     "src/resource/formats/yaml/core/CjsYamlReader.js": 1,
     "src/resource/formats/yaml/core/helpers.js": 1
   },
   "held": {
-    "src/global/blue/BlueObjectMetadata.js": "__bluemetadata__ is Carbon per-object metadata added to any class after construction; moving it changes how readers and writers see it. Held for the operator (Ruru, 2026-10-19).",
-    "src/character/library/CjsCharacterLibraryDocuments.js": "ruled 2026-10-20: declared _documentRevisions field. Not applied: test/character/runtime-character/character-library-builder.test.js asserts Object.keys(library.documents) lists exactly the document names, which relies on the non-enumerable define; reported to Ruru before changing.",
     "src/global/compose/notify.js": "awaiting ruling: declared field on a runtime-state class instead of the HasListener own-method override on the __state record.",
     "src/global/compose/runtimeState.js": "awaiting ruling: WeakMap side table, or a declared __state field on a common base, for the __state expando on any instance.",
-    "src/global/model/lifecycle/CjsLifecycleState.js": "awaiting ruling: declared lifecycle field on a runtime-state class, decided with runtimeState.js.",
-    "src/resource/format/CjsBlueReader.js": "ruled 2026-10-20: null-prototype payloads with plain assignment. Not applied: CjsSchema.from (values transport) refuses objects without Object.prototype, so Black/Red payloads stop hydrating (55 trinity, 1 global, 8 resource tests fail); needs a ruling on accepting null-prototype values bags."
+    "src/global/model/lifecycle/CjsLifecycleState.js": "awaiting ruling: declared lifecycle field on a runtime-state class, decided with runtimeState.js."
   }
 }

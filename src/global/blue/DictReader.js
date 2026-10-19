@@ -813,7 +813,7 @@ export class DictReader extends IRootReaderBase
       for (const item of desired)
       {
         if (!IsPlainObject(item) || IsReference(item)) throw new TypeError(`Patch '${name}' requires item values, not references.`);
-        const id = BeObjectMetadata.Get(item, key);
+        const id = GetValuesMetadata(item, key);
         if (typeof id !== "string" || !id.length || incoming.has(id)) throw new TypeError(`Patch '${name}' has a missing or duplicated incoming ${key}.`);
         incoming.add(id);
         if (item._type !== undefined && (!CjsSchema.getClassNames(CjsSchema.getConstructor(item._type)).includes(itemClass)
@@ -844,7 +844,7 @@ export class DictReader extends IRootReaderBase
     const additions = [];
     for (const values of patch.desired)
     {
-      const target = patch.existing.get(BeObjectMetadata.Get(values, patch.key));
+      const target = patch.existing.get(GetValuesMetadata(values, patch.key));
       if (!target) { additions.push(values); continue; }
       if (CjsSchema.setValues(target, values, {
         ...this._options, lists: "replace", listPatchKeys: undefined,
@@ -1553,6 +1553,22 @@ function IsObjectItem(item)
 {
   if (IsPlainObject(item)) return item._ref !== undefined || typeof item._type === "string";
   return item !== null && typeof item === "object" && CjsSchema.getClassName(item.constructor) !== null;
+}
+
+/**
+ * One key of a values bag's `__bluemetadata__` dictionary, or null. A bag is
+ * data, not an owner: its metadata is the dictionary it carries, which only
+ * becomes an owner's table in `BeObjectMetadata` once it is read
+ * (`ReadMetadata`).
+ *
+ * @param {object} values A values bag.
+ * @param {string} key The metadata key.
+ * @returns {string|null} The value, or null when absent.
+ */
+function GetValuesMetadata(values, key)
+{
+  const metadata = Object.hasOwn(values, BLUE_OBJECT_METADATA_KEY) ? values[BLUE_OBJECT_METADATA_KEY] : null;
+  return metadata && Object.hasOwn(metadata, key) ? metadata[key] : null;
 }
 
 /**

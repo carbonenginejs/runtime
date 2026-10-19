@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { EveSOF, EveSOFDNA, CjsSOFUpdater } from "../../../npm/dist/sof/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { BeObjectMetadata } from "../../../npm/dist/global/blue/BlueObjectMetadata.js";
 import { EveShip2, TriTextureParameter } from "../../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
 
@@ -960,13 +961,14 @@ test("decal parent textures and editor DNA provenance update without replacing t
   const decal = ship.decals[0], effect = decal.decalEffect;
   const texture = effect.resources.find(value => value.name === "DiffuseMap");
   assert.ok(texture);
-  const sourceId = decal.__bluemetadata__.sof_source_id;
+  const sourceId = BeObjectMetadata.Get(decal, "sof_source_id");
+  assert.ok(sourceId);
   assert.ok(await updater.UpdateFromDNA(ship, insertedDna));
   assert.equal(ship.decals[0], decal);
   assert.equal(decal.decalEffect, effect);
   assert.equal(texture.resourcePath, "res:/insert/ship_insert_d.dds");
-  assert.equal(decal.__bluemetadata__.sof_source_id, sourceId);
-  assert.equal(decal.__bluemetadata__.SofDna, insertedDna);
+  assert.equal(BeObjectMetadata.Get(decal, "sof_source_id"), sourceId);
+  assert.equal(BeObjectMetadata.Get(decal, "SofDna"), insertedDna);
   const desired = await sof.BuildValuesFromDNA(insertedDna);
   assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(CjsSchema.from(desired._type, desired)));
 });
@@ -990,7 +992,7 @@ test("targeted inserts reject reordered stamped decals before writing any textur
       defaultTextures: [], parentTextures: [{ str: "DiffuseMap" }] }];
   });
   assert.equal(ship.decals.length, 2);
-  assert.notEqual(ship.decals[0].__bluemetadata__.sof_source_id, ship.decals[1].__bluemetadata__.sof_source_id);
+  assert.notEqual(BeObjectMetadata.Get(ship.decals[0], "sof_source_id"), BeObjectMetadata.Get(ship.decals[1], "sof_source_id"));
   ship.decals.reverse();
   const before = CjsSchema.getValues(ship);
   assert.equal(await updater.UpdateFromDNA(ship, insertedDna), null);

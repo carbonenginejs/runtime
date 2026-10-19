@@ -1,41 +1,51 @@
 // Source: blue/include/BlueObjectMetadata.h
 // Source: blue/src/BlueObjectMetadata.cpp
 //
-// The object-metadata store: string keys to string values per object.
+// The object-metadata store: string keys to string values per object, held
+// BESIDE the object, never on it. Carbon keeps one static table
+// (`s_beObjectMetadata`, BlueObjectMetadata.cpp:8) keyed by the owner through
+// a weak reference (`m_metadata`, BlueObjectMetadata.h:38). Readers put a
+// bag's `__bluemetadata__` dictionary into it (DictReader.cpp:185-188,
+// YamlReader.cpp:1359-1361) and writers read it back out
+// (YamlWriter.cpp:329-341).
 //
-// ON THE OBJECT, not beside it. Carbon keeps a table keyed by weak reference
-// (:33-47) and drops it when the object dies (`WeakRefNotify`, :150-153). Here
-// the table IS the object's `__bluemetadata__` property - the reserved key a
-// values bag carries it under (IBlueObjectMetadata.h:5) - so Carbon-shaped
-// code through this store and `object.__bluemetadata__.colorType` see the same
-// data (operator, 2026-09-27, as ccpwgl did). The property is not enumerable:
-// metadata is never a member.
-//
-// `BeObjectMetadata` is the process-wide instance (:7-8).
+// `BeObjectMetadata` is the process-wide instance (BlueObjectMetadata.cpp:8-9).
 import { CjsSchema, meta, blue } from "#schema";
-import { BLUE_OBJECT_METADATA_KEY, IBlueObjectMetadata } from "./IBlueObjectMetadata.js";
+import { IBlueObjectMetadata } from "./IBlueObjectMetadata.js";
 
 /** `BlueStdResult` codes the store answers with (`BLUE_STD_RESULT_OK`, `BLUE_STD_RESULT_KEY_ERROR`). */
 const OK = { ok: true, message: "" };
-const KeyError = message => { ok: false, message };
+const KeyError = message => ({ ok: false, message });
 
 
 /** `BlueObjectMetadata` - the object-metadata store. */
 export class BlueObjectMetadata extends IBlueObjectMetadata
 {
   /**
-   * The object's table (:23-31).
+   * `m_metadata` (BlueObjectMetadata.h:38): each owner's table, keyed weakly
+   * by the owner. Carbon registers itself as a weak-reference observer on
+   * insert (:51) and drops the table in `WeakRefNotify` when the owner dies
+   * (:151-154); a WeakMap key releases its entry with the owner, so no
+   * register or unregister step exists here.
+   *
+   * @type {WeakMap<object, Object<string, string>>}
+   */
+  _metadata = new WeakMap();
+
+  /**
+   * The object's table (BlueObjectMetadata.cpp:30-38).
    *
    * @param {object} owner The object.
    * @returns {Object<string, string>|null} The table, or null when it has none.
    */
   GetMetadata(owner)
   {
-    return (owner && Object.hasOwn(owner, BLUE_OBJECT_METADATA_KEY)) ? owner[BLUE_OBJECT_METADATA_KEY] : null;
+    if (!owner || typeof owner !== "object") return null;
+    return this._metadata.get(owner) ?? null;
   }
 
   /**
-   * Sets one key (:33-47). Keys and values are strings, as Carbon's are.
+   * Sets one key (:40-54). Keys and values are strings, as Carbon's are.
    *
    * @param {object} owner The object.
    * @param {string} key The key.
@@ -45,17 +55,19 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   {
     if (!owner) return;
 
-    let table = this.GetMetadata(owner);
+    let table = this._metadata.get(owner);
     if (!table)
     {
-      table = {};
-      Object.defineProperty(owner, BLUE_OBJECT_METADATA_KEY, { value: table, writable: true, configurable: true, enumerable: false });
+      // Carbon's `DataTable::mapping` is a string map; a null-prototype
+      // dictionary holds any key, `__proto__` included, as data.
+      table = Object.create(null);
+      this._metadata.set(owner, table);
     }
     table[String(key)] = String(value);
   }
 
   /**
-   * One key's value (:49-61).
+   * One key's value (:56-69).
    *
    * @returns {string|*} The value, or `defaultValue`.
    */
@@ -66,7 +78,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   }
 
   /**
-   * Removes one key, and the object's table once it is empty (:63-80).
+   * Removes one key, and the object's table once it is empty (:71-89).
    *
    * @returns {{ok: boolean, message: string}} Carbon's `BlueStdResult`.
    */
@@ -75,25 +87,39 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
     const table = this.GetMetadata(owner);
     if (!table) return KeyError("object not found in the database");
     if (!Object.hasOwn(table, key)) return KeyError("key not found in the database");
+
     delete table[key];
-    if (!Object.keys(table).length) delete owner[BLUE_OBJECT_METADATA_KEY];
+    if (!Object.keys(table).length) this._metadata.delete(owner);
     return OK;
   }
 
   /**
-   * Removes the object's table (:82-94).
+   * Removes the object's table (:91-102).
    *
    * @returns {{ok: boolean, message: string}} Carbon's `BlueStdResult`.
    */
   DeleteObject(owner)
   {
     if (!this.GetMetadata(owner)) return KeyError("object not found in the database");
-    delete owner[BLUE_OBJECT_METADATA_KEY];
+    this._metadata.delete(owner);
     return OK;
   }
 
   /**
-   * The object's keys (:113-128).
+   * One key's value (:104-119).
+   *
+   * @returns {{result: {ok: boolean, message: string}, value: string|null}} Carbon's out argument comes back here.
+   */
+  Index(owner, key)
+  {
+    const table = this.GetMetadata(owner);
+    if (!table) return { result: KeyError("object not found in the database"), value: null };
+    if (!Object.hasOwn(table, key)) return { result: KeyError("key not found in the database"), value: null };
+    return { result: OK, value: table[key] };
+  }
+
+  /**
+   * The object's keys (:121-136).
    *
    * @returns {{result: {ok: boolean, message: string}, keys: string[]}} Carbon's out argument comes back here.
    */
@@ -104,7 +130,22 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   }
 
   /**
-   * Copies the source object's keys onto the target (:155-167).
+   * A copy of the object's key/value pairs (:138-149).
+   *
+   * @returns {{result: {ok: boolean, message: string}, items: Object<string, string>}} Carbon's out argument comes back here.
+   */
+  GetItems(owner)
+  {
+    const table = this.GetMetadata(owner);
+    const items = Object.create(null);
+    if (!table) return { result: KeyError("object not found in the database"), items };
+
+    Object.assign(items, table);
+    return { result: OK, items };
+  }
+
+  /**
+   * Copies the source object's keys onto the target (:156-168).
    *
    * @returns {{ok: boolean, message: string}} Carbon's `BlueStdResult`.
    */
@@ -115,7 +156,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
   }
 
   /**
-   * Copies metadata across every object the source reaches (:169-...).
+   * Copies metadata across every object the source reaches (:170-217).
    * Carbon finds the source's IRoot interfaces by member walk (`FindInterface`);
    * nothing here needs it yet.
    */
@@ -138,3 +179,5 @@ CjsSchema.decorateMethod(BlueObjectMetadata, "DeleteObject", blue.method, meta.a
 CjsSchema.decorateMethod(BlueObjectMetadata, "CopyDeep", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueObjectMetadata, "Get", blue.method, meta.adapted);
 CjsSchema.decorateMethod(BlueObjectMetadata, "CopyShallow", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "Index", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "GetItems", blue.method, meta.adapted);

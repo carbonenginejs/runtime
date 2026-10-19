@@ -48,7 +48,7 @@ test("SOF decal origins opt in lazily, survive builds, and remain editor-only", 
   for (let i = 0; i < items.length; i++)
   {
     assert.match(ids[i], /^[0-9a-f-]{36}$/u);
-    assert.equal(Object.getOwnPropertyDescriptor(items[i], "__bluemetadata__").enumerable, false);
+    assert.equal(Object.hasOwn(items[i], "__bluemetadata__"), false, "metadata lives in the table, not on the object");
     assert.equal(BeObjectMetadata.Get(prepared[0].items[i], "sof_source_id"), ids[i]);
     assert.deepEqual(editor.decals[i].__bluemetadata__, {
       SofDna: dna, SofParentHullName: "hull", sof_source_id: ids[i]
@@ -128,6 +128,6 @@ test("decal origin metadata hydrates without a member and stamp-only edits retur
   const decal = new EveSpaceObjectDecal();
   assert.equal(CjsSchema.setValues(decal, { __bluemetadata__: values.decals[0].__bluemetadata__ }, { returnBoolean: true }), false);
   assert.equal(BeObjectMetadata.Get(decal, "sof_source_id"), values.decals[0].__bluemetadata__.sof_source_id);
-  assert.equal(Object.getOwnPropertyDescriptor(decal, "__bluemetadata__").enumerable, false);
+  assert.equal(Object.hasOwn(decal, "__bluemetadata__"), false, "metadata lives in the table, not on the object");
   assert.equal(Object.hasOwn(decal, "sof_source_id"), false);
 });

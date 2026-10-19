@@ -3,6 +3,8 @@ import { CjsSchema } from "../../../../global/schema/CjsSchema.js";
 // These leaves hold canonical schema registrations and schema-installed interface declarations.
 import { getClassRegistration } from "../../../../global/blue/classes/registry.js";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
+// Object metadata lives in Blue's table, not on the object (BlueObjectMetadata.cpp:8).
+import { BeObjectMetadata } from "../../../../global/blue/BlueObjectMetadata.js";
 import { dataType, isRecord, memberPath, put } from "./dataTypes.js";
 
 const RESERVED = new Set(["_type", "_id", "_ref", "__bluemetadata__"]);
@@ -369,8 +371,9 @@ export function writeGraph(root, handlers, options = {})
             }
             catch (error) { report(childPath, error); }
         }
-        const metadata = Object.getOwnPropertyDescriptor(instance, "__bluemetadata__");
-        if (metadata && Object.hasOwn(metadata, "value")) out.__bluemetadata__ = metadataValue(metadata.value);
+        // The object's table, under its reserved key (YamlWriter.cpp:329-341).
+        const metadata = BeObjectMetadata.GetMetadata(instance);
+        if (metadata) out.__bluemetadata__ = metadataValue(metadata);
         if (isEmbedded) activeEmbedded.delete(instance);
         return out;
     };
@@ -641,7 +644,14 @@ export function readGraph(root, handlers, options = {})
         }
         if (Object.hasOwn(source, "__bluemetadata__"))
         {
-            try { Object.defineProperty(instance, "__bluemetadata__", { value: metadataValue(source.__bluemetadata__), writable: true, configurable: true }); }
+            // Into the table, never onto the object (DictReader.cpp:185-188). The
+            // bag's dictionary replaces the object's table whole.
+            try
+            {
+                const metadata = metadataValue(source.__bluemetadata__);
+                BeObjectMetadata.DeleteObject(instance);
+                for (const key of Object.keys(metadata)) BeObjectMetadata.Set(instance, key, metadata[key]);
+            }
             catch (error) { report(memberPath(path, "__bluemetadata__"), error); }
         }
         return instance;

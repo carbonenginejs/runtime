@@ -388,8 +388,8 @@ export class CjsSOFUpdater
           // Decals can overlap at exactly the same placement with different
           // roles. Require their existing editor source association here.
           const sourceId = BeObjectMetadata.Get(item, "sof_source_id");
-          if (sourceId === undefined || decal?.__bluemetadata__?.sof_source_id !== sourceId
-            || decal.__bluemetadata__.SofParentHullName !== dna.GetHullNames()[hull]) return false;
+          if (sourceId === null || BeObjectMetadata.Get(decal, "sof_source_id") !== sourceId
+            || BeObjectMetadata.Get(decal, "SofParentHullName") !== dna.GetHullNames()[hull]) return false;
           if (!CjsSchema.isInstanceOf("Tr2Effect", effect) || effects.has(effect)) return false;
           effects.add(effect);
           if (kind !== usage.USAGE_STANDARD && kind !== usage.USAGE_LOGO)
@@ -662,7 +662,8 @@ export class CjsSOFUpdater
     const dna = update.dna.GetDnaString();
     for (const decal of object.decals ?? [])
     {
-      if (decal.__bluemetadata__?.SofDna === before.GetDnaString() && decal.__bluemetadata__.SofDna !== dna)
+      const sofDna = BeObjectMetadata.Get(decal, "SofDna");
+      if (sofDna === before.GetDnaString() && sofDna !== dna)
         plan.changes.push({ object: decal, type: getRegisteredClassName(decal.constructor), values: { __bluemetadata__: { SofDna: dna } } });
     }
     for (const change of plan.changes) this._ApplyChange(change);
@@ -909,9 +910,10 @@ export class CjsSOFUpdater
           if (!CjsSchema.isInstanceOf("EveSpaceObjectDecal", decal) || !CjsSchema.isInstanceOf("Tr2Effect", effect)
             || effect.effectFilePath !== `${dna.GetDecalShaderLocationResPath()}/${dna.GetShaderPrefix(false)}${name}`) return false;
           const sourceId = BeObjectMetadata.Get(item, "sof_source_id");
-          if (decal.__bluemetadata__?.sof_source_id !== undefined && decal.__bluemetadata__.sof_source_id !== sourceId) return false;
-          if (decal.__bluemetadata__?.SofParentHullName !== undefined
-            && decal.__bluemetadata__.SofParentHullName !== dna.GetHullNames()[hull]) return false;
+          const decalSourceId = BeObjectMetadata.Get(decal, "sof_source_id");
+          if (decalSourceId !== null && decalSourceId !== sourceId) return false;
+          const parentHullName = BeObjectMetadata.Get(decal, "SofParentHullName");
+          if (parentHullName !== null && parentHullName !== dna.GetHullNames()[hull]) return false;
           const shader = dna.GetGenericDecalShaderData(name);
           if (!shader || item.meshIndex === -1) continue;
           for (const textureName of shader.parentTextures)
@@ -1065,9 +1067,8 @@ export class CjsSOFUpdater
       if (key === "__bluemetadata__")
       {
         // Preserve source identity. Only DNA provenance follows this edit.
-        const current = live.__bluemetadata__ || {};
-        if (value.sof_source_id !== undefined && value.sof_source_id !== current.sof_source_id) return false;
-        if (typeof value.SofDna === "string" && value.SofDna !== current.SofDna)
+        if (value.sof_source_id !== undefined && value.sof_source_id !== BeObjectMetadata.Get(live, "sof_source_id")) return false;
+        if (typeof value.SofDna === "string" && value.SofDna !== BeObjectMetadata.Get(live, "SofDna"))
           patch.__bluemetadata__ = { SofDna: value.SofDna };
         continue;
       }
