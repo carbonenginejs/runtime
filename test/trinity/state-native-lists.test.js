@@ -403,8 +403,8 @@ test("Update reads activation before destination and reads a changed destination
   assert.equal(state.Update(4n), replacement);
   assert.deepEqual(calls, [["activate", 4n], ["destination"], ["veto"], ["stop"], ["finalizer"], ["destination"]]);
   assert.equal(state._isActive, false);
-  assert.deepEqual(action.calls, [["CanTransition"]], "Stop remains queued until the drain");
-  ExecuteMainThreadActions();
+  // Fixes CE-198: Carbon queues the action Stop since trinity 85a2b621; ours
+  // runs it directly, so it has happened before the finalizer is asked.
   assert.deepEqual(action.calls, [["CanTransition"], ["Stop", controller]]);
   assert.equal(action.calls[1][1], controller);
 });
@@ -465,12 +465,11 @@ test("finalizing waits on its finalizer, then restarts when its transition no lo
   state.finalizer = finalizer;
   const { controller } = Linked(t, state);
   state.Start();
-  ExecuteMainThreadActions();
   action.calls.length = 0;
   assert.equal(state.Update(0n), null);
   assert.equal(state._isFinalizing, true);
   assert.equal(state._isActive, true);
-  ExecuteMainThreadActions();
+  // Fixes CE-198: the actions run directly, no drain needed.
   assert.deepEqual(action.calls, [["CanTransition"], ["Stop", controller]]);
   assert.equal(action.calls[1][1], controller);
   transition.calls.length = 0;
@@ -484,8 +483,6 @@ test("finalizing waits on its finalizer, then restarts when its transition no lo
   assert.equal(state._isActive, true);
   assert.equal(state._isFinalizing, false);
   assert.equal(state._hasBeenVetoed, false);
-  assert.deepEqual(action.calls, []);
-  ExecuteMainThreadActions();
   assert.deepEqual(action.calls, [["Start", controller]]);
   assert.equal(action.calls[0][1], controller);
 });
@@ -563,32 +560,29 @@ test("required transition methods fail visibly when an admitted instance is malf
   assert.throws(() => state._GetNextState(), TypeError);
 });
 
-test("Start and Stop remain queued, re-read controllers at drain and skip actions after Unlink", t =>
+test("Start and Stop run their actions immediately with the controller current at call time", t =>
 {
+  // Fixes CE-198: Carbon queues these since trinity 85a2b621; ours runs them directly.
   const state = State(), action = new StateListObservedAction();
   state.actions.Append(action);
   const { machine, controller } = Linked(t, state);
   action.calls.length = 0;
-  state.Start();
-  assert.deepEqual(action.calls, []);
   const next = new Tr2Controller();
   let current = next;
   machine.GetController = () => current;
-  ExecuteMainThreadActions();
+  state.Start();
   assert.deepEqual(action.calls, [["Start", next]]);
   assert.equal(action.calls[0][1], next);
-  state.Stop();
-  assert.deepEqual(action.calls, [["Start", next]]);
   current = controller;
-  ExecuteMainThreadActions();
+  state.Stop();
   assert.deepEqual(action.calls, [["Start", next], ["Stop", controller]]);
   assert.equal(action.calls[1][1], controller);
   action.calls.length = 0;
   state.Start();
+  assert.deepEqual(action.calls, [["Start", controller]]);
+  action.calls.length = 0;
   state.Unlink();
-  assert.deepEqual(action.calls, [["Unlink"]]);
-  ExecuteMainThreadActions();
-  assert.deepEqual(action.calls, [["Unlink"]]);
+  assert.deepEqual(action.calls, [["Stop", controller], ["Unlink"]]);
   assert.equal(state.GetStateMachine(), null);
 });
 

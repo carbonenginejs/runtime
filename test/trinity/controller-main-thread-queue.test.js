@@ -8,6 +8,7 @@ import {
   ITr2StateMachineStateFinalizer,
   Tr2ActionPlayCurveSet,
   Tr2Controller,
+  Tr2ControllerFloatVariable,
   Tr2StateMachine,
   Tr2StateMachineState,
   Tr2StateMachineTransition
@@ -113,7 +114,7 @@ test("a throwing action drops the rest of its batch and resets the queue state",
   assert.deepEqual(events, ["next"]);
 });
 
-test("state actions start and stop at the drain; the finalizer is asked before the queued Stop runs", () =>
+test("state actions start and stop at once; Stop runs before the finalizer is asked (Fixes CE-198)", () =>
 {
   ExecuteMainThreadActions();
   const events = [];
@@ -157,21 +158,19 @@ test("state actions start and stop at the drain; the finalizer is asked before t
   controller.Link({});
 
   controller.Start();
-  assert.deepEqual(events, []);
-  ExecuteMainThreadActions();
   assert.deepEqual(events, ["source:start"]);
 
   fire = true;
   canFinalize = true;
   controller.Update(0.1);
-  // Tr2StateMachineState.cpp:302-316: Stop is queued, the finalizer runs now.
-  assert.deepEqual(events, ["source:start", "source:canTransition", "finalizer"]);
+  // Fixes CE-198: Stop runs directly, then the finalizer is asked, as before trinity 85a2b621.
+  assert.deepEqual(events, ["source:start", "source:canTransition", "source:stop", "finalizer", "destination:start"]);
   assert.equal(machine.currentState, destination);
   ExecuteMainThreadActions();
-  assert.deepEqual(events, ["source:start", "source:canTransition", "finalizer", "source:stop", "destination:start"]);
+  assert.deepEqual(events, ["source:start", "source:canTransition", "source:stop", "finalizer", "destination:start"]);
 });
 
-test("a state entered by FollowTransitions is updated before its actions start", () =>
+test("a state entered by FollowTransitions starts its actions before its transitions are evaluated (Fixes CE-198)", () =>
 {
   ExecuteMainThreadActions();
   const events = [];
@@ -191,30 +190,56 @@ test("a state entered by FollowTransitions is updated before its actions start",
   controller.stateMachines = [machine];
   controller.Link({});
   controller.Start();
-  // Tr2StateMachine.cpp:145-149: Start() queues, Update(ALL) runs at once, so
-  // b's action is asked CanTransition before it has started.
+  // Tr2StateMachine.cpp:145-149: Update(ALL) runs straight after Start; b's
+  // action has already started when b's transition is evaluated.
   assert.equal(machine.currentState, c);
-  assert.deepEqual(events, ["b:canTransition"]);
+  assert.deepEqual(events, ["b:start", "b:canTransition", "b:stop"]);
   ExecuteMainThreadActions();
-  assert.deepEqual(events, ["b:canTransition", "b:start", "b:stop"]);
+  assert.deepEqual(events, ["b:start", "b:canTransition", "b:stop"]);
 });
 
-test("an unlinked state skips its queued actions, as the donor lambda re-checks m_stateMachine", () =>
+test("a variable a state's action writes is current when that state's transitions are evaluated (CE-198)", () =>
 {
   ExecuteMainThreadActions();
-  const events = [];
   const controller = new Tr2Controller();
-  const state = new Tr2StateMachineState();
-  state.actions = [recordingAction("only", events)];
+  controller.updateThrottle = false;
+  const armed = new Tr2ControllerFloatVariable();
+  armed.name = "armed";
+  controller.variables = [armed];
+
+  // The entry state writes `armed`; its only transition reads it.
+  const entry = new Tr2StateMachineState();
+  entry.name = "entry";
+  entry.actions = [{
+    Link() {},
+    Unlink() {},
+    Start(owner)
+    {
+      owner.SetVariable("armed", 1);
+    },
+    Stop() {},
+    CanTransition()
+    {
+      return true;
+    }
+  }];
+  const ready = new Tr2StateMachineState();
+  ready.name = "ready";
+  const transition = new Tr2StateMachineTransition();
+  transition.name = "ready";
+  transition.condition = "armed > 0";
+  entry.transitions = [transition];
+
   const machine = new Tr2StateMachine();
-  machine.startState = state;
-  machine.states = [state];
+  machine.startState = entry;
+  machine.states = [entry, ready];
   controller.stateMachines = [machine];
   controller.Link({});
+
+  // No drain and no further Update: the transition must already see armed = 1.
   controller.Start();
-  state.Unlink();
-  ExecuteMainThreadActions();
-  assert.deepEqual(events, []);
+  assert.equal(controller.GetVariableValue("armed"), 1);
+  assert.equal(machine.currentState, ready);
 });
 
 test("Tr2Controller queues updateable Updates with Blue ticks (Tr2Controller.cpp:257-267)", t =>
