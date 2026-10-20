@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -167,7 +168,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     assert.equal(CjsSchema.cast(instance, Contract), instance);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), []);
     blue.interface(Contract)(Consumer);
-    assert.deepEqual(Array.from(mappedInterfaces(Consumer)), [ Consumer, Contract ]);
+    assert.deepEqual(Array.from(mappedInterfaces(Consumer)), [ExposureRoot, Consumer, Contract]);
     if (base)
     {
       assert.equal(CjsSchema.cast(instance, base), instance);

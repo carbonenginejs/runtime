@@ -24,11 +24,25 @@
 // genuinely needs a cast declares its own `Symbol.hasInstance`, as the
 // dependency-free contracts under `global/interfaces` already do.
 
-// This module imports NOTHING, for the reason `compose/notify.js` imports
-// nothing: `CjsSchema` installs these decorators onto its own namespace, so a
-// schema import here is a cycle through `schema/index.js` and fails at load
-// with "Cannot access 'CjsSchema' before initialization". Schema decoration of
-// installed members is therefore INJECTED by the caller - see `onInstalled`.
+// This module imports neither Blue nor schema. CjsSchema installs these
+// decorators and supplies the registration lookup, so imports would cycle or
+// reverse the dependency direction. Member decoration is also injected;
+// see `onInstalled`.
+
+let resolveInterfaceClass = () => null;
+
+/**
+ * Supplies the canonical registration lookup from the schema's existing leaf
+ * dependency. Compose cannot import Blue; table access resolves IRoot lazily
+ * because declarations can precede its registration.
+ *
+ * @param {function(string): (Function|null)} resolveClass Registered constructor lookup.
+ * @returns {void}
+ */
+export function setInterfaceClassResolver(resolveClass)
+{
+    resolveInterfaceClass = resolveClass;
+}
 
 /** Members every class already answers, which a contract must never overwrite. */
 const OBJECT_MEMBERS = new Set(Object.getOwnPropertyNames(Object.prototype));
@@ -405,9 +419,13 @@ export function hasOwnInterfaceTable(Constructor)
 
 
 /**
- * The class's own exposure table, created on first use with the class itself as
- * its first entry - `EXPOSURE_BEGIN` pushes the class's own IID before any
- * `MAP_INTERFACE` line runs (BlueExposureMacrosPython.h:39-42).
+ * The class's own exposure table: EXPOSURE_BEGIN_IMP inserts IRoot, then the
+ * class, before MAP_INTERFACE (BlueExposureMacrosPython.h:31,39-42).
+ *
+ * Adapted: IRoot is resolved lazily through the schema-supplied registration
+ * lookup when entries are read, avoiding a Blue dependency or import cycle. Tables
+ * declared before IRoot registers receive its entry on their next access.
+ * Unregistered IRoot is never represented by a fabricated class or null entry.
  *
  * @param {Function} Constructor The class being declared.
  * @param {string} decoratorName For the error message.
@@ -418,7 +436,22 @@ function OwnInterfaceTable(Constructor, decoratorName)
     if (typeof Constructor !== "function" || !Constructor.prototype)
         throw new TypeError(`carbon.${decoratorName} requires a class constructor.`);
     if (Object.hasOwn(Constructor, MAPPED)) return Constructor[MAPPED];
-    const table = { interfaces: new Set([ Constructor ]), chainTo: null };
+    const interfaces = new Set([ Constructor ]);
+    const table = {
+        get interfaces()
+        {
+            const root = resolveInterfaceClass("IRoot");
+            if (root && interfaces.values().next().value !== root)
+            {
+                const entries = new Set(interfaces);
+                interfaces.clear();
+                interfaces.add(root);
+                for (const entry of entries) interfaces.add(entry);
+            }
+            return interfaces;
+        },
+        chainTo: null
+    };
     Object.defineProperty(Constructor, MAPPED, { value: table, configurable: true });
     return table;
 }
@@ -426,10 +459,10 @@ function OwnInterfaceTable(Constructor, decoratorName)
 
 /**
  * The `@blue.interface(X, Y, ...)` class decorator: Carbon's
- * `MAP_INTERFACE` lines (BlueExposureMacros.h:171-175). The class itself is
- * always the first entry, as `EXPOSURE_BEGIN` adds it, so it is never listed.
+ * `MAP_INTERFACE` lines (BlueExposureMacros.h:171-175). IRoot and the class
+ * precede the explicit entries, as `EXPOSURE_BEGIN` adds both.
  * Without `chainTo` the table ends here, as `EXPOSURE_END()` does. Called with
- * no interfaces it declares a table holding only the class itself.
+ * no interfaces it declares a table holding IRoot and the class itself.
  *
  * WHY THIS IS NOT THE SAME FACT AS THE BASE LIST, with the case that settles
  * it. `MAP_INTERFACE` pushes an `InterfaceEntry` of IID and offset onto

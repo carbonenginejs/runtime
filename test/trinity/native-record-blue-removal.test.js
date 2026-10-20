@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -22,7 +23,7 @@ for(const [Class,fields,types,defaults]of [
 });
 
 test("triangle native query table admits typed-list records without struct interface invention",()=>{
- assert.deepEqual([...mappedInterfaces(Tr2Sprite2dTriangle)],[Tr2Sprite2dTriangle]);assert.deepEqual([...mappedInterfaces(Tr2UpscalingTechniqueInfo)],[]);
+ assert.deepEqual([...mappedInterfaces(Tr2Sprite2dTriangle)],[ExposureRoot, Tr2Sprite2dTriangle]);assert.deepEqual([...mappedInterfaces(Tr2UpscalingTechniqueInfo)],[]);
  const list=new BlueList(Tr2Sprite2dTriangle),triangle=new Tr2Sprite2dTriangle();assert.equal(list.Append(triangle),true);assert.equal(list.Append({index0:0,index1:1,index2:2}),false);assert.equal(list[0],triangle);
 });
 

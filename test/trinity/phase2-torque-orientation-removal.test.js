@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -16,7 +17,7 @@ for (const [Type, Base, interfaces] of [
   const value = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), Base.prototype);
   assert.equal("GetValues" in value, false);
-  assert.deepEqual([...mappedInterfaces(Type)], interfaces);
+  assert.deepEqual([...mappedInterfaces(Type)], interfaces.length ? [ExposureRoot, ...interfaces] : []);
   assert.equal(Type.from, undefined);
   for (const name of ["GetValues", "SetValues", "UpdateValues", "Initialize", "Dispose"])
     assert.equal(value[name], undefined);

@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -25,7 +26,7 @@ test("light attachments retain self-only queries without model or lifecycle beha
   {
     const value = new Type();
     assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
-    assert.deepEqual([...mappedInterfaces(Type)], [Type]);
+    assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type]);
     assert.equal(CjsSchema.cast(value, Type), value);
     assert.equal(CjsSchema.cast(value, IInitialize), null);
     assert.equal(CjsSchema.getConstructor(getRegisteredClassName(Type)), Type);

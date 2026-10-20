@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -39,7 +40,7 @@ test("shader records retain exact native tables, exposure order, flags and indep
     const a = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class)), b = new Class();
     assert.equal(a.constructor, Class); assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in a, false);
-    assert.equal("from" in Class, false); assert.deepEqual([...mappedInterfaces(Class)], [Class]);
+    assert.equal("from" in Class, false); assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]);
     assert.equal(CjsSchema.cast(a, Class), a); assert.equal(CjsSchema.cast(a, IInitialize), null); assert.equal(CjsSchema.cast(a, INotify), null);
     assert.deepEqual(GetResources(a), []);
     assert.deepEqual(CjsSchema.getSchema(Class).members.map(field => field.name), names);

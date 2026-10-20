@@ -15,7 +15,7 @@ test("variable records remove model behavior and retain exact native base/query 
   assert.equal(Object.getPrototypeOf(TriVariable.prototype), ITr2EffectValue.prototype);
   for (const Type of [Tr2ExpressionTermInfo, TriFloat, TriVariable])
   {
-    assert.deepEqual([...mappedInterfaces(Type)], Type === TriVariable ? [Type, IRoot] : [Type]);
+    assert.deepEqual([...mappedInterfaces(Type)], [IRoot, Type]);
     assert.equal(CjsSchema.cast(new Type(), IInitialize), null);
     for (const method of ["SetValues", "UpdateValues", "OnEvent", "Traverse", "GetResources"])
       assert.equal(method in new Type(), false, Type.name + "." + method);

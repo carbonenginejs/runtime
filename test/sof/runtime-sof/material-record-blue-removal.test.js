@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -49,7 +50,7 @@ test("plain SOF bases and all typed parameters retain exact native self and base
     const record = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     const typed = Class !== Parameter && Class !== AreaMaterial;
     assert.equal(Object.getPrototypeOf(Class.prototype), typed ? Parameter.prototype : Object.prototype);
-    assert.deepEqual([...mappedInterfaces(Class)], typed ? [Class, Parameter] : [Class]);
+    assert.deepEqual([...mappedInterfaces(Class)], typed ? [ExposureRoot, Class, Parameter] : [ExposureRoot, Class]);
     assert.equal(CjsSchema.cast(record, Class), record);
     if (typed) assert.equal(CjsSchema.cast(record, Parameter), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);

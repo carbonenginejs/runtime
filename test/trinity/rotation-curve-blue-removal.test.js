@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -40,7 +41,7 @@ test("query tables follow native exposure, including RandomAxis's omitted IIniti
   ];
   for (const [Class, table] of tables)
   {
-    assert.deepEqual([...mappedInterfaces(Class)], table);
+    assert.deepEqual([...mappedInterfaces(Class)], table.length ? [ExposureRoot, ...table] : []);
     const curve = new Class();
     for (const Interface of table) assert.equal(CjsSchema.cast(curve, Interface), curve);
     assert.equal(CjsSchema.cast(curve, IInitialize), Class === Tr2CurveRandomAxisRotation ? curve : null,

@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -25,7 +26,7 @@ for(const [Class,components,Base,interfaces] of cases)
     {
         const curve=be.classes.CreateInstanceFromName(name);
         assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
-        assert.deepEqual([...mappedInterfaces(Class)],[Class,...interfaces]);
+        assert.deepEqual([...mappedInterfaces(Class)],[ExposureRoot, Class, ...interfaces]);
         for(const Interface of interfaces) assert.equal(CjsSchema.cast(curve,Interface),curve);
         if(Class===Tr2CurveVector2) assert.equal(CjsSchema.cast(curve,ITriVectorFunction),null);
         assert.equal(curve.Reset,ITriFunction.prototype.Reset);

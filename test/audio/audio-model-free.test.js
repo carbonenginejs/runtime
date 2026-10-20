@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { AudGeometry, AudPosition, AudStaticDataRepository, ITr2AudGeometry } from "../../npm/dist/audio/index.js";
@@ -10,7 +11,7 @@ test("audio geometry and position retain native nominal interfaces without model
   const geometry = new AudGeometry();
   assert.equal(CjsSchema.cast(geometry, ITr2AudGeometry), geometry);
   assert.equal(CjsSchema.cast({ SetGeometry() {}, SetGeometryTransform() {}, RemoveGeometry() {} }, ITr2AudGeometry), null);
-  assert.deepEqual([...mappedInterfaces(AudGeometry)], [AudGeometry, ITr2AudGeometry]);
+  assert.deepEqual([...mappedInterfaces(AudGeometry)], [ExposureRoot, AudGeometry, ITr2AudGeometry]);
   const position = new AudPosition();
   assert.equal(CjsSchema.cast(position, IBluePlacementObserver), position);
   assert.equal(mappedInterfaces(AudPosition).has(INotify), false);

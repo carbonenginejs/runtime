@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -103,7 +104,7 @@ test("multi-placement composition preserves the caller's ordered records without
   assert.equal(CjsSchema.cast({ UpdatePlacements() {} }, IBlueMultiPlacementObserver), null);
   assert.equal(mappedInterfaces(MultiObserver).has(IBlueMultiPlacementObserver), false);
   blue.interface(IBlueMultiPlacementObserver)(MultiObserver);
-  assert.deepEqual(mappedInterfaces(MultiObserver), new Set([MultiObserver, IBlueMultiPlacementObserver]));
+  assert.deepEqual(mappedInterfaces(MultiObserver), new Set([ExposureRoot, MultiObserver, IBlueMultiPlacementObserver]));
 });
 
 test("Blue observer composition retains concrete calls and requires explicit query exposure", () =>
@@ -148,7 +149,7 @@ test("Blue observer composition retains concrete calls and requires explicit que
   assert.deepEqual(Array.from(position), [12, -3, 4]);
 
   blue.interface(IBlueEventListener, IBluePlacementObserver)(Observer);
-  assert.deepEqual(mappedInterfaces(Observer), new Set([Observer, IBlueEventListener, IBluePlacementObserver]));
+  assert.deepEqual(mappedInterfaces(Observer), new Set([ExposureRoot, Observer, IBlueEventListener, IBluePlacementObserver]));
   assert.equal("Initialize" in observer, false);
   assert.equal("SetValues" in observer, false);
 });

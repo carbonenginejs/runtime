@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -80,7 +81,7 @@ test("debug composition preserves caller-owned option accumulation and renderer 
   assert.equal(calls[2], renderer);
 
   blue.interface(ITr2DebugRenderable)(DebugRenderable);
-  assert.deepEqual(mappedInterfaces(DebugRenderable), new Set([DebugRenderable, ITr2DebugRenderable]));
+  assert.deepEqual(mappedInterfaces(DebugRenderable), new Set([ExposureRoot, DebugRenderable, ITr2DebugRenderable]));
   assert.equal("Initialize" in renderable, false);
   assert.equal("SetValues" in renderable, false);
 });
@@ -208,7 +209,7 @@ test("renderer composition preserves query booleans and caller-owned color outpu
   assert.equal(CjsSchema.cast(renderer, ITr2DebugRenderer2), renderer);
   assert.equal(mappedInterfaces(Renderer).has(ITr2DebugRenderer2), false);
   blue.interface(ITr2DebugRenderer2)(Renderer);
-  assert.deepEqual(mappedInterfaces(Renderer), new Set([Renderer, ITr2DebugRenderer2]));
+  assert.deepEqual(mappedInterfaces(Renderer), new Set([ExposureRoot, Renderer, ITr2DebugRenderer2]));
   assert.throws(() => renderer.DrawAxis(owner, mat4.create(), 0), /TestSharedDebugRendererQueries does not implement ITr2DebugRenderer2\.DrawAxis\(owner, transform, effect\)/u);
   assert.equal("GetRawRoot" in renderer, false);
 });

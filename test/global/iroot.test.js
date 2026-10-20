@@ -55,7 +55,8 @@ test("instance and service queries honor explicit exposure instead of method inh
   blue.interface()(Legacy);
   const legacy = new Legacy();
   assert.equal(classes.QueryThisInterface(legacy, Legacy, legacy.constructor), legacy);
-  assert.equal(classes.QueryThisInterface(legacy, IRoot, legacy.constructor, 1), null);
+  assert.equal(classes.QueryThisInterface(legacy, IRoot, legacy.constructor, 1), legacy,
+    "EXPOSURE_BEGIN_IMP adds IRoot even when the JS class has no IRoot method inheritance");
 });
 
 test("IRoot adds no lifetime API or serialized state", () =>

@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -15,7 +16,7 @@ test(`${className} has exact initialization exposure and no model services`, t =
   const value = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), IInitialize.prototype);
   assert.equal("GetValues" in value, false);
-  assert.deepEqual([...mappedInterfaces(Type)], [Type, IInitialize]);
+  assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type, IInitialize]);
   assert.equal(Type.from, undefined);
   for (const key of ["GetValues", "SetValues", "UpdateValues", "Dispose"]) assert.equal(value[key], undefined);
   assert.equal(value.Initialize(), true);

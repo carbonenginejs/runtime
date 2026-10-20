@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { AudParameter } from "../../npm/dist/audio/trinity/audio/AudParameter.js";
@@ -34,7 +35,7 @@ test("AudParameter has exactly its native INotify base and exposure without mode
 {
   const parameter = new AudParameter();
   assert.strictEqual(Object.getPrototypeOf(AudParameter.prototype), INotify.prototype);
-  assert.deepEqual([...mappedInterfaces(AudParameter)], [AudParameter, INotify]);
+  assert.deepEqual([...mappedInterfaces(AudParameter)], [ExposureRoot, AudParameter, INotify]);
   assert.strictEqual(CjsSchema.cast(parameter, INotify), parameter);
   assert.strictEqual(CjsSchema.cast(parameter, AudParameter), parameter);
   assert.equal(CjsSchema.cast(parameter, IInitialize), null);

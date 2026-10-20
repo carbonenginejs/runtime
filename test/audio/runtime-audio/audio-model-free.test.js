@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -60,8 +61,8 @@ test("real chain stretch retains authored emitter routing and native initializat
   assert.equal(mappedInterfaces(stretch.constructor).has(IInitialize), false,
     "negative control: inherited Initialize alone does not expose the native interface");
   assert.equal("SetValues" in stretch, false);
-  assert.deepEqual(mappedInterfaces(Tr2AudioStretchAuto), new Set([Tr2AudioStretchAuto, Tr2AudioStretchBase, ITr2Audio]));
-  assert.deepEqual(mappedInterfaces(Tr2AudioStretchBase), new Set([Tr2AudioStretchBase, IInitialize, ITr2DebugRenderable, ITr2Audio]));
-  assert.deepEqual(mappedInterfaces(AudGameObjResource), new Set([IInitialize, IListNotify, INotify, AudGameObjResource]));
-  assert.deepEqual(mappedInterfaces(AudEventCurve), new Set([AudEventCurve, ITriFunction, IInitialize, ITriCurveLength]));
+  assert.deepEqual(mappedInterfaces(Tr2AudioStretchAuto), new Set([ExposureRoot, Tr2AudioStretchAuto, Tr2AudioStretchBase, ITr2Audio]));
+  assert.deepEqual(mappedInterfaces(Tr2AudioStretchBase), new Set([ExposureRoot, Tr2AudioStretchBase, IInitialize, ITr2DebugRenderable, ITr2Audio]));
+  assert.deepEqual(mappedInterfaces(AudGameObjResource), new Set([ExposureRoot, IInitialize, IListNotify, INotify, AudGameObjResource]));
+  assert.deepEqual(mappedInterfaces(AudEventCurve), new Set([ExposureRoot, AudEventCurve, ITriFunction, IInitialize, ITriCurveLength]));
 });

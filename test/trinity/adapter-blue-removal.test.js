@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -27,7 +28,7 @@ for (const [name,Class,Base,table] of cases)
         const instance = be.classes.CreateInstanceFromName(name);
         assert.equal(instance.constructor,Class);
         assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
-        assert.deepEqual([...mappedInterfaces(Class)],table);
+        assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
         assert.equal(CjsSchema.cast(instance,Base),instance);
         assert.equal(instance.Reset,ITriFunction.prototype.Reset);
         assert.equal(instance.Reset(),undefined);

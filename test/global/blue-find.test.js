@@ -108,6 +108,8 @@ test("FindInterface tests only the object's own interface table, as Carbon's IsM
   assert.equal(be.classes.QueryThisInterface(chained, IMarker, chained.constructor, 1), chained);
   // ...but Carbon's Find tests the concrete class's own table only.
   assert.deepEqual(be.FindInterface(root, "BlueFindIMarker"), [ marked ]);
+  assert.deepEqual(new Set(be.FindInterface(root, "IRoot")), new Set([marked, chained]),
+    "EXPOSURE_BEGIN_IMP adds IRoot only to classes with an exposure table");
   assert.deepEqual(be.FindInterface(root, "NoSuchInterface"), []);
   assert.deepEqual(be.FindInterface(null, "BlueFindIMarker"), []);
 });

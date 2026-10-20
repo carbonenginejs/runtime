@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -26,7 +27,7 @@ test("texture reference has exact nominal provider and native self-provider quer
   const reference = new Tr2TextureReference();
   assert.equal(Object.getPrototypeOf(Tr2TextureReference.prototype), ITr2TextureProvider.prototype);
   assert.equal(CjsSchema.cast(reference, ITr2TextureProvider), reference);
-  assert.deepEqual([...mappedInterfaces(Tr2TextureReference)], [Tr2TextureReference, ITr2TextureProvider]);
+  assert.deepEqual([...mappedInterfaces(Tr2TextureReference)], [ExposureRoot, Tr2TextureReference, ITr2TextureProvider]);
   assert.equal(CjsSchema.cast(reference, INotify), null);
   assert.equal(CjsSchema.cast(reference, IInitialize), null);
   for (const name of ["SetValues", "UpdateValues", "OnEvent", "GetResources", "Traverse", "Initialize"])

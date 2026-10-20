@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -42,7 +43,7 @@ test("SOF material and area containers expose native self-only tables without mo
   {
     const record = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor, Class); assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
-    assert.deepEqual([...mappedInterfaces(Class)], [Class]); assert.equal(CjsSchema.cast(record, Class), record);
+    assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]); assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in record, false);
     assert.equal("from" in Class, false); assert.deepEqual(GetResources(record), []);

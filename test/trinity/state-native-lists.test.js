@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
@@ -133,12 +134,12 @@ test("State owns independently subscribed native lists with READ/PERSIST declara
   assert.notEqual(state.actions, other.actions);
   assert.notEqual(state.transitions, other.transitions);
   assert.notEqual(state.actions, state.transitions);
-  assert.deepEqual([...mappedInterfaces(Tr2StateMachineState)], [Tr2StateMachineState, IListNotify, INotify]);
+  assert.deepEqual([...mappedInterfaces(Tr2StateMachineState)], [ExposureRoot, Tr2StateMachineState, IListNotify, INotify]);
   assert.equal("GetValues" in state, false);
   assert.equal(state.GetValues, undefined);
   assert.equal(state.SetValues, undefined);
   assert.equal(Tr2StateMachineState.from, undefined);
-  assert.deepEqual([...mappedInterfaces(Tr2StateMachineTransition)], [Tr2StateMachineTransition, INotify]);
+  assert.deepEqual([...mappedInterfaces(Tr2StateMachineTransition)], [ExposureRoot, Tr2StateMachineTransition, INotify]);
   const action = new Tr2ActionCallback(), transition = new Tr2StateMachineTransition();
   assert.equal(CjsSchema.cast(transition, INotify), transition);
   assert.equal(state.actions.Append(action), true);

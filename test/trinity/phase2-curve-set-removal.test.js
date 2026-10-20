@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
@@ -52,8 +53,8 @@ test("curve-set and range have native bases and exact exposure without model con
   const set = new TriCurveSet(), range = new Tr2CurveSetRange();
   assert.equal(Object.getPrototypeOf(TriCurveSet.prototype), IInitialize.prototype);
   assert.equal(Object.getPrototypeOf(Tr2CurveSetRange.prototype), Object.prototype);
-  assert.deepEqual([...mappedInterfaces(TriCurveSet)], [TriCurveSet, IInitialize, ITr2Updateable]);
-  assert.deepEqual([...mappedInterfaces(Tr2CurveSetRange)], [Tr2CurveSetRange]);
+  assert.deepEqual([...mappedInterfaces(TriCurveSet)], [ExposureRoot, TriCurveSet, IInitialize, ITr2Updateable]);
+  assert.deepEqual([...mappedInterfaces(Tr2CurveSetRange)], [ExposureRoot, Tr2CurveSetRange]);
   assert.equal(CjsSchema.cast(set, ISimTimeRebaseNotify), set);
   assert.equal(mappedInterfaces(TriCurveSet).has(ISimTimeRebaseNotify), false);
   for (const value of [set, range])
@@ -249,7 +250,7 @@ test("Copier clones shared plain ranges and typed lists with class-owned runtime
 
 test("real TriValueBinding exposes native admission and copies through a model-free set", () =>
 {
-  assert.deepEqual([...mappedInterfaces(TriValueBinding)], [TriValueBinding, ITr2ValueBinding, INotify]);
+  assert.deepEqual([...mappedInterfaces(TriValueBinding)], [ExposureRoot, TriValueBinding, ITr2ValueBinding, INotify]);
   assert.equal(mappedInterfaces(TriValueBinding).has(IInitialize), false);
   const set = new TriCurveSet(), binding = new TriValueBinding();
   const source = new Tr2CurveSetRange(), destination = new Tr2CurveSetRange();

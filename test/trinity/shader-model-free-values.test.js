@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 // Texture parameters ask be.resMan for their texture as Carbon asks BeResMan,
@@ -73,8 +74,8 @@ test("real Crisis material hydration retains subscribed lists and native resourc
   assert.equal(effect.parameters.length, 1);
   assert.equal(effect.resources.length, 3);
   assert.equal("GetValues" in effect, false);
-  assert.deepEqual(mappedInterfaces(Tr2Material), new Set([Tr2Material]));
-  assert.deepEqual(mappedInterfaces(Tr2Effect), new Set([Tr2Effect, Tr2Material, IInitialize, INotify, IListNotify]));
+  assert.deepEqual(mappedInterfaces(Tr2Material), new Set([ExposureRoot, Tr2Material]));
+  assert.deepEqual(mappedInterfaces(Tr2Effect), new Set([ExposureRoot, Tr2Effect, Tr2Material, IInitialize, INotify, IListNotify]));
   const parameters = effect.parameters, resources = effect.resources;
   for (const list of [parameters, resources])
   {

@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -15,8 +16,8 @@ test("value and dynamic bindings retain exact native bases and query policies", 
     for (const name of ["SetValues", "UpdateValues", "OnEvent", "Traverse", "GetResources"])
       assert.equal(name in new Type(), false, Type.name + "." + name);
   }
-  assert.deepEqual([...mappedInterfaces(TriValueBinding)], [TriValueBinding, ITr2ValueBinding, INotify]);
-  assert.deepEqual([...mappedInterfaces(Tr2DynamicBinding)], [Tr2DynamicBinding, INotify]);
+  assert.deepEqual([...mappedInterfaces(TriValueBinding)], [ExposureRoot, TriValueBinding, ITr2ValueBinding, INotify]);
+  assert.deepEqual([...mappedInterfaces(Tr2DynamicBinding)], [ExposureRoot, Tr2DynamicBinding, INotify]);
   const dynamic = new Tr2DynamicBinding();
   assert.equal(CjsSchema.cast(dynamic, ISimTimeRebaseNotify), dynamic);
   assert.equal(mappedInterfaces(Tr2DynamicBinding).has(ISimTimeRebaseNotify), false);

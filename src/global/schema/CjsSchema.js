@@ -13,13 +13,16 @@ import {
 import { claimAbstractMethods, decorateAbstractMethod, installAbstractMethod } from "../compose/abstract.js";
 import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } from "../compose/className.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
-import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, mappedInterfaces } from "../compose/interface.js";
+import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, mappedInterfaces, setInterfaceClassResolver } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport, isExportableField, isTransportedDeclaration, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
 import { CjsUnusedMethodError } from "../utils/errors/CjsUnusedMethodError.js";
 import { registerClass, unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../blue/classes/registry.js";
 
+
+// Compose stays below Blue; supply the existing registration lookup for lazy IRoot entries.
+setInterfaceClassResolver(getRegisteredConstructor);
 
 const CLASS_SCHEMA = new WeakMap();
 

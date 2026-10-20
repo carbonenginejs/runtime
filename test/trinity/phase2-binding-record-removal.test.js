@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -12,9 +13,9 @@ test("binding records expose exact native nominal bases and query order", () =>
   assert.equal(Object.getPrototypeOf(Tr2BindingVector3.prototype), Object.prototype);
   assert.equal(Object.getPrototypeOf(Tr2PyValueBinding.prototype), INotify.prototype);
   assert.equal(Object.getPrototypeOf(Tr2ExternalParameter.prototype), IInitialize.prototype);
-  assert.deepEqual([...mappedInterfaces(Tr2BindingVector3)], [Tr2BindingVector3]);
-  assert.deepEqual([...mappedInterfaces(Tr2PyValueBinding)], [Tr2PyValueBinding, ITr2ValueBinding, INotify]);
-  assert.deepEqual([...mappedInterfaces(Tr2ExternalParameter)], [Tr2ExternalParameter, IInitialize, INotify]);
+  assert.deepEqual([...mappedInterfaces(Tr2BindingVector3)], [ExposureRoot, Tr2BindingVector3]);
+  assert.deepEqual([...mappedInterfaces(Tr2PyValueBinding)], [ExposureRoot, Tr2PyValueBinding, ITr2ValueBinding, INotify]);
+  assert.deepEqual([...mappedInterfaces(Tr2ExternalParameter)], [ExposureRoot, Tr2ExternalParameter, IInitialize, INotify]);
   assert.equal(CjsSchema.cast(new Tr2PyValueBinding(), IInitialize), null);
   for (const Type of [Tr2BindingVector3, Tr2PyValueBinding, Tr2ExternalParameter])
     for (const method of ["SetValues", "UpdateValues", "OnEvent", "Traverse", "GetResources"])

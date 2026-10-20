@@ -58,6 +58,8 @@ const COLOR_PROPERTIES = Object.freeze([
  * The SOF colour set a space object hands down to its children: one colour per
  * named material slot (Primary, Hull, Booster, State0, ...) in a fixed order.
  */
+// Self-map: EveChildInheritProperties_Blue.cpp:13-14 (EXPOSURE_BEGIN / MAP_INTERFACE).
+@blue.interface()
 @blue.define("EveChildInheritProperties")
 @blue.inherit(IRoot)
 export class EveChildInheritProperties

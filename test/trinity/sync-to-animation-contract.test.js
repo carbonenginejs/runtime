@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
@@ -70,7 +71,7 @@ function Observe(t, object, method)
 
 test("Sync exposes exactly its concrete and finalizer query identities in native order", () =>
 {
-  assert.deepEqual([...mappedInterfaces(Type)], [Type, ITr2StateMachineStateFinalizer]);
+  assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type, ITr2StateMachineStateFinalizer]);
 });
 
 test("Sync is model-free with nominal finalizer composition, native empty defaults and its authored mask", () =>
@@ -106,9 +107,10 @@ test("Sync retains exact exposure and composition in a fresh process", () =>
       import assert from "node:assert/strict";
       import { meta, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
+      import { IRoot } from ${JSON.stringify(moduleURL("global/blue/IRoot.js"))};
       import { ITr2StateMachineStateFinalizer } from ${JSON.stringify(moduleURL("trinity/controllers/state/ITr2StateMachineStateFinalizer.js"))};
       const { Tr2SyncToAnimation } = await import(${JSON.stringify(moduleURL("trinity/controllers/Tr2SyncToAnimation.js"))});
-      assert.deepEqual([...mappedInterfaces(Tr2SyncToAnimation)], [Tr2SyncToAnimation, ITr2StateMachineStateFinalizer]);
+      assert.deepEqual([...mappedInterfaces(Tr2SyncToAnimation)], [IRoot, Tr2SyncToAnimation, ITr2StateMachineStateFinalizer]);
       const finalizer = new Tr2SyncToAnimation();
       assert.equal(Object.getPrototypeOf(Tr2SyncToAnimation.prototype), Object.prototype);
       assert.equal("GetValues" in finalizer, false);

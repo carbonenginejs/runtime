@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { be, GetResources } from "../../npm/dist/global/blue/index.js";
@@ -22,7 +23,7 @@ test("PickingMask is an independent native IRoot record with only its own query"
  assert.equal(Object.getPrototypeOf(Tr2Sprite2dPickingMask.prototype),Object.prototype);
  for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in mask,false);
  assert.equal("from" in Tr2Sprite2dPickingMask,false);
- assert.deepEqual([...mappedInterfaces(Tr2Sprite2dPickingMask)],[Tr2Sprite2dPickingMask]);
+ assert.deepEqual([...mappedInterfaces(Tr2Sprite2dPickingMask)],[ExposureRoot, Tr2Sprite2dPickingMask]);
  assert.equal(mask.maskPath,"");assert.equal(mask.mask,null);assert.equal(mask.channel,3);
  for(const name of ["threshold","leftEdge","topEdge","rightEdge","bottomEdge"])assert.equal(mask[name],0);
 });
@@ -62,11 +63,11 @@ test("actual sprite PickPoint consumes the preserved nine-slice mask and strict 
  assert.equal(owner.PickPoint(4.5,4.5,renderer),owner);assert.equal(owner.PickPoint(0.9,0.9,renderer),null);mask.threshold=1;assert.equal(owner.PickPoint(4.5,4.5,renderer),null);
 });
 
-test("Transform retains its native base, ordered notifications and only itself in its local exposure",()=>{
+test("Transform retains its native base, ordered notifications and IRoot plus itself in its local exposure",()=>{
  assert.equal(Object.getPrototypeOf(Tr2Sprite2dTransform.prototype),Tr2Sprite2dContainerBase.prototype);
  const table=Object.getOwnPropertyDescriptor(Tr2Sprite2dTransform,Symbol.for("carbonenginejs.carbon.mappedInterfaces"))?.value;
- assert.ok(table);assert.deepEqual([...table.interfaces],[Tr2Sprite2dTransform]);assert.equal(table.chainTo,Tr2Sprite2dContainerBase);
- assert.deepEqual([...mappedInterfaces(Tr2Sprite2dTransform)],[Tr2Sprite2dTransform,...mappedInterfaces(Tr2Sprite2dContainerBase)]);
+ assert.ok(table);assert.deepEqual([...table.interfaces],[ExposureRoot, Tr2Sprite2dTransform]);assert.equal(table.chainTo,Tr2Sprite2dContainerBase);
+ assert.deepEqual([...mappedInterfaces(Tr2Sprite2dTransform)],[...new Set([ExposureRoot, Tr2Sprite2dTransform, ...mappedInterfaces(Tr2Sprite2dContainerBase)])]);
  const names=["rotationCenter","rotation","scalingCenter","scalingRotation","scale"];
  const own=CjsSchema.getSchema(Tr2Sprite2dTransform).fields.filter(f=>names.includes(f.name));assert.deepEqual(own.map(f=>f.name),names);
  for(const field of own){assert.equal(field.edit.notify,true);assert.equal(field.edit.write,true);assert.notEqual(field.edit.persist,true);}

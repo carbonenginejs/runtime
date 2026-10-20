@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -16,7 +17,7 @@ test(`${Type.name} has supported native queries and no model services`, () =>
   const value = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
   assert.equal("GetValues" in value, false);
-  assert.deepEqual([...mappedInterfaces(Type)], interfaces);
+  assert.deepEqual([...mappedInterfaces(Type)], interfaces.length ? [ExposureRoot, ...interfaces] : []);
   assert.equal(Type.from, undefined);
   for (const method of ["GetValues", "SetValues", "UpdateValues", "Dispose", "Initialize"]) assert.equal(value[method], undefined);
 });

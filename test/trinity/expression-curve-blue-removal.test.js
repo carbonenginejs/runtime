@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -29,7 +30,7 @@ test("exact native query maps retain vector's color-first function branch", () =
 {
   for (const [Class, expected] of [[Scalar,[Scalar,ITriFunction,ITriScalarFunction,IInitialize]], [Vector,[Vector,ITriColorFunction,ITriVectorFunction,ITriFunction,IInitialize]]])
   {
-    assert.deepEqual([...mappedInterfaces(Class)], expected);
+    assert.deepEqual([...mappedInterfaces(Class)], expected.length ? [ExposureRoot, ...expected] : []);
     const value = new Class();
     for (const Interface of expected) assert.equal(CjsSchema.cast(value, Interface), value);
   }

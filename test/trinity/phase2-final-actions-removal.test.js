@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -20,7 +21,7 @@ for (const [Type, values, extra] of [
   const instance = new Type();
   assert.equal(Object.getPrototypeOf(Type.prototype), ITr2ControllerAction.prototype);
   assert.equal("GetValues" in instance, false);
-  assert.deepEqual([...mappedInterfaces(Type)], [Type, ITr2ControllerAction, ...extra]);
+  assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type, ITr2ControllerAction, ...extra]);
   assert.equal(Type.from, undefined);
   for (const key of ["SetValues", "UpdateValues", "GetValues", "Dispose"])
     assert.equal(instance[key], undefined);

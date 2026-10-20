@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, be } from "@carbonenginejs/runtime/blue";
@@ -79,7 +80,7 @@ test("IList exposes abstract operations while BlueList keeps its generic templat
   assert.equal(Array.isArray(list), true);
   assert.equal(CjsSchema.cast(list, IList), list);
   assert.equal(CjsSchema.cast(list, ICopierCustomAssignment), list);
-  assert.deepEqual(Array.from(mappedInterfaces(BlueList)), [ BlueList, IList, ICopierCustomAssignment ]);
+  assert.deepEqual(Array.from(mappedInterfaces(BlueList)), [ExposureRoot, BlueList, IList, ICopierCustomAssignment]);
   assert.equal("SetValues" in list, false);
   assert.equal("Initialize" in list, false);
 });

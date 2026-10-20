@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
@@ -21,7 +22,7 @@ for(const [name,Class,Base,table] of [
 ])test(`${name} exposes the exact native table without model conveniences`,()=>{
     const value=be.classes.CreateInstanceFromName(name);
     assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
-    assert.deepEqual([...mappedInterfaces(Class)],table);
+    assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
     for(const method of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(method in value,false);
     assert.equal("from" in Class,false);assert.equal(value.Reset,ITriFunction.prototype.Reset);assert.equal(value.Reset(),undefined);
     const list=new BlueList(ITriFunction);assert.equal(list.Append(value),true);assert.equal(list[0],value);

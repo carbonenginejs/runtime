@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -25,7 +26,7 @@ for(const [Class,Base,table] of [
 ])test(getRegisteredClassName(Class)+" native base and exact exposure",()=>{
  const instance=be.classes.CreateInstanceFromName(getRegisteredClassName(Class));
  assert.equal(instance.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
- assert.deepEqual([...mappedInterfaces(Class)],table);
+ assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
  for(const method of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(method in instance,false);
  assert.equal("from" in Class,false);assert.equal(instance.Reset,ITriFunction.prototype.Reset);
  const list=new BlueList(ITriFunction);assert.equal(list.Append(instance),true);

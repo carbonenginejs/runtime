@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -34,7 +35,7 @@ test("record query tables match the three native exposures", () =>
 {
   for (const [Class, expected] of [[Tr2MatrixKey, [Tr2MatrixKey]], [TriEventKey, [TriEventKey]], [Tr2ScalarExprKey, [Tr2ScalarExprKey, IInitialize, INotify]]])
   {
-    assert.deepEqual([...mappedInterfaces(Class)], expected);
+    assert.deepEqual([...mappedInterfaces(Class)], expected.length ? [ExposureRoot, ...expected] : []);
     const key = new Class();
     for (const Interface of expected) assert.equal(CjsSchema.cast(key, Interface), key);
   }

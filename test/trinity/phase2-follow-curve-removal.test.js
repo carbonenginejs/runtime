@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -25,7 +26,7 @@ test("Follow uses exact vector query exposure and nominal list observer without 
   const curve = new Tr2FollowCurve();
   assert.equal("GetValues" in curve, false);
   assert.equal(CjsSchema.cast(curve, IListNotify), curve);
-  assert.deepEqual([...mappedInterfaces(Tr2FollowCurve)], [Tr2FollowCurve, ITriVectorFunction, ITriFunction]);
+  assert.deepEqual([...mappedInterfaces(Tr2FollowCurve)], [ExposureRoot, Tr2FollowCurve, ITriVectorFunction, ITriFunction]);
   assert.equal(Tr2FollowCurve.from, undefined);
   for (const method of ["SetValues", "GetValues", "UpdateValues", "Initialize", "Dispose"])
     assert.equal(curve[method], undefined);

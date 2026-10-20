@@ -76,6 +76,7 @@ test("GetTypeInfo returns class, interface, member and method records (TypeInfo.
   assert.equal(classInfo.module, "");
   assert.equal(classInfo.autovar, 0);
   assert.equal(typeof interfaces, "object");
+  assert.equal(interfaces.IRoot, 0, "native type information includes the implicit root interface");
   // Be::EDITFLAGS: READ 0x1 | WRITE 0x2 | PERSIST 0x10.
   assert.equal(members.name.editflags, 0x13);
   assert.equal(members.name.type, "string");

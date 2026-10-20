@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { be, INotify, IListNotify, BlueList } from "../../npm/dist/global/blue/index.js";
@@ -46,7 +47,7 @@ test("native six-verb sprite interface stays abstract and model-free",()=>{
 
 test("base and real descendants lose inherited model machinery while retaining exact native contracts",()=>{
  assert.equal(Object.getPrototypeOf(Tr2SpriteObjectBase.prototype),ITr2SpriteObject.prototype);
- for(const Class of descendants){const value=new Class();for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in value,false,Class.name+"."+name);assert.equal("from" in Class,false);assert.deepEqual([...mappedInterfaces(Class)],CARBON_TABLES.get(Class),Class.name);assert.equal(CjsSchema.cast(value,ITr2SpriteObject),value);assert.equal(CjsSchema.cast(value,INotify),value);}
+ for(const Class of descendants){const value=new Class();for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in value,false,Class.name+"."+name);assert.equal("from" in Class,false);assert.deepEqual([...mappedInterfaces(Class)],CARBON_TABLES.get(Class).length ? [ExposureRoot, ...CARBON_TABLES.get(Class)] : [],Class.name);assert.equal(CjsSchema.cast(value,ITr2SpriteObject),value);assert.equal(CjsSchema.cast(value,INotify),value);}
  const list=new BlueList(ITr2SpriteObject);assert.equal(list.Append(new Tr2Sprite2dRenderJob()),true);assert.equal(list.Append({SetDirty(){},GatherSprites(){}}),false);
 });
 

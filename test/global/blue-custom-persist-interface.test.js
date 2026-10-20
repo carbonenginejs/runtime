@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -95,7 +96,7 @@ test("ICustomPersist preserves concrete methods and keeps nominal composition se
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.equal(mappedInterfaces(Persist).has(ICustomPersist), false);
   blue.interface(ICustomPersist)(Persist);
-  assert.deepEqual(Array.from(mappedInterfaces(Persist)), [ Persist, ICustomPersist ]);
+  assert.deepEqual(Array.from(mappedInterfaces(Persist)), [ExposureRoot, Persist, ICustomPersist]);
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.deepEqual(calls, [], "nominal/query declarations must not invoke persistence callbacks");
 

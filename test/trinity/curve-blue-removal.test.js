@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -55,7 +56,7 @@ test("removed curves expose exact native interfaces and inherit the function res
         [Tr2CurveQuaternion,[Tr2CurveQuaternion,ITriQuaternionFunction,ITriFunction,ITriCurveLength]]
     ])
     {
-        assert.deepEqual([...mappedInterfaces(Class)],interfaces);
+        assert.deepEqual([...mappedInterfaces(Class)],interfaces.length ? [ExposureRoot, ...interfaces] : []);
         const curve=new Class();
         for(const Interface of interfaces) assert.equal(CjsSchema.cast(curve,Interface),curve);
         assert.equal(curve.Reset,ITriFunction.prototype.Reset);

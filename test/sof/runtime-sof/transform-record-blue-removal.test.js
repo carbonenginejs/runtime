@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -60,7 +61,7 @@ test("SOF transform exposes its native self table while the packed instance rema
     const record = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor, Class);
     assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
-    assert.deepEqual([...mappedInterfaces(Class)], Class === Transform ? [Transform] : []);
+    assert.deepEqual([...mappedInterfaces(Class)], Class === Transform ? [ExposureRoot, Transform] : []);
     assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state", "Update", "Initialize", "OnModified"])

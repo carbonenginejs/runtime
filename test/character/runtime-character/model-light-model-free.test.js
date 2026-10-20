@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -26,7 +27,7 @@ test("real Aura lights retain derived bounds and nominal interior contracts", ()
     assert.notDeepEqual(Array.from(control._boundsMin), expectedMin,
       "negative control: the authored positions do not update bounds without lifecycle calls");
   }
-  assert.deepEqual(mappedInterfaces(Tr2InteriorLightSource), new Set([Tr2InteriorLightSource, IInitialize, INotify, ITr2InteriorLight]));
+  assert.deepEqual(mappedInterfaces(Tr2InteriorLightSource), new Set([ExposureRoot, Tr2InteriorLightSource, IInitialize, INotify, ITr2InteriorLight]));
 });
 
 test("real character model retains typed meshes without a model transport base", (t) =>
@@ -49,6 +50,6 @@ test("real character model retains typed meshes without a model transport base",
   CjsSchema.setValuesFromSchema(control, values);
   assert.equal(control.meshes[0] instanceof Tr2Mesh, false,
     "negative control: scalar transport does not construct typed mesh children");
-  assert.deepEqual(mappedInterfaces(Tr2Model), new Set([Tr2Model]));
-  assert.deepEqual(mappedInterfaces(Tr2SkinnedModel), new Set([Tr2SkinnedModel, IInitialize, INotify, Tr2Model]));
+  assert.deepEqual(mappedInterfaces(Tr2Model), new Set([ExposureRoot, Tr2Model]));
+  assert.deepEqual(mappedInterfaces(Tr2SkinnedModel), new Set([ExposureRoot, Tr2SkinnedModel, IInitialize, INotify, Tr2Model]));
 });

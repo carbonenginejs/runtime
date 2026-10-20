@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { AudioCurveSetDriver } from "../../npm/dist/audio/trinity/audio/AudioCurveSetDriver.js";
@@ -28,7 +29,7 @@ test("native driver bases and mappings require no model or values instance machi
         assert.equal(Object.getPrototypeOf(AudioCurveSetDriver.prototype), ICurveSetDriver.prototype);
         assert.equal(CjsSchema.cast(driver, ICurveSetDriver), driver);
         assert.equal(CjsSchema.cast(driver, IInitialize), driver);
-        assert.deepEqual([...mappedInterfaces(AudioCurveSetDriver)], [AudioCurveSetDriver, ICurveSetDriver, IInitialize]);
+        assert.deepEqual([...mappedInterfaces(AudioCurveSetDriver)], [ExposureRoot, AudioCurveSetDriver, ICurveSetDriver, IInitialize]);
         assert.equal(CjsSchema.getConstructor("AudioCurveSetDriver"), AudioCurveSetDriver);
         assert.equal(AudioCurveSetDriver.from, undefined);
         for (const member of ["__state", "GetValues", "SetValues", "UpdateValues", "Traverse"])
@@ -250,7 +251,7 @@ test("native exposure ends at the driver instead of traversing the primary base 
     {
         CjsSchema.blue.interface(UnrelatedExposure)(ICurveSetDriver);
         assert.ok(mappedInterfaces(ICurveSetDriver).has(UnrelatedExposure));
-        assert.deepEqual([...mappedInterfaces(AudioCurveSetDriver)], [AudioCurveSetDriver, ICurveSetDriver, IInitialize]);
+        assert.deepEqual([...mappedInterfaces(AudioCurveSetDriver)], [ExposureRoot, AudioCurveSetDriver, ICurveSetDriver, IInitialize]);
         assert.equal(CjsSchema.cast(new AudioCurveSetDriver(), ICurveSetDriver).constructor, AudioCurveSetDriver);
     }
     finally

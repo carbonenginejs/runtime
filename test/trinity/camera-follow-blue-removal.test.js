@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -36,7 +37,7 @@ test("camera key constructs without model state and implements the native five-m
 
 test("camera key maps itself first, then exactly the native interfaces, without a parent query chain", () =>
 {
-  assert.deepEqual([...mappedInterfaces(Tr2CameraFollowCurveKey)], [Tr2CameraFollowCurveKey, ITr2FollowCurveKey, INotify, IInitialize]);
+  assert.deepEqual([...mappedInterfaces(Tr2CameraFollowCurveKey)], [ExposureRoot, Tr2CameraFollowCurveKey, ITr2FollowCurveKey, INotify, IInitialize]);
   const key = new Tr2CameraFollowCurveKey();
   for (const Interface of [ITr2FollowCurveKey, INotify, IInitialize]) assert.equal(CjsSchema.cast(key, Interface), key);
 });

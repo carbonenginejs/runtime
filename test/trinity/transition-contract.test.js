@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
@@ -67,7 +68,7 @@ function ObserveNotifications(transition, source)
 test("model-free Transition retains its exact query contract and native stored-member/property declarations", () =>
 {
   const transition = new Type(), schema = CjsSchema.getSchema(Type);
-  assert.deepEqual([...mappedInterfaces(Type)], [Type, INotify]);
+  assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type, INotify]);
   assert.equal(CjsSchema.cast(transition, INotify), transition);
   assert.equal("GetValues" in transition, false);
   assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);

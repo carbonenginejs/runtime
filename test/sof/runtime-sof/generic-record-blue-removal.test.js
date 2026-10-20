@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -40,7 +41,7 @@ test("generic SOF records construct without model APIs and expose self-only nati
     assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
     for (const name of ["GetValues", "SetValues", "Copy", "Clone", "OnEvent", "__state"]) assert.equal(name in record, false);
     assert.equal("from" in Class, false);
-    assert.deepEqual([...mappedInterfaces(Class)], [Class]);
+    assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]);
     assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null);
     assert.equal(CjsSchema.cast(record, INotify), null);

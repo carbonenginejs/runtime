@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
@@ -35,7 +36,7 @@ for (const { Type, mapped, nominal } of cases)
   test(`${Type.name} exposes the exact ordered native table independently of nominal composition`, () =>
   {
     const item = new Type();
-    assert.deepEqual([...mappedInterfaces(Type)], mapped);
+    assert.deepEqual([...mappedInterfaces(Type)], mapped.length ? [ExposureRoot, ...mapped] : []);
     assert.equal("GetValues" in item, false);
     for (const Interface of nominal) assert.equal(CjsSchema.cast(item, Interface), item);
     assert.equal(mappedInterfaces(Type).has(ISimTimeRebaseNotify), false);
@@ -134,6 +135,7 @@ test("concrete child tables retain exact exposure in a fresh process", () =>
       import assert from "node:assert/strict";
       import { meta, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
+      import { IRoot } from ${JSON.stringify(moduleURL("global/blue/IRoot.js"))};
       import { IInitialize } from ${JSON.stringify(moduleURL("global/blue/IInitialize.js"))};
       import { IListNotify } from ${JSON.stringify(moduleURL("global/blue/IListNotify.js"))};
       import { INotify } from ${JSON.stringify(moduleURL("global/blue/INotify.js"))};
@@ -146,7 +148,7 @@ test("concrete child tables retain exact exposure in a fresh process", () =>
         [Tr2ControllerEventHandler, [Tr2ControllerEventHandler, IListNotify]]
       ])
       {
-        assert.deepEqual([...mappedInterfaces(Type)], expected);
+        assert.deepEqual([...mappedInterfaces(Type)], [IRoot, ...expected]);
         const item = new Type();
         assert.equal("GetValues" in item, false);
       }

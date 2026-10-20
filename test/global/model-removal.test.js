@@ -1,3 +1,4 @@
+import "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import test from "node:test";
@@ -102,6 +103,6 @@ test("native notification exposure survives removal of the implicit model callba
   {
     const Constructor = schema.CjsSchema.getConstructor(name);
     assert.ok(Constructor, name);
-    assert.deepEqual([...mappedInterfaces(Constructor)].map(Type => schema.CjsSchema.getClassName(Type)), expected, name);
+    assert.deepEqual([...mappedInterfaces(Constructor)].map(Type => schema.CjsSchema.getClassName(Type)), expected.length ? ["IRoot", ...expected] : [], name);
   }
 });

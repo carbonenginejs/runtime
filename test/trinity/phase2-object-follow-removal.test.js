@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -41,7 +42,7 @@ test("ObjectFollow exposes only native contracts and separates authored from run
   const key = new Tr2ObjectFollowCurveKey();
   assert.equal(Object.getPrototypeOf(Tr2ObjectFollowCurveKey.prototype), ITr2FollowCurveKey.prototype);
   assert.equal("GetValues" in key, false);
-  assert.deepEqual([...mappedInterfaces(Tr2ObjectFollowCurveKey)], [Tr2ObjectFollowCurveKey, ITr2FollowCurveKey, INotify, IInitialize]);
+  assert.deepEqual([...mappedInterfaces(Tr2ObjectFollowCurveKey)], [ExposureRoot, Tr2ObjectFollowCurveKey, ITr2FollowCurveKey, INotify, IInitialize]);
   assert.equal(mappedInterfaces(Tr2ObjectFollowCurveKey).has(Tr2ObjectFollowCurveKey), true);
   assert.equal(Tr2ObjectFollowCurveKey.from, undefined);
   for (const name of ["SetValues", "GetValues", "UpdateValues", "Dispose"]) assert.equal(key[name], undefined);
@@ -73,7 +74,7 @@ test("ObjectFollow exposes only native contracts and separates authored from run
 
 test("real world-position owners map the contract while RootTransform bypasses EveTransform exposure", () =>
 {
-  assert.deepEqual([...mappedInterfaces(EveSpaceObject2)].map(Type => CjsSchema.getClassName(Type)), ["EveSpaceObject2", "EveEntity", "IEveShadowCaster", "IInitialize", "ITr2Pickable", "ITr2BoundingBox", "ITriTargetable", "IWorldPosition", "ITr2ShLightingReceiver", "INotify", "ITr2SecondaryLightSource", "ITr2ImpostorSource", "ITr2CurveSetOwner", "IEveEffectChildrenOwner", "ITr2SoundEmitterOwner", "ITr2ControllerOwner", "IEveInheritPropertiesOwner", "IShaderConfigurer", "ITr2LightOwner"]);
+  assert.deepEqual([...mappedInterfaces(EveSpaceObject2)].map(Type => CjsSchema.getClassName(Type)), ["IRoot", "EveSpaceObject2", "EveEntity", "IEveShadowCaster", "IInitialize", "ITr2Pickable", "ITr2BoundingBox", "ITriTargetable", "IWorldPosition", "ITr2ShLightingReceiver", "INotify", "ITr2SecondaryLightSource", "ITr2ImpostorSource", "ITr2CurveSetOwner", "IEveEffectChildrenOwner", "ITr2SoundEmitterOwner", "ITr2ControllerOwner", "IEveInheritPropertiesOwner", "IShaderConfigurer", "ITr2LightOwner"]);
   for (const Type of [EveSpaceObject2, EveTransform, EveRootTransform])
   {
     assert.equal(mappedInterfaces(Type).has(IWorldPosition), true);

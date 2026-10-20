@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -9,7 +10,7 @@ import { Tr2ControllerFloatVariable, Tr2ControllerExpression, Tr2BindingPoint, T
 test("float variable is a native Blue class while expression and binding are plain helpers", () =>
 {
   assert.equal(Object.getPrototypeOf(Tr2ControllerFloatVariable.prototype), IInitialize.prototype);
-  assert.deepEqual([...mappedInterfaces(Tr2ControllerFloatVariable)], [Tr2ControllerFloatVariable, IInitialize, INotify]);
+  assert.deepEqual([...mappedInterfaces(Tr2ControllerFloatVariable)], [ExposureRoot, Tr2ControllerFloatVariable, IInitialize, INotify]);
   for (const Type of [Tr2ControllerExpression, Tr2BindingPoint])
   {
     assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);

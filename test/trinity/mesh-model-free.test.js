@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -52,7 +53,7 @@ test("real Crisis mesh retains native area ownership and shared particle initial
   assert.equal(mesh.AddArea(-1, area), false);
   assert.equal("SetValues" in mesh, false);
   assert.equal(CjsSchema.cast(mesh, IListNotify), mesh);
-  assert.deepEqual(mappedInterfaces(Tr2MeshBase), new Set([Tr2MeshBase]));
-  assert.deepEqual(mappedInterfaces(Tr2Mesh), new Set([Tr2Mesh, IInitialize, INotify, Tr2MeshBase]));
-  assert.deepEqual(mappedInterfaces(Tr2InstancedMesh), new Set([Tr2InstancedMesh, Tr2Mesh, IInitialize, INotify, Tr2MeshBase]));
+  assert.deepEqual(mappedInterfaces(Tr2MeshBase), new Set([ExposureRoot, Tr2MeshBase]));
+  assert.deepEqual(mappedInterfaces(Tr2Mesh), new Set([ExposureRoot, Tr2Mesh, IInitialize, INotify, Tr2MeshBase]));
+  assert.deepEqual(mappedInterfaces(Tr2InstancedMesh), new Set([ExposureRoot, Tr2InstancedMesh, Tr2Mesh, IInitialize, INotify, Tr2MeshBase]));
 });

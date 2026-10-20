@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -22,7 +23,7 @@ for (const [Type, values, query] of [
   assert.equal(Type.from, undefined);
   for (const key of ["SetValues", "GetValues", "UpdateValues", "Dispose"])
     assert.equal(instance[key], undefined);
-  assert.deepEqual([...mappedInterfaces(Type)], query);
+  assert.deepEqual([...mappedInterfaces(Type)], query.length ? [ExposureRoot, ...query] : []);
   const created = new DictReader({ declarations: true }).CreateObject({ _type: getRegisteredClassName(Type), ...values });
   const clone = new Copier().CloneTo(created);
   assert.ok(clone instanceof Type);

@@ -1,30 +1,52 @@
+import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import test from "node:test";
 import { transformSync } from "@babel/core";
 import decorators from "@babel/plugin-proposal-decorators";
 import { CjsSchema, type, blue } from "../../src/global/schema/index.js";
-import { composedContracts, mappedInterfaces } from "../../src/global/compose/interface.js";
+import { composedContracts, mappedInterfaces, ownMappedInterfaces } from "../../src/global/compose/interface.js";
 import { Copier } from "../../src/global/blue/Copier.js";
 import { IInitialize } from "../../src/global/blue/IInitialize.js";
 import { INotify } from "../../src/global/blue/INotify.js";
 import { applyReaderMember, finalizeReaderObject } from "../../src/global/schema/hydration.js";
 
-test("the own table holds the class first, then its interfaces in declaration order", () =>
+test("the own table holds IRoot, the class, then explicit interfaces in Carbon order", () =>
 {
   class Mapped {}
   blue.interface(INotify, IInitialize)(Mapped);
-  assert.deepEqual([...mappedInterfaces(Mapped)], [Mapped, INotify, IInitialize]);
+  assert.deepEqual([...mappedInterfaces(Mapped)], [ExposureRoot, Mapped, INotify, IInitialize]);
 
   class Bare {}
   blue.interface()(Bare);
-  assert.deepEqual([...mappedInterfaces(Bare)], [Bare]);
+  assert.deepEqual([...mappedInterfaces(Bare)], [ExposureRoot, Bare]);
 
   class Appended {}
   blue.interface(IInitialize)(Appended);
   blue.interface(INotify, IInitialize)(Appended);
-  assert.deepEqual([...mappedInterfaces(Appended)], [Appended, IInitialize, INotify], "later lines append; repeats collapse");
+  assert.deepEqual([...mappedInterfaces(Appended)], [ExposureRoot, Appended, IInitialize, INotify], "later lines append; repeats collapse");
 
   assert.deepEqual([...mappedInterfaces(null)], []);
+  assert.deepEqual([...ownMappedInterfaces(Bare)], [ExposureRoot, Bare]);
+  assert.deepEqual([...mappedInterfaces(ExposureRoot)], [ExposureRoot], "the root self-entry collapses to one identity");
+});
+
+test("tables declared before IRoot registration resolve its identity on later access", () =>
+{
+  const compose = new URL("../../src/global/compose/interface.js", import.meta.url).href;
+  const root = new URL("../../src/global/blue/IRoot.js", import.meta.url).href;
+  execFileSync(process.execPath, ["--input-type=module", "--eval", `
+    import assert from "node:assert/strict";
+    import { carbonInterfaceDecorator, mappedInterfaces, ownMappedInterfaces } from ${JSON.stringify(compose)};
+    class Early {}
+    carbonInterfaceDecorator([])(Early);
+    assert.deepEqual([...ownMappedInterfaces(Early)], [Early]);
+    const { IRoot } = await import(${JSON.stringify(root)});
+    assert.deepEqual([...ownMappedInterfaces(Early)], [IRoot, Early]);
+    assert.deepEqual([...mappedInterfaces(Early)], [IRoot, Early]);
+    carbonInterfaceDecorator([IRoot])(Early);
+    assert.deepEqual([...ownMappedInterfaces(Early)], [IRoot, Early]);
+  `], { encoding: "utf8", timeout: 30000, windowsHide: true });
 });
 
 test("without its own table a class answers with its JS parent's; its own table ends that", () =>
@@ -39,20 +61,20 @@ test("without its own table a class answers with its JS parent's; its own table 
   }
   blue.interface(IInitialize)(Parent);
   class Inheriting extends Parent {}
-  assert.deepEqual([...mappedInterfaces(Inheriting)], [Parent, IInitialize]);
+  assert.deepEqual([...mappedInterfaces(Inheriting)], [ExposureRoot, Parent, IInitialize]);
 
   class Child extends Parent {}
   blue.inherit(AdditionalBase)(Child);
   blue.interface(Parent)(Child);
   const child = new Child();
-  assert.deepEqual([...mappedInterfaces(Child)], [Child, Parent]);
+  assert.deepEqual([...mappedInterfaces(Child)], [ExposureRoot, Child, Parent]);
   assert.equal(mappedInterfaces(Child).has(IInitialize), false, "a listed class is one IID, not an exposure parent");
   assert.equal(child.Initialize(), true, "ordinary method inheritance remains intact");
   assert.equal(child.Ping(), "composed");
   assert.equal(CjsSchema.cast(child, Parent), child);
   assert.equal(CjsSchema.cast(child, AdditionalBase), child);
   assert.deepEqual([...composedContracts(Child)], [AdditionalBase]);
-  assert.deepEqual([...mappedInterfaces(Parent)], [Parent, IInitialize]);
+  assert.deepEqual([...mappedInterfaces(Parent)], [ExposureRoot, Parent, IInitialize]);
 });
 
 test("chainTo resolves its named parent after the own entries, not the JS parent", () =>
@@ -67,13 +89,13 @@ test("chainTo resolves its named parent after the own entries, not the JS parent
   blue.interface(IInitialize)(ExposureParent);
   blue.interface(OwnInterface, OwnInterface)(Child);
   blue.chainTo(ExposureParent)(Child);
-  assert.deepEqual([...mappedInterfaces(Child)], [Child, OwnInterface, ExposureParent, IInitialize]);
+  assert.deepEqual([...mappedInterfaces(Child)], [ExposureRoot, Child, OwnInterface, ExposureParent, IInitialize]);
   mappedInterfaces(Child).add(JavaScriptInterface);
   assert.equal(mappedInterfaces(Child).has(JavaScriptInterface), false, "the resolved set is a copy");
   blue.interface(LaterInterface)(ExposureParent);
-  assert.deepEqual([...mappedInterfaces(Child)], [Child, OwnInterface, ExposureParent, IInitialize, LaterInterface]);
-  assert.deepEqual([...mappedInterfaces(ExposureParent)], [ExposureParent, IInitialize, LaterInterface]);
-  assert.deepEqual([...mappedInterfaces(JavaScriptBase)], [JavaScriptBase, JavaScriptInterface]);
+  assert.deepEqual([...mappedInterfaces(Child)], [ExposureRoot, Child, OwnInterface, ExposureParent, IInitialize, LaterInterface]);
+  assert.deepEqual([...mappedInterfaces(ExposureParent)], [ExposureRoot, ExposureParent, IInitialize, LaterInterface]);
+  assert.deepEqual([...mappedInterfaces(JavaScriptBase)], [ExposureRoot, JavaScriptBase, JavaScriptInterface]);
 });
 
 test("Stage-3 and imperative declarations share the public Blue exposure facade", async () =>
@@ -97,8 +119,8 @@ test("Stage-3 and imperative declarations share the public Blue exposure facade"
   blue.interface(INotify)(Explicit);
   blue.chainTo(Parent)(Explicit);
   assert.equal(blue, CjsSchema.blue);
-  assert.deepEqual([...mappedInterfaces(Decorated)], [Decorated, INotify, Parent]);
-  assert.deepEqual([...mappedInterfaces(Explicit)], [Explicit, INotify, Parent]);
+  assert.deepEqual([...mappedInterfaces(Decorated)], [ExposureRoot, Decorated, INotify, Parent]);
+  assert.deepEqual([...mappedInterfaces(Explicit)], [ExposureRoot, Explicit, INotify, Parent]);
 });
 
 test("declaring chainTo twice on one class throws and keeps the first chain", () =>
@@ -109,7 +131,7 @@ test("declaring chainTo twice on one class throws and keeps the first chain", ()
   blue.interface()(First);
   blue.chainTo(First)(Target);
   assert.throws(() => blue.chainTo(Second)(Target), /once per class/);
-  assert.deepEqual([...mappedInterfaces(Target)], [Target, First]);
+  assert.deepEqual([...mappedInterfaces(Target)], [ExposureRoot, Target, First]);
 });
 
 test("invalid interfaces, parents and decorator targets are rejected", () =>
@@ -138,8 +160,8 @@ test("exposure cycles are rejected", () =>
   assert.throws(() => blue.chainTo(Parent)(Parent), /cycle/);
   assert.throws(() => blue.chainTo(Child)(Parent), /cycle/,
     "a child without its own table answers with the pending parent table");
-  assert.deepEqual([...mappedInterfaces(Parent)], [Parent, INotify]);
-  assert.deepEqual([...mappedInterfaces(Child)], [Parent, INotify]);
+  assert.deepEqual([...mappedInterfaces(Parent)], [ExposureRoot, Parent, INotify]);
+  assert.deepEqual([...mappedInterfaces(Child)], [ExposureRoot, Parent, INotify]);
 
   class First {}
   class Second {}
@@ -147,8 +169,8 @@ test("exposure cycles are rejected", () =>
   blue.interface(IInitialize)(First);
   blue.chainTo(Second)(First);
   assert.throws(() => blue.chainTo(First)(Second), /cycle/);
-  assert.deepEqual([...mappedInterfaces(Second)], [Second, INotify]);
-  assert.deepEqual([...mappedInterfaces(First)], [First, IInitialize, Second, INotify]);
+  assert.deepEqual([...mappedInterfaces(Second)], [ExposureRoot, Second, INotify]);
+  assert.deepEqual([...mappedInterfaces(First)], [ExposureRoot, First, IInitialize, Second, INotify]);
 });
 
 test("Copier throws on an unnamed listed interface and skips an unnamed class carrying its own table", () =>

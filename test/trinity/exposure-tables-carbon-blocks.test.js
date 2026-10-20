@@ -3,7 +3,7 @@ import test from "node:test";
 
 import * as trinity from "../../npm/dist/trinity/index.js";
 import * as audio from "../../npm/dist/audio/index.js";
-import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { IRoot, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { ITr2BoundingBox } from "../../npm/dist/global/interfaces/index.js";
 import { hasOwnInterfaceTable, mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 
@@ -64,7 +64,7 @@ for (const [ name, mapped, chainTo, cite ] of BLOCKS)
         assert.ok(hasOwnInterfaceTable(Class), `${name} has its own table, not its JS parent's`);
 
         const table = [ ...mappedInterfaces(Class) ];
-        const own = [ Class, ...mapped.map(resolve) ];
+        const own = [ IRoot, Class, ...mapped.map(resolve) ];
         assert.deepEqual(table.slice(0, own.length), own, `${name}: own entries in Carbon's order`);
 
         if (chainTo === null) assert.equal(table.length, own.length, `${name}: EXPOSURE_END, nothing chained`);

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { IRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
@@ -65,7 +66,7 @@ test("controller composes the native observer without replacing its own handler"
 
 test("controller exposes its exact supported own table without invented lifecycle interfaces", () =>
 {
-  const expected = new Set([Tr2Controller, ITr2Controller, ITr2ActionController, IListNotify]);
+  const expected = new Set([IRoot, Tr2Controller, ITr2Controller, ITr2ActionController, IListNotify]);
   for (const Interface of mappedInterfaces(EveThrottleable)) expected.add(Interface);
   assert.deepEqual([...mappedInterfaces(Tr2Controller)], [...expected]);
   assert.equal(mappedInterfaces(Tr2Controller).has(IInitialize), false);

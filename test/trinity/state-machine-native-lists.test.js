@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
@@ -100,7 +101,7 @@ test("a machine owns an independent subscribed BlueList admitting the real state
   assert.equal(Tr2StateMachine.from, undefined);
   assert.notEqual(machine.states, other.states);
   assert.equal(Array.isArray(machine.states), true);
-  assert.deepEqual([...mappedInterfaces(Tr2StateMachineState)], [Tr2StateMachineState, IListNotify, INotify]);
+  assert.deepEqual([...mappedInterfaces(Tr2StateMachineState)], [ExposureRoot, Tr2StateMachineState, IListNotify, INotify]);
   assert.equal("GetValues" in state, false);
   assert.equal(CjsSchema.cast(state, IListNotify), state);
   assert.equal(CjsSchema.cast(state, INotify), state);

@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
@@ -61,12 +62,8 @@ test("concrete descendant interface tables retain their exact native exposure bo
   // These concrete Blue tables map EveChildContainer but do not map IInitialize
   // or chain the parent exposure table: EveChildExplosion_Blue.cpp:148 and
   // EveChildEffectPropagator_Blue.cpp:79 end with EXPOSURE_END.
-  assert.deepEqual(mappedInterfaces(EveChildExplosion), new Set([
-    EveChildExplosion, EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild
-  ]));
-  assert.deepEqual(mappedInterfaces(EveChildEffectPropagator), new Set([
-    EveChildEffectPropagator, EveChildContainer, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, EveEntity
-  ]));
+  assert.deepEqual(mappedInterfaces(EveChildExplosion), new Set([ExposureRoot, EveChildExplosion, EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild]));
+  assert.deepEqual(mappedInterfaces(EveChildEffectPropagator), new Set([ExposureRoot, EveChildEffectPropagator, EveChildContainer, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, EveEntity]));
 });
 
 test("copying an explosion does not dispatch inherited initialization or notification methods", t =>

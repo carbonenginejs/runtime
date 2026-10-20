@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -21,8 +22,8 @@ test("real chain point light reads into its embedded LightData and carries no va
   // on every values route now that no class-owned normalizer folds it.
   assert.throws(() => CjsSchema.from("Tr2PointLight", { lightData: { radius: values.radius } }), /Invalid attribute/);
   assert.throws(() => ReadValues(new Tr2PointLight(), { lightData: { radius: values.radius } }), /Invalid attribute/);
-  assert.deepEqual(mappedInterfaces(Tr2Light), new Set([Tr2Light]));
+  assert.deepEqual(mappedInterfaces(Tr2Light), new Set([ExposureRoot, Tr2Light]));
   for (const Type of [Tr2PointLight, Tr2SpotLight, Tr2TexturedPointLight])
-    assert.deepEqual(mappedInterfaces(Type), new Set([Type, Tr2Light, IInitialize, INotify]));
-  assert.deepEqual(mappedInterfaces(Tr2FactionLight), new Set([Tr2FactionLight, IEveInheritPropertiesOwner, Tr2Light, IInitialize, INotify]));
+    assert.deepEqual(mappedInterfaces(Type), new Set([ExposureRoot, Type, Tr2Light, IInitialize, INotify]));
+  assert.deepEqual(mappedInterfaces(Tr2FactionLight), new Set([ExposureRoot, Tr2FactionLight, IEveInheritPropertiesOwner, Tr2Light, IInitialize, INotify]));
 });

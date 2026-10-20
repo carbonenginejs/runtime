@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -31,6 +32,6 @@ test("real pillar GPU emitter initializes and Setup hashes copied structs exactl
   assert.deepEqual(calls, ["hash", "id", "hash", "id"],
     "negative control: the old extra settle hashes and generates identity twice");
   assert.equal("SetValues" in emitter, false);
-  assert.deepEqual(mappedInterfaces(Tr2GpuSharedEmitter), new Set([Tr2GpuSharedEmitter, IInitialize, INotify, ITr2GenericEmitter]));
-  assert.deepEqual(mappedInterfaces(Tr2GpuUniqueEmitter), new Set([Tr2GpuUniqueEmitter, Tr2GpuSharedEmitter, IInitialize, INotify, ITr2GenericEmitter]));
+  assert.deepEqual(mappedInterfaces(Tr2GpuSharedEmitter), new Set([ExposureRoot, Tr2GpuSharedEmitter, IInitialize, INotify, ITr2GenericEmitter]));
+  assert.deepEqual(mappedInterfaces(Tr2GpuUniqueEmitter), new Set([ExposureRoot, Tr2GpuUniqueEmitter, Tr2GpuSharedEmitter, IInitialize, INotify, ITr2GenericEmitter]));
 });

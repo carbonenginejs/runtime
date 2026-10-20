@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
@@ -30,8 +31,8 @@ test("three records have native bases without model conveniences or invented str
   assert.equal(Object.getPrototypeOf(Tr2ControllerReference.prototype), ITr2Controller.prototype);
   assert.equal(Object.getPrototypeOf(Tr2ControllerEventHandler.prototype), IListNotify.prototype);
   assert.equal(Object.getPrototypeOf(Tr2TimelineEntry.prototype), Object.prototype);
-  assert.deepEqual([...mappedInterfaces(Tr2ControllerReference)], [Tr2ControllerReference, IInitialize, INotify, ITr2Controller]);
-  assert.deepEqual([...mappedInterfaces(Tr2ControllerEventHandler)], [Tr2ControllerEventHandler, IListNotify]);
+  assert.deepEqual([...mappedInterfaces(Tr2ControllerReference)], [ExposureRoot, Tr2ControllerReference, IInitialize, INotify, ITr2Controller]);
+  assert.deepEqual([...mappedInterfaces(Tr2ControllerEventHandler)], [ExposureRoot, Tr2ControllerEventHandler, IListNotify]);
   assert.deepEqual([...mappedInterfaces(Tr2TimelineEntry)], []);
   for (const Type of [Tr2ControllerReference, Tr2ControllerEventHandler, Tr2TimelineEntry])
     for (const key of ["SetValues", "UpdateValues", "GetResources", "Traverse", "OnEvent"])

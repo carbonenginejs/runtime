@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
@@ -122,7 +123,7 @@ for (const { name, Type, nominal, query, modelFree = false } of cases)
   test(`${name} has its exact ordered query table and nominal native contracts`, () =>
   {
     const item = new Type();
-    assert.deepEqual([...mappedInterfaces(Type)], query);
+    assert.deepEqual([...mappedInterfaces(Type)], query.length ? [ExposureRoot, ...query] : []);
     assert.equal(CjsSchema.getConstructor(name), Type);
     assert.equal(CjsSchema.cast(item, Type), item);
     assert.equal("GetValues" in item, false);
@@ -169,7 +170,7 @@ test("the action-interface list rejects nominal-only, duck, null and wrong-child
   const nominalOnly = new UnexposedControllerAction();
   assert.equal(CjsSchema.cast(nominalOnly, Tr2ActionCallback), nominalOnly);
   assert.equal(CjsSchema.cast(nominalOnly, ITr2ControllerAction), nominalOnly);
-  assert.deepEqual([...mappedInterfaces(UnexposedControllerAction)], [UnexposedControllerAction]);
+  assert.deepEqual([...mappedInterfaces(UnexposedControllerAction)], [ExposureRoot, UnexposedControllerAction]);
 
   const list = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
   const accepted = new Tr2ActionCallback();
@@ -338,6 +339,7 @@ test("all action null-chain tables isolate a temporary native parent query mappi
       import assert from "node:assert/strict";
       import { meta, blue, CjsSchema } from ${JSON.stringify(moduleURL("global/schema/index.js"))};
       import { mappedInterfaces } from ${JSON.stringify(moduleURL("global/compose/interface.js"))};
+      import { IRoot } from ${JSON.stringify(moduleURL("global/blue/IRoot.js"))};
             import { ICustomPersist } from ${JSON.stringify(moduleURL("global/blue/ICustomPersist.js"))};
       import { IInitialize } from ${JSON.stringify(moduleURL("global/blue/IInitialize.js"))};
       import { INotify } from ${JSON.stringify(moduleURL("global/blue/INotify.js"))};
@@ -351,7 +353,7 @@ test("all action null-chain tables isolate a temporary native parent query mappi
         const Type = module[row.name];
         const Parent = Object.getPrototypeOf(Type);
         if (Parent.prototype) blue.interface(ParentOnlyInterface)(Parent);
-        const expectedTable = row.query.map(name => name === row.name ? Type : contracts[name]);
+        const expectedTable = [IRoot, ...row.query.map(name => name === row.name ? Type : contracts[name])];
         assert.deepEqual([...mappedInterfaces(Type)], expectedTable, row.name);
         assert.equal(mappedInterfaces(Type).has(ParentOnlyInterface), false, row.name);
         const item = new Type();

@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -16,7 +17,7 @@ for(const [Class,fields,types,table]of [
  [Tr2Sprite2dLineTraceVertex,["name","position","color"],["string","vec2","color"],[Tr2Sprite2dLineTraceVertex]]
 ])test(getRegisteredClassName(Class)+" native declaration and exposure shape",()=>{
  const value=be.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Object.prototype);assert.deepEqual(Object.keys(value),fields);
- assert.deepEqual(fields.map(key=>CjsSchema.getField(Class,key).type.kind),types);assert.deepEqual([...mappedInterfaces(Class)],table);
+ assert.deepEqual(fields.map(key=>CjsSchema.getField(Class,key).type.kind),types);assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
  for(const key of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(key in value,false);assert.equal("from" in Class,false);
 });
 

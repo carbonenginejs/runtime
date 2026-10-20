@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -22,7 +23,7 @@ for (const [Type, values, interfaces] of [
     assert.equal(Object.getPrototypeOf(Type.prototype), ITr2ControllerAction.prototype);
     assert.equal("GetValues" in instance, false);
     assert.equal(CjsSchema.cast(instance, ITr2ControllerAction), instance);
-    assert.deepEqual([...mappedInterfaces(Type)], [Type, ITr2ControllerAction, ...interfaces]);
+    assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type, ITr2ControllerAction, ...interfaces]);
     assert.equal(Type.from, undefined);
     for (const method of ["Initialize", "SetValues", "GetValues", "UpdateValues", "Dispose"])
       assert.equal(instance[method], undefined, method);

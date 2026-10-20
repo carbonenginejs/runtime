@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import { createChild } from "../../npm/dist/global/blue/children.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -162,8 +163,8 @@ test("mapped initialization suppresses construction notifications while later ed
 test("dynamic emitters and throttle owners expose only their native lifecycle identities", (t) =>
 {
   WithStubResMan(t);
-  assert.deepEqual(mappedInterfaces(Tr2DynamicEmitter), new Set([Tr2DynamicEmitter, ITr2GenericEmitter, INotify, IInitialize]));
-  assert.deepEqual(mappedInterfaces(EveThrottleable), new Set([EveThrottleable]));
+  assert.deepEqual(mappedInterfaces(Tr2DynamicEmitter), new Set([ExposureRoot, Tr2DynamicEmitter, ITr2GenericEmitter, INotify, IInitialize]));
+  assert.deepEqual(mappedInterfaces(EveThrottleable), new Set([ExposureRoot, EveThrottleable]));
   for (const Type of [Tr2Controller, Tr2TimelineController])
   {
     assert.equal(mappedInterfaces(Type).has(IInitialize), false);

@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -32,7 +33,7 @@ for (const [Type, values] of cases)
     assert.equal(Object.getPrototypeOf(Type.prototype), ITr2ControllerAction.prototype);
     assert.equal("GetValues" in action, false);
     assert.equal(CjsSchema.cast(action, ITr2ControllerAction), action);
-    assert.deepEqual([...mappedInterfaces(Type)], [Type, ITr2ControllerAction]);
+    assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type, ITr2ControllerAction]);
     assert.equal(Type.from, undefined);
     for (const name of ["SetValues", "GetValues", "UpdateValues", "Initialize", "Dispose"])
       assert.equal(action[name], undefined, name);

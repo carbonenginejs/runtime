@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { be, BlueList } from "../../npm/dist/global/blue/index.js";
@@ -15,7 +16,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 
 test("local observer has its native base, exact query and live mute declaration",()=>{
- const observer=new TriObserverLocal();assert.equal(Object.getPrototypeOf(TriObserverLocal.prototype),ITriObserverLocal.prototype);assert.deepEqual([...mappedInterfaces(TriObserverLocal)],[TriObserverLocal,ITriObserverLocal]);
+ const observer=new TriObserverLocal();assert.equal(Object.getPrototypeOf(TriObserverLocal.prototype),ITriObserverLocal.prototype);assert.deepEqual([...mappedInterfaces(TriObserverLocal)],[ExposureRoot, TriObserverLocal, ITriObserverLocal]);
  const schema=CjsSchema.getSchema(TriObserverLocal);assert.deepEqual(schema.members.map(field=>field.name),["name","position","front","observer"]);assert.deepEqual(schema.properties.map(field=>field.name),["mute"]);assert.equal(schema.properties[0].role,"property");
  for(const method of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(method in observer,false);
  const list=new BlueList(ITriObserverLocal);assert.equal(list.Append(observer),true);assert.equal(list.Append({GetObserver(){},SetObserver(){}}),false);
@@ -56,7 +57,7 @@ test("observer dictionary hydration and copying preserve value storage without s
 });
 
 test("morph record retains exact native identity and persistent-only declarations",()=>{
- const value=be.classes.CreateInstanceFromName("Tr2SerializedMorphAnimation");assert.equal(Object.getPrototypeOf(Tr2SerializedMorphAnimation.prototype),Object.prototype);assert.deepEqual([...mappedInterfaces(Tr2SerializedMorphAnimation)],[Tr2SerializedMorphAnimation]);assert.deepEqual([value.name,value.weight],["",0]);
+ const value=be.classes.CreateInstanceFromName("Tr2SerializedMorphAnimation");assert.equal(Object.getPrototypeOf(Tr2SerializedMorphAnimation.prototype),Object.prototype);assert.deepEqual([...mappedInterfaces(Tr2SerializedMorphAnimation)],[ExposureRoot, Tr2SerializedMorphAnimation]);assert.deepEqual([value.name,value.weight],["",0]);
  assert.deepEqual(CjsSchema.getSchema(Tr2SerializedMorphAnimation).fields.map(field=>field.name),["name","weight"]);
  for(const key of ["name","weight"])assert.equal(CjsSchema.getField(Tr2SerializedMorphAnimation,key).edit.persistOnly,true);
  for(const name of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(name in value,false);
