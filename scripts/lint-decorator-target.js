@@ -164,23 +164,50 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
     return findings;
 }
 
-/** Runs the opt-in report; baselines classify findings, never suppress them or fail the build. */
+/** Stable finding identity ignores source line shifts and platform line endings. */
+export function findingFingerprint(f)
+{
+    return crypto.createHash("sha256").update(JSON.stringify([f.rule,f.source,f.class,f.member,f.detail,f.evidence],
+        (key,value)=>key === "line" ? undefined : typeof value === "string" ? value.replaceAll("\r\n","\n") : value)).digest("hex");
+}
+
+/** An update only retires resolved findings; new findings can never enter the baseline. */
+export function shrinkBaseline(findings, baseline)
+{
+    const current = new Set(findings.map(findingFingerprint));
+    return {version:1,fingerprints:[...new Set(baseline.fingerprints)].filter(value=>current.has(value)).sort()};
+}
+
+/** Runtime-only report. Baseline updates shrink; missing states remain findings, never inferred states. */
 export function run(argv)
 {
     const args=new Map();for(let i=0;i<argv.length;i++)if(argv[i].startsWith("--"))args.set(argv[i],argv[i+1]?.startsWith("--")?true:argv[++i]??true);
     const root=path.resolve(args.get("--root")??fileURLToPath(new URL("..",import.meta.url)));
+    const packageFile=path.join(root,"package.json");
+    const packageName=fs.existsSync(packageFile)?JSON.parse(fs.readFileSync(packageFile,"utf8")).name:null;
+    if(packageName!=="@carbonenginejs/runtime")
+    {
+        const report={mode:"report-only",scope:"excluded",packageName,counts:{},total:0,newFindings:0,findings:[],
+            reason:"Decorator state/origin migration currently applies only to runtime; application packages are excluded."};
+        if(args.has("--output"))fs.writeFileSync(args.get("--output"),JSON.stringify(report,null,2)+"\n");
+        console.log(JSON.stringify(report));return report;
+    }
     const oracleDir=args.get("--oracle");
     if(!oracleDir)throw new Error("Pass --oracle <preparation data directory> containing carbon-exposure.json and carbon-headers.json.");
     const read=name=>JSON.parse(fs.readFileSync(path.join(oracleDir,name),"utf8"));
     const findings=auditDecorators(inventoryRuntime(root),read("carbon-exposure.json"),read("carbon-headers.json"),args.has("--choosers")?JSON.parse(fs.readFileSync(args.get("--choosers"),"utf8")):{});
-    const fingerprint=f=>crypto.createHash("sha256").update(JSON.stringify([f.rule,f.source,f.class,f.member,f.detail,f.evidence], (key,value)=>key === "line" ? undefined : typeof value === "string" ? value.replaceAll("\r\n","\n") : value)).digest("hex");
     const baselinePath=path.join(root,"scripts/baselines/decorator-target.json");
-    if(args.has("--write-baseline"))fs.writeFileSync(baselinePath,JSON.stringify({version:1,fingerprints:[...new Set(findings.map(fingerprint))].sort()},null,2)+"\n");
-    const baseline=fs.existsSync(baselinePath)?new Set(JSON.parse(fs.readFileSync(baselinePath,"utf8")).fingerprints):new Set();
-    const counts={};for(const f of findings){counts[f.rule]=(counts[f.rule]??0)+1;f.baselined=baseline.has(fingerprint(f));}
-    const report={mode:"report-only",counts,total:findings.length,newFindings:findings.filter(f=>!f.baselined).length,findings};
+    const previous=fs.existsSync(baselinePath)?JSON.parse(fs.readFileSync(baselinePath,"utf8")):null;
+    if(args.has("--write-baseline"))
+    {
+        if(!previous)throw new Error("Shrink-only baseline update requires an existing baseline.");
+        fs.writeFileSync(baselinePath,JSON.stringify(shrinkBaseline(findings,previous),null,2)+"\n");
+    }
+    const baseline=new Set(previous?.fingerprints??[]);
+    const counts={};for(const f of findings){counts[f.rule]=(counts[f.rule]??0)+1;f.baselined=baseline.has(findingFingerprint(f));}
+    const report={mode:"report-only",scope:"runtime",baselinePolicy:"shrink-only",counts,total:findings.length,newFindings:findings.filter(f=>!f.baselined).length,findings};
     if(args.has("--output"))fs.writeFileSync(args.get("--output"),JSON.stringify(report,null,2)+"\n");
-    console.log(JSON.stringify({mode:report.mode,counts,total:report.total,newFindings:report.newFindings}));
+    console.log(JSON.stringify({mode:report.mode,scope:report.scope,counts,total:report.total,newFindings:report.newFindings}));
     return report;
 }
 

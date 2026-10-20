@@ -740,11 +740,11 @@ export class CjsSchema
          * Carbon's IROOTPTR: a pointer to an object of the class, owned or
          * not; ownership is declared separately (`meta.owned`).
          */
-        rootRef: className => fieldDecorator("type", { kind: "rootRef", className }),
+        rootRef: className => objectTypeDecorator("rootRef", className),
         /** Declares a live resource edge that values, persistence and copying must omit. */
         resource: className => fieldDecorator("type", { kind: "rootRef", className, runtimeOnly: true }),
         /** Carbon's IROOTWEAKREF: a weak pointer to an object of the class. */
-        rootWeak: className => fieldDecorator("type", { kind: "rootWeak", className }),
+        rootWeak: className => objectTypeDecorator("rootWeak", className),
         /**
          * A path, and what it may name. `path()` accepts any file. Entries
          * narrow it, and a path is accepted when any one entry accepts it:
@@ -773,7 +773,13 @@ export class CjsSchema
         set: itemType => fieldDecorator("type", { kind: "set", itemType }),
         string: fieldDecorator("type", { kind: "string" }),
         wstring: fieldDecorator("type", { kind: "wstring" }),
-        root: className => fieldDecorator("type", { kind: "root", className }),
+        root: className => objectTypeDecorator("root", className),
+        /** Target ownership spellings retain the existing reader/storage class information. */
+        object: {
+            embed: className => objectTypeDecorator("root", className),
+            ref: className => objectTypeDecorator("rootRef", className),
+            weak: className => objectTypeDecorator("rootWeak", className)
+        },
         /**
          * Declares Carbon's BlueStructureList: packed records whose layout the
          * item class declares with `meta.struct`. Each record is an instance of
@@ -1018,6 +1024,7 @@ export class CjsSchema
      * decorator arrays remain JS-keyed and also populate the compatibility view.
      */
     static meta = {
+        ...exposureConstants(),
         // Ruling 2026-10-15: flags are global - they describe behaviour for any
         // member, ours included. `blue` (below) is the same flags stamped as
         // Carbon's; `type` is the shared type vocabulary.
@@ -1057,7 +1064,10 @@ export class CjsSchema
          */
         setting: SETTING_DECORATOR,
         struct: createStructNamespace(),
-        attribute: (name, options) => declarationDecorator("member", name, options),
+        // Numeric flags select the complete target row; legacy named/indexed declarations remain supported.
+        attribute: (flagsOrName, nameOrOptions) => typeof flagsOrName === "number"
+            ? ownAttributeDecorator(flagsOrName, nameOrOptions)
+            : declarationDecorator("member", flagsOrName, nameOrOptions),
         property: (name, options) => propertyDecorator(name, options, false),
         chooser: values => chooserDecorator(values),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, false),
@@ -1113,6 +1123,12 @@ export class CjsSchema
 
 }
 
+
+/** Both ownership vocabularies describe the same storage kind; no lifecycle policy is inferred. */
+function objectTypeDecorator(kind, className)
+{
+    return fieldDecorator("type", { kind, className });
+}
 
 /** Collection layouts are owned by the registered item class. */
 function collectionDecorator(kind, itemType, options)
@@ -3834,6 +3850,14 @@ function exposureEditFlags(flags)
         if (flags & mask) edit[key] = true;
     if ((flags & 24) === 24) edit.persistOnly = true;
     return edit;
+}
+
+/** Our complete attribute row carries explicit flags without claiming Carbon origin. */
+function ownAttributeDecorator(flags, name)
+{
+    const definition = { edit: exposureEditFlags(flags), exposure: { macro: "MAP_ATTRIBUTE", flags } };
+    if (name !== undefined) definition.declaration = { name: exposureName(name) };
+    return combinedFieldDecorator(definition);
 }
 
 /** One complete attribute row; chooser identity and literal flags are independent. */

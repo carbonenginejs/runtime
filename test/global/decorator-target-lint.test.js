@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { inventoryRuntime } from "../../scripts/lib/decorator-target-inventory.js";
-import { auditDecorators, flagMask } from "../../scripts/lint-decorator-target.js";
+import { auditDecorators, flagMask, findingFingerprint, shrinkBaseline, run } from "../../scripts/lint-decorator-target.js";
 
 const oracle=[{name:"Native",attributes:[{name:"value",macro:"MAP_ATTRIBUTE_WITH_CHOOSER",flagsAsWritten:"Be::READ | Be::PERSIST",chooser:"NativeChooser",condition:[]}],properties:[],methods:[],interfaces:[{name:"Native"},{name:"IRoot"}],chain:[]}];
 const headers=[{name:"Native",methods:[{name:"Call"}],bases:[]}];
@@ -90,3 +90,30 @@ test("a matching native function never hides the wrong exposed method name", () 
     assert.ok(findings.some(f=>f.rule==='exposure-name'));
 });
 
+
+test("baseline updates retire resolved findings but never absorb newly missing states", () =>
+{
+    const first={rule:"required-state",source:"src/A.js",class:"A",member:"Call",detail:"Missing",line:1};
+    const resolved={...first,member:"Resolved"};
+    const fresh={...first,member:"New"};
+    const baseline={version:1,fingerprints:[findingFingerprint(first),findingFingerprint(resolved)]};
+    const result=shrinkBaseline([{...first,line:100},fresh],baseline);
+    assert.deepEqual(result.fingerprints,[findingFingerprint(first)]);
+    assert.equal(baseline.fingerprints.length,2);
+    assert.deepEqual(shrinkBaseline([],result).fingerprints,[]);
+});
+
+test("application package roots are excluded before source or oracle access", () =>
+{
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),"decorator-scope-"));
+    try
+    {
+        for(const name of ["@carbonenginejs/graphene","@carbonenginejs/tools-core","@carbonenginejs/server"])
+        {
+            fs.writeFileSync(path.join(root,"package.json"),JSON.stringify({name}));
+            const report=run(["--root",root]);
+            assert.equal(report.scope,"excluded");assert.equal(report.total,0);
+        }
+    }
+    finally { fs.rmSync(root,{recursive:true}); }
+});
