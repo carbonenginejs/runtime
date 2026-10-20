@@ -5,7 +5,6 @@ import { IsMatch, BlueList, IListNotify, INotify, be, CjsBlueClasses } from "#bl
 import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
-import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 import { ITr2ControllerAction } from "../action/ITr2ControllerAction.js";
 import { Tr2StateMachineTransition } from "./Tr2StateMachineTransition.js";
 
@@ -214,16 +213,17 @@ export class Tr2StateMachineState
   }
 
   /**
-   * Marks the state active and queues each action's Start on the main-thread
-   * queue (`Tr2StateMachineState.cpp:268-291`). The actions start when
-   * ExecuteMainThreadActions drains, so a transition chain followed in the
-   * same update sees the new state before its actions have started. Each
-   * queued call re-reads the state machine and skips the action if the state
-   * was unlinked before the drain, as the donor's lambda does.
+   * Starts each action, then marks the state active
+   * (`Tr2StateMachineState.cpp:268-291`).
+   *
+   * Fixes CE-198: Carbon queues each action's Start through
+   * ContinueOnMainThread, so the state's transitions can be evaluated before
+   * its actions have set the variables they test; ours starts the actions
+   * directly, as Carbon did before trinity 85a2b621.
    * @returns {void}
    */
   @blue.method
-  @meta.implemented
+  @meta.adapted
   Start()
   {
     if (this._isActive)
@@ -232,15 +232,10 @@ export class Tr2StateMachineState
     }
     if (this._stateMachine)
     {
+      // Fixes CE-198: actions start now, before any transition is evaluated.
       for (const action of this.actions)
       {
-        ContinueOnMainThread(() =>
-        {
-          if (this._stateMachine && action)
-          {
-            action.Start(this._stateMachine.GetController());
-          }
-        });
+        action.Start(this._stateMachine.GetController());
       }
       this._isActive = true;
       this._isFinalizing = false;
@@ -249,13 +244,16 @@ export class Tr2StateMachineState
   }
 
   /**
-   * Queues each action's Stop on the main-thread queue, then asks the
-   * finalizer whether the state may leave (`Tr2StateMachineState.cpp:293-321`).
-   * The finalizer is consulted before the queued Stops run, as in the donor.
+   * Stops each action, then asks the finalizer whether the state may leave
+   * (`Tr2StateMachineState.cpp:293-321`).
+   *
+   * Fixes CE-198: Carbon queues each action's Stop through
+   * ContinueOnMainThread; ours stops the actions directly, as Carbon did
+   * before trinity 85a2b621, so the finalizer sees them already stopped.
    * @returns {void}
    */
   @blue.method
-  @meta.implemented
+  @meta.adapted
   Stop()
   {
     if (!this._isActive || this._isFinalizing)
@@ -264,15 +262,10 @@ export class Tr2StateMachineState
     }
     if (this._stateMachine)
     {
+      // Fixes CE-198: actions stop now, not on the main-thread queue.
       for (const action of this.actions)
       {
-        ContinueOnMainThread(() =>
-        {
-          if (this._stateMachine && action)
-          {
-            action.Stop(this._stateMachine.GetController());
-          }
-        });
+        action.Stop(this._stateMachine.GetController());
       }
       if (this.finalizer)
       {
