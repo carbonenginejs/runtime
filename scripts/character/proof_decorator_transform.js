@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { rollup } from "rollup";
 import { babel } from "@rollup/plugin-babel";
+import json from "@rollup/plugin-json";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sourceScratch = path.join(root, ".scratch", "character-decorator-transform-proof");
@@ -11,6 +12,7 @@ const distScratch = path.join(root, "npm", ".scratch", "character-decorator-tran
 const sourceEntry = path.join(sourceScratch, "source-entry.mjs");
 const sourceBundle = path.join(sourceScratch, "source-bundle.mjs");
 const distEntry = path.join(distScratch, "dist-entry.mjs");
+const distBundle = path.join(distScratch, "dist-bundle.mjs");
 
 function entryText(kind) {
   const base = kind === "source" ? "../../src/character/index.js" : "../../dist/character/index.js";
@@ -22,8 +24,9 @@ import * as character from "${base}";
 // Babel's 2023-11 class-decorator output applies prototype mutations to the
 // SAME prototype object in both pipelines - which schema metadata cannot see.
 export function captureComposition() {
-  const { CjsCharacter } = character;
-  const proto = CjsCharacter.prototype;
+  @meta.events
+  class EventProbe {}
+  const proto = EventProbe.prototype;
   const result = {
     ownNames: Object.getOwnPropertyNames(proto).sort(),
     // The extends is genuinely gone: nothing re-inherited the surface.
@@ -40,11 +43,7 @@ export function captureComposition() {
 
   // Behavioural round-trip, including the lazy-allocate/lazy-teardown state
   // contract no other proof covers.
-  const instance = new CjsCharacter({
-    libraryManager: { GetLibrary: () => null, Get: () => null },
-    appearanceResolver: { resolvePaperdoll: () => null },
-    constructionResolver: { Resolve: () => null }
-  });
+  const instance = new EventProbe();
   let observed = 0;
   const listener = () => { observed += 1; };
   instance.OnEvent("probe", listener);
@@ -55,8 +54,8 @@ export function captureComposition() {
   result.stateTornDown = instance.__state === undefined || instance.__state.events === undefined;
 
   // Install-if-absent: a class declaring its own OnEvent keeps it. The
-  // functional form, because this entry is imported RAW on the dist side -
-  // decorator SYNTAX through Babel is proven by CjsCharacter itself.
+  // functional form also verifies direct installation independently of the
+  // decorated local probe transformed in both source and dist pipelines.
   class OwnOnEventProbe {
     OnEvent() { return "own"; }
   }
@@ -75,7 +74,7 @@ export function capture() {
 
     if (!schema?.className) continue;
 
-    const value = name === "CjsCharacter" ? new Class({ libraryManager: { GetLibrary: () => null, Get: () => null }, appearanceResolver: { resolvePaperdoll: () => null }, constructionResolver: { Resolve: () => null } }) : new Class();
+    const value = new Class();
     entries.push([name, {
       className: schema.className,
       family: schema.family,
@@ -104,18 +103,22 @@ async function writeEntries() {
   await fs.writeFile(distEntry, entryText("dist"), "utf8");
 }
 
-async function buildSourceBundle() {
+async function buildBundle(kind) {
+  const source = kind === "source";
   const bundle = await rollup({
-    input: sourceEntry,
+    input: source ? sourceEntry : distEntry,
     // Rendering dependencies also contain decorators. Resolve package aliases
     // into this source graph so Babel transforms those modules too, rather
     // than letting Node import raw decorated source behind an external alias.
-    external: id => !id.startsWith("#") && !id.startsWith(".") && !path.isAbsolute(id),
+    external: id => source
+      ? !id.startsWith("#") && !id.startsWith(".") && !path.isAbsolute(id)
+      : id !== distEntry,
     plugins: [
+      json({ compact: true }),
       {
         name: "runtime-source-imports",
         resolveId(id) {
-          return id.startsWith("#") ? fileURLToPath(import.meta.resolve(id)) : null;
+          return source && id.startsWith("#") ? fileURLToPath(import.meta.resolve(id)) : null;
         }
       },
       babel({
@@ -128,15 +131,16 @@ async function buildSourceBundle() {
     ]
   });
 
-  await bundle.write({ dir: sourceScratch, entryFileNames: "source-bundle.mjs", chunkFileNames: "[name]-[hash].mjs", format: "esm", sourcemap: false });
+  await bundle.write({ dir: source ? sourceScratch : distScratch, entryFileNames: source ? "source-bundle.mjs" : "dist-bundle.mjs", chunkFileNames: "[name]-[hash].mjs", format: "esm", sourcemap: false });
   await bundle.close();
 }
 
 await writeEntries();
-await buildSourceBundle();
+await buildBundle("source");
+await buildBundle("dist");
 
 const source = await import(pathToFileURL(sourceBundle));
-const dist = await import(pathToFileURL(distEntry));
+const dist = await import(pathToFileURL(distBundle));
 assert.deepEqual(structuredClone(source.capture()), structuredClone(dist.capture()));
 assert.deepEqual(source.captureComposition(), dist.captureComposition());
 assert.equal(dist.captureComposition().baseIsObject, true, "the extends is gone in dist");

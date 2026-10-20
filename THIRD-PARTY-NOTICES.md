@@ -67,8 +67,9 @@ license.
 ## ccpwgl historical Incarna curve adaptations
 
 The historical compatibility classes `Tr2ColorCurve`, `Tr2ColorKey`,
-`Tr2ScalarCurve`, and `Tr2ScalarKey` under `src/character/incarna/curves` are
-compact adaptations of CCPWGL curve implementations.
+`Tr2ScalarCurve`, and `Tr2ScalarKey` under `archive/character-creator/src/incarna/curves` are
+compact adaptations of CCPWGL curve implementations. They are retained as
+reference only and excluded from the npm package.
 
 - Project: <https://github.com/cppctamber/ccpwgl2>
 - Copyright: 2020 ccpgames rawrafox cppctamber

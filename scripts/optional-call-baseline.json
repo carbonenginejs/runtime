@@ -2,10 +2,6 @@
   "typeofMethod": {
     "src/audio/CjsAudioMan.js": 7,
     "src/audio/library-builder/CjsAudioLibraryBuilder.js": 2,
-    "src/character/gles/CjsCharacterGlesAppearanceAL.js": 6,
-    "src/character/gles/CjsCharacterGlesPaletteCompatibility.js": 2,
-    "src/character/gles/CjsCharacterGlesTriangleCoverage.js": 2,
-    "src/character/webgl2/CjsCharacterWebgl2EffectRouter.js": 6,
     "src/global/blue/CjsBlueResMan.js": 2,
     "src/global/blue/DictReader.js": 2,
     "src/global/blue/DictWriter.js": 1,
