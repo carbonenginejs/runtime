@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsError } from "./CjsError.js";
 
 
@@ -49,5 +47,3 @@ export class CjsCancellationError extends CjsError
     }
 
 }
-
-CjsSchema.meta.define(CjsCancellationError, { className: "CjsCancellationError" });
