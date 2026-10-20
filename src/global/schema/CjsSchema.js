@@ -1029,6 +1029,12 @@ export class CjsSchema
         // `#impl.abstract` stays the status alone, for `_inheritedImplDecorators`.
         abstract: abstractDecorator([ { namespace: "impl", value: { abstract: true, status: "abstract" } } ]),
         renamed: this.#renamed,
+        // New origin facts coexist with the legacy stamps until the migration.
+        carbon: names => carbonClassDecorator(names),
+        cjs: memberDecorator("carbon", { cjs: true, method: false, member: false }),
+        notUsed: unusedMethodDecorator(),
+        interface: name => classDefinitionDecorator({ className: exposureName(name), interface: true }),
+        inherit: (...Bases) => this.blue.inherit(...Bases),
         keyIndex: index => {
             if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("meta.keyIndex requires a nonnegative safe integer.");
             return fieldDecorator("keyIndex", index);
@@ -1101,6 +1107,9 @@ export class CjsSchema
         ]),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, true)
     };
+
+    /** Isolated target vocabulary, exported by #be as exposure until the service swap. */
+    static exposure = createExposureNamespace(this.blue);
 
 }
 
@@ -1803,7 +1812,7 @@ function methodDecorator(namespace, value)
             return;
         }
 
-        const Constructor = targetOrValue?.constructor;
+        const Constructor = typeof targetOrValue === "function" ? targetOrValue : targetOrValue?.constructor;
         if (!Constructor || !contextOrMethodName)
         {
             throw new TypeError("CjsSchema method decorators require a class method target.");
@@ -1850,9 +1859,20 @@ function memberDecorator(namespace, value)
     {
         if (contextOrMemberName && typeof contextOrMemberName === "object")
         {
+            if (contextOrMemberName.kind === "class")
+            {
+                classStateMetadata(targetOrValue, namespace, value);
+                return;
+            }
             return [ "field", "getter", "setter", "accessor" ].includes(contextOrMemberName.kind)
                 ? forFields(targetOrValue, contextOrMemberName)
                 : forMethods(targetOrValue, contextOrMemberName);
+        }
+
+        if (typeof targetOrValue === "function" && contextOrMemberName === undefined)
+        {
+            classStateMetadata(targetOrValue, namespace, value);
+            return;
         }
 
         // Legacy (non-2023-11) path: a method target resolves to a function
@@ -2006,8 +2026,12 @@ function registerDeclaredProperties(Constructor)
         }
         if (Object.hasOwn(entry, "index")) throw new TypeError(`${where}: a property has no storage index.`);
 
-        entry.property = { ...entry.property, getter: descriptor.get, setter: descriptor.set || null };
-        entry.edit = { read: true, ...(descriptor.set ? { write: true } : {}), ...(entry.property.persisted ? { persist: true } : {}) };
+        const macro = entry.exposure?.macro;
+        if (macro && macro !== "MAP_PROPERTY_READONLY" && typeof descriptor.set !== "function")
+            throw new TypeError(`${where}: ${macro} requires a setter.`);
+        const setter = macro === "MAP_PROPERTY_READONLY" ? null : descriptor.set || null;
+        entry.property = { ...entry.property, getter: descriptor.get, setter };
+        entry.edit = { read: true, ...(setter ? { write: true } : {}), ...(entry.property.persisted ? { persist: true } : {}) };
     }
     refreshLegacyFields(schema);
 }
@@ -2209,7 +2233,7 @@ function getCanonicalDeclarations(Constructor, role)
 function resolveInheritedDeclaration(Owner, record)
 {
     const { entry } = record;
-    if (!record.legacy) return entry;
+    if (!record.legacy || entry.exposure) return entry;
     for (const Parent of getSchemaLineage(Object.getPrototypeOf(Owner)).reverse())
     {
         const inherited = CLASS_SCHEMA.get(Parent).declarations.find(({ entry: candidate }) =>
@@ -2251,6 +2275,7 @@ function defineClassMetadata(Constructor, definition)
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
     if (definition.carbon) schema.carbon = definition.carbon;
     if (definition.blue) schema.blue = true;
+    if (definition.interface) schema.interface = true;
     if (definition.donors) schema.donors = [ ...definition.donors ];
     if (definition.modelledOn) schema.modelledOn = definition.modelledOn;
     if (definition.aliases) schema.aliases = [...definition.aliases];
@@ -2269,6 +2294,7 @@ function defineClassMetadata(Constructor, definition)
     {
         defineManualMemberMetadata(Constructor, "methods", method);
         if (method.impl?.status === "abstract") installAbstractMethod(Constructor.prototype, method.name);
+        if (method.impl?.status === "notUsed") unusedMethodDecorator()(Constructor.prototype, method.name);
     }
 
     // Every declaration is in: the properties among them get their getter,
@@ -2686,6 +2712,8 @@ function getSchemaLineage(Constructor)
 
 function mergeMemberMetadata(target, source)
 {
+    // New macro rows are complete declarations; legacy decorators still merge.
+    if (source.exposure) for (const key of Object.keys(target)) if (key !== "name") delete target[key];
     for (const [namespace, value] of Object.entries(source))
     {
         if (namespace === "name") continue;
@@ -2801,6 +2829,8 @@ function buildClassInfo(Constructor, namespaces)
     }
 
     if (typeof schema?.abstract === "boolean") result.abstract = schema.abstract;
+    if (schema?.impl) result.impl = { ...schema.impl };
+    if (schema?.interface) result.interface = true;
 
     if (methods.length) result.methods = methods;
 
@@ -3110,6 +3140,12 @@ function normalizeClassDefinition(Constructor, definition)
     {
         if (result[key] === undefined || result[key] === null) continue;
 
+        if (key === "carbon" && Array.isArray(result[key]))
+        {
+            if (!result[key].length) throw new TypeError("Carbon identities cannot be empty.");
+            result[key] = result[key].map(exposureName);
+            continue;
+        }
         if (typeof result[key] !== "string" || !result[key].trim())
         {
             throw new TypeError(`CjsSchema.define ${key} must be a non-empty Carbon class name when provided.`);
@@ -3319,9 +3355,11 @@ function registerClassMetadata(Constructor, schema)
     // BLUE_REGISTER_ABSTRACT_CLASS supplies a callable refusal factory, not
     // a null factory pointer. Flag 1 is DISABLE_PYTHON_CONSTRUCTION; the factory
     // determines Blue creation. Only this class's own definition selects it.
-    const isAbstract = schema.abstract === true;
-    const createFn = isAbstract ? ClassRegistrarNullFactory : undefined;
-    const flags = isAbstract ? 1 : 0;
+    // Identity-only interfaces have no native class factory either. Keep the
+    // shared name lookup, but refuse Blue construction without calling them abstract.
+    const refusesConstruction = schema.abstract === true || schema.interface === true;
+    const createFn = refusesConstruction ? ClassRegistrarNullFactory : undefined;
+    const flags = refusesConstruction ? 1 : 0;
     for (const name of [ schema.className, ...(schema.aliases || []) ])
     {
         registerClass({ name, type: Constructor, createFn, flags });
@@ -3726,3 +3764,160 @@ CjsSchema.meta.define(CjsSchema, { className: "CjsSchema" });
 CjsSchema.meta.define(CjsError, { className: "CjsError" });
 
 CjsSchema.meta.define(CjsUnusedMethodError, { className: "CjsUnusedMethodError" });
+
+/** Carbon's EDITFLAGS; masks are included for native table comparisons. */
+function exposureConstants()
+{
+    return { NONE: 0, READ: 1, WRITE: 2, READWRITE: 3, NOTIFY: 4, HIDDEN: 8,
+        MODMASK: 15, PERSIST: 16, RPERSIST: 32, SERMASK: 240, FLAGS: 256,
+        ENUM: 512, EDMASK: 3840, PERSISTONLY: 24, EDIT_FORCELONG: 0xFFFFFFFF };
+}
+
+/** The target API is isolated until the namespace swap; old declarations keep working. */
+function createExposureNamespace(legacy)
+{
+    return {
+        ...exposureConstants(),
+        define: name => exposureClassDecorator(name, false),
+        interface: name => exposureClassDecorator(name, true),
+        mapInterface: Interface => carbonInterfaceDecorator([ Interface ]),
+        exposureChainTo: Parent => carbonChainToDecorator(Parent),
+        inherit: (...Bases) => CjsSchema.blue.inherit(...Bases),
+        abstract: legacy.abstract,
+        mapAttribute: (flags, name) => exposureAttributeDecorator("MAP_ATTRIBUTE", flags, undefined, name),
+        mapAttributeWithChooser: (flags, chooser, name) => exposureAttributeDecorator("MAP_ATTRIBUTE_WITH_CHOOSER", flags, chooser, name),
+        mapProperty: name => exposurePropertyDecorator("MAP_PROPERTY", name),
+        mapPropertyReadOnly: name => exposurePropertyDecorator("MAP_PROPERTY_READONLY", name),
+        mapPropertyPersisted: name => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", name),
+        mapMethod: name => exposureMethodDecorator("MAP_METHOD", name),
+        mapMethodAndWrap: name => exposureMethodDecorator("MAP_METHOD_AND_WRAP", name),
+        mapMethodAndWrapOptionalArgs: name => exposureMethodDecorator("MAP_METHOD_AND_WRAP_OPTIONAL_ARGS", name),
+        mapMethodAsMethod: name => exposureMethodDecorator("MAP_METHOD_AS_METHOD", name)
+    };
+}
+
+/** Validates literal identity without depending on Function.name after minification. */
+function exposureName(name)
+{
+    if (typeof name !== "string" || !name.trim()) throw new TypeError("Exposure requires a non-empty literal name.");
+    return name.trim();
+}
+
+/** EXPOSURE_BEGIN creates an own table, including self and lazy IRoot; interface identity does not. */
+function exposureClassDecorator(name, identityOnly)
+{
+    name = exposureName(name);
+    const define = classDefinitionDecorator({ className: name, blue: true, ...(identityOnly ? { interface: true } : {}) });
+    return function (Constructor, context)
+    {
+        if (context && context.kind !== "class") throw new TypeError("Exposure identity decorates a class.");
+        if (!identityOnly) carbonInterfaceDecorator([])(Constructor, context);
+        define(Constructor, context);
+    };
+}
+
+/** A non-exposed native identity; qualified and merged donor names stay literal. */
+function carbonClassDecorator(names)
+{
+    const donors = (Array.isArray(names) ? names : [ names ]).map(exposureName);
+    if (!donors.length) throw new TypeError("meta.carbon requires at least one native name.");
+    return classDefinitionDecorator({ className: donors[0], carbon: Array.isArray(names) ? donors : donors[0] });
+}
+
+/** Converts explicit native bits to the legacy flags without inferring ENUM/FLAGS from a type. */
+function exposureEditFlags(flags)
+{
+    if (!Number.isInteger(flags) || flags < 0 || flags > 0xFFFFFFFF)
+        throw new TypeError("Attribute flags must be an unsigned 32-bit mask.");
+    const edit = {};
+    for (const [ key, mask ] of Object.entries({ read: 1, write: 2, notify: 4, hidden: 8, persist: 16, rpersist: 32 }))
+        if (flags & mask) edit[key] = true;
+    if ((flags & 24) === 24) edit.persistOnly = true;
+    return edit;
+}
+
+/** One complete attribute row; chooser identity and literal flags are independent. */
+function exposureAttributeDecorator(macro, flags, chooser, name)
+{
+    const definition = { edit: exposureEditFlags(flags), carbon: { member: true }, exposure: { macro, flags } };
+    if (name !== undefined) definition.declaration = { name: exposureName(name) };
+    if (macro === "MAP_ATTRIBUTE_WITH_CHOOSER")
+    {
+        if (chooser === undefined) throw new TypeError("mapAttributeWithChooser requires a chooser or null.");
+        definition.exposure.chooser = chooser === null ? null : normalizeEnumDefinition(chooser).enumType;
+        if (chooser !== null) definition.chooser = getDecoratorMetadata(chooserDecorator(chooser)).value;
+    }
+    return combinedFieldDecorator(definition);
+}
+
+/** The explicit property macro fixes read/write/persist bits, independently of other JS accessors. */
+function exposurePropertyDecorator(macro, name)
+{
+    const legacy = propertyDecorator(name, { persisted: macro === "MAP_PROPERTY_PERSISTED" }, true);
+    const definition = Object.fromEntries(getDecoratorMetadata(legacy).parts.map(part => [ part.namespace, part.value ]));
+    definition.exposure = { macro, flags: macro === "MAP_PROPERTY_READONLY" ? 1 : macro === "MAP_PROPERTY_PERSISTED" ? 19 : 3 };
+    const combined = combinedFieldDecorator(definition);
+    const decorator = (target, context) =>
+    {
+        if (context && typeof context === "object" && context.kind !== "getter")
+            throw new TypeError("Property maps decorate a getter.");
+        if (context && typeof context === "object" && hasStage3Namespace(context, "edit")) RejectPropertyFlags(context.name);
+        return combined(target, context);
+    };
+    Object.defineProperty(decorator, DECORATOR_METADATA, { value: getDecoratorMetadata(combined) });
+    return decorator;
+}
+
+/** Keeps the native method stamp for old consumers and records the exact exposure macro and alias. */
+function exposureMethodDecorator(macro, name)
+{
+    if (name !== undefined) name = exposureName(name);
+    const parts = [ { namespace: "carbon", value: { method: true } },
+        { namespace: "exposure", value: { macro, ...(name === undefined ? {} : { name }) } } ];
+    const decorator = (target, context) =>
+    {
+        for (const part of parts) methodDecorator(part.namespace, part.value)(target, context);
+    };
+    Object.defineProperty(decorator, DECORATOR_METADATA, { value: { parts } });
+    return decorator;
+}
+
+/** Records a class-level state whether it is placed above or below its identity decorator. */
+function classStateMetadata(Constructor, namespace, value)
+{
+    const schema = getOrCreateClassSchema(Constructor);
+    schema[namespace] = mergeNamespace(schema[namespace], value);
+    SCHEMA_GENERATION += 1;
+}
+
+/** Installs the existing unused-method error without invoking the original implementation. */
+function unusedMethodDecorator()
+{
+    const status = memberDecorator("impl", { notUsed: true, status: "notUsed" });
+    const decorator = (target, context) =>
+    {
+        status(target, context);
+        if (context && typeof context === "object")
+        {
+            if (context.kind === "class" || context.kind === "field") return;
+            if (![ "method", "getter", "setter" ].includes(context.kind)) throw new TypeError("notUsed requires a method or property.");
+            return function unusedCarbonMember()
+            {
+                const Constructor = context.static ? this : this.constructor;
+                throw new CjsUnusedMethodError(requireRegisteredClassName(Constructor), String(context.name));
+            };
+        }
+        const descriptor = findPropertyDescriptor(target, context);
+        if (!descriptor) return;
+        const thrower = function unusedCarbonMember()
+        {
+            const Constructor = typeof target === "function" ? target : this.constructor;
+            throw new CjsUnusedMethodError(requireRegisteredClassName(Constructor), String(context));
+        };
+        Object.defineProperty(target, context, descriptor.get || descriptor.set
+            ? { ...descriptor, ...(descriptor.get ? { get: thrower } : {}), ...(descriptor.set ? { set: thrower } : {}) }
+            : { ...descriptor, value: thrower });
+    };
+    Object.defineProperty(decorator, DECORATOR_METADATA, { value: getDecoratorMetadata(status) });
+    return decorator;
+}

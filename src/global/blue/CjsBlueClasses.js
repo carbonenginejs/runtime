@@ -566,23 +566,33 @@ export class CjsBlueClasses extends IBlueClasses
     for (const Interface of mappedInterfaces(Constructor)) interfaces[CjsSchema.getClassName(Interface)] = 0;
 
     const members = {};
+    const completeExposureNames = new Set();
     // An accessor row is a property (blue.property/meta.property, flags derived)
     // or an attribute over the accessor path (its own flags); one carrying only
     // status markers is not exposed.
     for (const member of [ ...schema.members, ...schema.properties.filter(property => property.property || property.edit) ])
     {
+      if (completeExposureNames.has(member.name)) continue;
+      if (member.exposure) completeExposureNames.add(member.name);
       const type = member.type;
       const reference = type && (type.kind === "rootRef" || type.kind === "rootWeak") ? type.className : null;
       let editflags = 0;
       // A member declared with no Blue flags has no edit record: Carbon's mEditFlags 0.
-      if (member.edit !== undefined) for (const [ flag, bit ] of EDIT_FLAG_BITS) if (member.edit[flag] === true) editflags |= bit;
-      if (member.type?.flags === true) editflags |= EDIT_FLAGS;
-      if (member.enum) editflags |= EDIT_ENUM;
+      if (member.exposure) editflags = member.exposure.flags;
+      else
+      {
+        // Old declarations infer editor bits; new macro rows supply them exactly.
+        if (member.edit !== undefined) for (const [ flag, bit ] of EDIT_FLAG_BITS) if (member.edit[flag] === true) editflags |= bit;
+        if (member.type?.flags === true) editflags |= EDIT_FLAGS;
+        if (member.enum) editflags |= EDIT_ENUM;
+      }
       // PyGetChooserInfo (TypeInfo.cpp:28-68) reads mChooserTable whatever the
       // edit flags say: a `chooser` declaration (MAP_ATTRIBUTE_WITH_CHOOSER
       // without ENUM) reports its table and sets no bit; otherwise an enum's
       // registered chooser.
-      const chooser = member.chooser ? member.chooser.entries : member.enum && member.enum.chooser;
+      const chooser = member.exposure
+        ? member.exposure.chooser ? member.chooser.entries : null
+        : member.chooser ? member.chooser.entries : member.enum && member.enum.chooser;
       members[member.name] = {
         type: getCarbonTypeDefinition(type).kind,
         iid_name: typeof reference === "function" ? CjsSchema.getClassName(reference) : reference || "",
@@ -600,7 +610,7 @@ export class CjsBlueClasses extends IBlueClasses
     {
       for (const method of CjsSchema.getSchema(type).methods || [])
       {
-        if (method.carbon && method.carbon.method === true) methods[method.name] = "";
+        if (method.carbon && method.carbon.method === true) methods[method.exposure?.name ?? method.name] = "";
       }
     }
 

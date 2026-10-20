@@ -37,13 +37,14 @@ test("the public decorator surface has one namespace per vocabulary and preserve
     }
     for (const name of ["interface", "inherit", "chainTo", "method", "define", "attribute"])
         assert.equal(typeof CjsSchema.blue[name], "function", "Carbon declaration: " + name);
-    for (const name of ["edit", "impl", "carbon", "lifecycle", "jessica", "compose", "custom"])
+    for (const name of ["edit", "impl", "lifecycle", "jessica", "compose", "custom"])
         assert.equal(Object.hasOwn(meta, name), false, "removed meta alias: " + name);
     for (const name of ["none", "enum", "setting"])
         assert.equal(Object.hasOwn(blue, name), false, "removed Blue alias: " + name);
     for (const name of ["define", "hideInherited"])
         assert.equal(Object.hasOwn(type, name), false, "class declaration is flat: " + name);
-    // Ruling 2026-10-15: the absence of the blue stamp means ours, so there is no meta.ours.
+    // The target class-origin vocabulary coexists with the legacy Blue stamps.
+    for (const name of ["carbon", "interface", "inherit", "cjs", "notUsed"]) assert.equal(typeof meta[name], "function");
     assert.equal(Object.hasOwn(meta, "ours"), false);
     // Amendment 2026-10-17: the stored-member declaration is `attribute` (MAP_ATTRIBUTE).
     assert.equal(typeof meta.attribute, "function");

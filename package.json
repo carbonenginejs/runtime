@@ -204,6 +204,7 @@
     "#blue/*": "./src/global/blue/*.js",
     "#imageio": "./src/global/imageio/index.js",
     "#interfaces/*": "./src/global/interfaces/*.js",
+    "#be": "./src/global/schema/be.js",
     "#schema": "./src/global/schema/index.js",
     "#schema/types": "./src/global/schema/types/index.js",
     "#schema/*": "./src/global/schema/*.js",
@@ -288,6 +289,7 @@
     "THIRD-PARTY-NOTICES.md"
   ],
   "scripts": {
+    "audit:decorator-target": "node scripts/lint-decorator-target.js",
     "build:npm": "node scripts/build-npm.js && rollup -c && node scripts/build-min.js",
     "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:undeclared-fields && npm run lint:instanceof && npm run lint:constructor-name && npm run lint:private-references && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs && npm run lint:format-jsdoc",
     "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",

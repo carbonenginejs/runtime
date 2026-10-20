@@ -1,0 +1,1988 @@
+[
+  {
+    "name": "AudEventKey",
+    "source": "src/audio/generated/audio/AudEventKey.js",
+    "carbon": [
+      "AudEventKey"
+    ],
+    "decorators": [
+      {
+        "name": "blue.define",
+        "args": [
+          "AudEventKey"
+        ],
+        "text": "@blue.define(\"AudEventKey\")"
+      },
+      {
+        "name": "blue.inherit",
+        "args": [
+          {
+            "$expr": "IRoot"
+          }
+        ],
+        "text": "@blue.inherit(IRoot)"
+      },
+      {
+        "name": "blue.interface",
+        "args": [],
+        "text": "@blue.interface()"
+      }
+    ],
+    "members": [
+      {
+        "name": "value",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.wstring",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "time",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.float32",
+            "args": [],
+            "call": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Tr2PointLight",
+    "source": "src/trinity/eve/lights/Tr2PointLight.js",
+    "carbon": [
+      "Tr2PointLight"
+    ],
+    "decorators": [
+      {
+        "name": "blue.define",
+        "args": [
+          "Tr2PointLight"
+        ],
+        "text": "@blue.define(\"Tr2PointLight\")"
+      },
+      {
+        "name": "blue.interface",
+        "args": [
+          {
+            "$expr": "Tr2Light"
+          },
+          {
+            "$expr": "IInitialize"
+          },
+          {
+            "$expr": "INotify"
+          }
+        ],
+        "text": "@blue.interface(Tr2Light, IInitialize, INotify)"
+      }
+    ],
+    "members": [
+      {
+        "name": "name",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.string",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "lightProfilePath",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.notify",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.wpath",
+            "args": [
+              "Tr2LightProfileRes"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "lightProfile",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.read",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.rootRef",
+            "args": [
+              "Tr2LightProfileRes"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "flags",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.uint16",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.chooser",
+            "args": [
+              "trinity.Tr2LightFlags"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "flags",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "position",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.vec3",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "position",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "rotation",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.quat",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "rotation",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "boneIndex",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.notify",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.int32",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "boneIndex",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "radius",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.float32",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "radius",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "innerRadius",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.float32",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "innerRadius",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "color",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.notify",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.color",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "color",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "brightness",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.notify",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.float32",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "brightness",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "noiseAmplitude",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.float32",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "noiseAmplitude",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "noiseFrequency",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.float32",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "noiseFrequency",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "noiseOctaves",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.uint32",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "noiseOctaves",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "castsShadows",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.notify",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.int32",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.enum",
+            "args": [
+              "trinity.PerLightShadowSetting"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "castsShadows",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "isVolumetric",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.notify",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.boolean",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "isVolumetric",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "type",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "type.int32",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.enum",
+            "args": [
+              "trinity.Tr2Light.LIGHT_TYPE"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "RenderDebugInfo",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Tr2SkinnedModel",
+    "source": "src/character/trinity/trinityCore/Tr2SkinnedModel.js",
+    "carbon": [
+      "Tr2SkinnedModel"
+    ],
+    "decorators": [
+      {
+        "name": "blue.define",
+        "args": [
+          "Tr2SkinnedModel"
+        ],
+        "text": "@blue.define(\"Tr2SkinnedModel\")"
+      },
+      {
+        "name": "blue.inherit",
+        "args": [
+          {
+            "$expr": "IInitialize"
+          },
+          {
+            "$expr": "INotify"
+          },
+          {
+            "$expr": "IListNotify"
+          }
+        ],
+        "text": "@blue.inherit(IInitialize, INotify, IListNotify)"
+      },
+      {
+        "name": "blue.interface",
+        "args": [
+          {
+            "$expr": "IInitialize"
+          },
+          {
+            "$expr": "INotify"
+          }
+        ],
+        "text": "@blue.interface(IInitialize, INotify)"
+      },
+      {
+        "name": "blue.chainTo",
+        "args": [
+          {
+            "$expr": "Tr2Model"
+          }
+        ],
+        "text": "@blue.chainTo(Tr2Model)"
+      }
+    ],
+    "members": [
+      {
+        "name": "_boneList",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "_numBones",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "_areAllMeshesBound",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "_skeletonIx",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "geometryResPath",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.notify",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.path",
+            "args": [
+              "TriGeometryRes"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "geometryRes",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.read",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.rootRef",
+            "args": [
+              "TriGeometryRes"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "skeletonName",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.notify",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.string",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "skinScale",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.vec3",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "OnModified",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "Initialize",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.invalidates",
+            "args": [
+              "_areAllMeshesBound"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "OnListModified",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.invalidates",
+            "args": [
+              "_areAllMeshesBound"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "ReleaseCachedData",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "RebuildCachedData",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetSkeleton",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "BindToRig",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "ResetBindings",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "ResetAnimationBindings",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "meta.renamed",
+            "args": [
+              "ResetBindings"
+            ],
+            "call": true
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetGeometryResPath",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetGeometryResPath",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetSkeletonName",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetDynamicBoundingBox",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "BlueCallbackManThreadData",
+    "source": "src/global/blue/BlueCallbackManThreadData.js",
+    "carbon": [
+      "BlueCallbackMan::ThreadData"
+    ],
+    "decorators": [],
+    "members": [
+      {
+        "name": "threadIndex",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "currentId",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "inProgress",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "workerEntryId",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "worker",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "name",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "constructor",
+        "kind": "constructor",
+        "static": false,
+        "decorators": []
+      }
+    ]
+  },
+  {
+    "name": "Tr2GStateAnimation",
+    "source": "src/character/trinity/trinityCore/Tr2GStateAnimation.js",
+    "carbon": [
+      "Tr2GStateAnimation"
+    ],
+    "decorators": [
+      {
+        "name": "blue.define",
+        "args": [
+          "Tr2GStateAnimation"
+        ],
+        "text": "@blue.define(\"Tr2GStateAnimation\")"
+      },
+      {
+        "name": "blue.inherit",
+        "args": [
+          {
+            "$expr": "IInitialize"
+          },
+          {
+            "$expr": "ITr2AnimationUpdater"
+          }
+        ],
+        "text": "@blue.inherit(IInitialize, ITr2AnimationUpdater)"
+      },
+      {
+        "name": "blue.interface",
+        "args": [
+          {
+            "$expr": "IInitialize"
+          },
+          {
+            "$expr": "ITr2AnimationUpdater"
+          }
+        ],
+        "text": "@blue.interface(IInitialize, ITr2AnimationUpdater)"
+      }
+    ],
+    "members": [
+      {
+        "name": "resPath_",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.persistOnly",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.string",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "gStateResPath_",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.persistOnly",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.string",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "model_",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.persistOnly",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.string",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "parameters",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.read",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "blue.persist",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.list",
+            "args": [
+              "Tr2GStateParameter"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "grannyRes",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.read",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.rootRef",
+            "args": [
+              "TriGrannyRes"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "eventListener",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.rootRef",
+            "args": [
+              "IBlueEventListener"
+            ],
+            "call": true
+          }
+        ]
+      },
+      {
+        "name": "animationEnabled",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.boolean",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "debugRenderJointNames",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.boolean",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "debugRenderSkeleton",
+        "kind": "ClassProperty",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.readwrite",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "type.boolean",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "resPath",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.property",
+            "args": [],
+            "call": true
+          },
+          {
+            "name": "type.string",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "resPath",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "gStateResPath",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.property",
+            "args": [],
+            "call": true
+          },
+          {
+            "name": "type.string",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "gStateResPath",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "model",
+        "kind": "get",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.property",
+            "args": [],
+            "call": true
+          },
+          {
+            "name": "type.string",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "model",
+        "kind": "set",
+        "static": false,
+        "decorators": []
+      },
+      {
+        "name": "GetResPath",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetResPath",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.adapted",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetGStateResPath",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetGStateResPath",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.adapted",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetModel",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.implemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetModel",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.adapted",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "ClearScrub",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "ForceChangeToState",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetActiveMachineElementName",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetAnimationTime",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetGStateAnimFileRefPaths",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetParameter",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetParameterByName",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetParameterIndexByName",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetParameterRange",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetParameters",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetScrubOffset",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetStartStateIdx",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetTopLevelNodeNames",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetTopLevelParameterNodeNames",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "GetTopLevelStateNodeNames",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "InstantiateCharacter",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "IsFullyLoaded",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "LoadModelFromGstate",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "PlayFromScrub",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "RequestChangeToState",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "RequestParameter",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "RequestParameterByName",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "ResetParamsToDefault",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetParameter",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetScrubOffset",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetStartStateByName",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "SetStartStateIdx",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "StartScrub",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "StartTransitionByName",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "StopPlayFromScrub",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      },
+      {
+        "name": "TogglePauseAnimations",
+        "kind": "method",
+        "static": false,
+        "decorators": [
+          {
+            "name": "blue.method",
+            "args": [],
+            "call": false
+          },
+          {
+            "name": "meta.notImplemented",
+            "args": [],
+            "call": false
+          }
+        ]
+      }
+    ]
+  }
+]
