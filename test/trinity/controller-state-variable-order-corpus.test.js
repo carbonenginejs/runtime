@@ -16,6 +16,7 @@
 // drains the main-thread queue until t.after.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
@@ -28,6 +29,8 @@ import { StubResMan } from "../support/stubResMan.js";
 
 const corpus = process.env.CONTROLLER_BLACK_CORPUS_DIR;
 const NAME = "gbc3_t1_empire_fx.black";
+// The corpus directory is shared with other optional proofs, so a missing file skips rather than fails.
+const missing = corpus && !existsSync(join(corpus, NAME));
 const SIZE = 76676;
 const MD5 = "f3d7feb4a37c2692d7e49d1ca5466f7b";
 const SECOND = 10000000;
@@ -92,7 +95,8 @@ function recordStates(machine)
 }
 
 test("real ship VFX file: accumulator sampler reaches OnComplete on the step that crosses its threshold", {
-  skip: !corpus && "set CONTROLLER_BLACK_CORPUS_DIR for the real Black-file proof"
+  skip: (!corpus && "set CONTROLLER_BLACK_CORPUS_DIR for the real Black-file proof")
+    || (missing && `CONTROLLER_BLACK_CORPUS_DIR lacks ${NAME}`)
 }, async t =>
 {
   const { root, clock } = await load(t);
@@ -144,7 +148,8 @@ test("real ship VFX file: accumulator sampler reaches OnComplete on the step tha
 });
 
 test("real ship VFX file: brake check latches its speed delta on the step it is computed", {
-  skip: !corpus && "set CONTROLLER_BLACK_CORPUS_DIR for the real Black-file proof"
+  skip: (!corpus && "set CONTROLLER_BLACK_CORPUS_DIR for the real Black-file proof")
+    || (missing && `CONTROLLER_BLACK_CORPUS_DIR lacks ${NAME}`)
 }, async t =>
 {
   const { root, clock } = await load(t);

@@ -4,6 +4,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 // below. Game data is not committed; hashes and sizes pin the inspected inputs.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
@@ -13,15 +14,18 @@ import { EveChildContainer, ExecuteMainThreadActions, Tr2ControllerReference } f
 import { StubResMan } from "../support/stubResMan.js";
 
 const corpus = process.env.CONTROLLER_BLACK_CORPUS_DIR;
+const fixtures = [
+  [ "angbc1_t1_fx_01a.black", 281768, "d26590b55fe1b1f5d0a1b8fa3628a40b" ],
+  [ "ShipStandard_FxStandAlone.black", 1170, "a26ea8e11017eec72e1b5d0a7a264931" ]
+];
+// The corpus directory is shared with other optional proofs, so a missing file skips rather than fails.
+const missing = corpus ? fixtures.map(([ name ]) => name).filter(name => !existsSync(join(corpus, name))) : [];
 
 test("real fx_01a loads its stand-alone controller and animates all five rib DiffuseColors", {
-  skip: !corpus && "set CONTROLLER_BLACK_CORPUS_DIR for the real Black-file proof"
+  skip: (!corpus && "set CONTROLLER_BLACK_CORPUS_DIR for the real Black-file proof")
+    || (missing.length > 0 && `CONTROLLER_BLACK_CORPUS_DIR lacks ${missing.join(", ")}`)
 }, async t =>
 {
-  const fixtures = [
-    [ "angbc1_t1_fx_01a.black", 281768, "d26590b55fe1b1f5d0a1b8fa3628a40b" ],
-    [ "ShipStandard_FxStandAlone.black", 1170, "a26ea8e11017eec72e1b5d0a7a264931" ]
-  ];
   const bytes = [];
   for (const [ name, size, md5 ] of fixtures)
   {
