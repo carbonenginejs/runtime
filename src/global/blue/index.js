@@ -134,6 +134,7 @@ export * from "./DictReader.js";
 export * from "./IRootWriter.js";
 export * from "./DictWriter.js";
 export * from "./YamlWriter.js";
+export * from "./YamlReader.js";
 
 export { GetResources } from "./getResources.js";
 

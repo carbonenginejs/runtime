@@ -30,6 +30,7 @@
 import { CjsSchema, meta, blue } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
+import { mappedInterfaces } from "../compose/interface.js";
 import { ICustomPersist } from "./ICustomPersist.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { InvalidAttributeException } from "./InvalidAttributeException.js";
@@ -51,6 +52,9 @@ const LIST_KINDS = new Set([ "list", "array" ]);
  */
 export class IRootReaderBase
 {
+  /** Native readers select PERSIST storage independently of script WRITE. */
+  _nativePersistence = false;
+
   /**
    * Reads one member (IRootReader.cpp:97-160): finds it, reads the current
    * source value into it by its kind, and then calls `notify.OnModified` with
@@ -72,7 +76,8 @@ export class IRootReaderBase
     {
       throw new InvalidAttributeException(`Invalid attribute: ${attributeName} on ${CjsSchema.getClassName(instance.constructor)}`);
     }
-    if (!CjsSchema.isFieldWritable(field)) return false;
+    // Native persistence writes PERSIST storage independently of script WRITE flags.
+    if (!this._nativePersistence && !CjsSchema.isFieldWritable(field)) return false;
 
     // Declared reads may defer a direct reference assignment until anchors
     // resolve. Keep its mapped notification with that write, not its parsing.
@@ -85,7 +90,9 @@ export class IRootReaderBase
       {
         // BINARYBLOCK (IRootReader.cpp:77-88): the instance decodes the bytes,
         // and one that does not map ICustomPersist is not given them.
-        const persist = CjsSchema.cast(instance, ICustomPersist);
+        const persist = this._nativePersistence
+          ? (mappedInterfaces(instance.constructor).has(ICustomPersist) ? instance : null)
+          : CjsSchema.cast(instance, ICustomPersist);
         if (persist) this.ReadBinaryBlock(persist, attributeName);
         changed = persist !== null;
       }
