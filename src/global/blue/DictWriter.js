@@ -25,8 +25,6 @@
 //   mdeha01 hangar passed 12 GB).
 import { CjsSchema, meta, blue } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
-import { BeObjectMetadata } from "./BlueObjectMetadata.js";
-import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
 import { getDictionaryDeclarations } from "./dictionaryDeclarations.js";
 import * as CcpLog from "../logging/ccpLog.js";
 
@@ -38,7 +36,7 @@ import * as CcpLog from "../logging/ccpLog.js";
  * 177.1 MB of JSON (0.96x the .black); the mdeha01 hangar's 12.4 MB of DNA
  * values export to 14.0 MB. 1 GiB is about 5.7x the largest real export, so
  * only duplication - a shared graph written flat - or a hand-built scene of
- * unusual size reaches it. There is no .red writer yet, so no .red ratio.
+ * unusual size reaches it. These measurements cover JSON bags, not Red text.
  * The running estimate came within 0.4% (data.black) and 1.5% (hangar) of the
  * real JSON length.
  */
@@ -56,19 +54,6 @@ export class DictWriter extends IRootWriter
   /** The member name the next value is written under. */
   _pendingName = null;
 
-  /** m_classEventMap: each object written, to the bag written for it. */
-  _written = new Map();
-
-  /**
-   * Objects first written inside a READ-only member. A reader skips those
-   * members, so an anchor there would leave later `{ _ref }`s dangling: they
-   * are aliased only from inside read-only members (which also stops a cycle
-   * there), and a writable member that reaches one writes it in full.
-   */
-  _writtenReadOnly = new Map();
-
-  /** How many READ-only member values are being written, innermost included. */
-  _readOnlyDepth = 0;
 
   /** The member names records interrupted, restored as each record ends. */
   _recordNames = [];
@@ -139,12 +124,7 @@ export class DictWriter extends IRootWriter
       return;
     }
 
-    let written;
-    if (this._options.refs !== false)
-    {
-      written = this._written.get(instance);
-      if (!written && this._readOnlyDepth > 0) written = this._writtenReadOnly.get(instance);
-    }
+    const written = this._FindWrittenObject(instance, this._options.refs !== false);
     if (written)
     {
       if (written._id === undefined) written._id = this._anchorNumber++;
@@ -195,15 +175,9 @@ export class DictWriter extends IRootWriter
    */
   _WriteObjectInto(instance, out, declaredClassName)
   {
-    (this._readOnlyDepth > 0 ? this._writtenReadOnly : this._written).set(instance, out);
-
-    const className = CjsSchema.getClassName(instance.constructor);
+    this._RememberWrittenObject(instance, out);
     const options = this._options;
-    if (options.forceTypeTags || (options.typeTags && className && className !== declaredClassName)) out._type = className;
-
-    // The object's metadata, under its reserved key (YamlWriter.cpp:330-342).
-    const metadata = BeObjectMetadata.GetMetadata(instance);
-    if (metadata) out[BLUE_OBJECT_METADATA_KEY] = { ...metadata };
+    Object.assign(out, this._ObjectHeader(instance, declaredClassName, options, "_type"));
 
     // Fieldless custom formats retain their explicit GetValues contract.
     const fields = getDictionaryDeclarations(instance.constructor).fields;
@@ -252,21 +226,9 @@ export class DictWriter extends IRootWriter
     if (!limit || this._estimatedBytes <= limit) return;
     CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("blue"),
       "GetValues of %s wrote about %d MB (warning above %d MB); refs: %s",
-      CjsSchema.getClassName(instance.constructor) ?? instance.constructor.name,
+      CjsSchema.getClassName(instance.constructor) ?? "unregistered object",
       Math.round(this._estimatedBytes / 1048576), Math.round(limit / 1048576),
       this._options.refs === false ? "false - shared objects were written at every reference" : "on");
-  }
-
-  /** Enters a READ-only member's value. */
-  BeginReadOnlyMember()
-  {
-    this._readOnlyDepth++;
-  }
-
-  /** Leaves a READ-only member's value. */
-  EndReadOnlyMember()
-  {
-    this._readOnlyDepth--;
   }
 
   /** `Cleanup` (YamlWriter.cpp:245-254). */
