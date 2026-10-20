@@ -280,3 +280,36 @@ test("ReadFromStream retains native anchor state across calls, unlike cached Cre
   const next = reader.CreateObjectFromString(`type: ${root}\nchild: *previous`);
   assert.equal(next.child, first, "YamlReader.cpp:107-155 never clears m_anchorClassMap");
 });
+
+test("explicit scalar tags retain libyaml text before declared conversion", () => {
+  class Root { flag = true; text = ""; value = 0; }
+  const name = register(Root, { flag: "boolean", text: "string", value: "int32" });
+  const root = read(`type: ${name}\nflag: !!bool true\ntext: !!int 0012\nvalue: !!float 12.75\n`);
+  assert.equal(root.flag, false, "native bool uses atoi on the spelling true");
+  assert.equal(root.text, "0012");
+  assert.equal(root.value, 12);
+});
+
+test("binary decoding writes bytes into a bounded wider typed allocation", () => {
+  class Root {
+    binary = new Uint32Array(0);
+    storage = new Uint32Array(8);
+    allocated = null;
+    AllocateReadBuffer(_name, size) {
+      this.storage.fill(0xdeadbeef);
+      this.allocated = this.storage.subarray(1, 1 + Math.floor(size / 4));
+      return this.allocated;
+    }
+    SetBufferAndSize(_name, buffer, size) {
+      assert.equal(buffer, this.allocated);
+      assert.equal(size, 8);
+      this.binary = buffer.subarray(0, size / 4);
+    }
+  }
+  CjsSchema.blue.interface(ICustomPersist)(Root, { kind: "class" });
+  const name = register(Root, { binary: { kind: "typedArray", binary: true, scalar: "uint32" } });
+  const root = read(`type: ${name}\nbinary: !!binary AQAAAAIAAAA=\n`);
+  assert.deepEqual(root.binary, new Uint32Array([1, 2]));
+  assert.equal(root.storage[0], 0xdeadbeef);
+  assert.equal(root.storage[3], 0xdeadbeef);
+});

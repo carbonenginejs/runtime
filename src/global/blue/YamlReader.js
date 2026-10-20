@@ -252,7 +252,11 @@ export class YamlReader extends IRootReaderBase
     }
   }
 
-  /** Adapts yaml nodes to native event order; no plain values graph is constructed. */
+  /**
+   * Adapts yaml nodes to native event order; no plain values graph is constructed.
+   * PoolAllocatedYamlEvent (YamlReader.h:26) supplies cached native allocation
+   * only; these event records instead live with the reader and are reclaimed by GC.
+   */
   _LoadEvents(text)
   {
     this._eventList = [];
@@ -286,7 +290,9 @@ export class YamlReader extends IRootReaderBase
     };
     add("STREAM_START");
     // Libyaml passes scalar spellings through untouched, including duplicate keys.
-    const documents = parseAllDocuments(text, { schema: "failsafe", uniqueKeys: false });
+    // Explicit YAML tags must not resolve into Buffers, numbers or dates:
+    // libyaml supplies the scalar text and Carbon's member declaration converts it.
+    const documents = parseAllDocuments(text, { schema: "failsafe", resolveKnownTags: false, uniqueKeys: false });
     for (const document of documents)
     {
       if (document.errors.length) this._ReportError(document.errors[0].message);
@@ -809,6 +815,11 @@ export class YamlReader extends IRootReaderBase
   {
     const text = this._ReadScalar();
     const buffer = persist.AllocateReadBuffer(name, text.length);
+    // Native AllocateReadBuffer returns uint8_t*. Owners may expose wider JS
+    // typed storage, so decode through its byte view without replacing it.
+    const bytes = ArrayBuffer.isView(buffer)
+      ? new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+      : new Uint8Array(buffer);
     // Fixes CE-211: Carbon reads past the end; ours throws (Base64.cpp:92-100).
     if (text.length % 4) this._ReportError("Incomplete Base64 quartet would read outside the native input buffer");
     let size = 0;
@@ -816,11 +827,11 @@ export class YamlReader extends IRootReaderBase
     {
       const a = Base64Digit(text[index]), b = Base64Digit(text[index + 1]);
       const c = Base64Digit(text[index + 2]), d = Base64Digit(text[index + 3]);
-      buffer[size++] = ((a & 63) << 2) | ((b & 48) >> 4);
+      bytes[size++] = ((a & 63) << 2) | ((b & 48) >> 4);
       if (c === 99) break;
-      buffer[size++] = ((b & 15) << 4) | ((c & 60) >> 2);
+      bytes[size++] = ((b & 15) << 4) | ((c & 60) >> 2);
       if (d === 99) break;
-      buffer[size++] = ((c & 3) << 6) | (d & 63);
+      bytes[size++] = ((c & 3) << 6) | (d & 63);
     }
     persist.SetBufferAndSize(name, buffer, size);
   }

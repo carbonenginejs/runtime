@@ -11,7 +11,7 @@ import { INotify } from "../../src/global/blue/INotify.js";
 import { DictWriter } from "../../src/global/blue/DictWriter.js";
 import { CjsBlackReader } from "../../src/resource/formats/black/core/CjsBlackReader.js";
 import { CjsGraphFormat } from "../../src/resource/formats/graph/index.js";
-import { CjsRedFormat } from "../../src/resource/formats/red/index.js";
+import { YamlReader } from "../../src/global/blue/YamlReader.js";
 
 /** BlueTypes.h EDITFLAGS: READ 0x1, WRITE 0x2, PERSIST 0x10. */
 const READ = 0x1, WRITE = 0x2, PERSIST = 0x10;
@@ -20,6 +20,7 @@ class PropertyLeaf
 {
   value = 0;
 }
+blue.interface()(PropertyLeaf);
 CjsSchema.define(PropertyLeaf, { className: "SchemaPropertyLeaf", members: [
   { name: "value", key: "value", type: { kind: "int32" }, edit: { read: true, write: true, persist: true } }
 ] });
@@ -117,7 +118,7 @@ test("Black reads a persisted property through its setter", () =>
 test("Red reads a persisted property through its setter", () =>
 {
   const red = "type: SchemaPropertyProbe\ntarget:\n  type: SchemaPropertyLeaf\n  value: 5\n";
-  const probe = CjsRedFormat.readRuntime(red, { registry: CjsSchema }).root;
+  const probe = new YamlReader().CreateObjectFromString(red);
   assert.ok(probe instanceof PropertyProbe);
   assert.equal(probe._target.value, 5);
   assert.ok(probe.calls.includes("SetTarget"));
@@ -234,8 +235,7 @@ test("an attribute over an accessor path keeps its flags and is read and written
   assert.deepEqual(black.modified, [ "highDetailModel" ]);
 
   // Red.
-  const red = CjsRedFormat.readRuntime("type: SchemaAttributeAccessorOwner\nhighDetailModel:\n  type: SchemaPropertyLeaf\n  value: 5\n",
-    { registry: CjsSchema }).root;
+  const red = new YamlReader().CreateObjectFromString("type: SchemaAttributeAccessorOwner\nhighDetailModel:\n  type: SchemaPropertyLeaf\n  value: 5\n");
   assert.equal(red.lod.highDetailProxy.value, 5);
 
   // Graph round trip.

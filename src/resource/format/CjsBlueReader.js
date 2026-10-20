@@ -19,13 +19,11 @@ import { CjsReader } from "./CjsReader.js";
  * owns common payload/runtime targets, reference emission, hydration adapter
  * phases, reports, and finalization. It also provides reusable class/shape,
  * descriptor assignment, and normalization helpers for transports that resolve
- * persisted fields through a schema. Red does not opt into that descriptor
- * path yet and retains its lenient named-field behavior.
+ * persisted fields through a schema.
  *
- * Its two transports are `CjsBlackReader` (binary; keeps structure-list
- * parsing and skipping) and `CjsRedReader` (the YAML encoding of the Blue
- * graph; keeps anchors, aliases and typed tables). The generic `CjsYamlFormat`
- * does not use this backend. Readers are bound to one source and
+ * Its transport is `CjsBlackReader` (binary; keeps structure-list parsing and
+ * skipping). Blue's `YamlReader` and the generic `CjsYamlFormat` do not use
+ * this backend. Readers are bound to one source and
  * garbage-collected, never disposed; each read entry point resets graph state
  * before walking the source again. Runtime hydration constructs a target when
  * its node is met, applies the node's values after its children are read, and
@@ -246,7 +244,7 @@ export class CjsBlueReader extends CjsReader
             // Registered classes without the legacy values method populate
             // canonical storage: embedded objects and mapped lists keep their
             // identities, and mapped NOTIFY follows each declared write.
-            // Black and Red have already constructed their object references;
+            // Black has already constructed its object references;
             // the existing whole-graph finalizer still owns initialization.
             const reader = new DictReader({ declarations: true, initialize: false });
             const declaredValues = {};

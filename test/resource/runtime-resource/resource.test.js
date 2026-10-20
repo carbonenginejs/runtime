@@ -526,7 +526,11 @@ test("CjsBlueResMan ordered extension formats probe once and use only a final fa
 
 test("CjsBlueResMan uses Black-first content routing for both red and black suffixes", async () =>
 {
-  const encoded = new TextEncoder().encode("type: TestRoot\nname: yaml-content\n");
+  class RedRouteRoot { name = ""; }
+  CjsSchema.define(RedRouteRoot, { className: "RedRouteRoot", fields: {
+    name: { type: { kind: "string" }, edit: { persist: true } }
+  } });
+  const encoded = new TextEncoder().encode("type: RedRouteRoot\nname: yaml-content\n");
   const source = { Read() { return encoded; } };
   const resMan = new CjsBlueResMan({ source });
   resMan.RegisterExtension("red", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
@@ -534,8 +538,8 @@ test("CjsBlueResMan uses Black-first content routing for both red and black suff
 
   const fromRed = await LoadData(resMan, "res:/data/value.red");
   const fromBlack = await LoadData(resMan, "res:/data/value.black");
-  assert.equal(fromRed.object._type, "TestRoot");
-  assert.equal(fromRed.object.name, "yaml-content");
+  assert.equal(fromRed.constructor, RedRouteRoot);
+  assert.equal(fromRed.name, "yaml-content");
   assert.deepEqual(fromBlack, fromRed);
 });
 

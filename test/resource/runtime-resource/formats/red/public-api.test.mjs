@@ -1,302 +1,146 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import CjsRedFormat, * as entry from "../../../../../npm/dist/resource/formats/red/index.js";
+import { CjsFormat } from "../../../../../npm/dist/resource/format/CjsFormat.js";
+import { CjsSchema } from "../../../../../npm/dist/global/schema/index.js";
+import { YamlReader } from "../../../../../npm/dist/global/blue/YamlReader.js";
+import { IInitialize } from "../../../../../npm/dist/global/blue/IInitialize.js";
+import { BeObjectMetadata } from "../../../../../npm/dist/global/blue/BlueObjectMetadata.js";
+import "../../../../../npm/dist/global/blue/values.js";
 
-import CjsRedFormat, { CjsRedFormat as NamedCjsRedFormat } from "../../../../../npm/dist/resource/formats/red/index.js";
-
-/** A reader payload: a null-prototype data dictionary. */
-const bag = values => Object.assign(Object.create(null), values);
-
-// A shared node referenced by identity models a YAML anchor/alias: the same
-// object appears in two places in the graph.
-function makeGraph()
+class RedContractLeaf
 {
-    const sharedLight = {
-        type: "Tr2PointLight",
-        name: "Left",
-        color: [ 1.0, 0.0, 0.0, 1.0 ],
-        brightness: 0.0
-    };
-
-    return {
-        type: "EveChildContainer",
-        name: "root",
-        __scratch__: { editor: "state" },
-        objects: [
-            {
-                type: "EveChildMesh",
-                name: "mesh",
-                lights: [ sharedLight ]
-            }
-        ],
-        curveSets: [
-            {
-                type: "TriCurveSet",
-                name: "cs",
-                curves: [
-                    {
-                        type: "Tr2CurveScalar",
-                        name: "curve",
-                        keys: {
-                            structure: [ [ "time", 4, 0 ], [ "value", 4, 4 ] ],
-                            items: [ [ 0.0, 0.5 ], [ 1.0, 1.0 ] ]
-                        }
-                    }
-                ],
-                bindings: [
-                    {
-                        type: "TriValueBinding",
-                        name: "b",
-                        destinationObject: sharedLight,
-                        destinationAttribute: "color"
-                    }
-                ]
-            }
-        ],
-        effect: {
-            type: "Tr2Effect",
-            effectFilePath: "cdn:/x.fx",
-            __note__: "scratch",
-            options: {
-                structure: [ [ "name", 5, 0 ], [ "value", 5, 8 ] ],
-                items: [ [ "SPACE_OBJECT_CLIPPING", "SOC_DISABLED" ] ]
-            }
-        }
-    };
+    value = 0;
+    initializeCount = 0;
+    Initialize() { ++this.initializeCount; }
 }
-
-test("package root exports one public class", async () =>
+class RedContractRoot
 {
-    const mod = await import("../../../../../npm/dist/resource/formats/red/index.js");
-    assert.deepEqual(Object.keys(mod).sort(), [ "CjsRedFormat", "default" ]);
-    assert.equal(mod.default, CjsRedFormat);
-    assert.equal(NamedCjsRedFormat, CjsRedFormat);
+    name = "";
+    left = null;
+    right = null;
+    items = [];
+    position = new Float32Array(3);
+}
+function declare(Constructor, name, fields)
+{
+    CjsSchema.define(Constructor, { className: name, members: Object.entries(fields).map(([key, type]) => ({
+        key, name: key, type: typeof type === "string" ? { kind: type } : type,
+        edit: { persist: true, read: true, write: true }
+    })) });
+}
+declare(RedContractLeaf, "RedContractLeaf", { value: "float32" });
+CjsSchema.blue.interface(IInitialize)(RedContractLeaf);
+declare(RedContractRoot, "RedContractRoot", {
+    name: "string", left: "rootRef", right: "rootRef",
+    items: { kind: "array", itemType: { kind: "rootRef" } }, position: "vec3"
+});
+const source = `type: RedContractRoot
+__bluemetadata__:
+  arbitrary: "retained"
+name: "Takahē"
+left: &child {type: RedContractLeaf, value: 0.123456789}
+right: *child
+items: [*child, null]
+position: [0.123456789, 2, 3]
+`;
+
+test("the public Red entry exports only its object-loading format", () =>
+{
+    assert.deepEqual(Object.keys(entry).sort(), ["CjsRedFormat", "default"]);
+    assert.equal(entry.CjsRedFormat, CjsRedFormat);
+    CjsFormat.validateContract(CjsRedFormat);
+    assert.deepEqual(CjsRedFormat.extensions, [".red"]);
+    assert.deepEqual(Object.keys(CjsRedFormat.outputs), ["runtime"]);
+    assert.equal(CjsRedFormat.outputs.runtime.default, true);
+    for (const key of ["readPayload", "readRaw", "readRuntime", "classKeys", "copyReaderOptions"])
+        assert.equal(Object.hasOwn(CjsRedFormat, key), false);
+    for (const key of ["SetClass", "SetClasses", "ReadPayload", "ReadRaw", "ReadRuntime"])
+        assert.equal(key in CjsRedFormat.prototype, false);
 });
 
-test("reader exposes the standard public profile API", () =>
+test("format reads construct the same canonical objects as YamlReader", () =>
 {
-    assert.deepEqual(Object.getOwnPropertyNames(CjsRedFormat.prototype).sort(), [
-        "GetClass", "GetValues", "HasClass", "Inspect", "Read", "ReadPayload",
-        "ReadRaw", "ReadRuntime", "SetClass", "SetClasses", "SetValues", "ToJSON",
-        "constructor"
-    ].sort());
-    assert.equal(CjsRedFormat.id, "CjsRedFormat");
+    RedContractLeaf.prototype.SetValues = () => { throw new Error("YamlReader must not use the hydration adapter"); };
+    let root;
+    try { root = CjsRedFormat.read(source); }
+    finally { delete RedContractLeaf.prototype.SetValues; }
+    assert.equal(root.constructor, RedContractRoot);
+    assert.equal(root.left.constructor, RedContractLeaf);
+    assert.equal(root.name, "Takahē");
+    assert.equal(root.left, root.right);
+    assert.equal(root.items[0], root.left);
+    assert.equal(root.items.length, 1, "native lists discard null entries");
+    assert.equal(root.left.initializeCount, 1);
+    assert.ok(root.position instanceof Float32Array);
+    assert.equal(root.position[0], Math.fround(0.123456789));
+    assert.equal(root.left.value, Math.fround(0.123456789));
+    assert.deepEqual(root, new YamlReader().CreateObjectFromString(source));
 });
 
-test("reader profile exposes and persists payload identity markers", () =>
+test("UTF-8 buffers and bounded views decode only the supplied bytes", () =>
 {
-    const format = new CjsRedFormat();
-    assert.equal(format.GetValues().payloadTypeField, "_type");
-    assert.equal(format.GetValues().payloadIdField, "_id");
-    assert.equal(format.GetValues().payloadReferenceField, "_ref");
-    assert.equal(format.GetValues().payloadValuesField, "_values");
-
-    const shared = [ 7 ];
-    const payload = format
-        .SetValues({ payloadValuesField: "items" })
-        .ReadPayload({ type: "Root", left: shared, right: shared })
-        .object;
-    assert.deepEqual(payload.left.items, [ 7 ]);
-    assert.equal(payload.left._id, payload.right._ref);
-    assert.equal(format.GetValues().payloadValuesField, "items");
-});
-
-test("read emits a compact public payload and strips authoring-tool keys", () =>
-{
-    const payload = CjsRedFormat.read(makeGraph());
-
-    assert.deepEqual(Object.keys(payload), [ "comments", "object" ]);
-    assert.equal(payload.object._type, "EveChildContainer");
-    assert.equal(payload.object.name, "root");
-    assert.equal(payload.object.effect._type, "Tr2Effect");
-
-    // Double-underscore authoring-tool keys never survive anywhere.
-    const hasStrippedKey = (node) =>
+    const bytes = new TextEncoder().encode(source);
+    const padded = new Uint8Array(bytes.length + 8);
+    padded.fill(255);
+    padded.set(bytes, 4);
+    for (const input of [bytes.buffer, bytes, padded.subarray(4, 4 + bytes.length),
+        new DataView(padded.buffer, 4, bytes.length)])
     {
-        if (Array.isArray(node)) return node.some(hasStrippedKey);
-        if (!node || typeof node !== "object") return false;
-        return Object.keys(node).some(key => key.startsWith("__") || hasStrippedKey(node[key]));
-    };
-    assert.equal(hasStrippedKey(payload), false);
-});
-
-test("typed tables decode to row objects keyed by column name", () =>
-{
-    const payload = CjsRedFormat.read(makeGraph());
-
-    const curve = payload.object.curveSets[0].curves[0];
-    assert.deepEqual(curve.keys, [ bag({ time: 0.0, value: 0.5 }), bag({ time: 1.0, value: 1.0 }) ]);
-
-    const options = payload.object.effect.options;
-    assert.deepEqual(options, [ bag({ name: "SPACE_OBJECT_CLIPPING", value: "SOC_DISABLED" }) ]);
-});
-
-test("shared nodes emit a full object once and references thereafter", () =>
-{
-    const payload = CjsRedFormat.read(makeGraph());
-
-    const light = payload.object.objects[0].lights[0];
-    assert.equal(light._type, "Tr2PointLight");
-    assert.equal(typeof light._id, "number");
-
-    const binding = payload.object.curveSets[0].bindings[0];
-    assert.deepEqual(binding.destinationObject, { _ref: light._id });
-
-    // The result is a JSON-safe tree despite the shared reference.
-    assert.doesNotThrow(() => JSON.stringify(payload));
-});
-
-test("inspect reports the root type and a type histogram", () =>
-{
-    const info = CjsRedFormat.inspect(makeGraph());
-    assert.equal(info.format.id, "red");
-    assert.equal(info.root.type, "EveChildContainer");
-    assert.equal(info.typeCounts.Tr2PointLight, 1);
-    assert.equal(info.typeCounts.EveChildMesh, 1);
-    assert.equal(info.typeCounts.TriValueBinding, 1);
-});
-
-test("raw keeps the type field, strips metadata, and shares identity", () =>
-{
-    const raw = CjsRedFormat.readRaw(makeGraph());
-    assert.equal(raw.type, "EveChildContainer");
-    assert.equal("__scratch__" in raw, false);
-
-    // The two references to the shared light resolve to one object.
-    assert.equal(raw.objects[0].lights[0], raw.curveSets[0].bindings[0].destinationObject);
-});
-
-test("YAML strings use format-yaml with anchor identity intact", () =>
-{
-    const source = [
-        "type: EveChildContainer",
-        "objects:",
-        "  - &light",
-        "    type: Tr2PointLight",
-        "    name: Shared",
-        "bindings:",
-        "  - type: TriValueBinding",
-        "    destinationObject: *light"
-    ].join("\n");
-
-    const raw = CjsRedFormat.readRaw(source);
-    assert.equal(raw.objects[0], raw.bindings[0].destinationObject);
-
-    const payload = CjsRedFormat.readPayload(source);
-    assert.equal(payload.object.objects[0]._type, "Tr2PointLight");
-    assert.deepEqual(payload.object.bindings[0].destinationObject, {
-        _ref: payload.object.objects[0]._id
-    });
-});
-
-test("reader accepts UTF-8 bytes from the resource pipeline", () =>
-{
-    const source = new TextEncoder().encode("type: TestRoot\nname: byte-source\n");
-    const payload = CjsRedFormat.readPayload(source);
-
-    assert.equal(payload.object._type, "TestRoot");
-    assert.equal(payload.object.name, "byte-source");
-});
-
-test("Red uses the runtime-resource-owned YAML format", async () =>
-{
-    const redGraph = await readFile(new URL("../../../../../npm/dist/resource/formats/red/core/redGraph.js", import.meta.url), "utf8");
-
-    assert.match(redGraph, /from ['"]\.\.\/\.\.\/yaml\/(?:index|CjsYamlFormat)\.js['"]/);
-    assert.doesNotMatch(redGraph, /createRequire|from "yaml"|from "js-yaml"|loadYaml/);
-});
-
-test("parse override remains the highest-priority compatibility hook", () =>
-{
-    const calls = [];
-    const raw = CjsRedFormat.readRaw("not parsed by format-yaml", {
-        parse(text)
-        {
-            calls.push(text);
-            return { type: "OverrideRoot", value: 42 };
-        }
-    });
-
-    assert.deepEqual(calls, [ "not parsed by format-yaml" ]);
-    assert.deepEqual(raw, { type: "OverrideRoot", value: 42 });
-});
-
-test("custom YAML tags are rejected before Red hydration", () =>
-{
-    assert.throws(
-        () => CjsRedFormat.readRaw("type: !unsafe EveChildContainer\n"),
-        /CjsYamlFormat.*custom tag.*rejected/
-    );
-});
-
-test("readRuntime constructs caller classes and shares instances", () =>
-{
-    class Container {}
-    class PointLight {}
-
-    const runtime = CjsRedFormat.readRuntime(makeGraph(), {
-        classes: { EveChildContainer: Container, Tr2PointLight: PointLight }
-    });
-
-    assert.equal(runtime.root instanceof Container, true);
-    const light = runtime.root.objects[0].lights[0];
-    assert.equal(light instanceof PointLight, true);
-    assert.equal(light.name, "Left");
-    // Shared node -> one constructed instance.
-    assert.equal(runtime.root.curveSets[0].bindings[0].destinationObject, light);
-});
-
-test("the DEFAULT adapter drives SetValues and Initialize", () =>
-{
-    const seen = [];
-    class LiveContainer
-    {
-        SetValues(values, options) { this.captured = values; this.lifecycleOptions = options; seen.push("container.SetValues"); }
-        Initialize(options) { this.initialized = true; this.initializeOptions = options; seen.push("container.Initialize"); }
+        assert.equal(CjsRedFormat.read(input).name, "Takahē");
     }
-    class LiveLight
-    {
-        SetValues(values, options) { this.captured = values; this.lifecycleOptions = options; }
-        Initialize(options) { this.initialized = true; this.initializeOptions = options; }
-    }
-    class LiveMesh
-    {
-        SetValues(values, options) { this.captured = values; this.lifecycleOptions = options; }
-        Initialize(options) { this.initialized = true; this.initializeOptions = options; }
-    }
-    class LiveNode
-    {
-        SetValues(values, options) { this.captured = values; this.lifecycleOptions = options; }
-        Initialize(options) { this.initialized = true; this.initializeOptions = options; }
-    }
+});
 
-    const runtime = CjsRedFormat.readRuntime(makeGraph(), {
-        classes: {
-            EveChildContainer: LiveContainer,
-            EveChildMesh: LiveMesh,
-            Tr2PointLight: LiveLight,
-            TriCurveSet: LiveNode,
-            Tr2CurveScalar: LiveNode,
-            TriValueBinding: LiveNode,
-            Tr2Effect: LiveNode
-        }
-    });
+test("values export belongs to DictWriter and retains Blue metadata and references", () =>
+{
+    const root = CjsRedFormat.read(source);
+    assert.equal(BeObjectMetadata.Get(root, "arbitrary"), "retained");
+    assert.equal(Object.hasOwn(root, "__bluemetadata__"), false);
+    const values = CjsSchema.getValues(root, {}, { typeTags: true });
+    assert.equal(values._type, "RedContractRoot");
+    assert.equal(values.__bluemetadata__.arbitrary, "retained");
+    assert.equal(values.left._id, values.right._ref);
+    assert.equal(values.items[0]._ref, values.left._id);
+    assert.equal(values.left.value, Math.fround(0.123456789));
+    const restored = CjsSchema.from(values._type, values);
+    assert.equal(restored.left, restored.right);
+    assert.equal(restored.items[0], restored.left);
+});
 
-    assert.equal(runtime.root instanceof LiveContainer, true);
-    assert.equal(runtime.root.captured.name, "root");
-    assert.equal(runtime.root.lifecycleOptions.skipUpdate, true);
-    assert.equal(runtime.root.lifecycleOptions.skipEvents, true);
-    // A reader no longer suppresses the dirty mark: it cannot build what the
-    // values ask for (vertices, buffers), so the work is outstanding when the
-    // read ends and the object must carry its declared tokens.
-    assert.equal(runtime.root.lifecycleOptions.markDirty, undefined);
-    assert.equal(runtime.root.initialized, true);
-    assert.equal(runtime.root.initializeOptions, undefined);
+test("profile and async reads preserve native reader options", async () =>
+{
+    const profile = new CjsRedFormat({ doInitialize: false });
+    assert.equal(profile.Read(source).left.initializeCount, 0);
+    assert.equal((await profile.ReadAsync(source)).left.initializeCount, 0);
+    assert.equal(profile.Read(source, { doInitialize: true }).left.initializeCount, 1);
+    assert.equal((await CjsRedFormat.readAsync(source)).constructor, RedContractRoot);
+});
 
-    const light = runtime.root.captured.objects[0].captured.lights[0];
-    assert.equal(light instanceof LiveLight, true);
-    assert.equal(light.initialized, true);
-    assert.equal(light.initializeOptions, undefined);
-    // children finalize before parents
-    assert.equal(seen[seen.length - 1], "container.Initialize");
+test("support verification exercises runtime output and refuses retired payload output", async () =>
+{
+    const report = await CjsRedFormat.verifySupport(source);
+    assert.equal(report.verified, true);
+    assert.equal(report.supported, true);
+    assert.equal(report.output, "runtime");
+    const retired = await CjsRedFormat.verifySupport(source, { emit: "payload" });
+    assert.equal(retired.supported, false);
+    assert.equal(retired.error.code, "CJS_FORMAT_OUTPUT_UNDECLARED");
+    for (const emit of ["json", "payload", "raw"])
+        assert.throws(() => CjsRedFormat.read(source, { emit }), /only runtime output/);
+});
+
+test("Red requires text and canonical classes; generic parsed graphs are retired", () =>
+{
+    assert.throws(() => CjsRedFormat.read({ type: "RedContractRoot" }), /text or UTF-8 bytes/);
+    assert.throws(() => CjsRedFormat.read("type: UnregisteredRedContract\n"));
+    assert.throws(() => CjsRedFormat.read("type: RedContractRoot\nunknown: 1\n", { isStrict: true }), /unknown/);
+});
+
+test("native backward aliases have no expansion limit; ancestor cycles remain unsupported", () =>
+{
+    const many = "type: RedContractRoot\nitems:\n- &child {type: RedContractLeaf}\n" + "- *child\n".repeat(727);
+    const root = CjsRedFormat.read(many);
+    assert.equal(root.items.length, 728);
+    assert.ok(root.items.every(item => item === root.items[0]));
+    assert.throws(() => CjsRedFormat.read("&self {type: RedContractRoot, left: *self}"), /hasn't been previously defined/);
 });

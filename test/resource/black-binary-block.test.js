@@ -7,7 +7,8 @@ import test from "node:test";
 import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { Copier, ICustomPersist } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { CjsRedFormat } from "../../npm/dist/resource/formats/red/index.js";
+import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
+import "../../npm/dist/global/blue/values.js";
 import { EveSOFDataDecalIndexBuffer } from "../../npm/dist/sof/index.js";
 import { clientResources } from "../support/clientResources.js";
 
@@ -47,12 +48,11 @@ test("a decal index buffer reads through its ICustomPersist from Black", () =>
 
 test("a decal index buffer reads through its ICustomPersist from Red's !!binary scalar", () =>
 {
-  const runtime = CjsRedFormat.readRuntime(RED, { registry: CjsSchema }).root;
+  const runtime = new YamlReader().CreateObjectFromString(RED);
   assert.equal(runtime.constructor, EveSOFDataDecalIndexBuffer);
   assert.deepEqual([ ...runtime.indexBuffer ], INDICES);
-  const payload = CjsRedFormat.readPayload(RED, { registry: CjsSchema }).object;
-  assert.ok(payload.indexBuffer instanceof Uint32Array);
-  assert.deepEqual([ ...payload.indexBuffer ], INDICES);
+  const values = CjsSchema.getValues(runtime);
+  assert.equal(Object.hasOwn(values, "indexBuffer"), false, "DictWriter omits persist-only binary blocks");
 });
 
 test("the reader hands the bytes to AllocateReadBuffer and SetBufferAndSize with the member name", () =>

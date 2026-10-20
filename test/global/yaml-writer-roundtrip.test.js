@@ -7,7 +7,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { YamlWriter, BeObjectMetadata, be } from "../../npm/dist/global/blue/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "../../npm/dist/global/blue/dictionaryDeclarations.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { CjsRedFormat } from "../../npm/dist/resource/formats/red/index.js";
+import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
 import { CjsYamlFormat } from "../../npm/dist/resource/formats/yaml/index.js";
 import "../../npm/dist/trinity/index.js";
 import { StubResMan } from "../support/stubResMan.js";
@@ -98,7 +98,7 @@ test("real ship and effect Black objects survive Red emission with measured prec
     assert.ok(response.ok, "resource fetch");
     const payload = CjsBlackFormat.readPayload(new Uint8Array(await response.arrayBuffer())).object;
     const original = CjsSchema.from(payload._type, payload);
-    // Exercise allowed/disallowed metadata separately: current redGraph strips it.
+    // Exercise the writer allow-list independently of the reader metadata side table.
     BeObjectMetadata.Set(original, "typeID", "42");
     BeObjectMetadata.Set(original, "privatePath", "private-authoring-location");
     const text = new YamlWriter().WriteObjectToString(original);
@@ -106,23 +106,13 @@ test("real ship and effect Black objects survive Red emission with measured prec
     const raw = parse(text, { maxAliasCount: -1 });
     assert.equal(raw.__bluemetadata__.typeID, "42");
     assert.equal(raw.__bluemetadata__.privatePath, undefined);
-    let defaultReaderAliasLimit = false;
-    let redPayload;
-    try { redPayload = CjsRedFormat.readPayload(text).object; }
-    catch (error)
-    {
-      if (!/alias count .* exceeds maxAliasCount/.test(error.message)) throw error;
-      defaultReaderAliasLimit = true;
-      redPayload = CjsRedFormat.readPayload(text, {
-        parse: source => CjsYamlFormat.readRaw(source, { maxAliasCount: 10000, tagPolicy: "reject" })
-      }).object;
-    }
-    const restored = CjsSchema.from(redPayload._type, redPayload);
+    const restored = new YamlReader().CreateObjectFromString(text);
     const result = compareGraphs(original, restored);
-    t.diagnostic(JSON.stringify({ resource: path, defaultReaderAliasLimit, ...result }));
+    t.diagnostic(JSON.stringify({ resource: path, ...result }));
     assert.deepEqual(result.mismatches, []);
     assert.ok(result.objects > 0);
-    assert.equal(BeObjectMetadata.Get(restored, "typeID"), null, "known current-reader metadata loss");
+    assert.equal(BeObjectMetadata.Get(restored, "typeID"), "42");
+    assert.equal(result.numericChanges, 0);
   }
 });
 
@@ -134,7 +124,7 @@ test("optional private Red reference corpus is compared only in memory and repor
   try { entries = await readdir(referenceDirectory, { withFileTypes: true }); }
   catch (error) { if (error.code === "ENOENT") { t.skip("reference directory unavailable"); return; } throw new Error("Reference directory could not be read."); }
   const summary = { files: 0, parsed: 0, written: 0, exactMatches: 0, formattingOrPolicyDifference: 0,
-    parseFailures: 0, constructionFailures: 0, writeFailures: 0, defaultReaderAliasLimit: 0,
+    parseFailures: 0, constructionFailures: 0, writeFailures: 0,
     syntaxFailures: 0, tagFailures: 0, otherParseFailures: 0,
     numberChangedFiles: 0, metadataChangedFiles: 0, memberSetChangedFiles: 0,
     nonNumericChangedFiles: 0, aliasTopologyChangedFiles: 0, formatOnlyFiles: 0 };
@@ -152,30 +142,8 @@ test("optional private Red reference corpus is compared only in memory and repor
       let source;
       try { source = await readFile(join(referenceDirectory, entry.name), "utf8"); }
       catch { ++summary.parseFailures; continue; }
-      let payload;
-      try
-      {
-        try { payload = CjsRedFormat.readPayload(source).object; }
-        catch (error)
-        {
-          if (!/alias count .* exceeds maxAliasCount/.test(error.message)) throw error;
-          ++summary.defaultReaderAliasLimit;
-          payload = CjsRedFormat.readPayload(source, {
-            parse: text => CjsYamlFormat.readRaw(text, { maxAliasCount: 100000, tagPolicy: "reject" })
-          }).object;
-        }
-        ++summary.parsed;
-      }
-      catch (error)
-      {
-        ++summary.parseFailures;
-        if (/tag/i.test(error.message)) ++summary.tagFailures;
-        else if (/syntax|parse|unexpected|indent|mapping|token/i.test(error.message)) ++summary.syntaxFailures;
-        else ++summary.otherParseFailures;
-        continue;
-      }
       let object;
-      try { object = CjsSchema.from(payload._type, payload); }
+      try { object = new YamlReader().CreateObjectFromString(source); ++summary.parsed; }
       catch { ++summary.constructionFailures; continue; }
       try
       {

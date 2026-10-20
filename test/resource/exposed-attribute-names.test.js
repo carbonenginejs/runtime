@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
-import { CjsRedReader } from "../../npm/dist/resource/formats/red/core/CjsRedReader.js";
+import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
+import "../../npm/dist/global/blue/values.js";
 import { CjsGraphFormat } from "../../npm/dist/resource/formats/graph/CjsGraphFormat.js";
 import { EveVirtualCameraBehaviourVector3Damping } from "../../npm/dist/trinity/index.js";
 import { TriStepToggleCubemap } from "../../npm/dist/trinity/renderJob/index.js";
@@ -15,7 +16,11 @@ import { TriStepToggleCubemap } from "../../npm/dist/trinity/renderJob/index.js"
 // exposed name through `blue.attribute`, never the JS key.
 const DAMPING = "EveVirtualCameraBehaviourVector3Damping";
 const TOGGLE = "TriStepToggleCubemap";
-const classes = { [DAMPING]: EveVirtualCameraBehaviourVector3Damping, [TOGGLE]: TriStepToggleCubemap };
+function readRed(text) {
+    const reader = new YamlReader();
+    reader._isStrict = true;
+    return reader.CreateObjectFromString(text);
+}
 
 test("the schema declares Carbon's exposed name apart from the JS key", () =>
 {
@@ -48,22 +53,22 @@ test("Black reads m_dampingRatio into dampingRatio and keeps the exposed name in
     assert.throws(() => new CjsBlackReader(keyed, { schema: null }).CreateObject(), /No persisted member declared for Black field EveVirtualCameraBehaviourVector3Damping\.dampingRatio/);
 });
 
-test("Red reads m_dampingRatio into dampingRatio and keeps the exposed name in its payload", () =>
+test("YamlReader reads the exposed name and the values service exports it", () =>
 {
     const red = `type: ${DAMPING}\nm_dampingRatio: 0.25\n`;
-    const instance = new CjsRedReader(red, { classes }).ReadRuntime().root;
+    const instance = readRed(red);
     assert.ok(instance instanceof EveVirtualCameraBehaviourVector3Damping);
     assert.equal(instance.dampingRatio, 0.25);
     assert.equal(Object.hasOwn(instance, "m_dampingRatio"), false);
-    const payload = new CjsRedReader(red, { classes }).ReadPayload().object;
+    const payload = CjsSchema.getValues(instance, {}, { typeTags: true });
     assert.equal(payload.m_dampingRatio, 0.25);
     assert.equal(Object.hasOwn(payload, "dampingRatio"), false);
 
     // The JS key is not a Red attribute name.
-    assert.throws(() => new CjsRedReader(`type: ${DAMPING}\ndampingRatio: 0.25\n`, { classes }).ReadRuntime(), /dampingRatio/);
+    assert.throws(() => readRed(`type: ${DAMPING}\ndampingRatio: 0.25\n`), /dampingRatio/);
 });
 
-test("m_showCubemap is not persisted, so Black refuses it under either spelling and Red refuses the JS key", () =>
+test("Black and strict YamlReader refuse nonpersisted m_showCubemap under either spelling", () =>
 {
     // IRootReaderBase::FindEntry (IRootReader.cpp:303-318) matches PERSIST entries only.
     for (const name of [ "m_showCubemap", "showCubemap" ])
@@ -72,10 +77,10 @@ test("m_showCubemap is not persisted, so Black refuses it under either spelling 
         const bytes = black.Finish(black.Object(1, TOGGLE, [ [ name, new Uint8Array([ 0 ]) ] ]));
         assert.throws(() => new CjsBlackReader(bytes, { schema: null }).CreateObject(), new RegExp(`No persisted member declared for Black field ${TOGGLE}\\.${name}`));
     }
-    // Carbon's YamlReader uses the same PERSIST-only lookup, so it would refuse
-    // m_showCubemap too; CjsRedReader currently accepts it. That divergence is
-    // not asserted here either way.
-    assert.throws(() => new CjsRedReader(`type: ${TOGGLE}\nshowCubemap: false\n`, { classes }).ReadRuntime(), /Invalid attribute: showCubemap/);
+    for (const name of [ "m_showCubemap", "showCubemap" ])
+    {
+        assert.throws(() => readRed(`type: ${TOGGLE}\n${name}: 0\n`), new RegExp(name));
+    }
 });
 
 test("the graph writer emits m_dampingRatio, not the JS key, and reads it back into dampingRatio", () =>

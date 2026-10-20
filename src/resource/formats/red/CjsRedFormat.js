@@ -1,302 +1,104 @@
+import { parseDocument, isMap, isScalar } from "yaml";
 import { CjsSchema } from "#schema/CjsSchema";
-
+import { YamlReader } from "../../../global/blue/YamlReader.js";
 import { CjsFormat } from "../../format/CjsFormat.js";
-import { CLASS_KEYS } from "./core/schema.js";
-import {
-    DEFAULT_VALUES,
-    OUTPUT_JSON,
-    OUTPUT_PAYLOAD,
-    OUTPUT_RAW,
-    OUTPUT_RUNTIME,
-    copyReaderOptions,
-    normalizeValues,
-    toJsonValue,
-    validateClass,
-    validateClassKey
-} from "./core/helpers.js";
-import { CjsRedReader } from "./core/CjsRedReader.js";
-
-const FORMAT_NAME = "CjsRedFormat";
 
 /**
- * CarbonEngineJS-facing Red format profile.
+ * Resource adapter for Carbon's YamlReader.
  *
- * Reads Red data - a type-discriminated, self-referential YAML object graph -
- * and emits a compact public payload by default, a neutral raw graph, or
- * caller-supplied runtime classes through the runtime global hydration adapter.
- * With payload IDs enabled, repeated sequences and typed tables use an
- * ID-bearing object around a configurable `payloadValuesField` (default
- * `_values`); unique sequences remain arrays. Active payload marker names must
- * be distinct non-empty strings, and authored fields that collide with them
- * are rejected. Remap the markers to preserve authored underscore fields.
- * Disabling the reference marker preserves actual JavaScript identity; a
- * cyclic result in that mode is intentionally not JSON-serializable.
+ * Returns a registered Blue object directly. Import the classes required by
+ * the document before reading. For values, use CjsSchema.getValues on that
+ * object through the Blue values service; Red has no separate payload or raw
+ * graph representation. Parsed JavaScript graphs are not Red input.
  */
 export class CjsRedFormat extends CjsFormat
 {
-    /** Registered name; `constructor.name` does not survive minification. */
     static className = "CjsRedFormat";
 
-    _emit = DEFAULT_VALUES.emit;
-
-    _schema = DEFAULT_VALUES.schema;
-
-    _readerOptions = {};
-
-    _classes = {};
-
     /**
-     * Create a reusable format profile.
-     * @param {object} [options] Default format values.
-     */
-    constructor(options = {})
-    {
-        super();
-        this.SetValues(options);
-    }
-
-    /**
-     * Set format values for this reusable profile.
-     * @param {object} [options] Values to merge into the profile.
-     * @returns {CjsRedFormat} This format profile.
-     */
-    SetValues(options = {})
-    {
-        const values = normalizeValues(this.GetValues(), options, CLASS_KEYS, FORMAT_NAME);
-        this._emit = values.emit;
-        this._schema = values.schema;
-        this._classes = values.classes;
-        this._readerOptions = CjsRedFormat.copyReaderOptions(values);
-        return this;
-    }
-
-    /**
-     * Get this profile's current values, optionally with per-call overrides.
-     * @param {object} [options] Optional values to merge into a copy.
-     * @returns {object} A copy of the effective values.
-     */
-    GetValues(options = {})
-    {
-        return normalizeValues({
-            ...DEFAULT_VALUES,
-            emit: this._emit,
-            schema: this._schema,
-            ...this._readerOptions,
-            classes: this._classes
-        }, options, CLASS_KEYS, FORMAT_NAME);
-    }
-
-    /**
-     * Set multiple node-class constructors for this profile.
-     * @param {object} [classes] Map of Red type names to constructors.
-     * @returns {CjsRedFormat} This format profile.
-     */
-    SetClasses(classes = {})
-    {
-        return this.SetValues({ classes });
-    }
-
-    /**
-     * Set one node-class constructor for this profile.
-     * @param {string} type Red type name.
-     * @param {Function|null|undefined} Class Constructor to use, or nullish to delete.
-     * @returns {CjsRedFormat} This format profile.
-     */
-    SetClass(type, Class)
-    {
-        validateClassKey(CLASS_KEYS, type, FORMAT_NAME);
-        if (Class === null || Class === undefined)
-        {
-            delete this._classes[type];
-            return this;
-        }
-
-        validateClass(CLASS_KEYS, type, Class, FORMAT_NAME);
-        this._classes = { ...this._classes, [type]: Class };
-        return this;
-    }
-
-    /**
-     * Get a configured node-class constructor.
-     * @param {string} type Red type name.
-     * @returns {Function|undefined} The registered constructor, if any.
-     */
-    GetClass(type)
-    {
-        validateClassKey(CLASS_KEYS, type, FORMAT_NAME);
-        return this._classes[type];
-    }
-
-    /**
-     * Whether this profile has a constructor registered for a Red type.
-     * @param {string} type Red type name.
-     * @returns {boolean}
-     */
-    HasClass(type)
-    {
-        return !!this.GetClass(type);
-    }
-
-    /**
-     * Read Red data with this profile's values.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Public payload output by default.
+     * Read with the profile defaults and per-call native reader settings.
+     * Adapted: resource profiles supply bytes or text to the Carbon reader.
+     * @param {string|ArrayBuffer|ArrayBufferView} input UTF-8 Red document.
+     * @param {object} [options] Per-call settings.
+     * @returns {object|null} Constructed Blue object.
      */
     Read(input, options = {})
     {
-        return CjsRedFormat.read(input, this.GetValues(options));
+        return CjsRedFormat.read(input, { ...this.options, ...options });
     }
 
     /**
-     * Read Red data as compact public payload data.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Public payload output.
-     */
-    ReadPayload(input, options = {})
-    {
-        return CjsRedFormat.readPayload(input, this.GetValues(options));
-    }
-
-    /**
-     * Read Red data as runtime objects or plain source-shaped objects.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Runtime read result.
-     */
-    ReadRuntime(input, options = {})
-    {
-        return CjsRedFormat.readRuntime(input, this.GetValues(options));
-    }
-
-    /**
-     * Read Red data as the cleaned raw object graph (metadata stripped, typed
-     * tables decoded, shared references preserved by identity).
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {*} Raw object graph.
-     */
-    ReadRaw(input, options = {})
-    {
-        return CjsRedFormat.readRaw(input, this.GetValues(options));
-    }
-
-    /**
-     * Inspect Red data with this profile's values.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Plain summary data.
-     */
-    Inspect(input, options = {})
-    {
-        return CjsRedFormat.inspect(input, this.GetValues(options));
-    }
-
-    /**
-     * Convert format output to JSON-compatible data.
-     * @param {any} value Format output to convert.
-     * @returns {any} Plain JSON-compatible data.
-     */
-    ToJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
-    /**
-     * Static one-shot read. Static methods use camelCase by convention.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Format values.
-     * @returns {object} Format output.
+     * Construct the document through the canonical Blue class registry.
+     * Adapted: decode resource bytes before CreateObjectFromString.
+     * @param {string|ArrayBuffer|ArrayBufferView} input UTF-8 Red document.
+     * @param {object} [options] Native reader settings.
+     * @param {boolean} [options.isStrict=false] Escalate reader warnings.
+     * @param {boolean} [options.doInitialize=true] Call mapped IInitialize.
+     * @param {string} [options.emit="runtime"] The sole supported output.
+     * @returns {object|null} Constructed Blue object.
      */
     static read(input, options = {})
     {
-        const values = normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME);
-        if (values.emit === OUTPUT_RUNTIME) return CjsRedFormat.readRuntime(input, values);
-        if (values.emit === OUTPUT_RAW) return CjsRedFormat.readRaw(input, values);
-        return CjsRedFormat.readPayload(input, values);
+        const values = options || {};
+        if (values.emit != null && values.emit !== "runtime")
+        {
+            throw new TypeError("CjsRedFormat supports only runtime output; export values through CjsSchema.getValues.");
+        }
+
+        const text = DecodeText(input);
+
+        const reader = new YamlReader();
+        if (values.isStrict !== undefined) reader._isStrict = Boolean(values.isStrict);
+        if (values.doInitialize !== undefined) reader.SetDoInitialize(Boolean(values.doInitialize));
+        return reader.CreateObjectFromString(text);
     }
 
     /**
-     * Static one-shot public payload read.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Format values.
-     * @returns {object} Public payload output.
+     * Inspect the mandatory first type member without constructing any objects.
+     * Adapted: format routing needs a structural probe independent of class
+     * registration, initialization and supported member storage.
+     * @param {string|ArrayBuffer|ArrayBufferView} input UTF-8 Red document.
+     * @returns {{className: string}} The authored root class.
      */
-    static readPayload(input, options = {})
+    static inspect(input)
     {
-        return new CjsRedReader(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME)).ReadPayload();
+        const document = parseDocument(DecodeText(input), {
+            schema: "failsafe", resolveKnownTags: false, uniqueKeys: false
+        });
+        if (document.errors.length) throw document.errors[0];
+        const first = isMap(document.contents) ? document.contents.items[0] : null;
+        if (!first || !isScalar(first.key) || first.key.value !== "type"
+            || !isScalar(first.value) || typeof first.value.value !== "string" || !first.value.value)
+        {
+            throw new TypeError("Red requires a root mapping whose first member is type.");
+        }
+        return { className: first.value.value };
     }
-
-    /**
-     * Static one-shot runtime read.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Format values.
-     * @returns {object} Runtime read result.
-     */
-    static readRuntime(input, options = {})
-    {
-        return new CjsRedReader(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME)).ReadRuntime();
-    }
-
-    /**
-     * Static one-shot raw read.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Format values.
-     * @returns {*} Raw object graph.
-     */
-    static readRaw(input, options = {})
-    {
-        return new CjsRedReader(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME)).ReadRaw();
-    }
-
-    /**
-     * Static one-shot inspection.
-     * @param {unknown} input Parsed Red object or YAML string.
-     * @param {object} [options] Format values.
-     * @returns {object} Plain summary data.
-     */
-    static inspect(input, options = {})
-    {
-        return new CjsRedReader(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME)).Inspect();
-    }
-
-    /**
-     * Static JSON-compatible conversion.
-     * @param {any} value Format output to convert.
-     * @returns {any} Plain JSON-compatible data.
-     */
-    static toJSON(value)
-    {
-        return toJsonValue(value);
-    }
-
-    /**
-     * Provides the one-shot RED copy reader options helper entry point.
-     *
-     * @param {import("./core/helpers.js").RedValues} values Normalized values.
-     * @returns {object} The values without emit, schema and classes.
-     */
-    static copyReaderOptions(values)
-    {
-        return copyReaderOptions(values);
-    }
-
-    static classKeys = CLASS_KEYS;
 
     static id = "CjsRedFormat";
 
     static extensions = [ ".red" ];
 
     static outputs = CjsFormat.defineOutputs({
-        json: { default: true, decoded: true },
-        payload: { decoded: true },
-        runtime: { decoded: true },
-        raw: { role: "debug", decoded: true }
+        runtime: { default: true, decoded: true }
     });
-
 }
 
 export default CjsRedFormat;
 
 CjsSchema.meta.define(CjsRedFormat, { className: "CjsRedFormat" });
+
+/**
+ * Decode only the byte range supplied by the resource loader.
+ * @param {string|ArrayBuffer|ArrayBufferView} input UTF-8 Red document.
+ * @returns {string} Scalar source text.
+ */
+function DecodeText(input)
+{
+    if (typeof input === "string") return input;
+    if (input instanceof ArrayBuffer || ArrayBuffer.isView(input))
+    {
+        return new TextDecoder().decode(input);
+    }
+    throw new TypeError("CjsRedFormat requires Red text or UTF-8 bytes.");
+}

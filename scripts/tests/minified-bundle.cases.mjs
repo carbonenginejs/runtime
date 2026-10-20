@@ -7,13 +7,13 @@ import { test } from "node:test";
 import * as runtime from "../../npm/dist/carbonenginejs.min.js";
 // Readers are opt-in subpaths, absent from the package root. Use their strictly
 // minified test builds only to decode bytes. The SHIPPED DictReader performs
-// all class construction and field population using its own declarations.
+// Black class construction and field population using its own declarations.
+// Red uses the shipped YamlReader and the values service's DictWriter.
 import { CjsBlackFormat } from "../../.cache/minified-test/dist/resource/formats/black/index.js";
-import { CjsRedFormat } from "../../.cache/minified-test/dist/resource/formats/red/index.js";
 
 async function fixture(variable)
 {
-    assert.ok(process.env[variable], `${variable} must name a real resource; no synthetic fallback`);
+    assert.ok(process.env[variable], `${variable} must name the required external fixture`);
     return readFile(process.env[variable]);
 }
 
@@ -31,17 +31,29 @@ test("shipped minified bundle constructs real Black hull classes", async () =>
     assert.equal(Object.getPrototypeOf(result.root.locatorSets[0]), runtime.EveSOFDataHullLocatorSet.prototype);
 });
 
-test("shipped minified bundle constructs a real operator-authored Red material", async () =>
+// Operator-provided, ChatGPT-generated material: object-loading smoke coverage,
+// never a Carbon-authored oracle for YamlWriter text fidelity.
+test("shipped minified bundle constructs an operator-provided generated Red material", async () =>
 {
     const bytes = await fixture("CJS_BUNDLE_RED_FILE");
-    assert.equal(createHash("sha256").update(bytes).digest("hex"), "6aa2a20809597f2be71caa42b9ffce67489ac389ddfbf54ca398a58425abac4b");
-    const payload = CjsRedFormat.readPayload(bytes.toString("utf8"));
-    const result = { root: new runtime.DictReader({ declarations: true }).CreateObject(payload.object) };
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), "da2144e298b1e27b90ca6c4fedf735c32c73edb5c837d1155c1272f5ba61d437");
+    const result = { root: new runtime.YamlReader().CreateObjectFromString(bytes.toString("utf8")) };
+    // CjsSchema is a separate public subpath; keep this check inside the shipped bundle.
+    const values = new runtime.DictWriter().WriteObject(result.root, {}, { typeTags: true });
+    assert.equal(values._type, "EveSOFDataMaterial");
+    assert.equal(typeof values.name, "string");
+    assert.equal(values.parameters.length, 4);
+    assert.notEqual(runtime.YamlReader.name, "YamlReader", "negative control: reader identity survives minification");
     assert.equal(Object.getPrototypeOf(result.root), runtime.EveSOFDataMaterial.prototype);
-    assert.equal(result.root.name, "reference_white");
+    assert.equal(typeof result.root.name, "string");
     assert.equal(result.root.parameters.length, 4);
     for (const parameter of result.root.parameters)
+    {
         assert.equal(Object.getPrototypeOf(parameter), runtime.EveSOFDataParameter.prototype);
+        assert.ok(parameter.value instanceof Float32Array);
+        assert.equal(parameter.value.length, 4);
+        assert.ok(parameter.value.every(Number.isFinite));
+    }
 });
 
 test("shipped minified SOF builds a hull from real catalog DNA", async () =>

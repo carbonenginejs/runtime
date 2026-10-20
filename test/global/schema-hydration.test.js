@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { CjsSchema, type } from "#schema";
 import { resolveHydrationAdapter } from "#schema/hydration";
-import { CjsRedReader } from "../../src/resource/formats/red/core/CjsRedReader.js";
+import { YamlReader } from "../../src/global/blue/YamlReader.js";
 
 // Declared classes without their own SetValues populate through the schema.
 // The reader supplies ctx.declared from class registration; undeclared caller
@@ -11,7 +11,7 @@ import { CjsRedReader } from "../../src/resource/formats/red/core/CjsRedReader.j
 
 let next = 0;
 
-function declareBaseless()
+function declareBaseless(persist = false)
 {
   const className = `HydrationFixture${next++}`;
   const Fixture = class
@@ -22,6 +22,7 @@ function declareBaseless()
 
   Object.defineProperty(Fixture, "name", { value: className });
   CjsSchema.defineField(Fixture, "position", "type", { kind: "vec3" });
+  if (persist) CjsSchema.defineField(Fixture, "position", "edit", { persist: true, read: true, write: true });
   CjsSchema.defineField(Fixture, "derived", "type", { kind: "string" });
   CjsSchema.defineField(Fixture, "derived", "edit", { read: true });
   CjsSchema.define(Fixture, { className });
@@ -83,28 +84,16 @@ test("a class carrying SetValues is still called directly", () =>
   assert.deepEqual(calls, [ { values: { position: [ 1, 2, 3 ] }, options } ]);
 });
 
-test("the Blue reader reports a declared class it resolved", () =>
+test("YamlReader uses persisted declarations without the hydration adapter", () =>
 {
-  const Fixture = declareBaseless();
-  const root = new CjsRedReader(
-    { type: Fixture.name, position: [ 1, 2, 3 ], derived: "nope" },
-    { classes: { [Fixture.name]: Fixture } }
-  ).ReadRuntime().root;
-
+  const Fixture = declareBaseless(true);
+  const root = new YamlReader().CreateObjectFromString(`type: ${CjsSchema.getClassName(Fixture)}\nposition: [1, 2, 3]\n`);
   assertPopulatedThroughSchema(root);
 });
 
-test("the Blue reader keeps raw assignment for a caller's plain class", () =>
+test("YamlReader requires a registered class instead of falling back to raw assignment", () =>
 {
-  class CallerPlain {}
-  const root = new CjsRedReader(
-    { type: "CallerPlainKind", label: "kept", position: [ 1, 2, 3 ] },
-    { classes: { CallerPlainKind: CallerPlain } }
-  ).ReadRuntime().root;
-
-  assert.equal(root instanceof CallerPlain, true);
-  assert.equal(root.label, "kept", "no schema to populate against, so the values assign raw");
-  assert.deepEqual(root.position, [ 1, 2, 3 ]);
+  assert.throws(() => new YamlReader().CreateObjectFromString("type: UnregisteredHydrationCaller\nlabel: kept\n"));
 });
 
 test("a declared reference field assigns a non-plain object as the reference", () =>

@@ -3,7 +3,7 @@ import test from "node:test";
 import { parse } from "yaml";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { YamlWriter, DictWriter, BeObjectMetadata } from "../../npm/dist/global/blue/index.js";
-import { CjsRedFormat } from "../../npm/dist/resource/formats/red/index.js";
+import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
 
 let serial = 0;
 function register(Constructor, fields, extra = {})
@@ -79,10 +79,13 @@ test("second sight anchors preserve sharing and cycles; fresh writes restart IDs
   assert.equal(raw.items[0], raw.left);
   assert.equal(raw.items[1], null);
   assert.equal(writer.WriteObjectToString(root), text);
-  const payload = CjsRedFormat.readPayload(text).object;
-  const restored = CjsSchema.from(payload._type, payload);
+  // Carbon emits ancestor aliases but registers anchors only after reading members.
+  assert.throws(() => new YamlReader().CreateObjectFromString(text), /hasn't been previously defined/);
+  leaf.parent = null;
+  const restored = new YamlReader().CreateObjectFromString(write(root));
   assert.equal(restored.left, restored.right);
-  assert.equal(restored.left.parent, restored);
+  assert.equal(restored.items[0], restored.left);
+  assert.equal(restored.items.length, 1, "native object lists discard null entries");
 });
 
 test("metadata output uses only the allow-list, sorted and quoted; source table stays intact", () => {
@@ -97,8 +100,9 @@ test("metadata output uses only the allow-list, sorted and quoted; source table 
   assert.deepEqual(parse(text).__bluemetadata__, { nodePosition: "1,2", typeID: "42" });
   assert.ok(!text.includes("private"));
   assert.equal(BeObjectMetadata.Get(root, "privatePath"), "private-authoring-location");
-  const payload = CjsRedFormat.readPayload(text).object;
-  assert.equal(payload.__bluemetadata__, undefined, "current Red reader's separately tracked metadata loss");
+  const restored = new YamlReader().CreateObjectFromString(text);
+  assert.equal(BeObjectMetadata.Get(restored, "typeID"), "42");
+  assert.equal(BeObjectMetadata.Get(restored, "privatePath"), null);
   assert.equal(new DictWriter().WriteObject(root).__bluemetadata__.privatePath, "private-authoring-location");
 });
 

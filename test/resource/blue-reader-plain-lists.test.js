@@ -9,7 +9,8 @@ import { CjsSchema, meta, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsBlueReader } from "../../npm/dist/resource/format/CjsBlueReader.js";
-import { CjsRedReader } from "../../npm/dist/resource/formats/red/core/CjsRedReader.js";
+import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
+import "../../npm/dist/global/blue/values.js";
 
 const { BELIST_UNLOADSTART, BELIST_LOADFINISHED } = BLUELISTEVENT;
 const itemName = "BlueReaderPlainListItem";
@@ -264,17 +265,10 @@ test("unregistered classes and unresolved kinds keep raw assignment and legacy f
   assert.equal(reader.runtimeInstances[0].instance.initializeCount, 1);
 });
 
-test("Red runtime preserves declared list ownership and shared children, and throws on an undeclared field", () =>
+test("YamlReader preserves declared list ownership and initializes children before list completion", () =>
 {
-  // An authored in-memory Red graph tests the shared backend, not an asset corpus.
-  const child = { type: itemName, value: 12, unknownChild: "ignored" };
-  const source = { type: ownerName, name: "red", items: [child, child], unknownOwner: 7 };
-  // IRootReader.cpp:63-67: hydration refuses an undeclared attribute (49c1230ac).
-  assert.throws(() => new CjsRedReader(source, { classes }).ReadRuntime(), /Invalid attribute: unknown/);
-
-  const declaredChild = { type: itemName, value: 12 };
-  const declared = { type: ownerName, name: "red", items: [declaredChild, declaredChild] };
-  const owner = new CjsRedReader(declared, { classes }).ReadRuntime().root;
+  const source = `type: ${ownerName}\nname: red\nitems:\n- &child {type: ${itemName}, value: 12}\n- *child\n- null\n`;
+  const owner = new YamlReader().CreateObjectFromString(source);
   AssertOwned(owner);
   assert.equal(owner.items.length, 2);
   assert.equal(owner.items[0], owner.items[1]);
@@ -282,45 +276,30 @@ test("Red runtime preserves declared list ownership and shared children, and thr
   assert.equal(owner.items[0].value, 12);
   assert.deepEqual(owner.events.map(entry => entry.event), [BELIST_LOADFINISHED]);
   assert.equal(owner.events[0].notify, owner);
-  assert.deepEqual(owner.events[0].childInitializeCounts, [0, 0]);
+  assert.deepEqual(owner.events[0].childInitializeCounts, [1, 1]);
   assert.equal(owner.initializeCount, 1);
   assert.equal(owner.items[0].initializeCount, 1);
   assert.deepEqual(owner.childInitializeCounts, [1, 1]);
-  // The payload is not hydrated, so it keeps every field the file carries.
-  const payload = new CjsRedReader(source, { classes }).ReadPayload().object;
-  assert.equal(payload.unknownOwner, 7);
-  assert.equal(payload.items[0].unknownChild, "ignored");
-  assert.equal(payload.items[0]._id, payload.items[1]._ref);
+  const values = CjsSchema.getValues(owner, {}, { typeTags: true });
+  assert.equal(values.items[0].value, 12);
+  assert.equal(values.items[1]._ref, values.items[0]._id, "DictWriter encodes shared object identity");
 });
 
-test("Red unresolved typed and untyped records retain unknown fields and shared references", () =>
+test("strict YamlReader refuses undeclared attributes and unresolved classes", () =>
 {
-  const child = { fieldOutsideGeneratedShape: 6 };
-  const root = new CjsRedReader({ type: "UnresolvedPlainListCarrier", left: child, right: child }).ReadRuntime().root;
-  assert.equal(root._sourceClassName, "UnresolvedPlainListCarrier");
-  assert.equal(root.left, root.right);
-  assert.equal(root.left.fieldOutsideGeneratedShape, 6);
+  const reader = new YamlReader();
+  reader._isStrict = true;
+  assert.throws(() => reader.CreateObjectFromString(`type: ${ownerName}\nunknownOwner: 7\n`), /unknownOwner/);
+  assert.throws(() => reader.CreateObjectFromString("type: UnresolvedPlainListCarrier\n"));
 });
 
-test("custom construct and finalize hooks remain whole-graph phases around default plain hydration", () =>
+test("YamlReader's native setting suppresses mapped Initialize", () =>
 {
-  const owner = new Owner(), child = new Item(), finalized = [];
-  const reader = new CjsRedReader({ type: ownerName, items: [{ type: itemName, value: 15 }] }, {
-    classes,
-    adapter: {
-      construct(kind) { return kind === ownerName ? owner : child; },
-      finalize(instance) {
-        assert.equal(owner.items[0], child, "the parent is populated before either finalization hook");
-        assert.equal(child.value, 15);
-        finalized.push(instance);
-      }
-    }
-  });
-  assert.equal(reader.ReadRuntime().root, owner);
+  const reader = new YamlReader();
+  reader.SetDoInitialize(false);
+  const owner = reader.CreateObjectFromString(`type: ${ownerName}\nitems:\n- {type: ${itemName}, value: 15}\n`);
   AssertOwned(owner);
-  assert.equal(finalized.length, 2);
-  assert.equal(finalized[0], child);
-  assert.equal(finalized[1], owner);
-  assert.equal(child.initializeCount, 0, "custom finalize remains authoritative");
+  assert.equal(owner.items[0].value, 15);
+  assert.equal(owner.items[0].initializeCount, 0);
   assert.equal(owner.initializeCount, 0);
 });
