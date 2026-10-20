@@ -450,7 +450,7 @@ function analyzeStage(stage, options)
  */
 export function buildEffectAnalysis(resolved, options = {})
 {
-    const source = options.source || resolved.effectRes?.sourcePath || "memory";
+    const source = options.source || resolved.effectRes?.GetPath() || "memory";
     const decodeBytecode = options.decodeBytecode !== undefined ? !!options.decodeBytecode : true;
     const decodeInstructions = options.decodeInstructions !== undefined ? !!options.decodeInstructions : true;
     const manifest = resolved.bindingManifest?.toJSON?.() ?? null;
@@ -473,8 +473,8 @@ export function buildEffectAnalysis(resolved, options = {})
         format: CARBON_WEBGPU_ANALYSIS_FORMAT,
         formatVersion: CARBON_WEBGPU_ANALYSIS_VERSION,
         source,
-        effectVersion: resolved.effectDescription?.version ?? manifest?.version ?? resolved.effectRes?.m_version ?? null,
-        compilerVersion: resolved.effectRes?.m_compilerVersion ?? null,
+        effectVersion: manifest?.version ?? resolved.header?.version ?? null,
+        compilerVersion: resolved.header?.compilerVersion ?? null,
         effectName: manifest?.effectName || resolved.effectDescription?.effectName || null,
         bodyIndex: resolved.selection?.bodyIndex ?? 0,
         selectedOptions: resolved.selection?.selectedOptions ?? [],

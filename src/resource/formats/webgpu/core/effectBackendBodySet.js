@@ -1,4 +1,6 @@
-import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
+import { effectHeader } from "../../../format/effect/effectHeader.js";
+import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
+import { buildEffectBindingManifest } from "../../../format/effect/effectBindingManifest.js";
 import { enumerateUniqueEffectBodies } from "../../../format/effect/effectBodyInventory.js";
 import { buildEffectAnalysis } from "./helpers.js";
 import { normalizeBytecodeBytes } from "./effectAnalysis.js";
@@ -62,10 +64,10 @@ function collectBodyStageBytecode(effectDescription)
             for (let stageType = 0; stageType < stageInputs.length; stageType++)
             {
                 const stage = stageInputs[stageType];
-                if (!stage?.m_exists) continue;
+                if (!stage?.exists) continue;
 
-                const stageName = stage.cjsShaderBytecode?.stageName;
-                const value = stage.cjsShaderBytecode?.bytes;
+                const stageName = shaderStageName(stageType);
+                const value = stage.sourceProgram?.bytes;
                 if (!stageName || value === undefined || value === null) continue;
 
                 const key = `${technique.name}.pass${passIndex}.${stageName}`;
@@ -112,10 +114,11 @@ function resolveBody(effectRes, permutationIndex, source)
 
     const resolved = {
         effectRes,
+        header: effectHeader(effectRes),
         shader,
         selection: { bodyIndex: permutationIndex, selectedOptions: [] },
         effectDescription,
-        bindingManifest: HlslEffectBindingManifest.fromEffectDescription(effectDescription),
+        bindingManifest: buildEffectBindingManifest(effectDescription, { version: effectHeader(effectRes).version, effectName: source }),
         stageBytecodeByKey: collectBodyStageBytecode(effectDescription)
     };
 
@@ -234,7 +237,7 @@ export function buildEffectBackendBodySet(effectRes, permutationGraph, options =
     const source = options.source || "memory";
     const selection = options.selection ?? null;
     const bindingPolicy = options.bindingPolicy ?? null;
-    const groups = enumerateUniqueEffectBodies(effectRes);
+    const groups = enumerateUniqueEffectBodies(effectHeader(effectRes));
 
     if (groups.length !== permutationGraph.bodies.length)
     {

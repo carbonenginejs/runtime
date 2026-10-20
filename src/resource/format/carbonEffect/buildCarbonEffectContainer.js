@@ -1,6 +1,6 @@
 import { CjsCarbonEffectWriter } from "./CjsCarbonEffectWriter.js";
-import { CjsCarbonEffectReader } from "./CjsCarbonEffectReader.js";
-import { HlslShaderStageNames } from "../../formats/hlsl/core/tr2/HlslRenderContextEnum.js";
+import { effectHeader } from "../effect/effectHeader.js";
+import { shaderStageNames } from "../effect/shaderStageNames.js";
 import { Tr2EffectDescription } from "../../shader/reflection/Tr2EffectDescription.js";
 import { Tr2EffectParameterAnnotation } from "../../shader/reflection/Tr2EffectParameterAnnotation.js";
 import {
@@ -86,14 +86,12 @@ function unitsByPassKey(body, unitsByKey)
  * @param {object} backend Backend encoders.
  * @returns {object} Description record tree.
  */
-function describeBody(reader, permutationIndex, passUnits, backend)
+function describeBody(effectRes, permutationIndex, passUnits, backend)
 {
-    // Read the source body once, as the resource layer reads any Carbon body,
-    // then substitute on the resulting graph and emit it. The substitution is
-    // two edits - a stage's program and a pass's trailing block - so there is
-    // nothing here that wants a bespoke mapping of its own.
+    // Clone the cached canonical body through its existing wire projection.
+    // Program substitution must not mutate the resource's source reflection.
     const effect = Tr2EffectDescription.fromCarbonBinary(
-        reader.readDescription(permutationIndex)
+        effectRes.GetShaderByIndex(permutationIndex).GetEffectDescription().toCarbonBinary()
     );
 
     for (const technique of effect.techniques)
@@ -107,7 +105,7 @@ function describeBody(reader, permutationIndex, passUnits, backend)
             {
                 if (!stage.exists) continue;
 
-                const stageName = HlslShaderStageNames[stage.stageType];
+                const stageName = shaderStageNames[stage.stageType];
                 const shader = unit?.shaders.find(
                     (entry) => entry.key === `${passKey}.${stageName}`
                 );
@@ -207,12 +205,8 @@ export function buildCarbonEffectContainer(
         );
     }
 
-    // One reader over the source file, shared by every body: the arena and the
-    // offset table are read once, and a body is a seek into them. A dx11 effect
-    // is a Carbon v15 container, so the same reader serves here and at load.
-    const reader = new CjsCarbonEffectReader(effectRes.m_data, {
-        source: effectRes.sourcePath || "effect source"
-    });
+    // Header metadata uses the same bytes; body decoding stays in the resource.
+    const reader = effectHeader(effectRes);
     const unitsByKey = new Map(backendBodySet.passUnits.map((unit) => [ unit.key, unit ]));
     const bodyByKey = new Map(backendBodySet.bodies.map((body) => [ body.bodyKey, body ]));
     const writer = new CjsCarbonEffectWriter({
@@ -222,7 +216,7 @@ export function buildCarbonEffectContainer(
         // writer for. Conflating the two would have us claim to emit whatever
         // we happened to read.
         ...(options.version === undefined ? {} : { version: options.version }),
-        compilerVersion: options.compilerVersion ?? effectRes.m_compilerVersionBytes ?? [ 0, 0, 0, 0 ],
+        compilerVersion: options.compilerVersion ?? reader.compilerVersionBytes ?? [ 0, 0, 0, 0 ],
         ...(options.sourceHash ? { sourceHash: options.sourceHash } : {})
     });
 
@@ -251,7 +245,7 @@ export function buildCarbonEffectContainer(
         {
             const body = bodyByKey.get(variant.bodyKey);
             description = describeBody(
-                reader,
+                effectRes,
                 body?.representativePermutationIndex ?? permutationIndex,
                 body?.status === "translated" ? unitsByPassKey(body, unitsByKey) : null,
                 backend

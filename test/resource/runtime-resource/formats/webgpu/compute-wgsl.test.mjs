@@ -5333,8 +5333,8 @@ function particleIr(minorVersion, role)
 function particleEffectDescription()
 {
     const stage = (stageName, uavs) => ({
-        m_exists: true,
-        cjsShaderBytecode: { stageName },
+        exists: true,
+        stageType: stageName === "compute" ? 2 : 0,
         resources: new Map(),
         uavs: new Map(uavs.map((entry) => [
             entry.registerIndex,
@@ -5927,10 +5927,10 @@ function particleEmitShaderBytes(effectPath)
         {
             for (const stage of pass.stageInputs.filter(Boolean))
             {
-                if (stage.m_exists
-                    && stage.cjsShaderBytecode?.stageName === "compute")
+                if (stage.exists
+                    && stage.stageType === 2)
                 {
-                    return Uint8Array.from(stage.cjsShaderBytecode.bytes);
+                    return Uint8Array.from(stage.sourceProgram.bytes);
                 }
             }
         }

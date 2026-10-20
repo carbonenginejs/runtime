@@ -6,11 +6,9 @@ import { asUint8Array } from "#utils/bytes";
  *
  * Keeps the public class file small: input normalization, option/classes
  * normalization, the shared read path used by both the instance and the
- * static one-shots, and JSON conversion live here. The actual Tr2 effect
- * container parser lives under src/core/tr2 (internal parsing machinery,
- * not part of this package's public surface); this module wires bytes into
- * that graph and, for `emit: "json"`, converts it via src/core/json.js into
- * the documented plain-data shape.
+ * static one-shots, and JSON conversion live here. Tr2EffectRes owns the
+ * shared Carbon reader and caches canonical shader reflection. The format
+ * emits terminal JSON/metadata views without constructing a second graph.
  */
 
 import { HlslEffectReadError } from "./HlslEffectReadError.js";
@@ -18,7 +16,8 @@ import {
     emitEffectMetadata,
     resolveSelectedOptions
 } from "./metadata.js";
-import { HlslEffectRes } from "./tr2/resources/HlslEffectRes.js";
+import { Tr2EffectRes } from "../../../shader/Tr2EffectRes.js";
+import { effectHeader } from "../../../format/effect/effectHeader.js";
 import { CLASS_KEYS, emitEffectJson } from "./json.js";
 
 export const OUTPUT_JSON = "json";
@@ -146,41 +145,41 @@ export function normalizeValues(base, options = {}, readerName = "CjsHlslFormat"
  */
 /**
  * The shared read path used by the instance Read, Inspect, and the static
- * one-shots: normalizes input bytes and loads a HlslEffectRes graph. This is
+ * one-shots: normalizes input bytes and loads a Tr2EffectRes graph. This is
  * internal parsing machinery — the documented public contract is the plain
  * JSON shape produced by {@link readWithValues}, not this raw graph.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Tr2 effect payload.
  * @param {object} values Normalized format values.
- * @returns {HlslEffectRes} The loaded effect resource graph.
+ * @returns {Tr2EffectRes} The loaded effect resource graph.
  */
 export function readRaw(input, values)
 {
     const bytes = asUint8Array(input, "CjsHlslFormat input");
-    const effect = new HlslEffectRes();
-    const ok = effect.DoLoad(bytes, { source: values.source });
-
-    if (!ok)
+    const effect = new Tr2EffectRes();
+    try
     {
-        throw new HlslEffectReadError(
-            effect.loadError ? effect.loadError.message : "Failed to read Tr2 effect resource",
-            {
-                source: values.source,
-                cause: effect.loadError || null
-            }
-        );
+        effect.DoLoad(bytes);
+        // A format source is a diagnostic label, not a resource-manager route.
+        // Load before assigning it so "effect.webgpu" in a label cannot force
+        // backend-block parsing on native DXBC bytes.
+        effect.Initialize(values.source);
+    }
+    catch (cause)
+    {
+        throw new HlslEffectReadError(cause.message, { source: values.source, cause });
     }
 
     return effect;
 }
 
 /**
- * Resolves one permutation's HlslShader from a loaded effect, tolerating
+ * Resolves one permutation's Tr2Shader from a loaded effect, tolerating
  * bodies that fail to decode (returns null instead of throwing).
  *
- * @param {HlslEffectRes} effect Loaded effect resource graph.
+ * @param {Tr2EffectRes} effect Loaded effect resource graph.
  * @param {object} values Normalized format values.
- * @returns {object|null} Resolved HlslShader, or null.
+ * @returns {object|null} Resolved Tr2Shader, or null.
  */
 function resolveShader(effect, values)
 {
@@ -197,14 +196,14 @@ function resolveShader(effect, values)
 /**
  * Shared read entry honouring the emit mode.
  *
- * `emit: "raw"` returns the live HlslEffectRes instance — internal,
+ * `emit: "raw"` returns the live Tr2EffectRes instance — internal,
  * unstable, and not schema-guaranteed across versions. `emit: "json"`
  * (the default) returns the documented plain-data effect graph, honouring
  * `values.classes`.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Tr2 effect payload.
  * @param {object} values Normalized format values.
- * @returns {HlslEffectRes|object} The raw HlslEffectRes instance, or the documented JSON graph.
+ * @returns {Tr2EffectRes|object} The raw Tr2EffectRes instance, or the documented JSON graph.
  */
 export function readWithValues(input, values)
 {
@@ -234,29 +233,30 @@ export function inspectWithValues(input, values)
 {
     const effect = readRaw(input, values);
 
+    const header = effectHeader(effect);
     const summary = {
         source: values.source,
-        version: effect.m_version,
-        compilerVersion: effect.m_compilerVersion,
-        isGood: effect.IsGood(),
-        permutationCount: effect.m_permutations.length,
-        bodyCount: effect.m_offsetCount,
+        version: header.version,
+        compilerVersion: header.compilerVersion,
+        isGood: true,
+        permutationCount: header.permutations.length,
+        bodyCount: header.records.length,
         effectName: null,
         techniques: []
     };
 
     try
     {
-        const shader = effect.GetShader(values.permutation || []);
+        const shader = resolveShader(effect, values);
         if (shader)
         {
             const description = shader.GetEffectDescription();
-            summary.effectName = description.effectName || null;
+            summary.effectName = effect.GetPath() || null;
             summary.techniques = description.techniques.map((technique) => ({
                 name: technique.name,
                 passCount: technique.passes.length,
                 stageCounts: technique.passes.map(
-                    (pass) => pass.stageInputs.filter((stage) => stage && stage.m_exists).length
+                    (pass) => pass.stageInputs.filter((stage) => stage && stage.exists).length
                 )
             }));
         }

@@ -334,7 +334,7 @@ export function emitRenderState(entry)
 /**
  * Emits a render-state setup as enriched records.
  *
- * @param {object|null} setup HlslRenderStateSetup-like object.
+ * @param {object|null} setup Plain record with key/value entries.
  * @returns {object[]} Enriched render-state records.
  */
 export function emitRenderStates(setup)

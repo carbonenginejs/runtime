@@ -34,7 +34,6 @@ function normalizeBodySourceRecord(record, permutationIndex, sourceByteLength)
         || !Number.isSafeInteger(record.size) || record.size < 1
         || record.size > UINT32_MAX
         || !Number.isSafeInteger(end)
-        || record.end !== end
         || !Number.isSafeInteger(sourceByteLength)
         || end > sourceByteLength)
     {
@@ -116,35 +115,34 @@ function bytesEqual(left, right)
  * identical bytes are one body, which is what makes the count "unique bodies"
  * rather than "distinct offsets".
  *
- * @param {object} effectRes Loaded version-15 effect resource.
+ * @param {object} header Format header projection for a version-15 effect.
  * @returns {ReadonlyArray<object>} Groups, each with its representative
  *     permutation index, source record, and every variant that shares it.
  */
-export function enumerateUniqueEffectBodies(effectRes)
+export function enumerateUniqueEffectBodies(header)
 {
-    if (!effectRes || typeof effectRes !== "object"
-        || effectRes.m_version !== EFFECT_VERSION
-        || !(effectRes.m_data instanceof Uint8Array)
-        || !Array.isArray(effectRes.m_offsets)
-        || effectRes.m_offsetCount !== effectRes.m_offsets.length
-        || !effectRes.m_offsets.length)
+    if (!header || typeof header !== "object"
+        || header.version !== EFFECT_VERSION
+        || !(header.bytes instanceof Uint8Array)
+        || !Array.isArray(header.records)
+        || !header.records.length)
     {
         throw new TypeError(
             "Effect body inventory requires a loaded version-15 effect resource"
         );
     }
-    if (effectRes.m_offsets.length > EFFECT_BODY_COUNT_MAX)
+    if (header.records.length > EFFECT_BODY_COUNT_MAX)
     {
         throw new RangeError(
             `Effect body inventory exceeds ${EFFECT_BODY_COUNT_MAX} records`
         );
     }
 
-    const sourceRecords = effectRes.m_offsets.map((record, permutationIndex) =>
+    const sourceRecords = header.records.map((record, permutationIndex) =>
         normalizeBodySourceRecord(
             record,
             permutationIndex,
-            effectRes.m_data.byteLength
+            header.bytes.byteLength
         ));
     validateDisjointBodySourceRecords(sourceRecords);
 
@@ -157,7 +155,7 @@ export function enumerateUniqueEffectBodies(effectRes)
         let group = groupByRange.get(rangeKey);
         if (!group)
         {
-            const bytes = effectRes.m_data.subarray(
+            const bytes = header.bytes.subarray(
                 sourceRecord.offset,
                 sourceRecord.offset + sourceRecord.byteLength
             );

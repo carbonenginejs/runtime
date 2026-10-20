@@ -1,3 +1,5 @@
+import { effectHeader } from "../../../../../../src/resource/format/effect/effectHeader.js";
+import { shaderStageName } from "../../../../../../src/resource/format/effect/shaderStageNames.js";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -61,8 +63,8 @@ function mapCounts(map)
 
 function normalizeAxes(effect)
 {
-    validateEffectPermutationAxes(effect.m_permutations || []);
-    return (effect.m_permutations || []).map((axis, axisIndex) =>
+    validateEffectPermutationAxes(effectHeader(effect).permutations || []);
+    return (effectHeader(effect).permutations || []).map((axis, axisIndex) =>
     {
         if (typeof axis?.name !== "string" || !axis.name) fail(`axis ${axisIndex} has no name`);
         if (!Array.isArray(axis.options) || !axis.options.length) fail(`axis ${axis.name} has no options`);
@@ -244,11 +246,11 @@ function preflightEffectProfile(description, sourcePath, stageVariants)
         const stage = description.techniques[0].passes[passIndex]
             .stageInputs.filter(Boolean)
             .find((entry) =>
-                entry.m_exists
-                && entry.cjsShaderBytecode?.stageName === "compute");
+                entry.exists
+                && shaderStageName(entry.stageType) === "compute");
         const qualification = cachedStageVariant(
             stageVariants,
-            stage.cjsShaderBytecode.bytes,
+            stage.sourceProgram.bytes,
             `${sourcePath}#${key}`
         ).qualification;
         if (qualification.frontEnd !== "qualified")
@@ -486,7 +488,7 @@ async function qualifyBackend(label, sourcePath)
     const effect = CjsHlslFormat.read(bytes, { emit: "raw", source: sourcePath });
     const axes = normalizeAxes(effect);
     const selections = enumerateEffectPermutations(axes);
-    const offsets = Array.isArray(effect.m_offsets) ? effect.m_offsets : [];
+    const offsets = Array.isArray(effectHeader(effect).records) ? effectHeader(effect).records : [];
     const offsetCheck = inspectEffectOffsets(offsets, selections.length);
     const stageVariants = new Map();
     const passVariants = new Map();
@@ -552,9 +554,9 @@ async function qualifyBackend(label, sourcePath)
                 const stages = [];
                 for (const stage of technique.passes[passIndex].stageInputs.filter(Boolean))
                 {
-                    const stageName = stage.cjsShaderBytecode?.stageName || "";
-                    const bytecode = stage.cjsShaderBytecode?.bytes;
-                    if (!stage.m_exists) continue;
+                    const stageName = shaderStageName(stage.stageType) || "";
+                    const bytecode = stage.sourceProgram?.bytes;
+                    if (!stage.exists) continue;
                     if (!stageName || !bytecode?.length)
                     {
                         stages.push({
@@ -650,8 +652,8 @@ async function qualifyBackend(label, sourcePath)
         label,
         sourcePath,
         byteLength: bytes.byteLength,
-        version: effect.m_version,
-        compilerVersion: effect.m_compilerVersion,
+        version: effectHeader(effect).version,
+        compilerVersion: effectHeader(effect).compilerVersion,
         axes,
         expectedBodies: selections.length,
         ...offsetCheck,

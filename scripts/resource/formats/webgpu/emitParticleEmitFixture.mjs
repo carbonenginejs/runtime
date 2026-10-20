@@ -1,3 +1,4 @@
+import { shaderStageName } from "../../../../src/resource/format/effect/shaderStageNames.js";
 import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 
@@ -39,10 +40,10 @@ function collectProgram(effectDescription)
         {
             for (const stage of pass.stageInputs.filter(Boolean))
             {
-                if (stage.m_exists
-                    && stage.cjsShaderBytecode?.stageName === "compute")
+                if (stage.exists
+                    && shaderStageName(stage.stageType) === "compute")
                 {
-                    return Uint8Array.from(stage.cjsShaderBytecode.bytes);
+                    return Uint8Array.from(stage.sourceProgram.bytes);
                 }
             }
         }

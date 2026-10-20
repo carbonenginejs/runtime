@@ -93,9 +93,6 @@
     "src/resource/formats/hlsl/core/HlslBinaryUtils.js": [
       "HlslBinaryUtils"
     ],
-    "src/resource/formats/hlsl/core/tr2/HlslRenderContextEnum.js": [
-      "HlslRenderContextEnum"
-    ],
     "src/trinity/core/mesh/TriGeometryResAllocations.js": [
       "TriGeometryResAllocations"
     ],

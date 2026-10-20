@@ -123,8 +123,8 @@ test("effect permutation graph preserves mixed-radix variants and body aliases",
         4, 5, 6
     ]);
     const graph = buildEffectPermutationGraph({
-        m_data: source,
-        m_permutations: [
+        bytes: source,
+        permutations: [
             {
                 name: "A",
                 options: [ "A0", "A1" ],
@@ -140,8 +140,7 @@ test("effect permutation graph preserves mixed-radix variants and body aliases",
                 type: 3
             }
         ],
-        m_offsetCount: 4,
-        m_offsets: [
+        records: [
             { index: 0, offset: 0, size: 3, end: 3 },
             { index: 1, offset: 0, size: 3, end: 3 },
             { index: 2, offset: 3, size: 3, end: 6 },
@@ -316,26 +315,24 @@ test("effect permutation graph preserves mixed-radix variants and body aliases",
 
     assert.throws(
         () => buildEffectPermutationGraph({
-            m_data: source,
-            m_permutations: [],
-            m_offsetCount: 1,
-            m_offsets: [ { index: 7, offset: 0, size: 3, end: 3 } ]
+            bytes: source,
+            permutations: [],
+            records: [ { index: 7, offset: 0, size: 3, end: 3 } ]
         }),
         /invalid source body record/
     );
 
     assert.throws(
         () => buildEffectPermutationGraph({
-            m_data: source,
-            m_permutations: [ {
+            bytes: source,
+            permutations: [ {
                 name: "A",
                 options: [ "A0", "A1" ],
                 defaultOption: 0,
                 description: "",
                 type: 0
             } ],
-            m_offsetCount: 2,
-            m_offsets: [
+            records: [
                 { index: 0, offset: 0, size: 6, end: 6 },
                 { index: 1, offset: 3, size: 6, end: 9 }
             ]
@@ -546,11 +543,7 @@ test("buildEffectAnalysis normalizes manifest stages and decodes DXBC", () =>
     const dxbc = buildMinimalVertexDxbc();
 
     const analysis = buildEffectAnalysis({
-        effectRes: {
-            sourcePath: "synthetic.sm_hi",
-            m_version: 8,
-            m_compilerVersion: null
-        },
+        header: { version: 8, compilerVersion: null },
         selection: {
             bodyIndex: 0,
             selectedOptions: []
@@ -610,7 +603,7 @@ test("buildEffectAnalysis normalizes manifest stages and decodes DXBC", () =>
     assert.equal(analysis.stages[0].irError, null);
 
     const withIr = buildEffectAnalysis({
-        effectRes: { m_version: 8, m_compilerVersion: 1 },
+        header: { version: 8, compilerVersion: 1 },
         effectDescription: { version: 8, effectName: "fixture" },
         selection: { bodyIndex: 0, selectedOptions: [] },
         bindingManifest: {
@@ -657,7 +650,7 @@ test("buildEffectAnalysis validates transient raw stage identity and bytes", () 
         bindings: []
     };
     const resolved = {
-        effectRes: { m_version: 8, m_compilerVersion: 1 },
+        header: { version: 8, compilerVersion: 1 },
         effectDescription: { version: 8, effectName: "fixture" },
         selection: { bodyIndex: 0, selectedOptions: [] },
         bindingManifest: {

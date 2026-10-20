@@ -4,9 +4,9 @@ import {
     CARBON_BACKEND_ENGINE_ID,
     peekBackendEngineId
 } from "../../../format/carbonEffect/backendEngineId.js";
-import { hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
-import { runtimeDescriptionFromCarbon } from "../../hlsl/core/carbonDescriptionToRuntime.js";
-import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
+import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
+import { Tr2EffectDescription } from "../../../shader/reflection/Tr2EffectDescription.js";
+import { buildEffectBindingManifest } from "../../../format/effect/effectBindingManifest.js";
 
 /**
  * Decodes a WebGL effect container into the stage/shader records the
@@ -41,20 +41,10 @@ const NO_PROGRAM_REASON = "no program was stored";
  * Derives the per-stage binding manifests for one body through the one
  * manifest builder the source path uses.
  *
- * This replaces a hand-built reshape of the wire records into the manifest
- * vocabulary. That copy had already diverged from the real manifest once —
- * `isAutoregister` was silently dropped, making every resource look
- * user-settable — which is the whole argument against a second producer: two
- * hand-maintained spellings of one reflection drift, and the drift is exactly
- * the kind of bug that draws, links and renders black without an error. The
- * record tree now flows through `runtimeDescriptionFromCarbon` — the
- * corpus-proven adapter the runtime read path uses — and
- * `HlslEffectBindingManifest`, so the container read and the build-time
- * package derive their manifests from the same code.
- *
- * No `bytecodeFor` is supplied: program text lives in the shader records this
- * reader emits, so the manifest's `shaderBytecode` stays null rather than
- * duplicating every program into the reflection.
+ * The shared record reader supplies the authored body; canonical
+ * Tr2EffectDescription construction and the single binding projection serve
+ * both this read-back path and source translation. Program summaries refer
+ * to the retained source programs; live arena offsets are not reconstructed.
  *
  * @param {object} description Decoded Carbon description record tree.
  * @param {number} version Container data version.
@@ -64,11 +54,8 @@ const NO_PROGRAM_REASON = "no program was stored";
  */
 function bodyManifestStages(description, version, source)
 {
-    const runtime = runtimeDescriptionFromCarbon(description, {
-        effectName: source,
-        version
-    });
-    const manifest = HlslEffectBindingManifest.fromEffectDescription(runtime).toJSON();
+    const runtime = Tr2EffectDescription.fromCarbonBinary(description);
+    const manifest = buildEffectBindingManifest(runtime, { effectName: source, version }).toJSON();
     return new Map(manifest.stages.map((stage) => [
         `${stage.techniqueName}.pass${stage.passIndex}.${stage.stageName}`,
         stage
@@ -188,7 +175,7 @@ export function readGlslEffectContainer(input, values = {})
 
                 for (const stage of pass.stages)
                 {
-                    const name = hlslShaderStageName(stage.type);
+                    const name = shaderStageName(stage.type);
                     const stageKey = `${bodyKey}.${passKey}.${name}`;
                     const stageBackend = backend[name] ?? {};
 

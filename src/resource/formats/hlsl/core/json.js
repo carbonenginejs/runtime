@@ -1,9 +1,10 @@
+import { emitLibrary } from "./metadata.js";
 /**
  * Tr2 effect JSON emitter.
  *
- * Converts the internal HlslEffectRes/HlslShader graph (src/core/tr2, internal
- * parsing machinery — not part of this package's public surface) into the
- * plain, documented JSON shape that IS the public contract of this reader.
+ * Converts canonical Tr2EffectRes/Tr2Shader reflection into the format's
+ * plain JSON contract. Source/header context is supplied explicitly because
+ * the canonical description does not own container metadata.
  *
  * `emitEffectJson(effect, shader, options)` returns a plain object whose key
  * order mirrors the reader schema below. When `options.classes` is given,
@@ -12,7 +13,12 @@
  * returned JSON into application-specific classes by hand.
  */
 
-import { hlslShaderStageName } from "./tr2/HlslRenderContextEnum.js";
+import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
+import { effectHeader } from "../../../format/effect/effectHeader.js";
+import {
+    effectiveConstantDefaults, projectAnnotation, projectSampler,
+    projectPipelineInput, projectRegister, projectProgram
+} from "../../../format/effect/effectProjection.js";
 
 /**
  * Node keys accepted by {@link emitEffectJson}'s `options.classes` map.
@@ -57,7 +63,7 @@ function build(classes, key, props)
 }
 
 /**
- * Emit one HlslShaderPermutation node.
+ * Emit one Tr2ShaderPermutation node.
  *
  * @param {object} permutation Decoded permutation axis.
  * @param {object} classes Opt-in node class map.
@@ -75,7 +81,7 @@ function emitPermutation(permutation, classes)
 }
 
 /**
- * Emit one HlslShaderBytecode node. Bytes are included as a plain number
+ * Emit one source-program node. Bytes are included as a plain number
  * array (opaque payload; this package does not decode DXBC/HLSL bytecode).
  *
  * @param {object|null} bytecode Captured shader bytecode, or null.
@@ -96,7 +102,7 @@ function emitShaderBytecode(bytecode, classes)
 }
 
 /**
- * Emit one HlslEffectConstant node.
+ * Emit one Tr2EffectConstant node.
  *
  * @param {object} constant Decoded constant-buffer field metadata.
  * @param {object} classes Opt-in node class map.
@@ -117,7 +123,7 @@ function emitConstant(constant, classes)
 }
 
 /**
- * Emit one HlslEffectResource (SRV or UAV) node.
+ * Emit one Tr2EffectResource (SRV or UAV) node.
  *
  * @param {number} registerIndex Shader register index.
  * @param {object} resource Decoded resource metadata.
@@ -137,7 +143,7 @@ function emitResource(registerIndex, resource, classes)
 }
 
 /**
- * Emit one HlslSamplerSetup node.
+ * Emit one Tr2SamplerSetup node.
  *
  * @param {number} registerIndex Shader register index.
  * @param {object} samplerSetup Decoded sampler setup (name + descriptor).
@@ -146,10 +152,10 @@ function emitResource(registerIndex, resource, classes)
  */
 function emitSampler(registerIndex, samplerSetup, classes)
 {
-    const sampler = samplerSetup.sampler || {};
+    const { name, sampler } = projectSampler(samplerSetup);
     return build(classes, "Sampler", {
         registerIndex,
-        name: samplerSetup.name,
+        name,
         isDynamic: !!sampler.isDynamic,
         comparison: !!sampler.comparison,
         minFilter: sampler.minFilter,
@@ -168,22 +174,22 @@ function emitSampler(registerIndex, samplerSetup, classes)
 }
 
 /**
- * Emit one HlslEffectStageInput node, or null for stages absent from a pass.
+ * Emit one Tr2EffectStageInput node, or null for stages absent from a pass.
  *
  * @param {object|undefined} stageInput Decoded stage input, if present.
  * @param {number} stageType Trinity shader stage enum value.
  * @param {object} classes Opt-in node class map.
  * @returns {object|null} Emitted stage-input record, or null.
  */
-function emitStageInput(stageInput, stageType, classes)
+function emitStageInput(stageInput, stageType, classes, context)
 {
-    if (!stageInput || !stageInput.m_exists) return null;
+    if (!stageInput || !stageInput.exists) return null;
 
     const signature = stageInput.signature || {};
 
     return build(classes, "StageInput", {
         stageType,
-        stageName: hlslShaderStageName(stageType),
+        stageName: shaderStageName(stageType),
         constants: (stageInput.constants || []).map((constant) => emitConstant(constant, classes)),
         resources: Array.from(
             stageInput.resources || [],
@@ -197,47 +203,66 @@ function emitStageInput(stageInput, stageType, classes)
             stageInput.uavs || [],
             ([ registerIndex, resource ]) => emitResource(registerIndex, resource, classes)
         ),
-        bytecode: emitShaderBytecode(stageInput.cjsShaderBytecode, classes),
+        bytecode: emitShaderBytecode(stageInput.sourceProgram ? { ...projectProgram(stageInput.sourceProgram, stageType, context), bytes: stageInput.sourceProgram.bytes } : null, classes),
         signature: {
-            pipelineInputs: (signature.pipelineInputs || []).map((entry) => ({ ...entry })),
-            registers: (signature.registers || []).map((entry) => ({ ...entry })),
+            pipelineInputs: (signature.pipelineInputs || []).map(projectPipelineInput),
+            registers: (signature.registers || []).map(entry => projectRegister(entry, stageType)),
             threadGroupSize: signature.threadGroupSize ? { ...signature.threadGroupSize } : null
         }
     });
 }
 
 /**
- * Emit one HlslPass node.
+ * Emit one Tr2Pass node.
  *
  * @param {object} pass Decoded technique pass.
  * @param {object} classes Opt-in node class map.
  * @returns {object} Emitted pass record.
  */
-function emitPass(pass, classes)
+function emitPass(pass, classes, context)
 {
     return build(classes, "Pass", {
         shaderTypeMask: pass.shaderTypeMask,
-        stageInputs: pass.stageInputs.map((stageInput, stageType) => emitStageInput(stageInput, stageType, classes)),
-        renderStates: pass.cjsRenderStateSetup ? pass.cjsRenderStateSetup.toJSON() : []
+        stageInputs: pass.stageInputs.map((stageInput, stageType) => emitStageInput(stageInput, stageType, classes, context)),
+        renderStates: pass.renderStateValues.map(({ state, value }) => ({ key: state, value }))
     });
 }
 
 /**
- * Emit one HlslEffectTechnique node.
+ * Emit one Tr2EffectTechnique node.
  *
  * @param {object} technique Decoded technique.
  * @param {object} classes Opt-in node class map.
  * @returns {object} Emitted technique record.
  */
-function emitTechnique(technique, classes)
+function emitTechnique(technique, classes, context)
 {
     return build(classes, "Technique", {
         name: technique.name,
         shaderTypeMask: technique.shaderTypeMask,
-        passes: technique.passes.map((pass) => emitPass(pass, classes)),
+        passes: technique.passes.map((pass) => emitPass(pass, classes, context)),
         // Shader-library (v14+ ray tracing) metadata has no dedicated class
         // key yet; emitted as plain, JSON-compatible data.
-        libraries: technique.libraries.map((library) => library?.toJSON?.() ?? library)
+        libraries: technique.libraries.map(library =>
+        {
+            const metadata = emitLibrary(library);
+            return {
+                ...metadata,
+                globalInput: {
+                    ...metadata.globalInput,
+                    constantValues: Array.from(effectiveConstantDefaults(library.globalInput).constantValues)
+                },
+                localInput: {
+                    ...metadata.localInput,
+                    constantValues: Array.from(effectiveConstantDefaults(library.localInput).constantValues)
+                },
+                libraryHandle: library.libraryHandle,
+                sourceProgram: library.sourceProgram ? {
+                    ...projectProgram(library.sourceProgram, 2, { ...context, stageName: "library" }),
+                    bytes: Array.from(library.sourceProgram.bytes)
+                } : null
+            };
+        })
     });
 }
 
@@ -251,28 +276,26 @@ function emitAnnotations(annotations)
 {
     return Array.from(annotations.entries(), ([ name, entries ]) => ({
         name,
-        annotations: entries.map((entry) => entry?.toJSON?.() ?? entry)
+        annotations: entries.map(projectAnnotation)
     }));
 }
 
 /**
- * Emit one HlslEffectDescription node: one resolved permutation's decoded
+ * Emit one Tr2EffectDescription node: one resolved permutation's decoded
  * techniques, passes, and stage metadata.
  *
- * @param {object} description Decoded effect description (`HlslShader.GetEffectDescription()`).
+ * @param {object} description Decoded effect description (`Tr2Shader.GetEffectDescription()`).
  * @param {object} classes Opt-in node class map.
  * @returns {object} Emitted effect-description record.
  */
-function emitEffectDescription(description, classes)
+function emitEffectDescription(description, classes, context)
 {
     return build(classes, "EffectDescription", {
-        version: description.version,
-        effectName: description.effectName,
-        techniques: description.techniques.map((technique) => emitTechnique(technique, classes)),
+        version: context.version,
+        effectName: context.effectName,
+        techniques: description.techniques.map((technique) => emitTechnique(technique, classes, context)),
         annotations: emitAnnotations(description.annotations),
-        readError: description.readError
-            ? { name: description.readError.name, message: description.readError.message }
-            : null
+        readError: null
     });
 }
 
@@ -304,7 +327,7 @@ function emitEffectDescription(description, classes)
  *
  * `effect` is the body selected by the `permutation` option (an array of
  * `{ name, value }` or a `Map`) over the container's default option set;
- * `HlslEffectRes.globalEffectOptions` take precedence over both.
+ * canonical global effect options take precedence over both.
  * `stageInputs` is indexed by stage type; an absent stage is `null`. Bytecode
  * bytes are opaque; the `dxbc` format decodes them. `loadError` and
  * `readError` are `{ name, message }` when the container or the selected body
@@ -314,11 +337,11 @@ function emitEffectDescription(description, classes)
  */
 
 /**
- * Convert a loaded HlslEffectRes (and, when resolvable, its default- or
- * selected-permutation HlslShader) into the documented plain JSON shape.
+ * Convert a loaded Tr2EffectRes (and, when resolvable, its default- or
+ * selected-permutation Tr2Shader) into the documented plain JSON shape.
  *
- * @param {object} effect Loaded HlslEffectRes instance.
- * @param {object|null} shader Resolved HlslShader for one permutation, or null.
+ * @param {object} effect Loaded Tr2EffectRes instance.
+ * @param {object|null} shader Resolved Tr2Shader for one permutation, or null.
  * @param {object} [options] Emission options.
  * @param {object} [options.classes] Opt-in node class map. See {@link CLASS_KEYS}.
  * @returns {object} Plain JSON-compatible effect graph, or a populated
@@ -327,14 +350,16 @@ function emitEffectDescription(description, classes)
 export function emitEffectJson(effect, shader, options = {})
 {
     const { classes = {} } = options;
+    const header = effectHeader(effect);
+    const context = { version: header.version, effectName: effect.GetPath() };
 
     return build(classes, "Root", {
-        version: effect.m_version,
-        compilerVersion: effect.m_compilerVersion,
-        sourcePath: effect.sourcePath,
-        bodyCount: effect.m_offsetCount,
-        permutations: effect.m_permutations.map((permutation) => emitPermutation(permutation, classes)),
-        effect: shader ? emitEffectDescription(shader.GetEffectDescription(), classes) : null,
-        loadError: effect.loadError ? { name: effect.loadError.name, message: effect.loadError.message } : null
+        version: header.version,
+        compilerVersion: header.compilerVersion,
+        sourcePath: effect.GetPath(),
+        bodyCount: header.records.length,
+        permutations: header.permutations.map((permutation) => emitPermutation(permutation, classes)),
+        effect: shader ? emitEffectDescription(shader.GetEffectDescription(), classes, context) : null,
+        loadError: null
     });
 }

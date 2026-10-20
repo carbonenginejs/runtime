@@ -1004,7 +1004,7 @@ function validateClearProgram(program)
 
 function activeStages(pass)
 {
-    return (pass?.stageInputs || []).filter((stage) => stage?.m_exists);
+    return (pass?.stageInputs || []).filter((stage) => stage?.exists);
 }
 
 function reflectedUavs(stage)
@@ -1039,8 +1039,8 @@ function effectStages(effectDescription)
     const clearStages = activeStages(techniques[0].passes[1]);
     if (resetStages.length !== 1
         || clearStages.length !== 1
-        || resetStages[0].cjsShaderBytecode?.stageName !== "compute"
-        || clearStages[0].cjsShaderBytecode?.stageName !== "compute")
+        || resetStages[0].stageType !== 2
+        || clearStages[0].stageType !== 2)
     {
         return null;
     }

@@ -1,0 +1,1754 @@
+{
+  "effectName": "synthetic",
+  "version": 15,
+  "passes": [
+    {
+      "techniqueName": "Main",
+      "passIndex": 0,
+      "renderStates": 0,
+      "states": [
+        {
+          "state": 3,
+          "value": 1
+        },
+        {
+          "state": 17,
+          "value": 2147483648
+        }
+      ]
+    },
+    {
+      "techniqueName": "Main",
+      "passIndex": 1,
+      "renderStates": 0,
+      "states": []
+    },
+    {
+      "techniqueName": "Raytrace",
+      "passIndex": 0,
+      "renderStates": 0,
+      "states": [
+        {
+          "state": 1,
+          "value": 2
+        }
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "techniqueName": "Main",
+      "passIndex": 0,
+      "stageType": 0,
+      "stageName": "vertex",
+      "shaderHandle": 4294967295,
+      "shaderBytecode": {
+        "stageType": 0,
+        "stageName": "vertex",
+        "shaderSize": 5,
+        "stringTableOffset": null,
+        "effectName": "synthetic"
+      },
+      "pipelineInputs": [
+        {
+          "usage": 0,
+          "usageName": "POSITION",
+          "registerIndex": 0,
+          "usageIndex": 0,
+          "usedMask": 15,
+          "type": 0,
+          "dimension": 4
+        },
+        {
+          "usage": 5,
+          "usageName": "TEXCOORD",
+          "registerIndex": 1,
+          "usageIndex": 0,
+          "usedMask": 3,
+          "type": 0,
+          "dimension": 2
+        }
+      ],
+      "threadGroupSize": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bindings": [
+        {
+          "kind": "constantBuffer",
+          "generatedSymbol": "cb0",
+          "registerIndex": 0,
+          "registerType": 0,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "$LocalConstants",
+          "carbon": {
+            "hasLocalConstants": true,
+            "constantValueSize": 20,
+            "constants": [
+              {
+                "name": "AConstant",
+                "offset": 0,
+                "size": 16,
+                "type": 0,
+                "dimension": 4,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": true
+              },
+              {
+                "name": "ASamplerIndex",
+                "offset": 16,
+                "size": 4,
+                "type": 2,
+                "dimension": 1,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": false
+              }
+            ],
+            "constantValues": [
+              0,
+              0,
+              128,
+              63,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              128,
+              63,
+              3,
+              0,
+              0,
+              0
+            ]
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-stage-register"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s5",
+          "registerIndex": 5,
+          "registerType": 1,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": false,
+          "metadataName": null,
+          "carbon": {
+            "name": null,
+            "sampler": {
+              "comparison": true,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 1,
+              "addressU": 3,
+              "addressV": 3,
+              "addressW": 0,
+              "mipLODBias": -0.5,
+              "maxAnisotropy": 16,
+              "comparisonFunc": 4,
+              "borderColor": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 3.5,
+              "isDynamic": false
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-signature-sampler"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "ADiffuseMap",
+          "carbon": {
+            "name": "ADiffuseMap",
+            "type": 1,
+            "arrayElements": 1,
+            "isSRGB": true,
+            "isAutoregister": false
+          },
+          "annotations": [
+            {
+              "name": "IsHeapView",
+              "type": 0,
+              "boolValue": true,
+              "intValue": 1,
+              "floatValue": 1.401298464324817e-45,
+              "stringValue": "",
+              "rawValue": 1
+            }
+          ],
+          "heapView": true,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t4",
+          "registerIndex": 4,
+          "registerType": null,
+          "registerSpace": 0,
+          "registerCount": 3,
+          "arrayCount": 3,
+          "dynamic": true,
+          "metadataName": "ADetailArray",
+          "carbon": {
+            "name": "ADetailArray",
+            "type": 4,
+            "arrayElements": 3,
+            "isSRGB": false,
+            "isAutoregister": true
+          },
+          "annotations": [
+            {
+              "name": "Layers",
+              "type": 1,
+              "boolValue": true,
+              "intValue": 3,
+              "floatValue": 4.203895392974451e-45,
+              "stringValue": "",
+              "rawValue": 3
+            }
+          ],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "ADiffuseSampler",
+          "carbon": {
+            "name": "ADiffuseSampler",
+            "sampler": {
+              "comparison": false,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 2,
+              "addressU": 1,
+              "addressV": 1,
+              "addressW": 1,
+              "mipLODBias": 0.25,
+              "maxAnisotropy": 8,
+              "comparisonFunc": 0,
+              "borderColor": [
+                0,
+                0.5,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 16,
+              "isDynamic": true
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "uav",
+          "generatedSymbol": "u2",
+          "registerIndex": 2,
+          "registerType": null,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "AAccumulator",
+          "carbon": {
+            "name": "AAccumulator",
+            "type": 6,
+            "arrayElements": 1,
+            "isSRGB": false,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        }
+      ]
+    },
+    {
+      "techniqueName": "Main",
+      "passIndex": 0,
+      "stageType": 1,
+      "stageName": "pixel",
+      "shaderHandle": 4294967295,
+      "shaderBytecode": {
+        "stageType": 1,
+        "stageName": "pixel",
+        "shaderSize": 5,
+        "stringTableOffset": null,
+        "effectName": "synthetic"
+      },
+      "pipelineInputs": [
+        {
+          "usage": 0,
+          "usageName": "POSITION",
+          "registerIndex": 0,
+          "usageIndex": 0,
+          "usedMask": 15,
+          "type": 0,
+          "dimension": 4
+        },
+        {
+          "usage": 5,
+          "usageName": "TEXCOORD",
+          "registerIndex": 1,
+          "usageIndex": 0,
+          "usedMask": 3,
+          "type": 0,
+          "dimension": 2
+        }
+      ],
+      "threadGroupSize": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bindings": [
+        {
+          "kind": "constantBuffer",
+          "generatedSymbol": "cb0",
+          "registerIndex": 0,
+          "registerType": 0,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "$LocalConstants",
+          "carbon": {
+            "hasLocalConstants": true,
+            "constantValueSize": 20,
+            "constants": [
+              {
+                "name": "APConstant",
+                "offset": 0,
+                "size": 16,
+                "type": 0,
+                "dimension": 4,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": true
+              },
+              {
+                "name": "APSamplerIndex",
+                "offset": 16,
+                "size": 4,
+                "type": 2,
+                "dimension": 1,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": false
+              }
+            ],
+            "constantValues": [
+              0,
+              0,
+              128,
+              63,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              128,
+              63,
+              3,
+              0,
+              0,
+              0
+            ]
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-stage-register"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s5",
+          "registerIndex": 5,
+          "registerType": 1,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": false,
+          "metadataName": null,
+          "carbon": {
+            "name": null,
+            "sampler": {
+              "comparison": true,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 1,
+              "addressU": 3,
+              "addressV": 3,
+              "addressW": 0,
+              "mipLODBias": -0.5,
+              "maxAnisotropy": 16,
+              "comparisonFunc": 4,
+              "borderColor": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 3.5,
+              "isDynamic": false
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-signature-sampler"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "APDiffuseMap",
+          "carbon": {
+            "name": "APDiffuseMap",
+            "type": 1,
+            "arrayElements": 1,
+            "isSRGB": true,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t4",
+          "registerIndex": 4,
+          "registerType": null,
+          "registerSpace": 1,
+          "registerCount": 3,
+          "arrayCount": 3,
+          "dynamic": true,
+          "metadataName": "APDetailArray",
+          "carbon": {
+            "name": "APDetailArray",
+            "type": 4,
+            "arrayElements": 3,
+            "isSRGB": false,
+            "isAutoregister": true
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "APDiffuseSampler",
+          "carbon": {
+            "name": "APDiffuseSampler",
+            "sampler": {
+              "comparison": false,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 2,
+              "addressU": 1,
+              "addressV": 1,
+              "addressW": 1,
+              "mipLODBias": 0.25,
+              "maxAnisotropy": 8,
+              "comparisonFunc": 0,
+              "borderColor": [
+                0,
+                0.5,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 16,
+              "isDynamic": true
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "uav",
+          "generatedSymbol": "u2",
+          "registerIndex": 2,
+          "registerType": null,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "APAccumulator",
+          "carbon": {
+            "name": "APAccumulator",
+            "type": 6,
+            "arrayElements": 1,
+            "isSRGB": false,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        }
+      ]
+    },
+    {
+      "techniqueName": "Main",
+      "passIndex": 0,
+      "stageType": 3,
+      "stageName": "geometry",
+      "shaderHandle": 4294967295,
+      "shaderBytecode": {
+        "stageType": 3,
+        "stageName": "geometry",
+        "shaderSize": 5,
+        "stringTableOffset": null,
+        "effectName": "synthetic"
+      },
+      "pipelineInputs": [
+        {
+          "usage": 0,
+          "usageName": "POSITION",
+          "registerIndex": 0,
+          "usageIndex": 0,
+          "usedMask": 15,
+          "type": 0,
+          "dimension": 4
+        },
+        {
+          "usage": 5,
+          "usageName": "TEXCOORD",
+          "registerIndex": 1,
+          "usageIndex": 0,
+          "usedMask": 3,
+          "type": 0,
+          "dimension": 2
+        }
+      ],
+      "threadGroupSize": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bindings": [
+        {
+          "kind": "constantBuffer",
+          "generatedSymbol": "cb0",
+          "registerIndex": 0,
+          "registerType": 0,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "$LocalConstants",
+          "carbon": {
+            "hasLocalConstants": true,
+            "constantValueSize": 20,
+            "constants": [
+              {
+                "name": "GConstant",
+                "offset": 0,
+                "size": 16,
+                "type": 0,
+                "dimension": 4,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": true
+              },
+              {
+                "name": "GSamplerIndex",
+                "offset": 16,
+                "size": 4,
+                "type": 2,
+                "dimension": 1,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": false
+              }
+            ],
+            "constantValues": [
+              0,
+              0,
+              128,
+              63,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              128,
+              63,
+              3,
+              0,
+              0,
+              0
+            ]
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-stage-register"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s5",
+          "registerIndex": 5,
+          "registerType": 1,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": false,
+          "metadataName": null,
+          "carbon": {
+            "name": null,
+            "sampler": {
+              "comparison": true,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 1,
+              "addressU": 3,
+              "addressV": 3,
+              "addressW": 0,
+              "mipLODBias": -0.5,
+              "maxAnisotropy": 16,
+              "comparisonFunc": 4,
+              "borderColor": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 3.5,
+              "isDynamic": false
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-signature-sampler"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 3,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "GDiffuseMap",
+          "carbon": {
+            "name": "GDiffuseMap",
+            "type": 1,
+            "arrayElements": 1,
+            "isSRGB": true,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t4",
+          "registerIndex": 4,
+          "registerType": null,
+          "registerSpace": 3,
+          "registerCount": 3,
+          "arrayCount": 3,
+          "dynamic": true,
+          "metadataName": "GDetailArray",
+          "carbon": {
+            "name": "GDetailArray",
+            "type": 4,
+            "arrayElements": 3,
+            "isSRGB": false,
+            "isAutoregister": true
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 3,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "GDiffuseSampler",
+          "carbon": {
+            "name": "GDiffuseSampler",
+            "sampler": {
+              "comparison": false,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 2,
+              "addressU": 1,
+              "addressV": 1,
+              "addressW": 1,
+              "mipLODBias": 0.25,
+              "maxAnisotropy": 8,
+              "comparisonFunc": 0,
+              "borderColor": [
+                0,
+                0.5,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 16,
+              "isDynamic": true
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "uav",
+          "generatedSymbol": "u2",
+          "registerIndex": 2,
+          "registerType": null,
+          "registerSpace": 3,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "GAccumulator",
+          "carbon": {
+            "name": "GAccumulator",
+            "type": 6,
+            "arrayElements": 1,
+            "isSRGB": false,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        }
+      ]
+    },
+    {
+      "techniqueName": "Main",
+      "passIndex": 0,
+      "stageType": 4,
+      "stageName": "hull",
+      "shaderHandle": 4294967295,
+      "shaderBytecode": {
+        "stageType": 4,
+        "stageName": "hull",
+        "shaderSize": 5,
+        "stringTableOffset": null,
+        "effectName": "synthetic"
+      },
+      "pipelineInputs": [
+        {
+          "usage": 0,
+          "usageName": "POSITION",
+          "registerIndex": 0,
+          "usageIndex": 0,
+          "usedMask": 15,
+          "type": 0,
+          "dimension": 4
+        },
+        {
+          "usage": 5,
+          "usageName": "TEXCOORD",
+          "registerIndex": 1,
+          "usageIndex": 0,
+          "usedMask": 3,
+          "type": 0,
+          "dimension": 2
+        }
+      ],
+      "threadGroupSize": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bindings": [
+        {
+          "kind": "constantBuffer",
+          "generatedSymbol": "cb0",
+          "registerIndex": 0,
+          "registerType": 0,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "$LocalConstants",
+          "carbon": {
+            "hasLocalConstants": true,
+            "constantValueSize": 20,
+            "constants": [
+              {
+                "name": "HConstant",
+                "offset": 0,
+                "size": 16,
+                "type": 0,
+                "dimension": 4,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": true
+              },
+              {
+                "name": "HSamplerIndex",
+                "offset": 16,
+                "size": 4,
+                "type": 2,
+                "dimension": 1,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": false
+              }
+            ],
+            "constantValues": [
+              0,
+              0,
+              128,
+              63,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              128,
+              63,
+              3,
+              0,
+              0,
+              0
+            ]
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-stage-register"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s5",
+          "registerIndex": 5,
+          "registerType": 1,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": false,
+          "metadataName": null,
+          "carbon": {
+            "name": null,
+            "sampler": {
+              "comparison": true,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 1,
+              "addressU": 3,
+              "addressV": 3,
+              "addressW": 0,
+              "mipLODBias": -0.5,
+              "maxAnisotropy": 16,
+              "comparisonFunc": 4,
+              "borderColor": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 3.5,
+              "isDynamic": false
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-signature-sampler"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 4,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "HDiffuseMap",
+          "carbon": {
+            "name": "HDiffuseMap",
+            "type": 1,
+            "arrayElements": 1,
+            "isSRGB": true,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t4",
+          "registerIndex": 4,
+          "registerType": null,
+          "registerSpace": 4,
+          "registerCount": 3,
+          "arrayCount": 3,
+          "dynamic": true,
+          "metadataName": "HDetailArray",
+          "carbon": {
+            "name": "HDetailArray",
+            "type": 4,
+            "arrayElements": 3,
+            "isSRGB": false,
+            "isAutoregister": true
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 4,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "HDiffuseSampler",
+          "carbon": {
+            "name": "HDiffuseSampler",
+            "sampler": {
+              "comparison": false,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 2,
+              "addressU": 1,
+              "addressV": 1,
+              "addressW": 1,
+              "mipLODBias": 0.25,
+              "maxAnisotropy": 8,
+              "comparisonFunc": 0,
+              "borderColor": [
+                0,
+                0.5,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 16,
+              "isDynamic": true
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "uav",
+          "generatedSymbol": "u2",
+          "registerIndex": 2,
+          "registerType": null,
+          "registerSpace": 4,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "HAccumulator",
+          "carbon": {
+            "name": "HAccumulator",
+            "type": 6,
+            "arrayElements": 1,
+            "isSRGB": false,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        }
+      ]
+    },
+    {
+      "techniqueName": "Main",
+      "passIndex": 0,
+      "stageType": 5,
+      "stageName": "domain",
+      "shaderHandle": 4294967295,
+      "shaderBytecode": {
+        "stageType": 5,
+        "stageName": "domain",
+        "shaderSize": 5,
+        "stringTableOffset": null,
+        "effectName": "synthetic"
+      },
+      "pipelineInputs": [
+        {
+          "usage": 0,
+          "usageName": "POSITION",
+          "registerIndex": 0,
+          "usageIndex": 0,
+          "usedMask": 15,
+          "type": 0,
+          "dimension": 4
+        },
+        {
+          "usage": 5,
+          "usageName": "TEXCOORD",
+          "registerIndex": 1,
+          "usageIndex": 0,
+          "usedMask": 3,
+          "type": 0,
+          "dimension": 2
+        }
+      ],
+      "threadGroupSize": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bindings": [
+        {
+          "kind": "constantBuffer",
+          "generatedSymbol": "cb0",
+          "registerIndex": 0,
+          "registerType": 0,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "$LocalConstants",
+          "carbon": {
+            "hasLocalConstants": true,
+            "constantValueSize": 20,
+            "constants": [
+              {
+                "name": "DConstant",
+                "offset": 0,
+                "size": 16,
+                "type": 0,
+                "dimension": 4,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": true
+              },
+              {
+                "name": "DSamplerIndex",
+                "offset": 16,
+                "size": 4,
+                "type": 2,
+                "dimension": 1,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": false
+              }
+            ],
+            "constantValues": [
+              0,
+              0,
+              128,
+              63,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              128,
+              63,
+              3,
+              0,
+              0,
+              0
+            ]
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-stage-register"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s5",
+          "registerIndex": 5,
+          "registerType": 1,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": false,
+          "metadataName": null,
+          "carbon": {
+            "name": null,
+            "sampler": {
+              "comparison": true,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 1,
+              "addressU": 3,
+              "addressV": 3,
+              "addressW": 0,
+              "mipLODBias": -0.5,
+              "maxAnisotropy": 16,
+              "comparisonFunc": 4,
+              "borderColor": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 3.5,
+              "isDynamic": false
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-signature-sampler"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 5,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "DDiffuseMap",
+          "carbon": {
+            "name": "DDiffuseMap",
+            "type": 1,
+            "arrayElements": 1,
+            "isSRGB": true,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t4",
+          "registerIndex": 4,
+          "registerType": null,
+          "registerSpace": 5,
+          "registerCount": 3,
+          "arrayCount": 3,
+          "dynamic": true,
+          "metadataName": "DDetailArray",
+          "carbon": {
+            "name": "DDetailArray",
+            "type": 4,
+            "arrayElements": 3,
+            "isSRGB": false,
+            "isAutoregister": true
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 5,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "DDiffuseSampler",
+          "carbon": {
+            "name": "DDiffuseSampler",
+            "sampler": {
+              "comparison": false,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 2,
+              "addressU": 1,
+              "addressV": 1,
+              "addressW": 1,
+              "mipLODBias": 0.25,
+              "maxAnisotropy": 8,
+              "comparisonFunc": 0,
+              "borderColor": [
+                0,
+                0.5,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 16,
+              "isDynamic": true
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "uav",
+          "generatedSymbol": "u2",
+          "registerIndex": 2,
+          "registerType": null,
+          "registerSpace": 5,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "DAccumulator",
+          "carbon": {
+            "name": "DAccumulator",
+            "type": 6,
+            "arrayElements": 1,
+            "isSRGB": false,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        }
+      ]
+    },
+    {
+      "techniqueName": "Main",
+      "passIndex": 1,
+      "stageType": 2,
+      "stageName": "compute",
+      "shaderHandle": 4294967295,
+      "shaderBytecode": {
+        "stageType": 2,
+        "stageName": "compute",
+        "shaderSize": 5,
+        "stringTableOffset": null,
+        "effectName": "synthetic"
+      },
+      "pipelineInputs": [
+        {
+          "usage": 0,
+          "usageName": "POSITION",
+          "registerIndex": 0,
+          "usageIndex": 0,
+          "usedMask": 15,
+          "type": 0,
+          "dimension": 4
+        },
+        {
+          "usage": 5,
+          "usageName": "TEXCOORD",
+          "registerIndex": 1,
+          "usageIndex": 0,
+          "usedMask": 3,
+          "type": 0,
+          "dimension": 2
+        }
+      ],
+      "threadGroupSize": {
+        "x": 8,
+        "y": 8,
+        "z": 1
+      },
+      "bindings": [
+        {
+          "kind": "constantBuffer",
+          "generatedSymbol": "cb0",
+          "registerIndex": 0,
+          "registerType": 0,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "$LocalConstants",
+          "carbon": {
+            "hasLocalConstants": true,
+            "constantValueSize": 20,
+            "constants": [
+              {
+                "name": "ACConstant",
+                "offset": 0,
+                "size": 16,
+                "type": 0,
+                "dimension": 4,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": true
+              },
+              {
+                "name": "ACSamplerIndex",
+                "offset": 16,
+                "size": 4,
+                "type": 2,
+                "dimension": 1,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": false
+              }
+            ],
+            "constantValues": [
+              0,
+              0,
+              128,
+              63,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              128,
+              63,
+              3,
+              0,
+              0,
+              0
+            ]
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-stage-register"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s5",
+          "registerIndex": 5,
+          "registerType": 1,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": false,
+          "metadataName": null,
+          "carbon": {
+            "name": null,
+            "sampler": {
+              "comparison": true,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 1,
+              "addressU": 3,
+              "addressV": 3,
+              "addressW": 0,
+              "mipLODBias": -0.5,
+              "maxAnisotropy": 16,
+              "comparisonFunc": 4,
+              "borderColor": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 3.5,
+              "isDynamic": false
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-signature-sampler"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 2,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "ACDiffuseMap",
+          "carbon": {
+            "name": "ACDiffuseMap",
+            "type": 1,
+            "arrayElements": 1,
+            "isSRGB": true,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t4",
+          "registerIndex": 4,
+          "registerType": null,
+          "registerSpace": 2,
+          "registerCount": 3,
+          "arrayCount": 3,
+          "dynamic": true,
+          "metadataName": "ACDetailArray",
+          "carbon": {
+            "name": "ACDetailArray",
+            "type": 4,
+            "arrayElements": 3,
+            "isSRGB": false,
+            "isAutoregister": true
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 2,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "ACDiffuseSampler",
+          "carbon": {
+            "name": "ACDiffuseSampler",
+            "sampler": {
+              "comparison": false,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 2,
+              "addressU": 1,
+              "addressV": 1,
+              "addressW": 1,
+              "mipLODBias": 0.25,
+              "maxAnisotropy": 8,
+              "comparisonFunc": 0,
+              "borderColor": [
+                0,
+                0.5,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 16,
+              "isDynamic": true
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "uav",
+          "generatedSymbol": "u2",
+          "registerIndex": 2,
+          "registerType": null,
+          "registerSpace": 2,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "ACAccumulator",
+          "carbon": {
+            "name": "ACAccumulator",
+            "type": 6,
+            "arrayElements": 1,
+            "isSRGB": false,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        }
+      ]
+    },
+    {
+      "techniqueName": "Raytrace",
+      "passIndex": 0,
+      "stageType": 0,
+      "stageName": "vertex",
+      "shaderHandle": 4294967295,
+      "shaderBytecode": {
+        "stageType": 0,
+        "stageName": "vertex",
+        "shaderSize": 5,
+        "stringTableOffset": null,
+        "effectName": "synthetic"
+      },
+      "pipelineInputs": [
+        {
+          "usage": 0,
+          "usageName": "POSITION",
+          "registerIndex": 0,
+          "usageIndex": 0,
+          "usedMask": 15,
+          "type": 0,
+          "dimension": 4
+        },
+        {
+          "usage": 5,
+          "usageName": "TEXCOORD",
+          "registerIndex": 1,
+          "usageIndex": 0,
+          "usedMask": 3,
+          "type": 0,
+          "dimension": 2
+        }
+      ],
+      "threadGroupSize": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "bindings": [
+        {
+          "kind": "constantBuffer",
+          "generatedSymbol": "cb0",
+          "registerIndex": 0,
+          "registerType": 0,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "$LocalConstants",
+          "carbon": {
+            "hasLocalConstants": true,
+            "constantValueSize": 20,
+            "constants": [
+              {
+                "name": "ARConstant",
+                "offset": 0,
+                "size": 16,
+                "type": 0,
+                "dimension": 4,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": true
+              },
+              {
+                "name": "ARSamplerIndex",
+                "offset": 16,
+                "size": 4,
+                "type": 2,
+                "dimension": 1,
+                "elements": 1,
+                "isSRGB": false,
+                "isAutoregister": false
+              }
+            ],
+            "constantValues": [
+              0,
+              0,
+              128,
+              63,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              128,
+              63,
+              3,
+              0,
+              0,
+              0
+            ]
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-stage-register"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s5",
+          "registerIndex": 5,
+          "registerType": 1,
+          "registerSpace": 1,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": false,
+          "metadataName": null,
+          "carbon": {
+            "name": null,
+            "sampler": {
+              "comparison": true,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 1,
+              "addressU": 3,
+              "addressV": 3,
+              "addressW": 0,
+              "mipLODBias": -0.5,
+              "maxAnisotropy": 16,
+              "comparisonFunc": 4,
+              "borderColor": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 3.5,
+              "isDynamic": false
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-signature-sampler"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "ARDiffuseMap",
+          "carbon": {
+            "name": "ARDiffuseMap",
+            "type": 1,
+            "arrayElements": 1,
+            "isSRGB": true,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "resource",
+          "generatedSymbol": "t4",
+          "registerIndex": 4,
+          "registerType": null,
+          "registerSpace": 0,
+          "registerCount": 3,
+          "arrayCount": 3,
+          "dynamic": true,
+          "metadataName": "ARDetailArray",
+          "carbon": {
+            "name": "ARDetailArray",
+            "type": 4,
+            "arrayElements": 3,
+            "isSRGB": false,
+            "isAutoregister": true
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "sampler",
+          "generatedSymbol": "s0",
+          "registerIndex": 0,
+          "registerType": null,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "ARDiffuseSampler",
+          "carbon": {
+            "name": "ARDiffuseSampler",
+            "sampler": {
+              "comparison": false,
+              "minFilter": 2,
+              "magFilter": 2,
+              "mipFilter": 2,
+              "addressU": 1,
+              "addressV": 1,
+              "addressW": 1,
+              "mipLODBias": 0.25,
+              "maxAnisotropy": 8,
+              "comparisonFunc": 0,
+              "borderColor": [
+                0,
+                0.5,
+                1,
+                1
+              ],
+              "minLOD": 0,
+              "maxLOD": 16,
+              "isDynamic": true
+            }
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        },
+        {
+          "kind": "uav",
+          "generatedSymbol": "u2",
+          "registerIndex": 2,
+          "registerType": null,
+          "registerSpace": 0,
+          "registerCount": 1,
+          "arrayCount": 1,
+          "dynamic": true,
+          "metadataName": "ARAccumulator",
+          "carbon": {
+            "name": "ARAccumulator",
+            "type": 6,
+            "arrayElements": 1,
+            "isSRGB": false,
+            "isAutoregister": false
+          },
+          "annotations": [],
+          "heapView": false,
+          "sourceTruth": "carbon-register-map"
+        }
+      ]
+    }
+  ]
+}

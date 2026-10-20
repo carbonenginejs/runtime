@@ -1,3 +1,4 @@
+import { effectHeader } from "../../../../src/resource/format/effect/effectHeader.js";
 // CPU-only exact regression comparison over every unique body and complete pass.
 // Capture before editing the translator; compare afterward using identical inputs.
 // Output contains translated game shaders and stays in the caller-specified directory.
@@ -67,8 +68,8 @@ for (const file of files) {
     } = readEffectAnalysis(bytes, {
       source
     });
-    const graph = buildEffectPermutationGraph(effectRes),
-      groups = enumerateUniqueEffectBodies(effectRes);
+    const graph = buildEffectPermutationGraph(effectHeader(effectRes)),
+      groups = enumerateUniqueEffectBodies(effectHeader(effectRes));
     record.permutations = graph.variants.length;
     record.uniqueBodies = groups.length;
     record.graph = graph;

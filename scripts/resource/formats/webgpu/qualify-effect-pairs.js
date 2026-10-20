@@ -1,3 +1,4 @@
+import { shaderStageName } from "../../../../src/resource/format/effect/shaderStageNames.js";
 import { readFile, readdir } from "node:fs/promises";
 import { relative, resolve } from "node:path";
 
@@ -36,9 +37,9 @@ function stageRecords(resolved)
         {
             for (const stage of technique.passes[passIndex].stageInputs.filter(Boolean))
             {
-                const stageName = stage.cjsShaderBytecode?.stageName;
-                const bytes = stage.cjsShaderBytecode?.bytes;
-                if (stage.m_exists && stageName && bytes?.length)
+                const stageName = shaderStageName(stage.stageType);
+                const bytes = stage.sourceProgram?.bytes;
+                if (stage.exists && stageName && bytes?.length)
                 {
                     records.push({ key: `${technique.name}.pass${passIndex}.${stageName}`, bytes });
                 }

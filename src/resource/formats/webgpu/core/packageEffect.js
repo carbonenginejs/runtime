@@ -1,3 +1,4 @@
+import { effectHeader } from "../../../format/effect/effectHeader.js";
 import { readEffectAnalysis } from "./effectAnalysis.js";
 import { buildEffectAnalysis, inspectWithValues } from "./helpers.js";
 import { buildCarbonEffectContainer } from "./buildCarbonEffectContainer.js";
@@ -131,11 +132,11 @@ export function buildEffectPackage(input, options = {})
 
     // One INFO version means one contract, and that contract requires complete
     // source reflection, which only version-15 input can supply.
-    if (resolved.effectRes?.m_version !== 15)
+    if (effectHeader(resolved.effectRes).version !== 15)
     {
         throw new Error(
             "Effect package requires a version-15 compiled effect, got version "
-            + (resolved.effectRes?.m_version ?? "unknown")
+            + (effectHeader(resolved.effectRes).version ?? "unknown")
         );
     }
 
@@ -248,11 +249,11 @@ export function buildEffectPackage(input, options = {})
     }));
     const wgsl = buildWgslSet(shaderEntries);
     const wgslSelection = buildWgslSelectionMetadata(selection, selectedStages);
-    const permutationGraph = buildEffectPermutationGraph(resolved.effectRes);
+    const permutationGraph = buildEffectPermutationGraph(effectHeader(resolved.effectRes));
     // The source is complete when it is a version-15 container. This used to be
     // read off a built reflection document, which made the document look load
     // bearing when it was only ever a consequence of the same version check.
-    const sourceComplete = resolved.effectRes.m_version === 15;
+    const sourceComplete = effectHeader(resolved.effectRes).version === 15;
     if (mode === "all" && !sourceComplete)
     {
         throw new Error(
@@ -349,7 +350,7 @@ export function buildEffectPackage(input, options = {})
         permutationGraph,
         emittedBodySet,
         {
-            compilerVersion: resolved.effectRes.m_compilerVersionBytes,
+            compilerVersion: effectHeader(resolved.effectRes).compilerVersionBytes,
             version: containerVersion
         }
     );

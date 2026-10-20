@@ -30,27 +30,26 @@ const MAX_EFFECT_PERMUTATIONS = 0x10000;
  * Build a complete source permutation topology without claiming that every
  * body has portable reflection or backend programs.
  *
- * @param {object} effectRes Raw format-hlsl effect resource.
+ * @param {object} header Format header projection over canonical resource bytes.
  * @returns {object} JSON-safe permutation graph.
  */
-export function buildEffectPermutationGraph(effectRes)
+export function buildEffectPermutationGraph(header)
 {
-    if (!effectRes || typeof effectRes !== "object")
+    if (!header || typeof header !== "object")
     {
         throw new TypeError("Effect permutation graph requires a decoded effect resource");
     }
 
-    const sourceBytes = effectRes.m_data;
+    const sourceBytes = header.bytes;
     if (!(sourceBytes instanceof Uint8Array))
     {
         throw new TypeError("Effect permutation graph requires exact source bytes");
     }
 
-    const axes = normalizeAxes(effectRes.m_permutations);
+    const axes = normalizeAxes(header.permutations);
     const permutationCount = permutationProduct(axes);
-    const offsets = effectRes.m_offsets;
-    if (!Array.isArray(offsets) || offsets.length !== permutationCount
-        || effectRes.m_offsetCount !== offsets.length)
+    const offsets = header.records;
+    if (!Array.isArray(offsets) || offsets.length !== permutationCount)
     {
         throw new Error(
             "Effect permutation graph requires one source body record per permutation"
@@ -388,9 +387,8 @@ function normalizeSourceRecord(record, permutationIndex, sourceByteLength)
         || record.offset > UINT32_MAX
         || !Number.isSafeInteger(record.size) || record.size < 1
         || record.size > UINT32_MAX
-        || !Number.isSafeInteger(record.end)
-        || record.end !== record.offset + record.size
-        || record.end > sourceByteLength)
+        || !Number.isSafeInteger(record.offset + record.size)
+        || record.offset + record.size > sourceByteLength)
     {
         throw new Error(
             `Effect permutation ${permutationIndex} has an invalid source body record`

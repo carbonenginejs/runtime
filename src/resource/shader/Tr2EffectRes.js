@@ -2,11 +2,12 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
 import { CjsSchema, meta, blue } from "#schema";
-import { CjsResource, ICacheable } from "#blue";
+import { CjsResource } from "#blue/CjsResource";
+import { ICacheable } from "#blue/ICacheable";
 import { validateResourcePayload } from "../resourceBoundary.js";
 import { CjsCarbonEffectReader } from "../format/carbonEffect/CjsCarbonEffectReader.js";
 import { Tr2Shader } from "./Tr2Shader.js";
-import { ResourceRequirement } from "#blue";
+import { ResourceRequirement } from "#consts/resourceRequirement";
 import { EffectCarriesBackendBlock } from "#utils/effectPath";
 
 const globalEffectOptions = [];

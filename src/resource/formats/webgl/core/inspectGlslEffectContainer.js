@@ -1,5 +1,5 @@
 import { CjsCarbonEffectReader } from "../../../format/carbonEffect/CjsCarbonEffectReader.js";
-import { hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
+import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
 
 /**
  * Cheap inspection of a WebGL effect container.
@@ -65,7 +65,7 @@ function inspectBodies(reader)
                 if (pass.backendBlock?.size) backendBlockCount += 1;
                 for (const stage of pass.stages)
                 {
-                    stageNames.add(hlslShaderStageName(stage.type));
+                    stageNames.add(shaderStageName(stage.type));
                     if (stage.shaderData?.size) programCount += 1;
                     else emptyProgramCount += 1;
                 }

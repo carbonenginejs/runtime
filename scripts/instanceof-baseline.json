@@ -19,8 +19,6 @@
   "src/resource/audio/CjsAudioRes.js": 1,
   "src/resource/format/CjsFormat.js": 1,
   "src/resource/formats/black/core/CjsBlackBinaryReader.js": 1,
-  "src/resource/formats/hlsl/core/HlslEffectStateManager.js": 1,
-  "src/resource/formats/hlsl/core/tr2/resources/HlslEffectRes.js": 1,
   "src/resource/formats/webgpu/core/helpers.js": 1,
   "src/resource/shader/reflection/Tr2EffectDescription.js": 1,
   "src/resource/shader/reflection/Tr2EffectLibrary.js": 1,

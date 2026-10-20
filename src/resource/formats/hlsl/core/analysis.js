@@ -1,6 +1,7 @@
 import { DEFAULT_VALUES, normalizeValues, readRaw } from "./helpers.js";
 import { resolveSelectedOptions } from "./metadata.js";
-import { HlslEffectBindingManifest } from "./tr2/shader/HlslEffectBindingManifest.js";
+import { buildEffectBindingManifest } from "../../../format/effect/effectBindingManifest.js";
+import { effectHeader } from "../../../format/effect/effectHeader.js";
 
 /**
  * Resolve one permutation to the raw effect/shader/manifest context that
@@ -11,12 +12,13 @@ import { HlslEffectBindingManifest } from "./tr2/shader/HlslEffectBindingManifes
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Tr2 effect payload.
  * @param {object} values Normalized format values.
- * @returns {{effectRes: object, shader: object|null, selection: object, effectDescription: object|null, bindingManifest: HlslEffectBindingManifest|null}}
+ * @returns {{effectRes: object, shader: object|null, selection: object, effectDescription: object|null, bindingManifest: object|null}}
  *   Raw loaded effect data plus the resolved permutation context.
  */
 export function analyzeEffectWithValues(input, values)
 {
     const effectRes = readRaw(input, values);
+    const header = effectHeader(effectRes);
     const selection = resolveSelectedOptions(effectRes, values.permutation || []);
 
     let shader = null;
@@ -31,11 +33,12 @@ export function analyzeEffectWithValues(input, values)
 
     const effectDescription = shader ? shader.GetEffectDescription() : null;
     const bindingManifest = effectDescription
-        ? HlslEffectBindingManifest.fromEffectDescription(effectDescription)
+        ? buildEffectBindingManifest(effectDescription, { version: header.version, effectName: values.source })
         : null;
 
     return {
         effectRes,
+        header,
         shader,
         selection,
         effectDescription,
@@ -53,12 +56,12 @@ export function analyzeEffectWithValues(input, values)
  * bindings; its class is not exported, so treat it as data. The returned
  * `effectRes.GetShaderByIndex(index)` decodes one exact permutation-table slot
  * without global or local option overrides, so a body-table index stays stable
- * when global effect options are set. It returns an internal `HlslShader`, not
- * the `Tr2Shader` the canonical `Tr2EffectRes.GetShaderByIndex` hydrates.
+ * when global effect options are set. It returns the resource's cached
+ * canonical Tr2Shader, with unrealized handles and retained source programs.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Tr2 effect payload.
  * @param {object} [options] Format values.
- * @returns {{effectRes: object, shader: object|null, selection: object, effectDescription: object|null, bindingManifest: HlslEffectBindingManifest|null}}
+ * @returns {{effectRes: object, shader: object|null, selection: object, effectDescription: object|null, bindingManifest: object|null}}
  *   Raw loaded effect data plus the resolved permutation context.
  */
 export function readEffectAnalysis(input, options = {})

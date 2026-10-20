@@ -1,23 +1,11 @@
-import { HlslEffectRes } from "../../../../../src/resource/formats/hlsl/core/tr2/resources/HlslEffectRes.js";
+import { Tr2EffectRes } from "../../../../../src/resource/shader/Tr2EffectRes.js";
+import { effectHeader } from "../../../../../src/resource/format/effect/effectHeader.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import { CjsHlslFormat } from "../../../../../src/resource/formats/hlsl/index.js";
 import { readEffectAnalysis } from "../../../../../src/resource/formats/hlsl/core/analysis.js";
-import { HlslEffectBindingManifest } from "../../../../../src/resource/formats/hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
-import { HlslRenderContextEnum } from "../../../../../src/resource/formats/hlsl/core/tr2/HlslRenderContextEnum.js";
-import { emitEffectMetadata } from "../../../../../src/resource/formats/hlsl/core/metadata.js";
 import { buildEffectBytes } from "./synthetic.js";
-import { HlslEffectConstant } from "../../../../../src/resource/formats/hlsl/core/tr2/shader/HlslEffectConstant.js";
-import { HlslEffectParameterAnnotation } from "../../../../../src/resource/formats/hlsl/core/tr2/shader/HlslEffectParameterAnnotation.js";
-
-test("standalone HLSL vocabularies match semantic reflection enum values", async () =>
-{
-    const { Tr2EffectConstant } = await import("../../../../../src/resource/shader/reflection/Tr2EffectConstant.js");
-    const { Tr2EffectParameterAnnotation } = await import("../../../../../src/resource/shader/reflection/Tr2EffectParameterAnnotation.js");
-    assert.deepEqual(HlslEffectConstant.Type, Tr2EffectConstant.Type);
-    assert.deepEqual(HlslEffectParameterAnnotation.Type, Tr2EffectParameterAnnotation.Type);
-});
 
 test("static read and instance Read share one code path", () =>
 {
@@ -55,13 +43,13 @@ test("json emit is the documented plain effect graph", () =>
     assert.equal(typeof JSON.stringify(result), "string");
 });
 
-test("raw emit exposes the live HlslEffectRes graph", () =>
+test("raw emit exposes the live Tr2EffectRes graph", () =>
 {
     const result = CjsHlslFormat.read(buildEffectBytes(), { emit: "raw" });
 
-    assert.equal(result.constructor, HlslEffectRes);
-    assert.equal(result.IsGood(), true);
-    assert.equal(result.m_version, 8);
+    assert.equal(result.constructor, Tr2EffectRes);
+    assert.equal(result.IsGood(), false); // Resource-manager readiness is separate from decoding.
+    assert.equal(effectHeader(result).version, 8);
 });
 
 test("Inspect summarizes the default permutation without a full JSON conversion", () =>
@@ -73,7 +61,7 @@ test("Inspect summarizes the default permutation without a full JSON conversion"
     assert.equal(summary.permutationCount, 0);
     assert.equal(summary.bodyCount, 1);
     // The synthetic body is one garbage byte, so the default permutation
-    // cannot be decoded into a HlslShader; Inspect reports that gracefully.
+    // cannot be decoded into a Tr2Shader; Inspect reports that gracefully.
     assert.deepEqual(summary.techniques, []);
     assert.equal(summary.effectName, null);
 });
@@ -154,7 +142,7 @@ test("readEffectAnalysis resolves one permutation without changing stable emits"
         ])
     });
 
-    assert.equal(analysis.effectRes.constructor, HlslEffectRes);
+    assert.equal(analysis.effectRes.constructor, Tr2EffectRes);
     assert.equal(analysis.shader, null);
     assert.equal(analysis.effectDescription, null);
     assert.equal(analysis.bindingManifest, null);
@@ -163,332 +151,6 @@ test("readEffectAnalysis resolves one permutation without changing stable emits"
         [ "BLEND_MODE", "OPAQUE", "local" ],
         [ "QUALITY", "HIGH", "local" ]
     ]);
-});
-
-test("metadata projection includes shader bindings and omits runtime-heavy fields", () =>
-{
-    const stageInput = {
-        m_exists: true,
-        m_constantValueSize: 64,
-        constants: [ {
-            name: "WorldViewProjection",
-            offset: 0,
-            size: 64,
-            type: 0,
-            dimension: 4,
-            elements: 1,
-            isSRGB: false,
-            isAutoregister: true
-        } ],
-        resources: new Map([ [ 0, {
-            name: "DiffuseMap",
-            type: 2,
-            arrayElements: 1,
-            isSRGB: true,
-            isAutoregister: false
-        } ] ]),
-        samplers: new Map([ [ 0, {
-            name: "LinearSampler",
-            sampler: {
-                isDynamic: true,
-                comparison: false,
-                minFilter: 1,
-                magFilter: 1,
-                mipFilter: 1,
-                addressU: 1,
-                addressV: 1,
-                addressW: 1,
-                mipLODBias: 0,
-                maxAnisotropy: 0,
-                comparisonFunc: 0,
-                borderColor: [ 0, 0, 0, 0 ],
-                minLOD: 0,
-                maxLOD: 0
-            }
-        } ] ]),
-        uavs: new Map(),
-        annotation: [],
-        signature: {
-            pipelineInputs: [ { usage: "POSITION", registerIndex: 0 } ],
-            registers: [ { name: "$LocalConstants", registerIndex: 0 } ],
-            samplers: [ { name: "LinearSampler", registerIndex: 0 } ],
-            threadGroupSize: { x: 1, y: 1, z: 1 }
-        },
-        constantValues: new Uint8Array([ 1, 2, 3, 4 ]),
-        cjsShaderBytecode: { bytes: new Uint8Array([ 5, 6, 7, 8 ]) }
-    };
-
-    const result = emitEffectMetadata(
-        {
-            m_version: 8,
-            m_compilerVersion: null,
-            sourcePath: "fixture.sm_hi",
-            m_offsetCount: 1,
-            m_permutations: [],
-            loadError: null
-        },
-        {
-            GetEffectDescription: () => ({
-                version: 8,
-                effectName: "fixture",
-                techniques: [ {
-                    name: "Main",
-                    shaderTypeMask: 1,
-                    passes: [ {
-                        shaderTypeMask: 1,
-                        cjsRenderStateSetup: {
-                            entries: [
-                                { key: 22, value: 3 },
-                                { key: 168, value: 0 },
-                                { key: 175, value: 1065353216 }
-                            ]
-                        },
-                        stageInputs: [ stageInput ],
-                        renderStates: 123
-                    } ],
-                    libraries: []
-                } ],
-                annotations: new Map(),
-                readError: null
-            })
-        },
-        { bodyIndex: 0, selectedOptions: [] }
-    );
-
-    const pass = result.effect.techniques[0].passes[0];
-    const stage = pass.stageInputs[0];
-    assert.deepEqual(pass.renderStates, [
-        { key: 22, name: "RS_CULLMODE", value: 3, valueName: "CULL_CCW" },
-        { key: 168, name: "RS_COLORWRITEENABLE", value: 0, valueName: "NONE", valueFlags: [] },
-        { key: 175, name: "RS_SLOPESCALEDEPTHBIAS", value: 1065353216, valueFloat: 1 }
-    ]);
-    assert.equal(stage.bytecode, undefined);
-    assert.equal(stage.constantValues, undefined);
-    assert.equal(stage.constants[0].name, "WorldViewProjection");
-    assert.equal(stage.resources[0].name, "DiffuseMap");
-    assert.equal(stage.samplers[0].name, "LinearSampler");
-    assert.deepEqual(stage.signature.pipelineInputs, [ { usage: "POSITION", registerIndex: 0 } ]);
-    assert.equal(typeof JSON.stringify(result), "string");
-});
-
-test("binding manifest retains stage bytecode for advanced tooling", () =>
-{
-    const manifest = HlslEffectBindingManifest.fromEffectDescription({
-        version: 8,
-        effectName: "fixture",
-        techniques: [ {
-            name: "Main",
-            shaderTypeMask: 1,
-            passes: [ {
-                renderStates: 123,
-                cjsRenderStateSetup: {
-                    entries: []
-                },
-                resourceSetDesc: {
-                    heapViews: [
-                        {
-                            kind: "srv",
-                            stageType: HlslRenderContextEnum.VERTEX_SHADER,
-                            registerIndex: 0
-                        }
-                    ]
-                },
-                stageInputs: [ {
-                    m_exists: true,
-                    m_shader: 77,
-                    m_constantValueSize: 16,
-                    constants: [ {
-                        name: "World",
-                        offset: 0,
-                        size: 16,
-                        type: 0,
-                        dimension: 4,
-                        elements: 1,
-                        isSRGB: false,
-                        isAutoregister: true
-                    } ],
-                    resources: new Map([ [ 0, {
-                        name: "DiffuseMap",
-                        type: HlslRenderContextEnum.TEX_TYPE_2D,
-                        arrayElements: 1,
-                        isSRGB: true,
-                        isAutoregister: false
-                    } ] ]),
-                    samplers: new Map([ [ 0, {
-                        name: "LinearSampler",
-                        sampler: {
-                            isDynamic: true,
-                            comparison: false,
-                            minFilter: 1,
-                            magFilter: 1,
-                            mipFilter: 1,
-                            addressU: 1,
-                            addressV: 1,
-                            addressW: 1,
-                            mipLODBias: 0,
-                            maxAnisotropy: 0,
-                            comparisonFunc: 0,
-                            borderColor: [ 0, 0, 0, 0 ],
-                            minLOD: 0,
-                            maxLOD: 0
-                        }
-                    } ] ]),
-                    uavs: new Map(),
-                    signature: {
-                        pipelineInputs: [ { usage: "POSITION", registerIndex: 0 } ],
-                        registers: [
-                            {
-                                registerType: 0,
-                                registerIndex: 0,
-                                registerSpace: 0,
-                                registerCount: 1,
-                                arrayCount: 1,
-                                dynamic: false
-                            },
-                            {
-                                registerType: 32,
-                                registerIndex: 0,
-                                registerSpace: 0,
-                                registerCount: 1,
-                                arrayCount: 1,
-                                dynamic: false
-                            },
-                            {
-                                registerType: 1,
-                                registerIndex: 0,
-                                registerSpace: 0,
-                                registerCount: 1,
-                                arrayCount: 1,
-                                dynamic: false
-                            }
-                        ],
-                        samplers: [ { name: "LinearSampler", registerIndex: 0 } ],
-                        threadGroupSize: null
-                    },
-                    cjsShaderBytecode: {
-                        toJSON()
-                        {
-                            return {
-                                stageType: HlslRenderContextEnum.VERTEX_SHADER,
-                                stageName: "vertex",
-                                shaderSize: 4,
-                                stringTableOffset: 0,
-                                effectName: "fixture",
-                                bytes: [ 5, 6, 7, 8 ]
-                            };
-                        }
-                    }
-                } ]
-            } ],
-            libraries: []
-        } ],
-        annotations: new Map([
-            [ "DiffuseMap", [ { toJSON: () => ({ label: "albedo" }) } ] ]
-        ]),
-        readError: null
-    });
-
-    const json = manifest.toJSON();
-    assert.equal(json.stages.length, 1);
-    assert.equal(json.stages[0].shaderBytecode.effectName, "fixture");
-    assert.deepEqual(json.stages[0].shaderBytecode.bytes, [ 5, 6, 7, 8 ]);
-    assert.equal(manifest.resolve({
-        techniqueName: "Main",
-        passIndex: 0,
-        stageType: HlslRenderContextEnum.VERTEX_SHADER,
-        symbol: "cb0"
-    }).metadataName, "$LocalConstants");
-    assert.equal(manifest.resolve({
-        techniqueName: "Main",
-        passIndex: 0,
-        stageType: HlslRenderContextEnum.VERTEX_SHADER,
-        symbol: "t0"
-    }).heapView, true);
-});
-
-test("binding manifest retains SM 5.1 static samplers omitted from signature registers", () =>
-{
-    const sampler = {
-        comparison: false,
-        minFilter: 1,
-        magFilter: 1,
-        mipFilter: 1,
-        addressU: 1,
-        addressV: 1,
-        addressW: 1,
-        mipLODBias: 0,
-        maxAnisotropy: 16,
-        comparisonFunc: 0,
-        borderColor: 0,
-        minLOD: 0,
-        maxLOD: Number.MAX_VALUE
-    };
-    const manifest = HlslEffectBindingManifest.fromEffectDescription({
-        version: 13,
-        effectName: "sm51-static-sampler",
-        techniques: [ {
-            name: "Main",
-            passes: [ {
-                renderStates: 0,
-                cjsRenderStateSetup: { entries: [] },
-                resourceSetDesc: { heapViews: [] },
-                stageInputs: [ null, {
-                    m_exists: true,
-                    m_shader: 51,
-                    m_constantValueSize: 0,
-                    constants: [],
-                    resources: new Map([ [ 0, {
-                        name: "Texture0",
-                        type: HlslRenderContextEnum.TEX_TYPE_2D,
-                        arrayElements: 1
-                    } ] ]),
-                    samplers: new Map([ [ 0, {
-                        name: "Sampler0",
-                        sampler: { ...sampler, maxAnisotropy: 4 }
-                    } ] ]),
-                    uavs: new Map(),
-                    signature: {
-                        pipelineInputs: [],
-                        registers: [ {
-                            registerType: 32,
-                            registerIndex: 0,
-                            registerSpace: 0,
-                            registerCount: 1,
-                            arrayCount: 1,
-                            dynamic: false
-                        } ],
-                        samplers: [
-                            { registerIndex: 0, registerSpace: 0, sampler },
-                            { registerIndex: 0, registerSpace: 2, sampler }
-                        ],
-                        threadGroupSize: null
-                    },
-                    cjsShaderBytecode: null
-                } ]
-            } ]
-        } ],
-        annotations: new Map()
-    });
-
-    const stage = manifest.stages[0];
-    assert.deepEqual(stage.bindings.map((entry) => [
-        entry.generatedSymbol,
-        entry.kind,
-        entry.registerSpace,
-        entry.sourceTruth
-    ]), [
-        [ "t0", "resource", 0, "carbon-stage-register" ],
-        [ "s0", "sampler", 0, "carbon-signature-sampler" ],
-        [ "s0", "sampler", 2, "carbon-signature-sampler" ]
-    ]);
-    assert.equal(stage.bindings[1].carbon.sampler.maxAnisotropy, 16);
-    assert.equal(manifest.resolve({
-        techniqueName: "Main",
-        passIndex: 0,
-        stageType: HlslRenderContextEnum.PIXEL_SHADER,
-        symbol: "s0",
-        registerSpace: 2
-    }).registerSpace, 2);
 });
 
 test("profiles hold values and reject invalid emits", () =>

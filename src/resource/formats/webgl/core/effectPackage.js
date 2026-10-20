@@ -1,8 +1,11 @@
+import { effectHeader } from "../../../format/effect/effectHeader.js";
 import { asUint8Array } from "#utils/bytes";
 import { CjsHlslFormat } from "../../hlsl/index.js";
-import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
-import { HlslEffectResource } from "../../hlsl/core/tr2/shader/HlslEffectResource.js";
-import { HlslRenderContextEnum, hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
+import { buildEffectBindingManifest } from "../../../format/effect/effectBindingManifest.js";
+import { Tr2EffectResource } from "../../../shader/reflection/Tr2EffectResource.js";
+import { ShaderType as RenderContext } from "#consts/render-context";
+import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
+import { projectSampler, projectResource, projectConstant, projectPipelineInput, projectRegister } from "../../../format/effect/effectProjection.js";
 
 import {
     buildEffectPermutationGraph,
@@ -66,23 +69,18 @@ export function buildEffectPackage(input, options = {})
         source: values.source
     });
 
-    if (!effectRes.IsGood())
-    {
-        throw effectRes.loadError || new Error("Tr2EffectRes failed to load input");
-    }
-
-    const sourceIdentity = normalizeSourceIdentity(values);
+const sourceIdentity = normalizeSourceIdentity(values);
     // One INFO version means one contract, and that contract requires complete
     // source reflection, which only version-15 input can supply.
-    if (effectRes.m_version !== 15)
+    if (effectHeader(effectRes).version !== 15)
     {
         throw new Error(
             "Effect package requires a version-15 compiled effect, got version "
-            + (effectRes.m_version ?? "unknown")
+            + (effectHeader(effectRes).version ?? "unknown")
         );
     }
 
-    const permutationGraph = buildEffectPermutationGraph(effectRes);
+    const permutationGraph = buildEffectPermutationGraph(effectHeader(effectRes));
     const variants = buildExportVariants(effectRes, values.allPermutations);
     const bodyMap = new Map();
     const stageMap = new Map();
@@ -112,7 +110,7 @@ export function buildEffectPackage(input, options = {})
         }
 
         const effectDescription = shader.GetEffectDescription();
-        const manifest = HlslEffectBindingManifest.fromEffectDescription(effectDescription);
+        const manifest = buildEffectBindingManifest(effectDescription, { version: effectHeader(effectRes).version, effectName: values.source });
         const collection = collectStages(effectDescription, values.selection);
         const body = {
             key: variant.bodyKey,
@@ -224,8 +222,8 @@ export function buildEffectPackage(input, options = {})
         flags: null,
         selection: values.selection,
         permutationMode: values.allPermutations ? "all" : "selected",
-        defaultPermutationIndex: defaultPermutationIndex(effectRes.m_permutations),
-        sourceEffectVersion: effectRes.m_version,
+        defaultPermutationIndex: defaultPermutationIndex(effectHeader(effectRes).permutations),
+        sourceEffectVersion: effectHeader(effectRes).version,
         sourceBodyCoverage: "all-unique",
         backendBodyCoverage: values.allPermutations ? "all" : "selected",
         backendProgramCoverage: selectionCoversWholeEffect(values.selection)
@@ -254,7 +252,7 @@ export function buildEffectPackage(input, options = {})
         allowFailures: values.allowFailures,
         completeness: {
             packageValid: true,
-            sourceComplete: effectRes.m_version === 15,
+            sourceComplete: effectHeader(effectRes).version === 15,
             backendComplete: false,
             runtimeComplete: false
         }
@@ -262,7 +260,17 @@ export function buildEffectPackage(input, options = {})
     const metadata = {
         generatedAt: values.generatedAt,
         sourcePath: values.source,
-        effectResource: effectRes.toJSON(),
+        effectResource: {
+            version: effectHeader(effectRes).version,
+            compilerVersion: effectHeader(effectRes).compilerVersion,
+            compilerVersionBytes: effectHeader(effectRes).compilerVersionBytes,
+            sourcePath: values.source,
+            stringTableSize: effectHeader(effectRes).stringTableSize,
+            offsetCount: effectHeader(effectRes).records.length,
+            permutations: effectHeader(effectRes).permutations,
+            offsets: effectHeader(effectRes).records,
+            loadError: null
+        },
         permutations: effectRes.GetPermutationDescription(),
         variants,
         bodies: bodies.map((body) => ({
@@ -330,7 +338,7 @@ export function buildEffectPackage(input, options = {})
         effectRes,
         permutationGraph,
         backendBodySet,
-        { compilerVersion: effectRes.m_compilerVersionBytes, version: containerVersion }
+        { compilerVersion: effectHeader(effectRes).compilerVersionBytes, version: containerVersion }
     );
 
     const bytes = container.bytes;
@@ -550,7 +558,7 @@ function buildExportVariants(effectRes, allPermutations)
 {
     if (allPermutations)
     {
-        return effectRes.m_offsets.map((record, variantIndex) =>
+        return effectHeader(effectRes).records.map((record, variantIndex) =>
         {
             const permutationIndex = Number.isInteger(record.index)
                 ? record.index
@@ -565,7 +573,7 @@ function buildExportVariants(effectRes, allPermutations)
                 bodyOffset: record.offset,
                 bodySize: record.size,
                 options: decodePermutationOptions(
-                    effectRes.m_permutations,
+                    effectHeader(effectRes).permutations,
                     permutationIndex
                 ),
                 tableIndexMatchesPermutationIndex:
@@ -574,8 +582,8 @@ function buildExportVariants(effectRes, allPermutations)
         });
     }
 
-    const permutationIndex = defaultPermutationIndex(effectRes.m_permutations);
-    const record = effectRes.m_offsets[permutationIndex];
+    const permutationIndex = defaultPermutationIndex(effectHeader(effectRes).permutations);
+    const record = effectHeader(effectRes).records[permutationIndex];
 
     if (!record)
     {
@@ -590,7 +598,7 @@ function buildExportVariants(effectRes, allPermutations)
         bodyKey: bodyKey(record),
         bodyOffset: record.offset,
         bodySize: record.size,
-        options: decodePermutationOptions(effectRes.m_permutations, permutationIndex),
+        options: decodePermutationOptions(effectHeader(effectRes).permutations, permutationIndex),
         tableIndexMatchesPermutationIndex: Number.isInteger(record.index)
             ? record.index === permutationIndex
             : true
@@ -626,29 +634,29 @@ function collectStages(effectDescription, selection)
             let declaredStageCount = 0;
 
             for (let stageType = 0;
-                stageType < HlslRenderContextEnum.SHADER_TYPE_COUNT;
+                stageType < RenderContext.SHADER_TYPE_COUNT;
                 stageType++)
             {
                 const stageInput = pass.stageInputs[stageType];
 
-                if (!stageInput?.m_exists)
+                if (!stageInput?.exists)
                 {
                     continue;
                 }
 
                 declaredStageCount++;
-                const stageName = hlslShaderStageName(stageType);
+                const stageName = shaderStageName(stageType);
 
                 if (selection.stage && stageName !== selection.stage)
                 {
                     continue;
                 }
 
-                if (!stageInput.cjsShaderBytecode)
+                if (!stageInput.sourceProgram)
                 {
                     errors.push(
                         `${technique.name}.pass${passIndex}.${stageName} declares shader handle `
-                        + `${stageInput.m_shader ?? "unknown"} but has no shader bytecode`
+                        + `${stageInput.shader ?? "unknown"} but has no shader bytecode`
                     );
                     continue;
                 }
@@ -659,26 +667,26 @@ function collectStages(effectDescription, selection)
                     passIndex,
                     stageType,
                     stageName,
-                    shaderHandle: stageInput.m_shader,
-                    bytecode: stageInput.cjsShaderBytecode,
-                    pipelineInputs: cloneJson(stageInput.signature?.pipelineInputs ?? []),
-                    registers: cloneJson(stageInput.signature?.registers ?? []),
-                    resources: mapToJson(stageInput.resources),
-                    samplers: mapToJson(stageInput.samplers),
-                    uavs: mapToJson(stageInput.uavs),
-                    constants: cloneJson(stageInput.constants ?? []),
+                    shaderHandle: stageInput.shader,
+                    bytecode: stageInput.sourceProgram,
+                    pipelineInputs: (stageInput.signature?.pipelineInputs ?? []).map(projectPipelineInput),
+                    registers: (stageInput.signature?.registers ?? []).map(entry => projectRegister(entry, stageType)),
+                    resources: mapToJson(stageInput.resources, projectResource),
+                    samplers: Array.from(stageInput.samplers, ([registerIndex, entry]) => ({ registerIndex, ...projectSampler(entry) })),
+                    uavs: mapToJson(stageInput.uavs, projectResource),
+                    constants: (stageInput.constants ?? []).map(projectConstant),
                     // Recognised from reflection here, applied by the emitter.
                     // The recogniser is shared with WebGPU so both backends
                     // merge exactly the same registers.
-                    textureArrays: recogniseTextureArrayFamilies(mapToJson(stageInput.resources)),
+                    textureArrays: recogniseTextureArrayFamilies(mapToJson(stageInput.resources, projectResource)),
                     // Recognised from reflection here, mapped onto resources by
                     // the emitter, which is the only thing that knows from the
                     // DXBC which resource each sampler serves.
-                    emulatedAddressing: recogniseEmulatedAddressing(mapToJson(stageInput.samplers), mapToJson(stageInput.resources)),
-                    localLights: recogniseLocalLightFamily(mapToJson(stageInput.resources)),
+                    emulatedAddressing: recogniseEmulatedAddressing(Array.from(stageInput.samplers, ([registerIndex, entry]) => ({ registerIndex, ...projectSampler(entry) })), mapToJson(stageInput.resources, projectResource)),
+                    localLights: recogniseLocalLightFamily(mapToJson(stageInput.resources, projectResource)),
                     // Buffer<> registers whose view format Carbon names, from the
                     // parameter's CjsViewFormat annotation or the shared table.
-                    typedViewFormats: typedViewFormatsFor(mapToJson(stageInput.resources), effectDescription)
+                    typedViewFormats: typedViewFormatsFor(mapToJson(stageInput.resources, projectResource), effectDescription)
                 });
             }
 
@@ -995,7 +1003,7 @@ function cloneJson(value)
 function typedViewFormatsFor(resources, effectDescription)
 {
     return resources
-        .filter((resource) => resource.type === HlslEffectResource.Type.BUFFER)
+        .filter((resource) => resource.type === Tr2EffectResource.Type.BUFFER)
         .map((resource) => ({
             registerIndex: resource.registerIndex,
             format: viewFormatForParameter(resource.name, effectDescription.annotations?.get(resource.name))
@@ -1003,7 +1011,13 @@ function typedViewFormatsFor(resources, effectDescription)
         .filter((entry) => entry.format);
 }
 
-function mapToJson(map)
+/**
+ * Emit register-indexed reflection through its terminal field projection.
+ * @param {Map<number, object>} map Canonical register map.
+ * @param {Function} [project] Metadata projection for each entry.
+ * @returns {object[]} Register-indexed JSON records.
+ */
+function mapToJson(map, project = cloneJson)
 {
     // The caller always passes a Map; an empty one is the ordinary case and
     // needs no guard. Anything else is a defect in the caller.
@@ -1014,7 +1028,7 @@ function mapToJson(map)
 
     return Array.from(map.entries()).map(([ registerIndex, value ]) => ({
         registerIndex,
-        ...cloneJson(value)
+        ...project(value)
     }));
 }
 

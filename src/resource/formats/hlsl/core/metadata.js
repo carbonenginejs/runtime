@@ -1,3 +1,4 @@
+import { GetGlobalEffectOptions } from "../../../shader/Tr2EffectRes.js";
 /**
  * Metadata-only projection for decoded Tr2 effect containers.
  *
@@ -8,8 +9,13 @@
  * handles, and other runtime renderer state.
  */
 
-import { emitRenderStates } from "./render-states.js";
-import { hlslShaderStageName } from "./tr2/HlslRenderContextEnum.js";
+import { emitRenderState } from "./render-states.js";
+import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
+import { effectHeader } from "../../../format/effect/effectHeader.js";
+import {
+    effectiveConstantDefaults, projectAnnotation, projectSampler,
+    projectStaticSampler, projectPipelineInput, projectRegister
+} from "../../../format/effect/effectProjection.js";
 
 /**
  * Normalize caller-supplied permutation option selections.
@@ -56,24 +62,25 @@ function emitPermutation(permutation)
 /**
  * Resolve the option set that Carbon's `GetShader` lookup will use.
  *
- * @param {object} effect Loaded HlslEffectRes.
+ * @param {object} effect Loaded Tr2EffectRes.
  * @param {Array<object>|Map<string, string>|null|undefined} options Local option selections.
  * @returns {{bodyIndex: number, selectedOptions: object[]}} Resolved body index and options.
  */
 export function resolveSelectedOptions(effect, options = null)
 {
+    const header = effectHeader(effect);
     const localOptions = normalizeOptionSelections(options, "local");
-    const globalOptions = normalizeOptionSelections(effect.constructor.globalEffectOptions || [], "global");
+    const globalOptions = normalizeOptionSelections(GetGlobalEffectOptions(), "global");
     const selectedOptions = [];
     let multiplier = 1;
     let bodyIndex = 0;
 
-    for (const permutation of effect.m_permutations)
+    for (const permutation of header.permutations)
     {
         let optionIndex = permutation.defaultOption;
         let source = "default";
         const globalOption = globalOptions.find((entry) => entry.name === permutation.name);
-        const localOption = localOptions.find((entry) => entry.name === permutation.name);
+        const localOption = localOptions.findLast((entry) => entry.name === permutation.name && permutation.options.includes(entry.value));
         const selected = globalOption || localOption;
 
         if (selected)
@@ -150,10 +157,10 @@ function emitResource(registerIndex, resource)
  */
 function emitSampler(registerIndex, samplerSetup)
 {
-    const sampler = samplerSetup.sampler || {};
+    const { name, sampler } = projectSampler(samplerSetup);
     return {
         registerIndex,
-        name: samplerSetup.name,
+        name,
         isDynamic: !!sampler.isDynamic,
         comparison: !!sampler.comparison,
         minFilter: sampler.minFilter,
@@ -183,14 +190,14 @@ function emitSampler(registerIndex, samplerSetup)
 function emitStageInput(stageInput, stageType, options = {})
 {
     const { requireExists = true } = options;
-    if (!stageInput || (requireExists && !stageInput.m_exists)) return null;
+    if (!stageInput || (requireExists && !stageInput.exists)) return null;
 
     const signature = stageInput.signature || {};
 
     return {
         stageType,
-        stageName: hlslShaderStageName(stageType),
-        constantValueSize: stageInput.m_constantValueSize || 0,
+        stageName: shaderStageName(stageType),
+        constantValueSize: effectiveConstantDefaults(stageInput).constantValueSize,
         constants: (stageInput.constants || []).map(emitConstant),
         resources: Array.from(
             stageInput.resources || [],
@@ -204,11 +211,11 @@ function emitStageInput(stageInput, stageType, options = {})
             stageInput.uavs || [],
             ([ registerIndex, resource ]) => emitResource(registerIndex, resource)
         ),
-        annotations: (stageInput.annotation || []).map((entry) => entry?.toJSON?.() ?? { ...entry }),
+        annotations: (stageInput.annotation || []).map(projectAnnotation),
         signature: {
-            pipelineInputs: (signature.pipelineInputs || []).map((entry) => ({ ...entry })),
-            registers: (signature.registers || []).map((entry) => ({ ...entry })),
-            samplers: (signature.samplers || []).map((entry) => ({ ...entry })),
+            pipelineInputs: (signature.pipelineInputs || []).map(projectPipelineInput),
+            registers: (signature.registers || []).map(entry => projectRegister(entry, stageType)),
+            samplers: (signature.staticSamplers || []).map(projectStaticSampler),
             threadGroupSize: signature.threadGroupSize ? { ...signature.threadGroupSize } : null
         }
     };
@@ -220,7 +227,7 @@ function emitStageInput(stageInput, stageType, options = {})
  * @param {object} library Decoded shader library.
  * @returns {object} Plain metadata.
  */
-function emitLibrary(library)
+export function emitLibrary(library)
 {
     return {
         payloadSize: library.payloadSize,
@@ -246,7 +253,7 @@ function emitPass(pass)
 {
     return {
         shaderTypeMask: pass.shaderTypeMask,
-        renderStates: emitRenderStates(pass.cjsRenderStateSetup),
+        renderStates: pass.renderStateValues.map(({ state, value }) => emitRenderState({ key: state, value })),
         stageInputs: pass.stageInputs.map((stageInput, stageType) => emitStageInput(stageInput, stageType))
     };
 }
@@ -273,37 +280,36 @@ function emitTechnique(technique)
  * @param {object} description Decoded effect description.
  * @returns {object} Plain metadata.
  */
-function emitEffectDescription(description)
+function emitEffectDescription(description, context)
 {
     return {
-        version: description.version,
-        effectName: description.effectName,
+        version: context.version,
+        effectName: context.effectName,
         techniques: description.techniques.map(emitTechnique),
         annotations: Array.from(description.annotations.entries(), ([ name, entries ]) => ({
             name,
-            annotations: entries.map((entry) => entry?.toJSON?.() ?? { ...entry })
+            annotations: entries.map(projectAnnotation)
         })),
-        readError: description.readError
-            ? { name: description.readError.name, message: description.readError.message }
-            : null
+        readError: null
     };
 }
 
 /**
  * Emit shared effect header metadata.
  *
- * @param {object} effect Loaded HlslEffectRes.
+ * @param {object} effect Loaded Tr2EffectRes.
  * @returns {object} Plain metadata.
  */
 function emitHeader(effect)
 {
+    const header = effectHeader(effect);
     return {
-        version: effect.m_version,
-        compilerVersion: effect.m_compilerVersion,
-        sourcePath: effect.sourcePath,
-        bodyCount: effect.m_offsetCount,
-        permutations: effect.m_permutations.map(emitPermutation),
-        loadError: effect.loadError ? { name: effect.loadError.name, message: effect.loadError.message } : null
+        version: header.version,
+        compilerVersion: header.compilerVersion,
+        sourcePath: effect.GetPath(),
+        bodyCount: header.records.length,
+        permutations: header.permutations.map(emitPermutation),
+        loadError: null
     };
 }
 
@@ -335,7 +341,7 @@ function emitHeader(effect)
 /**
  * Emit metadata for one resolved permutation body.
  *
- * @param {object} effect Loaded HlslEffectRes.
+ * @param {object} effect Loaded Tr2EffectRes.
  * @param {object|null} shader Resolved shader, if decoded.
  * @param {{bodyIndex: number, selectedOptions: object[]}} selection Resolved option selection.
  * @returns {object} Plain metadata.
@@ -346,6 +352,6 @@ export function emitEffectMetadata(effect, shader, selection)
         ...emitHeader(effect),
         bodyIndex: selection.bodyIndex,
         selectedOptions: selection.selectedOptions,
-        effect: shader ? emitEffectDescription(shader.GetEffectDescription()) : null
+        effect: shader ? emitEffectDescription(shader.GetEffectDescription(), { version: effectHeader(effect).version, effectName: effect.GetPath() }) : null
     };
 }

@@ -5,13 +5,11 @@ import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing Tr2 effect container format class.
  *
- * Keep this file small and reviewable: the Tr2 effect graph parser lives
- * under src/core/tr2 (internal parsing machinery, not part of this
- * package's public surface); input/option normalization, the shared read
- * path, and the JSON emitters live under src/core.
+ * Tr2EffectRes owns canonical reflection and body caching. Input/option
+ * normalization and terminal JSON/metadata projections live under core.
  */
 
-import { HlslEffectRes } from "./core/tr2/resources/HlslEffectRes.js";
+import { CjsCarbonEffectReader } from "../../format/carbonEffect/CjsCarbonEffectReader.js";
 import {
     CLASS_KEYS,
     DEFAULT_VALUES,
@@ -39,7 +37,7 @@ const FORMAT_NAME = "CjsHlslFormat";
  * by `HlslEffectJson` in `core/json.js`. `emit: "metadata"` is the compact,
  * bytecode-free `HlslEffectMetadata` graph (`core/metadata.js`) for
  * inspection and pipeline planning. `emit: "raw"` exposes the internal
- * HlslEffectRes graph directly; treat it as unstable, not schema-guaranteed
+ * Tr2EffectRes graph directly; treat it as unstable, not schema-guaranteed
  * internals, useful mainly for resolving multiple permutations by hand. Raw
  * stage and library inputs keep the authored `sourceConstantValueSize` /
  * `sourceConstantValues` apart from the mutable `constantValues`.
@@ -179,7 +177,7 @@ export class CjsHlslFormat extends CjsFormat
      *
      * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Tr2 effect container bytes.
      * @param {object} [options] Per-call value overrides.
-     * @returns {HlslEffectRes|object} The raw HlslEffectRes instance, compact metadata, or the documented JSON graph.
+     * @returns {Tr2EffectRes|object} The raw Tr2EffectRes instance, compact metadata, or the documented JSON graph.
      */
     Read(input, options = {})
     {
@@ -225,7 +223,8 @@ export class CjsHlslFormat extends CjsFormat
         try
         {
             const bytes = asUint8Array(input, "CjsHlslFormat input");
-            return new HlslEffectRes().DoLoad(bytes, { source: "probeSupport" });
+            new CjsCarbonEffectReader(bytes, { source: "probeSupport" });
+            return true;
         }
         catch
         {
@@ -238,7 +237,7 @@ export class CjsHlslFormat extends CjsFormat
      *
      * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Tr2 effect container bytes.
      * @param {object} [options] Format values.
-     * @returns {HlslEffectRes|object} The raw HlslEffectRes instance, compact metadata, or the documented JSON graph.
+     * @returns {Tr2EffectRes|object} The raw Tr2EffectRes instance, compact metadata, or the documented JSON graph.
      */
     static read(input, options = {})
     {

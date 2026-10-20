@@ -1,118 +1,63 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
-import { HlslRenderContextEnum, hlslShaderStageName } from "../HlslRenderContextEnum.js";
+import { shaderStageName } from "./shaderStageNames.js";
+import {
+    effectiveConstantDefaults, projectAnnotation, projectConstant,
+    projectPipelineInput, projectProgram, projectRegister,
+    projectResource, projectSampler, projectStaticSampler
+} from "./effectProjection.js";
 
 /**
- * Carbon-backed binding manifest for register-named shader outputs.
+ * Derive the existing shader-format binding manifest from canonical reflection.
  *
- * This maps generated fallback symbols such as `cb0`, `t3`, `s0`, and `u1`
- * back to the exact stage metadata read from Trinity effect data.
+ * This is the single translator projection, not another reflection graph or
+ * handle registry. The resource owns the description and the source programs;
+ * the format supplies header context. Handles remain canonical unrealized
+ * values until Trinity registers the shader.
+ * @param {object} effectDescription Canonical Tr2EffectDescription.
+ * @param {object} [context] Effect name, version and per-frame register context.
+ * @returns {object} Existing binding records with resolve and toJSON operations.
  */
-export class HlslEffectBindingManifest
+export function buildEffectBindingManifest(effectDescription, context = {})
 {
-    /**
-     * Effect name or path; set by the constructor.
-     * @type {string}
-     */
-    effectName = "";
+    const manifest = {
+        effectName: context.effectName || "",
+        version: context.version || 0,
+        passes: buildPasses(effectDescription),
+        stages: buildStages(effectDescription, context),
 
-    /**
-     * Effect container version; set by the constructor.
-     * @type {number}
-     */
-    version = 0;
+        /**
+         * Resolve a generated symbol at one stage and optional register space.
+         * @param {object} query Technique/pass/stage and symbol coordinates.
+         * @returns {object|null} Matching binding.
+         */
+        resolve(query)
+        {
+            const stage = this.stages.find(entry =>
+                entry.techniqueName === query.techniqueName &&
+                entry.passIndex === query.passIndex &&
+                (Number.isInteger(query.stageType) ? entry.stageType === query.stageType : entry.stageName === query.stageName)
+            );
+            if (!stage) return null;
+            return stage.bindings.find(entry =>
+                entry.generatedSymbol === query.symbol &&
+                (!Number.isInteger(query.registerSpace) || entry.registerSpace === query.registerSpace)
+            ) || null;
+        },
 
-    /**
-     * Pass render-state manifest records; set by the constructor.
-     * @type {object[]}
-     */
-    passes = [];
-
-    /**
-     * Stage binding manifest records; set by the constructor.
-     * @type {object[]}
-     */
-    stages = [];
-
-    /**
-   * Builds a manifest from a loaded `HlslEffectRes`.
-   *
-   * @param {object} effectRes Loaded effect resource with `GetShader()`.
-   * @param {object} [options] Manifest options.
-   * @returns {HlslEffectBindingManifest} Carbon binding manifest.
-   */
-    static fromTr2EffectRes(effectRes, options = {})
-    {
-        const shader = effectRes.GetShader();
-        return HlslEffectBindingManifest.fromEffectDescription(shader.GetEffectDescription(), options);
-    }
-
-    /**
-   * Builds a manifest from a decoded `HlslEffectDescription`.
-   *
-   * @param {object} effectDescription Decoded effect description.
-   * @param {object} [options] Manifest options.
-   * @returns {HlslEffectBindingManifest} Carbon binding manifest.
-   */
-    static fromEffectDescription(effectDescription, options = {})
-    {
-        return new HlslEffectBindingManifest(effectDescription, options);
-    }
-
-    /**
-   * Creates a binding manifest.
-   *
-   * @param {object} effectDescription Decoded effect description.
-   * @param {object} [options] Manifest options.
-   */
-    constructor(effectDescription, options = {})
-    {
-        this.effectName = effectDescription?.effectName || options.effectName || "";
-        this.version = effectDescription?.version || 0;
-        this.passes = buildPasses(effectDescription);
-        this.stages = buildStages(effectDescription);
-    }
-
-    /**
-   * Resolves a generated binding symbol for one stage.
-   *
-   * @param {object} query Stage and symbol query.
-   * @param {string} query.techniqueName Technique name.
-   * @param {number} query.passIndex Pass index.
-   * @param {number} [query.stageType] Trinity stage enum value.
-   * @param {string} [query.stageName] Stage name.
-   * @param {string} query.symbol Generated symbol such as `cb0` or `t3`.
-   * @param {number} [query.registerSpace] Optional D3D register-space disambiguator.
-   * @returns {object|null} Matching binding record, or null.
-   */
-    resolve(query)
-    {
-        const stage = this.stages.find((entry) =>
-            entry.techniqueName === query.techniqueName &&
-      entry.passIndex === query.passIndex &&
-      (Number.isInteger(query.stageType) ? entry.stageType === query.stageType : entry.stageName === query.stageName)
-        );
-        if (!stage) return null;
-        return stage.bindings.find((entry) =>
-            entry.generatedSymbol === query.symbol &&
-            (!Number.isInteger(query.registerSpace) || entry.registerSpace === query.registerSpace)
-        ) || null;
-    }
-
-    /**
-   * Returns a JSON-safe manifest snapshot.
-   *
-   * @returns {object} Serializable binding manifest.
-   */
-    toJSON()
-    {
-        return {
-            effectName: this.effectName,
-            version: this.version,
-            passes: this.passes.map((entry) => cloneJson(entry)),
-            stages: this.stages.map((entry) => cloneJson(entry))
-        };
-    }
+        /**
+         * Return a detached JSON snapshot of the manifest.
+         * @returns {object} Serializable manifest.
+         */
+        toJSON()
+        {
+            return {
+                effectName: this.effectName,
+                version: this.version,
+                passes: this.passes.map(cloneJson),
+                stages: this.stages.map(cloneJson)
+            };
+        }
+    };
+    return manifest;
 }
 
 /**
@@ -133,8 +78,8 @@ function buildPasses(effectDescription)
                 techniqueName: technique.name,
                 passIndex,
                 renderStates: pass.renderStates,
-                states: (pass.cjsRenderStateSetup?.entries || []).map(({ key, value }) => ({
-                    state: key,
+                states: pass.renderStateValues.map(({ state, value }) => ({
+                    state,
                     value
                 }))
             });
@@ -149,7 +94,7 @@ function buildPasses(effectDescription)
  * @param {object} effectDescription Decoded effect description.
  * @returns {object[]} Stage binding manifest records.
  */
-function buildStages(effectDescription)
+function buildStages(effectDescription, context)
 {
     const stages = [];
     for (const technique of effectDescription?.techniques || [])
@@ -157,11 +102,11 @@ function buildStages(effectDescription)
         for (let passIndex = 0; passIndex < technique.passes.length; passIndex += 1)
         {
             const pass = technique.passes[passIndex];
-            for (let stageType = 0; stageType < HlslRenderContextEnum.SHADER_TYPE_COUNT; stageType += 1)
+            for (let stageType = 0; stageType < pass.stageInputs.length; stageType += 1)
             {
                 const stage = pass.stageInputs[stageType];
-                if (!stage?.m_exists) continue;
-                stages.push(buildStage(effectDescription, technique.name, passIndex, pass, stageType, stage));
+                if (!stage?.exists) continue;
+                stages.push(buildStage(effectDescription, technique.name, passIndex, pass, stageType, stage, context));
             }
         }
     }
@@ -179,14 +124,14 @@ function buildStages(effectDescription)
  * @param {object} stage Stage input metadata.
  * @returns {object} Stage binding record.
  */
-function buildStage(effectDescription, techniqueName, passIndex, pass, stageType, stage)
+function buildStage(effectDescription, techniqueName, passIndex, pass, stageType, stage, context)
 {
     const bindings = [];
     const seen = new Set();
 
     for (const register of stage.signature?.registers || [])
     {
-        const binding = buildRegisterBinding(effectDescription, pass, stageType, stage, register);
+        const binding = buildRegisterBinding(effectDescription, pass, stageType, stage, projectRegister(register, stageType, context));
         if (!binding) continue;
         const identity = bindingIdentity(binding.kind, binding.registerSpace, binding.registerIndex);
         if (seen.has(identity)) continue;
@@ -204,10 +149,10 @@ function buildStage(effectDescription, techniqueName, passIndex, pass, stageType
         techniqueName,
         passIndex,
         stageType,
-        stageName: hlslShaderStageName(stageType),
-        shaderHandle: stage.m_shader,
-        shaderBytecode: stage.cjsShaderBytecode?.toJSON?.() ?? stage.cjsShaderBytecode,
-        pipelineInputs: cloneJson(stage.signature?.pipelineInputs || []),
+        stageName: shaderStageName(stageType),
+        shaderHandle: stage.shader,
+        shaderBytecode: projectProgram(stage.sourceProgram, stageType, context),
+        pipelineInputs: (stage.signature?.pipelineInputs || []).map(projectPipelineInput),
         threadGroupSize: cloneJson(stage.signature?.threadGroupSize || null),
         bindings
     };
@@ -216,7 +161,7 @@ function buildStage(effectDescription, techniqueName, passIndex, pass, stageType
 /**
  * Adds v13+ static samplers, which Carbon stores separately from the general
  * signature register list. In particular, SM 5.1 effects may declare `s0`
- * only in `signature.samplers`.
+ * only in `signature.staticSamplers`.
  *
  * @param {object} effectDescription Decoded effect description.
  * @param {object} pass Pass metadata.
@@ -227,9 +172,10 @@ function buildStage(effectDescription, techniqueName, passIndex, pass, stageType
  */
 function addSignatureSamplerBindings(effectDescription, pass, stageType, stage, bindings, seen)
 {
-    for (const sampler of stage.signature?.samplers || [])
+    for (const entry of stage.signature?.staticSamplers || [])
     {
-        if (!Number.isInteger(sampler?.registerIndex)) continue;
+        const sampler = projectStaticSampler(entry);
+        if (!Number.isInteger(sampler.registerIndex)) continue;
         const registerSpace = Number.isInteger(sampler.registerSpace) ? sampler.registerSpace : stageType;
         const identity = bindingIdentity("sampler", registerSpace, sampler.registerIndex);
         if (seen.has(identity)) continue;
@@ -243,14 +189,14 @@ function addSignatureSamplerBindings(effectDescription, pass, stageType, stage, 
             registerSpace,
             registerCount: 1,
             arrayCount: 1,
-            dynamic: Boolean(mapMetadata?.sampler?.isDynamic),
+            dynamic: Boolean(mapMetadata?.isDynamic),
             metadataName: name,
             carbon: {
-                name: mapMetadata?.name || null,
+                name: mapMetadata?.isDynamic ? mapMetadata.name : null,
                 sampler: cloneJson(sampler.sampler)
             },
             annotations: annotationsFor(effectDescription, name),
-            heapView: isHeapView(pass, "sampler", stageType, sampler.registerIndex),
+            heapView: isHeapView(effectDescription, pass, "sampler", stageType, sampler.registerIndex),
             sourceTruth: "carbon-signature-sampler"
         });
         seen.add(identity);
@@ -291,12 +237,12 @@ function buildRegisterBinding(effectDescription, pass, stageType, stage, registe
         // flag, so the same sampler disagreed across backends for no reason
         // other than which code path declared it.
         dynamic: classification.kind === "sampler"
-            ? Boolean(metadata?.sampler?.isDynamic)
+            ? Boolean(metadata?.isDynamic)
             : Boolean(register.dynamic),
         metadataName: metadataName(classification.kind, metadata, stage, register.registerIndex),
         carbon: carbonPayload(classification.kind, metadata, stage, register.registerIndex),
         annotations: annotationsFor(effectDescription, metadataName(classification.kind, metadata, stage, register.registerIndex)),
-        heapView: isHeapView(pass, classification.kind, stageType, register.registerIndex),
+        heapView: isHeapView(effectDescription, pass, classification.kind, stageType, register.registerIndex),
         sourceTruth: "carbon-stage-register"
     };
 }
@@ -339,7 +285,7 @@ function addMapBindings(effectDescription, pass, stageType, stage, bindings, see
             metadataName: metadataName(kind, metadata, stage, registerIndex),
             carbon: carbonPayload(kind, metadata, stage, registerIndex),
             annotations: annotationsFor(effectDescription, metadataName(kind, metadata, stage, registerIndex)),
-            heapView: isHeapView(pass, kind, stageType, registerIndex),
+            heapView: isHeapView(effectDescription, pass, kind, stageType, registerIndex),
             sourceTruth: "carbon-register-map"
         });
         seen.add(identity);
@@ -401,6 +347,7 @@ function metadataForBinding(stage, kind, registerIndex)
  */
 function metadataName(kind, metadata, stage, registerIndex)
 {
+    if (kind === "sampler") return metadata?.isDynamic ? metadata.name || null : null;
     if (metadata?.name) return metadata.name;
     if (kind === "constantBuffer" && registerIndex === 0 && stage.constants.length) return "$LocalConstants";
     return null;
@@ -420,20 +367,22 @@ function carbonPayload(kind, metadata, stage, registerIndex)
     if (kind === "constantBuffer")
     {
         const hasLocalConstants = registerIndex === 0 && stage.constants.length > 0;
+        const defaults = effectiveConstantDefaults(stage);
         return {
             hasLocalConstants,
-            constantValueSize: hasLocalConstants ? stage.m_constantValueSize : 0,
-            constants: hasLocalConstants ? stage.constants.map((entry) => entry?.toJSON?.() ?? entry) : [],
+            constantValueSize: hasLocalConstants ? defaults.constantValueSize : 0,
+            constants: hasLocalConstants ? stage.constants.map(projectConstant) : [],
             // The exact authored default bytes for the stage's local constant
             // buffer. A consumer that zero-fills instead of using these
             // changes every authored default the scene does not override -
             // the effect-resource contract calls the bytes mandatory, and a
             // background effect whose Tint and intensity read zero renders
             // pure black while drawing "correctly".
-            constantValues: hasLocalConstants && stage.constantValues ? Array.from(stage.constantValues) : []
+            constantValues: hasLocalConstants ? Array.from(defaults.constantValues) : []
         };
     }
-    return metadata?.toJSON?.() ?? cloneJson(metadata);
+    if (!metadata) return null;
+    return kind === "sampler" ? projectSampler(metadata) : projectResource(metadata);
 }
 
 /**
@@ -447,7 +396,7 @@ function annotationsFor(effectDescription, name)
 {
     if (!name) return [];
     const annotations = effectDescription.annotations?.get(name) || [];
-    return annotations.map((entry) => entry?.toJSON?.() ?? entry);
+    return annotations.map(projectAnnotation);
 }
 
 /**
@@ -459,15 +408,16 @@ function annotationsFor(effectDescription, name)
  * @param {number} registerIndex Register index.
  * @returns {boolean} True when the binding is a heap view.
  */
-function isHeapView(pass, kind, stageType, registerIndex)
+function isHeapView(effectDescription, pass, kind, stageType, registerIndex)
 {
-    const heapKind = kind === "resource" ? "srv" : kind === "sampler" ? "sampler" : kind === "uav" ? "uav" : null;
-    if (!heapKind) return false;
-    return Boolean(pass.resourceSetDesc?.heapViews?.some((entry) =>
-        entry.kind === heapKind &&
-    entry.stageType === stageType &&
-    entry.registerIndex === registerIndex
-    ));
+    if (kind !== "resource" && kind !== "sampler" && kind !== "uav") return false;
+    const stage = pass.stageInputs[stageType];
+    const metadata = metadataForBinding(stage, kind, registerIndex);
+    const name = metadataName(kind, metadata, stage, registerIndex);
+    if (!name) return false;
+    return (effectDescription.annotations.get(name) || []).some(entry =>
+        entry.name === "IsHeapView" && entry.type === 0 && entry.boolValue);
+
 }
 
 /**
@@ -485,5 +435,3 @@ function cloneJson(value)
     }
     return value;
 }
-
-CjsSchema.meta.define(HlslEffectBindingManifest, { className: "HlslEffectBindingManifest" });

@@ -1,3 +1,4 @@
+import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
 import { readEffectAnalysis as readHlslEffectAnalysis } from "../../hlsl/core/analysis.js";
 
 /**
@@ -53,11 +54,11 @@ function collectStageBytecodeByKey(effectDescription)
             for (let stageType = 0; stageType < stageInputs.length; stageType++)
             {
                 const stage = stageInputs[stageType];
-                if (!stage?.m_exists) continue;
+                if (!stage?.exists) continue;
 
-                const stageName = stage.cjsShaderBytecode?.stageName;
-                const bytecodeStageType = stage.cjsShaderBytecode?.stageType;
-                const value = stage.cjsShaderBytecode?.bytes;
+                const stageName = shaderStageName(stageType);
+                const bytecodeStageType = stage.stageType;
+                const value = stage.sourceProgram?.bytes;
 
                 if (!stageName || value === undefined || value === null) continue;
                 if (!Number.isInteger(bytecodeStageType) || bytecodeStageType !== stageType)

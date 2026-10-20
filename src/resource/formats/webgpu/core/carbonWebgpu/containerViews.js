@@ -1,7 +1,6 @@
-import { HlslEffectBindingManifest } from "../../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
-import { HlslShaderBytecode } from "../../../hlsl/core/HlslShaderBytecode.js";
-import { hlslShaderStageName } from "../../../hlsl/core/tr2/HlslRenderContextEnum.js";
-import { runtimeDescriptionFromCarbon } from "../../../hlsl/core/carbonDescriptionToRuntime.js";
+import { buildEffectBindingManifest } from "../../../../format/effect/effectBindingManifest.js";
+import { shaderStageName } from "../../../../format/effect/shaderStageNames.js";
+import { Tr2EffectDescription } from "../../../../shader/reflection/Tr2EffectDescription.js";
 import { buildEffectAnalysis } from "../helpers.js";
 import { WGSL_SET_VERSION } from "../wgsl/buildWgslSet.js";
 
@@ -14,13 +13,10 @@ import { WGSL_SET_VERSION } from "../wgsl/buildWgslSet.js";
  * records, computed on read. The class of bug the digests guarded cannot occur,
  * because there is no second copy to drift.
  *
- * The analysis view is deliberately not a reimplementation. It runs
- * `buildEffectAnalysis` — the same function the packager runs on source — over a
- * description rebuilt by `runtimeDescriptionFromCarbon`. That is what keeps the
- * view honest: if it were rewritten to emit the fields consumers read today, it
- * would be free to drift from the real analysis, and nothing would notice.
- * `carbon-analysis-adapter-corpus.test.mjs` diffs the two over every shipped
- * permutation and finds zero differences.
+ * The analysis view calls the same buildEffectAnalysis and binding projection
+ * as source translation, over canonical Tr2EffectDescription reflection.
+ * The container retains backend programs rather than the original DXBC;
+ * program summaries describe those retained bytes.
  *
  * These views exist for `runtime/src/trinityal/webgpu`, which reads format-layer JSON for
  * Carbon reflection instead of reading `Tr2Shader`. That is a recorded layering
@@ -63,20 +59,7 @@ export function defaultPermutationIndex(container)
  */
 function describeRuntime(container, permutationIndex, source)
 {
-    return runtimeDescriptionFromCarbon(container.GetDescription(permutationIndex), {
-        effectName: source,
-        version: container.carbon.version,
-        bytecodeFor: (stage, stageType) => new HlslShaderBytecode({
-            stageType,
-            // Carbon's six stage names, not WebGPU's three. A three-entry table
-            // reports a geometry stage as null, which the corpus caught.
-            stageName: hlslShaderStageName(stageType),
-            bytes: stage.shaderData.bytes,
-            shaderSize: stage.shaderData.size,
-            stringTableOffset: stage.shaderData.offset,
-            effectName: source
-        })
-    });
+    return Tr2EffectDescription.fromCarbonBinary(container.GetDescription(permutationIndex));
 }
 
 /**
@@ -154,13 +137,11 @@ export function deriveAnalysis(container, options = {})
 
     return buildEffectAnalysis({
         effectDescription,
-        bindingManifest: HlslEffectBindingManifest.fromEffectDescription(effectDescription, {
-            effectName: source
+        bindingManifest: buildEffectBindingManifest(effectDescription, {
+            effectName: source,
+            version: container.carbon.version
         }),
-        effectRes: {
-            sourcePath: source,
-            m_compilerVersion: null
-        },
+        header: { version: container.carbon.version, compilerVersion: null },
         selection: {
             bodyIndex: permutationIndex,
             // Report the options of the permutation this view actually

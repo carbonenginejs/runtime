@@ -6,7 +6,7 @@ import path from "node:path";
 import { buildEffectPackage } from "../../../../../src/resource/formats/webgl/core/effectPackage.js";
 import { CjsCarbonEffectReader } from "../../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { writeGlslBackendBlock } from "../../../../../src/resource/formats/webgl/core/glslBackendBlock.js";
-import { HlslShaderStageNames } from "../../../../../src/resource/formats/hlsl/core/tr2/HlslRenderContextEnum.js";
+import { shaderStageNames } from "../../../../../src/resource/format/effect/shaderStageNames.js";
 
 /**
  * Proves the emitted container carries the same translation the packager built.
@@ -40,7 +40,7 @@ const SHADER_EXTENSIONS = new Set([ ".sm_hi", ".sm_lo", ".sm_depth" ]);
  * been looked up under an undefined name and counted as a mismatch, and a domain
  * stage would have been compared as if it were compute.
  */
-const STAGE_NAME = HlslShaderStageNames;
+const STAGE_NAME = shaderStageNames;
 
 const corpusDir = process.env.WEBGL_CORPUS_DIR || null;
 const decoder = new TextDecoder();

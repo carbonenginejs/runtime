@@ -1,3 +1,4 @@
+import { effectHeader } from "../../../../src/resource/format/effect/effectHeader.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -27,58 +28,46 @@ test("body inventory deduplicates exact aliases before decoding", () =>
         emit: "raw",
         source: "inventory.sm_depth"
     });
-    const cacheSize = effectRes.m_shaders.size;
-    const registrySizes = [
-        effectRes.effectStateManager.shaders.size,
-        effectRes.effectStateManager.shaderPrograms.size,
-        effectRes.effectStateManager.renderStates.size,
-        effectRes.effectStateManager.shaderLibraries.size
-    ];
-    const groups = enumerateUniqueEffectBodies(effectRes);
+    const header = effectHeader(effectRes);
+    effectRes.GetShaderByIndex = () => { throw new Error("inventory decoded a body"); };
+    const groups = enumerateUniqueEffectBodies(header);
 
     assert.deepEqual(groups, [ {
         permutationIndex: 0,
         sourceRecord: {
-            offset: effectRes.m_offsets[0].offset,
-            byteLength: effectRes.m_offsets[0].size
+            offset: header.records[0].offset,
+            byteLength: header.records[0].size
         },
         variants: [
             {
                 permutationIndex: 0,
                 sourceRecord: {
-                    offset: effectRes.m_offsets[0].offset,
-                    byteLength: effectRes.m_offsets[0].size
+                    offset: header.records[0].offset,
+                    byteLength: header.records[0].size
                 }
             },
             {
                 permutationIndex: 1,
                 sourceRecord: {
-                    offset: effectRes.m_offsets[1].offset,
-                    byteLength: effectRes.m_offsets[1].size
+                    offset: header.records[1].offset,
+                    byteLength: header.records[1].size
                 }
             }
         ]
     } ]);
-    assert.equal(effectRes.m_shaders.size, cacheSize);
-    assert.deepEqual([
-        effectRes.effectStateManager.shaders.size,
-        effectRes.effectStateManager.shaderPrograms.size,
-        effectRes.effectStateManager.renderStates.size,
-        effectRes.effectStateManager.shaderLibraries.size
-    ], registrySizes);
     const distinctBytes = Uint8Array.from(bytes);
-    distinctBytes[effectRes.m_offsets[1].offset + effectRes.m_offsets[1].size - 1]
+    distinctBytes[header.records[1].offset + header.records[1].size - 1]
         ^= 0xff;
     const distinct = CjsHlslFormat.read(distinctBytes, {
         emit: "raw"
     });
-    assert.equal(enumerateUniqueEffectBodies(distinct).length, 2);
+    assert.equal(enumerateUniqueEffectBodies(effectHeader(distinct)).length, 2);
 
     assert.throws(
         () => enumerateUniqueEffectBodies(
-            CjsHlslFormat.read(buildEffectBytes({ version: 8 }), {
+            effectHeader(CjsHlslFormat.read(buildEffectBytes({ version: 8 }), {
                 emit: "raw"
-            })
+            }))
         ),
         /version-15/u
     );
@@ -88,10 +77,9 @@ test("body inventory rejects malformed ranges and excessive records", () =>
 {
     const data = new Uint8Array(8);
     const makeEffect = (offsets) => ({
-        m_version: 15,
-        m_data: data,
-        m_offsets: offsets,
-        m_offsetCount: offsets.length
+        version: 15,
+        bytes: data,
+        records: offsets,
     });
 
     assert.throws(
