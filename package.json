@@ -78,6 +78,7 @@
     "./resource/format/tables": "./src/resource/format/CjsTableData.js",
     "./resource/formats": "./src/resource/formats/index.js",
     "./resource/formats/black": "./src/resource/formats/black/index.js",
+    "./resource/formats/bmp": "./src/resource/formats/bmp/index.js",
     "./resource/formats/bnk": "./src/resource/formats/bnk/index.js",
     "./resource/formats/cmf": "./src/resource/formats/cmf/index.js",
     "./resource/formats/dds": "./src/resource/formats/dds/index.js",

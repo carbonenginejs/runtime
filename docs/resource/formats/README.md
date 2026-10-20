@@ -70,6 +70,12 @@ JavaScript member or an indexed storage slot. A wire field known to the decoder
 but absent from the registered class is an error, rather than a silently skipped
 value. Custom runtime adapters remain responsible for their own value handling.
 
+## BMP images
+
+[The BMP format](bmp.md) provides Carbon-compatible uncompressed 24/32-bit reads,
+BGRA/BGRX native saves, and normalized RGBA payload writing. It is registered by
+the caller, like the other image formats.
+
 ## Choosing a writer
 
 **Ask whether a format writes; do not probe for the method.** `inputs` is the
@@ -117,6 +123,7 @@ directly. See [geometry interchange](geometry-interchange.md).
 | ResourceGroup JSON / YAML interchange | `CjsResourceGroupFormat` | `@carbonenginejs/runtime/resource/formats/resourcegroup` |
 | Black (`.black`) | `CjsBlackFormat` | `@carbonenginejs/runtime/resource/formats/black` |
 | Wwise soundbank (`.bnk`) | `CjsBnkFormat` | `@carbonenginejs/runtime/resource/formats/bnk` |
+| [BMP images](bmp.md) (`.bmp`) | `CjsBmpFormat` | `@carbonenginejs/runtime/resource/formats/bmp` |
 | CMF (`.cmf`) | `CjsCmfFormat` | `@carbonenginejs/runtime/resource/formats/cmf` |
 | DDS (`.dds`) | `CjsDdsFormat` | `@carbonenginejs/runtime/resource/formats/dds` |
 | DXBC (shader bytecode) | `CjsDxbcFormat` | `@carbonenginejs/runtime/resource/formats/dxbc` |

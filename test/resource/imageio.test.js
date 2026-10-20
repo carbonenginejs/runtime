@@ -1,3 +1,4 @@
+import { CjsBmpFormat } from "../../npm/dist/resource/formats/bmp/index.js";
 import { CjsGifFormat } from "../../npm/dist/resource/formats/gif/index.js";
 import { CjsJpegFormat } from "../../npm/dist/resource/formats/jpeg/index.js";
 import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
@@ -17,7 +18,7 @@ import { be, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 
 // The composing application registers formats once with each table that maps an
 // extension: ImageIO for the codec, its resource manager for the resource class.
-for (const Format of [ CjsDdsFormat, CjsGifFormat, CjsJpegFormat, CjsPngFormat, CjsPsdFormat, CjsTgaFormat, CjsVtaFormat ])
+for (const Format of [ CjsBmpFormat, CjsDdsFormat, CjsGifFormat, CjsJpegFormat, CjsPngFormat, CjsPsdFormat, CjsTgaFormat, CjsVtaFormat ])
 {
   ImageIO.registerImageHandler(Format);
   be.resMan.RegisterFormat(Format);

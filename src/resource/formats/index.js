@@ -11,6 +11,7 @@
  * layer.
  */
 export { CjsBlackFormat } from "./black/index.js";
+export { CjsBmpFormat } from "./bmp/index.js";
 export { CjsBnkFormat } from "./bnk/index.js";
 export { CjsCmfFormat } from "./cmf/index.js";
 export { CjsDdsFormat } from "./dds/index.js";
