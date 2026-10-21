@@ -138,8 +138,8 @@ export class TriVariableParameter extends CjsParameter
   /**
    * Delegates the write to the bound variable, so the store owns the value; does
    * nothing when no variable is bound.
+   * Carbon declaration: TriVariableParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/TriVariableParameter.h:48).
    */
-  @blue.method
   @meta.adapted
   CopyValueToEffect(inputType, dest, size, renderContext)
   {
@@ -164,8 +164,8 @@ export class TriVariableParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: TriVariableParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/TriVariableParameter.h:39).
    */
-  @blue.method
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
@@ -181,8 +181,8 @@ export class TriVariableParameter extends CjsParameter
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: TriVariableParameter::ApplyUav (trinity/trinity/Shader/Parameter/TriVariableParameter.h:44).
    */
-  @blue.method
   @meta.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {

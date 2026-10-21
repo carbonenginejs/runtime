@@ -113,8 +113,9 @@ export class Tr2SkinnedModel extends Tr2Model
     return true;
   }
 
-  /** Carbon OnListModified (Tr2SkinnedModel.cpp:276-283): an inserted mesh triggers rebinding. */
-  @legacyBlue.method
+  /** Carbon OnListModified (Tr2SkinnedModel.cpp:276-283): an inserted mesh triggers rebinding.
+   * Carbon declaration: Tr2SkinnedModel::OnListModified (trinity/trinity/Tr2SkinnedModel.h:60).
+   */
   @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   OnListModified(event)

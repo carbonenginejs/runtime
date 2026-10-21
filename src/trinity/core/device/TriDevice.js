@@ -366,8 +366,8 @@ export class TriDevice extends IRoot
    * @param {number} simTime The same, slowed under load to manage it.
    * @param {*} [_cookie] The cookie this device registered with; unread.
    * @returns {TriDevice} This device.
+   * Carbon declaration: TriDevice::OnTick (trinity/trinity/TriDevice.h:156).
    */
-  @legacyBlue.method
   @meta.adapted
   OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
@@ -704,9 +704,9 @@ export class TriDevice extends IRoot
    * @param {*} hWnd The output window; a canvas here.
    * @param {object|null} pp Present parameters, or null for the current ones.
    * @returns {boolean} Whether a device now exists.
+   * Carbon declaration: TriDevice::ChangeDevice (trinity/trinity/TriDevice.h:98).
    */
   @meta.adapted
-  @legacyBlue.method
   ChangeDevice(adapter, hWnd, pp)
   {
     let resetOnly = true;
@@ -846,8 +846,8 @@ export class TriDevice extends IRoot
    * @param {number} [presentInterval] A `PresentInterval`.
    * @param {number} [adapter] Which adapter.
    * @returns {boolean} Whether a device now exists.
+   * Carbon declaration: TriDevice::CreateSimpleDevice (trinity/trinity/TriDevice.h:116).
    */
-  @legacyBlue.method
   @meta.adapted
   CreateSimpleDevice(
     hwnd,

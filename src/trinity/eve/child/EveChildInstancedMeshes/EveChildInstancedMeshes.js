@@ -672,8 +672,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @param {Iterable} ownedLocatorSets - the part's hull-local EveLocatorSets, merged by the owner per instance
    * @param {Object|null} armorDamageShader - the part's armour damage Tr2Effect
    * @returns {Boolean} false when no areas or no instances were supplied (nothing is added)
+   * Carbon declaration: EveChildInstancedMeshes::AddMesh (trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h:86).
    */
-  @blue.method
   @meta.adapted
   AddMesh(
     geometryPath,

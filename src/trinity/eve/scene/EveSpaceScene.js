@@ -1917,8 +1917,8 @@ export class EveSpaceScene
    *
    * @param {Array} objects - scene objects and the camera attachment parent
    * @returns {Number} how many receivers were updated
+   * Carbon declaration: EveSpaceScene::UpdateShLighting (trinity/trinity/Eve/EveSpaceScene.h:600).
    */
-  @legacyBlue.method
   @meta.adapted
   UpdateShLighting(objects = [])
   {
@@ -2478,8 +2478,8 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {number} [reason] The render reason.
    * @returns {void}
+   * Carbon declaration: EveSpaceScene::RenderRenderables (trinity/trinity/Eve/EveSpaceScene.h:376).
    */
-  @legacyBlue.method
   @meta.implemented
   RenderRenderables(renderables, batch, batchType, rm, renderContext, reason = undefined)
   {
@@ -2509,8 +2509,8 @@ export class EveSpaceScene
    * @param {number} rm The RenderingMode.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
+   * Carbon declaration: EveSpaceScene::RenderBatch (trinity/trinity/Eve/EveSpaceScene.h:372).
    */
-  @legacyBlue.method
   @meta.implemented
   RenderBatch(batch, rm, renderContext)
   {
@@ -4038,8 +4038,8 @@ export class EveSpaceScene
    * @param {mat4} projection The light camera's reversed-depth projection.
    * @param {object} shadowMap The light shadow atlas.
    * @returns {void}
+   * Carbon declaration: EveSpaceScene::RenderShadowMapForSpotLight (trinity/trinity/Eve/EveSpaceScene.h:660).
    */
-  @legacyBlue.method
   @meta.adapted
   RenderShadowMapForSpotLight(renderContext, shadowCasters, shadowMapScale, shadowMapOffsetX, shadowMapOffsetY, lightPosition, view, projection, shadowMap)
   {
@@ -4728,8 +4728,8 @@ export class EveSpaceScene
    * @param {number} _key2 Second index (swap/move).
    * @param {object|null} value The inserted or removed item.
    * @param {Array} list The list that changed.
+   * Carbon declaration: EveSpaceScene::OnListModified (trinity/trinity/Eve/EveSpaceScene.h:168).
    */
-  @legacyBlue.method
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {

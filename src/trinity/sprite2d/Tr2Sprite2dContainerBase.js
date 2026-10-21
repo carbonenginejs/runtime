@@ -72,8 +72,9 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
     }
   }
 
-  /** Carbon IList notification callback. */
-  @blue.method
+  /** Carbon IList notification callback.
+   * Carbon declaration: Tr2Sprite2dContainerBase::OnListModified (trinity/trinity/Sprite2d/Tr2Sprite2dContainer.h:28).
+   */
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {

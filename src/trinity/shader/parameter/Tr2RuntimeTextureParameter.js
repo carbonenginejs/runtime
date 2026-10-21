@@ -131,8 +131,8 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @param {object} [renderContext] The context a resource's texture is made through.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: Tr2RuntimeTextureParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h:19).
    */
-  @blue.method
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
@@ -168,8 +168,8 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: Tr2RuntimeTextureParameter::ApplyUav (trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h:24).
    */
-  @blue.method
   @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {

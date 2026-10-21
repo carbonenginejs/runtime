@@ -49,9 +49,9 @@ export class TriMatrix extends IRoot
    * Carbon CopyMatrix (TriMatrix.cpp:165-170).
    * @param {mat4} out Receives the matrix.
    * @returns {mat4} out
+   * Carbon declaration: TriMatrix::CopyMatrix (trinity/trinity/Include/TriMatrix.h:54).
    */
   @meta.implemented
-  @blue.method
   CopyMatrix(out)
   {
     return mat4.copy(out, this._matrix);
@@ -60,9 +60,9 @@ export class TriMatrix extends IRoot
   /**
    * Carbon SetMatrix.
    * @param {mat4} m The matrix to copy in.
+   * Carbon declaration: TriMatrix::SetMatrix (trinity/trinity/Include/TriMatrix.h:49).
    */
   @meta.implemented
-  @blue.method
   SetMatrix(m)
   {
     mat4.copy(this._matrix, m);
@@ -71,9 +71,9 @@ export class TriMatrix extends IRoot
   /**
    * Carbon SetPivots: the sixteen elements in `_11 .. _44` order.
    * @param {...number} elements The elements.
+   * Carbon declaration: TriMatrix::SetPivots (trinity/trinity/Include/TriMatrix.h:31).
    */
   @meta.implemented
-  @blue.method
   SetPivots(...elements)
   {
     for (let i = 0; i < 16; i++) this._matrix[i] = elements[i];

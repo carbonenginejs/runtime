@@ -188,8 +188,9 @@ export class TriTextureParameter extends CjsParameter
     this.OnTextureChanged();
   }
 
-  /** Copies a dynamically assigned provider, as TriTextureParameter.cpp:295-308. */
-  @legacyBlue.method
+  /** Copies a dynamically assigned provider, as TriTextureParameter.cpp:295-308.
+   * Carbon declaration: TriTextureParameter::AssignTo (trinity/trinity/Shader/Parameter/TriTextureParameter.h:74).
+   */
   @meta.implemented
   AssignTo(other, _copier)
   {
@@ -235,8 +236,8 @@ export class TriTextureParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: TriTextureParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/TriTextureParameter.h:42).
    */
-  @legacyBlue.method
   @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
@@ -316,8 +317,8 @@ export class TriTextureParameter extends CjsParameter
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: TriTextureParameter::ApplyUav (trinity/trinity/Shader/Parameter/TriTextureParameter.h:47).
    */
-  @legacyBlue.method
   @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {

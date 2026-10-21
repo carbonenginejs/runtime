@@ -254,8 +254,8 @@ export class Tr2PostProcessRenderer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to render with.
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
+   * Carbon declaration: Tr2PostProcessRenderer::Execute (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:124).
    */
-  @legacyBlue.method
   @meta.adapted
   Execute(destination, sourceBuffer, depthMap, velocity, opaqueColor, scene, upscalingContext, gpuResourcePool, renderContext, renderer)
   {
@@ -529,8 +529,8 @@ export class Tr2PostProcessRenderer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to render with.
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
+   * Carbon declaration: Tr2PostProcessRenderer::RenderTonemapping (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:228).
    */
-  @legacyBlue.method
   @meta.adapted
   RenderTonemapping(dest, postprocess, renderContext, renderer)
   {
@@ -1142,8 +1142,9 @@ export class Tr2PostProcessRenderer extends IRoot
     return histogram;
   }
 
-  /** Carbon RenderUpscaling (cpp:1287-1390). */
-  @legacyBlue.method
+  /** Carbon RenderUpscaling (cpp:1287-1390).
+   * Carbon declaration: Tr2PostProcessRenderer::RenderUpscaling (trinity/trinity/PostProcess/Tr2PostProcessRenderer.h:213).
+   */
   @meta.notImplemented
   RenderUpscaling()
   {

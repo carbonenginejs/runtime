@@ -178,8 +178,9 @@ export class EveChildBehaviorSystem extends EveChildTransform
     return this._shipInstanceBuffer.IsValid() && this._boosterInstanceBuffer.IsValid();
   }
 
-  /** Carbon EveChildBehaviorSystem.cpp:88-184: wire groups, tunnels and registry membership. */
-  @blue.method
+  /** Carbon EveChildBehaviorSystem.cpp:88-184: wire groups, tunnels and registry membership.
+   * Carbon declaration: EveChildBehaviorSystem::OnListModified (trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h:60).
+   */
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {

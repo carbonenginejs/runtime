@@ -101,8 +101,9 @@ export class TriTransformParameter extends CjsParameter
    * T(rc + t) * R * T(-rc) * S. NOTE: Carbon's TRITB_OBJECT branch
    * (cpp:48-66) additionally multiplies in the object world matrix - an
    * unported composition (the JS treats every non-FIXED base as the zeroed
-   * inverse view only); when ported it must swap per the convention. */
-  @blue.method
+   * inverse view only); when ported it must swap per the convention.
+   * Carbon declaration: TriTransformParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/TriTransformParameter.h:28).
+   */
   @meta.adapted
   CopyValueToEffect(_inputType, dest, size = 64, context = null)
   {

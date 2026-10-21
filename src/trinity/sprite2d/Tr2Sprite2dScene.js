@@ -820,9 +820,9 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Prepares four local vertices; transform/clip/parent alpha are applied at submission.
    * Adapted: unused native UV stack slots are zero-filled deterministically in JS.
+   * Carbon declaration: Tr2Sprite2dScene::PrepareSpriteVerts (trinity/trinity/Sprite2d/Tr2Sprite2dScene.h:99).
    */
   @meta.adapted
-  @blue.method
   PrepareSpriteVerts(vertices, position, width, height, effect)
   {
     if (!this._TexturesReady()) return false;
@@ -891,9 +891,9 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} _stride Carbon's byte stride between source vertices; unused.
    * @param {number} vertexCount Number of vertices to convert.
    * @returns {boolean} False when a texture the current effect needs is not ready.
+   * Carbon declaration: Tr2Sprite2dScene::PrepareTriangleVerts (trinity/trinity/Sprite2d/Tr2Sprite2dScene.h:108).
    */
   @meta.adapted
-  @blue.method
   PrepareTriangleVerts(destVerts, verts, _stride, vertexCount)
   {
     if (!this._TexturesReady()) return false;

@@ -712,8 +712,8 @@ export class EveBoosterSet2 extends EveEntity
   /**
    * Sets the whole flare description in one call: glow and halo scales with
    * their normal and warp colours, plus the always-on flag.
+   * Carbon declaration: EveBoosterSet2::SetData (trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h:240).
    */
-  @blue.method
   @meta.implemented
   SetData(
     glowScale,

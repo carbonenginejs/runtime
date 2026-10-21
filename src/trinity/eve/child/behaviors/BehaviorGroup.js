@@ -290,8 +290,8 @@ export class BehaviorGroup extends EveEntity
    * Carbon BehaviorGroup.cpp:77-118: maintain behavior scratch slots, then
    * regenerate agents on every list notification, including load completion.
    * Adapted: per-agent records replace native scratch-memory byte buffers.
+   * Carbon declaration: BehaviorGroup::OnListModified (trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h:47).
    */
-  @blue.method
   @meta.adapted
   OnListModified(event, key = 0, key2 = 0, _value = null, list = null)
   {

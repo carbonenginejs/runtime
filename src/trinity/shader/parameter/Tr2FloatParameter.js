@@ -183,8 +183,8 @@ export class Tr2FloatParameter extends CjsParameter
   /**
    * Writes the current value - read back through the reroute first when one is
    * active - into the caller's destination.
+   * Carbon declaration: Tr2FloatParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/Tr2FloatParameter.h:31).
    */
-  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {

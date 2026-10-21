@@ -199,8 +199,8 @@ export class EveKDdroneManagementTree extends IRoot
    * @param {Array<Number>} ranges - per-behavior search radii (-1 = don't care)
    * @param {Number} behaviorGroupBoundingSphereRadius
    * @returns {Array} groupSearchReturnInfoBlock
+   * Carbon declaration: EveKDdroneManagementTree::FindDronesInRange (trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h:23).
    */
-  @blue.method
   @meta.implemented
   FindDronesInRange(agents, ranges, behaviorGroupBoundingSphereRadius)
   {

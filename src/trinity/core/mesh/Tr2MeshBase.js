@@ -433,8 +433,8 @@ export class Tr2MeshBase
    * that took it, and forgets it when removed. LOADFINISHED and UNLOADSTART do
    * the same for every area at once, which is what a read and a teardown
    * produce.
+   * Carbon declaration: Tr2MeshBase::OnListModified (trinity/trinity/Tr2MeshBase.h:83).
    */
-  @blue.method
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -670,8 +670,8 @@ export class Tr2MeshBase
    * committed (a JS addition, Carbon returns void).
    *
    * Adapted: Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.
+   * Carbon declaration: Tr2MeshBase::GetBatches (trinity/trinity/Tr2MeshBase.h:33).
    */
-  @blue.method
   @meta.adapted
   GetBatches(accumulator, areas, perObjectData, screenSize = Infinity, reverseWinding = false)
   {

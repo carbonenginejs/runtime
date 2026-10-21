@@ -186,8 +186,8 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * Writes the 16 components an upload should use into the caller's destination,
    * reading back through the reroute first; the stored element order is copied
    * as-is, with no transpose.
+   * Carbon declaration: Tr2Matrix4Parameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/Tr2Matrix4Parameter.h:45).
    */
-  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {

@@ -612,8 +612,9 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     }
   }
 
-  /** Sets the whole flare description in one call (Carbon cpp:198-216). */
-  @blue.method
+  /** Sets the whole flare description in one call (Carbon cpp:198-216).
+   * Carbon declaration: EveChildBoosterSet::SetData (trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.h:139).
+   */
   @meta.implemented
   SetData(glowScale, glowColor, warpGlowColor, symHaloScale, haloScaleX, haloScaleY, haloColor, warpHaloColor)
   {

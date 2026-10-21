@@ -172,8 +172,8 @@ export class EveCloudEditableVolume
   /**
    * Preserves native loading/unloading owner assignment and regeneration (cpp:119-170).
    * Adapted: JavaScript WeakRef stores the native BlueWeakRef owner.
+   * Carbon declaration: EveCloudEditableVolume::OnListModified (trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h:77).
    */
-  @blue.method
   @meta.adapted
   OnListModified(event, _key, _key2, value, _list)
   {

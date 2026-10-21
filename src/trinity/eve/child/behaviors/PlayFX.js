@@ -27,8 +27,9 @@ const NO_FORCES = [];
 export class PlayFX extends EveEntity
 {
 
-  /** Carbon PlayFX.cpp:166-200 maintains firing-effect registry membership. */
-  @legacyBlue.method
+  /** Carbon PlayFX.cpp:166-200 maintains firing-effect registry membership.
+   * Carbon declaration: PlayFX::OnListModified (trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.h:62).
+   */
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {

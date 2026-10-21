@@ -100,8 +100,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: Tr2TextureAnimationParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h:20).
    */
-  @blue.method
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
   {
@@ -117,8 +117,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * written, so it has no unordered-access binding.
    *
    * @returns {boolean} False, always.
+   * Carbon declaration: Tr2TextureAnimationParameter::ApplyUav (trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h:25).
    */
-  @blue.method
   @meta.implemented
   ApplyUav()
   {

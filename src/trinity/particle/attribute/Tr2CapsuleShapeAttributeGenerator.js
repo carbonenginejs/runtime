@@ -123,8 +123,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Resolves the position element, and the velocity element when velocity control is enabled, marking the generator valid only when both required elements resolve.
+   * Carbon declaration: Tr2CapsuleShapeAttributeGenerator::Bind (trinity/trinity/Particle/Tr2CapsuleShapeAttributeGenerator.h:27).
    */
-  @blue.method
   @meta.implemented
   Bind(particleSystem, boundElements)
   {
@@ -216,8 +216,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Copies the given start and end positions and rotations into the capsule endpoints.
+   * Carbon declaration: Tr2CapsuleShapeAttributeGenerator::SetPositions (trinity/trinity/Particle/Tr2CapsuleShapeAttributeGenerator.h:31).
    */
-  @blue.method
   @meta.implemented
   SetPositions(startPosition, startRotation, endPosition, endRotation)
   {

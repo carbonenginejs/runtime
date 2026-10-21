@@ -123,8 +123,8 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
 
   /**
    * Resolves the position and velocity elements according to the control flags, marking the generator valid only when every required element resolves.
+   * Carbon declaration: Tr2SphereShapeAttributeGenerator::Bind (trinity/trinity/Particle/Tr2SphereShapeAttributeGenerator.h:27).
    */
-  @blue.method
   @meta.implemented
   Bind(particleSystem, boundElements)
   {

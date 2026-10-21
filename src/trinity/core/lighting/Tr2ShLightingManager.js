@@ -156,8 +156,8 @@ export class Tr2ShLightingManager extends IRoot
    * @param {Float32Array} albedo - reflected colour
    * @param {Float32Array} emissive - self-emissive colour
    * @returns {Boolean} true once registered
+   * Carbon declaration: Tr2ShLightingManager::RegisterSecondaryLightSource (trinity/trinity/Tr2ShLightingManager.h:40).
    */
-  @legacyBlue.method
   @meta.implemented
   RegisterSecondaryLightSource(position, radius, albedo, emissive)
   {

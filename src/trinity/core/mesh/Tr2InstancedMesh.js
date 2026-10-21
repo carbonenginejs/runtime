@@ -236,8 +236,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @param {number} [screenSize] Projected mesh size.
    * @param {boolean} [reverseAreas] Reverse each area's authored winding.
    * @returns {boolean} Whether a batch was committed.
+   * Carbon declaration: Tr2InstancedMesh::GetBatches (trinity/trinity/Tr2InstancedMesh.h:85).
    */
-  @legacyBlue.method
   @meta.adapted
   GetBatches(batches, areas, data, screenSize = Infinity, reverseAreas = false)
   {

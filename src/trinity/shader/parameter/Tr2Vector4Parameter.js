@@ -355,8 +355,8 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * Writes the four components an upload should use - the rerouted value, or the
    * gamma-converted linear mirror for an sRGB constant - into the caller's
    * destination.
+   * Carbon declaration: Tr2Vector4Parameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/Tr2Vector4Parameter.h:40).
    */
-  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {

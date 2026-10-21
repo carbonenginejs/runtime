@@ -95,8 +95,8 @@ export class TriFloatArrayParameter extends CjsParameter
   /**
    * Packs the rows contiguously into the destination, stopping at whichever limit comes first: the last row, the destination length, or the byte budget; a final row may be written partially.
    * @param size byte budget in the destination, four bytes per float
+   * Carbon declaration: TriFloatArrayParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h:56).
    */
-  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, out, size = Number.POSITIVE_INFINITY)
   {

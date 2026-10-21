@@ -897,8 +897,8 @@ export class Tr2Effect extends Tr2Material
    * Keeps list membership consistent: a removed entry has its reroute
    * destination cleared and is detached from the material, an inserted one is
    * attached, and cached data is rebuilt either way.
+   * Carbon declaration: Tr2Effect::OnListModified (trinity/trinity/Shader/Tr2Effect.h:136).
    */
-  @legacyBlue.method
   @meta.implemented
   OnListModified(event, _key, _key2, value)
   {

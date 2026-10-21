@@ -19,8 +19,9 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 {
 
-  /** Carbon Tr2SphereConstraint.cpp:68-80 prepares newly inserted collision emitters. */
-  @blue.method
+  /** Carbon Tr2SphereConstraint.cpp:68-80 prepares newly inserted collision emitters.
+   * Carbon declaration: Tr2SphereConstraint::OnListModified (trinity/trinity/Particle/Tr2SphereConstraint.h:42).
+   */
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {

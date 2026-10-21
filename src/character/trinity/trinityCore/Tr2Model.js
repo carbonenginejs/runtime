@@ -129,8 +129,8 @@ export class Tr2Model extends IRoot
    * Submits authored order except transparent meshes, sorted farthest first.
    * Adapted: JS batches own their references so Carbon's accumulator matrix
    * allocation is unnecessary.
+   * Carbon declaration: Tr2Model::GetBatches (trinity/trinity/Tr2Model.h:26).
    */
-  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, matrix, data)
   {
@@ -170,8 +170,8 @@ export class Tr2Model extends IRoot
    * Uses Carbon's integer-zero LOD overload and shared mesh batch construction.
    * Adapted: AL allocations are lazy in JavaScript, so the shared geometry owner
    * realizes the selected LOD here before applying the native allocation gate.
+   * Carbon declaration: Tr2Model::GetBatchesFromMesh (trinity/trinity/Tr2Model.h:63).
    */
-  @blue.method
   @meta.adapted
   GetBatchesFromMesh(mesh, batchType, batches, matrix, data)
   {

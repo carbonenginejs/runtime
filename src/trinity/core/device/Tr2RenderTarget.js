@@ -177,8 +177,8 @@ export class Tr2RenderTarget extends IRoot
    * usage outright. Unlike the other two, it raises the texture-change event.
    *
    * @returns {number} An `ALResult` value.
+   * Carbon declaration: Tr2RenderTarget::CreateManual (trinity/trinity/Tr2RenderTarget.h:57).
    */
-  @blue.method
   @meta.implemented
   CreateManual(width, height, mipLevelCount, format, msaaType, msaaQuality, flags, type, cpuUsage, gpuUsage, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {

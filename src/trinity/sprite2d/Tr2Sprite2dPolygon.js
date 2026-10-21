@@ -42,8 +42,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {object|null} _value Changed item.
    * @param {BlueList|null} _theList Changed list.
    * @returns {void}
+   * Carbon declaration: Tr2Sprite2dPolygon::OnListModified (trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h:70).
    */
-  @blue.method
   @meta.implemented
   OnListModified(_event, _key, _key2, _value, _theList)
   {

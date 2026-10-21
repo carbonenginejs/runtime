@@ -52,8 +52,8 @@ export class TriVariable extends ITr2EffectValue
   /**
    * The TriVariableContentType fixed at registration; SetValue never changes it.
    * @returns {number} Variable result.
+   * Carbon declaration: TriVariable::GetType (trinity/trinity/TriVariable.h:188).
    */
-  @blue.method
   @meta.implemented
   GetType()
   {
@@ -183,8 +183,8 @@ export class TriVariable extends ITr2EffectValue
    *   resolved but not yet realized is realized through the context.
    * @returns {boolean} Whether the slot took the binding.
    * Adapted: Retains the existing JavaScript provider representation and optional texture realization context, with direct resource-set calls.
+   * Carbon declaration: TriVariable::CopyToResourceSet (trinity/trinity/TriVariable.h:248).
    */
-  @blue.method
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
@@ -216,8 +216,8 @@ export class TriVariable extends ITr2EffectValue
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    * Adapted: Retains the existing JavaScript provider representation when selecting a texture or GPU buffer.
+   * Carbon declaration: TriVariable::ApplyUav (trinity/trinity/TriVariable.h:253).
    */
-  @blue.method
   @meta.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {
@@ -379,8 +379,8 @@ export class TriVariable extends ITr2EffectValue
    * @param {number} [size] Byte budget in the destination.
    * @returns {boolean} Whether anything was written.
    * Adapted: Copies JavaScript scalar/array storage into a bounded constant destination, transposing matrices for shaders and returning whether data was written.
+   * Carbon declaration: TriVariable::CopyValueToEffect (trinity/trinity/TriVariable.h:257).
    */
-  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, destination, size = Number.POSITIVE_INFINITY)
   {

@@ -132,8 +132,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * cached key is kept when it still brackets the time, and only a miss walks
    * the list. The JS helper returns the cursor (native returns void) and
    * handles an empty list with -1; native callers guard before invoking Seek.
+   * Carbon declaration: TriRigidOrientation::Seek (trinity/trinity/TriRigidOrientation.h:108).
    */
-  @blue.method
   @meta.adapted
   Seek(time)
   {

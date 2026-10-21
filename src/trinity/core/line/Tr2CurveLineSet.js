@@ -647,8 +647,8 @@ export class Tr2CurveLineSet
   /**
    * Writes native LineVertex records; a DataView and byte offset replace the
    * LineVertex pointer. Integer color words and float stores retain the layout.
+   * Carbon declaration: Tr2CurveLineSet::WriteLineVerticesToBuffer (trinity/trinity/Tr2CurveLineSet.h:180).
    */
-  @blue.method
   @meta.adapted
   WriteLineVerticesToBuffer(pos1, col1, length1, pos2, col2, length2, posPrev, posNext, lineID, buffer, offset = 0)
   {

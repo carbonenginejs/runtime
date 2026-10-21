@@ -39,8 +39,9 @@ const DEBUG_AABB = box3.create();
 export class Tr2ParticleSystem
 {
 
-  /** Carbon Tr2ParticleSystem.cpp:220-239 binds an inserted constraint. */
-  @legacyBlue.method
+  /** Carbon Tr2ParticleSystem.cpp:220-239 binds an inserted constraint.
+   * Carbon declaration: Tr2ParticleSystem::OnListModified (trinity/trinity/Particle/Tr2ParticleSystem.h:61).
+   */
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {

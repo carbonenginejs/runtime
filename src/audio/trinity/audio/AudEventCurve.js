@@ -205,8 +205,9 @@ export class AudEventCurve extends IRoot
     return this;
   }
 
-  /** Carbon method Length (ITriCurveLength): returns the cached final key time. */
-  @blue.method
+  /** Carbon method Length (ITriCurveLength): returns the cached final key time.
+   * Carbon declaration: AudEventCurve::Length (audio/src/AudEventCurve.h:40).
+   */
   @meta.implemented
   Length()
   {

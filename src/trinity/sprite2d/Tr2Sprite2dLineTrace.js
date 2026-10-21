@@ -63,8 +63,8 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {object|null} _value Changed item.
    * @param {BlueList|null} _theList Changed list.
    * @returns {void}
+   * Carbon declaration: Tr2Sprite2dLineTrace::OnListModified (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h:49).
    */
-  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, _value, _theList)
   {
@@ -409,9 +409,9 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {Float32Array|number[]} toColor End colour.
    * @param {number} capAngleTo Joint angle at the end.
    * @returns {void}
+   * Carbon declaration: Tr2Sprite2dLineTrace::AddSegment (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h:66).
    */
   @meta.adapted
-  @blue.method
   _AddSegment(renderer, from, fromColor, capAngleFrom, to, toColor, capAngleTo)
   {
     // Direction and length (cpp:297-299).
@@ -585,9 +585,9 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number} pixelWidthInTexels Anti-aliasing texel width.
    * @param {number} halfWidth Half stroke width.
    * @returns {void}
+   * Carbon declaration: Tr2Sprite2dLineTrace::AddRoundJoint (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h:75).
    */
   @meta.adapted
-  @blue.method
   _AddRoundJoint(renderer, capAngleTo, v2, v3, normal, color, isAA, pixelWidthInTexels, halfWidth)
   {
     // Fan base on the inner side of the turn (cpp:538-555).
@@ -680,9 +680,9 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number} pixelWidthInTexels Anti-aliasing texel width.
    * @param {number} halfWidth Half stroke width.
    * @returns {void}
+   * Carbon declaration: Tr2Sprite2dLineTrace::AddMiterJoint (trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h:87).
    */
   @meta.adapted
-  @blue.method
   _AddMiterJoint(renderer, capAngleTo, v2, v3, normal, color, isAA, pixelWidthInTexels, halfWidth)
   {
     // Base and top points on either side of the turn (cpp:648-666).

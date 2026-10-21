@@ -403,8 +403,8 @@ export class Tr2VolumetricsRenderer
    * Adapted: pool descriptions combine the native overload arguments, and
    * explicit Free calls replace scope-bound pool handles. JS shader failures
    * throw, so finally also restores native target stacks and borrowed bindings.
+   * Carbon declaration: Tr2VolumetricsRenderer::RenderVolumetrics (trinity/trinity/Tr2VolumetricsRenderer.h:68).
    */
-  @blue.method
   @meta.adapted
   RenderVolumetrics(registry, frustum, sceneDepth, froxelFog, sunDirection,
     depthSlices, raytracingEnabled, gpuResourcePool, renderContext)
@@ -560,8 +560,8 @@ export class Tr2VolumetricsRenderer
    * do not filter temporally, no shadows, no origin shift, and this frame's view and projection standing in for last
    * frame's. With the fog off it returns the empty fog texture.
    * @returns {object} The froxel texture, or the empty fog texture.
+   * Carbon declaration: Tr2VolumetricsRenderer::RenderFogIntoReflectionMap (trinity/trinity/Tr2VolumetricsRenderer.h:99).
    */
-  @blue.method
   @meta.implemented
   RenderFogIntoReflectionMap(renderContext, gpuResourcePool, width, height, sunDirection, sunColor, origin, view, projection)
   {
@@ -865,9 +865,9 @@ export class Tr2VolumetricsRenderer
    * the light manager's packed buffer, whose index is the record index.
    * @param {RawData} data The FogPerObjectData record.
    * @param {Tr2ShadowMap|null} cascadedShadowMap The scene's cascades, or null for no shadows.
+   * Carbon declaration: Tr2VolumetricsRenderer::UpdatePerObjectData (trinity/trinity/Tr2VolumetricsRenderer.h:287).
    */
   @meta.adapted
-  @blue.method
 
   _UpdatePerObjectData(data, view, projection, viewLast, projectionLast, origin, originShift, sunDirection, sunColor,
     width, height, depth, jitter, cascadedShadowMap)
@@ -1084,8 +1084,8 @@ export class Tr2VolumetricsRenderer
   /**
    * Carbon shadow batches and target stack (Tr2VolumetricsRenderer.cpp:1115-1145).
    * Adapted: finally restores native stacks when a JavaScript shader draw throws.
+   * Carbon declaration: Tr2VolumetricsRenderer::RenderShadows (trinity/trinity/Tr2VolumetricsRenderer.h:120).
    */
-  @blue.method
   @meta.adapted
   RenderShadows(registry, shadowMap, renderContext)
   {

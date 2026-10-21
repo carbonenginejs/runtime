@@ -176,8 +176,9 @@ export class TriPerlinCurve extends ITriScalarFunction
     return this.GetValueAt(CcpTime.timeAsDouble(time) - this._start);
   }
 
-  /** Carbon's implementation changes output amplitude despite the historical name. */
-  @blue.method
+  /** Carbon's implementation changes output amplitude despite the historical name.
+   * Carbon declaration: TriPerlinCurve::ScaleTime (trinity/trinity/TriSequencer.h:212).
+   */
   @meta.implemented
   ScaleTime(scale)
   {

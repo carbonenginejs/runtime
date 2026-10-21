@@ -14,8 +14,9 @@ export class IEveDistributionModifier extends IRoot
   @blue.abstract
   ProcessDistributionModifier(_placement, _context) {}
 
-  /** Reports whether this modifier changes placement transforms. */
-  @blue.method
+  /** Reports whether this modifier changes placement transforms.
+   * Carbon declaration: IEveDistributionModifier::AffectsTransform (trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/IEveDistributionModifier.h:58).
+   */
   @meta.implemented
   AffectsTransform()
   {

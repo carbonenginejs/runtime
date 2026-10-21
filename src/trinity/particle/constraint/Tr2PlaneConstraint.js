@@ -144,8 +144,9 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
     return true;
   }
 
-  /** Disables multithreaded updates on emitters inserted outside loading. */
-  @blue.method
+  /** Disables multithreaded updates on emitters inserted outside loading.
+   * Carbon declaration: Tr2PlaneConstraint::OnListModified (trinity/trinity/Particle/Tr2PlaneConstraint.h:47).
+   */
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {

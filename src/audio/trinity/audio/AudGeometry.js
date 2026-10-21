@@ -123,8 +123,8 @@ export class AudGeometry extends ITr2AudGeometry
    *
    * Adapted: Wwise geometry calls route through optional SetGeometry/SetGeometryInstance
    * backend methods using plain browser-safe parameter objects.
+   * Carbon declaration: AudGeometry::SetGeometry (audio/src/AudGeometry.h:48).
    */
-  @blue.method
   @meta.adapted
   SetGeometry(geometrySetId, instanceId, geometryData, worldTransform)
   {
@@ -166,8 +166,8 @@ export class AudGeometry extends ITr2AudGeometry
    *
    * Adapted: The Wwise transform call routes through an optional browser backend with a
    * plain parameter object.
+   * Carbon declaration: AudGeometry::SetGeometryTransform (audio/src/AudGeometry.h:62).
    */
-  @blue.method
   @meta.adapted
   SetGeometryTransform(geometrySetId, instanceId, worldTransform)
   {
@@ -191,8 +191,8 @@ export class AudGeometry extends ITr2AudGeometry
    *
    * Adapted: Wwise geometry removal routes through optional browser backend methods while
    * retaining Carbon's set reference counts.
+   * Carbon declaration: AudGeometry::RemoveGeometry (audio/src/AudGeometry.h:75).
    */
-  @blue.method
   @meta.adapted
   RemoveGeometry(geometrySetId, instanceId)
   {

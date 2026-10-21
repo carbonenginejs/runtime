@@ -86,8 +86,9 @@ export class WodPlaceableRes
     return this.isShadowCaster;
   }
 
-  /** Delegates batch construction to the assigned model. */
-  @blue.method
+  /** Delegates batch construction to the assigned model.
+   * Carbon declaration: WodPlaceableRes::GetBatches (trinity/trinity/Wod/WodPlaceableRes.h:35).
+   */
   @meta.implemented
   GetBatches(batches, batchType, matrix, data)
   {

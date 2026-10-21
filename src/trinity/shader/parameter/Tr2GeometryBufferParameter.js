@@ -144,8 +144,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @param {number} [_flags] A `ResourceFlags` word; unread for a buffer.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: Tr2GeometryBufferParameter::CopyToResourceSet (trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h:34).
    */
-  @legacyBlue.method
   @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, _flags = 0)
   {
@@ -166,8 +166,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
+   * Carbon declaration: Tr2GeometryBufferParameter::ApplyUav (trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h:39).
    */
-  @legacyBlue.method
   @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
