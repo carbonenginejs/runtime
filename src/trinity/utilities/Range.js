@@ -11,9 +11,9 @@ import { meta, type, blue } from "#schema";
  * symmetric about the center, and clamped for display against separate slider
  * bounds. Native Range derives only from IRoot and maps its own interface.
  * Read-only property order follows Range_Blue.cpp; none are persistent.
- * Existing JS fields cache native getter results and are refreshed by setters;
- * direct dictionary writes do not invoke those setters. This cache and Number
- * arithmetic (rather than native float intermediates) are retained adapters.
+ * The two range points are derived on read, as Carbon's getters do, and exposed as
+ * properties over them. Number arithmetic (rather than native float intermediates)
+ * is a retained adapter.
  */
 @be.define("Range")
 @blue.inherit(IRoot)
@@ -28,23 +28,6 @@ export class Range extends IRoot
   @be.mapPropertyReadOnly__Field()
   @type.float32
   centerPoint = 0;
-
-  /**
-   * Cached lower display point: the lesser of the internal lower point and
-   * the slider minimum. Range setters refresh this value in the caller's units.
-   * Carbon computes it in GetMinRangePoint; this cache is ours and `minRangePoint` is the property over that getter.
-   * @type {number}
-   */
-  @meta.adapted
-  _minRangePoint = 0;
-
-  /**
-   * Cached upper display point: the lesser of the internal upper point and
-   * the slider maximum. Range setters refresh this value in the caller's units.
-   * @type {number}
-   */
-  @meta.adapted
-  _maxRangePoint = 0;
 
   /**
    * Symmetry mode used by range setters to mirror endpoint edits around
@@ -73,7 +56,6 @@ export class Range extends IRoot
     this.centerPoint = value;
     this._minRange += delta;
     this._maxRange += delta;
-    this._syncRangePoints();
   }
 
   /** Configures the symmetric range and its slider bounds. */
@@ -86,7 +68,6 @@ export class Range extends IRoot
     this._maxRange = this.centerPoint + rangeDeltaFromCenter;
     this._sliderRangeMin = sliderMin;
     this._sliderRangeMax = sliderMax;
-    this._syncRangePoints();
   }
 
   /** Sets the lower range point and mirrors it when uniform. */
@@ -99,7 +80,6 @@ export class Range extends IRoot
     {
       this._maxRange = this.centerPoint + (this.centerPoint - this._minRange);
     }
-    this._syncRangePoints();
   }
 
   /** Sets the upper range point and mirrors it when uniform. */
@@ -112,7 +92,6 @@ export class Range extends IRoot
     {
       this._minRange = this.centerPoint - (this._maxRange - this.centerPoint);
     }
-    this._syncRangePoints();
   }
 
   /** Returns the point both range points are measured from. */
@@ -128,7 +107,7 @@ export class Range extends IRoot
   @meta.adapted
   GetMinRangePoint()
   {
-    return this._minRangePoint;
+    return Math.min(this._minRange, this._sliderRangeMin);
   }
 
   /**
@@ -150,7 +129,7 @@ export class Range extends IRoot
   @meta.adapted
   GetMaxRangePoint()
   {
-    return this._maxRangePoint;
+    return Math.min(this._maxRange, this._sliderRangeMax);
   }
 
   /**
@@ -229,7 +208,6 @@ export class Range extends IRoot
   SetSliderMin(value)
   {
     this._sliderRangeMin = value;
-    this._syncRangePoints();
   }
 
   /**
@@ -241,7 +219,6 @@ export class Range extends IRoot
   SetSliderMax(value)
   {
     this._sliderRangeMax = value;
-    this._syncRangePoints();
   }
 
   /** Returns the lower slider bound used when clamping the exposed range points. */
@@ -258,16 +235,5 @@ export class Range extends IRoot
   GetSliderMax()
   {
     return this._sliderRangeMax;
-  }
-
-  /**
-   * Recomputes the exposed minRangePoint and maxRangePoint from the internal
-   * range and the slider bounds; Carbon derives these on read (Range.cpp:63-71)
-   * and clamps both with min, which is reproduced here rather than corrected.
-   */
-  _syncRangePoints()
-  {
-    this._minRangePoint = Math.min(this._minRange, this._sliderRangeMin);
-    this._maxRangePoint = Math.min(this._maxRange, this._sliderRangeMax);
   }
 }
