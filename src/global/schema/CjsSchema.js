@@ -3832,12 +3832,54 @@ function exposureClassDecorator(name, identityOnly)
     };
 }
 
-/** A non-exposed native identity; qualified and merged donor names stay literal. */
+/**
+ * Names native donors without replacing an explicit class identity. A standalone
+ * declaration still registers its first donor name. Stage-3 class initializers
+ * run after all class decorators, so either order with be.define registers once.
+ */
 function carbonClassDecorator(names)
 {
     const donors = (Array.isArray(names) ? names : [ names ]).map(exposureName);
     if (!donors.length) throw new TypeError("meta.carbon requires at least one native name.");
-    return classDefinitionDecorator({ className: donors[0], carbon: Array.isArray(names) ? donors : donors[0] });
+    const carbon = Array.isArray(names) ? donors : donors[0];
+    const define = classDefinitionDecorator({ className: donors[0], carbon });
+
+    /** Updates provenance only, including previously cached schema exports. */
+    function annotate(Constructor)
+    {
+        const schema = getOrCreateClassSchema(Constructor);
+        schema.carbon = carbon;
+        schema.donors = [ ...donors ];
+        SCHEMA_GENERATION += 1;
+    }
+
+    return function (Constructor, context)
+    {
+        if (typeof Constructor !== "function" || context && context.kind !== "class")
+            throw new TypeError("meta.carbon requires a class constructor.");
+
+        if (isRegisteredClass(Constructor))
+        {
+            annotate(Constructor);
+            return;
+        }
+
+        if (context)
+        {
+            // Publish the origin before another class decorator seals its rows;
+            // defer the fallback identity until an explicit definition can run.
+            getOrCreateClassSchema(Constructor).carbon = carbon;
+            SCHEMA_GENERATION += 1;
+            context.addInitializer(function ()
+            {
+                if (isRegisteredClass(this)) annotate(this);
+                else define(this, context);
+            });
+            return;
+        }
+
+        define(Constructor);
+    };
 }
 
 /** Converts explicit native bits to the legacy flags without inferring ENUM/FLAGS from a type. */

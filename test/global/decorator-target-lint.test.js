@@ -131,3 +131,26 @@ test("direct static and prototype metadata retain state and factory rename argum
     assert.ok(!findings.some(f => ['Call', 'renamed'].includes(f.member)
         && ['required-state', 'carbon-origin-name'].includes(f.rule)));
 });
+
+test("donor annotations replace serialized-name inference in either class decorator order", () =>
+{
+    const base = inspect(`import {blue,meta} from '#schema';
+        @blue.define({className:'CjsAlias',donors:['Native']}) class CjsAlias { Call(){} }`);
+    const relevant = findings => findings.filter(f => ['cjs-donor','carbon-origin-name'].includes(f.rule))
+        .map(findingFingerprint).sort();
+    for (const definition of ["blue.define('CjsAlias')", "target.define('CjsAlias')"])
+    {
+        for (const donorFirst of [true, false])
+        {
+            const declarations = [`@${definition}`, "@meta.carbon('Native')"];
+            if (donorFirst) declarations.reverse();
+            const findings = inspect(`import {blue,meta} from '#schema'; import {exposure as target} from '#be';
+                ${declarations.join('\n')} class CjsAlias { Call(){} }`);
+            assert.deepEqual(relevant(findings), relevant(base));
+        }
+    }
+    const imperative = inspect(`import {CjsSchema} from '#schema'; class CjsAlias { Call(){} }
+        CjsSchema.blue.define(CjsAlias,{className:'CjsAlias'});
+        CjsSchema.meta.carbon('Native')(CjsAlias);`);
+    assert.deepEqual(relevant(imperative), relevant(base));
+});

@@ -1,5 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { parse } from "@babel/parser";
 import { headerTypes, jsClasses, jsProvenance } from "./carbon-header-shape.js";
 
 /** Enumerate source files, keeping generated classes but excluding dropped code. */
@@ -20,7 +21,8 @@ export async function filesUnder(directory, extensions)
 /**
  * The Carbon donors a file's class definitions declare as ported.
  *
- * Two spellings count. `donors: [ "X" ]` in a `blue.define` names the one
+ * `meta.carbon(...)` declares literal native names independently of registration.
+ * The older `donors: [ "X" ]` in a `blue.define` names the one
  * Carbon class a renamed port replicates (ruling 2026-10-15, which replaced
  * `carbon:`); CjsSchema folds it into the definition's `carbon`. A bare
  * `carbon: "X"` still declares a `meta` class that replicates a Carbon type
@@ -49,6 +51,49 @@ function declaredDonors(source)
     {
         const donor = body.match(/\bdonors:\s*\[\s*"(\w+)"\s*\]/);
         if (donor) donors.push(donor[1]);
+    }
+    // Read annotations as syntax, so comments, strings and unrelated calls cannot
+    // claim a port. Only class decorators and top-level applications to a class
+    // declared in this module are declarations.
+    let ast;
+    try { ast = parse(source, { sourceType: "module", plugins: ["decorators"] }); }
+    catch { return donors; }
+    const classes = ast.program.body.map(node => node.declaration ?? node)
+        .filter(node => node.type === "ClassDeclaration" && node.id);
+    const classNames = new Set(classes.map(node => node.id.name));
+    const namespaces = new Set(["meta"]);
+    for (const node of ast.program.body)
+    {
+        if (node.type !== "ImportDeclaration"
+            || !/^(?:#schema|@carbonenginejs\/runtime\/schema)$|\/schema(?:\/index)?\.js$/.test(node.source.value)) continue;
+        for (const specifier of node.specifiers)
+            if (specifier.type === "ImportSpecifier" && specifier.imported.name === "meta")
+                namespaces.add(specifier.local.name);
+    }
+    const expressions = [];
+    for (const node of classes)
+        for (const decorator of node.decorators ?? []) expressions.push(decorator.expression);
+    for (const node of ast.program.body)
+    {
+        const call = node.type === "ExpressionStatement" ? node.expression : null;
+        if (call?.type === "CallExpression" && call.arguments.length === 1
+            && call.arguments[0].type === "Identifier" && classNames.has(call.arguments[0].name))
+            expressions.push(call.callee);
+    }
+    for (const expression of expressions)
+    {
+        if (expression?.type !== "CallExpression" || expression.arguments.length !== 1) continue;
+        const callee = expression.callee, owner = callee.object;
+        if (callee.type !== "MemberExpression" || callee.computed || callee.property.name !== "carbon") continue;
+        const direct = owner.type === "Identifier" && namespaces.has(owner.name);
+        const facade = owner.type === "MemberExpression" && !owner.computed
+            && owner.object.type === "Identifier" && owner.object.name === "CjsSchema"
+            && owner.property.name === "meta";
+        if (!direct && !facade) continue;
+        const argument = expression.arguments[0];
+        const names = argument.type === "ArrayExpression" ? argument.elements : [argument];
+        if (names.every(node => node?.type === "StringLiteral" && node.value.trim()))
+            for (const node of names) donors.push(node.value.trim());
     }
     return donors;
 }

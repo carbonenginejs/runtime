@@ -278,6 +278,15 @@ async function ReadJavaScriptClasses(directory)
     }
 
     const defineRenamed = DefineTimeRenamed(ast.program.body);
+    const carbonImports = new Set();
+    for (const statement of ast.program.body)
+    {
+      if (statement.type !== "ImportDeclaration"
+        || !/^(?:#schema|@carbonenginejs\/runtime\/schema)$|\/schema(?:\/index)?\.js$/.test(statement.source.value)) continue;
+      for (const specifier of statement.specifiers)
+        if (specifier.type === "ImportSpecifier" && specifier.imported.name === "blue")
+          carbonImports.add(specifier.local.name);
+    }
     for (const statement of ast.program.body)
     {
       const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
@@ -343,7 +352,7 @@ async function ReadJavaScriptClasses(directory)
       const { baseClass, contracts } = SuperInfo(declaration.superClass);
       // The mixin tower this used to read is gone: additional bases now arrive
       // through `@carbon.inherit(A, B)`, which states the same Carbon fact.
-      contracts.push(...InheritedBases(declaration));
+      contracts.push(...InheritedBases(declaration, carbonImports));
       for (const original of defineRenamed.get(className) ?? []) methods.add(original);
       const record = { className, baseClass, contracts, methods, file: relativeFile, sources: SourceHeaders(ast) };
       const existing = records.get(className);
@@ -418,14 +427,18 @@ function RenamedCallOriginal(expression)
 }
 
 /** Additional base names declared by legacy or canonical Carbon inherit. */
-function InheritedBases(declaration)
+function InheritedBases(declaration, carbonImports)
 {
   const names = [];
   for (const decorator of declaration.decorators ?? [])
   {
     const call = decorator.expression;
     if (call?.type !== "CallExpression") continue;
-    if (!isCarbonDecorator(call, "inherit")) continue;
+    const callee = call.callee;
+    const imported = callee?.type === "MemberExpression" && !callee.computed
+      && callee.property?.name === "inherit" && callee.object?.type === "Identifier"
+      && carbonImports.has(callee.object.name);
+    if (!imported && !isCarbonDecorator(call, "inherit")) continue;
     for (const argument of call.arguments)
     {
       if (argument?.type === "Identifier") names.push(argument.name);

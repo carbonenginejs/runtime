@@ -5305,7 +5305,8 @@ CjsSchema.decorateMethod(CjsBlueResMan, "UnregisterResourceConstructor", blue.me
 CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject__WChars", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "OnTick", blue.method, meta.implemented);
-CjsSchema.blue.define(CjsBlueResMan, { className: "CjsBlueResMan", donors: [ "BlueResMan" ] });
+CjsSchema.exposure.define("CjsBlueResMan")(CjsBlueResMan);
+CjsSchema.meta.carbon("BlueResMan")(CjsBlueResMan);
 
 /**
  * Reads a file's bytes through `be.paths`; a file no file system has is an

@@ -411,3 +411,17 @@ test("enum parity CLI rejects wrong donors, unrelated calls and unprovable metad
   expectStatus(probe, 1);
   assert.match(probe.stderr, /no attributable vocabulary/);
 });
+
+test("native-method CLI resolves a schema import alias independently of the Blue service", () =>
+{
+  for (const module of ["#schema", "#blue"])
+  {
+    const files = nativeFixture({ inherit: "legacyBlue.inherit(Owner)",
+      renamed: 'meta.renamed("FromDecorator")', definition: 'meta.renamed("FromDefinition")',
+      imperative: 'meta.renamed("FromImperative")' });
+    files["src/trinity/ScannerProbe.js"] = `import { blue as legacyBlue } from '${module}';\n` + files["src/trinity/ScannerProbe.js"];
+    const probe = runScanner("scripts/trinity/lint-native-method-parity.js", files);
+    expectStatus(probe, module === "#schema" ? 0 : 1);
+    assert.match(probe.stdout, module === "#schema" ? /0 missing methods/ : /1 missing methods/);
+  }
+});

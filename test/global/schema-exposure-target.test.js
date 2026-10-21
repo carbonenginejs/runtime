@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { transformSync } from "@babel/core";
 import decoratorsPlugin from "@babel/plugin-proposal-decorators";
 import { IRoot } from "../../src/global/blue/IRoot.js";
-import { unregisterClass } from "../../src/global/blue/classes/registry.js";
+import { unregisterClass, getClassRegistration, getClassRegistrationRevision } from "../../src/global/blue/classes/registry.js";
 import { exposure } from "#be";
 import { CjsSchema, meta, blue, type } from "../../src/global/schema/index.js";
 import { hasOwnInterfaceTable, mappedInterfaces, ownMappedInterfaces } from "../../src/global/compose/interface.js";
@@ -363,4 +363,76 @@ test("separate Stage-3 interface maps preserve native row order while imperative
     meta.define("Goal4bOrderedLegacy")(Legacy);
     assert.deepEqual([...mappedInterfaces(Legacy)], [IRoot, Legacy, First, Second]);
     for (const Constructor of [Sample, Imperative, Legacy]) unregisterClass(CjsSchema.getClassName(Constructor));
+});
+
+test("donor annotation preserves explicit registration, cached rows and factory policy", () =>
+{
+    class Sample { Run() {} }
+    CjsSchema.decorateMethod(Sample, "Run", exposure.mapMethod(), meta.implemented);
+    exposure.define("DonorAnnotationExplicit")(Sample);
+    const cached = CjsSchema.getSchema(Sample);
+    const table = [ ...mappedInterfaces(Sample) ];
+    const revision = getClassRegistrationRevision();
+    meta.carbon(["DonorAnnotationNativeA", "DonorAnnotationNativeB"])(Sample);
+    const schema = CjsSchema.getSchema(Sample);
+    assert.equal(getClassRegistrationRevision(), revision);
+    assert.equal(CjsSchema.getConstructor("DonorAnnotationExplicit"), Sample);
+    assert.equal(CjsSchema.getConstructor("DonorAnnotationNativeA"), null);
+    assert.equal(CjsSchema.getConstructor("DonorAnnotationNativeB"), null);
+    assert.deepEqual(schema.carbon, ["DonorAnnotationNativeA", "DonorAnnotationNativeB"]);
+    assert.deepEqual(schema.donors, schema.carbon);
+    assert.equal(schema.className, cached.className);
+    assert.deepEqual(schema.methods, cached.methods);
+    assert.deepEqual([ ...mappedInterfaces(Sample) ], table);
+    assert.equal(getClassRegistration("DonorAnnotationExplicit").createFn().constructor, Sample);
+    assert.throws(() => meta.carbon([]), /at least one/);
+    assert.throws(() => meta.carbon("Bad")({}, { kind: "class" }), /constructor/);
+    assert.throws(() => meta.carbon("Bad")(Sample, { kind: "method" }), /constructor/);
+});
+
+for (const donorFirst of [true, false]) test(`Stage-3 donor annotation registers once with donor first ${donorFirst}`, async () =>
+{
+    const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
+    const targetUrl = new URL("../../src/global/schema/be.js", import.meta.url).href;
+    const name = `DonorStack${donorFirst}`, donor = `NativeDonorStack${donorFirst}`;
+    const annotations = [`@exposure.define("${name}")`, `@meta.carbon("${donor}")`];
+    if (donorFirst) annotations.reverse();
+    const source = `import { meta, type } from ${JSON.stringify(schemaUrl)};
+        import { exposure } from ${JSON.stringify(targetUrl)};
+        ${annotations.join("\n")}
+        export class Sample {
+            @exposure.mapAttribute(exposure.READWRITE) @type.float32 value = 2;
+            @exposure.mapMethod() @meta.implemented Run() { return this.value; }
+        }`;
+    const code = transformSync(source, { configFile: false, babelrc: false,
+        plugins: [[decoratorsPlugin, { version: "2023-11" }]] }).code;
+    const revision = getClassRegistrationRevision();
+    const { Sample } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    assert.equal(getClassRegistrationRevision(), revision + 1);
+    assert.equal(CjsSchema.getConstructor(name), Sample);
+    assert.equal(CjsSchema.getConstructor(donor), null);
+    const schema = CjsSchema.getSchema(Sample);
+    assert.equal(schema.carbon, donor);
+    assert.deepEqual(schema.donors, [donor]);
+    assert.equal(schema.members[0].name, "value");
+    assert.equal(CjsSchema.getMethod(Sample, "Run").impl.status, "implemented");
+    assert.deepEqual([ ...mappedInterfaces(Sample) ], [IRoot, Sample]);
+    assert.equal(new Sample().Run(), 2);
+});
+
+test("standalone Stage-3 native identity still registers before its module is consumed", async () =>
+{
+    const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
+    const source = `import { meta, type } from ${JSON.stringify(schemaUrl)};
+        @meta.carbon("StandaloneNativeDonor")
+        export class Sample { @type.float32 value = 4; }`;
+    const code = transformSync(source, { configFile: false, babelrc: false,
+        plugins: [[decoratorsPlugin, { version: "2023-11" }]] }).code;
+    const revision = getClassRegistrationRevision();
+    const { Sample } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    assert.equal(getClassRegistrationRevision(), revision + 1);
+    assert.equal(CjsSchema.getConstructor("StandaloneNativeDonor"), Sample);
+    assert.equal(CjsSchema.getSchema(Sample).carbon, "StandaloneNativeDonor");
+    assert.equal(CjsSchema.getSchema(Sample).fields[0].name, "value");
+    assert.equal(hasOwnInterfaceTable(Sample), false);
 });

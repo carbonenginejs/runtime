@@ -623,7 +623,6 @@ export class CjsBlueClasses extends IBlueClasses
 CjsSchema.exposure.mapInterface(IBlueClasses)(CjsBlueClasses);
 CjsSchema.blue.define(CjsBlueClasses, {
   className: "CjsBlueClasses",
-  donors: [ "BlueClasses" ],
   unused: [
     "FindVariable", "UpdateObjectCount",
     "ProcessPendingDeletes",
@@ -658,3 +657,4 @@ CjsSchema.blue.define(CjsBlueClasses, {
     GetPersistedClassesReport: [ blue.method, meta.adapted ]
   }
 });
+CjsSchema.meta.carbon("BlueClasses")(CjsBlueClasses);

@@ -330,7 +330,6 @@ CjsSchema.exposure.mapInterface(IBlueOS)(CjsBlueOS);
 CjsSchema.blue.inherit(BeInfo)(CjsBlueOS);
 CjsSchema.blue.define(CjsBlueOS, {
   className: "CjsBlueOS",
-  donors: [ "BlueOS" ],
   fields: { frameClock: [ blue.readwrite ] },
   methods: {
     GetSmoothedTime: [ blue.method, meta.adapted ],
@@ -347,3 +346,4 @@ CjsSchema.blue.define(CjsBlueOS, {
     RunStackless: [ blue.method, meta.adapted ]
   }
 });
+CjsSchema.meta.carbon("BlueOS")(CjsBlueOS);

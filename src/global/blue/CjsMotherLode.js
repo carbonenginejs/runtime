@@ -1679,7 +1679,6 @@ function defaultNow()
 
 CjsSchema.blue.define(CjsMotherLode, {
   className: "CjsMotherLode",
-  donors: [ "MotherLode" ],
   fields: {},
   methods: {
     Startup: [ blue.method, meta.adapted ],
@@ -1700,3 +1699,4 @@ CjsSchema.blue.define(CjsMotherLode, {
     _WeakRefNotify: [ blue.method, meta.renamed("WeakRefNotify"), meta.adapted ]
   }
 });
+CjsSchema.meta.carbon("MotherLode")(CjsMotherLode);

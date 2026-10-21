@@ -320,7 +320,6 @@ export class CjsBluePaths extends IBluePaths
 CjsSchema.exposure.mapInterface(IBluePaths)(CjsBluePaths);
 CjsSchema.blue.define(CjsBluePaths, {
   className: "CjsBluePaths",
-  donors: [ "BluePaths" ],
   members: [ { name: "cacheFileExistance", key: "_cacheFileExistance", type: { kind: "boolean" }, edit: { read: true, write: true }, carbon: { member: true } } ],
   methods: {
     SetLocalFileSystem: [],
@@ -338,6 +337,7 @@ CjsSchema.blue.define(CjsBluePaths, {
     GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });
+CjsSchema.meta.carbon("BluePaths")(CjsBluePaths);
 
 /**
  * The form to ask a file system for: the first accepted form it produces;

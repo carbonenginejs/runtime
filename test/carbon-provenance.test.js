@@ -77,3 +77,35 @@ test("blue.define donors declare a ported donor; meta.define donors do not", asy
     assert.ok(classes.get("RecordDonor").some(entry => entry.declared && entry.dropped));
     assert.equal(classes.has("Modelled"), false, "a meta.define donor is modelled on, not ported");
 });
+
+test("source indexing reads class donor annotations without crediting unrelated text", async t =>
+{
+    const directory = await mkdtemp(join(tmpdir(), "carbon-provenance-"));
+    t.after(() =>
+    {
+        const target = resolve(directory);
+        assert.equal(dirname(target), resolve(tmpdir()));
+        assert.ok(basename(target).startsWith("carbon-provenance-"));
+        return rm(target, { recursive: true, force: true });
+    });
+    const packageRoot = join(directory, "package"), carbonRoot = join(directory, "carbon");
+    await mkdir(join(packageRoot, "src"), { recursive: true });
+    await mkdir(carbonRoot, { recursive: true });
+    await writeFile(join(packageRoot, "src", "Ported.js"), `
+        import { meta as provenance } from '#schema';
+        @provenance.carbon(['Qualified::Native', 'MergedNative']) class Ported {}
+        class Explicit {}
+        CjsSchema.meta.carbon('ExplicitNative')(Explicit);
+        // meta.carbon('CommentOnly')(Explicit);
+        const text = "meta.carbon('StringOnly')(Explicit)";
+        other.carbon('Unrelated')(Explicit);
+        meta.carbon('UnknownTarget')(Missing);
+        meta.carbon(computed)(Explicit);
+        meta.define({className:'Modelled',donors:['ModelledOnly']})(Explicit);
+    `);
+    const { classes } = await sourceIndex(packageRoot, carbonRoot);
+    for (const donor of ['Qualified::Native', 'MergedNative', 'ExplicitNative'])
+        assert.ok(classes.get(donor).some(entry => entry.declared), donor);
+    for (const donor of ['CommentOnly', 'StringOnly', 'Unrelated', 'UnknownTarget', 'ModelledOnly'])
+        assert.equal(classes.has(donor), false, donor);
+});

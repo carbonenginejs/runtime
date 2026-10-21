@@ -33,14 +33,21 @@ export function flagMask(value)
 function identity(c)
 {
     const native = [], donors = [];
+    const annotations = c.definitions.filter(d => d.kind === "meta.carbon");
+    const exposed = c.definitions.some(d => d.namespace === "blue" || d.namespace === "exposure");
     let own = false, declared = false;
     for (const d of c.definitions)
     {
         declared = true;
         const v = d.value;
-        if (d.kind === "meta.carbon") native.push(...(Array.isArray(v) ? v : [v]));
+        if (d.kind === "meta.carbon")
+        {
+            const names = Array.isArray(v) ? v : [v];
+            native.push(...names);
+            if (exposed) donors.push(...names);
+        }
         else if (d.namespace === "blue" || d.namespace === "exposure")
-            native.push(...(typeof v === "string" ? [v] : v?.carbon ? [].concat(v.carbon) : v?.donors ?? [v?.className]));
+            native.push(...(annotations.length ? [] : typeof v === "string" ? [v] : v?.carbon ? [].concat(v.carbon) : v?.donors ?? [v?.className]));
         else if (v?.carbon) native.push(...[].concat(v.carbon));
         else own = true;
         if (v?.donors) donors.push(...[].concat(v.donors));
