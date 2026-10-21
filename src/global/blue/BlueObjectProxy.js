@@ -307,8 +307,8 @@ CjsSchema.blue.define(BlueObjectProxy, {
   fields: {
     // MAP_PROPERTY rows (BlueObjectProxy_Blue.cpp:18-23, 47-59).
     object: [ legacyBlue.property(), type.object.ref("IRoot") ],
-    builder: [ legacyBlue.readwrite, type.object.ref("IBlueObjectBuilder") ],
-    objectMarker: [ legacyBlue.readwrite, type.uint32 ],
+    builder: [ be.mapAttribute(be.READWRITE), type.object.ref("IBlueObjectBuilder") ],
+    objectMarker: [ be.mapAttribute(be.READWRITE), type.uint32 ],
     temporary: [ legacyBlue.property(), type.boolean ],
     isResident: [ legacyBlue.property(), type.boolean ]
   },

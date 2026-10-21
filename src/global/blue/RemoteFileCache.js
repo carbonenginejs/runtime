@@ -521,20 +521,20 @@ export class RemoteFileCache
 }
 
 CjsSchema.blue.inherit(IRoot)(RemoteFileCache);
-CjsSchema.decorateField(RemoteFileCache, "server", blue.readwrite, type.string);
-CjsSchema.decorateField(RemoteFileCache, "backupServer", blue.readwrite, type.string);
-CjsSchema.decorateField(RemoteFileCache, "prefix", blue.readwrite, type.string);
-CjsSchema.decorateField(RemoteFileCache, "cacheFolder", blue.readwrite, type.wstring);
-CjsSchema.decorateField(RemoteFileCache, "registerDownloadErrors", blue.readwrite, type.boolean);
-CjsSchema.decorateField(RemoteFileCache, "primaryServerFailThreshold", blue.readwrite, type.int32);
-CjsSchema.decorateField(RemoteFileCache, "bytesDownloaded", blue.read, type.uint64);
-CjsSchema.decorateField(RemoteFileCache, "filesDownloaded", blue.read, type.uint32);
-CjsSchema.decorateField(RemoteFileCache, "bytesCached", blue.read, type.uint64);
-CjsSchema.decorateField(RemoteFileCache, "filesCached", blue.read, type.uint32);
-CjsSchema.decorateField(RemoteFileCache, "filesUsedFromCache", blue.read, type.uint32);
-CjsSchema.decorateField(RemoteFileCache, "fullHeaderLogging", blue.readwrite, type.boolean);
-CjsSchema.decorateField(RemoteFileCache, "verifyContentsOnSave", blue.readwrite, type.boolean);
-CjsSchema.decorateField(RemoteFileCache, "verifyContentsOnLoad", blue.readwrite, type.boolean);
+CjsSchema.decorateField(RemoteFileCache, "server", be.mapAttribute(be.READWRITE), type.string);
+CjsSchema.decorateField(RemoteFileCache, "backupServer", be.mapAttribute(be.READWRITE), type.string);
+CjsSchema.decorateField(RemoteFileCache, "prefix", be.mapAttribute(be.READWRITE), type.string);
+CjsSchema.decorateField(RemoteFileCache, "cacheFolder", be.mapAttribute(be.READWRITE), type.wstring);
+CjsSchema.decorateField(RemoteFileCache, "registerDownloadErrors", be.mapAttribute(be.READWRITE), type.boolean);
+CjsSchema.decorateField(RemoteFileCache, "primaryServerFailThreshold", be.mapAttribute(be.READWRITE), type.int32);
+CjsSchema.decorateField(RemoteFileCache, "bytesDownloaded", be.mapAttribute(be.READ), type.uint64);
+CjsSchema.decorateField(RemoteFileCache, "filesDownloaded", be.mapAttribute(be.READ), type.uint32);
+CjsSchema.decorateField(RemoteFileCache, "bytesCached", be.mapAttribute(be.READ), type.uint64);
+CjsSchema.decorateField(RemoteFileCache, "filesCached", be.mapAttribute(be.READ), type.uint32);
+CjsSchema.decorateField(RemoteFileCache, "filesUsedFromCache", be.mapAttribute(be.READ), type.uint32);
+CjsSchema.decorateField(RemoteFileCache, "fullHeaderLogging", be.mapAttribute(be.READWRITE), type.boolean);
+CjsSchema.decorateField(RemoteFileCache, "verifyContentsOnSave", be.mapAttribute(be.READWRITE), type.boolean);
+CjsSchema.decorateField(RemoteFileCache, "verifyContentsOnLoad", be.mapAttribute(be.READWRITE), type.boolean);
 CjsSchema.decorateMethod(RemoteFileCache, "DownloadFileIndex", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(RemoteFileCache, "AddFileIndex", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "SetCacheFolder", blue.method, meta.implemented);
