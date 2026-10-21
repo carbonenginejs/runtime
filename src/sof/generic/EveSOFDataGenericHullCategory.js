@@ -21,8 +21,8 @@ export class EveSOFDataGenericHullCategory
 
 
   /** m_categoryName (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

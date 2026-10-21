@@ -120,113 +120,113 @@ export class BehaviorGroup extends EveEntity
   _groupIndex = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_maxVelocity (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxVelocity = 100;
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   scale = 1;
 
   /** m_blendScreenSizeMax (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   blendScreenSizeMax = 15;
 
   /** m_blendScreenSizeMin (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   blendScreenSizeMin = 5;
 
   /** m_currentScreenSize (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   currentScreenSize = 0;
 
   /** m_renderThreshold (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   renderThreshold = 1;
 
   /** m_debugIntensity (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   debugIntensity = 0;
 
   /** m_debugLodLevel (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   debugLodLevel = 0;
 
   /** m_actualCount (int32_t) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   actualCount = 0;
 
   /** m_count (int32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   count = 0;
 
   /** m_booster (BehaviorGroupBoosterPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("BehaviorGroupBooster")
   boosters = null;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2Mesh")
   mesh = null;
 
   /** m_behaviorGroupName (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   boundingSphereRadius = 5;
 
   /** m_debugMode (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   debugMode = false;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   update = true;
 
   /** m_behaviors (PIBehaviorVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IBehavior")
   behaviors = new BlueList(IBehavior, { className: null, listOps: 0 });
 
   /** m_spawnPosition (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   spawnPosition = vec3.create();
 
@@ -374,7 +374,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon method CreateAgentTree (cpp:169-177). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   CreateAgentTree()
   {
@@ -450,7 +450,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon method AddAgent (cpp:272-278). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddAgent()
   {
@@ -495,7 +495,7 @@ export class BehaviorGroup extends EveEntity
    *
    * Random draws delegate to the matching generator in global/math/random.js.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RemoveAgent()
   {
@@ -542,7 +542,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon method SetCount (cpp:350-368). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetCount(count)
   {

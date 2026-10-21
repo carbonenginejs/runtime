@@ -33,7 +33,7 @@ export class Tr2VisibilityResults
   }
 
   /** Clears the result set. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
   {
@@ -41,7 +41,7 @@ export class Tr2VisibilityResults
   }
 
   /** Gets the number of visibility events in the result set. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetNumVisibilityEvents()
   {

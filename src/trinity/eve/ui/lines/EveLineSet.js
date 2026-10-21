@@ -57,45 +57,45 @@ export class EveLineSet
   currentSubmittedLineCount = 0;
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_isRenderedAsTransparent (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   renderTransparent = false;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
@@ -269,7 +269,7 @@ export class EveLineSet
   }
 
   /** Carbon AddLine (cpp:233-244): appends a line without submitting it, and returns its index. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddLine(position1, color1, position2, color2)
   {
@@ -283,7 +283,7 @@ export class EveLineSet
   }
 
   /** Carbon ChangeLineColor (cpp:305-313): an out-of-range id is ignored. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ChangeLineColor(id, color1, color2)
   {
@@ -296,7 +296,7 @@ export class EveLineSet
   }
 
   /** Carbon ChangeLine (cpp:293-303): an out-of-range id is ignored. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ChangeLine(id, position1, color1, position2, color2)
   {
@@ -311,7 +311,7 @@ export class EveLineSet
   }
 
   /** Carbon ChangeLinePosition (cpp:315-323): an out-of-range id is ignored. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ChangeLinePosition(id, position1, position2)
   {
@@ -324,7 +324,7 @@ export class EveLineSet
   }
 
   /** Carbon ClearLines (cpp:325-327): needs SubmitChanges to take effect. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearLines()
   {
@@ -332,7 +332,7 @@ export class EveLineSet
   }
 
   /** Carbon RemoveLine (cpp:285-291): an out-of-range id is ignored; later ids shift down. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RemoveLine(id)
   {
@@ -346,7 +346,7 @@ export class EveLineSet
    * Adapted: Carbon grows to the line vector's capacity, which its allocator chooses; a JavaScript array has none, so
    * the buffer grows to the line count.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SubmitChanges()
   {

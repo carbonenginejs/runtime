@@ -10,8 +10,8 @@ export class IEveSOFDataHullExtensionPlacementDistribution
 {
 
   /** m_name (std::string); persisted by each concrete Blue class. */
-  @meta.readwrite
-  @meta.persist
+  @meta.attribute(meta.READWRITE | meta.PERSIST)
+
   @type.string
   name = "";
 

@@ -21,19 +21,19 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 @be.mapInterface(INotify)
 export class Tr2RuntimeTextureParameter extends CjsParameter
 {
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("ITr2TextureProvider")
   texture = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   uavMipLevel = 0;
 

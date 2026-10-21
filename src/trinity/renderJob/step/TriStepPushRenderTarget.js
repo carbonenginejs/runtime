@@ -12,16 +12,16 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepPushRenderTarget extends TriRenderStep
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   slot = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2RenderTarget")
   renderTarget = null;
 
   /** Stores the render target and the slot it is pushed for. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(renderTarget = null, slot = 0)
   {

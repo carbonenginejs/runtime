@@ -110,61 +110,61 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     return true;
   }
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint8
   pickBufferID = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   hideOnLowQuality = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   skinned = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EvePlaneSetItem")
   planes = [];
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EvePlaneLight")
   lights = [];
 
   // SOF-authored shared texture parameters; persisted so the values
   // interchange reproduces Carbon's hidden plane-set bindings.
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("TriTextureParameter")
   imageMapParameter = null;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("TriTextureParameter")
   layerMap1Parameter = null;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("TriTextureParameter")
   layerMap2Parameter = null;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("TriTextureParameter")
   maskMapParameter = null;
   _rebuildRevision = 0;
@@ -196,7 +196,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * skipping any plane whose colour is fully zero, which contributes nothing -
    * and marks the packed geometry stale.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Rebuild()
   {

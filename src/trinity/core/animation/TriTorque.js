@@ -18,8 +18,8 @@ export class TriTorque
    * Sort orders the keys by this value before propagating their initial states.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   time = 0;
 
@@ -28,8 +28,8 @@ export class TriTorque
    * Sort propagates this buffer from the previous key for every key after the first.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rot0 = quat.create();
 
@@ -38,8 +38,8 @@ export class TriTorque
    * the torque-and-drag integrator. Sort propagates it for keys after the first.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   omega0 = vec3.create();
 
@@ -48,8 +48,8 @@ export class TriTorque
    * key's interval, integrated using the curve's inertia and drag coefficients.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   torque = vec3.create();
 

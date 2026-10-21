@@ -27,18 +27,18 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 {
 
   /** m_boundingSphere[3] (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   boundingSphereRadius = 0;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   depthOffset = 0;
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2VariableStore")
   variableStore = null;
 

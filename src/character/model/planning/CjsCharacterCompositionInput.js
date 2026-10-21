@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 
 /** Named logical input to one character texture-composition pass. */
@@ -5,23 +6,23 @@ import { meta, type } from "#schema";
 export class CjsCharacterCompositionInput
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     role = "";
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.rootRef("CjsCharacterTextureAsset")
     texture = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.vec4
     sampleBounds = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.unknown
     value = null;
 

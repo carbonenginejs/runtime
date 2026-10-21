@@ -250,12 +250,12 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   }
 
   /** m_scale (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
   /** Carbon method ResetPrimitives (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ResetPrimitives()
   {

@@ -17,33 +17,33 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepClear extends TriRenderStep
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   color = vec4.fromValues(0, 0, 0, 1);
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   depth = 1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   stencil = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isColorCleared = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isDepthCleared = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isStencilCleared = false;
 
@@ -51,7 +51,7 @@ export class TriStepClear extends TriRenderStep
    * Enables each clear channel according to whether its argument was supplied
    * and non-null, so constructing with a colour alone clears colour only.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   __init__(color, depth, stencil)
   {

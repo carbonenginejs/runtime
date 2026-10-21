@@ -60,116 +60,116 @@ export class EveEffectRoot2 extends EveEntity
 {
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObjectChild")
   effectChildren = [];
 
   /** m_estimatedSize (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   estimatedSize = 0;
 
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_HIGH;
 
   /** m_mute (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   mute = false;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_dynamicLODSelection (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   dynamicLOD = false;
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_effectDuration (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   duration = -1;
 
   /** m_secondaryLightingEmissiveColor (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   secondaryLightingEmissiveColor = vec4.create();
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_lights (PTr2LightVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2Light")
   lights = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2Controller")
   controllers = [];
 
   /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriObserverLocal")
   observers = [];
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_secondaryLightingSphereRadiusLocal (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   secondaryLightingSphereRadius = 0.5;
 
@@ -186,26 +186,26 @@ export class EveEffectRoot2 extends EveEntity
   boundingSphereCenter = vec3.create();
 
   /** m_boundingSphere.w (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   boundingSphereRadius = 0;
 
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
@@ -407,7 +407,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Returns the authored bounding-sphere radius. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetBoundingSphereRadius()
   {
@@ -816,7 +816,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Plays root and child-owned curve sets. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Start()
   {
@@ -829,7 +829,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Stops root and child-owned curve sets. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Stop()
   {
@@ -1173,7 +1173,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Stores and propagates a controller variable to current and future members. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -1185,7 +1185,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Propagates an event to controllers and effect children. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -1195,7 +1195,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Starts controllers on the root and its effect children. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
   {
@@ -1330,7 +1330,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Freezes every child at Carbon's high-detail LOD. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   FreezeHighDetailMesh()
   {
@@ -1340,7 +1340,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Propagates a procedural-container variable to every effect child. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetProceduralContainerVariable(name, value)
   {

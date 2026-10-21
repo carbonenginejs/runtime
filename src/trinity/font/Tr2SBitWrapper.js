@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Font/Tr2SBit.h
 // Source: trinity/trinity/Font/Tr2SBit.cpp
@@ -43,12 +44,12 @@ export class Tr2SBitWrapper
 {
 
   /** x (int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   x = 0;
 
   /** y (int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   y = 0;
 
@@ -69,7 +70,7 @@ export class Tr2SBitWrapper
   fontSize = 12;
 
   /** Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:23-26): GetXOffset. @returns {number} Bitmap left offset. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
   get xOffset()
@@ -78,7 +79,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "yOffset" [READ] (Tr2Sbit_Blue.cpp:28-31): GetYOffset. @returns {number} Bitmap top offset. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
   get yOffset()
@@ -87,7 +88,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "width" [READ] (Tr2Sbit_Blue.cpp:33-36): GetWidth. @returns {number} Bitmap width. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
   get width()
@@ -96,7 +97,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "height" [READ] (Tr2Sbit_Blue.cpp:38-41): GetHeight. @returns {number} Bitmap height. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
   get height()
@@ -105,7 +106,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "xadvance" [READ] (Tr2Sbit_Blue.cpp:43-47): GetXAdvance. @returns {number} Horizontal advance. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
   get xadvance()
@@ -114,7 +115,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "yadvance" [READ] (Tr2Sbit_Blue.cpp:49-53): GetYAdvance. @returns {number} Vertical advance. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
   get yadvance()

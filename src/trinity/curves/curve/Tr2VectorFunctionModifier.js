@@ -18,27 +18,27 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 {
 
   /** m_clientBall (ITriVectorFunctionPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("ITriVectorFunction")
   clientBall = null;
 
   /** m_offsetPosition (Vector3) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec3
   offsetPosition = vec3.create();
 
   /** m_scaleModifier (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   scaleModifier = 1;
 
   /** m_useViewSpace (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   useViewSpace = false;
 
   /** m_useSystemCoordinates (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   useSystemCoordinates = false;
 

@@ -12,22 +12,22 @@ export class TriStepRenderFps extends TriRenderStep
 {
 
   /** m_alignBottom (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   alignBottom = true;
 
   /** m_alignRight (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   alignRight = true;
 
   /** m_displayX (int) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   displayX = 0;
 
   /** m_displayY (int) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   displayY = 0;
 

@@ -31,20 +31,20 @@ export class CollisionAvoidance
   behaviorPriority = 0;
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** m_collisionAvoidanceScalar (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   avoidanceScalar = 12;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   enabled = true;
 

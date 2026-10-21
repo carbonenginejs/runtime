@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer_Blue.cpp
@@ -107,18 +108,18 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
   }
 
   /** m_background (PITr2SpriteObjectVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("ITr2SpriteObject")
   background = new BlueList(ITr2SpriteObject, { className: null, listOps: 0 });
 
   /** m_children (PITr2SpriteObjectVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("ITr2SpriteObject")
   children = new BlueList(ITr2SpriteObject, { className: null, listOps: 0 });
 
   /** m_opacity (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   opacity = 1;
 

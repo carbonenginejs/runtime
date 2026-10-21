@@ -14,20 +14,20 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
 {
 
   /** m_impactEvent (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   impactEvent = "";
 
   /** m_outburstEvent (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   outburstEvent = "";
 
   /** m_stretchEvent (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   stretchEvent = "";
 

@@ -75,7 +75,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   currentSubmittedTriangleCount = 0;
 
   /** Carbon method AddLine (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddLine(position1, color1, position2, color2)
   {
@@ -91,7 +91,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /**
    * Appends a triangle to the picking list that accompanies the lines.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddPickingTriangle(position1, position2, position3)
   {
@@ -103,7 +103,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Carbon method ClearLines (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearLines()
   {
@@ -114,7 +114,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /**
    * Empties the picking-triangle list, leaving the lines intact.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearPickingTriangles()
   {
@@ -122,7 +122,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Native SubmitChanges; JS array length replaces inaccessible vector capacity. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SubmitChanges()
   {

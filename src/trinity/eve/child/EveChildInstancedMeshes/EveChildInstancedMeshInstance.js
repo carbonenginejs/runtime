@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h
 //
 // The members are Carbon StaticPerInstanceData's (worldTransform,
@@ -27,26 +28,26 @@ import { meta, type } from "#schema";
 export class EveChildInstancedMeshInstance
 {
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.mat4
   transform = mat4.create();
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   sphereIndex = 0;
 
   /** mirrored (bool, h:42): the transform's determinant is negative (IsMirrored), so its winding flips. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.boolean
   mirrored = false;
 
   /** pickingMeshIndex (uint32_t, h:43): the owning mesh's index in EveChildInstancedMeshes.meshes. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   pickingMeshIndex = 0;
 
   /** pickingInstanceIndex (uint32_t, h:44): this instance's index in its mesh. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   pickingInstanceIndex = 0;
 }

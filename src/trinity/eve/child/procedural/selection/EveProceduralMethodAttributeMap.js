@@ -18,31 +18,31 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   _selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodAttributeMapParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveProceduralMethodAttributeMapParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_mappedAttribute (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   thresholdAttribute = "";
 
   /** m_selectedChildIndex (int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   selectedChild = -1;
 
   /** m_seed (BlueSharedString) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.string
   seed_temp = "";
 

@@ -20,8 +20,8 @@ import { vec4 } from "#math/vec4";
 export class TriValueBinding extends INotify
 {
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -29,7 +29,7 @@ export class TriValueBinding extends INotify
    * Native readonly validity property.
    * @returns {boolean} Whether a copy plan exists.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isValid()
@@ -38,12 +38,12 @@ export class TriValueBinding extends INotify
   }
 
   /** m_isWeak (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isWeak = false;
 
   /** m_isEnabled (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   isEnabled = true;
 
@@ -59,7 +59,7 @@ export class TriValueBinding extends INotify
    * Reads the current source endpoint, resolving a weak reference when used.
    * @returns {object|null} Binding result.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("IRoot")
   @meta.implemented
   get sourceObject()
@@ -79,9 +79,9 @@ export class TriValueBinding extends INotify
   }
 
   /** m_sourceAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   sourceAttribute = "";
 
@@ -98,7 +98,7 @@ export class TriValueBinding extends INotify
    * used.
    * @returns {object|null} Binding result.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("IRoot")
   @meta.implemented
   get destinationObject()
@@ -118,21 +118,21 @@ export class TriValueBinding extends INotify
   }
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   destinationAttribute = "";
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   scale = 1;
 
   /** m_offset (Vector4) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   offset = vec4.create();
 

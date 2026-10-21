@@ -23,8 +23,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * belong to the consuming object.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   value = vec3.create();
 
@@ -32,8 +32,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * Optional child vector function sampled using the adapter's local time.
    * @type {ITriVectorFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriVectorFunction")
   curve = null;
 
@@ -42,8 +42,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * GetValueAt do not apply it.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotationOffset = quat.create();
 
@@ -51,7 +51,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * Cached three-component vector from the latest update, returned by InterpolatedPosition.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   currentValue = vec3.create();
 
@@ -220,7 +220,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   RandomizeStart(range = 60)
   {
@@ -234,7 +234,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} scale Time divisor.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ScaleTime(scale)
   {
@@ -245,7 +245,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * Clears the retained start timestamp.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ResetStart()
   {

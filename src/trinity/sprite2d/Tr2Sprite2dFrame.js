@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dFrame.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dFrame.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dFrame_Blue.cpp
@@ -60,26 +61,26 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
 {
 
   /** m_offset (int) [READWRITE, NOTIFY]: positive values make the frame smaller, negative bigger. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.int32
   offset = 0;
 
   /** m_cornerSize (unsigned int) [READWRITE, NOTIFY]: size of the frame corner, in texels. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.uint32
   cornerSize = 0;
 
   /** m_cornerScale (float) [READWRITE, NOTIFY]: corner scaling when rendering, for UI scaling. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   cornerScale = 1;
 
   /** m_fillCenter (bool) [READWRITE, NOTIFY]: whether the centre piece is drawn. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   fillCenter = true;
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
@@ -14,103 +15,103 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterTextureMetadata extends CjsCharacterRecord
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.path
     sourcePath = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     sourceFormat = "png";
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.uint32
     width = 0;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.uint32
     height = 0;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.int32
     offsetXRaw = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.int32
     offsetYRaw = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.uint32
     offsetUnit = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.uint32
     physicalPixelDimensionsXRaw = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.uint32
     physicalPixelDimensionsYRaw = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.uint32
     physicalPixelDimensionsUnit = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.float64
     offsetX = 0;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.float64
     offsetY = 0;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.float64
     extentX = 1;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.float64
     extentY = 1;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.boolean
     hasOffsetMetadata = false;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.boolean
     hasPhysicalPixelDimensionsMetadata = false;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.boolean
     hasPlacementMetadata = false;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     placementEncoding = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     placementPolicy = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     placementStatus = null;
 

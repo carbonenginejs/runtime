@@ -30,8 +30,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * not alter key selection or the torque integration.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   name = "";
 
@@ -40,8 +40,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * drag it controls exponential decay of the integration rate through drag / I.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   I = 1;
 
@@ -50,8 +50,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * rate approaches torque / drag with exponential decay set by drag / I.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   drag = 1;
 
@@ -60,8 +60,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * and seeded from the first key by Sort. Returned before the first key or with no keys.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   value = quat.create();
 
@@ -70,8 +70,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * seconds methods take time already relative to it.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float64
   start = 0;
 
@@ -80,13 +80,13 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * after edits to order the keys and propagate later keys' initial states.
    * @type {TriTorque[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriTorque")
   states = [];
 
   /** Sorts torque keys, resets the sampling cursor and propagates initial states. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Sort()
   {

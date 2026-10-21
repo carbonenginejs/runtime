@@ -34,59 +34,59 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   _resetTransformOnUpdate = false;
 
   /** m_distributionModifiers (PIEveDistributionModifierVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveDistributionModifier")
   lifetimeModifiers = [];
 
   /** m_locationsCanReTrigger (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   locationsCanReTrigger = true;
 
   /** m_timeOutOnTriggering (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   timeOutOnTriggering = 2;
 
   /** m_uniqueIDCounter (uint32_t) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   entitiesSpawned = 0;
 
   /** m_numFreePlacements (uint32_t) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   freePlacements = 0;
 
   /** m_playtimeMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   playtimeMultiplier = 1;
 
   /** m_placementGenerators (PIEveDistributionPlacementGeneratorsVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveDistributionPlacementGenerators")
   placementGenerators = [];
 
   /** m_placementData (PPlacementDataWithIdentifierStructureList) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.structList("PlacementDataWithIdentifier")
   placementData = [];
 
   /** m_distributionSpawnModifiers (PIEveDistributionSpawnModifierVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveDistributionSpawnModifier")
   spawnModifiers = [];
 
   /** m_distributionSpawners (PIEveDistributionSpawnerVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveDistributionSpawner")
   spawnTriggers = [];
 

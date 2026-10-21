@@ -27,164 +27,164 @@ export class EveSOFDataGeneric
   turretAreaType = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_STANDARD] (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   decalMinScreenSizeSTANDARD = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_KILLCOUNTER] (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   decalMinScreenSizeKILLCOUNTER = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_HOLE] (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   decalMinScreenSizeHOLE = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_CYLINDRICAL] (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   decalMinScreenSizeCYLINDRICAL = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_GLOWCYLINDRICAL] (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   decalMinScreenSizeGLOWCYLINDRICAL = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_GLOWSTANDARD] (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   decalMinScreenSizeGLOWSTANDARD = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_LOGO] (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   decalMinScreenSizeLOGO = 0;
 
   /** m_shaderPrefix (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   shaderPrefix = "";
 
   /** m_shaderPrefixAnimated (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   shaderPrefixAnimated = "";
 
   /** m_variants (PEveSOFDataGenericVariantVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericVariant")
   variants = [];
 
   /** m_hullCategories (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericString")
   hullCategories = [];
 
   /** m_visibilityGroups (PEveSOFDataVisibilityGroupVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataVisibilityGroup")
   visibilityGroups = [];
 
   /** m_bannerShader (PEveSOFDataGenericShader) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("EveSOFDataGenericShader")
   bannerShader = new EveSOFDataGenericShader();
 
   /** m_swarm (EveSOFDataGenericSwarmPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDataGenericSwarm")
   swarm = null;
 
   /** m_damage (EveSOFDataGenericDamagePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDataGenericDamage")
   damage = null;
 
   /** m_hullDamage (EveSOFDataGenericHullDamagePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDataGenericHullDamage")
   hullDamage = null;
 
   /** m_genericWreckMaterial (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDataAreaMaterial")
   genericWreckMaterial = null;
 
   /** m_areaShaders (PEveSOFDataGenericShaderVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericShader")
   areaShaders = [];
 
   /** m_decalShaders (PEveSOFDataGenericDecalShaderVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericDecalShader")
   decalShaders = [];
 
   /** m_materialPrefixes (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericString")
   materialPrefixes = [];
 
   /** m_patternMaterialPrefixes (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericString")
   patternMaterialPrefixes = [];
 
   /** m_hullCategoryData (PEveSOFDataGenericHullCategoryVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericHullCategory")
   hullCategoriesData = [];
 
   /** m_areaShaderLocation (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   areaShaderLocation = "";
 
   /** m_decalShaderLocation (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   decalShaderLocation = "";
 
   /** m_resPathDefaultAlliance (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   resPathDefaultAlliance = "";
 
   /** m_resPathDefaultCeo (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   resPathDefaultCeo = "";
 
   /** m_resPathDefaultCorp (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   resPathDefaultCorp = "";
 

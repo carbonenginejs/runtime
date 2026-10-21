@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { mat4 } from "#math/mat4";
@@ -14,12 +15,12 @@ export class EveTrailsSetSingleTrailData
 {
 
   /** transform (Matrix): where the trail starts. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.mat4
   transform = mat4.create();
 
   /** size (float) */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.float32
   size = 0;
 

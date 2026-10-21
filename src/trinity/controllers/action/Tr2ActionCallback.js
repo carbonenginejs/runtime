@@ -18,8 +18,8 @@ export class Tr2ActionCallback extends ITr2ControllerAction
    * Name of the controller callback invoked when this action starts.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   callbackName = "";
 

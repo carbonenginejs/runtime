@@ -12,8 +12,8 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
 {
 
   /** m_value (bool) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   value = false;
 
@@ -70,7 +70,7 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
    * Restores the first captured default, falling back to false when nothing was
    * captured.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetValueToDefault()
   {

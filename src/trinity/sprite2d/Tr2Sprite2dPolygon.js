@@ -63,12 +63,12 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
   static scratch = { vec2_0: vec2.create(), vec2_1: vec2.create(), vec2_2: vec2.create(), vec4_0: vec4.create(), mat4_0: mat4.create() };
 
   /** m_triangles (PTr2Sprite2dTriangleVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("Tr2Sprite2dTriangle")
   triangles = new BlueList(Tr2Sprite2dTriangle, { className: "Tr2Sprite2dTriangle" });
 
   /** m_vertices (PTr2Sprite2dVertexVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("Tr2Sprite2dVertex")
   vertices = new BlueList(Tr2Sprite2dVertex, { className: "Tr2Sprite2dVertex" });
 

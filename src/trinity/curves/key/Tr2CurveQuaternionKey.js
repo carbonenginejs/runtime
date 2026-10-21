@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.h
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
 import { quat } from "#math/quat";
@@ -20,7 +21,7 @@ export class Tr2CurveQuaternionKey
    * Key position on the curve's local timeline, in seconds.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(0)
   time = 0;
 
@@ -28,7 +29,7 @@ export class Tr2CurveQuaternionKey
    * Quaternion value in [x, y, z, w] order; initial storage belongs to this key.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(4)
   @type.quat
   value = quat.create();
@@ -37,7 +38,7 @@ export class Tr2CurveQuaternionKey
    * Unsigned 16-bit key identifier used by the editor.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.USHORT_1(20)
   id = 0;
 
@@ -45,7 +46,7 @@ export class Tr2CurveQuaternionKey
    * Tr2CurveInterpolation value selecting interpolation for the following segment.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.USHORT_1(22)
   @type.enum("trinity.Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;

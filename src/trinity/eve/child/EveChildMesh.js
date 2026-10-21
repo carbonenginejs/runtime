@@ -145,11 +145,11 @@ export class EveChildMesh extends EveChildTransform
 
   // Carbon sets these two programmatically from SOF (EveSOF.cpp:3971-3972);
   // CarbonEngineJS delivers built objects as documents, so both persist.
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveLocatorSets")
   ownedLocatorSets = [];
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
@@ -182,33 +182,33 @@ export class EveChildMesh extends EveChildTransform
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.mat4
   worldTransform = mat4.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   inheritOverlayEffects = true;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveMeshOverlayEffect")
   overlayEffects = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveDamageOverlay")
   damageOverlay = null;
 
@@ -218,109 +218,109 @@ export class EveChildMesh extends EveChildTransform
   /** Bind pose, not animated: the overlay seeds decals at the stable authored position (Carbon cpp:1132-1134). */
   _getDamageLocatorPositionOS = (index, out) => this.GetDamageLocatorBindPositionLocal(index, out);
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   castShadow = false;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2MeshBase")
   mesh = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.quat
   rotation = quat.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   translation = vec3.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.mat4
   localTransform = mat4.create();
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSpaceObjectDecal")
   decals = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   staticTransform = false;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2GrannyAnimation")
   animationUpdater = null;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2Light")
   lights = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minScreenSize = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   sortValueOffset = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   sortValueScale = 1;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   currentScreenSize = -1;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   currentInstanceScreenSize = -1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useSRT = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   updateAnimation = true;
 
@@ -335,29 +335,29 @@ export class EveChildMesh extends EveChildTransform
    * @type {number}
    */
   @meta.adapted
-  @blue.read
-  @meta.persist
+  @be.mapAttribute(be.READ)
+  @meta.attribute(meta.PERSIST)
   @type.int32
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.array("mat4")
   instanceTransforms = [];
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.string
   sofDna = "";
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.string
   sofParentHullName = "";
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.string
   sofLocatorSetName = "";
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.string
   sofLocatorIndex = "";
 
@@ -729,7 +729,7 @@ export class EveChildMesh extends EveChildTransform
    * mesh exposes none; the indices line up with the records GetMorphTargets
    * returns.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetMorphTargetNames()
   {
@@ -740,7 +740,7 @@ export class EveChildMesh extends EveChildTransform
    * Writes a named morph weight on the mesh; it only reaches the render path
    * after the next UpdateMorphAnimationBuffer pass re-sorts the indexed buffer.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetMorphTargetWeight(name, weight)
   {
@@ -752,7 +752,7 @@ export class EveChildMesh extends EveChildTransform
    * target), bypassing any animation-driven value the morph buffer may have
    * applied.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetMorphTargetWeight(name)
   {
@@ -887,7 +887,7 @@ export class EveChildMesh extends EveChildTransform
    * @param {number} areaId The picked area.
    * @returns {Array|null} [hullName, locatorSetName, locatorIndex], or null.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetSofSourceLocator(areaId)
   {

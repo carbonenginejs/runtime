@@ -11,14 +11,14 @@ export class EveSOFDataMultiHullDecalIndexBuffers
 {
 
   /** m_indexBuffers (PEveSOFDataDecalIndexBufferVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataDecalIndexBuffer")
   indexBuffers = [];
 
   /** m_combinedGeometryResPath (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("TriGeometryRes")
   combinedGeometryResPath = "";
 

@@ -17,8 +17,8 @@ export class EveSOFDataHullController
   buildFilter = 0xffffffff;
 
   /** m_path (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("object")
   path = "";
 
@@ -27,7 +27,7 @@ export class EveSOFDataHullController
    * (EveSOFData_Blue.cpp:902): the controller path's basename without its extension. Carbon persists no name for
    * this class; the getter derives it.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.string
   @meta.implemented
   get name()

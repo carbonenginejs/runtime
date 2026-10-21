@@ -18,98 +18,98 @@ export class EveSOFDataGenericHullDamage
 {
 
   /** m_hullParticleRate (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   hullParticleRate = 0;
 
   /** m_hullParticleAngle (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   hullParticleAngle = 0;
 
   /** m_hullParticleColorMidpoint (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   hullParticleColorMidpoint = 0.5;
 
   /** m_hullParticleInnerAngle (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   hullParticleInnerAngle = 0;
 
   /** m_hullParticleMinMaxSpeed (Vector2) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec2
   hullParticleMinMaxSpeed = vec2.create();
 
   /** m_hullParticleMinMaxLifeTime (Vector2) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec2
   hullParticleMinMaxLifeTime = vec2.create();
 
   /** m_hullParticleSizes (Vector4) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   hullParticleSizes = vec4.create();
 
   /** m_hullParticleColor0 (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   hullParticleColor0 = vec4.create();
 
   /** m_hullParticleColor1 (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   hullParticleColor1 = vec4.create();
 
   /** m_hullParticleColor2 (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   hullParticleColor2 = vec4.create();
 
   /** m_hullParticleColor3 (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   hullParticleColor3 = vec4.create();
 
   /** m_hullParticleTextureIndex (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   hullParticleTextureIndex = 0;
 
   /** m_hullParticleVelocityStretchRotation (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   hullParticleVelocityStretchRotation = 0;
 
   /** m_hullParticleDrag (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   hullParticleDrag = 0;
 
   /** m_hullParticleTurbulenceAmplitude (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   hullParticleTurbulenceAmplitude = 0;
 
   /** m_hullParticleTurbulenceFrequency (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   hullParticleTurbulenceFrequency = 1;
 

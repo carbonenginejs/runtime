@@ -61,7 +61,7 @@ export class EveModularObjectModifier
    * Adapted: async SOF acquisition requires serialization per owner so IDs
    * and composed graphs cannot be overwritten by concurrent edit sessions.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   async AddHull(hullName, factionName, raceName, position, rotation, scale)
   {
@@ -120,7 +120,7 @@ export class EveModularObjectModifier
    * Loads and attaches one resource child, returning its unique part tag.
    * Adapted: promise-capable browser acquisition shares the owner's edit order.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   async AddChild(resourcePath, position, rotation, scale)
   {
@@ -184,7 +184,7 @@ export class EveModularObjectModifier
   }
 
   /** Removes a modular part and every child carrying its tag. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Remove(partId)
   {
@@ -208,7 +208,7 @@ export class EveModularObjectModifier
   }
 
   /** Replaces a modular part transform and updates its attached children. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetTransform(partId, position, rotation, scale)
   {
@@ -265,7 +265,7 @@ export class EveModularObjectModifier
    * applies them as it completes; the bounds after the last edit are the ones
    * Carbon's destructor would set.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ApplyBounds()
   {
@@ -308,7 +308,7 @@ export class EveModularObjectModifier
   }
 
   /** Copies a modular part's authored position. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetPosition(partId, out = vec3.create())
   {
@@ -316,7 +316,7 @@ export class EveModularObjectModifier
   }
 
   /** Copies a modular part's authored rotation. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetRotation(partId, out = quat.create())
   {
@@ -324,7 +324,7 @@ export class EveModularObjectModifier
   }
 
   /** Copies a modular part's authored scale. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetScale(partId, out = vec3.create())
   {

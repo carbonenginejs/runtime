@@ -24,42 +24,42 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 export class Tr2ActionSetValue extends ITr2ControllerAction
 {
   /** Flattened adapter storage for m_destination.m_path. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   path = "";
 
   /** Flattened adapter storage for m_destination.m_object. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("IRoot")
   destination = null;
 
   /** Flattened adapter storage for m_destination.m_attribute. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   attribute = "";
 
   /** m_value: expression compiled when linked or notified. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   value = "";
 
   /** m_delayBinding: delays a nonempty path binding until Start. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   delayBinding = false;
 
   /** Live native READ property; does not compile the expression. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isExpressionValid()
@@ -68,7 +68,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   }
 
   /** Live native READ property; does not resolve a destination. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isBindingValid()
@@ -204,7 +204,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   }
 
   /** Carbon GetDestination (Tr2ActionSetValue.cpp:81-84): the binding's bound object. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetDestination()
   {
@@ -216,7 +216,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Adapted: shared AST term records replace native evaluator term metadata;
    * a linked controller supplies its required GetExpressionTermInfo operation.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -238,7 +238,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @throws {CjsControllerExpressionCompileError} If parsing fails.
    * @throws {CjsControllerExpressionEvaluateError} If unlinked or evaluation fails.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   EvaluateExpression(expression)
   {

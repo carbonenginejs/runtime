@@ -19,8 +19,8 @@ export class EveSOFDataParameterVector2 extends EveSOFDataParameter
    * Native m_value (Vector2) replaces the base vector in authored values.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec2
   value = vec2.create();
 

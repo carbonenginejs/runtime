@@ -19,140 +19,140 @@ export class EveSOFDataGenericDamage
 {
 
   /** m_flickerPerlinSpeed (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   flickerPerlinSpeed = 1;
 
   /** m_flickerPerlinAlpha (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   flickerPerlinAlpha = 1.1;
 
   /** m_flickerPerlinBeta (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   flickerPerlinBeta = 2;
 
   /** m_flickerPerlinN (int32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   flickerPerlinN = 3;
 
   /** m_armorParticleRate (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   armorParticleRate = 0;
 
   /** m_armorParticleAngle (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   armorParticleAngle = 0;
 
   /** m_armorParticleMinMaxSpeed (Vector2) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec2
   armorParticleMinMaxSpeed = vec2.create();
 
   /** m_armorParticleMinMaxLifeTime (Vector2) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec2
   armorParticleMinMaxLifeTime = vec2.create();
 
   /** m_armorParticleSizes (Vector4) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   armorParticleSizes = vec4.create();
 
   /** m_armorParticleColor0 (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   armorParticleColor0 = vec4.create();
 
   /** m_armorParticleColor1 (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   armorParticleColor1 = vec4.create();
 
   /** m_armorParticleColor2 (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   armorParticleColor2 = vec4.create();
 
   /** m_armorParticleColor3 (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   armorParticleColor3 = vec4.create();
 
   /** m_armorParticleTextureIndex (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   armorParticleTextureIndex = 0;
 
   /** m_armorParticleVelocityStretchRotation (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   armorParticleVelocityStretchRotation = 0;
 
   /** m_armorParticleDrag (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   armorParticleDrag = 0;
 
   /** m_armorParticleTurbulenceAmplitude (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   armorParticleTurbulenceAmplitude = 0;
 
   /** m_armorParticleTurbulenceFrequency (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   armorParticleTurbulenceFrequency = 1;
 
   /** m_armorParticleColorMidPoint (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   armorParticleColorMidPoint = 0.5;
 
   /** m_armorShader (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   armorShader = "";
 
   /** m_shieldShaderEllipsoid (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   shieldShaderEllipsoid = "";
 
   /** m_shieldShaderHull (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   shieldShaderHull = "";
 
   /** m_shieldGeometryResFilePath (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("TriGeometryRes")
   shieldGeometryResFilePath = "";
 

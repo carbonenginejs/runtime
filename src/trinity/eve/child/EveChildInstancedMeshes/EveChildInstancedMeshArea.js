@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h
 //   struct MeshArea, nested in EveChildInstancedMeshes (line 73); flattened for
 //   JS. Our name drops the donor's plural, so it reads as though Carbon had an
@@ -16,35 +17,35 @@ import { meta, type } from "#schema";
 export class EveChildInstancedMeshArea
 {
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("Tr2Effect")
   effect = null;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   batchType = 0;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   areaIndex = 0;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   areaCount = 1;
 
   /** Carbon MeshArea::alphaCutout (h:78) - one-sided cutout areas are ignored
    * for backface classification when raycasting occluders. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.boolean
   alphaCutout = false;
 
   /** Carbon MeshArea::reversed (h:79) - winding-reversed areas flip the
    * backface test during occluder raycasts. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.boolean
   reversed = false;
 
-  @meta.read
+  @meta.attribute(meta.READ)
   @type.uint64
   effectHash = 0;
 

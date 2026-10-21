@@ -18,7 +18,7 @@ export class Tr2ShaderBuffer
 {
 
   /** m_size (int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   size = 0;
 
@@ -27,7 +27,7 @@ export class Tr2ShaderBuffer
   shaderType = ShaderType.PIXEL_SHADER;
 
   /** Carbon method SetData -> SetDataFromScript (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetData(data, size = data?.byteLength ?? data?.length ?? 0)
   {

@@ -20,8 +20,8 @@ export class EveSOFDataGenericDecalShader
    * Shader filename identifying this decal shader definition; native m_shader (BlueSharedString).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   shader = "";
 
@@ -30,8 +30,8 @@ export class EveSOFDataGenericDecalShader
    * name. Native m_parameters vector.
    * @type {Array<EveSOFDataGenericString>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericString")
   parameters = [];
 
@@ -40,8 +40,8 @@ export class EveSOFDataGenericDecalShader
    * vector.
    * @type {Array<EveSOFDataTexture>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataTexture")
   defaultTextures = [];
 
@@ -50,8 +50,8 @@ export class EveSOFDataGenericDecalShader
    * m_parentTextures vector.
    * @type {Array<EveSOFDataGenericString>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericString")
   parentTextures = [];
 
@@ -60,8 +60,8 @@ export class EveSOFDataGenericDecalShader
    * preserved as authored m_additive (bool).
    * @type {boolean}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.boolean
   additive = false;
 

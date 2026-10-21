@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 
 /** Logical alpha policy for one final character texture binding. */
@@ -5,13 +6,13 @@ import { meta, type } from "#schema";
 export class CjsCharacterBindingAlpha
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     mode = "";
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.rootRef("CjsCharacterCoverage")
     coverage = null;
 

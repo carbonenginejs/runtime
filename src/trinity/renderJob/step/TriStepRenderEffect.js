@@ -14,27 +14,27 @@ export class TriStepRenderEffect extends TriRenderStep
 {
 
   /** m_shaderBuffer (Tr2ShaderBufferPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2ShaderBuffer")
   shaderBuffer = null;
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec2
   tlTexCoord = vec2.create();
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(effect = null, shaderBuffer = null)
   {

@@ -27,7 +27,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} index Unsigned 32-bit index.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddIndex(index)
   {
@@ -43,7 +43,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    *
    * @returns {number[]} Copied indices.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetIndices()
   {

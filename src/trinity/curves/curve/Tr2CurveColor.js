@@ -28,8 +28,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * Name identifying this composite color curve (native std::string m_name).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -37,8 +37,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * Requests gamma-space conversion of the sampled linear color (native bool m_srgbOutput).
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   srgbOutput = false;
 
@@ -46,8 +46,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * Owned scalar curve supplying the red component (native PTr2CurveScalar m_r).
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   r = new Tr2CurveScalar();
 
@@ -55,8 +55,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * Owned scalar curve supplying the green component (native PTr2CurveScalar m_g).
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   g = new Tr2CurveScalar();
 
@@ -64,8 +64,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * Owned scalar curve supplying the blue component (native PTr2CurveScalar m_b).
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   b = new Tr2CurveScalar();
 
@@ -73,8 +73,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * Owned scalar curve supplying alpha; the parent substitutes alpha one when this curve is empty (native PTr2CurveScalar m_a).
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   a = new Tr2CurveScalar();
 
@@ -82,8 +82,8 @@ export class Tr2CurveColor extends ITriColorFunction
    * Seconds subtracted from sample time before evaluating component curves (native float m_timeOffset).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   timeOffset = 0;
 
@@ -91,7 +91,7 @@ export class Tr2CurveColor extends ITriColorFunction
    * RGBA color cached by the last Update or UpdateValue call (native Color m_currentValue).
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.color
   currentValue = color.createLinear();
 
@@ -196,7 +196,7 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Scalar tangent-maintenance rule.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
@@ -213,7 +213,7 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {number} extrapolation Before and after extrapolation mode.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetExtrapolation(extrapolation)
   {

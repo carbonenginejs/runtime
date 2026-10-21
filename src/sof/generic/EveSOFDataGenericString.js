@@ -16,8 +16,8 @@ export class EveSOFDataGenericString
 {
 
   /** m_str (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   str = "";
 

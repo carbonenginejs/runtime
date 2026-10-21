@@ -19,8 +19,8 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    * Dynamic emitter receiving the one-shot SpawnParticles request.
    * @type {Tr2DynamicEmitter|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2DynamicEmitter")
   emitter = null;
 
@@ -28,8 +28,8 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    * Float multiplier applied to the emitter's rate for this Start, with emitCountFactor set to one.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   rate = 1;
 

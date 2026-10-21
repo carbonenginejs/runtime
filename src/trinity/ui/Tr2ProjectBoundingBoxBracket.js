@@ -388,83 +388,83 @@ export class Tr2ProjectBoundingBoxBracket
     return true;
   }
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   cameraDistance = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   projectedHeight = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   screenMargin = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   integerCoordinates = true;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   maxProjectedHeight = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   maxProjectedWidth = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   minProjectedHeight = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   minProjectedWidth = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   name = "";
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef(BOUNDING_BOX_TYPE)
   object = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2Sprite2dContainer")
   parent = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2Sprite2dContainer")
   bracket = null;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isProjectionValid = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   containsCamera = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   coversViewport = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   extendsOffscreen = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   projectedWidth = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   projectedX = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   projectedY = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   projectedZ = 0;
 }

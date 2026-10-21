@@ -19,38 +19,38 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
   _currentTrigger = 0;
 
   /** m_triggerChance (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   triggerChance = 1;
 
   /** m_startSequenceAtFirstTrigger (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   startSequenceAtFirstTrigger = true;
 
   /** m_sphereOffset (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   sphereOffset = vec3.create();
 
   /** m_playDuration (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   playDuration = 1;
 
   /** m_delayBeforeActivation (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   delayBeforeActivation = 0;
 
   /** m_reverseSphereAnimation (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   reverseSphereAnimation = false;
 

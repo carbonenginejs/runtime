@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 
 /** Provenance record classifying one appearance-plan fact or decision. */
@@ -5,33 +6,33 @@ import { meta, type } from "#schema";
 export class CjsCharacterOrigin
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     kind = "";
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     document = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     recordID = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     jsonPointer = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.path
     resourcePath = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     rule = null;
 

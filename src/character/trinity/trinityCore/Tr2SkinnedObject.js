@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2SkinnedObject } from "./ITr2SkinnedObject.js";
 // Source: trinity/trinity/Tr2SkinnedObject.h
@@ -65,32 +66,32 @@ export class Tr2SkinnedObject
   _rigBinding = new CjsCharacterRigBinding();
 
   /** m_skinningMatrixFrameDelay (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   frameDelay = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_maxBounds (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   explicitMaxBounds = vec3.create();
 
   /** m_minBounds (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   explicitMinBounds = vec3.create();
 
   /** m_updatePeriod (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   updatePeriod = 0;
 
@@ -101,8 +102,8 @@ export class Tr2SkinnedObject
    * Carbon's row-major Matrix has gl-matrix's byte layout, so no conversion is needed.
    * @type {mat4}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.mat4.wrapped("TriMatrix")
   transform = mat4.create();
 
@@ -120,27 +121,27 @@ export class Tr2SkinnedObject
   }
 
   /** m_visualModel (Tr2SkinnedModelPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2SkinnedModel")
   visualModel = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_animationUpdater (ITr2AnimationUpdaterPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2AnimationUpdater")
   animationUpdater = null;
 
   /** m_worldTransformUpdater (ITr2WorldTransformUpdaterPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
 
@@ -150,9 +151,9 @@ export class Tr2SkinnedObject
   // only that path; a write is a raw store, and NOTIFY then reaches OnModified.
 
   /** Reads the high-detail proxy stored by the native LOD helper. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("IBlueObjectProxy")
   get highDetailModel()
   {
@@ -171,9 +172,9 @@ export class Tr2SkinnedObject
   // only that path; a write is a raw store, and NOTIFY then reaches OnModified.
 
   /** Reads the low-detail proxy stored by the native LOD helper. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("IBlueObjectProxy")
   get lowDetailModel()
   {
@@ -192,9 +193,9 @@ export class Tr2SkinnedObject
   // only that path; a write is a raw store, and NOTIFY then reaches OnModified.
 
   /** Reads the medium-detail proxy stored by the native LOD helper. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("IBlueObjectProxy")
   get mediumDetailModel()
   {
@@ -214,35 +215,35 @@ export class Tr2SkinnedObject
   }
 
   /** m_numRenderRigBones (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   renderRigBoneCount = 0;
 
   /** m_skinningMatrixCount (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   skinningMatrixCount = 0;
 
   /** m_useDynamicBounds (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   useDynamicBounds = true;
 
   /** m_useExplicitBounds (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   useExplicitBounds = false;
 
   /** m_estimatedPixelDiameter (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   estimatedPixelDiameter = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
@@ -361,7 +362,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method GetBoundingBoxInLocalSpace (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetBoundingBoxInLocalSpace(...args)
   {
@@ -369,7 +370,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method ResetAnimationBindings (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ResetAnimationBindings()
   {
@@ -380,7 +381,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method GetSkeletonTag (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetSkeletonTag()
   {
@@ -483,7 +484,7 @@ export class Tr2SkinnedObject
    * Adapted: Consumes the CarbonEngineJS animation updater's bone-name array because
    * JavaScript has no output-count reference.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetBoneIndex(boneName)
   {
@@ -505,7 +506,7 @@ export class Tr2SkinnedObject
    * Adapted: Reads the CarbonEngineJS animation updater's matrix array and supports
    * caller-provided vector output.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetBonePosition(joint, out = vec3.create())
   {
@@ -545,7 +546,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method PrintAllBones (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   PrintAllBones(...args)
   {

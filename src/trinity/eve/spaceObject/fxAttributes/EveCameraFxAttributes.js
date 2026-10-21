@@ -24,33 +24,33 @@ export class EveCameraFxAttributes extends IEveFxAttribute
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_lookAngleToObject (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   lookAngleToObject = 0;
 
   /** m_objectRotation (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   objectRotation = vec3.create();
 
   /** m_rotationWithChildTransform (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   rotationWithChildTransform = vec3.create();
 
   /** m_cameraRotation (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   cameraRotation = vec3.create();
 
   /** m_distanceToCamera (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   distanceToCamera = 0;
 

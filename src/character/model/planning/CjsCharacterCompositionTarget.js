@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 
 /**
@@ -12,33 +13,33 @@ import { meta, type } from "#schema";
 export class CjsCharacterCompositionTarget
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     scope = "";
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     region = "";
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     output = "";
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.vec2
     size = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.list("CjsCharacterCompositionPass")
     passes = [];
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.rootRef("CjsCharacterOrigin")
     origin = null;
 

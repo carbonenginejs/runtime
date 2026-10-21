@@ -18,8 +18,8 @@ export class Tr2ActionSetShaderOption extends ITr2ControllerAction
    * Shader-option name forwarded to the controller owner.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   key = "";
 
@@ -27,8 +27,8 @@ export class Tr2ActionSetShaderOption extends ITr2ControllerAction
    * Shader-option value selecting the requested permutation on the owner.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   value = "";
 

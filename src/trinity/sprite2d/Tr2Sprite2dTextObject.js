@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTextObject.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTextObject.cpp
 // Maintained implementation promoted from generated metadata.
@@ -21,42 +22,42 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
   shadowSpriteEffect = 43;
 
   /** m_hasAuxiliaryTooltip (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   hasAuxiliaryTooltip = false;
 
   /** m_textHeight (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   textHeight = 0;
 
   /** m_useSizeFromTexture (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   useSizeFromTexture = false;
 
   /** m_useShadowSpriteEffect (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   useShadowSpriteEffect = false;
 
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.rootRef("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_pickRadius (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   pickRadius = 0;
 
   /** m_textWidth (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   textWidth = 0;
 
@@ -66,7 +67,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
   _fontMeasurer = null;
 
   /** Native mapped property routes through subscription management. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("Tr2FontMeasurer")
   get fontMeasurer()
   {

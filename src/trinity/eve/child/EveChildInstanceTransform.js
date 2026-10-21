@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/EveChildInstanceTransform.json).
 import { meta, type, blue } from "#schema";
@@ -13,23 +14,23 @@ export class EveChildInstanceTransform
 {
 
   /** scale (Vector3) */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(0)
   scale = vec3.fromValues(1, 1, 1);
 
   /** rotation (Quaternion) */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(12)
   @type.quat
   rotation = quat.create();
 
   /** translation (Vector3) */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(28)
   translation = vec3.create();
 
   /** boneIndex (int32_t) */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.INT32_1(40)
   boneIndex = -1;
 

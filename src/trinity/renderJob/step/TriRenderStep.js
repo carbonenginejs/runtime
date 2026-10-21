@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/TriRenderStep.h
 // Source: trinity/trinity/RenderJob/TriRenderStep.cpp
@@ -25,12 +26,12 @@ export class TriRenderStep
   static RS_IN_PROGRESS = 2;
   static RS_TERMINATE = 3;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   enabled = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

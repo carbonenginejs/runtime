@@ -20,14 +20,14 @@ import { type, blue } from "#schema";
 export class Tr2MatrixKey
 {
   /** Key time in seconds. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   time = 0;
 
   /** Owned matrix storage; each key has a distinct buffer. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   value = mat4.create();
 

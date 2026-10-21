@@ -12,8 +12,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepRunJob extends TriRenderStep
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("TriRenderJob")
   job = null;
 

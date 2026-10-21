@@ -12,13 +12,13 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepGenerateMipMaps extends TriRenderStep
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2RenderTarget")
   renderTarget = null;
 
   /** Stores the render target whose mip chain is regenerated. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(renderTarget = null)
   {

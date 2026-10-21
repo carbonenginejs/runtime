@@ -15,38 +15,38 @@ export class EveSOFDataPattern
 {
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataPatternPerHull")
   projections = [];
 
   /** m_applicationGroups (PEveSOFDataPatternApplicationGroupVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataPatternApplicationGroup")
   applicationGroups = [];
 
   /** m_layer1 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDataPatternLayer")
   layer1 = null;
 
   /** m_layer2 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDataPatternLayer")
   layer2 = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_sof6 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   sof6 = false;
 

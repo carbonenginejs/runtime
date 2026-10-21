@@ -40,51 +40,51 @@ export class TriPerlinCurve extends ITriScalarFunction
   }
 
   /** Native mName (std::wstring). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   name = "";
 
   /** Native mValue: the externally writable cached result. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   value = 0;
 
   /** Native mOffset. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   offset = 0;
 
   /** Native mScale. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   scale = 1;
 
   /** Native mAlpha. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   alpha = 1.1;
 
   /** Native mSpeed. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   speed = 1;
 
   /** Native mBeta. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   beta = 2;
 
   /** Native mN exposed as N; n retains the existing JavaScript storage spelling. */
-  @blue.attribute("N")
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST, "N")
+
+
   @type.int32
   n = 3;
 

@@ -23,8 +23,8 @@ export class EveSOFDataTransform
    * Locator translation in the owning hull or bone's coordinate space; native m_position (Vector3).
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   position = vec3.create();
 
@@ -32,8 +32,8 @@ export class EveSOFDataTransform
    * Locator orientation quaternion (x, y, z, w); native m_rotation (Quaternion).
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
@@ -41,8 +41,8 @@ export class EveSOFDataTransform
    * Independent locator scale along each local axis; native m_scaling (Vector3).
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
@@ -50,8 +50,8 @@ export class EveSOFDataTransform
    * Owning bone index, or -1 for an unbound locator; native m_boneIndex (int32_t).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @meta.ui.widget("boneindex")
   @type.int32
   boneIndex = -1;

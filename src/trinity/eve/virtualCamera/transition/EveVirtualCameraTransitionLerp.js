@@ -15,8 +15,8 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
 @be.exposureChainTo(EveVirtualCameraTransitionBase)
 export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBase
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   tansitionTime = 1;
 

@@ -21,8 +21,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * Label identifying this local observer binding (native std::string m_name).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -30,8 +30,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * Observer position in object-local coordinates (native Vector3 m_position).
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   position = vec3.create();
 
@@ -39,8 +39,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * Object-local facing direction, initially +Z (native Vector3 m_front).
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   front = vec3.fromValues(0, 0, 1);
 
@@ -51,7 +51,7 @@ export class TriObserverLocal extends ITriObserverLocal
   _mute = false;
 
   /** Gets native mute state. @returns {boolean} Current mute state. */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   @meta.implemented
   get mute()
@@ -70,8 +70,8 @@ export class TriObserverLocal extends ITriObserverLocal
    * Placement observer receiving the transformed position and orientation (native IBluePlacementObserverPtr).
    * @type {IBluePlacementObserver|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("IBluePlacementObserver")
   observer = null;
 

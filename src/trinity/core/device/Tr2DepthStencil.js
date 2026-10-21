@@ -39,8 +39,8 @@ export class Tr2DepthStencil
 {
 
   /** m_name (std::string) [PERSISTONLY] */
-  @blue.readwrite
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
+
   @type.string
   name = "";
 
@@ -113,7 +113,7 @@ export class Tr2DepthStencil
    * @param {object} [renderContext] The context to create through.
    * @returns {boolean} Whether the surface was created.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   Create(width, height, format, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, renderContext = null)
   {
@@ -302,7 +302,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon Tr2DepthStencil::HasALObject always reports false (cpp:124-127). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasALObject(_type, _object)
   {
@@ -310,7 +310,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon method sharedHandle -> GetSharedHandle (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   sharedHandle(...args)
   {

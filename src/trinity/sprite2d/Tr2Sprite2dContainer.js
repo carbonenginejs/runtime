@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Hand-maintained Sprite2D traversal, picking and cache policy.
@@ -12,42 +13,42 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 {
 
   /** m_clip (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   clip = false;
 
   /** m_cacheContents (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isCachingContents = true;
 
   /** m_depthMax (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   depthMax = 1;
 
   /** m_depthMin (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   depthMin = -1;
 
   /** m_pickRadius (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   pickRadius = 0;
 
   /** m_cacheContentsHint (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   cacheContents = false;
 
   /** m_absoluteCoordinates (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   absoluteCoordinates = false;
 

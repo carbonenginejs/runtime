@@ -14,16 +14,16 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepSetVisualizationMode extends TriRenderStep
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("ITr2VisualizationModeRenderer")
   object = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   mode = 0;
 
   /** Stores the target object and the visualization mode to apply to it. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(object = null, mode = 0)
   {

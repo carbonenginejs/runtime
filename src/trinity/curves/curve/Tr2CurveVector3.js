@@ -24,8 +24,8 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -33,8 +33,8 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * Owned scalar curve for the vector x component.
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
@@ -42,8 +42,8 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * Owned scalar curve for the vector y component.
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
@@ -51,8 +51,8 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * Owned scalar curve for the vector z component.
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   z = new Tr2CurveScalar();
 
@@ -60,7 +60,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * Cached three-component vector assembled from the x, y and z scalar curves.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   currentValue = vec3.create();
 
@@ -118,7 +118,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Scalar tangent-maintenance rule.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
@@ -134,7 +134,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {number} extrapolation Before and after extrapolation mode.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetExtrapolation(extrapolation)
   {

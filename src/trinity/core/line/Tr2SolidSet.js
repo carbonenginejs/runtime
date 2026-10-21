@@ -52,7 +52,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   currentSubmittedTriangleCount = 0;
 
   /** Carbon method AddTriangle (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddTriangle(position1, color1, position2, color2, position3, color3)
   {
@@ -71,7 +71,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Carbon method ClearTriangles (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearTriangles()
   {
@@ -79,7 +79,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Native SubmitChanges; JS array length replaces inaccessible vector capacity. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SubmitChanges()
   {

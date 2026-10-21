@@ -12,14 +12,14 @@ export class EveSOFDataHullExtensionPlacementDistributionParentMatch extends IEv
 {
 
   /** m_parentDescriptor (EveSOFDNADescriptorPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDNADescriptor")
   parentDescriptor = new EveSOFDNADescriptor();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

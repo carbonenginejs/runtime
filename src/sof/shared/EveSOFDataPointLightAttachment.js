@@ -18,8 +18,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_saturation (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   saturation = 1;
 
@@ -28,8 +28,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_intensity (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   intensity = 1;
 
@@ -38,8 +38,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_translation (Vector3) [READWRITE, PERSIST]
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
@@ -48,8 +48,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_rotation (Quaternion) [READWRITE, PERSIST]
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
@@ -58,8 +58,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_innerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   innerScaleMultiplier = 1;
 
@@ -68,8 +68,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_outerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   outerScaleMultiplier = 2;
 
@@ -78,8 +78,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_noiseAmplitude (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   noiseAmplitude = 0;
 
@@ -88,8 +88,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_noiseFrequency (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   noiseFrequency = 1;
 
@@ -98,8 +98,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_noiseOctaves (int32_t) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   noiseOctaves = 1;
 
@@ -108,8 +108,8 @@ export class EveSOFDataPointLightAttachment
    * Native m_lightProfilePath (std::wstring) [READWRITE, PERSIST]
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 

@@ -38,7 +38,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * (EveSmartLightAttributeModifierExpressionBucket_Blue.cpp:21): the setter
    * compiles the replacement.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.expression
   @meta.implemented
   get expression()
@@ -54,14 +54,14 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "bucket";
 
   /** m_inputs (PITriScalarFunctionVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriScalarFunction")
   expressionInputs = [];
 
@@ -71,7 +71,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * (EveSmartLightAttributeModifierExpressionBucket_Blue.cpp:23), which this
    * port stores as attributeMultiplier.
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   get currentValue()
   {

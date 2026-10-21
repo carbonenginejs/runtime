@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.h
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
 import { Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
@@ -13,7 +14,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 {
 
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("ITr2Sprite2dTexture")
   get texturePrimary()
   {
@@ -26,7 +27,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
   }
 
   /** m_textureSecondary (ITr2Sprite2dTexturePtr) */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("ITr2Sprite2dTexture")
   get textureSecondary()
   {

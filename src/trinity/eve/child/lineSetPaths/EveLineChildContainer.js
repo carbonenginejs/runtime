@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveLineChildContainer.h
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
 import { INotify } from "../../../../global/blue/INotify.js";
@@ -32,19 +33,19 @@ export class EveLineChildContainer extends IEveLineSetPath
   _regenerate = false;
 
   /** m_isVisible (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isVisible = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
@@ -54,29 +55,29 @@ export class EveLineChildContainer extends IEveLineSetPath
    * (EveLineChildContainer_Blue.cpp:20), so moving the container regenerates
    * its points.
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST, NOTIFY] (EveLineChildContainer_Blue.cpp:21). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST, NOTIFY] (EveLineChildContainer_Blue.cpp:22). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveLineSetPath")
   lines = [];
 

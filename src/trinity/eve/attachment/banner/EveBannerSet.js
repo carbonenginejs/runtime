@@ -68,42 +68,42 @@ import { LightData } from "../../lights/LightData.js";
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("EveBannerItem")
   banners = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isPickable = false;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   key = 0;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveBannerLight")
   lights = [];
 
   // SOF-authored primary banner texture parameter; persisted so the values
   // interchange reproduces Carbon's hidden banner binding.
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("TriTextureParameter")
   primaryTextureParameter = null;
 
@@ -162,7 +162,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: Tr2SuballocatedBuffer has no Free, so the old allocations are
    * dropped rather than returned.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Rebuild()
   {
@@ -683,7 +683,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * The SOF reference id of the banner at an index, which is how a caller maps a
    * picked banner back to its authored slot.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetReference(index)
   {

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PrimitiveSet.h
 // Source: trinity/trinity/Tr2PrimitiveSet.cpp
 // Source: trinity/trinity/Tr2PrimitiveSet_Blue.cpp
@@ -31,13 +32,13 @@ export class Tr2PrimitiveSet
 
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   localTransform = mat4.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.mat4
   worldTransform = mat4.create();
 
@@ -47,51 +48,51 @@ export class Tr2PrimitiveSet
   _userData = null;
 
   /** m_viewOriented (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   viewOriented = false;
 
   /** m_scaleByDistanceToView (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   scaleByDistanceToView = false;
 
   /** m_color (Color) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.color
   color = vec4.fromValues(0.5, 0.5, 0.5, 1);
 
   /** m_scale (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   scale = 1;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.rootRef("Tr2Effect")
   pickEffect = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** Carbon method SetCurrentColor (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.noop
   SetCurrentColor(_color)
   {

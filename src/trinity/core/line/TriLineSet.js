@@ -34,12 +34,12 @@ export class TriLineSet
   vertices = [];
 
   /** m_zEnable (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   zEnable = true;
 
   /** m_transform (Matrix) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.mat4
   transform = mat4.create();
 
@@ -54,7 +54,7 @@ export class TriLineSet
   }
 
   /** Carbon Add (cpp:49-66): one line with a colour at each end; ignored past the vertex cap. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Add(from, colorFrom, to, colorTo)
   {
@@ -74,7 +74,7 @@ export class TriLineSet
   }
 
   /** Carbon AddSphere (cpp:77-143): rings of latitude and longitude, at least four segments, even. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddSphere(center, radius, segments, color = 0xffffffff)
   {
@@ -174,7 +174,7 @@ export class TriLineSet
   }
 
   /** Carbon AddBox (cpp:305-328): the twelve edges of an axis-aligned box. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddBox(min, max, color = 0xffffffff)
   {
@@ -212,7 +212,7 @@ export class TriLineSet
   }
 
   /** Carbon Clear (cpp:391-394). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
   {
@@ -220,7 +220,7 @@ export class TriLineSet
   }
 
   /** Carbon SetCurrentColor (cpp:396-404): recolours every vertex. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetCurrentColor(color)
   {
@@ -229,7 +229,7 @@ export class TriLineSet
   }
 
   /** Carbon SetDefaultColor (TriLineSet.h:42-45). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetDefaultColor(color)
   {
@@ -261,7 +261,7 @@ export class TriLineSet
   }
 
   /** Carbon AddLines (cpp:432-438): each pair in the default colour. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddLines(lines)
   {

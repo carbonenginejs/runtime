@@ -20,8 +20,8 @@ export class EveSOFDataMaterial
    * Native m_name (std::string), READWRITE | PERSIST.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -30,8 +30,8 @@ export class EveSOFDataMaterial
    * Native m_parameters (PEveSOFDataParameterVector), READ | PERSIST.
    * @type {EveSOFDataParameter[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataParameter")
   parameters = [];
 

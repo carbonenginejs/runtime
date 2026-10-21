@@ -12,8 +12,8 @@ export class Tr2PPSignalLossEffect extends Tr2PPEffect
 {
 
   /** m_strength (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   strength = 0;
 

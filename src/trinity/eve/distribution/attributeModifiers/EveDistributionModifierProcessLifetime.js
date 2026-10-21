@@ -19,8 +19,8 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
   killEvent = 1;
 
   /** m_lifetimeDuration (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lifetimeDuration = -1;
 

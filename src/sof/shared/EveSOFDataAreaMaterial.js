@@ -39,8 +39,8 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   material1 = "";
 
@@ -49,8 +49,8 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   material2 = "";
 
@@ -59,8 +59,8 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   material3 = "";
 
@@ -69,8 +69,8 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   material4 = "";
 

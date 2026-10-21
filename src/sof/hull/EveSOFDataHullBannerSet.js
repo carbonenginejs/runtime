@@ -11,14 +11,14 @@ export class EveSOFDataHullBannerSet
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   visibilityGroup = "primary";
 
   /** m_banners (PEveSOFDataHullBannerSetItemVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataHullBannerSetItem")
   banners = [];
 
@@ -27,7 +27,7 @@ export class EveSOFDataHullBannerSet
    * (EveSOFData_Blue.cpp:692): the banner set's visibility group. Carbon persists no name for
    * this class; the getter derives it.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.string
   @meta.implemented
   get name()

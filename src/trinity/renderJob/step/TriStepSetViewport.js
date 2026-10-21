@@ -15,8 +15,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepSetViewport extends TriRenderStep
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("TriViewport")
   viewport = null;
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretch.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretch.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp
@@ -54,44 +55,44 @@ export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
 {
 
   /** m_leftEdgeSize (unsigned int) [READWRITE, NOTIFY]: fixed pixels on the texture's left edge. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.uint32
   leftEdgeSize = 0;
 
   /** m_rightEdgeSize (unsigned int) [READWRITE, NOTIFY]: fixed pixels on the texture's right edge. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.uint32
   rightEdgeSize = 0;
 
   /** m_edgeScale (float) [READWRITE, NOTIFY]: edge scaling when rendering, for UI scaling. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   edgeScale = 1;
 
   /** m_offset (int) [READWRITE, NOTIFY]: shrinks the sprite horizontally and shifts it down. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.int32
   offset = 0;
 
   /** m_fillCenter (bool) [READWRITE, NOTIFY]: whether the centre piece is drawn. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   fillCenter = true;
 
   /** m_saturation (float) [READWRITE, NOTIFY]: used by TR2_SFX_COLOROVERLAY and TR2_SFX_SOFTLIGHT. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   saturation = 1;
 
   /** m_effectOpacity (float) [READWRITE, NOTIFY]: used by TR2_SFX_COLOROVERLAY and TR2_SFX_SOFTLIGHT. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   effectOpacity = 1;
 

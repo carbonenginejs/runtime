@@ -15,11 +15,11 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepPushDepthStencil extends TriRenderStep
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   pushCurrent = false;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2DepthStencil")
   depthStencil = null;
 
@@ -28,7 +28,7 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * whatever is bound at execution time; passing an argument - including null -
    * pushes that value instead.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(depthStencil)
   {

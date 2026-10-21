@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.h
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.cpp
 // Hand-maintained from Carbon source; promoted from generated/trinityCore.
@@ -38,23 +39,23 @@ export class Tr2GpuStructuredBuffer
   static CreationFlag = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2 });
 
   /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   creationFlags = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   count = 0;
 
   /** m_stride (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   stride = 0;
 
@@ -174,7 +175,7 @@ export class Tr2GpuStructuredBuffer
   }
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.notImplemented
   __init__(...args)
   {

@@ -15,26 +15,26 @@ import { type, blue } from "#schema";
 export class Tr2CurveSetRange
 {
   /** Authored name used by TriCurveSet.PlayTimeRange. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** First scaled-time sample in seconds. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   startTime = 0;
 
   /** Last scaled-time sample in seconds. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   endTime = 1;
 
   /** Whether playback wraps within the interval. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   looped = false;
 }

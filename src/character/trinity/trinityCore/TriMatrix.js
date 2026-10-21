@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Include/TriMatrix.h, TriMatrix.cpp, TriMatrix_Blue.cpp
 import { meta, blue } from "#schema";
 import { mat4 } from "#math/mat4";
@@ -81,7 +82,7 @@ export class TriMatrix
    * Carbon Determinant (TriMatrix.cpp:172-175).
    * @returns {number} The determinant.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Determinant()
   {
@@ -89,7 +90,7 @@ export class TriMatrix
   }
 
   /** Carbon Identity (TriMatrix.cpp:177-180). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Identity()
   {
@@ -100,7 +101,7 @@ export class TriMatrix
    * Carbon Inverse (TriMatrix.cpp:182-187): inverts in place and returns the determinant.
    * @returns {number} The determinant of the matrix before inversion.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Inverse()
   {
@@ -116,7 +117,7 @@ export class TriMatrix
    * @param {vec3} at Target position.
    * @param {vec3} up Up direction.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   LookAtRH(eye, at, up)
   {
@@ -127,7 +128,7 @@ export class TriMatrix
    * Carbon Multiply (TriMatrix.cpp:197-201): `this = this * other`, this applied first.
    * @param {TriMatrix} other The matrix applied after this one.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Multiply(other)
   {
@@ -139,7 +140,7 @@ export class TriMatrix
    * @param {vec3} axis Rotation axis; normalized as Carbon does.
    * @param {number} angle Angle in radians.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RotationAxis(axis, angle)
   {
@@ -150,7 +151,7 @@ export class TriMatrix
    * Carbon RotationQuaternion (TriMatrix.cpp:210-214).
    * @param {quat} rotation The rotation.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RotationQuaternion(rotation)
   {
@@ -161,7 +162,7 @@ export class TriMatrix
    * Carbon RotationX (TriMatrix.cpp:216-220).
    * @param {number} angle Angle in radians.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RotationX(angle)
   {
@@ -172,7 +173,7 @@ export class TriMatrix
    * Carbon RotationY (TriMatrix.cpp:222-226).
    * @param {number} angle Angle in radians.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RotationY(angle)
   {
@@ -185,7 +186,7 @@ export class TriMatrix
    * @param {number} pitch Pitch in radians.
    * @param {number} roll Roll in radians.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RotationYawPitchRoll(yaw, pitch, roll)
   {
@@ -196,7 +197,7 @@ export class TriMatrix
    * Carbon RotationZ (TriMatrix.cpp:236-240).
    * @param {number} angle Angle in radians.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RotationZ(angle)
   {
@@ -209,7 +210,7 @@ export class TriMatrix
    * @param {number} sy Y scale.
    * @param {number} sz Z scale.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Scaling(sx, sy, sz)
   {
@@ -227,7 +228,7 @@ export class TriMatrix
    * @param {quat} rotation Rotation.
    * @param {vec3} translation Translation.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Transformation(scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation)
   {
@@ -257,7 +258,7 @@ export class TriMatrix
    * @param {number} y Y translation.
    * @param {number} z Z translation.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Translation(x, y, z)
   {
@@ -265,7 +266,7 @@ export class TriMatrix
   }
 
   /** Carbon Transpose (TriMatrix.cpp:276-279). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Transpose()
   {

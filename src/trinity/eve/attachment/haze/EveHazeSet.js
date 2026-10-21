@@ -87,27 +87,27 @@ const DEBUG_BOX_MAX = vec3.fromValues(0.5, 0.5, 0.5);
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveHazeSetItem")
   hazes = [];
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveHazeSetLight")
   lights = [];
 
@@ -191,7 +191,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon Rebuild (cpp:298-303): release and prepare the device half again,
    * then the bounds.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Rebuild()
   {

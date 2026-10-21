@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type, blue } from "#schema";
 
 /**
@@ -16,12 +17,12 @@ import { meta, type, blue } from "#schema";
 export class CjsExternalRef
 {
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.path
   resPath = "";
 
   /** Carbon interface name the loaded root must implement (load-time gate). */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.string
   expects = "";
 

@@ -26,23 +26,23 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   _subscribedVolume = null;
 
   /** m_numGenerated (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   numGenerated = 10;
 
   /** m_hollowVolume (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   hollowVolume = false;
 
   /** m_falloffFactor (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   falloffFactor = 1.5;
 
@@ -62,7 +62,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * (EveDistributionPlacementGeneratorVolume_Blue.cpp:19): the setter moves
    * the change subscription to the replacement volume.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("IEveVolume")
   @meta.implemented
   get volume()

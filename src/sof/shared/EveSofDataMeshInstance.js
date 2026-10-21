@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:112-120
 import { meta, type, blue } from "#schema";
 import { quat } from "#math/quat";
@@ -21,7 +22,7 @@ export class EveSofDataMeshInstance
    * Instance orientation quaternion (x, y, z, w), stored at native byte offset 0.
    * @type {Float32Array}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(0)
   @type.quat
   rotation = quat.create();
@@ -32,7 +33,7 @@ export class EveSofDataMeshInstance
    * (math/include/Vector3_inline.h:5).
    * @type {Float32Array}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(16)
   scaling = vec3.fromValues(1, 1, 1);
 
@@ -40,7 +41,7 @@ export class EveSofDataMeshInstance
    * Instance translation in the owning mesh or bone's space, native Vector3 at byte offset 28.
    * @type {Float32Array}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(28)
   translation = vec3.create();
 
@@ -49,7 +50,7 @@ export class EveSofDataMeshInstance
    * Carbon leaves it unset.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.INT32_1(40)
   boneIndex = 0;
 

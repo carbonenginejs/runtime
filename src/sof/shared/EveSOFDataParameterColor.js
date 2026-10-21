@@ -18,8 +18,8 @@ export class EveSOFDataParameterColor extends EveSOFDataParameter
    * Native m_value (Color) replaces the base vector in authored values.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   value = vec4.create();
 

@@ -43,7 +43,7 @@ export class AudStaticDataRepository
    * @param {object} audioMetadata Metadata containing Events, SoundBanks and WemFileIDs sections.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Initialize(audioMetadata)
   {

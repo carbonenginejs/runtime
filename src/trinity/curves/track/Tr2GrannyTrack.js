@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
 import { IsMatch } from "#blue";
@@ -23,28 +24,28 @@ export class Tr2GrannyTrack
   @type.path
   grannyResPath = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   cycle = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   duration = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("TriGrannyRes")
   grannyRes = null;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   name = "";
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   group = "";
 

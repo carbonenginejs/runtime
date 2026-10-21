@@ -447,133 +447,133 @@ export class EveTacticalOverlay
   }
 
   /** m_trackObjects (PEveTacticalOverlayTrackObjectVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("EveTacticalOverlayTrackObject")
   trackObjects = [];
 
   /** m_totalSegmentsLast (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   totalSegmentsLast = 0;
 
   /** m_requestedSegmentsLast (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   requestedSegmentsLast = 0;
 
   /** m_anchorEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2Effect")
   anchorEffect = null;
 
   /** m_connectorEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2Effect")
   connectorEffect = null;
 
   /** m_velocityEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2Effect")
   velocityEffect = null;
 
   /** m_ranges.x (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   activeRange = 200000;
 
   /** m_ranges.y (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   rangeFadeLength = 50000;
 
   /** m_ranges.z (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   rangeMultiplier = 1;
 
   /** m_ranges.w (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   sourceRadius = 50;
 
   /** m_interestRange (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   interestRange = 0;
 
   /** m_outsideInterestIntensity (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   outsideInterestIntensity = 0.35;
 
   /** m_minRadiusForRange (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minRadiusForRange = 150;
 
   /** m_connectorSegmentsLow (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   segmentsLow = 2;
 
   /** m_connectorSegmentsMedium (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   segmentsMedium = 5;
 
   /** m_connectorSegmentsHigh (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   segmentsHigh = 9;
 
   /** m_targetSegmentCount (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   targetMaxSegments = 25000;
 
   /** m_arcSegmentMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   arcSegmentMultiplier = 1;
 
   /** m_segmentCountMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   segmentCountMultiplier = 2;
 
   /** m_positionCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_rootPosition (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   worldPosition = vec3.create();
 
   /** m_interestObject (EveTacticalOverlayTrackObjectPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("EveTacticalOverlayTrackObject")
   interestObject = null;
 

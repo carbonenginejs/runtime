@@ -58,8 +58,8 @@ export class EveTransform extends Tr2Transform
    * Fallback mesh adopted during initialization when the primary mesh is unset.
    * @type {Tr2MeshBase|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2MeshBase")
   meshLod = null;
 
@@ -69,8 +69,8 @@ export class EveTransform extends Tr2Transform
    * Child transforms visited for updates, visibility, bounds and render submission.
    * @type {IEveTransform[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveTransform")
   children = [];
 
@@ -80,8 +80,8 @@ export class EveTransform extends Tr2Transform
    * Local minimum of the override bounds, enabled when it differs from overrideBoundsMax.
    * @type {vec3}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   overrideBoundsMin = vec3.create();
 
@@ -91,8 +91,8 @@ export class EveTransform extends Tr2Transform
    * Local maximum of the override bounds, enabled when it differs from overrideBoundsMin.
    * @type {vec3}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   overrideBoundsMax = vec3.create();
 
@@ -102,8 +102,8 @@ export class EveTransform extends Tr2Transform
    * Emitters advanced with the node's world transform and current update context.
    * @type {ITr2GenericEmitter[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
@@ -113,8 +113,8 @@ export class EveTransform extends Tr2Transform
    * Particle systems updated, sorted and transformed with this node.
    * @type {Tr2ParticleSystem[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
@@ -124,7 +124,7 @@ export class EveTransform extends Tr2Transform
    * Current LOD selected by visibility testing and merged with the children's LOD levels.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_LOW;
@@ -135,8 +135,8 @@ export class EveTransform extends Tr2Transform
    * Whether low-quality rendering suppresses this node's visibility.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   hideOnLowQuality = false;
 
@@ -146,8 +146,8 @@ export class EveTransform extends Tr2Transform
    * Projected mesh-size threshold for visibility; a negative value bypasses sphere rejection.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   visibilityThreshold = 2;
 
@@ -157,8 +157,8 @@ export class EveTransform extends Tr2Transform
    * Observers updated from the node's world transform during view-dependent updates.
    * @type {TriObserverLocal[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriObserverLocal")
   observers = [];
 
@@ -168,8 +168,8 @@ export class EveTransform extends Tr2Transform
    * Whether curve-set updates are throttled according to the current LOD.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useLodLevel = true;
 

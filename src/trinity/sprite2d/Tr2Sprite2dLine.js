@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine_Blue.cpp
@@ -40,56 +41,56 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
 {
 
   /** m_translationFrom (Vector2) [READWRITE, NOTIFY]: start point, relative to the translation. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   translationFrom = vec2.create();
 
   /** m_translationTo (Vector2) [READWRITE, NOTIFY]: end point, relative to the translation. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   translationTo = vec2.create();
 
   /** m_widthFrom (float) [READWRITE, NOTIFY]: line width at the start point. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   widthFrom = 0;
 
   /** m_colorFrom (Color) [READWRITE, NOTIFY]: line colour at the start point. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.color
   colorFrom = vec4.fromValues(1, 1, 1, 1);
 
   /** m_widthTo (float) [READWRITE, NOTIFY]: line width at the end point. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   widthTo = 0;
 
   /** m_textureWidth (float) [READWRITE, NOTIFY]: texture repeat length along the line. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   textureWidth = 1;
 
   /** m_textureOffsetBase (float) [READWRITE, NOTIFY]: base texture offset, to hide seams between lines. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   textureOffsetBase = 0;
 
   /** m_textureOffset (float) [READWRITE, NOTIFY]: texture offset along the line, for animation. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   textureOffset = 0;
 
   /** m_colorTo (Color) [READWRITE, NOTIFY]: line colour at the end point. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.color
   colorTo = vec4.fromValues(1, 1, 1, 1);
 

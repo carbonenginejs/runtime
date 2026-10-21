@@ -18,22 +18,22 @@ import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTra
 @blue.inherit(IInitialize, ITr2DebugRenderable)
 export class EveVirtualCameraSystem
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveVirtualCamera")
   externalCamera = null;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveVirtualCamera")
   cameras = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.rootRef("EveVirtualCamera")
   mainCamera = null;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("EveVirtualCameraTransitionBase")
   transition = null;
 
@@ -66,7 +66,7 @@ export class EveVirtualCameraSystem
    * Returns the camera the scene should render from: the transition's camera
    * while a transition is running, otherwise the main camera.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetCurrentCamera()
   {
@@ -93,7 +93,7 @@ export class EveVirtualCameraSystem
    * Returns the camera control has been handed to, ignoring any transition
    * currently blending towards it.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetMainCamera()
   {
@@ -105,7 +105,7 @@ export class EveVirtualCameraSystem
    * returns null when nothing matches.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp:68-85
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetCameraByName(name)
   {
@@ -120,7 +120,7 @@ export class EveVirtualCameraSystem
    * Hands control to a camera immediately through a cut transition; does nothing
    * when the camera is null or already the main camera.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   CutToCamera(camera)
   {
@@ -134,7 +134,7 @@ export class EveVirtualCameraSystem
    * Hands control to a camera through a lerp transition lasting transitionTime
    * seconds; does nothing when the camera is null or already the main camera.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   LerpToCamera(camera, transitionTime = 1)
   {
@@ -150,7 +150,7 @@ export class EveVirtualCameraSystem
    * Reports whether the currently rendering camera is the external one, meaning
    * the host application is driving the view rather than an authored camera.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   IsExternallyControlled()
   {

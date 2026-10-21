@@ -87,50 +87,50 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
 
   /** m_cornerType (int) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.int32
   cornerType = CornerType.CORNERTYPE_MITER;
 
   /** m_isLoop (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   isLoop = false;
 
   /** m_textureOffset (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   textureOffset = 0;
 
   /** m_end (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   end = 1;
 
   /** m_start (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   start = 0;
 
   /** m_vertices (PTr2Sprite2dLineTraceVertexVector) [READ, NOTIFY] */
-  @blue.notify
-  @blue.read
+  @be.mapAttribute(be.READ | be.NOTIFY)
+
   @type.list("Tr2Sprite2dLineTraceVertex")
   vertices = new BlueList(Tr2Sprite2dLineTraceVertex, { className: "Tr2Sprite2dLineTraceVertex" });
 
   /** m_lineWidth (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   lineWidth = 1;
 
   /** m_textureWidth (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   textureWidth = 1;
 

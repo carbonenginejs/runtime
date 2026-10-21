@@ -13,20 +13,20 @@ export class EveSOFDataPatternPerHull
 {
 
   /** m_transformLayer1 (EveSOFDataPatternTransformPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDataPatternTransform")
   transformLayer1 = null;
 
   /** m_transformLayer2 (EveSOFDataPatternTransformPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSOFDataPatternTransform")
   transformLayer2 = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

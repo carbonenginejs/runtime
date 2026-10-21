@@ -26,58 +26,58 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
 @be.mapInterface(INotify)
 export class EveDistanceField
 {
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   dimensions = vec3.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   midpoint = vec3.create();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   distanceThreshold = 3;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   maxXZRatio = 1.5;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   minYRatio = 0.2;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   timeAdjustmentSecondsIn = 0.25;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   timeAdjustmentSecondsOut = 2;
 
-  @blue.notify
-  @blue.read
+  @be.mapAttribute(be.READ | be.NOTIFY)
+
   @type.list("ITriVectorFunction")
   objects = [];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("TriView")
   cameraView = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("TriCurveSet")
   curveSet = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   distance = -1;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   minDistance = 0;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   maxDistance = 75000;
 
@@ -104,7 +104,7 @@ export class EveDistanceField
    * ones rather than derived from tracked objects, and rebuilds the distance
    * curve set.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetupStaticDistanceField(dimensions, position, distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
@@ -123,7 +123,7 @@ export class EveDistanceField
    * midpoint and extent are recomputed from the tracked objects on the next
    * update.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   @meta.invalidates("#dirty")
   SetupDynamicDistanceField(distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)

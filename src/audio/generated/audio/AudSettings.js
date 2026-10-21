@@ -12,37 +12,37 @@ export class AudSettings
 {
 
   /** m_baseSoundBankPath (std::string) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.path
   baseSoundbankPath = "res:/Audio";
 
   /** m_soundbankLanguage (std::string) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   soundbankLanguage = "en";
 
   /** m_spatialAudioDeviceName (std::string) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   spatialAudioDeviceName = "System";
 
   /** m_stereoAudioDeviceName (std::string) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   stereoAudioDeviceName = "System_Stereo";
 
   /** m_applicationName (std::string) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   applicationName = "Eve Online";
 
   /** m_essentialPath (std::string) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   essentialPath = "Essential_Media";
 
   /** m_spatialAudioEnabled (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   spatialAudioEnabled = true;
 

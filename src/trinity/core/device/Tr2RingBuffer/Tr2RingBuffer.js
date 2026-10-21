@@ -75,27 +75,27 @@ export class Tr2RingBuffer
   static _instances = new Map();
 
   /** m_name */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.string
   name = "";
 
   /** m_stride - bytes per element; every upload must match it. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   stride = 0;
 
   /** m_size - capacity in ELEMENTS, not bytes. */
-  @meta.read
+  @meta.attribute(meta.READ)
   @type.uint32
   size = 0;
 
   /** m_head - where the next upload lands, in elements. */
-  @meta.read
+  @meta.attribute(meta.READ)
   @type.uint32
   head = 0;
 
   /** m_tail - the oldest element the GPU may still be reading. */
-  @meta.read
+  @meta.attribute(meta.READ)
   @type.uint32
   tail = 0;
 

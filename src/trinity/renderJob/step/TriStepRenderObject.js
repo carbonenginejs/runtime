@@ -31,38 +31,38 @@ export class TriStepRenderObject extends TriRenderStep
 {
 
   /** m_effectOverride (Tr2MaterialPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Material")
   effectOverride = null;
 
   /** m_typeEnabled[3] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   renderAdditive = true;
 
   /** m_typeEnabled[1] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   renderDecal = true;
 
   /** m_typeEnabled[0] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   renderOpaque = true;
 
   /** m_typeEnabled[2] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   renderTransparent = true;
 
   /** m_renderable (ITr2RenderablePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2Renderable")
   renderable = null;
 
@@ -74,7 +74,7 @@ export class TriStepRenderObject extends TriRenderStep
   #batches = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(renderable = null)
   {

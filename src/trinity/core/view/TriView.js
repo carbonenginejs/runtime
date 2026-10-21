@@ -14,8 +14,8 @@ export class TriView
 {
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   transform = mat4.create();
 
@@ -42,7 +42,7 @@ export class TriView
   }
 
   /** Builds Carbon's right-handed look-at view transform. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetLookAtPosition(eye, at, up)
   {

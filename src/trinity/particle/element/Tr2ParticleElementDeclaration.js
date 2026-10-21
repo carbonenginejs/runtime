@@ -23,7 +23,7 @@ export class Tr2ParticleElementDeclaration
    * (Tr2ParticleElementDeclaration_Blue.cpp:45): the element name composed of
    * type and customName.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.string
   @meta.implemented
   get name()
@@ -32,26 +32,26 @@ export class Tr2ParticleElementDeclaration
   }
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   customName = "";
 
   /** m_dimension (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   dimension = 1;
 
   /** m_usedByGPU (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   usedByGPU = true;
 
   /** m_usageIndex (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   usageIndex = 0;
 

@@ -23,115 +23,115 @@ import { Tr2CurveInterpolation } from "../enums.js";
 export class Tr2ScalarExprKey extends IInitialize
 {
   /** Key time in seconds. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   time = 0;
 
   /** Scalar sample value. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   value = 0;
 
   /** Incoming tangent value. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   left = 0;
 
   /** Outgoing tangent value. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   right = 0;
 
   /** Authored expression source for time. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.expression
   timeExpression = "";
 
   /** Authored expression source for value. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.expression
   valueExpression = "";
 
   /** Authored expression source for leftTangent. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.expression
   leftTangentExpression = "";
 
   /** Authored expression source for rightTangent. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.expression
   rightTangentExpression = "";
 
   /** Authored expression input 1. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   input1 = 0;
 
   /** Authored expression input 2. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   input2 = 0;
 
   /** Authored expression input 3. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   input3 = 0;
 
   /** Authored expression input 4. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   input4 = 0;
 
   /** Runtime random constant; readable without persistence. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   randomConstant = 0;
 
   /** Minimum authored random range. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   randomMin = 0;
 
   /** Maximum authored random range. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   randomMax = 0;
 
   /** Runtime previous-key time; zero for the first key. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   prevKeyTime = 0;
 
   /** Runtime previous-key value; zero for the first key. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   prevKeyValue = 0;
 
@@ -195,7 +195,7 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RegenRandomConstant()
   {

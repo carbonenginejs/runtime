@@ -22,9 +22,9 @@ export class Tr2StateMachineTransition
    * Changing it refreshes the linked transition's destination reference.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   name = "";
 
@@ -33,9 +33,9 @@ export class Tr2StateMachineTransition
    * evaluation with a nonzero result permits activation.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   condition = "";
 
@@ -45,7 +45,7 @@ export class Tr2StateMachineTransition
    * this property does not introduce native eager evaluator binding.
    * @returns {boolean} Whether the current condition compiles successfully.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.adapted
   get isConditionValid()
@@ -271,7 +271,7 @@ export class Tr2StateMachineTransition
    * @param {string} [_attributeName] Ignored native attribute-name argument.
    * @returns {boolean} Current condition validity.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   IsExpressionValid(_attributeName)
   {
@@ -283,7 +283,7 @@ export class Tr2StateMachineTransition
    * @param {string} expression Expression to evaluate in the current JS context.
    * @returns {number} Evaluated number, or the retained zero result for invalid compilation.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   EvaluateExpression(expression)
   {
@@ -309,7 +309,7 @@ export class Tr2StateMachineTransition
    * Gets expression term metadata known by the linked controller.
    * @returns {Array<object>} New collection of supported functions and linked variables.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetExpressionTermInfo()
   {

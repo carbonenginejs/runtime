@@ -16,23 +16,23 @@ import { CjsParameter } from "./CjsParameter.js";
 @be.mapInterface(IInitialize)
 export class TriFloatArrayParameter extends CjsParameter
 {
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.NOTIFY | be.PERSIST)
+
+
   @type.list("TriVector4")
   value = [];
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentTechnique = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentEffect = false;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   name = "";
 

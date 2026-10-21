@@ -12,8 +12,8 @@ export class EveSOFDataFactionVisibilityGroupSet
 {
 
   /** m_visibilityGroups (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericString")
   visibilityGroups = [];
 

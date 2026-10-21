@@ -13,14 +13,14 @@ export class Tr2PPFadeEffect extends Tr2PPEffect
 {
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   color = vec4.create();
 
   /** m_intensity (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   intensity = 0;
 

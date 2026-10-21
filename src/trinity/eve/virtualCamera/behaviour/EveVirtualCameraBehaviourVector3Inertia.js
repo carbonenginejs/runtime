@@ -16,8 +16,8 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 @be.exposureChainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Inertia extends EveVirtualCameraBehaviourVector3Base
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   inertiaFactor = 1;
 

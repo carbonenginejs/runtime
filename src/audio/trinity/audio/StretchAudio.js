@@ -20,44 +20,44 @@ export class StretchAudio extends IStretchAudio
 {
 
   /** m_stretchEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("AudEmitter")
   sourceEmitter = null;
 
   /** m_impactEvent (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   impactEvent = "";
 
   /** m_outburstEvent (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   outburstEvent = "";
 
   /** m_stretchEvent (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   stretchEvent = "";
 
   /** m_shotMissedEvent (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   shotMissedEvent = "";
 
@@ -218,7 +218,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method SetShotMissed. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetShotMissed(missed)
   {

@@ -15,12 +15,12 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepSetDepthStencil extends TriRenderStep
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2DepthStencil")
   depthStencil = null;
 
   /** Stores the depth-stencil to bind. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(depthStencil = null)
   {

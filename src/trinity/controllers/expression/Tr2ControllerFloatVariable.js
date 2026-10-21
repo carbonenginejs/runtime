@@ -30,8 +30,8 @@ import { Type } from "../enums.js";
 export class Tr2ControllerFloatVariable extends IInitialize
 {
   /** Authored variable name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -43,20 +43,20 @@ export class Tr2ControllerFloatVariable extends IInitialize
   variableType = Type.FLOAT;
 
   /** Current runtime value; changes notify but do not persist. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   value = 0;
 
   /** Authored value assigned by Initialize without publishing. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   defaultValue = 0;
 
   /** Comma-separated editor value/name choices. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   enumValues = "";
 

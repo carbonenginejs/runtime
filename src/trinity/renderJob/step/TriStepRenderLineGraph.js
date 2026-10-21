@@ -13,37 +13,37 @@ export class TriStepRenderLineGraph extends TriRenderStep
 {
 
   /** m_lineGraphs (PTr2LineGraphVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("Tr2LineGraph")
   lineGraphs = [];
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   scale = 1;
 
   /** m_legendScale (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   legendScale = 1;
 
   /** m_autoScale (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   autoScale = true;
 
   /** m_showLegend (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   showLegend = true;
 
   /** m_maxLegend (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxLegend = 1000000000000;
 
@@ -65,7 +65,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
   }
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(graphs = [], legendScale = undefined, scale = undefined, autoScale = undefined)
   {

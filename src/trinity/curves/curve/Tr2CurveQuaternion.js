@@ -24,8 +24,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * Quaternion key records containing time, rotation, identifier and interpolation mode.
    * @type {Tr2CurveQuaternionKey[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("Tr2CurveQuaternionKey")
   keys = [];
 
@@ -33,8 +33,8 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -42,7 +42,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * Cached sampled quaternion in native x, y, z, w component order.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   currentValue = quat.create();
 
@@ -206,7 +206,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   OnKeysChanged()
   {
@@ -222,7 +222,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} [interpolation = Tr2CurveInterpolation.LINEAR] Curve parameter.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.LINEAR)
   {
@@ -241,7 +241,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} extrapolation Curve parameter.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetExtrapolation(extrapolation)
   {

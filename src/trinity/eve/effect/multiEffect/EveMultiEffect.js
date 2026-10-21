@@ -29,38 +29,38 @@ export class EveMultiEffect
 {
 
   /** m_bindings (PTr2DynamicBindingVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2DynamicBinding")
   bindings = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2Controller")
   controllers = [];
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_parameters (PEveMultiEffectParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveMultiEffectParameter")
   parameters = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -92,7 +92,7 @@ export class EveMultiEffect
    * Carbon method Rebind (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS; EveMultiEffect.cpp:49-67): links and primes every
    * binding, then links the controllers to this effect unless only the bindings were asked for.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   Rebind(onlyUpdateBindings = false)
   {
@@ -157,7 +157,7 @@ export class EveMultiEffect
   }
 
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -165,7 +165,7 @@ export class EveMultiEffect
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -173,7 +173,7 @@ export class EveMultiEffect
   }
 
   /** Carbon method SetParameter (MAP_METHOD_AND_WRAP; EveMultiEffect.cpp:156-169): binds the first slot of that name. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetParameter(parameterName, object)
   {
@@ -190,7 +190,7 @@ export class EveMultiEffect
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
   {

@@ -14,13 +14,13 @@ import { meta, type, blue } from "#schema";
 @blue.inherit(IRoot)
 export class EveLocator2
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   transform = mat4.create();
 

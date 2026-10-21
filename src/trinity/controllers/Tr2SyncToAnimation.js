@@ -21,8 +21,8 @@ export class Tr2SyncToAnimation
    * An empty string selects the animation controller's base layer.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   mask = "";
 

@@ -15,12 +15,12 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepPopRenderTarget extends TriRenderStep
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   slot = 0;
 
   /** Stores the render-target slot to pop. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(slot = 0)
   {

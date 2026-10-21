@@ -13,8 +13,8 @@ import { meta, type, blue } from "#schema";
 @blue.inherit(IInitialize)
 export class Tr2PostProcess
 {
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2Effect")
   stages = [];
 

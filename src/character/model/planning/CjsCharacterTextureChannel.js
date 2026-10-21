@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 
 /** Reference to one logical channel of a resolved character texture. */
@@ -5,13 +6,13 @@ import { meta, type } from "#schema";
 export class CjsCharacterTextureChannel
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.rootRef("CjsCharacterTextureAsset")
     texture = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     channel = "a";
 

@@ -22,22 +22,22 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 export class Tr2Vector3Parameter extends CjsVectorParameter
 {
 
-  @blue.readwrite
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
+
   @type.vec3
   value = vec3.fromValues(1, 1, 1);
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentTechnique = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentEffect = false;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   name = "";
 
@@ -52,7 +52,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   #reroutedValue = null;
 
   /** Blue MAP_PROPERTY "x"/"v1" - refreshes from the rerouted value on read. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get x()
   {
@@ -70,7 +70,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY "y"/"v2". */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get y()
   {
@@ -88,7 +88,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY "z"/"v3". */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get z()
   {
@@ -106,7 +106,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `x`. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get v1()
   {
@@ -120,7 +120,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `y`. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get v2()
   {
@@ -134,7 +134,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `z`. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get v3()
   {

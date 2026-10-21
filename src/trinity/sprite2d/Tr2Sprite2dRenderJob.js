@@ -72,7 +72,7 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
   }
 
   /** m_renderJob (TriRenderJobPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("TriRenderJob")
   renderJob = null;
 

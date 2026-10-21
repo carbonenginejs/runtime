@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 import { meta, blue } from "#schema";
 import { CjsWebGLProbe } from "./CjsWebGLProbe.js";
@@ -212,7 +213,7 @@ export class Tr2PlatformInfo
     }
 
     /** Reports one named or numeric static platform capability. */
-    @blue.method
+    @be.mapMethodAndWrap()
     @meta.adapted
     GetStaticCap(capability)
     {

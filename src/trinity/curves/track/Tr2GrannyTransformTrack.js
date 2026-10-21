@@ -17,19 +17,19 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 @be.exposureChainTo(Tr2GrannyTrack)
 export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   compressCurves = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   rotation = quat.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   translation = vec3.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   scale = vec3.create();
 

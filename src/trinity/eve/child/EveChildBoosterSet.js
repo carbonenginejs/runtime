@@ -93,134 +93,134 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   static DEFAULT_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/Booster/ChildBoosterVolumetric.fx";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** The biggest booster size of this set; runtime-derived. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   maxSize = 0;
 
   /** The warp factor of the ship; runtime toggle, not persisted. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   warpIntensity = 0;
 
   /** The thrust of the ship; runtime toggle, not persisted. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   thrust = 0;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   glowScale = 1;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec4
   glowColor = vec4.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   symHaloScale = 1;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   haloScaleX = 1;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   haloScaleY = 1;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec4
   haloColor = vec4.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec4
   warpGlowColor = vec4.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec4
   warpHaloColor = vec4.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lightOffset = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lightFlickerAmplitude = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lightFlickerFrequency = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lightRadius = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   lightColor = vec4.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lightWarpRadius = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   lightWarpColor = vec4.create();
 
   /** Controller name the booster observes for the thrust value. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   driveName = EveChildBoosterSet.DEFAULT_DRIVE_NAME;
 
   /** When false the flares draw even at booster-LOD distances. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   flareLodEnabled = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effectFar = null;
 
   /** Sprite set rendering the glows on the boosters. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveSpriteSet")
   glows = null;
 
@@ -229,7 +229,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * values carry the boosters, and Initialize derives the flares, bounds and
    * max size from it.
    */
-  @meta.persistOnly
+  @meta.attribute(meta.PERSISTONLY)
   @type.list("EveChildBoosterSetSingleBoosterData")
   _singleBoosters = [];
 
@@ -254,7 +254,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * The radius of the minimum bounding sphere of the boosters
    * (EveChildBoosterSet_Blue.cpp:36, m_boosterBoundingSphere.w).
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   get boosterBoundingSphereRadius()
   {

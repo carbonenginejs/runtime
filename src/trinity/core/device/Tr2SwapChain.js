@@ -19,12 +19,12 @@ export class Tr2SwapChain
 {
 
   /** m_depthStencil (Tr2DepthStencilPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2DepthStencil")
   depthStencilBuffer = null;
 
   /** m_backBuffer (Tr2RenderTargetPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2RenderTarget")
   backBuffer = null;
 
@@ -80,7 +80,7 @@ export class Tr2SwapChain
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the chain came up.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   CreateForWindow(windowHandle, renderContext)
   {

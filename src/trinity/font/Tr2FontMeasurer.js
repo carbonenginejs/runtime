@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Font/Tr2FontMeasurer.h
 // Source: trinity/trinity/Font/Tr2FontMeasurer.cpp
@@ -18,32 +19,32 @@ export class Tr2FontMeasurer
 {
 
   /** m_ascender (int) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   ascender = 0;
 
   /** m_cursorX (int) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   cursorX = 0;
 
   /** m_cursorY (int) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   cursorY = 0;
 
   /** m_descender (int) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   descender = 0;
 
   /** m_letterSpace (int) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   letterSpace = 1;
 
   /** m_limit (int) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   limit = 0;
 
@@ -52,7 +53,7 @@ export class Tr2FontMeasurer
    * (Tr2FontMeasurer_Blue.cpp:40). One JS key cannot carry two exposed
    * names, so the alias is an attribute over this accessor onto ascender.
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   get asc()
   {
@@ -69,7 +70,7 @@ export class Tr2FontMeasurer
    * (Tr2FontMeasurer_Blue.cpp:52). One JS key cannot carry two exposed
    * names, so the alias is an attribute over this accessor onto descender.
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   get des()
   {
@@ -82,7 +83,7 @@ export class Tr2FontMeasurer
   }
 
   /** m_underline (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   underline = false;
 
@@ -105,7 +106,7 @@ export class Tr2FontMeasurer
   _currentFace = 0;
 
   /** CSS font family used by the browser backend. */
-  @blue.property()
+  @be.mapProperty()
   @type.string
   get font()
   {
@@ -118,7 +119,7 @@ export class Tr2FontMeasurer
   }
 
   /** Requested pixel size. */
-  @blue.property()
+  @be.mapProperty()
   @type.int32
   get fontSize()
   {
@@ -135,7 +136,7 @@ export class Tr2FontMeasurer
    * reads it: alpha in bits 24-31, red 16-23, green 8-15, blue 0-7
    * (math/include/Color_inline.h:15-21).
    */
-  @blue.property()
+  @be.mapProperty()
   @type.int32
   get color()
   {
@@ -251,7 +252,7 @@ export class Tr2FontMeasurer
    * @param {string} text Text to add.
    * @returns {number} Number of characters added.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddText(text)
   {
@@ -361,7 +362,7 @@ export class Tr2FontMeasurer
   }
 
   /** Commits pending segments with a placement offset and notifies text sprites. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   CommitText(shiftX, shiftY)
   {
@@ -377,7 +378,7 @@ export class Tr2FontMeasurer
   }
 
   /** Cancels only the latest uncommitted segment and restores its starting cursor. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   CancelLastText()
   {
@@ -386,7 +387,7 @@ export class Tr2FontMeasurer
   }
 
   /** Returns whether committed segments exist, including empty segments. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasCommittedText()
   {
@@ -394,7 +395,7 @@ export class Tr2FontMeasurer
   }
 
   /** Returns whether pending segments exist. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasUncommittedText()
   {
@@ -402,7 +403,7 @@ export class Tr2FontMeasurer
   }
 
   /** Clears segments and cursor/metric state, retaining font settings. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Reset()
   {
@@ -414,7 +415,7 @@ export class Tr2FontMeasurer
   }
 
   /** Native single-line index lookup, including its behavior in spacing gaps. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetIndexAtPos(x)
   {
@@ -432,7 +433,7 @@ export class Tr2FontMeasurer
   }
 
   /** Native width lookup sums advances, deliberately excluding letter spacing. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetWidthAtIndex(index)
   {
@@ -522,7 +523,7 @@ export class Tr2FontMeasurer
   }
 
   /** Renders committed text into a valid four-byte host bitmap. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   DrawToHostBitmap(bitmap)
   {
@@ -531,7 +532,7 @@ export class Tr2FontMeasurer
   }
 
   /** Writes to a mapped texture and always releases the mapping. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   DrawToTexture(resource)
   {
@@ -546,7 +547,7 @@ export class Tr2FontMeasurer
   }
 
   /** Draws through the native atlas lock contract, expressed as a JS result record. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   DrawToAtlasTexture(texture)
   {
@@ -560,7 +561,7 @@ export class Tr2FontMeasurer
   _fadeLeftStart = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get fadeLeftStart()
   {
@@ -592,7 +593,7 @@ export class Tr2FontMeasurer
   _fadeLeftEnd = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get fadeLeftEnd()
   {
@@ -624,7 +625,7 @@ export class Tr2FontMeasurer
   _fadeRightStart = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get fadeRightStart()
   {
@@ -656,7 +657,7 @@ export class Tr2FontMeasurer
   _fadeRightEnd = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get fadeRightEnd()
   {
@@ -688,7 +689,7 @@ export class Tr2FontMeasurer
   _fadeTopStart = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get fadeTopStart()
   {
@@ -720,7 +721,7 @@ export class Tr2FontMeasurer
   _fadeTopEnd = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get fadeTopEnd()
   {
@@ -752,7 +753,7 @@ export class Tr2FontMeasurer
   _fadeBottomStart = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get fadeBottomStart()
   {
@@ -784,7 +785,7 @@ export class Tr2FontMeasurer
   _fadeBottomEnd = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get fadeBottomEnd()
   {

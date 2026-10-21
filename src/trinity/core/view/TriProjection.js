@@ -65,7 +65,7 @@ export class TriProjection
    * Selects the field-of-view perspective mode, storing fov (in radians), aspect
    * and the near/far planes, and rebuilds the transform.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   PerspectiveFov(fov, aspect, zn, zf)
   {
@@ -81,7 +81,7 @@ export class TriProjection
    * Selects the off-centre perspective mode from explicit frustum edges measured
    * at the near plane, and rebuilds the transform.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   PerspectiveOffCenter(left, right, bottom, top, zn, zf)
   {
@@ -99,7 +99,7 @@ export class TriProjection
    * Selects the orthographic mode; width and height are stored in the left and
    * top slots and front/back in the near and far slots.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   PerspectiveOrthographic(width, height, front, back)
   {
@@ -115,7 +115,7 @@ export class TriProjection
    * Adopts a caller-supplied matrix verbatim as the projection, copying it
    * rather than retaining the caller's buffer.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   CustomProjection(value)
   {
@@ -210,7 +210,7 @@ export class TriProjection
   }
 
   /** The active mode, one of the FOV, OFF_CENTER, ORTHO or CUSTOM constants. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetProjectionType()
   {

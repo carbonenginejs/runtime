@@ -15,8 +15,8 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   _requestRegeneration = false;
 
   /** m_locators (PLocatorStructureList) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("Locator")
   locators = [];
 

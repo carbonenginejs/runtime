@@ -22,8 +22,8 @@ export class TriStepSetRenderState extends TriRenderStep
   @type.enum("RenderState")
   state = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   value = 0;
 
@@ -31,7 +31,7 @@ export class TriStepSetRenderState extends TriRenderStep
    * Accepts either no arguments or both a state and a value; supplying only one
    * of the pair throws.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   __init__(state, value)
   {

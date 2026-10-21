@@ -29,8 +29,8 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
   // record.
 
   /** m_lightGroupData.innerAngle (float) [READWRITE, PERSIST] (EveSmartLightSpotLight_Blue.cpp:33). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get innerAngle()
   {
@@ -44,8 +44,8 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
   }
 
   /** m_lightGroupData.outerAngle (float) [READWRITE, PERSIST] (EveSmartLightSpotLight_Blue.cpp:34). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get outerAngle()
   {

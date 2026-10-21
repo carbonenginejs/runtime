@@ -12,8 +12,8 @@ import { meta, type, blue } from "#schema";
 @be.define("Tr2ParticleDragForce")
 export class Tr2ParticleDragForce extends ITr2ParticleForce
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   drag = 0.1;
 

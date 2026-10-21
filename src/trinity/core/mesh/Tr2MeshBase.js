@@ -24,18 +24,18 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
 
 export class Tr2MeshBase
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.int32
   meshIndex = 0;
 
@@ -54,68 +54,68 @@ export class Tr2MeshBase
   /** m_forcedRebind */
   _forcedRebind = false;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   opaqueAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   decalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   depthAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   transparentAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   additiveAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   pickableAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   mirrorAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   decalNormalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   depthNormalAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   opaquePrepassAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   decalPrepassAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   geometryEraserAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2MeshArea")
   distortionAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
@@ -126,18 +126,18 @@ export class Tr2MeshBase
   @type.list("Tr2MeshArea")
   flareAreas = new BlueList(Tr2MeshArea, { className: "Tr2MeshArea" });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.float32
   maxVertexScale = 1;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.float32
   maxVertexDisplacement = 0;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.boolean
   rotatesVertices = false;
 
@@ -552,7 +552,7 @@ export class Tr2MeshBase
    * Every area of every batch type, in batch-type order, as one newly allocated
    * array.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetAllAreas()
   {
@@ -623,7 +623,7 @@ export class Tr2MeshBase
    * local scale, max local displacement and whether the material rotates
    * vertices.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetMaterialBoundsAdjustment()
   {
@@ -638,7 +638,7 @@ export class Tr2MeshBase
    * Stores the bounds adjustment, coercing missing or non-numeric entries to
    * zero and false.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetMaterialBoundsAdjustment(value)
   {
@@ -650,7 +650,7 @@ export class Tr2MeshBase
   }
 
   /** Empty at this level; Tr2Mesh overrides it with the real geometry path. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetGeometryResPath()
   {

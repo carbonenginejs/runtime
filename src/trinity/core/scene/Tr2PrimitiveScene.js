@@ -27,17 +27,17 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 @be.mapInterface(ITr2Scene)
 export class Tr2PrimitiveScene extends ITr2PickableScene
 {
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2PrimitiveSet")
   primitives = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2PrimitiveText")
   textLabels = [];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2ManipulationTool")
   manipulator = null;
 
@@ -61,7 +61,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   }
 
   /** Immediate object picking becomes awaitable on browser backends. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   @meta.renamed("PickObjectOnly")
   async PickObject(x, y, projection, view, viewport, _flags = 0)
@@ -72,7 +72,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   }
 
   /** Native object/point tuple, with an awaitable readback. */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   async PickPointAndObject(x, y, projection, view, viewport)
   {

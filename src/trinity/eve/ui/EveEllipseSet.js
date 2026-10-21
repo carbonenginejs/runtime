@@ -66,63 +66,63 @@ export class EveEllipseSet extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:22 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:23 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:24 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_ribbonSegmentCount (unsigned int) [READWRITE, NOTIFY, PERSIST] - EveEllipseSet_Blue.cpp:26, h:75 */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.uint32
   ribbonSegmentCount = 128;
 
   /** m_name (std::string) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:19 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:20, h:72 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_enablePicking (bool) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:21, h:73 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   enablePicking = true;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:25, h:74 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   depthOffset = 0;
 
   /** m_ellipses (PEveEllipseDefinitionVector) [READ, PERSIST] - EveEllipseSet_Blue.cpp:28, h:89 */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveEllipseDefinition")
   ellipses = [];
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:27, h:78 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
@@ -258,7 +258,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {number} rotationDegrees In-plane rotation in degrees.
    * @returns {boolean} True after insertion.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddEllipse(center, semiMajor, semiMinor, planeNormal, rotationDegrees)
   {
@@ -287,7 +287,7 @@ export class EveEllipseSet extends EveChildTransform
    *
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   __init__()
   {
@@ -314,7 +314,7 @@ export class EveEllipseSet extends EveChildTransform
    *
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ClearEllipses()
   {

@@ -34,17 +34,17 @@ export class AudManager
 {
 
   /** m_log (IAudActionLogPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("IAudActionLog")
   log = null;
 
   /** m_audioCullingEnabled (mutable bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   audioCullingEnabled = true;
 
   /** m_spatialAudioEnabled (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   spatialAudioEnabled = true;
 
@@ -55,7 +55,7 @@ export class AudManager
    * values interchange.
    */
   @meta.adapted
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("AudSettings")
   settings = null;
 
@@ -112,7 +112,7 @@ export class AudManager
    * InitSpatialAudioGeometry with Carbon's populated settings. The state machine, failure gate, bank loads, and wake
    * pass follow audio/src/AudManager.cpp:148-180 and 848-881.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Enable(soundBanksToLoad = [])
   {
@@ -162,7 +162,7 @@ export class AudManager
   }
 
   /** Carbon method Disable: cull everything, clear banks, drop to disabled (engine stays initialized). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Disable()
   {
@@ -181,7 +181,7 @@ export class AudManager
   }
 
   /** Carbon method LoadBank: async - tracked LOADING immediately; backend callback drives LOADED. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   LoadBank(name)
   {
@@ -216,7 +216,7 @@ export class AudManager
   }
 
   /** Carbon method UnloadBank. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UnloadBank(name)
   {
@@ -245,7 +245,7 @@ export class AudManager
   }
 
   /** Carbon method ClearBanks. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearBanks()
   {
@@ -314,7 +314,7 @@ export class AudManager
   }
 
   /** Carbon method GetLoadedSoundBanks: names with status loaded OR loading (Carbon counts both). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetLoadedSoundBanks()
   {
@@ -330,7 +330,7 @@ export class AudManager
   }
 
   /** Carbon method SetGlobalRTPC: pure backend passthrough, enabled-gated, no caching. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetGlobalRTPC(rtpcName, value)
   {
@@ -347,7 +347,7 @@ export class AudManager
   }
 
   /** Carbon method SetState (global state group): passthrough, enabled-gated. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetState(stateGroup, stateName)
   {
@@ -436,7 +436,7 @@ export class AudManager
    * obstruction, occlusion); an explicit false return is retried on the next
    * Process(), any other return is accepted.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
@@ -447,7 +447,7 @@ export class AudManager
   }
 
   /** Carbon method GetEmitterOcclusion: returns the live, mid-fade value. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetEmitterOcclusion(emitterID)
   {
@@ -455,7 +455,7 @@ export class AudManager
   }
 
   /** Carbon method ClearObstructionOcclusion: fades every target to clear. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearObstructionOcclusion()
   {
@@ -939,7 +939,7 @@ export class AudManager
   }
 
   /** Returns the non-reserved awake emitters. Source: AudManager.cpp:1247-1258 (commit c9b986d). */
-  @blue.method
+  @be.mapMethodAndWrap("GetAwakeEmitters")
   @meta.implemented
   GetAwakeAudioEmitters()
   {
@@ -956,7 +956,7 @@ export class AudManager
   }
 
   /** Carbon method StopAll: every prioritized emitter stops everything. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StopAll()
   {
@@ -1014,7 +1014,7 @@ export class AudManager
   }
 
   /** Carbon method GetAudioEmitter (by game-object id). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetAudioEmitter(gameObjID)
   {
@@ -1160,7 +1160,7 @@ export class AudManager
   }
 
   /** Carbon method UpdateSettings. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdateSettings(settings)
   {
@@ -1168,7 +1168,7 @@ export class AudManager
   }
 
   /** Carbon method DisableAudioCulling: wake all objects, then disable prioritization. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   DisableAudioCulling()
   {
@@ -1184,7 +1184,7 @@ export class AudManager
   }
 
   /** Carbon method EnableAudioCulling. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   EnableAudioCulling()
   {
@@ -1211,7 +1211,7 @@ export class AudManager
    * Adapted: Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
    * renderer.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   EnableDebugDisplayAllEmitters()
   {
@@ -1224,7 +1224,7 @@ export class AudManager
    * Adapted: Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
    * renderer.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   DisableDebugDisplayAllEmitters()
   {
@@ -1236,7 +1236,7 @@ export class AudManager
    *
    * Adapted: The value is available to browser renderers even though the audio layer does not draw debug geometry.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetDebugDisplayAllEmitters()
   {
@@ -1244,7 +1244,7 @@ export class AudManager
   }
 
   /** Native Wwise output-device replacement has no WebAudio equivalent. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notSupported
   EnableSpatialAudio()
   {
@@ -1252,7 +1252,7 @@ export class AudManager
   }
 
   /** Native Wwise output-device replacement has no WebAudio equivalent. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notSupported
   DisableSpatialAudio()
   {
@@ -1260,7 +1260,7 @@ export class AudManager
   }
 
   /** OS/Wwise spatial-output support cannot be inferred from a WebAudio panner. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notSupported
   SpatialAudioIsSupported()
   {
@@ -1268,7 +1268,7 @@ export class AudManager
   }
 
   /** Native audio-device callbacks have no owned browser equivalent. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notSupported
   RegisterAudioDeviceChangeCallback(callback)
   {
@@ -1276,7 +1276,7 @@ export class AudManager
   }
 
   /** Native Wwise profiler capture is unavailable in WebAudio. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notSupported
   StartProfilerCapture()
   {
@@ -1284,7 +1284,7 @@ export class AudManager
   }
 
   /** Native Wwise profiler capture is unavailable in WebAudio. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notSupported
   StopProfilerCapture()
   {
@@ -1292,7 +1292,7 @@ export class AudManager
   }
 
   /** Native Wwise profiler capture is unavailable in WebAudio. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notSupported
   IsProfilerCapturing()
   {
@@ -1300,7 +1300,7 @@ export class AudManager
   }
 
   /** Carbon method ResetCullingSettings. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ResetCullingSettings()
   {

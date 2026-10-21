@@ -29,42 +29,42 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   _parameterMapping = [];
 
   /** m_parameters (PEveProceduralMethodRandomParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveProceduralMethodRandomParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_totalWeight (int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   totalWeight = 0;
 
   /** m_seedName (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   seedName = "";
 
   /** m_selectedChildIndex (int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   selectedChild = -1;
 
   /** m_seed (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   seed_temp = -1;
 

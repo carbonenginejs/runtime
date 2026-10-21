@@ -14,26 +14,26 @@ export class EveSOFDataRaceDamage
 {
 
   /** m_armorImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataParameter")
   armorImpactParameters = [];
 
   /** m_armorImpactTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataTexture")
   armorImpactTextures = [];
 
   /** m_shieldImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataParameter")
   shieldImpactParameters = [];
 
   /** m_shieldImpactTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataTexture")
   shieldImpactTextures = [];
 

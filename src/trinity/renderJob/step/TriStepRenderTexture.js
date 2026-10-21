@@ -15,42 +15,42 @@ export class TriStepRenderTexture extends TriRenderStep
 {
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_failClearColor (unsigned) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   failClearColor = 0;
 
   /** m_textureSize (Vector2) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec2
   textureSize = vec2.create();
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec2
   tlTexCoord = vec2.create();
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("ITr2TextureProvider")
   depthStencil = null;
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("ITr2TextureProvider")
   renderTarget = null;
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("ITr2TextureProvider")
   texture = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD). */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   __init__(source = null)
   {

@@ -94,7 +94,7 @@ export class TriSettings
    * registered setting; an unknown name throws RangeError, as Python's
    * LookupError.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   GetValue(name)
   {
@@ -107,7 +107,7 @@ export class TriSettings
    * through to the value it names. An unknown name throws RangeError; a value
    * whose type differs from the registered one throws TypeError.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   SetValue(name, value)
   {
@@ -154,7 +154,7 @@ export class TriSettings
    *
    * @returns {string} The settings representation.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   __repr__()
   {

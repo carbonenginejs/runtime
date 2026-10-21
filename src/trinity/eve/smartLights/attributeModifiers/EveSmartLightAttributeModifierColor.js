@@ -15,8 +15,8 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -28,32 +28,32 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   factionColor = -1;
 
   /** m_blendValue (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   blendValue = 1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useFactionColor = false;
 
   /** m_blendColor (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   blendColor = color.createLinear();
 
   /** m_brightnessMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   brightnessMultiplier = 1;
 
   /** m_saturationMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   saturationMultiplier = 1;
 
@@ -78,7 +78,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * The colour being used: Carbon's MAP_PROPERTY_READONLY "activeBlendColor"
    * over GetGroupColor (EveSmartLightAttributeModifierColor_Blue.cpp:24).
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.color
   get activeBlendColor()
   {

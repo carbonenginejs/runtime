@@ -19,27 +19,27 @@ export class TriVariableParameter extends CjsParameter
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   name = "";
 
   /** m_isUsedByEffect (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentTechnique = false;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentEffect = false;
 
   /** m_variableName (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   variableName = "";
 

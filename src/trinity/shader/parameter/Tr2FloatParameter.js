@@ -19,18 +19,18 @@ import { CjsParameter } from "./CjsParameter.js";
 @be.mapInterface(IInitialize)
 export class Tr2FloatParameter extends CjsParameter
 {
-  @blue.readwrite
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
+
   @type.float32
   value = 1;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   name = "";
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentEffect = false;
 

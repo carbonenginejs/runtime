@@ -68,57 +68,57 @@ export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.string
   name = "";
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("TriCurveSet")
   loop = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("TriCurveSet")
   start = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("TriCurveSet")
   end = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("Tr2Effect")
   effect = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("Tr2GpuSharedEmitter")
   destinationEmitter = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("Tr2GpuSharedEmitter")
   sourceEmitter = null;
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
  @type.uint32
   quadCount = 0;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("TriObserverLocal")
   destinationObserver = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("TriObserverLocal")
   sourceObserver = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("Tr2PointLight")
   destinationLight = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.rootRef("Tr2PointLight")
   sourceLight = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.float32
   boundingRadius = 100;
 

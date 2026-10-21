@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2TranslationTool.h
 // Source: trinity/trinity/Tr2TranslationTool.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -163,7 +164,7 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
   }
 
   /** m_translation (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   translation = vec3.create();
 

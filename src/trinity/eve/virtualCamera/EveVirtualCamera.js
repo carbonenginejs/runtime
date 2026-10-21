@@ -21,89 +21,89 @@ const SCRUB_MAX_ITERATIONS = 20;
 @blue.inherit(ITr2DebugRenderable)
 export class EveVirtualCamera
 {
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   position = vec3.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   pointOfInterestAnchorCenter = vec3.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   positionAnchorCenter = vec3.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("IEveSpaceObject2")
   pointOfInterestAnchors = [];
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("IEveSpaceObject2")
   positionAnchors = [];
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   localElapsedTime = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   pointOfInterest = vec3.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   pointOfInterestAnchorRadius = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   positionAnchorRadius = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   positionAnchorForwardDirection = vec3.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   pointOfInterestAnchorForwardDirection = vec3.create();
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveVirtualCameraBehaviourFloatBase")
   fovBehaviours = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveVirtualCameraBehaviourVector3Base")
   pointOfInterestBehaviours = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveVirtualCameraBehaviourVector3Base")
   positionBehaviours = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveVirtualCameraBehaviourFloatBase")
   rollBehaviours = [];
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   roll = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   fov = 1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   animationTimelineLength = 10;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "Virtual Camera";
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   running = false;
 
@@ -112,7 +112,7 @@ export class EveVirtualCamera
    * (EveVirtualCamera_Blue.cpp:29): the unit direction towards the point of
    * interest.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.vec3
   @meta.implemented
   get forward()
@@ -124,7 +124,7 @@ export class EveVirtualCamera
    * Carbon MAP_PROPERTY_READONLY "right" over GetRightDirection
    * (EveVirtualCamera_Blue.cpp:30): the unit right direction.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.vec3
   @meta.implemented
   get right()
@@ -136,7 +136,7 @@ export class EveVirtualCamera
    * Carbon MAP_PROPERTY_READONLY "up" over GetUpDirection
    * (EveVirtualCamera_Blue.cpp:31): the roll-adjusted unit up direction.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.vec3
   @meta.implemented
   get up()
@@ -148,7 +148,7 @@ export class EveVirtualCamera
    * Builds a D3D-handed look-at view matrix from the current position, point of
    * interest and roll-adjusted up direction.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetViewMatrix(out = mat4.create())
   {
@@ -163,7 +163,7 @@ export class EveVirtualCamera
    * @param {mat4} [out]
    * @returns {mat4}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetProjectionMatrix(aspectRatio, frontClip, backClip, out = mat4.create())
   {
@@ -258,7 +258,7 @@ export class EveVirtualCamera
   }
 
   /** Starts the local timeline advancing on subsequent updates. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Play()
   {
@@ -269,7 +269,7 @@ export class EveVirtualCamera
    * Freezes the local timeline without resetting it, so updates leave the
    * evaluated transform where it is.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Pause()
   {
@@ -277,7 +277,7 @@ export class EveVirtualCamera
   }
 
   /** Rewinds the local timeline to zero and stops it advancing. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Stop()
   {
@@ -297,7 +297,7 @@ export class EveVirtualCamera
    * Scrubs the camera to an absolute local time by replaying Update in fixed 1/60s steps so that stateful behaviours see a plausible history; the step count is capped at 20 and the step size grows to cover longer jumps. The camera is forced running for the scrub and its previous running state is restored afterwards.
    * @param {Number} time Target local elapsed time in seconds; may be negative
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   UpdateToLocalTime(time)
   {
@@ -341,7 +341,7 @@ export class EveVirtualCamera
    * Writes a transform supplied from outside directly onto the camera, used to
    * drive it from a host application or a transition instead of from behaviours.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   UpdateExternal(position, pointOfInterest, fov, roll)
   {

@@ -14,7 +14,7 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 @be.exposureChainTo(Tr2GrannyTrack)
 export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("IBlueEventListener")
   eventListener = null;
 

@@ -18,8 +18,8 @@ export class EveSOFDataParameterFloat extends EveSOFDataParameter
    * Native m_value (float) replaces the base vector in authored values.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   value = 0;
 

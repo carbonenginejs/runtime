@@ -23,8 +23,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -38,7 +38,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   _expressionYaw = "";
 
   /** Gets the live yaw expression text. @returns {string} Source text. */
-  @blue.property()
+  @be.mapProperty()
   @type.expression
   @meta.implemented
   get expressionYaw()
@@ -63,7 +63,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   _expressionPitch = "";
 
   /** Gets the live pitch expression text. @returns {string} Source text. */
-  @blue.property()
+  @be.mapProperty()
   @type.expression
   @meta.implemented
   get expressionPitch()
@@ -88,7 +88,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   _expressionRoll = "";
 
   /** Gets the live roll expression text. @returns {string} Source text. */
-  @blue.property()
+  @be.mapProperty()
   @type.expression
   @meta.implemented
   get expressionRoll()
@@ -107,7 +107,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Cached orientation quaternion produced from yaw, pitch and roll in radians.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   currentValue = quat.create();
 
@@ -115,8 +115,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Owned native scalar-function input list sampled by expression input lookup.
    * @type {BlueList<ITriScalarFunction>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriScalarFunction")
   inputs = new BlueList(ITriScalarFunction, { className: null, listOps: 0 });
 
@@ -124,8 +124,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * First authored scalar argument exposed to each rotation expression.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input1 = 0;
 
@@ -133,8 +133,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Second authored scalar argument exposed to each rotation expression.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input2 = 0;
 
@@ -142,8 +142,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Third authored scalar argument exposed to each rotation expression.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input3 = 0;
 
@@ -151,8 +151,8 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Fourth authored scalar argument exposed to each rotation expression.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input4 = 0;
 
@@ -420,7 +420,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   }
 
   /** Draws from the shared native-compatible CRT stream. @returns {void} */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ResetRandomConstant()
   {
@@ -432,7 +432,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * because this curve's outputs are angles. Uses the shared JavaScript term schema.
    * @returns {Array} Editor term descriptors.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -447,7 +447,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {string} expression Source text.
    * @returns {number} Evaluation result or zero.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   EvaluateExpression(expression)
   {

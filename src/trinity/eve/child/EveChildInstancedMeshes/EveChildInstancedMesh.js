@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h
 //   struct Mesh, nested in EveChildInstancedMeshes (line 132); flattened for JS
 //   under a name that drops the donor's plural. See EveChildInstancedMeshArea.js.
@@ -18,63 +19,63 @@ import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js"
 @meta.carbon("EveChildInstancedMeshes::Mesh")
 export class EveChildInstancedMesh
 {
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.path("TriGeometryRes")
   geometryPath = "";
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.boolean
   castsShadow = false;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.int32
   reflectionMode = 3;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   meshIndex = 0;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveChildInstancedMeshArea")
   areas = [];
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveChildInstancedMeshInstance")
   instances = [];
 
   /** Carbon's one-to-one modular ownership tag array for instances. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.array("uint32")
   partTags = [];
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.string
   sofHullName = "";
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.string
   sofLocatorSetName = "";
 
   // Carbon Mesh::ownedLocatorSets and Mesh::armorDamageShader
   // (EveChildInstancedMeshes.h:163-164), set by SOF BuildChild through AddMesh;
   // CarbonEngineJS delivers built objects as documents, so both persist.
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveLocatorSets")
   ownedLocatorSets = [];
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.boolean
   display = true;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.boolean
   inheritOverlayEffects = true;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveMeshOverlayEffect")
   ownOverlayEffects = [];
 

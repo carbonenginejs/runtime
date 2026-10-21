@@ -24,8 +24,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Name identifying this color-mixing function (native std::string m_name).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -33,8 +33,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * First authored RGBA endpoint, selected when lerpValue is zero (native Color m_color1).
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   color1 = color.createLinear();
 
@@ -42,8 +42,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Second authored RGBA endpoint, selected when lerpValue is one (native Color m_color2).
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   color2 = color.createLinear();
 
@@ -51,8 +51,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Interpolation factor from color1 to color2, without clamping (native float m_lerpValue).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lerpValue = 0;
 
@@ -60,8 +60,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Blend away from grayscale: zero gives grayscale and one preserves the mixed color (native float m_saturation).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   saturation = 1;
 
@@ -69,8 +69,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Multiplier applied to all four mixed-color components (native float m_brightness).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   brightness = 1;
 
@@ -79,8 +79,8 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * override (native float m_alphaOverride).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   alphaOverride = -1;
 
@@ -88,7 +88,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Mixed RGBA color cached by the last Update or UpdateValue call (native Color m_currentValue).
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.color
   currentValue = color.createLinear();
 
@@ -96,7 +96,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * currentValue converted from sRGB to linear by UpdateValue, alpha copied unchanged (native Color m_convertedLinearValue).
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.color
   convertedLinearValue = color.createLinear();
 

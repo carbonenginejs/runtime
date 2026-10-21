@@ -43,36 +43,36 @@ const RAY_DIR = vec3.create();
 @be.mapInterface(INotify)
 export class EveEllipsoidVolume extends IEveVolume
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   position = vec3.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.quat
   rotation = quat.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   innerShape = vec3.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   shape = vec3.create();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   debugShowIntersection = false;
 

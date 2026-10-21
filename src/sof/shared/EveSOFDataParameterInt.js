@@ -18,8 +18,8 @@ export class EveSOFDataParameterInt extends EveSOFDataParameter
    * Native m_value (int32_t) replaces the base vector in authored values.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   value = 0;
 

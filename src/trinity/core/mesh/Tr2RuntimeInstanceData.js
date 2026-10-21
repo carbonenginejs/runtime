@@ -50,13 +50,13 @@ export class Tr2RuntimeInstanceData
     return instance;
   }
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
@@ -96,8 +96,8 @@ export class Tr2RuntimeInstanceData
    * @type {vec3}
    */
   @meta.adapted
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ)
+
   @type.vec3
   aabbMin = vec3.create();
 
@@ -110,8 +110,8 @@ export class Tr2RuntimeInstanceData
    * @type {vec3}
    */
   @meta.adapted
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ)
+
   @type.vec3
   aabbMax = vec3.create();
 
@@ -249,7 +249,7 @@ export class Tr2RuntimeInstanceData
    * Replaces the element layout and discards every existing row - a layout must
    * be set before any SetData.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   @meta.invalidates("#dirty")
   SetElementLayout(layout)
@@ -262,7 +262,7 @@ export class Tr2RuntimeInstanceData
    * Replaces all instance rows and repacks the byte buffer; throws when no
    * layout has been set.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   @meta.invalidates("#dirty")
   SetData(rows)
@@ -274,7 +274,7 @@ export class Tr2RuntimeInstanceData
    * A detached copy of one instance row, with its component arrays cloned so the
    * caller cannot alias stored data.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   GetItem(index)
   {
@@ -286,7 +286,7 @@ export class Tr2RuntimeInstanceData
    * Validates one instance row against the layout, stores it and rewrites its
    * bytes in place, marking the data dirty.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   @meta.invalidates("#dirty")
   SetItem(index, row)
@@ -299,7 +299,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** A detached copy of one element of one instance row. */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   GetItemElement(index, elementIndex)
   {
@@ -312,7 +312,7 @@ export class Tr2RuntimeInstanceData
    * Validates and stores a single element of one row, patching only that
    * element's bytes in the packed buffer.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   @meta.invalidates("#dirty")
   SetItemElement(index, elementIndex, value)
@@ -333,7 +333,7 @@ export class Tr2RuntimeInstanceData
    * Publishes pending bytes to the shared AL allocation (cpp:442-458).
    * The JS dirty/revision counters also track publication before device setup.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   UpdateData()
   {
@@ -361,7 +361,7 @@ export class Tr2RuntimeInstanceData
    * explicitly, and zeroes the box when there is no such element or no
    * instances.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   UpdateBoundingBox()
   {
@@ -399,7 +399,7 @@ export class Tr2RuntimeInstanceData
    * Sets the box explicitly from either a { min, max } object or two vectors,
    * and latches explicitBoundingBox so UpdateBoundingBox stops recomputing it.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetBoundingBox(bounds, maxBounds)
   {
@@ -544,7 +544,7 @@ export class Tr2RuntimeInstanceData
    * Adapted: Maps Carbon vertex semantics into the maintained CPU particle-system
    * declaration without GPU buffers.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Spawn()
   {
@@ -640,7 +640,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Carbon's CMF writer requires the native resource-path and file encoder. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   SaveToCMF(...args)
   {

@@ -57,90 +57,90 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   _velocityElement = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2InstancedMesh")
   mesh = null;
 
   /** m_useSpaceObjectData (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useSpaceObjectData = true;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxSpeed = 0;
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   radius = 500;
 
   /** m_egoSpeed (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   egoSpeed = 0;
 
   /** m_positionShiftDecreaseSpeed (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   positionShiftDecreaseSpeed = 1000;
 
   /** m_positionShiftIncreaseSpeed (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   positionShiftIncreaseSpeed = 1000;
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_movementScale (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   movementScale = 1;
 
   /** m_positionShiftNormalized (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   positionShift = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_positionShiftMin (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   positionShiftMin = 100;
 
   /** m_positionShiftMax (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   positionShiftMax = 0;
 
@@ -150,7 +150,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * Adapted: Browser attribute generators bind to the CPU particle-system declaration while
    * retaining Carbon's shared element-claim validation.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Refresh()
   {
@@ -202,7 +202,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * MAP_PROPERTY_READONLY "isValid" over CheckBinding
    * (EveChildParticleSphere_Blue.cpp:18), so reading it binds on first use.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   get isValid()
   {

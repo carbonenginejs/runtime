@@ -16,19 +16,19 @@ import { meta, type, blue } from "#schema";
 
 export class EveSprite2dBracket
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2AtlasTexture")
   icon = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec2
   translation = vec2.create();
 

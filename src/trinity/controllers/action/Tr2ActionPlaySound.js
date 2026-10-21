@@ -15,26 +15,26 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 export class Tr2ActionPlaySound extends ITr2ControllerAction
 {
   /** m_emitterName: narrow BlueSharedString emitter lookup name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   emitter = "";
 
   /** m_soundEvent: narrow BlueSharedString, converted to wide text by native SendEvent. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   event = "";
 
   /** m_target: optional parameter or effect-child name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   target = "";
 
   /** m_bypassPrefix: whether SendEvent bypasses the emitter prefix. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   bypassPrefix = false;
 
@@ -66,7 +66,7 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    * timeline controllers. Native BluePythonCast accepts Tr2Controller specifically
    * (Tr2ActionPlaySound.cpp:52-61); narrowing this entry point is deferred.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   StartWithController(controller)
   {

@@ -385,7 +385,7 @@ export class EveComponentRegistry
    *
    * Adapted: Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetComponentInfo()
   {

@@ -20,8 +20,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -29,7 +29,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * Starting vector for the blend into the child curve; copied to output when no child exists.
    * @type {Float32Array}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec3
   initialValue = vec3.create();
 
@@ -46,8 +46,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * Child vector function sampled at time minus curveStartTime after the initial blend.
    * @type {ITriVectorFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriVectorFunction")
   curve = null;
 
@@ -55,8 +55,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * Seconds subtracted from child sampling time; positive values also define the initial blend duration.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   curveStartTime = 1;
 
@@ -64,7 +64,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * Cached vector produced by the most recent update.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   currentValue = vec3.create();
 

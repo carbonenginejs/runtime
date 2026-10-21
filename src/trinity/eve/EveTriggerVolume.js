@@ -46,44 +46,44 @@ export class EveTriggerVolume
 {
 
   /** Name identifier, passed to the callback so one handler can serve many trigger volumes. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** The volumes defining the trigger region. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveVolume")
   volumes = [];
 
   /** Volumes subtracted from the trigger region. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** Volume intensity (0..1) at which the tracked position counts as inside. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   enterThreshold = 0.5;
 
   /** External parameters exposing per-placement values, e.g. for dungeon asset manipulations. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_ballPosition: vector function slot placing the trigger volume. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_ballRotation: quaternion function slot rotating the trigger volume. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
@@ -92,17 +92,17 @@ export class EveTriggerVolume
    * exposes it READWRITE but NOT PERSIST (EveTriggerVolume_Blue.cpp:58-62) -
    * destiny wires it at runtime, so it never serializes.
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("ITriVectorFunction")
   trackedPositionCurve = null;
 
   /** Whether the tracked position is currently inside the trigger region. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isInside = false;
 
   /** m_currentIntensity: most recent evaluated volume intensity of the tracked position. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   intensity = 0;
 

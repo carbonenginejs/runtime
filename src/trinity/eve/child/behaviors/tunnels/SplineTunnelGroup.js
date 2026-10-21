@@ -36,37 +36,37 @@ export class SplineTunnelGroup
   tunnelGroupType = 2;
 
   /** m_curveSets (PTr2CurveVector3Vector) [READ, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
+
+
   @type.list("Tr2CurveVector3")
   curveSets = [];
 
   /** m_numBreakPoints (int32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.int32
   breakPoints = 2;
 
   /** m_tunnelWidth (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   tunnelWidth = 15;
 
   /** m_entrancePullSize (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   entrancePullSize = 50;
 
   /** m_entrySize (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   entrySize = 20;
 
@@ -111,7 +111,7 @@ export class SplineTunnelGroup
    * Adapted: a re-entrant call (the callback reading GetTunnels) returns the tunnels being built instead of starting
    * again, and the tunnels are returned.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.renamed("CreateSplineTunnels")
   @meta.adapted
   createSplineTunnels()

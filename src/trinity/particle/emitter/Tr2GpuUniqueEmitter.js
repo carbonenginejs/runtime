@@ -25,20 +25,20 @@ const SCALED_PARAMS = Tr2GpuSharedEmitter._createParams();
 @be.exposureChainTo(Tr2GpuSharedEmitter)
 export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   scaledByParent = false;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   attractorPosition = vec3.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   attractorStrength = 0;
 

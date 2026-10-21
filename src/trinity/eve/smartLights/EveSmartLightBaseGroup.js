@@ -44,20 +44,20 @@ export class EveSmartLightBaseGroup
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   customColor = color.createLinear();
 
@@ -115,7 +115,7 @@ export class EveSmartLightBaseGroup
    * GetGroupColor (EveSmartLightBaseGroup_Blue.cpp:18), so each group
    * subclass's own GetGroupColor answers it.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.color
   get activeColor()
   {

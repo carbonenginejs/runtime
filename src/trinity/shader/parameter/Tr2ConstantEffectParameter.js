@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, blue } from "#schema";
@@ -23,13 +24,13 @@ export class Tr2ConstantEffectParameter
 
   /** name (BlueSharedString) - persisted via the constParameters structure list. */
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.SHAREDSTRING_1(0)
   name = "";
 
   /** value (Vector4) - persisted via the constParameters structure list. */
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(8)
   value = vec4.create();
 

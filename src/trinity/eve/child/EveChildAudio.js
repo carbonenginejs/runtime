@@ -26,19 +26,19 @@ import { ITr2DebugRenderable } from "#interfaces";
 @be.mapInterface(INotify)
 export class EveChildAudio extends EveChildTransform
 {
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   name = "EveChildAudio";
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   mute = false;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.rootRef("ITr2AudEmitter")
   audioEmitter = null;
 
@@ -60,7 +60,7 @@ export class EveChildAudio extends EveChildTransform
   }
 
   /** Construction hook; forwards to Initialize. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   __init__()
   {
@@ -68,7 +68,7 @@ export class EveChildAudio extends EveChildTransform
   }
 
   /** Renames the underlying emitter without touching this child's own name field. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetEmitterName(name)
   {

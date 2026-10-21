@@ -12,8 +12,8 @@ export class TriStepTestBlocking extends TriRenderStep
 {
 
   /** m_inProgress (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   inProgress = true;
 

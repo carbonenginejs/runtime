@@ -16,8 +16,8 @@ export class EveSOFDataBoosterShape
    * Numeric noise-function selector retained in authored and projected shape data (native float).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   noiseFunction = 0;
 
@@ -25,8 +25,8 @@ export class EveSOFDataBoosterShape
    * Animation-speed control for the shape noise; shader-domain units are not converted here.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   noiseSpeed = 0;
 
@@ -34,8 +34,8 @@ export class EveSOFDataBoosterShape
    * Four-component noise amplitude at the start of the plume; native member and exposure retain the Ampliture spelling.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   noiseAmplitureStart = vec4.create();
 
@@ -43,8 +43,8 @@ export class EveSOFDataBoosterShape
    * Four-component noise amplitude at the end of the plume; native member and exposure retain the Ampliture spelling.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   noiseAmplitureEnd = vec4.create();
 
@@ -52,8 +52,8 @@ export class EveSOFDataBoosterShape
    * Four-component frequency control for the plume noise; forwarded unchanged to the shape parameters.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   noiseFrequency = vec4.create();
 
@@ -61,8 +61,8 @@ export class EveSOFDataBoosterShape
    * Color weight for this booster plume shape.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   color = vec4.create();
 

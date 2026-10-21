@@ -24,12 +24,12 @@ export class Tr2ManipulationTool
   moveCallback = null;
 
   /** m_captured (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   captured = false;
 
   /** m_primitives (PTr2PrimitiveSetVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("Tr2PrimitiveSet")
   primitives = [];
 
@@ -39,23 +39,23 @@ export class Tr2ManipulationTool
   _userData = null;
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   localTransform = mat4.create();
 
   /** m_pivot (Vector3) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec3
   pivot = vec3.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.mat4
   worldTransform = mat4.create();
 
   /** Carbon method SetMoveCallback (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetMoveCallback(callback)
   {
@@ -63,7 +63,7 @@ export class Tr2ManipulationTool
   }
 
   /** Carbon method SelectAxis (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SelectAxis(axisName)
   {
@@ -91,7 +91,7 @@ export class Tr2ManipulationTool
   }
 
   /** Carbon method Init (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Init(initialTransform)
   {

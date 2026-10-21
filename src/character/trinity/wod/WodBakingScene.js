@@ -26,7 +26,7 @@ export class WodBakingScene
   visualizeMethod = 0;
 
   /** m_skinnedObject (Tr2SkinnedObjectPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2SkinnedObject")
   Avatar = null;
 

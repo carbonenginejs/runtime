@@ -13,8 +13,8 @@ export class Tr2BindingVector3
 {
 
   /** m_value (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   value = vec3.create();
 

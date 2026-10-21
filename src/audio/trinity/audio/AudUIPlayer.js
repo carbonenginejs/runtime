@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudUIPlayer.h + AudUIPlayer.cpp
 // Hand-owned since 2026-07-23 (behavior port); the generator skips this file.
 // Verify against audio/AudUIPlayer.json.
@@ -62,7 +63,7 @@ export class AudUIPlayer extends AudEmitter
    * @param {number} playingID Event playing identifier.
    * @returns {number} Elapsed milliseconds, or -1.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetEventPlayPosition(playingID)
   {
@@ -75,7 +76,7 @@ export class AudUIPlayer extends AudEmitter
   }
 
   /** Carbon method PostDialogueEvent (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   PostDialogueEvent(eventName)
   {
@@ -100,7 +101,7 @@ export class AudUIPlayer extends AudEmitter
    * @param {string} name Event name.
    * @returns {number} Playing identifier, or zero when not posted.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SendEventWithCallback(name)
   {

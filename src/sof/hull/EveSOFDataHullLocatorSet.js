@@ -11,14 +11,14 @@ export class EveSOFDataHullLocatorSet extends IEveSOFDataHullLocatorSet
 {
 
   /** m_locators (PEveSOFDataTransformVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataTransform")
   locators = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

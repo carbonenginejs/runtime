@@ -23,13 +23,13 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   customName = "";
 
   /** m_valid (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   valid = false;
 
@@ -38,7 +38,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
    * (Tr2RandomDirectionAttributeGenerator_Blue.cpp:16): the element name composed of type and
    * customName.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.string
   @meta.implemented
   get name()
@@ -51,7 +51,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
    * (Tr2RandomDirectionAttributeGenerator_Blue.cpp:25): the bound element's dimension, or 0 when
    * unbound.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.uint32
   @meta.implemented
   get dimension()

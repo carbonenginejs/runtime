@@ -59,8 +59,8 @@ export class Tr2RenderTarget
 {
 
   /** m_name (std::string) [PERSISTONLY] */
-  @blue.readwrite
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
+
   @type.string
   name = "";
 
@@ -124,7 +124,7 @@ export class Tr2RenderTarget
   /**
    * Carbon `py__init__` (`cpp:59-74`): creates when given a size and a format.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(width = 0, height = 0, mipCount = 1, format = PixelFormat.PIXEL_FORMAT_UNKNOWN, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D)
   {
@@ -139,7 +139,7 @@ export class Tr2RenderTarget
    *
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   Create(width, height, mipLevelCount, format, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -341,7 +341,7 @@ export class Tr2RenderTarget
    *
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GenerateMipMaps(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -354,7 +354,7 @@ export class Tr2RenderTarget
    * @param {Tr2RenderTarget} destination The render target to resolve into.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Resolve(destination, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -363,7 +363,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon Tr2RenderTarget::HasALObject always reports false (cpp:389-392). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasALObject(_type, _object)
   {
@@ -371,7 +371,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetSharedHandle` (`cpp:400-403`), exposed as `sharedHandle`. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   sharedHandle()
   {

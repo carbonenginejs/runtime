@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTexture.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTexture.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTexture_Blue.cpp
@@ -25,49 +26,49 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
 {
 
   /** m_rotationCenter (Vector2) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   rotationCenter = vec2.fromValues(0.5, 0.5);
 
   /** m_scalingCenter (Vector2) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   scalingCenter = vec2.fromValues(0.5, 0.5);
 
   /** m_useTransform (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   useTransform = false;
 
   /** m_name (std::wstring) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.wstring
   name = "";
 
   /** m_rotation (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   rotation = 0;
 
   /** m_scale (Vector2) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   scale = vec2.fromValues(1, 1);
 
   /** m_scalingRotation (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   scalingRotation = 0;
 
   /** m_translation (Vector2) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   translation = vec2.create();
 
@@ -426,7 +427,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue resPath property. */
-  @blue.property()
+  @be.mapProperty()
   @type.path
   get resPath()
   {
@@ -440,7 +441,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue atlasTexture property. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("Tr2AtlasTexture")
   get atlasTexture()
   {
@@ -454,7 +455,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue repeatMode property. */
-  @blue.property()
+  @be.mapProperty()
   @type.int32
   get repeatMode()
   {
@@ -468,7 +469,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcX property. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get srcX()
   {
@@ -482,7 +483,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcY property. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get srcY()
   {
@@ -496,7 +497,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcWidth property. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get srcWidth()
   {
@@ -510,7 +511,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcHeight property. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   get srcHeight()
   {
@@ -524,7 +525,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue tileX property. */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   get tileX()
   {
@@ -538,7 +539,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue tileY property. */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   get tileY()
   {

@@ -23,12 +23,12 @@ export class TriStepRenderDebug extends TriRenderStep
   text3d = [];
 
   /** m_autoClear (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   autoClear = true;
 
   /** Carbon method Clear (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
   {
@@ -38,7 +38,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method DrawBox (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   DrawBox(min, max, color = 0xffffffff)
   {
@@ -46,7 +46,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method DrawCapsule (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   DrawCapsule(start, end, radius, segments, color = 0xffffffff)
   {
@@ -56,7 +56,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method DrawCone (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   DrawCone(start, end, radius, segments, color = 0xffffffff)
   {
@@ -64,7 +64,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method DrawCylinder (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   DrawCylinder(start, end, radius, segments, color = 0xffffffff)
   {
@@ -72,7 +72,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method DrawLine -> PyDrawLine (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   DrawLine(from, fromColor, to, toColor)
   {
@@ -80,7 +80,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method DrawSphere (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   DrawSphere(center, radius, segments, color = 0xffffffff)
   {
@@ -88,7 +88,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method Print3D (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Print3D(position, color, message)
   {
@@ -96,7 +96,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method Print2D (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Print2D(x, y, color, message)
   {
@@ -104,7 +104,7 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /** Carbon method Print2Df (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Print2Df(x, y, width, height, format, color, message)
   {

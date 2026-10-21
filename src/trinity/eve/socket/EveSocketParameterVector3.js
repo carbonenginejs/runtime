@@ -13,8 +13,8 @@ export class EveSocketParameterVector3 extends EveSocketParameterBindingBase
 {
 
   /** m_value (Vector3) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   value = vec3.create();
 
@@ -75,7 +75,7 @@ export class EveSocketParameterVector3 extends EveSocketParameterBindingBase
    * Restores the first captured default into the existing value vector, or
    * zeroes it when nothing was captured.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetValueToDefault()
   {

@@ -27,8 +27,8 @@ export class TriColorSequencer extends ITriColorFunction
    * Authored name identifying the color sequencer; native wide string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   name = "";
 
@@ -37,8 +37,8 @@ export class TriColorSequencer extends ITriColorFunction
    * does not apply it.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int64
   start = 0;
 
@@ -47,8 +47,8 @@ export class TriColorSequencer extends ITriColorFunction
    * here.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   value = vec4.create();
 
@@ -67,8 +67,8 @@ export class TriColorSequencer extends ITriColorFunction
    * Ordered child color functions sampled and combined at the supplied time.
    * @type {BlueList<ITriColorFunction>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriColorFunction")
   functions = new BlueList(ITriColorFunction, { className: null, listOps: 0 });
 

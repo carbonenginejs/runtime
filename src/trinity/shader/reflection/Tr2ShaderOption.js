@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { meta, blue } from "#schema";
 
@@ -19,13 +20,13 @@ export class Tr2ShaderOption
 
   /** name (BlueSharedString) */
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.SHAREDSTRING_1(0)
   name = "";
 
   /** value (BlueSharedString) */
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.SHAREDSTRING_1(8)
   value = "";
 

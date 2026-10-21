@@ -20,7 +20,7 @@ export class Tr2ScalarFader
    * to 1.
    * @type {number}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   value = 0;
 
@@ -28,7 +28,7 @@ export class Tr2ScalarFader
    * Signed rate of change in envelope units per second; zero stops the linear fade.
    * @type {number}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   fading = 0;
 
@@ -37,7 +37,7 @@ export class Tr2ScalarFader
    * zero.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   fadeTime = -1;
 

@@ -21,13 +21,13 @@ const DEBUG_TO = vec3.create();
 @be.define("Tr2ParticleAttractorForce")
 export class Tr2ParticleAttractorForce extends ITr2ParticleForce
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   position = vec3.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   magnitude = 1;
 

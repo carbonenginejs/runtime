@@ -38,18 +38,18 @@ const TRI_2PI = Math.fround(6.283185307);
 @be.mapInterface(INotify)
 export class Tr2SpotLight extends Tr2Light
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
@@ -75,8 +75,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.position (Vector3) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:19). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   get position()
   {
@@ -90,8 +90,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.rotation (Quaternion) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:20). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   get rotation()
   {
@@ -105,9 +105,9 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.boneIndex (int32_t) [READWRITE, PERSIST, NOTIFY] (Tr2SpotLight_Blue.cpp:21). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.int32
   get boneIndex()
   {
@@ -121,8 +121,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.radius (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:23). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get radius()
   {
@@ -136,8 +136,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.innerRadius (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:24). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get innerRadius()
   {
@@ -151,8 +151,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.innerAngle (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:26). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get innerAngle()
   {
@@ -166,8 +166,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.outerAngle (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:27). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get outerAngle()
   {
@@ -181,9 +181,9 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.color (Color) [READWRITE, PERSIST, NOTIFY] (Tr2SpotLight_Blue.cpp:29). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.color
   get color()
   {
@@ -197,9 +197,9 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.brightness (float) [READWRITE, PERSIST, NOTIFY] (Tr2SpotLight_Blue.cpp:30). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   get brightness()
   {
@@ -213,8 +213,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.noiseAmplitude (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:32). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get noiseAmplitude()
   {
@@ -228,8 +228,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.noiseFrequency (float) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:33). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get noiseFrequency()
   {
@@ -243,8 +243,8 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.noiseOctaves (uint32_t) [READWRITE, PERSIST] (Tr2SpotLight_Blue.cpp:34). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   get noiseOctaves()
   {
@@ -275,9 +275,9 @@ export class Tr2SpotLight extends Tr2Light
   }
 
   /** m_lightData.isVolumetric (bool) [READWRITE, PERSIST, NOTIFY] (Tr2SpotLight_Blue.cpp:37). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.boolean
   get isVolumetric()
   {

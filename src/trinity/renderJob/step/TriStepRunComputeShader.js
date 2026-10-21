@@ -13,37 +13,37 @@ export class TriStepRunComputeShader extends TriRenderStep
 {
 
   /** m_groupDimX (unsigned) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   groupDimX = 1;
 
   /** m_groupDimY (unsigned) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   groupDimY = 1;
 
   /** m_groupDimZ (unsigned) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   groupDimZ = 1;
 
   /** m_effect (Tr2MaterialPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2Material")
   effect = null;
 
   /** m_indirectionBuffer (ITr2GpuBufferPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("ITr2GpuBuffer")
   indirectionBuffer = null;
 
   /** m_offsetForArgs (uint32_t) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   offsetForArgs = 0;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(effect = null, groupDimX = 1, groupDimY = 1, groupDimZ = 1)
   {

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.h
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
@@ -58,61 +59,61 @@ function updateBoundingSphere(cloud)
 @blue.interface(ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild)
 export class EveChildCloud extends EveSpaceObjectChild
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   sortingModifier = 1;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint64
   currentLod = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minScreenSize = 0;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   preTesselationLevel = 32;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Material")
   effect = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveCloudEditableVolume")
   volume = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   cellScreenSize = 0.3;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec4
   boundingSphere = vec4.create();
 

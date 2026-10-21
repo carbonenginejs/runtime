@@ -99,57 +99,57 @@ export class EveSpaceObjectDecal
     return true;
   }
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   @type.enum("trinity.TriBatchType")
   batchType = 1;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.vec3
   position = vec3.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minScreenSize = 0;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.quat
   rotation = quat.create();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   parentBoneIndex = -1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   decalEffect = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
   // SOF-authored per-LOD triangle indices; persisted so the values
   // interchange reproduces Carbon's hidden decal geometry selection.
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.array("unknown")
   staticIndexBuffers = [];
 
@@ -214,7 +214,7 @@ export class EveSpaceObjectDecal
    * Property form of HasStaticIndexBuffers: whether any LOD carries decal
    * triangle indices.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   get hasStaticIndexBuffers()
   {
@@ -402,7 +402,7 @@ export class EveSpaceObjectDecal
    * The per-LOD triangle index lists as fresh copies, so a caller cannot mutate
    * the stored buffers.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetStaticIndexBuffers()
   {
@@ -421,7 +421,7 @@ export class EveSpaceObjectDecal
   }
 
   /** The triangle count per LOD, being each index list's length divided by three. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetDecalPrimitiveCounts()
   {

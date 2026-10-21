@@ -28,15 +28,15 @@ import { EveMissileWarhead } from "./EveMissileWarhead.js";
 @be.exposureChainTo(EveSpaceObject2)
 export class EveMissile extends EveSpaceObject2
 {
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveMissileWarhead") warheads = [];
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean updateWarheads = true;
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @meta.reference
   @type.rootRef("ITriTargetable") target = null;
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32 targetRadius = 0;
   @blue.readwrite
   @type.rawStruct("BlueScriptCallback") explosionCallback = null;
@@ -81,7 +81,7 @@ export class EveMissile extends EveSpaceObject2
    * the estimated flying time, resets the flight clock, and silences warhead
    * emitting.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Start(shipVelocity, estimatedFlyingTime)
   {
@@ -218,7 +218,7 @@ export class EveMissile extends EveSpaceObject2
    * Recomputes the missile's local bounding sphere as the union of its warheads'
    * local spheres.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RebuildMissileBoundingSphere()
   {

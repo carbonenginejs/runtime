@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer_Blue.cpp
@@ -49,23 +50,23 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   }
 
   /** m_backgroundColor (Color) [READWRITE, PERSIST, NOTIFY]: clear colour when `clearBackground` is set. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.color
   backgroundColor = vec4.fromValues(0, 0, 0, 0);
 
   /** m_color (Color) [READWRITE, PERSIST, NOTIFY]: tint of the layer sprite. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_clearBackground (bool) [READWRITE, PERSIST, NOTIFY]: whether the target is cleared before the children draw. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   clearBackground = true;
 
@@ -84,7 +85,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   spriteEffect = Tr2SpriteObjectEffect.TR2_SFX_COPY;
 
   /** textureSecondary (MAP_PROPERTY GetTextureSecondary/SetTextureSecondary): secondary texture for the layer sprite. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("ITr2Sprite2dTexture")
   get textureSecondary()
   {
@@ -105,8 +106,8 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * PERSIST, where Tr2Sprite2dContainerBase exposes it READ only. The redeclaration keeps the
    * list the base constructor created and wired for notifications.
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2SpriteObject")
   children = this.children;
 

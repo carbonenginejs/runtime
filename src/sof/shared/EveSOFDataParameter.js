@@ -29,8 +29,8 @@ export class EveSOFDataParameter
    * (BlueSharedString).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -39,8 +39,8 @@ export class EveSOFDataParameter
    * m_value (Vector4); typed subclasses provide their own value representation.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   value = vec4.create();
 

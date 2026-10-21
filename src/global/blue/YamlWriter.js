@@ -37,7 +37,7 @@ export class YamlWriter extends IRootWriter
    * @param {object} stream Host IBlueStream-shaped sink with Write(bytes, size).
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   WriteObjectToStream(root, stream)
   {
@@ -59,7 +59,7 @@ export class YamlWriter extends IRootWriter
    * @param {object} root Root object.
    * @returns {string} Red text.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   WriteObjectToString(root)
   {

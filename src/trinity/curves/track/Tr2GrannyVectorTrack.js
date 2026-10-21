@@ -14,7 +14,7 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 @be.exposureChainTo(Tr2GrannyTrack)
 export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 {
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   value = 0;
 

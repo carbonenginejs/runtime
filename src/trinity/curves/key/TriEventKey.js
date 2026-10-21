@@ -15,14 +15,14 @@ import { type, blue } from "#schema";
 export class TriEventKey
 {
   /** Event time in seconds. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   time = 0;
 
   /** Native wide event string, persisted independently of the callable. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   value = "";
 

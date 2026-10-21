@@ -55,12 +55,12 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
   }
 
   /** m_iconAtlas (Tr2AtlasTexturePtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2AtlasTexture")
   iconAtlas = null;
 
   /** m_brackets (PEveSprite2dBracketVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("EveSprite2dBracket")
   brackets = [];
 

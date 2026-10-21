@@ -25,8 +25,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Authored name identifying the follow curve.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -35,8 +35,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * removal notifications sort them by key time in seconds.
    * @type {BlueList<ITr2FollowCurveKey>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2FollowCurveKey")
   keys = new BlueList(ITr2FollowCurveKey, { className: null, listOps: 0 });
 
@@ -44,7 +44,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Cached three-component position from the latest UpdateValue or Update.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   currentValue = vec3.create();
 

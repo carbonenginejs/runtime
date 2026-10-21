@@ -29,36 +29,36 @@ export class EveChildPostProcessVolume extends EveChildTransform
 {
 
   /** m_volumes (PIEveVolumeVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveVolume")
   volumes = [];
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** m_boundingSphere.center (CcpMath::Sphere) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   boundingSphereCenter = null;
 
   /** m_boundingSphere.radius (CcpMath::Sphere) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   boundingSphereRadius = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_postProcessAttributes (Tr2PostProcessAttributesPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2PostProcessAttributes")
   postProcessAttributes = null;
 

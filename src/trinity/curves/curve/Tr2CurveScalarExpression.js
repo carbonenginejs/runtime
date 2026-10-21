@@ -27,8 +27,8 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 export class Tr2CurveScalarExpression extends ITriScalarFunction
 {
   /** Authored narrow-string name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -39,7 +39,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   _expression = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @blue.property()
+  @be.mapProperty()
   @type.expression
   @meta.implemented
   get expression()
@@ -55,7 +55,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   }
 
   /** Cached value after the last update. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   currentValue = 0;
 
@@ -66,32 +66,32 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   _compiledSource = "";
 
   /** Owned scalar input functions in native declaration order. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriScalarFunction")
   inputs = [];
 
   /** First authored scalar argument. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input1 = 0;
 
   /** Second authored scalar argument. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input2 = 0;
 
   /** Third authored scalar argument. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input3 = 0;
 
   /** Fourth authored scalar argument. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input4 = 0;
 
@@ -272,7 +272,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Regenerates the random constant.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ResetRandomConstant()
   {
@@ -283,7 +283,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Gets expression terms exposed by this curve.
    * Adapted: returns the existing JavaScript expression-term records.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -294,7 +294,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Evaluates an arbitrary expression with this curve's context.
    * Adapted: retains the JavaScript compiler and zero-on-invalid result contract.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   EvaluateExpression(expression)
   {

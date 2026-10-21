@@ -57,9 +57,9 @@ export class Tr2GpuBuffer
   format = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   count = 0;
 
@@ -200,7 +200,7 @@ export class Tr2GpuBuffer
   }
 
   /** Carbon method __init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.notImplemented
   __init__(...args)
   {

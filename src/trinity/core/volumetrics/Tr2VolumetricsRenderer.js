@@ -59,88 +59,88 @@ export class Tr2VolumetricsRenderer
   @type.enum("trinity.Tr2VolumerticQuality")
   quality = Tr2VolumerticQuality.High;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2TextureReference")
   mieEnvironmentMap = new Tr2TextureReference();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   blur = true;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   logBlending = true;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   gameBackClip = 1e6;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   backgroundVisibility = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   thickness = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   environmentDirectionality = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   lightDirectionality = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   godRayNoiseAnimationSpeed = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   fogNoiseMovementSpeed = vec3.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.color
   fogColor = vec4.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   godRayNoiseFrequency = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   fogNoiseFrequency = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   godRayNoiseIntensity = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   fogNoiseIntensity = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float64
   logBlendingSmoothness = 4;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   environmentIntensity = 0;
 
   /** The blended reflection intensity (m_froxelFogSettings.reflectionIntensity, Blue read-only). */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   reflectionIntensity = 1;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   castShadows = false;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   receiveShadows = false;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   scaleFactor = 0.7;
 

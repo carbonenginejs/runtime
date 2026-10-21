@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 
 /** One authored paper-doll resource selection at a resolved modifier location. */
@@ -5,18 +6,18 @@ import { meta, type } from "#schema";
 export class CjsCharacterModifierSelection
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.rootRef("CjsCharacterModifierLocation")
     modifierLocationID = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.rootRef("CjsCharacterResource")
     paperdollResourceID = null;
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.int32
     paperdollResourceVariation = 0;
 

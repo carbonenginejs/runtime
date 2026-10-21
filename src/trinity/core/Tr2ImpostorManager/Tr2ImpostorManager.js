@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ImpostorManager.h
 // Source: trinity/trinity/Tr2ImpostorManager.cpp
 // Source: trinity/trinity/Tr2ImpostorManager_Blue.cpp
@@ -43,51 +44,51 @@ export class Tr2ImpostorManager
 {
 
   /** m_height (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   height = 1024;
 
   /** m_width (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   width = 1024;
 
   /** m_rt (Tr2RenderTargetPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2RenderTarget")
   atlas = null;
 
   /** m_itemHeight (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   itemHeight = 32;
 
   /** m_itemWidth (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   itemWidth = 32;
 
   /** m_effect (Tr2EffectPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_maxUpdates (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   maxUpdates = 16;
 
   /** Native READ projection of the live impostor table. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.uint32
   get count()
   {

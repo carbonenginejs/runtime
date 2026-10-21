@@ -29,75 +29,75 @@ export const IMPACT_ARMOR_SIZE_MAX = 10;
 
 export class EveDamageOverlay
 {
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   impactDataNextIdx = 1;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint64
   armorImpactGoalCount = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   armorImpactParentSize = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   renderPriority = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   seed = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   armorImpactLifeTime = 10;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   debugForceSpawnDebris = false;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2ScalarFader")
   armorRepairing = new Tr2ScalarFader();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2ScalarFader")
   armorHardening = new Tr2ScalarFader();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2ScalarFader")
   hullRepairing = new Tr2ScalarFader();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   hullDamageFactor = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   @type.enum("trinity.ITriTargetable.ImpactConfiguration")
   configuration = ImpactConfiguration.IMPACT_INVALID;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   damageLocatorCount = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   dataTextureBlockID = -1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("TriPerlinCurve")
   hullDamageFlickerCurve = null;
 
@@ -329,14 +329,14 @@ export class EveDamageOverlay
   }
 
   /** Returns the lifetime of one armour impact. */
-  @blue.method
+  @be.mapMethodAndWrap()
   GetArmorImpactLifeTime()
   {
     return this.armorImpactLifeTime;
   }
 
   /** Copies the last shield, armour and hull values into a caller-owned vector (Carbon returns it by value, cpp:209). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetLastDamageState(out)
   {
@@ -492,7 +492,7 @@ export class EveDamageOverlay
   }
 
   /** Starts or stops a named armour or hull fader. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ToggleEffect(name, on, duration)
   {
@@ -506,7 +506,7 @@ export class EveDamageOverlay
   }
 
   /** Applies shield, armour and hull state and optionally creates armour impacts. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetDamageState(shield, armor, hull, createArmorImpacts = false)
   {
@@ -554,7 +554,7 @@ export class EveDamageOverlay
   }
 
   /** Removes every live armour impact. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Clear()
   {
@@ -562,7 +562,7 @@ export class EveDamageOverlay
   }
 
   /** Creates or enlarges an armour impact at a damage locator. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   CreateImpact(damageLocatorIndex, size, spawnEffects = false)
   {

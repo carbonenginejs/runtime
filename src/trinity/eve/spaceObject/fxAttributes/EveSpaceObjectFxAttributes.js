@@ -79,58 +79,58 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
   _initialized = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_activationStrength (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   activationStrength = 1;
 
   /** m_activeTurretCount (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   activeTurretCount = 0;
 
   /** m_distanceToChildParent (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   childParent = 0;
 
   /** m_generatedShapeEllipsoidCenter (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   generatedShapeEllipsoidCenter = vec3.create();
 
   /** m_generatedShapeEllipsoidRadius (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   generatedShapeEllipsoidRadius = vec3.create();
 
   /** m_killCount (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   killCount = 0;
 
   /** m_distanceToShip (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   ship = 0;
 
   /** m_boundingSphereRadius (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   boundingSphereRadius = 0;
 
   /** m_parentWorldRotation (Quaternion) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   parentWorldRotation = quat.fromValues(0, 0, 0, 0);
 
   /** m_parentWorldTranslation (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   parentWorldTranslation = vec3.create();
 

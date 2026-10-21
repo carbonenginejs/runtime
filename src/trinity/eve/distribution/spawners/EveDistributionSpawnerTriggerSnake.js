@@ -23,36 +23,36 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   _travelDurationToNextPoint = 1;
 
   /** m_minTimeBetweenTriggers (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minBaseTimeBetweenTriggers = 1;
 
   /** m_maxTimeBetweenTriggers (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxBaseTimeBetweenTriggers = 1;
 
   /** m_travelProgress (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   travelProgress = 1;
 
   /** m_numDestinationsReached (int32_t) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   destinationsReached = 0;
 
   /** m_totalDestinations (int32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   totalDestinations = 5;
 
   /** m_distanceToTravelTimeMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   distanceToTravelTimeMultiplier = 0;
 

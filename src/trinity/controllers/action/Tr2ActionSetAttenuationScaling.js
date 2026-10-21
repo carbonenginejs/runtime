@@ -15,25 +15,25 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
 {
   /** m_emitterName: narrow emitter lookup name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   emitter = "";
 
   /** m_controllerVariableName: optional variable sampled from the linked controller. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   controllerVariable = "";
 
   /** m_scalingFactor: authored attenuation multiplier. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   scalingFactor = 1;
 
   /** Live native READ property; samples the currently linked controller. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.float32
   @meta.implemented
   get finalScalingFactor()
@@ -81,7 +81,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * Adapted: JavaScript TypeError represents native PyErr_SetString for null.
    * @param {ITr2ActionController} controller The invoking controller.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   StartWithController(controller)
   {

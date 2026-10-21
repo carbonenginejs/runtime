@@ -14,8 +14,8 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 @be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierAttachToBone extends IEveChildTransformModifier
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   boneIndex = -1;
 

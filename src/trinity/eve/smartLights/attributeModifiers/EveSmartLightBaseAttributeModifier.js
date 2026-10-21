@@ -23,72 +23,72 @@ export class EveSmartLightBaseAttributeModifier
   lifeTimeFormula = 0;
 
   /** m_activationOverLifetime (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2CurveScalar")
   activationOverLifetime = null;
 
   /** m_activationValue (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   activationValue = 1;
 
   /** m_playTime (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   playTime = 0;
 
   /** m_crossFadeDuration (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   crossFadeDuration = 1;
 
   /** m_crossFadeIntensity (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   crossFadeIntensity = 1;
 
   /** m_perInstanceOffset (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   perInstanceOffset = 0;
 
   /** m_activationStrength (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   attributeMultiplier = 1;
 
   /** m_startsActive (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   startsActive = true;
 
   /** m_restartPlayTimeWhenInactive (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   restartPlayTimeWhenInactive = true;
 
   /** m_finalActivationStrength (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   finalAttributeMultiplier = 1;
 
   /** m_active (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   active = true;
 
   /** m_delayedActivation (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   delayedActivation = 0;
 

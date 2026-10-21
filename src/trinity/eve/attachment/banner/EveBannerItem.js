@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp
 import { box3 } from "#math/box3";
@@ -50,7 +51,7 @@ export class EveBannerItem
 
   // Carbon keeps this as private structure metadata, but SOF-authored banner
   // identity is part of the editable description in CarbonEngineJS.
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.int32
   reference = 0;
 

@@ -29,45 +29,45 @@ export class AudEventCurve
   extrapolation = 0;
 
   /** m_time (double) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float64
   time = 0;
 
   /** m_length (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   length = 0;
 
   /** m_localTime (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   localTime = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_value (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   value = "";
 
   /** m_sourceTriObserver (ITriObserverLocalPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriObserverLocal")
   sourceTriObserver = null;
 
   /** m_keys (PAudEventKeyVector) [PERSISTONLY] */
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
   @type.list("AudEventKey")
   keys = [];
 
   /** m_audioEmitter (AudEmitterPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("AudEmitter")
   audioEmitter = null;
 
@@ -77,7 +77,7 @@ export class AudEventCurve
   _queuedEvent = "";
 
   /** Carbon method AddKey (MAP_METHOD_AND_WRAP). Appends a key and resorts. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddKey(time, evtName)
   {
@@ -99,7 +99,7 @@ export class AudEventCurve
   }
 
   /** Carbon method GetKeyCount (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyCount()
   {
@@ -107,7 +107,7 @@ export class AudEventCurve
   }
 
   /** Carbon method GetKeyTime (MAP_METHOD_AND_WRAP). Returns 0 out of range. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyTime(ix)
   {
@@ -115,7 +115,7 @@ export class AudEventCurve
   }
 
   /** Carbon method GetKeyValue (MAP_METHOD_AND_WRAP). Returns "" out of range. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyValue(ix)
   {
@@ -123,7 +123,7 @@ export class AudEventCurve
   }
 
   /** Carbon method SetKeyTime (MAP_METHOD_AND_WRAP). Resorts and refreshes length. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetKeyTime(ix, time)
   {
@@ -137,7 +137,7 @@ export class AudEventCurve
   }
 
   /** Carbon method SetKeyValue (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetKeyValue(ix, value)
   {
@@ -149,7 +149,7 @@ export class AudEventCurve
 
   // Carbon leaves length untouched when the last key is removed - preserved.
   /** Carbon method RemoveKey (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RemoveKey(ix)
   {
@@ -221,7 +221,7 @@ export class AudEventCurve
   }
 
   /** Carbon method GetSourceTriObserver (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetSourceTriObserver()
   {
@@ -229,7 +229,7 @@ export class AudEventCurve
   }
 
   /** Carbon method SetSourceTriObserver (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetSourceTriObserver(sourceTriObserver)
   {

@@ -20,8 +20,8 @@ export class Tr2PPGenericEffect extends Tr2PPEffect
   @type.enum("trinity.PostProcess.Quality")
   quality = 1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effect = null;
 

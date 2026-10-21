@@ -24,18 +24,18 @@ export class Tr2RenderNodeEffect
   renderingMode = 8;
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_viewport (TriViewportPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("TriViewport")
   viewport = null;
 
   /** m_inputNodes (PITr2RenderNodeVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2RenderNode")
   inputNodes = [];
 
@@ -84,7 +84,7 @@ export class Tr2RenderNodeEffect
   }
 
   /** Carbon method AddSource (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddSource(name, source, outputName = "")
   {

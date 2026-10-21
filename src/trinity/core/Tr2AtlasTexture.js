@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2AtlasTexture.h
 // Source: trinity/trinity/Tr2AtlasTexture.cpp
 // Source: trinity/trinity/Tr2AtlasTexture_Blue.cpp
@@ -32,48 +33,48 @@ export class Tr2AtlasTexture
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_resPath (std::string) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.path
   resPath = "";
 
   /** m_width (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   width = 0;
 
   /** m_height (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   height = 0;
 
   /** m_textureWidth (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   atlasWidth = 0;
 
   /** m_textureHeight (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   atlasHeight = 0;
 
   /** m_x (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   x = 0;
 
   /** m_y (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   y = 0;
 
   /** m_textureAtlas (Tr2TextureAtlasPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2TextureAtlas")
   atlas = null;
 
@@ -143,7 +144,7 @@ export class Tr2AtlasTexture
    *
    * @returns {boolean} Whether it is stand-alone.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   get isStandAlone()
   {
@@ -166,7 +167,7 @@ export class Tr2AtlasTexture
    *
    * @returns {object|null} The texture resource.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("TriTextureRes")
   get textureRes()
   {
@@ -509,7 +510,7 @@ export class Tr2AtlasTexture
    *
    * @returns {{result: number, data: Uint8Array, pitch: number}|null} The mapping, or null.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   LockBuffer()
   {
@@ -549,7 +550,7 @@ export class Tr2AtlasTexture
    *
    * @returns {{result: number, data: Uint8Array, pitch: number, margin: number}|null} The mapping, or null.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   LockBufferAndMargin()
   {
@@ -586,7 +587,7 @@ export class Tr2AtlasTexture
    *
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UnlockBuffer()
   {

@@ -17,8 +17,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_saturation (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   saturation = 1;
 
@@ -27,8 +27,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_intensity (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   intensity = 1;
 
@@ -37,8 +37,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_translation (Vector3) [READWRITE, PERSIST]
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
@@ -47,8 +47,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_innerAngleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   innerAngleMultiplier = 0.5;
 
@@ -57,8 +57,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_outerAngleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   outerAngleMultiplier = 1;
 
@@ -67,8 +67,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_innerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   innerScaleMultiplier = 1;
 
@@ -77,8 +77,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_outerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   outerScaleMultiplier = 1;
 
@@ -87,8 +87,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseAmplitude (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   noiseAmplitude = 0;
 
@@ -97,8 +97,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseFrequency (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   noiseFrequency = 1;
 
@@ -107,8 +107,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseOctaves (int32_t) [READWRITE, PERSIST]
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   noiseOctaves = 1;
 
@@ -117,8 +117,8 @@ export class EveSOFDataSpotLightAttachment
    * Native m_lightProfilePath (std::wstring) [READWRITE, PERSIST]
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 

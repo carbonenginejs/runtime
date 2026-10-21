@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
 //   struct PartData, nested in EveChildPartData; flattened for JS.
 import { quat } from "#math/quat";
@@ -15,24 +16,24 @@ import { meta, type } from "#schema";
 @meta.carbon("EveChildPartData::PartData")
 export class EveChildPartDataPartData
 {
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.uint32
   partId = 0;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.vec3
   position = vec3.create();
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.quat
   rotation = quat.create();
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
   /** Packed CcpMath::Sphere: xyz center and w radius. */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.vec4
   boundingSphere = vec4.create();
 }

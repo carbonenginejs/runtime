@@ -11,14 +11,14 @@ export class EveSOFDataHullLocatorSetGroup extends IEveSOFDataHullLocatorSet
 {
 
   /** m_locatorSets (PIEveSOFDataHullLocatorSetVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSOFDataHullLocatorSet")
   locatorSets = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

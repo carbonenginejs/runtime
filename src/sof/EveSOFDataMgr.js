@@ -75,7 +75,7 @@ export class EveSOFDataMgr
   }
 
   /** Loads an EveSOFData graph through the configured synchronous loader. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   LoadData(filePath)
   {
@@ -110,7 +110,7 @@ export class EveSOFDataMgr
   }
 
   /** Rebuilds the manager's lookup tables from a hydrated EveSOFData graph. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetData(data)
   {
@@ -130,7 +130,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact hull key in the manager's normalized projection table. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasHullData(name)
   {
@@ -149,7 +149,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact faction key in the manager's normalized projection table. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasFactionData(name)
   {
@@ -168,7 +168,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact race key in the manager's normalized projection table. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasRaceData(name)
   {
@@ -187,7 +187,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact material key in the manager's normalized projection table. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasMaterialData(name)
   {
@@ -206,7 +206,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact pattern key in the manager's normalized projection table. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasPatternData(name)
   {
@@ -371,7 +371,7 @@ export class EveSOFDataMgr
    * Normalizes a supplied hull graph and stores its projection under the
    * requested key.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdateHull(name, value)
   {
@@ -416,7 +416,7 @@ export class EveSOFDataMgr
    * Normalizes a supplied faction graph and stores its projection under the
    * requested key.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdateFaction(name, value)
   {
@@ -427,7 +427,7 @@ export class EveSOFDataMgr
    * Normalizes a supplied race graph and stores its projection under the
    * requested key.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdateRace(name, value)
   {
@@ -438,7 +438,7 @@ export class EveSOFDataMgr
    * Normalizes a supplied material graph and stores its projection under the
    * requested key.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdateMaterial(name, value)
   {
@@ -449,7 +449,7 @@ export class EveSOFDataMgr
    * Rejects a missing value, otherwise normalizes and replaces the keyed pattern
    * projection.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdatePattern(name, value)
   {
@@ -461,7 +461,7 @@ export class EveSOFDataMgr
    * Rejects a missing value, otherwise normalizes and replaces the keyed layout
    * projection.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdateLayout(name, value)
   {
@@ -473,7 +473,7 @@ export class EveSOFDataMgr
    * Rejects a missing value, otherwise replaces the manager's normalized generic
    * projection.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdateGeneric(value)
   {

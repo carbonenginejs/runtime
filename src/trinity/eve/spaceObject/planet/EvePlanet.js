@@ -59,38 +59,38 @@ export class EvePlanet extends EveEffectRoot2
   _estimatedMaxPixelDiameter = 0;
 
   /** m_zOnlyModel (EveChildMeshPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveChildMesh")
   zOnlyModel = null;
 
   /** m_emissiveColor (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   emissiveColor = vec4.create();
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minScreenSize = 2;
 
   /** m_albedoColor (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   albedoColor = vec4.create();
 
   /** m_estimatedPixelDiameter (float) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.float32
   estimatedPixelDiameter = 0;
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   radius = 1;
 

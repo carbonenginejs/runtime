@@ -22,14 +22,14 @@ export class AudEmitter extends AudGameObjResource
 {
 
   /** m_authoredRotation (Quaternion) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.quat
   rotation = quat.create();
 
   /** Effective front vector sent to Wwise; Carbon's read-only `front` property (GetFront). */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.vec3
   get front()
   {
@@ -37,7 +37,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Effective top vector sent to Wwise; Carbon's read-only `top` property (GetTop). */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.vec3
   get top()
   {
@@ -45,38 +45,38 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** m_normalizeAttenuationScaling (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   normalizeAttenuationScaling = false;
 
   /** m_visualizationRadius (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   visualizationRadius = 0;
 
   /** m_maxNormalizedValue (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxNormalizedValue = 9000;
 
   /** m_maxNormalizedScalingFactor (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxNormalizedScalingFactor = 3.5;
 
   /** m_minNormalizedValue (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minNormalizedValue = 30;
 
   /** m_minNormalizedScalingFactor (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minNormalizedScalingFactor = 0.4;
 
@@ -95,7 +95,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SendEvent -> PostEvent (ITr2AudEmitter). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   SendEvent(name, bypassPrefix = false)
   {

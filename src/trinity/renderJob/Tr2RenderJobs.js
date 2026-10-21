@@ -16,23 +16,23 @@ import { TriRenderJob } from "./TriRenderJob.js";
 @blue.inherit(IRoot)
 export class Tr2RenderJobs
 {
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriRenderJob")
   recurring = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriRenderJob")
   once = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriRenderJob")
   chained = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriRenderJob")
   updateRecurring = [];
 

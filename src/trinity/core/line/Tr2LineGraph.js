@@ -17,19 +17,19 @@ export class Tr2LineGraph
   #markers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** Carbon method AddMarker (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddMarker(name)
   {
@@ -47,7 +47,7 @@ export class Tr2LineGraph
   }
 
   /** Carbon method GetStatsHistory (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetStatsHistory()
   {
@@ -55,7 +55,7 @@ export class Tr2LineGraph
   }
 
   /** Carbon method SetSize (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetSize(size)
   {

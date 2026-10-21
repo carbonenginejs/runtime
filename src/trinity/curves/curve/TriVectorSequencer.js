@@ -23,8 +23,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * Authored name identifying the vector sequencer; native wide string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   name = "";
 
@@ -33,8 +33,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * does not apply it.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int64
   start = 0;
 
@@ -43,8 +43,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * depend on the child functions and selected operator.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   value = vec3.create();
 
@@ -63,8 +63,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * Ordered child vector functions sampled and combined at the supplied time.
    * @type {BlueList<ITriVectorFunction>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriVectorFunction")
   functions = new BlueList(ITriVectorFunction, { className: null, listOps: 0 });
 

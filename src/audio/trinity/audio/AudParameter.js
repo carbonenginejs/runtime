@@ -13,13 +13,13 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 export class AudParameter extends INotify
 {
   /** m_name: std::wstring, READWRITE without persistence. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.wstring
   name = "";
 
   /** m_value: float, READWRITE and NOTIFY without persistence. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   value = 0;
 

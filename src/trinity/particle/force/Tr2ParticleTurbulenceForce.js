@@ -16,26 +16,26 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
   #time = 0;
 
   /** m_amplitude (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   amplitude = vec3.fromValues(1, 1, 1);
 
   /** m_frequency (Vector4) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   frequency = vec4.fromValues(1, 1, 1, 1);
 
   /** m_noiseLevel (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   noiseLevel = 3;
 
   /** m_noiseRatio (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   noiseRatio = 0.5;
 

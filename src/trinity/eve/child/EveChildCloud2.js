@@ -128,138 +128,138 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   minVisibleQuality = 0;
 
   /** m_sortingModifier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   sortingModifier = 1;
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2TextureAnimation")
   animation = null;
 
   /** m_shadowMapDS (Tr2DepthStencilPtr) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.rootRef("Tr2DepthStencil")
   shadowMapDS = null;
 
   /** m_lightMap (Tr2TextureReferencePtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("Tr2TextureReference")
   lightmap = new Tr2TextureReference();
 
   /** m_lightmapSizeScale (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   lightmapSizeScale = 0.5;
 
   /** m_lights (PTr2LightVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2Light")
   lights = new BlueList(Tr2Light);
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minScreenSize = 0;
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_reflectionEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2Effect")
   reflectionEffect = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_noiseTextureSize (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   noiseTextureSize = 32;
 
   /** m_mapOffsets[0] (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   mapOffset0 = vec3.create();
 
   /** m_mapOffsets[1] (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   mapOffset1 = vec3.create();
 
   /** m_mapOffsets[2] (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   mapOffset2 = vec3.create();
 
   /** m_castShadows (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   castShadows = true;
 
   /** m_receiveShadows (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   receiveShadows = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_mapTiling[1] (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   detailTiling1 = vec3.fromValues(1, 1, 1);
 
   /** m_mapTiling[2] (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   detailTiling2 = vec3.fromValues(1, 1, 1);
 
   /** m_mapTiling[0] (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   textureTiling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
@@ -290,7 +290,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Carbon MAP_PROPERTY "lightmapDirty" over IsLightmapDirty/MarkLightmapDirty
    * (EveChildCloud2_Blue.cpp:38): setting it also zeroes the dirty offset.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   @meta.implemented
   get lightmapDirty()

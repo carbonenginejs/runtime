@@ -25,7 +25,7 @@ export class EveUiObject extends EveSpaceObject2
 {
 
   /** m_usePerspectiveScale (bool) [READWRITE] - EveUiObject_Blue.cpp:14; true from the constructor (cpp:10-14). */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   usePerspectiveScale = true;
 
@@ -104,7 +104,7 @@ export class EveUiObject extends EveSpaceObject2
    * Enables or disables display on every mesh area carrying the given name,
    * across all batch types.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetVisibilityForArea(areaName, enable)
   {
@@ -130,7 +130,7 @@ export class EveUiObject extends EveSpaceObject2
    * when there is no mesh and "invalid_areaid" when no picking area has that
    * index.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetNameForPickingAreaID(areaID)
   {

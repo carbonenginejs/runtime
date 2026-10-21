@@ -65,13 +65,13 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
 @blue.inherit(IRoot)
 export class EveLocatorSets
 {
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("Locator")
   locators = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

@@ -52,13 +52,13 @@ export class YamlReader extends IRootReaderBase
 
   _errorMessage = "";
 
-  @blue.attribute("isStrict")
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE, "isStrict")
+
   @type.boolean
   _isStrict = false;
 
-  @blue.attribute("doInitialize")
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE, "doInitialize")
+
   @type.boolean
   _doInitialize = true;
 
@@ -148,7 +148,7 @@ export class YamlReader extends IRootReaderBase
   }
 
   /** Reads UTF-8 text; the native output pointer is returned, failures throw. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   CreateObjectFromString(text)
   {
@@ -166,7 +166,7 @@ export class YamlReader extends IRootReaderBase
   }
 
   /** Returns the output pointer; a failed native Result becomes a reader exception. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   CreateObjectFromStream(stream)
   {
@@ -176,7 +176,7 @@ export class YamlReader extends IRootReaderBase
   }
 
   /** The synchronous native BePaths stream API is not ported; no host filesystem is invented. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   CreateObjectFromFile(_filename)
   {
@@ -220,12 +220,12 @@ export class YamlReader extends IRootReaderBase
   }
 
   /** Native reports that its rough event-memory estimate is available. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   IsMemoryUsageKnown() { return true; }
 
   /** Preserves Carbon's rough estimate; this is not a JavaScript heap measurement. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetMemoryUsage() { return 128 + this._eventList.length * 64; }
 

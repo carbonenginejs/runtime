@@ -15,13 +15,13 @@ export class TriStepToggleCubemap extends TriRenderStep
   #scene = null;
 
   /** m_showCubemap (bool) [READWRITE]; Carbon exposes the member name itself (TriStepToggleCubemap_Blue.cpp:17). */
-  @blue.attribute("m_showCubemap")
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE, "m_showCubemap")
+
   @type.boolean
   showCubemap = true;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(showCubemap = true, scene = null)
   {

@@ -12,14 +12,14 @@ export class Tr2PPLutEffect extends Tr2PPEffect
 {
 
   /** m_influence (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   influence = 0;
 
   /** m_path (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("TriTextureRes")
   path = "res:/dx9/scene/postprocess/LUTdefault.dds";
 

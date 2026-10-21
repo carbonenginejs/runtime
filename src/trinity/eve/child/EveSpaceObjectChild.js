@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.cpp
 import { meta, type, blue } from "#schema";
@@ -45,8 +46,8 @@ export function EveCollectAreas(type, mesh, areaPool)
 @blue.interface()
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -203,7 +204,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Returns the owning space object. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetOwner()
   {
@@ -218,7 +219,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Returns the parent child node. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetParent()
   {

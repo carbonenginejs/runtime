@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.h
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
 import { meta, type, blue } from "#schema";
@@ -39,62 +40,62 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
   spriteTarget = 1;
 
   /** m_color (Color) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_depth (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   depth = 0;
 
   /** m_glowBrightness (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   glowBrightness = 1;
 
   /** m_glowColor (Color) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.color
   glowColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_glowExpand (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   glowExpand = 0;
 
   /** m_glowFactor (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   glowFactor = 0;
 
   /** m_shadowOffset (Vector2) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   shadowOffset = vec2.create();
 
   /** m_outlineColor (Color) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.color
   outlineColor = color.createLinear();
 
   /** m_outlineThreshold (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   outlineThreshold = 0;
 
   /** m_shadowColor (Color) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.color
   shadowColor = color.createLinear();
 

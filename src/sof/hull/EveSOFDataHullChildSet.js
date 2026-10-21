@@ -11,14 +11,14 @@ export class EveSOFDataHullChildSet
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   visibilityGroup = "primary";
 
   /** m_items (PEveSOFDataHullChildSetItemVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataHullChildSetItem")
   items = [];
 
@@ -27,7 +27,7 @@ export class EveSOFDataHullChildSet
    * (EveSOFData_Blue.cpp:833): the child set's visibility group. Carbon persists no name for
    * this class; the getter derives it.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.string
   @meta.implemented
   get name()

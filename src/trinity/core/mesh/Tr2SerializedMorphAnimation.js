@@ -14,7 +14,7 @@ export class Tr2SerializedMorphAnimation
    * Native m_name (std::string) [PERSISTONLY].
    * @type {string}
    */
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
   @type.string
   name = "";
 
@@ -23,7 +23,7 @@ export class Tr2SerializedMorphAnimation
    * Native m_weight (float) [PERSISTONLY].
    * @type {number}
    */
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
   @type.float32
   weight = 0;
 

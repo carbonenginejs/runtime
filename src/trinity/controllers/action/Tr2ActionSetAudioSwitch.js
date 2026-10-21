@@ -18,8 +18,8 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
    * Name of the sound emitter resolved on the controller owner.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   emitter = "";
 
@@ -27,8 +27,8 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
    * Wwise switch group receiving the selected state; native std::wstring.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   switchGroup = "";
 
@@ -36,8 +36,8 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
    * Wwise state applied to switchGroup on the emitter; native std::wstring.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   switchState = "";
 
@@ -58,7 +58,7 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
    * Starts manually with an explicit controller.
    * Adapted: TypeError represents the native null-controller Python error.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   StartWithController(controller)
   {

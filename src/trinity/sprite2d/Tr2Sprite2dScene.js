@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { Tr2Sprite2dDisplayList } from "./Tr2Sprite2dDisplayList.js";
 import { Tr2Sprite2dDisplayListEntry } from "./Tr2Sprite2dDisplayListEntry.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
@@ -1340,7 +1341,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} [_pickFilter] Carbon's unused Be::Optional<int> pick filter.
    * @returns {ITr2SpriteObject|null} The picked object.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   PickObject(x, y, projection = null, view = null, viewport = null, _pickFilter = undefined)
   {

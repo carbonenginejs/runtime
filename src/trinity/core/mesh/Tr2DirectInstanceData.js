@@ -26,12 +26,12 @@ export class Tr2DirectInstanceData
 {
 
   /** m_aabb.m_max (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   aabbMax = vec3.create();
 
   /** m_aabb.m_min (Vector3) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   aabbMin = vec3.create();
 
@@ -180,7 +180,7 @@ export class Tr2DirectInstanceData
    * Accepts the JavaScript `{ min, max }` box representation; a two-vector
    * form is retained for consistency with `Tr2RuntimeInstanceData`.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetBoundingBox(bounds, maxBounds)
   {

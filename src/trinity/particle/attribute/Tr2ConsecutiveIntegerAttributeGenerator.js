@@ -25,25 +25,25 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   customName = "";
 
   /** m_maxRange (Vector4) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   maxRange = vec4.create();
 
   /** m_minRange (Vector4) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   minRange = vec4.create();
 
   /** m_valid (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   valid = false;
 
@@ -52,7 +52,7 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    * (Tr2ConsecutiveIntegerAttributeGenerator_Blue.cpp:16): the element name composed of type and
    * customName.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.string
   @meta.implemented
   get name()
@@ -65,7 +65,7 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
    * (Tr2ConsecutiveIntegerAttributeGenerator_Blue.cpp:27): the bound element's dimension, or 0 when
    * unbound.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.uint32
   @meta.implemented
   get dimension()

@@ -14,53 +14,53 @@ export class TriStepRenderAtlas extends TriRenderStep
 {
 
   /** m_focus (Tr2AtlasTexture*) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2AtlasTexture")
   focus = null;
 
   /** m_atlas (Tr2TextureAtlas*) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2TextureAtlas")
   atlas = null;
 
   /** m_focusColour (Vector4) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec4
   focusColour = vec4.fromValues(1, 0, 1, 1);
 
   /** m_borderColour (Vector4) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec4
   borderColour = vec4.fromValues(1, 1, 0, 1);
 
   /** m_freeColour (Vector4) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec4
   freeColour = vec4.fromValues(0, 0.5, 0, 1);
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_showFree (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   showFree = false;
 
   /** m_showUsed (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   showUsed = true;
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec2
   tlTexCoord = vec2.create();
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS);
    *  the donor body is exactly the two setter calls (TriStepRenderAtlas.cpp:29). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(atlas = null, focus = null)
   {

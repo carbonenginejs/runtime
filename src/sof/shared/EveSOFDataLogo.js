@@ -15,8 +15,8 @@ export class EveSOFDataLogo
   /** Named texture bindings assigned into the logo texture map; native m_textures is a READ/PERSIST pointer vector, retained as a JS array.
    * @type {EveSOFDataTexture[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataTexture")
   textures = [];
 

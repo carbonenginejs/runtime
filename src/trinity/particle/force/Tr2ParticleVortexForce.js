@@ -28,18 +28,18 @@ const DEBUG_P1 = vec3.create();
 @be.define("Tr2ParticleVortexForce")
 export class Tr2ParticleVortexForce extends ITr2ParticleForce
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   magnitude = 1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   axis = vec3.fromValues(0, 1, 0);
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   position = vec3.create();
 

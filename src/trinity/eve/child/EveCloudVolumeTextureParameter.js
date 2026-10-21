@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h:141-171
 //   trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp:394-441
 //   (the parameter's methods live in the volume's translation unit)
@@ -19,19 +20,19 @@ export class EveCloudVolumeTextureParameter
 {
 
   /** m_volume (EveCloudEditableVolumePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("EveCloudEditableVolume")
   volume = null;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isUsedByEffect = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

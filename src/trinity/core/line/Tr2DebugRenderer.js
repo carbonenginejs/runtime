@@ -1296,7 +1296,7 @@ export class Tr2DebugRenderer
    * null objects are skipped.
    * @param {Array<[object, number]>} objects
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetSelectedObjects(objects)
   {
@@ -1322,7 +1322,7 @@ export class Tr2DebugRenderer
    * @param {object} owner
    * @param {string[]} options
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetOptions(owner, options)
   {
@@ -1342,7 +1342,7 @@ export class Tr2DebugRenderer
    * @param {string} option
    * @returns {Float32Array|null} A copy of the colour, or null when none is set.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   GetColorForOption(option)
   {
@@ -1355,7 +1355,7 @@ export class Tr2DebugRenderer
    * @param {string} option
    * @param {Float32Array} color
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetColorForOption(option, color)
   {
@@ -1367,7 +1367,7 @@ export class Tr2DebugRenderer
    * @param {object} owner
    * @returns {string[]}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetOptions(owner)
   {
@@ -1379,7 +1379,7 @@ export class Tr2DebugRenderer
    * Carbon SetDefaultOptions (cpp:954-958).
    * @param {string[]} options
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetDefaultOptions(options)
   {
@@ -1390,7 +1390,7 @@ export class Tr2DebugRenderer
    * Carbon GetDefaultOptions (cpp:960-965).
    * @returns {string[]}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetDefaultOptions()
   {

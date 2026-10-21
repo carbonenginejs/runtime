@@ -24,7 +24,7 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    *
    * @returns {number} Back-buffer pixel width.
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   @meta.adapted
   get backBufferWidth()
@@ -46,7 +46,7 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    *
    * @returns {number} Back-buffer pixel height.
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   @meta.adapted
   get backBufferHeight()
@@ -62,7 +62,7 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
   }
 
   /** Native windowed member, initialized false by the UI constructor. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   windowed = false;
 

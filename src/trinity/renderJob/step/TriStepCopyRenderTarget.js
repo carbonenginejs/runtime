@@ -19,23 +19,23 @@ import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepCopyRenderTarget extends TriRenderStep
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2RenderTarget")
   Destination = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("TriTextureRes")
   destinationTexture = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2RenderTarget")
   Source = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("TriViewport")
   sourceViewport = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("TriViewport")
   destinationViewport = null;
 
@@ -67,7 +67,7 @@ export class TriStepCopyRenderTarget extends TriRenderStep
    * Carbon PyInitLowLevel (TriStepCopyRenderTarget_Blue.cpp:14-70): the
    * destination is cast to a render target, else to a texture resource.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   __init__(destination = null, source = null, destinationViewport = null, sourceViewport = null)
   {

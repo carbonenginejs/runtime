@@ -44,8 +44,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Local rotation used when rebuilding the child transform from SRT.
    * @type {quat}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
@@ -55,8 +55,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Local position used when rebuilding the child transform from SRT.
    * @type {vec3}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
@@ -66,14 +66,14 @@ export class EveChildParticleSystem extends EveChildTransform
    * Local scale used when rebuilding the child transform from SRT.
    * @type {vec3}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildParticleSystem_Blue.cpp:28) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   localTransform = mat4.create();
 
@@ -96,8 +96,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Emitters updated with this child's world transform and emission factor.
    * @type {ITr2GenericEmitter[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
@@ -107,8 +107,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Particle systems whose transforms, budgets, visibility and simulation this child updates.
    * @type {Tr2ParticleSystem[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
@@ -118,8 +118,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Modifiers applied to the child transform during asynchronous updates.
    * @type {IEveChildTransformModifier[]}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
@@ -129,9 +129,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Whether the child participates in visibility and render submission.
    * @type {boolean}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
@@ -141,8 +141,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Authored name returned by GetName.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -152,8 +152,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Instanced mesh supplying particle geometry and local bounds.
    * @type {Tr2InstancedMesh|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2InstancedMesh")
   mesh = null;
 
@@ -163,8 +163,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Maximum particle count allowed per system at low LOD.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   lodClampLow = 5;
 
@@ -174,8 +174,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Local radius of the sphere used to estimate screen size for LOD visibility.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lodSphereRadius = 0;
 
@@ -185,8 +185,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Whether LOD changes adjust each system's maximum particle count.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useDynamicLod = false;
 
@@ -196,8 +196,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Fraction of each system's original particle budget used at low LOD before clamping.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lodFactorLow = 0.125;
 
@@ -207,8 +207,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Fraction of each system's original particle budget used at medium LOD.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lodFactorMedium = 0.25;
 
@@ -218,8 +218,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Minimum projected size for visibility, scaled by the update context's LOD factor.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minScreenSize = 0;
 
@@ -229,7 +229,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * Most recent projected LOD-sphere size, or -1 when the initial visibility gate rejects the child.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   currentScreenSize = -1;
 

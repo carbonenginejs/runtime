@@ -83,42 +83,42 @@ const DEBUG_CONE_OFFSET = vec3.fromValues(0, 0, 0.5);
 export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSpotlightSetItem")
   spotlightItems = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   coneEffect = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   glowEffect = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   skinned = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   intensity = 1;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveSpotlightLight")
   lights = [];
 
@@ -159,7 +159,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * flare colour and scale as halves, then the bounds. The transforms and
    * activation are written per frame by AddToQuadRenderer.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Rebuild()
   {

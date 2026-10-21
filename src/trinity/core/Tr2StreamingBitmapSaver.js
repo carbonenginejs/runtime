@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2StreamingBitmapSaver.h
 //   trinity/trinity/Tr2StreamingBitmapSaver.cpp
 //   imageio/Tr2TgaHandler.cpp (SaveHeader, the 18-byte TGA header)
@@ -28,23 +29,23 @@ export class Tr2StreamingBitmapSaver
 
   /** m_currentOffset (uint32_t) [READ] - rows are written bottom-up, so it
    *  starts at the height. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   currentOffset = 0;
 
   /** m_height (uint32_t) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   height = 0;
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   @type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
   /** m_width (uint32_t) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   width = 0;
 
@@ -141,7 +142,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon method CopyFromRenderTargetRegion (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   CopyFromRenderTargetRegion(...args)
   {
@@ -149,7 +150,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon EndSaving closes and pads the stream; unported with the batch pair. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   EndSaving(...args)
   {
@@ -157,7 +158,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon method FlushBatch (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   FlushBatch(...args)
   {
@@ -165,7 +166,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon method StartBatch (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   StartBatch(...args)
   {

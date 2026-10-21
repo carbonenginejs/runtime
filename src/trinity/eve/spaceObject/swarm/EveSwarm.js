@@ -66,170 +66,170 @@ export class EveSwarm extends EveShip2
   squadBoundsMax = vec3.create();
 
   /** m_behavior.m_weightFormation (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   weightFormation = 1;
 
   /** m_behavior.m_weightCohesion (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   weightCohesion = 0.1;
 
   /** m_behavior.m_weightSeparation (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   weightSeparation = 0.1;
 
   /** m_behavior.m_weightWander (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   weightWander = 0.33;
 
   /** m_behavior.m_weightAnchor (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   weightAnchor = 0.5;
 
   /** m_behavior.m_anchorRadius0 (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   anchorRadius0 = 75;
 
   /** m_behavior.m_anchorRadius1 (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   anchorRadius1 = 250;
 
   /** m_behavior.m_weightDecelerate (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   weightDeceleration = 0.1;
 
   /** m_behavior.m_maxDeceleration (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxDeceleration = 200;
 
   /** m_behavior.m_separationDistance (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   separationDistance = 250;
 
   /** m_behavior.m_formationDistance (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   formationDistance = 50;
 
   /** m_behavior.m_wanderFluctuation (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   wanderFluctuation = 0.05;
 
   /** m_behavior.m_wanderDistance (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   wanderDistance = 100;
 
   /** m_behavior.m_wanderRadius (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   wanderRadius = 80;
 
   /** m_debugShowForces (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   debugShowForces = false;
 
   /** m_count (int32_t) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.int32
   count = 1;
 
   /** m_swarmingEnabled (bool) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.boolean
   swarmingEnabled = false;
 
   /** m_behavior.m_mass (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   mass = 1;
 
   /** m_behavior.m_speedMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   speedMultiplier = 1.1;
 
   /** m_behavior.m_speedMinimum (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   speedMinimum = 10;
 
   /** m_behavior.m_maxDistance0 (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxDistance0 = 500;
 
   /** m_behavior.m_maxDistance1 (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxDistance1 = 125;
 
   /** m_behavior.m_maxTime (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxTime = 0.2;
 
   /** m_behavior.m_agility (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   agility = 2;
 
   /** m_behavior.m_speed0 (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   speed0 = 700;
 
   /** m_behavior.m_speed1 (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   speed1 = 1000;
 
   /** m_behavior.m_timeMultiplier (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   timeMultiplier = 1;
 
   /** m_behavior.m_weightAlign (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   weightAlign = 50;
 
@@ -909,7 +909,7 @@ export class EveSwarm extends EveShip2
    * Carbon AddSwarmer (EveSwarm.cpp:912-940): a new fighter on the shared mesh with its own decals, registered with
    * the component registry, and a vehicle at the ball's position.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddSwarmer()
   {
@@ -951,7 +951,7 @@ export class EveSwarm extends EveShip2
    * Random draws delegate to the matching generator in global/math/random.js.
    * @returns {vec3} the removed vehicle's position
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RemoveSwarmer()
   {
@@ -996,7 +996,7 @@ export class EveSwarm extends EveShip2
    * Random draws delegate to the matching generator in global/math/random.js.
    * @param {number} count
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetCount(count)
   {
@@ -1019,7 +1019,7 @@ export class EveSwarm extends EveShip2
    * behaves as a normal space object.
    * @param {boolean} enable
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   EnableSwarming(enable)
   {
@@ -1043,7 +1043,7 @@ export class EveSwarm extends EveShip2
    *
    * Random draws delegate to the matching generator in global/math/random.js.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   PickFiringOrigin()
   {

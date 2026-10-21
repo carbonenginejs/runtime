@@ -49,42 +49,42 @@ export class EveSceneStaticParticles
   boundingSphere = new Float32Array(4);
 
   /** m_clusterParticleDensityAdjust (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   clusterParticleDensityAdjust = 1;
 
   /** m_estimatedSize (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   estimatedSize = 0;
 
   /** m_clusterParticleDensity (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   clusterParticleDensity = 100;
 
   /** m_maxSize (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   maxSize = 200;
 
   /** m_minSize (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   minSize = 5;
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2InstancedMesh")
   mesh = null;
 
   /** m_maxParticleCount (size_t) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint64
   maxParticleCount = 100000;
 
   /** m_visible (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   visible = false;
 
@@ -288,7 +288,7 @@ export class EveSceneStaticParticles
    * Adapted: Carbon's native ClusterData/Vector3d value is represented by a plain record
    * with a Float64Array position.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddCluster(position, radius, color1, color2, randomSeed)
   {
@@ -309,7 +309,7 @@ export class EveSceneStaticParticles
    * writes. Random draws use Carbon's shared CRT stream; a nonzero cluster seed reseeds it.
    * Boolean return and empty-cluster cleanup still differ from native.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Rebuild()
   {
@@ -414,7 +414,7 @@ export class EveSceneStaticParticles
    * Clears clusters and destroys data only on the runtime instance-data class.
    * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:64-74
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearClusters()
   {

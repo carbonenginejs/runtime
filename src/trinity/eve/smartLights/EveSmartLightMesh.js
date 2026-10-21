@@ -42,8 +42,8 @@ import { BLUELISTEVENT } from "#consts/blue";
 @be.mapInterface(IEveShadowCaster)
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   shaderParamColorName = "";
 
@@ -55,19 +55,19 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   @type.int32
   factionColor = -1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useFactionColor = false;
 
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
+
+
   @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   customColor = color.createLinear();
 
@@ -77,8 +77,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * (EveSmartLightMesh_Blue.cpp:25). Ours: the storage is the inherited
    * castShadow member, so the row is an attribute over this accessor pair.
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   get castShadows()
   {
@@ -329,7 +329,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Adapted: The inherited Carbon method is exposed on this derived Blue class; JS also arms
    * the derived distribution path's explicit deferred-work latch.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RefreshStaticGeometry()
   {

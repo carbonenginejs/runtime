@@ -23,8 +23,8 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_rotationCenter (Vector2) [READWRITE, NOTIFY].
    * @type {Float32Array}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   rotationCenter = vec2.create();
 
@@ -33,8 +33,8 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_rotation (float) [READWRITE, NOTIFY].
    * @type {number}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   rotation = 0;
 
@@ -43,8 +43,8 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_scalingCenter (Vector2) [READWRITE, NOTIFY].
    * @type {Float32Array}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   scalingCenter = vec2.create();
 
@@ -53,8 +53,8 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_scalingRotation (float) [READWRITE, NOTIFY].
    * @type {number}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   scalingRotation = 0;
 
@@ -63,8 +63,8 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * Native m_scale (Vector2) [READWRITE, NOTIFY].
    * @type {Float32Array}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.vec2
   scale = vec2.fromValues(1, 1);
 
@@ -178,7 +178,7 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @param {number} y Local vertical coordinate.
    * @returns {Float32Array} Newly allocated transformed point.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   TransformPoint(x, y)
   {

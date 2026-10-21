@@ -19,8 +19,8 @@ export class EveSOFDataParameterVector3 extends EveSOFDataParameter
    * Native m_value (Vector3) replaces the base vector in authored values.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   value = vec3.create();
 

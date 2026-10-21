@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2d.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2d.cpp
 import { meta, type, blue } from "#schema";
@@ -16,25 +17,25 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
 {
 
   /** m_effectOpacity (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   effectOpacity = 1;
 
   /** m_useSizeFromTexture (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   useSizeFromTexture = false;
 
   /** m_pickRadius (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   pickRadius = 0;
 
   /** m_saturation (float) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   saturation = 1;
 

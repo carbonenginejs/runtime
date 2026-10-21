@@ -21,31 +21,31 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** Owned yaw component curve in radians. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   yaw = new Tr2CurveScalar();
 
   /** Owned pitch component curve in radians. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   pitch = new Tr2CurveScalar();
 
   /** Owned roll component curve in radians. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   roll = new Tr2CurveScalar();
 
   /** Cached quaternion; exposed read-only without persistence. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   currentValue = quat.create();
 
@@ -167,7 +167,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} [tangentType=Tr2CurveTangentType.AUTO_CLAMP] Tangent policy.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
@@ -183,7 +183,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} extrapolation Native extrapolation enum value.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetExtrapolation(extrapolation)
   {

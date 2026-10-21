@@ -39,7 +39,7 @@ export class Tr2VariableStore
    * Native live parent property; uses the existing root-protection setter.
    * @returns {Tr2VariableStore|null} Parent searched after local lookup.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("Tr2VariableStore")
   @meta.implemented
   get parentStore()
@@ -167,7 +167,7 @@ export class Tr2VariableStore
    * type) to reserve a name, or RegisterVariable__TextureAL for a raw texture.
    * @throws {TypeError} Always.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.notSupported
   RegisterVariable()
   {
@@ -179,7 +179,7 @@ export class Tr2VariableStore
    * @param {string} name Variable name to remove.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UnregisterVariable(name)
   {
@@ -202,7 +202,7 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to remove.
    * @returns {boolean} Whether an entry was removed.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   UnregisterLocalVariable(name)
   {
@@ -222,7 +222,7 @@ export class Tr2VariableStore
    * @param {string} name Variable name to search.
    * @returns {TriVariable|null} First matching local or ancestor variable.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   FindVariable(name)
   {
@@ -246,7 +246,7 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to search.
    * @returns {TriVariable|null} Existing local variable.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   FindLocalVariable(name)
   {
@@ -259,7 +259,7 @@ export class Tr2VariableStore
    * @param {string} name Variable name to find or reserve.
    * @returns {TriVariable} Matching variable or a new local reservation.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   GetVariable(name)
   {
@@ -279,7 +279,7 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to find or reserve.
    * @returns {TriVariable} Existing or reserved local variable.
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   GetLocalVariable(name)
   {
@@ -292,7 +292,7 @@ export class Tr2VariableStore
    * native unordered-map iteration order.
    * @returns {string[]} Local names in insertion order.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetLocalNames()
   {

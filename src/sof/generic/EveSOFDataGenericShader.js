@@ -21,8 +21,8 @@ export class EveSOFDataGenericShader
    * (BlueSharedString).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   shader = "";
 
@@ -31,8 +31,8 @@ export class EveSOFDataGenericShader
    * m_transparencyTextureName (BlueSharedString).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   transparencyTextureName = "";
 
@@ -41,8 +41,8 @@ export class EveSOFDataGenericShader
    * m_doGenerateDepthArea (bool).
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   doGenerateDepthArea = true;
 
@@ -51,8 +51,8 @@ export class EveSOFDataGenericShader
    * Native m_parameters vector.
    * @type {Array<EveSOFDataGenericString>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataGenericString")
   parameters = [];
 
@@ -61,8 +61,8 @@ export class EveSOFDataGenericShader
    * vector.
    * @type {Array<EveSOFDataTexture>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataTexture")
   defaultTextures = [];
 
@@ -71,8 +71,8 @@ export class EveSOFDataGenericShader
    * m_defaultParameters vector.
    * @type {Array<EveSOFDataParameter>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataParameter")
   defaultParameters = [];
 

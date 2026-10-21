@@ -11,12 +11,12 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepEnableWireframeMode extends TriRenderStep
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   enableWireframe = false;
 
   /** Stores the wireframe flag, defaulting to off. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(value = false)
   {

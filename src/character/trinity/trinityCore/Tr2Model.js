@@ -18,14 +18,14 @@ export class Tr2Model
 {
 
   /** m_meshes (PTr2MeshVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2Mesh")
   meshes = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -106,7 +106,7 @@ export class Tr2Model
    * Adapted: the Blue pair becomes an array of vectors, and the native error
    * result becomes an exception when no mesh supplies bounds.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetBoundingBoxInLocalSpace()
   {

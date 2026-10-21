@@ -86,78 +86,78 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   worldTransform = mat4.create();
 
   /** m_targetObjects (PIEveSpaceObject2Vector) [READ, NOTIFY] */
-  @blue.notify
-  @blue.read
+  @be.mapAttribute(be.READ | be.NOTIFY)
+
   @type.list("IEveSpaceObject2")
   targetObjects = [];
 
   /** m_objectCount (unsigned int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   objectCount = 0;
 
   /** m_clipSphere (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   clipSphere = 1;
 
   /** m_sourceRadius (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   sourceRadius = 0;
 
   /** m_sourceObject (EveSpaceObject2Ptr) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.rootRef("EveSpaceObject2")
   sourceObject = null;
 
   /** m_multiplier (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.uint32
   multiplier = 1;
 
   /** m_speed (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   speed = 1000;
 
   /** m_sourceLocatorSet (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   sourceLocatorSet = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_range (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   range = 1000;
 
   /** m_display (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
   /** Carbon method CanChangeState (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   CanChangeState()
   {
@@ -233,7 +233,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * Random draws delegate to the matching generator in global/math/random.js.
    * CPU instances are retained; GPU buffers are created only while resource creation is allowed.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Rebuild()
   {
@@ -308,7 +308,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon method StartEffect (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartEffect()
   {
@@ -318,7 +318,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon method StopEffect (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StopEffect()
   {

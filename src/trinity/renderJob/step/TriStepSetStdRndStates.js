@@ -46,7 +46,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
    * Sets the rendering mode when one is supplied, otherwise leaves the default
    * opaque mode in place.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(state)
   {

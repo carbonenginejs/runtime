@@ -30,14 +30,14 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
 {
   /** Authored shared-string key name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** Authored key time. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   time = 0;
 
@@ -49,65 +49,65 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   /** Authored incoming tangent. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   leftTangent = vec3.create();
 
   /** Authored outgoing tangent. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   rightTangent = vec3.create();
 
   /** Last incoming tangent after the inverse-view coordinate transform. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   rotatedLeftTangent = vec3.create();
 
   /** Last outgoing tangent after the inverse-view coordinate transform. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   rotatedRightTangent = vec3.create();
 
   /** Runtime object bounds used for framing. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec3
   objectBounds = vec3.create();
 
   /** Authored angle around the view axis. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   angle = 0;
 
   /** Authored zero-angle reference, initially PI/2. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   angleZero = Math.PI / 2;
 
   /** Authored fraction of the field of view reserved inside the frame. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   fovMultiplication = 0.5;
 
   /** Authored camera-box offset. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   offset = vec3.create();
 
   /** Last calculated camera-box position. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   boxPosition = vec3.create();
 
   /** Runtime switch between live and captured camera state. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   enabled = true;
 

@@ -23,8 +23,8 @@ export class Tr2CurveVector2 extends ITriFunction
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -32,8 +32,8 @@ export class Tr2CurveVector2 extends ITriFunction
    * Owned scalar curve for the horizontal vector component.
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
@@ -41,8 +41,8 @@ export class Tr2CurveVector2 extends ITriFunction
    * Owned scalar curve for the vertical vector component.
    * @type {Tr2CurveScalar}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.root("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
@@ -50,7 +50,7 @@ export class Tr2CurveVector2 extends ITriFunction
    * Cached two-component vector assembled from the x and y scalar curves.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec2
   currentValue = vec2.create();
 
@@ -107,7 +107,7 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Scalar tangent-maintenance rule.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
@@ -122,7 +122,7 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {number} extrapolation Before and after extrapolation mode.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetExtrapolation(extrapolation)
   {

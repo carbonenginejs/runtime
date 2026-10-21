@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 
 /** Base for one record whose identity is the key from its source document. */
@@ -5,8 +6,8 @@ import { meta, type } from "#schema";
 export class CjsCharacterRecord
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.string
     recordID = "";
 

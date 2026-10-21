@@ -11,20 +11,20 @@ export class EveSOFDataHullBooster
 {
 
   /** m_items (PEveSOFDataHullBoosterItemVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataHullBoosterItem")
   items = [];
 
   /** m_alwaysOn (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   alwaysOn = false;
 
   /** m_hasTrails (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   hasTrails = true;
 

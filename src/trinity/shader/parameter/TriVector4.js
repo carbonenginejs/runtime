@@ -12,8 +12,8 @@ import { type, blue } from "#schema";
 
 export class TriVector4
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec4
   data = vec4.create();
 }

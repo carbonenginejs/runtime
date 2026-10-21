@@ -15,38 +15,38 @@ import { meta, type, blue } from "#schema";
 export class TriViewport
 {
   /** Horizontal raster origin; negative window coordinates are valid. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   x = 0;
 
   /** Vertical raster origin; negative window coordinates are valid. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   y = 0;
 
   /** Raster width in pixels. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   width = 1;
 
   /** Raster height in pixels. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   height = 1;
 
   /** Minimum viewport depth. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minZ = 0;
 
   /** Maximum viewport depth. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxZ = 1;
 
@@ -56,7 +56,7 @@ export class TriViewport
    * JavaScript default arguments replace the native optional Python wrapper;
    * direct field assignments preserve the existing JavaScript number adapter.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(x = 0, y = 0, width = 1, height = 1, minZ = 0, maxZ = 1)
   {
@@ -69,7 +69,7 @@ export class TriViewport
   }
 
   /** Pixel width divided by pixel height; a zero height is not guarded against. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetAspectRatio()
   {

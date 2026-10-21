@@ -50,35 +50,35 @@ const DEBUG_MISSING_BONE_ZFAIL_COLOR = vec4.fromValues(0.9, 0.2, 0.2, 0.1);
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSpriteLineSetItem")
   spriteLines = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   skinned = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   effectHash = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveSpriteLight")
   lights = [];
 
@@ -104,7 +104,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   _activationStrength = 0;
 
   /** Carbon Rebuild (cpp:74-78): the packed sprites, then the bounds. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Rebuild()
   {

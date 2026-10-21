@@ -12,8 +12,8 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
 {
 
   /** m_value (int32_t) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   value = 0;
 
@@ -70,7 +70,7 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
    * Restores the first captured default, falling back to 0 when nothing was
    * captured.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetValueToDefault()
   {

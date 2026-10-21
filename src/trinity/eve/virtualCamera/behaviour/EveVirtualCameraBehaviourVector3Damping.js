@@ -17,9 +17,9 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBehaviourVector3Base
 {
   /** m_dampingRatio; Carbon exposes the member name itself (EveVirtualCameraBehaviour_Blue.cpp:206). */
-  @blue.attribute("m_dampingRatio")
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST, "m_dampingRatio")
+
+
   @type.float32
   dampingRatio = 1;
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 
@@ -6,8 +7,8 @@ import { vec4 } from "#math/vec4";
 export class CjsCharacterColorValue
 {
 
-    @meta.readwrite
-    @meta.persist
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+
     @type.vec4
     value = vec4.fromValues(0, 0, 0, 1);
 

@@ -18,22 +18,22 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 @be.mapInterface(ITriReroutable)
 export class Tr2Matrix4Parameter extends CjsVectorParameter
 {
-  @blue.readwrite
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
+
   @type.mat4
   value = mat4.create();
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentTechnique = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentEffect = false;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   name = "";
 

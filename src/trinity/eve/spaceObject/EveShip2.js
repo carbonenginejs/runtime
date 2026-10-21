@@ -30,7 +30,7 @@ export class EveShip2 extends EveMobile
   _boosters = null;
 
   /** Live booster property; persistence reads and writes the backing member directly. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("EveBoosterSet2")
   @meta.implemented
   get boosters()
@@ -46,17 +46,17 @@ export class EveShip2 extends EveMobile
   }
 
   /** m_displayKillCounterValue (uint32_t) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   displayKillCounterValue = 0;
 
   /** m_maxSpeed (float) [READWRITE] - the maximum speed of the ship. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   maxSpeed = 0;
 
   /** m_speed (TriFloatPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("TriFloat")
   speed = null;
 
@@ -68,7 +68,7 @@ export class EveShip2 extends EveMobile
    * GetAudioParameter/SetAudioParameter (EveShip2_Blue.cpp:19): the audio
    * parameter fed the ship's speed every update.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("IRoot")
   @meta.implemented
   get audioSpeedParameter()
@@ -406,7 +406,7 @@ export class EveShip2 extends EveMobile
    * Carbon RebuildBoosterSet (EveShip2.cpp:234-258): one booster per
    * "locator_booster" locator, then the set prepares its resources.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RebuildBoosterSet()
   {

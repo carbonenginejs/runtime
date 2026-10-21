@@ -11,14 +11,14 @@ export class EveSOFDataHullExtensionPlacementDistributionRandomChance extends IE
 {
 
   /** m_chanceOfUsage (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   chanceOfUsage = 1;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 

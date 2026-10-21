@@ -20,20 +20,20 @@ export class Tr2AudioStretchBase
 {
 
   /** m_stretchEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2AudEmitter")
   sourceEmitter = null;
 

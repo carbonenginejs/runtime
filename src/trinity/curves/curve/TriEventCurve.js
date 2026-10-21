@@ -89,8 +89,8 @@ export class TriEventCurve extends ITriFunction
    * Authored name identifying the event track.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -98,7 +98,7 @@ export class TriEventCurve extends ITriFunction
    * Last accepted update time in seconds, retained to detect rewinds; native float64 metadata.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float64
   time = 0;
 
@@ -106,7 +106,7 @@ export class TriEventCurve extends ITriFunction
    * Cached final key time in seconds; zero prevents event advancement. Native float32 metadata.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   length = 0;
 
@@ -115,7 +115,7 @@ export class TriEventCurve extends ITriFunction
    * Rewind updates leave this cached value unchanged.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   localTime = 0;
 
@@ -123,8 +123,8 @@ export class TriEventCurve extends ITriFunction
    * Stored string value of the most recently triggered key; native wide string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   value = "";
 
@@ -132,7 +132,7 @@ export class TriEventCurve extends ITriFunction
    * Owned event keys, sorted by key time by initialization and editing helpers.
    * @type {BlueList<TriEventKey>}
    */
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
   @type.list("TriEventKey")
   keys = new BlueList(TriEventKey, { className: "TriEventKey", listOps: 0 });
 
@@ -152,7 +152,7 @@ export class TriEventCurve extends ITriFunction
    * branch.
    * @type {IBlueEventListener|null}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("IBlueEventListener")
   eventListener = null;
 
@@ -247,7 +247,7 @@ export class TriEventCurve extends ITriFunction
    * @param {string} eventName Event name.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddKey(time, eventName)
   {
@@ -296,7 +296,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RemoveKey(index)
   {
@@ -311,7 +311,7 @@ export class TriEventCurve extends ITriFunction
    * Returns the number of event keys.
    * @returns {number}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyCount()
   {
@@ -323,7 +323,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {number}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyTime(index)
   {
@@ -335,7 +335,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {string}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyValue(index)
   {
@@ -349,7 +349,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetKeyTime(index, time)
   {
@@ -367,7 +367,7 @@ export class TriEventCurve extends ITriFunction
    * @param {string|null} value Event name.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetKeyValue(index, value)
   {

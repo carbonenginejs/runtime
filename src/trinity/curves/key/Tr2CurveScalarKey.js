@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
 import { meta, type, blue } from "#schema";
@@ -20,7 +21,7 @@ export class Tr2CurveScalarKey
    * Key position on the curve's local timeline, in seconds.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(0)
   time = 0;
 
@@ -28,7 +29,7 @@ export class Tr2CurveScalarKey
    * Scalar value at this key, in units chosen by the curve's consumer.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(4)
   value = 0;
 
@@ -36,7 +37,7 @@ export class Tr2CurveScalarKey
    * Incoming slope in value units per second of local curve time.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(8)
   leftTangent = 0;
 
@@ -44,7 +45,7 @@ export class Tr2CurveScalarKey
    * Outgoing slope in value units per second of local curve time.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(12)
   rightTangent = 0;
 
@@ -52,7 +53,7 @@ export class Tr2CurveScalarKey
    * Unsigned 16-bit key identifier used by the editor.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.USHORT_1(16)
   id = 0;
 
@@ -60,7 +61,7 @@ export class Tr2CurveScalarKey
    * Tr2CurveInterpolation value selecting interpolation for the following segment.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.UBYTE_1(18)
   @type.enum("trinity.Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.HERMITE;
@@ -69,7 +70,7 @@ export class Tr2CurveScalarKey
    * Tr2CurveTangentType value controlling automatic, joined or independent tangents.
    * @type {number}
    */
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.UBYTE_1(19)
   @type.enum("trinity.Tr2CurveTangentType")
   tangentType = Tr2CurveTangentType.AUTO_CLAMP;

@@ -25,8 +25,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * Number, as every Be::Time is (blue-clock-epoch).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float64
   start = 0;
 
@@ -34,8 +34,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * Blend duration in seconds; a nonpositive duration leaves the sampling destination unchanged.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   length = 0;
 
@@ -44,8 +44,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * cannot produce a sample.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   value = quat.create();
 
@@ -54,8 +54,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * sample time.
    * @type {ITriQuaternionFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriQuaternionFunction")
   startCurve = null;
 
@@ -64,8 +64,8 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * time.
    * @type {ITriQuaternionFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriQuaternionFunction")
   endCurve = null;
 

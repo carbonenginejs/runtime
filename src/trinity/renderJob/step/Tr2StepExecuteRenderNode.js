@@ -18,18 +18,18 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
 {
 
   /** m_destinationTarget (Tr2RenderTargetPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2RenderTarget")
   destinationTarget = null;
 
   /** m_clearTargetOnFailure (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   clearTargetOnFailure = true;
 
   /** m_node (ITr2RenderNodePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2RenderNode")
   node = null;
 

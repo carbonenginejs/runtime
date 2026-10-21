@@ -12,14 +12,14 @@ export class Tr2RenderNodeSprite2dScene
 {
 
   /** m_scene (Tr2Sprite2dScenePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Sprite2dScene")
   scene = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2RenderNode")
   background = null;
 

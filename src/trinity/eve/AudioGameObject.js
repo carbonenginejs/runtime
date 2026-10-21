@@ -31,47 +31,47 @@ export class AudioGameObject
 {
   _worldTransform = mat4.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITr2AudEmitter")
   audioEmitter = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   mute = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
@@ -95,7 +95,7 @@ export class AudioGameObject
   }
 
   /** Post-hydration hook; runs Initialize. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   __init__()
   {
@@ -103,7 +103,7 @@ export class AudioGameObject
   }
 
   /** The emitter this object drives, or null before Initialize has run. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetAudioEmitter()
   {
@@ -114,7 +114,7 @@ export class AudioGameObject
    * Renames the underlying emitter without touching this object's own name
    * field.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetEmitterName(name)
   {
@@ -125,7 +125,7 @@ export class AudioGameObject
    * Sends a named event to the emitter and returns the identifier it hands back,
    * or 0 when there is no emitter or no event name.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   PlayAudioEvent(eventName)
   {

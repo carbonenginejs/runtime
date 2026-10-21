@@ -31,27 +31,27 @@ export class Tr2ExternalParameter extends IInitialize
   _destinationType = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_destinationObject (IRootPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("IRoot")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   destinationAttribute = "";
 
   /** m_valid (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   valid = false;
 
@@ -60,7 +60,7 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Returns a defensive JavaScript value copy in place of Carbon's BlueScriptValue conversion.
    * @returns {*} Defensive copy for arrays, otherwise the bound value.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetValue()
   {
@@ -79,7 +79,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} value Value to convert and assign.
    * @returns {boolean} True after assignment and notification.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetValue(value)
   {

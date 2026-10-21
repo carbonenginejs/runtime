@@ -27,38 +27,38 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   #lastUpdate = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_isValid (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isValid = false;
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_maxParticles (int32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   maxParticles = -1;
 
   /** m_rate (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   rate = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
@@ -67,7 +67,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * GetEmittedParticleCount (Tr2DynamicEmitter_Blue.cpp:22): the particles
    * emitted since the last reset.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.uint32
   @meta.implemented
   get emittedParticles()
@@ -81,7 +81,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * Adapted: Browser attribute generators bind directly to the CPU particle-system adapter
    * rather than native declaration pointers.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Rebind()
   {
@@ -110,7 +110,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /** Carbon method UpdateSimulation (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   UpdateSimulation(dt)
   {

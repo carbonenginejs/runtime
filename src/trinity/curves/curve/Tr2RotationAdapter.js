@@ -22,8 +22,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * is attached.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   value = quat.create();
 
@@ -31,8 +31,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * Optional child quaternion function sampled using the adapter's remapped time.
    * @type {ITriQuaternionFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriQuaternionFunction")
   curve = null;
 
@@ -41,7 +41,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * is attached.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   currentValue = quat.create();
 
@@ -153,7 +153,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   RandomizeStart(range = 60)
   {
@@ -167,7 +167,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} scale Time divisor.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ScaleTime(scale)
   {
@@ -178,7 +178,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * Clears the retained start timestamp.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ResetStart()
   {

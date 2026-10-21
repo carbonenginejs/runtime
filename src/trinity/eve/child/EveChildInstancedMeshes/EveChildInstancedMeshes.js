@@ -70,20 +70,20 @@ function FindDamageLocators(sets)
 @be.mapInterface(IEveInstanceMeshProvider)
 export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @meta.read
+  @meta.attribute(meta.READ)
   @type.mat4
   worldTransform = mat4.create();
 
-  @meta.read
+  @meta.attribute(meta.READ)
   @type.boolean
   hasUpdated = false;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveChildInstancedMesh")
   meshes = [];
 
@@ -1064,7 +1064,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * mesh (Carbon EveChildInstancedMeshes.cpp:781-806, script-exposed tooling);
    * throws RangeError where Carbon raises IndexError.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetInstancesTransforms(meshId)
   {
@@ -1104,7 +1104,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @param {Number} areaId - mesh ordinal in the high 16 bits, locator index in the low 16 (the pairing AddMeshesToManager registers)
    * @returns {Array|null} [sofHullName, sofLocatorSetName, locatorIndex], or null when the mesh is unknown or carries no SOF hull name
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetSofSourceLocator(areaId)
   {
@@ -1118,7 +1118,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /** Number of meshes currently held. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetMeshCount()
   {
@@ -1130,7 +1130,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @param {Number} meshId - mesh index; RangeError when out of range
    * @returns {Array} [geometryPath, geometryResource, meshIndex, castsShadow, reflectionMode, areaCount, instanceCount]
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetMeshInfo(meshId)
   {
@@ -1152,7 +1152,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * @param {Number} areaId - area index within that mesh; RangeError when out of range
    * @returns {Array} [effect, batchType, areaIndex, areaCount] - the effect is the live reference
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetAreaInfo(meshId, areaId)
   {
@@ -1170,7 +1170,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Whether the given mesh is currently displayed; throws RangeError for an
    * unknown mesh index.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetMeshDisplay(meshId)
   {
@@ -1186,7 +1186,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Adapted: Handle invalidation after removal is explicit (Carbon's DataHandle is
    * invalidated by the manager by reference).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetMeshDisplay(meshId, display)
   {
@@ -1217,7 +1217,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /** Returns whether one instanced mesh inherits parent overlay effects. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetMeshInheritOverlayEffects(meshId)
   {
@@ -1225,7 +1225,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /** Enables or disables parent-overlay inheritance for one mesh. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetMeshInheritOverlayEffects(meshId, inherit)
   {
@@ -1244,7 +1244,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /** Adds an overlay effect owned by one instanced mesh. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddMeshOverlayEffect(meshId, overlayEffect)
   {
@@ -1253,7 +1253,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /** Removes an overlay effect owned by one instanced mesh. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RemoveMeshOverlayEffect(meshId, overlayEffect)
   {
@@ -1263,7 +1263,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /** Removes every overlay effect owned by one instanced mesh. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearMeshOverlayEffects(meshId)
   {
@@ -1271,7 +1271,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /** Returns the number of overlay effects owned by one instanced mesh. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetMeshOverlayEffectCount(meshId)
   {

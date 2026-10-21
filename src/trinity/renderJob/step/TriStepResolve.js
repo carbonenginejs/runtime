@@ -16,20 +16,20 @@ import { Failed } from "#trinityal";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepResolve extends TriRenderStep
 {
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   generateMipmap = false;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2RenderTarget")
   source = null;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("Tr2RenderTarget")
   destination = null;
 
   /** Stores the resolve operands in Carbon's destination-first argument order. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(destination = null, source = null)
   {

@@ -9,7 +9,7 @@ export class Tr2PrimaryRenderContext
 {
 
   /** Carbon method GetDefaultBackBuffer -> GetBackBuffer (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetDefaultBackBuffer(...args)
   {
@@ -17,7 +17,7 @@ export class Tr2PrimaryRenderContext
   }
 
   /** Carbon method GetBackBufferFormat (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetBackBufferFormat(...args)
   {

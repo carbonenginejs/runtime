@@ -25,8 +25,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Name of the geometry animation to play or enqueue.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   animation = "";
 
@@ -34,8 +34,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Animation track-mask and layer name; empty selects the default layer.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   mask = "";
 
@@ -63,8 +63,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Signed loop count; native values at or below zero request infinite playback.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   loops = -1;
 
@@ -72,8 +72,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Delay before animation playback, in seconds (native float).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   delay = 0;
 
@@ -81,8 +81,8 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Animation playback speed multiplier (native float).
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   speed = 1;
 
@@ -101,9 +101,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Child binding path used by the flattened JavaScript destination adapter.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   path = "";
 
@@ -111,9 +111,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Explicit destination object in the JavaScript adapter for native embedded Tr2BindingPoint storage.
    * @type {IRoot|null}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("IRoot")
   destination = null;
 
@@ -121,9 +121,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Whether a nonempty destination path is resolved at action execution instead of Link.
    * @type {boolean}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   delayBinding = false;
 
@@ -131,7 +131,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Live binding validity: OWNER is valid; CHILD requires a cached destination.
    * @returns {boolean} Whether the binding is valid without resolving it.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isBindingValid()
@@ -299,7 +299,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: preserves lazy resolution and explicit controller selection; native
    * GetDestination only observes its linked controller or cached child.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetDestination(controller = this._controller)
   {

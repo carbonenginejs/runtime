@@ -28,8 +28,8 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 export class Tr2CurveVector3Expression extends ITriColorFunction
 {
   /** Authored narrow-string name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -40,7 +40,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   _expressionX = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @blue.property()
+  @be.mapProperty()
   @type.expression
   @meta.implemented
   get expressionX()
@@ -62,7 +62,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   _expressionY = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @blue.property()
+  @be.mapProperty()
   @type.expression
   @meta.implemented
   get expressionY()
@@ -84,7 +84,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   _expressionZ = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @blue.property()
+  @be.mapProperty()
   @type.expression
   @meta.implemented
   get expressionZ()
@@ -100,37 +100,37 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Cached value after the last update. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   currentValue = vec3.create();
 
   /** Owned scalar input functions in native declaration order. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriScalarFunction")
   inputs = [];
 
   /** First authored scalar argument. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input1 = 0;
 
   /** Second authored scalar argument. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input2 = 0;
 
   /** Third authored scalar argument. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input3 = 0;
 
   /** Fourth authored scalar argument. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   input4 = 0;
 
@@ -418,7 +418,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Draws a new per-instance random constant in [0, 1). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ResetRandomConstant()
   {
@@ -426,7 +426,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Gets the curve expression terms offered to an editor for autocompletion. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -437,7 +437,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * Compiles and evaluates an arbitrary expression against this curve's context
    * at time 0, returning 0 when it does not compile.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   EvaluateExpression(expression)
   {

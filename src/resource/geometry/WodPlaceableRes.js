@@ -13,32 +13,32 @@ import { vec3 } from "#math/vec3";
 export class WodPlaceableRes
 {
   /** Native visual model. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Model")
   visualModel = null;
 
   /** Native squared far fade distance. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   farFadeDistance = 10000;
 
   /** Native squared near fade distance. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   nearFadeDistance = 2500;
 
   /** Curves animating the placeable graph. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** Whether this resource participates in shadow casting. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isShadowCaster = true;
 

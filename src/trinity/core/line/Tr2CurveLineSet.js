@@ -241,70 +241,70 @@ export class Tr2CurveLineSet
   }
 
   /** m_additive (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   additive = false;
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_lineWidthFactor (float) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   lineWidthFactor = 1;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   depthOffset = 0;
 
   /** m_lineEffect (Tr2MaterialPtr) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.rootRef("Tr2Material")
   lineEffect = null;
 
   /** m_pickEffect (Tr2MaterialPtr) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.rootRef("Tr2Material")
   pickEffect = null;
 
   /** Carbon method AddCurvedLineCrt (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddCurvedLineCrt(position1, color1, position2, color2, middle, width, segments = 20)
   {
@@ -321,7 +321,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method AddCurvedLineSph (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddCurvedLineSph(position1, color1, position2, color2, center, middle, width)
   {
@@ -336,7 +336,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method AddSpheredLineCrt (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddSpheredLineCrt(position1, color1, position2, color2, center, width)
   {
@@ -353,7 +353,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method AddSpheredLineSph (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddSpheredLineSph(position1, color1, position2, color2, center, width)
   {
@@ -368,7 +368,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method AddStraightLine (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddStraightLine(position1, color1, position2, color2, width)
   {
@@ -385,7 +385,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLineIntermediateSph (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineIntermediateSph(id, intermediatePosition, center)
   {
@@ -393,7 +393,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLineIntermediateCrt (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineIntermediateCrt(id, intermediatePosition)
   {
@@ -404,7 +404,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLinePositionSph (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLinePositionSph(id, position1, position2, center)
   {
@@ -412,7 +412,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLinePositionCrt (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLinePositionCrt(id, position1, position2)
   {
@@ -424,7 +424,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLineAnimation (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineAnimation(id, color, speed, scale)
   {
@@ -437,7 +437,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLineMultiColor (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineMultiColor(id, color, border)
   {
@@ -449,7 +449,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLineSegmentation (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineSegmentation(id, numOfSegments)
   {
@@ -460,7 +460,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLineColor (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineColor(id, color1, color2)
   {
@@ -472,7 +472,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ChangeLineWidth (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ChangeLineWidth(id, width)
   {
@@ -483,7 +483,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method ClearLines (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearLines()
   {
@@ -492,7 +492,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon method RemoveLine (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RemoveLine(id)
   {
@@ -504,7 +504,7 @@ export class Tr2CurveLineSet
   }
 
   /** Native submission intentionally reports success even when filling fails. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SubmitChanges()
   {

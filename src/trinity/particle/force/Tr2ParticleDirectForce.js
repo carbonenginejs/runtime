@@ -18,8 +18,8 @@ const DEBUG_P1 = vec3.create();
 @be.define("Tr2ParticleDirectForce")
 export class Tr2ParticleDirectForce extends ITr2ParticleForce
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   force = vec3.fromValues(1, 1, 1);
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RotationTool.h
 // Source: trinity/trinity/Tr2RotationTool.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -200,12 +201,12 @@ export class Tr2RotationTool extends Tr2ManipulationTool
   }
 
   /** m_precision (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   precision = 1;
 
   /** m_rotation (Quaternion) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   rotation = quat.create();
 

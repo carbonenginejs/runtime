@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2TextureAtlasMan.h
 // Source: trinity/trinity/Tr2TextureAtlasMan.cpp
 // Source: trinity/trinity/Tr2TextureAtlasMan_Blue.cpp
@@ -13,7 +14,7 @@ export class Tr2TextureAtlasMan
 {
 
   /** m_atlases (PTr2TextureAtlasVectorRO) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("Tr2TextureAtlas")
   atlases = [];
 
@@ -52,7 +53,7 @@ export class Tr2TextureAtlasMan
    * @param {number} height Atlas height.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddAtlas(fmt, width, height)
   {
@@ -72,7 +73,7 @@ export class Tr2TextureAtlasMan
    * @param {number} fmt A `PixelFormat` value.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RemoveAtlas(fmt)
   {

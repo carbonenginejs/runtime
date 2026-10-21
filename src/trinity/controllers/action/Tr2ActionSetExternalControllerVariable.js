@@ -22,9 +22,9 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Binding-root name used to resolve the object whose controller variable is changed.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   destinationOwner = "";
 
@@ -32,7 +32,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Resolved destination owner; native BlueWeakRef<IRoot>, retained as a live JavaScript reference.
    * @type {IRoot|null}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootWeak("IRoot")
   destination = null;
 
@@ -40,8 +40,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Name of the destination controller variable written on Start.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   variable = "";
 
@@ -49,8 +49,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Constant float value, also used when the selected source variable is unavailable.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   value = 0;
 
@@ -58,8 +58,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Optional linked-controller float-variable name sampled instead of the authored constant.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   sourceVariable = "";
 
@@ -67,8 +67,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Whether Start first starts the resolved destination controllers before writing the variable.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   startControllers = false;
 
@@ -76,7 +76,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Reports whether a destination owner has resolved, without validating the variable or relinking.
    * @returns {boolean} Whether the cached destination is non-null.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get destinationIsValid()

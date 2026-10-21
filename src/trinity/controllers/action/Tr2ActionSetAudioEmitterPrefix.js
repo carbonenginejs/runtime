@@ -15,14 +15,14 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
 {
   /** m_emitterName: narrow emitter lookup name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   emitter = "";
 
   /** m_prefix: wide event prefix. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   prefix = "";
 
@@ -45,7 +45,7 @@ export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
    * Adapted: JavaScript TypeError represents native PyErr_SetString for null.
    * @param {ITr2ActionController} controller The invoking controller.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   StartWithController(controller)
   {

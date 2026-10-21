@@ -25,8 +25,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Authored name identifying the expression-key scalar curve.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -34,8 +34,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Enables repeated sampling after remapped time passes the evaluated key range.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   cycle = false;
 
@@ -43,8 +43,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Enables the native reverse-playback branch over the evaluated key span.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   reversed = false;
 
@@ -52,8 +52,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Offset in seconds subtracted after dividing sample time by timeScale.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   timeOffset = 0;
 
@@ -61,8 +61,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Dimensionless divisor converting input seconds to curve-local time.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   timeScale = 1;
 
@@ -70,7 +70,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Scalar cached by UpdateValue or the JavaScript Update convenience; native float.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   currentValue = 0;
 
@@ -91,8 +91,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * and tangents.
    * @type {BlueList<Tr2ScalarExprKey>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ScalarExprKey")
   keys = new BlueList(Tr2ScalarExprKey, { className: "Tr2ScalarExprKey", listOps: 0 });
 
@@ -101,7 +101,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * list. Reading this accessor does not reevaluate expressions.
    * @type {number}
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.float32
   get length()
   {
@@ -169,7 +169,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Adapted: JS Number arithmetic and the existing scalar Hermite helper replace
    * native float temporaries. Native key-value-based cycling/reversal is retained.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetValueAt(time)
   {
@@ -228,7 +228,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Gets a key time.
    * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetKeyTime(index)
   {
@@ -239,7 +239,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Sets a key time.
    * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetKeyTime(index, time)
   {
@@ -253,7 +253,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Gets a key value.
    * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetKeyValue(index)
   {
@@ -264,7 +264,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Sets a key value.
    * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetKeyValue(index, value)
   {
@@ -277,7 +277,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Gets the number of keys.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyCount()
   {
@@ -288,7 +288,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Gets a key interpolation value.
    * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetKeyInterpolation(index)
   {
@@ -299,7 +299,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Sets a key interpolation value.
    * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetKeyInterpolation(index, interpolation)
   {
@@ -312,7 +312,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Gets a key left tangent.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyLeftTangent(index)
   {
@@ -323,7 +323,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Sets a key left tangent.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetKeyLeftTangent(index, tangent)
   {
@@ -336,7 +336,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Gets a key right tangent.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetKeyRightTangent(index)
   {
@@ -347,7 +347,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Sets a key right tangent.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetKeyRightTangent(index, tangent)
   {
@@ -385,7 +385,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Adapted: construction uses new and retains JS optional defaults and the existing
    * insertion scan (NaN inserts first); native instance creation can fail.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   AddKey(time, value, leftTangent = 0, rightTangent = 0, interpolation = this.interpolation)
   {
@@ -409,7 +409,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Adapted: invalid JS indexes are ignored; a negative index must not become the
    * BlueList clear sentinel because the native method receives an unsigned index.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RemoveKey(index)
   {
@@ -419,7 +419,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Re-evaluates expressions; the native editor compatibility name does not sort.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Sort()
   {

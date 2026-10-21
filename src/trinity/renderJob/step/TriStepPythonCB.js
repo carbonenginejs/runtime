@@ -28,7 +28,7 @@ export class TriStepPythonCB extends TriRenderStep
    * Carbon method SetCallback (MAP_METHOD_AND_WRAP): stores the script
    * callback, wrapping a function at the boundary (CjsScriptCallback.from).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetCallback(callback)
   {

@@ -34,7 +34,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * (EveFiringEffectElementContainer_Blue.cpp:27-31): the setter moves
    * component registration to the replacement.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("IEveFiringEffectElement")
   @meta.implemented
   get element()
@@ -54,7 +54,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * (EveFiringEffectElementContainer_Blue.cpp:33-37): setting it starts or
    * stops the element when the state changes.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   @meta.implemented
   get active()
@@ -69,35 +69,35 @@ export class EveFiringEffectElementContainer extends EveEntity
     this.SetActive(value);
   }
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec3
   source = vec3.create();
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.mat4
   sourceTransform = mat4.create();
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.vec3
   destination = vec3.create();
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.boolean
   useSourceTransform = false;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.boolean
   displayDestination = true;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.boolean
   displaySource = true;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.boolean
   display = true;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.float32
   destinationScale = 1;
 

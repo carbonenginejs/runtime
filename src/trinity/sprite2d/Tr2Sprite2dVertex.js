@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
@@ -37,7 +38,7 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @param {number} i Texture coordinate index, 0 or 1.
    * @returns {Float32Array} A copy of the coordinate.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetTexCoord(i)
   {
@@ -51,7 +52,7 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @param {Float32Array|number[]} uv New coordinate.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetTexCoord(i, uv)
   {

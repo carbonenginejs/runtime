@@ -28,9 +28,9 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   _locatorSetName = null;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   locatorSetName = "damage";
 

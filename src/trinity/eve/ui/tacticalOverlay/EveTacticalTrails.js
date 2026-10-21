@@ -68,24 +68,24 @@ export class EveTacticalTrails
   trackedObjects = [];
 
   /** m_segmentCount (uint32_t) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   segments = 0;
 
   /** m_egoBall (ITriVectorFunctionPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("ITriVectorFunction")
   egoBall = null;
 
   /** m_trailEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("Tr2Effect")
   trailEffect = null;
 
   /** m_fadeOutTime (float) [READWRITE, PERSIST]: seconds for a trail to fade out. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   fadeOutTime = 5;
 
@@ -129,7 +129,7 @@ export class EveTacticalTrails
    * Carbon RegisterObject (cpp:84-102): tracks a ball that will leave a trail as it moves. A null object or one
    * already tracked is logged and ignored. The ball is held weakly, as Carbon's BlueWeakRef holds it.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RegisterObject(object)
   {
@@ -148,7 +148,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon UnregisterObject (cpp:104-111): stops tracking a ball; its trail fades out first. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UnregisterObject(object)
   {

@@ -61,39 +61,39 @@ function colorByte(value)
 export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
 
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
+
+
   @type.list("EveSpriteSetItem")
   sprites = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("Tr2Effect")
   effect = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   skinned = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   intensity = 1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
-  @meta.persist
+  @meta.attribute(meta.PERSIST)
   @type.list("EveSpriteLight")
   lights = [];
 
@@ -284,7 +284,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * Recomputes the static and per-bone bounds from the authored sprites and
    * marks the packed geometry stale.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Rebuild()
   {

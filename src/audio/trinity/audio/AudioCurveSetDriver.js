@@ -20,8 +20,8 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 export class AudioCurveSetDriver extends ICurveSetDriver
 {
   /** m_name: authored display name, stored as std::wstring. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   name = "";
 
@@ -32,7 +32,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   _audioParameterName = "";
 
   /** Live parameter name; assigning it transfers the monitored registration. */
-  @blue.property()
+  @be.mapProperty()
   @type.wstring
   @meta.implemented
   get audioParameterName()
@@ -48,12 +48,12 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** m_audioParameterValue: cached float, retained when no parameter record exists. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   audioParameterValue = 0;
 
   /** Whether the current manager and monitored parameter can drive the curve set. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isValid()
@@ -62,8 +62,8 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** m_fallbackCurve: sampled at the caller's unmodified time when audio is invalid. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.rootRef("ITriScalarFunction")
   fallbackCurve = null;
 

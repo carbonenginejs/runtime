@@ -15,8 +15,8 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 @be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierTranslateWithCamera extends IEveChildTransformModifier
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   attachedToCamera = false;
 

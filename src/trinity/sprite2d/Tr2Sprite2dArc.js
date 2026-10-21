@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc_Blue.cpp
@@ -146,50 +147,50 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
 {
 
   /** m_radius (float) [READWRITE, NOTIFY]. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   radius = 0;
 
   /** m_lineWidth (float) [READWRITE, NOTIFY]: width of the outline; 0 or less draws none. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   lineWidth = 1;
 
   /** m_lineColor (Color) [READWRITE, NOTIFY]: colour of the outline. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.color
   lineColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_startAngle (float) [READWRITE, NOTIFY]: start angle in radians. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   startAngle = 0;
 
   /** m_endAngle (float) [READWRITE, NOTIFY]: end angle in radians. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   endAngle = 0;
 
   /** m_fill (bool) [READWRITE, NOTIFY]: whether the arc is filled; otherwise only the line is drawn. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   fill = false;
 
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY]. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.rootRef("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_textureSecondary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY]. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.rootRef("ITr2Sprite2dTexture")
   textureSecondary = null;
 

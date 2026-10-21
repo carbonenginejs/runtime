@@ -23,21 +23,21 @@ export class Tr2BoundingLineSet extends Tr2LineSet
 
 
   /** m_maxBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.vec3
   maxBounds = vec3.create();
 
   /** m_minBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.vec3
   minBounds = vec3.create();
 
   /** Carbon method UpdateBounds (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   UpdateBounds(min, max)
   {

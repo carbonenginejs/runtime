@@ -12,14 +12,14 @@ export class EveSocketParameterString extends IEveSocketParameter
 {
 
   /** m_name (std::string) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_value (std::string) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   value = "";
 
@@ -122,7 +122,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Restores the default captured for the first bound external parameter,
    * leaving the value untouched when none was captured.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetValueToDefault()
   {
@@ -130,7 +130,7 @@ export class EveSocketParameterString extends IEveSocketParameter
   }
 
   /** Reports whether any external parameter is bound to this one. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Used()
   {

@@ -18,8 +18,8 @@ export class EveSOFDataParameterBool extends EveSOFDataParameter
    * Native m_value (bool) replaces the base vector in authored values.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   value = false;
 
