@@ -54,7 +54,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Assigns name, texture provider and UAV mip level together, notifying only
    * when at least one of them actually changed; returns whether it did.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.implemented
   Create(name, texture, uavMipLevel = 0)
   {

@@ -558,7 +558,7 @@ export class TriDevice extends IRoot
    *
    * @returns {boolean} Whether the ambient context has a live backend.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("DoesD3DDeviceExist")
   @meta.implemented
   DeviceExists()
   {

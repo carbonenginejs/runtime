@@ -117,7 +117,7 @@ export class EveChildSocket extends EveChildTransform
    * EveChildSocket_Blue.cpp:67-72. Adapted: the existing partial port creates
    * string bindings only; already-authored parameter classes bind directly.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("Rebind")
   @meta.adapted
   BindParameters()
   {

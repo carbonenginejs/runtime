@@ -38,7 +38,7 @@ export class TriStepSetView extends TriRenderStep
    * Replaces both operands; either may be null, and the view takes precedence
    * when both are set.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.adapted
   SetViewCameraParent(view, camera)
   {

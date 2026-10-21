@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2MainWindow.h
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp
@@ -165,7 +166,7 @@ function presentIntervalName(value)
 // with decorator syntax.
 blue.inherit(IRoot)(Tr2MainWindowState);
 
-CjsSchema.decorateMethod(Tr2MainWindowState, "ToString", blue.method);
+CjsSchema.decorateMethod(Tr2MainWindowState, "ToString", be.mapMethodAndWrap("__str__"));
 CjsSchema.decorateMethod(Tr2MainWindowState, "__str__", meta.renamed("ToString"));
 CjsSchema.decorateField(Tr2MainWindowState, "windowMode", type.int32, type.enum("trinity.Tr2WindowMode"), blue.readwrite, blue.persist);
 CjsSchema.decorateField(Tr2MainWindowState, "adapter", type.uint32, blue.readwrite, blue.persist);

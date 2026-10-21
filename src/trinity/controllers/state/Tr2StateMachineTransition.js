@@ -198,7 +198,7 @@ export class Tr2StateMachineTransition extends IRoot
    * Gets the source state.
    * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
-  @blue.method
+  @be.mapMethodAndWrap("GetState")
   @meta.adapted
   GetSource()
   {

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { CjsSchema, blue, meta } from "#schema";
 import { IRoot } from "../../global/blue/IRoot.js";
 import { Tr2DisplayMode } from "./Tr2DisplayMode.js";
@@ -202,7 +203,7 @@ export default Tr2VideoAdapters;
 blue.inherit(IRoot)(Tr2VideoAdapters);
 
 CjsSchema.decorateField(Tr2VideoAdapters, "DEFAULT_ADAPTER", blue.read);
-CjsSchema.decorateMethod(Tr2VideoAdapters, "RefreshData", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "RefreshData", be.mapMethodAndWrap("Refresh"), meta.adapted);
 CjsSchema.decorateMethod(Tr2VideoAdapters, "GetAdapterCount", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2VideoAdapters, "GetAdapterInfo", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2VideoAdapters, "GetCurrentDisplayMode", blue.method, meta.adapted);

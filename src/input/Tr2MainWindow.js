@@ -646,7 +646,7 @@ CjsSchema.decorateMethod(Tr2MainWindow, "IsHidden", meta.renamed("IsMinimized"),
 CjsSchema.decorateMethod(Tr2MainWindow, "Key", meta.renamed("IsKeyPressed"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetKeyNameText", meta.renamed("GetKeyName"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetHwndAsLong", meta.renamed("GetHwnd"), meta.adapted);
-CjsSchema.decorateMethod(Tr2MainWindow, "HasFocus", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "HasFocus", be.mapMethodAndWrap("IsActive"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "SetMinimumSize", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetDefaultState", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "StoreStateSettings", blue.method, meta.adapted);

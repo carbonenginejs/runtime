@@ -27,7 +27,7 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   /**
    * Binds the debug renderer this step installs; null detaches it.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.implemented
   SetDebugRenderer(renderer)
   {

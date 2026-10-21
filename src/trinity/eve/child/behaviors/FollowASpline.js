@@ -321,7 +321,7 @@ export class FollowASpline extends IRoot
    * flatten every group's tunnels into it, and raise the reassign flag so
    * ReassignTunnelIDsAndAddSystemTunnels renumbers on the next tick.
    */
-  @blue.method
+  @be.mapMethodAndWrap("remapTunnels")
   @meta.implemented
   UpdateTunnelRegistry()
   {

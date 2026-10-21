@@ -115,7 +115,7 @@ export class AudEmitter extends AudGameObjResource
    * a game object as placed (which lets Wake register it), then applies the
    * parent placement.
    */
-  @blue.method
+  @be.mapMethodAndWrap("SetPlacement")
   @meta.implemented
   SetPosition(front, top, position)
   {

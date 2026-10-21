@@ -26,7 +26,7 @@ export class TriStepRunJob extends TriRenderStep
   }
 
   /** Replaces the nested job; null makes the step a no-op. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.adapted
   SetRenderJob(job)
   {

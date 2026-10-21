@@ -29,7 +29,7 @@ export class TriStepSetProjection extends TriRenderStep
    * Replaces the projection; null makes the step a no-op rather than clearing
    * the current projection.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.adapted
   SetProjection(projection)
   {

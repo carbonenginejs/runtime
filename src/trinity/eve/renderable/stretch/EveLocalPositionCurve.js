@@ -88,7 +88,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * Selects which of the LocalPositionBehavior calculations this curve
    * evaluates.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.implemented
   SetBehavior(behavior)
   {

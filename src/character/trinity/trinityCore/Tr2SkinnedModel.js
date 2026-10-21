@@ -220,7 +220,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon ResetBindings (Tr2SkinnedModel.cpp:197-200). */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("ResetAnimationBindings")
   @meta.implemented
   ResetBindings()
   {

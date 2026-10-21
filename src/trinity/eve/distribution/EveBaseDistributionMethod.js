@@ -207,7 +207,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * resets each spawner against the new pool and clears the play time and spawn
    * counter.
    */
-  @blue.method
+  @be.mapMethodAndWrap("Restart")
   @meta.implemented
   RestartDistribution()
   {
@@ -322,7 +322,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Spawns entities on randomly chosen free placements, capped by the free
    * placement count, each taking the next unique entity id.
    */
-  @blue.method
+  @be.mapMethodAndWrap("AddEntity")
   @meta.implemented
   AddEntities(howMany = 1)
   {

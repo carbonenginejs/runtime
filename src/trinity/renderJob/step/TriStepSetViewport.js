@@ -32,7 +32,7 @@ export class TriStepSetViewport extends TriRenderStep
    * Replaces the viewport; null selects the full-screen viewport instead of
    * leaving the current one.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.adapted
   SetViewport(viewport)
   {

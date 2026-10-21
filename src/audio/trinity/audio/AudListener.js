@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudListener.h + AudListener.cpp
 import { meta, blue } from "#schema";
 import { vec3 } from "#math/vec3";
@@ -63,7 +64,7 @@ export class AudListener extends AudGameObjResource
    * @param {ArrayLike<number>} positionValue Listener position.
    * @returns {number} AK_Success (1).
    */
-  @blue.method
+  @be.mapMethodAndWrap("SetPosition")
   @meta.adapted
   SetPlacementFromParent(front, top, positionValue)
   {

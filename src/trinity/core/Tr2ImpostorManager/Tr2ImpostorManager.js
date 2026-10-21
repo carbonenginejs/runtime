@@ -193,7 +193,7 @@ export class Tr2ImpostorManager
   }
 
   /** Stores native unsigned sizes and initializes the manager. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs("__init__")
   @meta.implemented
   Create(width = 1024, height = 1024, itemWidth = 16, itemHeight = 16)
   {
