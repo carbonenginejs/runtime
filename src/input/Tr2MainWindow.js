@@ -38,6 +38,9 @@ export class Tr2MainWindow
     /**
      * macOS IME state (Carbon m_imeState_MacOS, Tr2MainWindow.h:253, default
      * Tr2ImeState_MacOS::DISABLED).
+     *
+     * Not supported: `__APPLE__` build only (Tr2MainWindow_Blue.cpp:355); the browser handles IME, so the value is
+     * stored and never blocks key events.
      * @type {number}
      */
     imeState_MacOS = Tr2ImeState_MacOS.DISABLED;
@@ -634,7 +637,7 @@ CjsSchema.decorateField(Tr2MainWindow, "onMouseWheel", blue.readwrite);
 CjsSchema.decorateField(Tr2MainWindow, "onClose", blue.readwrite);
 CjsSchema.decorateField(Tr2MainWindow, "onFocusChange", blue.readwrite);
 CjsSchema.decorateField(Tr2MainWindow, "onWindowStateChange", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "imeState_MacOS", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "imeState_MacOS", be.mapAttribute(be.READWRITE), meta.notSupported);
 CjsSchema.decorateMethod(Tr2MainWindow, "SetWindowState", meta.renamed("SetStateScript"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowState", meta.renamed("GetStateScript"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "SanitizeState", meta.renamed("SanitizeStateScript"), meta.adapted);

@@ -7,7 +7,7 @@ import { inventoryRuntime } from "./lib/decorator-target-inventory.js";
 // Build conditions the plan has ruled (decorator-upgrade.md § 00, "Build conditionals in exposure files"): each guard below is
 // on for us, so its rows are exposed like any other (with a notSupported/notUsed state where the platform cannot). Any other
 // condition still needs a ruling and keeps reporting.
-const ruledOn = new Set(["GSTATE_ENABLED","WITH_GRANNY","BLUE_WITH_PYTHON","!defined(GAMEWORLD_64)","_WIN32","defined(_WIN32)","CCP_STACKLESS","BLUE_LIVELIST_ENABLED"]);
+const ruledOn = new Set(["GSTATE_ENABLED","WITH_GRANNY","BLUE_WITH_PYTHON","!defined(GAMEWORLD_64)","_WIN32","defined(_WIN32)","CCP_STACKLESS","BLUE_LIVELIST_ENABLED","!((_WIN32)) && (__APPLE__)"]);
 const states = new Set(["meta.implemented","meta.adapted","meta.notImplemented","meta.notSupported","meta.notUsed"]);
 const bits = { NONE:0, READ:1, WRITE:2, READWRITE:3, NOTIFY:4, HIDDEN:8, PERSIST:16, RPERSIST:32,
     FLAGS:256, ENUM:512, PERSISTONLY:24, MODMASK:15, SERMASK:240, EDMASK:3840, EDIT_FORCELONG:0xFFFFFFFF };
