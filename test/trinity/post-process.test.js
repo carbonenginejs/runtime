@@ -252,7 +252,7 @@ test("maintained post-process defaults match Carbon constructors", () =>
   assertEquals(tonemapping.useSweeteners, true);
   assertAlmostEquals(tonemapping.shoulderStrength, 0.125);
   assertAlmostEquals(tonemapping.whiteScale, 2.5);
-  assertEquals(CjsSchema.getField(Tr2PPTonemappingEffect, "method")?.enum?.enumType, "Method");
+  assertEquals(CjsSchema.getField(Tr2PPTonemappingEffect, "method")?.enum?.enumType, "trinity.TonemappingEffectMethodChooser");
   const depthOfField = new Tr2PPDepthOfFieldEffect();
   assertEquals(depthOfField.bokehShape, Tr2PPDepthOfFieldEffect.Disk);
   assertEquals(depthOfField.GetBokehShapeString(), "BOKEH_SHAPE_DISK");
