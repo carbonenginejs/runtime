@@ -37,11 +37,11 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   positionOffset = vec3.create();
   @blue.readwrite
   @blue.persist
- @type.rootRef("ITriVectorFunction")
+ @type.object.ref("ITriVectorFunction")
   parentPositionCurve = null;
   @blue.readwrite
   @blue.persist
- @type.rootRef("ITriVectorFunction")
+ @type.object.ref("ITriVectorFunction")
   alignPositionCurve = null;
   @blue.readwrite
   @blue.persist
@@ -52,13 +52,13 @@ export class EveLocalPositionCurve extends ITriVectorFunction
  @type.vec3
   boundingSize = vec3.create();
   @blue.readwrite
-  @type.rootRef("ITriQuaternionFunction")
+  @type.object.ref("ITriQuaternionFunction")
   parentRotationCurve = null;
   @blue.readwrite
-  @type.rootRef("IEveSpaceObject2")
+  @type.object.ref("IEveSpaceObject2")
   parent = null;
   @blue.readwrite
-  @type.rootRef("EveTurretSet")
+  @type.object.ref("EveTurretSet")
   turretSetObject = null;
   @blue.readwrite
   @type.int32

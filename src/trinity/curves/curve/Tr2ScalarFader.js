@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.h
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.cpp
@@ -13,7 +14,7 @@ const TRI_PI = Math.PI;
  * per fade-in.
  */
 @be.define("Tr2ScalarFader")
-export class Tr2ScalarFader
+export class Tr2ScalarFader extends IRoot
 {
   /**
    * Current dimensionless linear fade envelope value; Update clamps active fading to the range 0

@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 /** Provides the common faction, flag, bone, position, radius, brightness, and noise fields shared by point, textured-point, and spot lights. */
 @be.define("EveSOFDataHullLightSetItem")
 @blue.inherit(IRoot)
-export class EveSOFDataHullLightSetItem
+export class EveSOFDataHullLightSetItem extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 

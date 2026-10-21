@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay.h
@@ -27,7 +28,7 @@ export const IMPACT_ARMOR_SIZE_MAX = 10;
 @be.define("EveDamageOverlay")
 @blue.inherit(IInitialize)
 
-export class EveDamageOverlay
+export class EveDamageOverlay extends IRoot
 {
   @be.mapAttribute(be.READ)
   @type.int32
@@ -52,7 +53,7 @@ export class EveDamageOverlay
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   armorDamageShader = null;
 
   @be.mapAttribute(be.READWRITE)
@@ -68,15 +69,15 @@ export class EveDamageOverlay
   debugForceSpawnDebris = false;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2ScalarFader")
+  @type.object.ref("Tr2ScalarFader")
   armorRepairing = new Tr2ScalarFader();
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2ScalarFader")
+  @type.object.ref("Tr2ScalarFader")
   armorHardening = new Tr2ScalarFader();
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2ScalarFader")
+  @type.object.ref("Tr2ScalarFader")
   hullRepairing = new Tr2ScalarFader();
 
   @be.mapAttribute(be.READWRITE)
@@ -98,7 +99,7 @@ export class EveDamageOverlay
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("TriPerlinCurve")
+  @type.object.ref("TriPerlinCurve")
   hullDamageFlickerCurve = null;
 
   _dataTextureOffset = -1;

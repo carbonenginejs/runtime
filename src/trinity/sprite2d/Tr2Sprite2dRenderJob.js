@@ -73,7 +73,7 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 
   /** m_renderJob (TriRenderJobPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("TriRenderJob")
+  @type.object.ref("TriRenderJob")
   renderJob = null;
 
   /** PickPoint's Vector2( x, y ) temporary (Tr2Sprite2dRenderJob.cpp:36); Carbon has no member. @type {Float32Array} */

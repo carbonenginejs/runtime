@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
  */
 @blue.inherit(IRoot)
 @be.define("Tr2CurveSetRange")
-export class Tr2CurveSetRange
+export class Tr2CurveSetRange extends IRoot
 {
   /** Authored name used by TriCurveSet.PlayTimeRange. */
   @be.mapAttribute(be.READWRITE | be.PERSIST)

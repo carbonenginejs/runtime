@@ -247,7 +247,7 @@ export class EveTurretSet extends EveEntity
 
   /** m_target (EveTurretTargetPtr) [READ] */
   @blue.read
-  @type.rootRef("EveTurretTarget")
+  @type.object.ref("EveTurretTarget")
   target = new EveTurretTarget();
 
   /** m_locatorName (std::string) [READWRITE, PERSIST] */
@@ -356,7 +356,7 @@ export class EveTurretSet extends EveEntity
   /** m_turretEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   turretEffect = null;
 
   /** m_idleToTargetingMovementAudioEvent (std::wstring) [READWRITE, PERSIST] */
@@ -373,7 +373,7 @@ export class EveTurretSet extends EveEntity
 
   /** m_generatedDistributedAmbientEffect (EveChildInstanceContainerPtr) [READ] */
   @blue.read
-  @type.rootRef("EveChildInstanceContainer")
+  @type.object.ref("EveChildInstanceContainer")
   generatedDistributedAmbientEffect = null;
 
   /** m_cyclingFireGroupCount (uint32_t) [READWRITE, PERSIST] */
@@ -385,7 +385,7 @@ export class EveTurretSet extends EveEntity
   /** m_turretMovementObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("TriObserverLocal")
+  @type.object.ref("TriObserverLocal")
   turretMovementObserver = null;
 
   /** m_slotNumber (int) [READWRITE] */

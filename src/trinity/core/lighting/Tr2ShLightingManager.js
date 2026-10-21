@@ -87,7 +87,7 @@ function readFloat(value)
 @blue.define("Tr2ShLightingManager")
 @blue.inherit(IRoot)
 @blue.interface()
-export class Tr2ShLightingManager
+export class Tr2ShLightingManager extends IRoot
 {
 
   /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */

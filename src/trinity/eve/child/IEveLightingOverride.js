@@ -4,7 +4,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an EVE entity that contributes a weighted lighting override. */
-export class IEveLightingOverride
+export class IEveLightingOverride extends IRoot
 {
 
   /** Returns the priority, blend intensity, and lighting values to contribute. */

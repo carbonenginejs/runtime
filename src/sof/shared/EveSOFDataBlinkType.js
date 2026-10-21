@@ -38,7 +38,7 @@ const slot = (name, index) => ({ name, key: "blinkType", index, type: { kind: "r
 })
 @blue.interface()
 @blue.inherit(IRoot)
-export class EveSOFDataBlinkType
+export class EveSOFDataBlinkType extends IRoot
 {
   static BlinkType = BlinkType;
 

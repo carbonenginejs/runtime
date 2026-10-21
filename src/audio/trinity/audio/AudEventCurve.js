@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: audio/src/AudEventCurve.h + AudEventCurve.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
@@ -18,7 +19,7 @@ import "#consts/graphics/trinityEnums";
 @be.mapInterface(ITriFunction)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITriCurveLength)
-export class AudEventCurve
+export class AudEventCurve extends IRoot
 {
 
   /** m_extrapolation (TRIEXTRAPOLATION - enum TRIEXTRAPOLATION) [READWRITE, PERSIST, ENUM] */
@@ -58,7 +59,7 @@ export class AudEventCurve
   /** m_sourceTriObserver (ITriObserverLocalPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriObserverLocal")
+  @type.object.ref("ITriObserverLocal")
   sourceTriObserver = null;
 
   /** m_keys (PAudEventKeyVector) [PERSISTONLY] */
@@ -68,7 +69,7 @@ export class AudEventCurve
 
   /** m_audioEmitter (AudEmitterPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("AudEmitter")
+  @type.object.ref("AudEmitter")
   audioEmitter = null;
 
   // Playback cursor (C++ m_currentKeyIt) - runtime state, rebuildable.

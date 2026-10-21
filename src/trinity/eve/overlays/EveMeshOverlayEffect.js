@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
@@ -24,7 +25,7 @@ import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
 @be.mapInterface(IListNotify)
 @be.mapInterface(ITr2ControllerOwner)
 @be.mapInterface(ITr2CurveSetOwner)
-export class EveMeshOverlayEffect
+export class EveMeshOverlayEffect extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
@@ -38,7 +39,7 @@ export class EveMeshOverlayEffect
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("TriCurveSet")
+  @type.object.ref("TriCurveSet")
   curveSet = null;
 
   @be.mapAttribute(be.READ | be.PERSIST)

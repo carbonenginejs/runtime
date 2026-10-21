@@ -34,7 +34,7 @@ export class Tr2CurveVector2 extends ITriFunction
    */
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.root("Tr2CurveScalar")
+  @type.object.embed("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
   /**
@@ -43,7 +43,7 @@ export class Tr2CurveVector2 extends ITriFunction
    */
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.root("Tr2CurveScalar")
+  @type.object.embed("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
   /**

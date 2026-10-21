@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { IEveSOFDataHullExtensionPlacement } from "./IEveSOFDataHullExtensionPlacement.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
@@ -8,7 +9,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataHullExtensionPlacementGroup")
 @be.mapInterface(IEveSOFDataHullExtensionPlacement)
 @blue.inherit(IEveSOFDataHullExtensionPlacement)
-export class EveSOFDataHullExtensionPlacementGroup
+export class EveSOFDataHullExtensionPlacementGroup extends IRoot
 {
 
   /** m_placements (PIEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */

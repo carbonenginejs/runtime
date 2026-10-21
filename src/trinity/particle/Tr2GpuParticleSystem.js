@@ -142,63 +142,63 @@ export class Tr2GpuParticleSystem
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   clear = null;
 
   /** m_emit (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   emit = null;
 
   /** m_sortInner (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   sortInner = null;
 
   /** m_sortStep (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   sortStep = null;
 
   /** m_sort (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   sort = null;
 
   /** m_render (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   render = null;
 
   /** m_update (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   update = null;
 
   /** m_setDrawParameters (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   setDrawParameters = null;
 
   /** m_setSortParameters (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   setSortParameters = null;
 
   /** m_particleData: per-particle data (ParticleData). */

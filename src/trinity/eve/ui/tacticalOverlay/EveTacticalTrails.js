@@ -74,13 +74,13 @@ export class EveTacticalTrails
 
   /** m_egoBall (ITriVectorFunctionPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   egoBall = null;
 
   /** m_trailEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   trailEffect = null;
 
   /** m_fadeOutTime (float) [READWRITE, PERSIST]: seconds for a trail to fade out. */

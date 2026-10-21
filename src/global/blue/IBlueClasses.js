@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/IBlueClasses.h
 //
 // The class registry as its CONSUMERS see it. Carbon reaches it through its
@@ -12,7 +13,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `IBlueClasses` - class registration and creation by name, per blueexposure/include/IBlueClasses.h. */
-export class IBlueClasses
+export class IBlueClasses extends IRoot
 {
   /**
    * `RegisterClasses( const Be::ClassRegistration table[] )` - register every

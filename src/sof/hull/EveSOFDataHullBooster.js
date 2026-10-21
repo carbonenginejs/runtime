@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Groups booster placements and records whether boosters and their trails remain active. */
 @be.define("EveSOFDataHullBooster")
 @blue.inherit(IRoot)
-export class EveSOFDataHullBooster
+export class EveSOFDataHullBooster extends IRoot
 {
 
   /** m_items (PEveSOFDataHullBoosterItemVector) [READ, PERSIST] */

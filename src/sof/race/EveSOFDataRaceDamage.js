@@ -10,7 +10,7 @@ import { EveSOFDataTexture } from "../shared/EveSOFDataTexture.js";
 @be.define("EveSOFDataRaceDamage")
 
 @blue.inherit(IRoot)
-export class EveSOFDataRaceDamage
+export class EveSOFDataRaceDamage extends IRoot
 {
 
   /** m_armorImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */

@@ -26,7 +26,7 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /** Runtime loaded controller, exposed read-only and not persisted. */
   @blue.read
-  @type.rootRef("ITr2Controller")
+  @type.object.ref("ITr2Controller")
   controller = null;
 
   /** Owner retained while an asynchronous load is pending. */

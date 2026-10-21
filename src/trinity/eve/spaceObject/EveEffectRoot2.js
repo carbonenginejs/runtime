@@ -164,7 +164,7 @@ export class EveEffectRoot2 extends EveEntity
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriQuaternionFunction")
+  @type.object.ref("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_secondaryLightingSphereRadiusLocal (float) [READWRITE, PERSIST] */
@@ -194,19 +194,19 @@ export class EveEffectRoot2 extends EveEntity
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriQuaternionFunction")
+  @type.object.ref("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   translationCurve = null;
 
   _changeLOD = true;

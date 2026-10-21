@@ -11,7 +11,7 @@ import { EveSOFDataHullBannerLight } from "./EveSOFDataHullBannerLight.js";
 /** Defines a banner's usage, bone-relative transform, visibility, optional light override, aspect ratio, and flat or curved presentation. */
 @blue.define("EveSOFDataHullBanner")
 @blue.inherit(IRoot)
-export class EveSOFDataHullBanner
+export class EveSOFDataHullBanner extends IRoot
 {
 
   static Usage = {
@@ -148,7 +148,7 @@ export class EveSOFDataHullBanner
   /** m_lightOverride (EveSOFDataHullBannerLightPtr) [READ, PERSIST] */
   @blue.read
   @blue.persist
-  @type.rootRef("EveSOFDataHullBannerLight")
+  @type.object.ref("EveSOFDataHullBannerLight")
   lightOverride = new EveSOFDataHullBannerLight();
 
   /** m_name (std::string) [READWRITE, PERSIST] */

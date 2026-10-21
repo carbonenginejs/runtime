@@ -4,7 +4,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an object that keeps a named list of effect children, as EveEffectRoot2 does. */
-export class IEveEffectChildrenOwner
+export class IEveEffectChildrenOwner extends IRoot
 {
   /**
    * Finds an effect child by name.

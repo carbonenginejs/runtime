@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2GpuSharedEmitter.h
 // Source: trinity/trinity/Particle/Tr2GpuSharedEmitter.cpp
@@ -24,7 +25,7 @@ const MAXIMUM_FRAME_TIME = Math.fround(1 / 15);
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2GenericEmitter)
-export class Tr2GpuSharedEmitter
+export class Tr2GpuSharedEmitter extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 

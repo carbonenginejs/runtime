@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLoad.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLoad.json; maintained by the runtime resource layer.
 import * as CcpLog from "../../global/logging/ccpLog.js";
@@ -7,7 +8,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Persisted pipeline-step record mirroring Carbon's load step, holding the source texture path the pipeline reads. */
-export class Tr2TexturePipelineStepLoad
+export class Tr2TexturePipelineStepLoad extends IRoot
 {
 
   /** m_path (std::wstring) [READWRITE, PERSIST] */

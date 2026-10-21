@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
@@ -13,7 +14,7 @@ import { meta, type, blue } from "#schema";
 @blue.define({ className: "EveVirtualCameraBehaviourFloatBase", abstract: true })
 @blue.inherit(INotify)
 @blue.interface(INotify)
-export class EveVirtualCameraBehaviourFloatBase
+export class EveVirtualCameraBehaviourFloatBase extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 

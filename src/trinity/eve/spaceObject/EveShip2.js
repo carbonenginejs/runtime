@@ -57,7 +57,7 @@ export class EveShip2 extends EveMobile
 
   /** m_speed (TriFloatPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("TriFloat")
+  @type.object.ref("TriFloat")
   speed = null;
 
   /** m_audioSpeedParameter (IRootPtr, private, h:76) - the audio value holder. */

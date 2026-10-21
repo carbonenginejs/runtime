@@ -65,13 +65,13 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2ParticleSystem")
+  @type.object.ref("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2InstancedMesh")
+  @type.object.ref("Tr2InstancedMesh")
   mesh = null;
 
   /** m_useSpaceObjectData (bool) [READWRITE, PERSIST] */

@@ -20,7 +20,7 @@ export class EveVirtualCameraSystem
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveVirtualCamera")
+  @type.object.ref("EveVirtualCamera")
   externalCamera = null;
 
   @be.mapAttribute(be.READ | be.PERSIST)
@@ -30,11 +30,11 @@ export class EveVirtualCameraSystem
 
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.rootRef("EveVirtualCamera")
+  @type.object.ref("EveVirtualCamera")
   mainCamera = null;
 
   @be.mapAttribute(be.READ)
-  @type.rootRef("EveVirtualCameraTransitionBase")
+  @type.object.ref("EveVirtualCameraTransitionBase")
   transition = null;
 
   _lastUpdate = 0;

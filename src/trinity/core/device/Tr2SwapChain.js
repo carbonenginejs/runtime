@@ -15,17 +15,17 @@ import { Tr2SwapChainAL } from "../../../trinityal/Tr2SwapChainAL/index.js";
 @be.define("Tr2SwapChain")
 @blue.inherit(IRoot)
 
-export class Tr2SwapChain
+export class Tr2SwapChain extends IRoot
 {
 
   /** m_depthStencil (Tr2DepthStencilPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2DepthStencil")
+  @type.object.ref("Tr2DepthStencil")
   depthStencilBuffer = null;
 
   /** m_backBuffer (Tr2RenderTargetPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   backBuffer = null;
 
   /**

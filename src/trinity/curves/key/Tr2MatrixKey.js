@@ -17,7 +17,7 @@ import { type, blue } from "#schema";
  */
 @blue.inherit(IRoot)
 @be.define("Tr2MatrixKey")
-export class Tr2MatrixKey
+export class Tr2MatrixKey extends IRoot
 {
   /** Key time in seconds. */
   @be.mapAttribute(be.READWRITE | be.PERSIST)

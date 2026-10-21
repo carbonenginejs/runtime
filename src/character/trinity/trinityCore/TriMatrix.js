@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Include/TriMatrix.h, TriMatrix.cpp, TriMatrix_Blue.cpp
 import { meta, blue } from "#schema";
@@ -25,7 +26,7 @@ const ELEMENTS = [
     name, key: "_matrix", index, type: { kind: "float32" }, edit: { read: true, write: true, persist: true }
   }))
 })
-export class TriMatrix
+export class TriMatrix extends IRoot
 {
   /**
    * The matrix itself; Carbon constructs an identity (TriMatrix.cpp:72-90).

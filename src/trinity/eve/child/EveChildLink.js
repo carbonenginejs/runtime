@@ -49,7 +49,7 @@ export class EveChildLink extends EveChildMesh
 
   /** m_target (ITriVectorFunctionPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   target = null;
 
   /** m_linkStrength (float) [READ] */

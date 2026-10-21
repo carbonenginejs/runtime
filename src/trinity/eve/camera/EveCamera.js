@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/EveCamera.h
@@ -115,7 +116,7 @@ const CAMERA_YAW_PITCH_ROLL = new Float64Array(3);
 @be.define("EveCamera")
 @blue.inherit(INotify)
 @be.mapInterface(INotify)
-export class EveCamera
+export class EveCamera extends IRoot
 {
 
   _failedLastFrame = false;
@@ -161,7 +162,7 @@ export class EveCamera
 
   /** m_errorListener (IBlueEventListenerPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("IBlueEventListener")
+  @type.object.ref("IBlueEventListener")
   errorHandler = null;
 
   /** m_noiseScale (float) [READWRITE, PERSIST] */
@@ -172,7 +173,7 @@ export class EveCamera
 
   /** m_audio2Listener (IBluePlacementObserverPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("IBluePlacementObserver")
+  @type.object.ref("IBluePlacementObserver")
   audio2Listener = null;
 
   /** m_noise (bool) [READWRITE, PERSIST] */
@@ -252,7 +253,7 @@ export class EveCamera
   /** m_interestTranslationCurve (ITriVectorFunctionPtr) [READWRITE, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.NOTIFY)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   interest = null;
 
   /** m_rotationOfInterest (Quaternion) [READWRITE, PERSIST, NOTIFY] */
@@ -289,19 +290,19 @@ export class EveCamera
   /** m_noiseCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriScalarFunction")
+  @type.object.ref("ITriScalarFunction")
   noiseCurve = null;
 
   /** m_noiseScaleCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriScalarFunction")
+  @type.object.ref("ITriScalarFunction")
   noiseScaleCurve = null;
 
   /** m_noiseDampCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriScalarFunction")
+  @type.object.ref("ITriScalarFunction")
   noiseDampCurve = null;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
@@ -319,7 +320,7 @@ export class EveCamera
   /** m_zoomCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriScalarFunction")
+  @type.object.ref("ITriScalarFunction")
   zoomCurve = createDefaultZoomCurve();
 
   /** Blue exposes m_translationFromParent.z, not the native Vector3. */
@@ -354,7 +355,7 @@ export class EveCamera
 
   /** m_parentTranslationCurve (ITriVectorFunctionPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   parent = null;
 
   /** m_idleScale (float) [READWRITE, PERSIST] */
@@ -376,12 +377,12 @@ export class EveCamera
 
   /** m_projectionMatrix (TriProjectionPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("TriProjection")
+  @type.object.ref("TriProjection")
   projectionMatrix = new TriProjection();
 
   /** m_viewMatrix (TriViewPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("TriView")
+  @type.object.ref("TriView")
   viewMatrix = new TriView();
 
   /** m_idleMove (bool) [READWRITE, PERSIST] */

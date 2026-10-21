@@ -4,7 +4,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an object that owns space-object decals (h:7-11). */
-export class IEveSpaceObjectDecalOwner
+export class IEveSpaceObjectDecalOwner extends IRoot
 {
 
   /**

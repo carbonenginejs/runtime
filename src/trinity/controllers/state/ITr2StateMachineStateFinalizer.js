@@ -12,7 +12,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 
 
 /** Contract for an object that holds a state machine in its current state. */
-export class ITr2StateMachineStateFinalizer
+export class ITr2StateMachineStateFinalizer extends IRoot
 {
 
   /**

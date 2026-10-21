@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/UI/EveEllipseDefinition.h
 import { type, blue } from "#schema";
@@ -14,7 +15,7 @@ import { vec3 } from "#math/vec3";
 @be.define("EveEllipseDefinition")
 @blue.inherit(INotify)
 @be.mapInterface(INotify)
-export class EveEllipseDefinition
+export class EveEllipseDefinition extends IRoot
 {
   _dirtyFlag = null;
 

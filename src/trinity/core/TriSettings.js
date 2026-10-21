@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/TriSettings.h
 //   trinity/trinity/TriSettings_Blue.cpp
@@ -16,7 +17,7 @@ import { meta, blue } from "#schema";
  * no engine global (ccpwgl registers its switches this way).
  */
 @be.define("TriSettings")
-export class TriSettings
+export class TriSettings extends IRoot
 {
   /** m_map: name -> { valueType, owner, key }; the value is owner[key]. */
   _settings = new Map();

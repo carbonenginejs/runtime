@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { CjsSchema } from "#schema/CjsSchema";
 
 // Source: fsd/FsdObject.h
@@ -24,7 +25,7 @@ import { PyErr_SetString, PyExc } from "./pyErr.js";
  * format module may import nothing outside FSD and the shared format helpers,
  * so it is a plain class here.
  */
-export class FsdObject
+export class FsdObject extends IRoot
 {
     /** @type {ObjectSchemaAttributes|null} The object's schema. */
     _objectSchemaAttributes = null;

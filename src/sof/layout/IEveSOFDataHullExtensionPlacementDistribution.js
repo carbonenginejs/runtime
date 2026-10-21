@@ -6,7 +6,7 @@ import { type, blue, meta } from "#schema";
 /** Common Carbon interface for hull-extension placement conditions. */
 @be.interface("IEveSOFDataHullExtensionPlacementDistribution")
 @blue.inherit(IRoot)
-export class IEveSOFDataHullExtensionPlacementDistribution
+export class IEveSOFDataHullExtensionPlacementDistribution extends IRoot
 {
 
   /** m_name (std::string); persisted by each concrete Blue class. */

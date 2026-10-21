@@ -36,17 +36,17 @@ export class TriStepRenderTexture extends TriRenderStep
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITr2TextureProvider")
+  @type.object.ref("ITr2TextureProvider")
   depthStencil = null;
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITr2TextureProvider")
+  @type.object.ref("ITr2TextureProvider")
   renderTarget = null;
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITr2TextureProvider")
+  @type.object.ref("ITr2TextureProvider")
   texture = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD). */

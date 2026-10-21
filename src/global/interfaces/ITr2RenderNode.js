@@ -1,9 +1,10 @@
+import { IRoot } from "../blue/IRoot.js";
 // Source: trinity/trinity/ITr2RenderNode.h
 import { CjsSchema, blue, meta } from "../schema/index.js";
 
 
 /** Dependency-free contract for one node in a Trinity render graph. */
-export class ITr2RenderNode
+export class ITr2RenderNode extends IRoot
 {
 
   /** Validates the node against its requested destinations and named outputs. */

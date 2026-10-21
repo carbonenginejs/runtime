@@ -15,7 +15,7 @@ export class WodPlaceableRes
   /** Native visual model. */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Model")
+  @type.object.ref("Tr2Model")
   visualModel = null;
 
   /** Native squared far fade distance. */

@@ -12,7 +12,7 @@ import { meta, blue } from "#schema";
 @be.define("EveEntity")
 
 @blue.inherit(IRoot)
-export class EveEntity
+export class EveEntity extends IRoot
 {
 
   _componentIndexLookup = new Map();

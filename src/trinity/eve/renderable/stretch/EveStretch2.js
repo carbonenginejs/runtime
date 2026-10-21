@@ -74,27 +74,27 @@ export class EveStretch2 extends IEveFiringEffectElement
   name = "";
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("TriCurveSet")
+ @type.object.ref("TriCurveSet")
   loop = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("TriCurveSet")
+ @type.object.ref("TriCurveSet")
   start = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("TriCurveSet")
+ @type.object.ref("TriCurveSet")
   end = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("Tr2Effect")
+ @type.object.ref("Tr2Effect")
   effect = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("Tr2GpuSharedEmitter")
+ @type.object.ref("Tr2GpuSharedEmitter")
   destinationEmitter = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("Tr2GpuSharedEmitter")
+ @type.object.ref("Tr2GpuSharedEmitter")
   sourceEmitter = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
@@ -103,19 +103,19 @@ export class EveStretch2 extends IEveFiringEffectElement
   quadCount = 0;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("TriObserverLocal")
+ @type.object.ref("TriObserverLocal")
   destinationObserver = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("TriObserverLocal")
+ @type.object.ref("TriObserverLocal")
   sourceObserver = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("Tr2PointLight")
+ @type.object.ref("Tr2PointLight")
   destinationLight = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("Tr2PointLight")
+ @type.object.ref("Tr2PointLight")
   sourceLight = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 

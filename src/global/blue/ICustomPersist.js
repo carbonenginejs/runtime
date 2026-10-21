@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/ICustomPersist.h:13-20
 // Source: blueexposure/InterfaceDefinitions.cpp:23
 import { CjsSchema, blue } from "#schema";
@@ -10,7 +11,7 @@ import { CjsSchema, blue } from "#schema";
  * implementations retain their documented JavaScript buffer representations;
  * this contract supplies no pointer or output-argument adapter.
  */
-export class ICustomPersist
+export class ICustomPersist extends IRoot
 {
   /**
    * Provides the bytes and used byte count for a named member.

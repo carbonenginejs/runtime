@@ -15,7 +15,7 @@ import { blue as be } from "#blue";
 @blue.define("TriRenderJob")
 @blue.interface(IRoot)
 @blue.inherit(IRoot)
-export class TriRenderJob
+export class TriRenderJob extends IRoot
 {
   static Status = TriRenderJobStatus;
 

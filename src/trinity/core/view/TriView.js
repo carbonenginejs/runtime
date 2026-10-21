@@ -10,7 +10,7 @@ import { meta, type, blue } from "#schema";
 /** The camera view matrix, together with the look-at helper that builds it. */
 @be.define("TriView")
 @blue.inherit(IRoot)
-export class TriView
+export class TriView extends IRoot
 {
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */

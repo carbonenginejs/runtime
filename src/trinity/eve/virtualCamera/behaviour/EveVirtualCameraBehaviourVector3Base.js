@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
@@ -18,7 +19,7 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 @blue.define({ className: "EveVirtualCameraBehaviourVector3Base", abstract: true })
 @blue.inherit(INotify)
 @blue.interface(INotify)
-export class EveVirtualCameraBehaviourVector3Base
+export class EveVirtualCameraBehaviourVector3Base extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 

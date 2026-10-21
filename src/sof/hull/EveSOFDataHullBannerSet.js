@@ -7,7 +7,7 @@ import { meta, type, blue } from "#schema";
 /** Groups banner items under a named visibility identity. */
 @be.define("EveSOFDataHullBannerSet")
 @blue.inherit(IRoot)
-export class EveSOFDataHullBannerSet
+export class EveSOFDataHullBannerSet extends IRoot
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */

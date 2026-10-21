@@ -10,7 +10,7 @@ import { EveSOFDataHullBanner } from "./EveSOFDataHullBanner.js";
 /** Places one banner by usage, bone, and transform, with optional point-light, aspect-scale, and curvature settings. */
 @blue.define("EveSOFDataHullBannerSetItem")
 @blue.inherit(IRoot)
-export class EveSOFDataHullBannerSetItem
+export class EveSOFDataHullBannerSetItem extends IRoot
 {
 
   static Usage = {
@@ -165,7 +165,7 @@ export class EveSOFDataHullBannerSetItem
   /** m_light (EveSOFDataPointLightAttachmentPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("EveSOFDataPointLightAttachment")
+  @type.object.ref("EveSOFDataPointLightAttachment")
   light = null;
 
   /** m_maintainAspectRatio (bool) [READWRITE] */

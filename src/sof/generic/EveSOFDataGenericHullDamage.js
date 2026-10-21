@@ -14,7 +14,7 @@ import { vec4 } from "#math/vec4";
 @be.define("EveSOFDataGenericHullDamage")
 @blue.inherit(IRoot)
 
-export class EveSOFDataGenericHullDamage
+export class EveSOFDataGenericHullDamage extends IRoot
 {
 
   /** m_hullParticleRate (float) [READWRITE, PERSIST] */

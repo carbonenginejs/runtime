@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
 import { IWorldPosition } from "../core/IWorldPosition.js";
@@ -42,7 +43,7 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
 @be.mapInterface(IInitialize)
 @be.mapInterface(IWorldPosition)
 @be.mapInterface(ITr2DebugRenderable)
-export class EveTriggerVolume
+export class EveTriggerVolume extends IRoot
 {
 
   /** Name identifier, passed to the callback so one handler can serve many trigger volumes. */
@@ -78,13 +79,13 @@ export class EveTriggerVolume
   /** m_ballPosition: vector function slot placing the trigger volume. */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   translationCurve = null;
 
   /** m_ballRotation: quaternion function slot rotating the trigger volume. */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriQuaternionFunction")
+  @type.object.ref("ITriQuaternionFunction")
   rotationCurve = null;
 
   /**
@@ -93,7 +94,7 @@ export class EveTriggerVolume
    * destiny wires it at runtime, so it never serializes.
    */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   trackedPositionCurve = null;
 
   /** Whether the tracked position is currently inside the trigger region. */

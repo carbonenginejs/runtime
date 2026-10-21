@@ -17,7 +17,7 @@ import { meta, type, blue } from "#schema";
  */
 @be.define("Range")
 @blue.inherit(IRoot)
-export class Range
+export class Range extends IRoot
 {
   /**
    * Reference point from which both range distances are measured, in the

@@ -8,19 +8,19 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataPatternApplicationGroup")
 
 @blue.inherit(IRoot)
-export class EveSOFDataPatternApplicationGroup
+export class EveSOFDataPatternApplicationGroup extends IRoot
 {
 
   /** m_layer1Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataPatternLayerProperties")
+  @type.object.ref("EveSOFDataPatternLayerProperties")
   layer1Properties = null;
 
   /** m_layer2Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataPatternLayerProperties")
+  @type.object.ref("EveSOFDataPatternLayerProperties")
   layer2Properties = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */

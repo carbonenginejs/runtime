@@ -185,13 +185,13 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY]. */
   @be.mapAttribute(be.READWRITE | be.NOTIFY)
 
-  @type.rootRef("ITr2Sprite2dTexture")
+  @type.object.ref("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_textureSecondary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY]. */
   @be.mapAttribute(be.READWRITE | be.NOTIFY)
 
-  @type.rootRef("ITr2Sprite2dTexture")
+  @type.object.ref("ITr2Sprite2dTexture")
   textureSecondary = null;
 
   /** Carbon m_renderVertices: prepared vertices, or null when cleared. @type {Tr2Sprite2dD3DVertex[]|null} */

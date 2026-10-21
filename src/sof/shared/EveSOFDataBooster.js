@@ -10,7 +10,7 @@ import { EveSOFDataBoosterShape } from "./EveSOFDataBoosterShape.js";
 @be.define("EveSOFDataBooster")
 @blue.inherit(IRoot)
 
-export class EveSOFDataBooster
+export class EveSOFDataBooster extends IRoot
 {
 
   /**
@@ -118,7 +118,7 @@ export class EveSOFDataBooster
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataBoosterShape")
+  @type.object.ref("EveSOFDataBoosterShape")
   shape0 = new EveSOFDataBoosterShape();
 
   /**
@@ -127,7 +127,7 @@ export class EveSOFDataBooster
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataBoosterShape")
+  @type.object.ref("EveSOFDataBoosterShape")
   shape1 = new EveSOFDataBoosterShape();
 
   /**
@@ -136,7 +136,7 @@ export class EveSOFDataBooster
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataBoosterShape")
+  @type.object.ref("EveSOFDataBoosterShape")
   warpShape0 = new EveSOFDataBoosterShape();
 
   /**
@@ -145,7 +145,7 @@ export class EveSOFDataBooster
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataBoosterShape")
+  @type.object.ref("EveSOFDataBoosterShape")
   warpShape1 = new EveSOFDataBoosterShape();
 
   /**

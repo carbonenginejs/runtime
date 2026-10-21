@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2Denoiser.h
 import { Tr2Renderer } from "./Tr2Renderer.js";
@@ -70,7 +71,7 @@ function effectAt(path)
 @blue.define({ className: "Tr2Denoiser", purpose: "Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising." })
 @blue.inherit(INotify)
 @blue.interface(INotify)
-export class Tr2Denoiser
+export class Tr2Denoiser extends IRoot
 {
 
   /** m_bypass (bool) [READWRITE, PERSIST, NOTIFY] */

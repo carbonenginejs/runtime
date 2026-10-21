@@ -15,7 +15,7 @@ import { meta, type, blue } from "#schema";
 /** Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text. */
 @blue.define({ className: "Tr2FontMeasurer", purpose: "Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text." })
 @blue.inherit(IRoot)
-export class Tr2FontMeasurer
+export class Tr2FontMeasurer extends IRoot
 {
 
   /** m_ascender (int) [READWRITE] */

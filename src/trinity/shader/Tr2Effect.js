@@ -154,7 +154,7 @@ export class Tr2Effect extends Tr2Material
    * @type {Tr2EffectRes|null}
    */
   @blue.read
-  @type.rootRef("Tr2EffectRes")
+  @type.object.ref("Tr2EffectRes")
   effectResource = null;
 
   /** JS acquisition ownership, separate from a resource assigned by the caller. */

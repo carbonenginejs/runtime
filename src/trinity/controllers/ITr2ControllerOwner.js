@@ -30,7 +30,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 
 
 /** Contract for an object that owns controllers and answers their variables. */
-export class ITr2ControllerOwner
+export class ITr2ControllerOwner extends IRoot
 {
 
   /**

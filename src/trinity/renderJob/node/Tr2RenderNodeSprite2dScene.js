@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RenderNodeSprite2dScene.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -8,19 +9,19 @@ import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 @be.define("Tr2RenderNodeSprite2dScene")
 @be.mapInterface(ITr2RenderNode)
 @blue.inherit(ITr2RenderNode)
-export class Tr2RenderNodeSprite2dScene
+export class Tr2RenderNodeSprite2dScene extends IRoot
 {
 
   /** m_scene (Tr2Sprite2dScenePtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Sprite2dScene")
+  @type.object.ref("Tr2Sprite2dScene")
   scene = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2RenderNode")
+  @type.object.ref("ITr2RenderNode")
   background = null;
 
   // Carbon Tr2RenderNodeSprite2dScene.cpp:8-26. The node refuses to run

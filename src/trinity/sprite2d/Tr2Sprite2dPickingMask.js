@@ -14,7 +14,7 @@ import { PixelFormat } from "#consts/render-context";
 @blue.define({ className: "Tr2Sprite2dPickingMask", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
 @blue.interface()
 @blue.inherit(IRoot)
-export class Tr2Sprite2dPickingMask
+export class Tr2Sprite2dPickingMask extends IRoot
 {
 
   /** Native path backing storage; the exposed property delegates resource acquisition. @type {string} */

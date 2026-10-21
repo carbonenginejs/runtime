@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2Renderable.h
 import { CjsSchema, meta } from "#schema";
 
@@ -12,7 +13,7 @@ import { CjsSchema, meta } from "#schema";
  * `ReflectionRenderable` component registration call or validate this
  * interface directly rather than probing for methods.
  */
-export class ITr2Renderable
+export class ITr2Renderable extends IRoot
 {
 
   /** Carbon's default visibility answer for a renderable. */

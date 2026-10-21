@@ -71,14 +71,14 @@ export class EveLineSet
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriQuaternionFunction")
+  @type.object.ref("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_display (bool) [READWRITE, PERSIST] */
@@ -96,7 +96,7 @@ export class EveLineSet
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   translationCurve = null;
 
   /** m_worldTransform (EveLineSet.h:119) - runtime state stamped by

@@ -18,7 +18,7 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2CurveScalar")
+  @type.object.ref("Tr2CurveScalar")
   scaleCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

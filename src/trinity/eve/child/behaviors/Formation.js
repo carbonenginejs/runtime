@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.cpp
@@ -39,7 +40,7 @@ function ClampLength(value, maxLength)
 @be.define("Formation")
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
-export class Formation
+export class Formation extends IRoot
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign.cpp
@@ -24,7 +25,7 @@ const DEBUG_COLOR = color.create();
 @be.define("Allign")
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
-export class Allign
+export class Allign extends IRoot
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.cpp
@@ -26,7 +27,7 @@ const DEBUG_DIRECTION = vec3.create();
 @blue.define("SeekTarget")
 @blue.inherit(IBehavior)
 @blue.interface(IBehavior)
-export class SeekTarget
+export class SeekTarget extends IRoot
 {
 
   _counter = 0;
@@ -94,7 +95,7 @@ export class SeekTarget
   @blue.readwrite
   @blue.persist
   @meta.reference
-  @type.rootRef("EveSpaceObject2")
+  @type.object.weak("EveSpaceObject2")
   target = null;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST] */
@@ -127,7 +128,7 @@ export class SeekTarget
   /** m_locatorSet (EveLocatorSetsPtr) [READ, PERSIST] */
   @blue.read
   @blue.persist
-  @type.rootRef("EveLocatorSets")
+  @type.object.ref("EveLocatorSets")
   locatorSet = null;
 
   /** m_exit (bool) [READWRITE] */

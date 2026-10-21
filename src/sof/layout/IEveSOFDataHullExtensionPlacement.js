@@ -6,7 +6,7 @@ import { blue } from "#schema";
 /** Empty Carbon marker interface for hull-extension placement list members (EveSOFData.h:1911-1915). */
 @be.interface("IEveSOFDataHullExtensionPlacement")
 @blue.inherit(IRoot)
-export class IEveSOFDataHullExtensionPlacement
+export class IEveSOFDataHullExtensionPlacement extends IRoot
 {
 
 }

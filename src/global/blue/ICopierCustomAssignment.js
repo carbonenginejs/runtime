@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/ICopier.h
 import { CjsSchema, blue } from "#schema";
 
@@ -7,7 +8,7 @@ import { CjsSchema, blue } from "#schema";
  * implement it; here list and map FIELDS are copied by the copier itself, so a
  * class implements it only for state it keeps outside its schema.
  */
-export class ICopierCustomAssignment
+export class ICopierCustomAssignment extends IRoot
 {
   /**
    * `AssignTo` - copy this object's unexposed state onto `other`, which is

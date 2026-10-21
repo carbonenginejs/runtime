@@ -7,7 +7,7 @@ import { blue as be, EnumRegistrationType } from "#blue";
 /** Groups named haze items with spherical-type, visibility, and skinning policy. */
 @blue.define("EveSOFDataHullHazeSet")
 @blue.inherit(IRoot)
-export class EveSOFDataHullHazeSet
+export class EveSOFDataHullHazeSet extends IRoot
 {
 
   /** m_hazeType (HazeType - enum HazeType) [READWRITE, PERSIST, ENUM] */

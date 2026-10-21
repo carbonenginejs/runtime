@@ -1,3 +1,4 @@
+import { IRoot } from "../blue/IRoot.js";
 // Source: blue/include/ITr2DebugRenderer2.h:127-187
 import { CjsSchema, blue } from "#schema";
 
@@ -16,7 +17,7 @@ import { CjsSchema, blue } from "#schema";
  * their arguments (a Matrix, a Vector3 and a Vector4 are all Float32Arrays), so
  * each overload is its own `__` method and none keeps the bare name.
  */
-export class ITr2DebugRenderer2
+export class ITr2DebugRenderer2 extends IRoot
 {
   /** Native nested Effect enum (blue/include/ITr2DebugRenderer2.h:129-134). */
   static Effect = { Wireframe: 0, Solid: 1, Lit: 2 };

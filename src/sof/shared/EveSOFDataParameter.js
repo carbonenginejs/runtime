@@ -21,7 +21,7 @@ import { vec4 } from "#math/vec4";
 @be.define("EveSOFDataParameter")
 @blue.inherit(IRoot)
 
-export class EveSOFDataParameter
+export class EveSOFDataParameter extends IRoot
 {
 
   /**

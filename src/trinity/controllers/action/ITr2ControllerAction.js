@@ -21,7 +21,7 @@ const ACTION_DEFAULTS = [ "CanTransition" ];
 
 
 /** Contract for an action a controller drives between Start and Stop. */
-export class ITr2ControllerAction
+export class ITr2ControllerAction extends IRoot
 {
 
   /**

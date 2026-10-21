@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
@@ -16,7 +17,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 @blue.define("Tr2TextureAnimation")
 @blue.inherit(IInitialize, INotify)
 @blue.interface(IInitialize, INotify)
-export class Tr2TextureAnimation
+export class Tr2TextureAnimation extends IRoot
 {
   _channels = new Map();
 

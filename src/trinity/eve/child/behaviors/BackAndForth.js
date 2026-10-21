@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
@@ -33,7 +34,7 @@ const DEBUG_POSITION = vec3.create();
 @blue.define("BackAndForth")
 @blue.inherit(IBehavior)
 @blue.interface(IBehavior)
-export class BackAndForth
+export class BackAndForth extends IRoot
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
@@ -93,21 +94,21 @@ export class BackAndForth
   /** m_fxBehavior (IBehavior*) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("IBehavior")
+  @type.object.weak("IBehavior")
   fxBehavior = null;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
   @meta.reference
-  @type.rootRef("EveSpaceObject2")
+  @type.object.weak("EveSpaceObject2")
   target = null;
 
   /** m_parent (EveSpaceObject2*) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
   @meta.reference
-  @type.rootRef("EveSpaceObject2")
+  @type.object.weak("EveSpaceObject2")
   parent = null;
 
   /** m_seconds (float) [READWRITE] */

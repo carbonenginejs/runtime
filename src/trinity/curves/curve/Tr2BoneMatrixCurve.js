@@ -104,7 +104,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @type {Tr2SkinnedObject|null}
    */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2SkinnedObject")
+  @type.object.ref("Tr2SkinnedObject")
   skinnedObject = null;
 
   /**

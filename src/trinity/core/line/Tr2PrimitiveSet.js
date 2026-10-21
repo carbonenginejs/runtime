@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PrimitiveSet.h
 // Source: trinity/trinity/Tr2PrimitiveSet.cpp
@@ -19,7 +20,7 @@ import { ITr2Pickable } from "../ITr2Pickable.js";
 @blue.define({ className: "Tr2PrimitiveSet", abstract: true })
 @blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
 @blue.interface(ITr2Renderable, ITr2Pickable, INotify)
-export class Tr2PrimitiveSet
+export class Tr2PrimitiveSet extends IRoot
 {
 
   /** Carbon Tr2PrimitiveSet.cpp:170: propagate edited color through the virtual setter. */
@@ -75,14 +76,14 @@ export class Tr2PrimitiveSet
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   pickEffect = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

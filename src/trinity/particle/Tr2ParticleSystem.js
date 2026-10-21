@@ -167,14 +167,14 @@ export class Tr2ParticleSystem
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITr2GenericEmitter")
+  @type.object.ref("ITr2GenericEmitter")
   emitParticleOnDeathEmitter = null;
 
   /** m_emissionWhileAliveEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITr2GenericEmitter")
+  @type.object.ref("ITr2GenericEmitter")
   emitParticleDuringLifeEmitter = null;
 
   /** m_applyForce (bool) [READWRITE, PERSIST] */

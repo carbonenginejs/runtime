@@ -57,7 +57,7 @@ export class Tr2RuntimeInstanceData
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2ParticleSystem")
+  @type.object.ref("Tr2ParticleSystem")
   particleSystem = null;
 
   // DIVERGENCE (deliberate): Carbon only Blue-persists name/particleSystem and

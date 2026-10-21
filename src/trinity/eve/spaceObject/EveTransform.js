@@ -60,7 +60,7 @@ export class EveTransform extends Tr2Transform
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2MeshBase")
+  @type.object.ref("Tr2MeshBase")
   meshLod = null;
 
   /**

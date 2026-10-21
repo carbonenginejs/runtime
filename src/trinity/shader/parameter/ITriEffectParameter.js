@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { ITr2EffectValue } from "./ITr2EffectValue.js";
 // Source: trinity/trinity/Include/ITriEffectParameter.h:10-23
 //
@@ -23,7 +24,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for a shader parameter: its name, its effect handles and its content hash. */
-export class ITriEffectParameter
+export class ITriEffectParameter extends IRoot
 {
 
   /** The authored parameter name the effect binds by. */

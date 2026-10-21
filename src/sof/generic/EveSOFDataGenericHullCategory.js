@@ -14,7 +14,7 @@ import { ReflectionMode } from "#consts/graphics";
 @be.define("EveSOFDataGenericHullCategory")
 @blue.inherit(IRoot)
 
-export class EveSOFDataGenericHullCategory
+export class EveSOFDataGenericHullCategory extends IRoot
 {
   /** Existing JavaScript alias for the native reflection-mode chooser. */
   static ReflectionMode = ReflectionMode;

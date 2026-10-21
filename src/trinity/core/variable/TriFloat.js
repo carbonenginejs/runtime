@@ -13,7 +13,7 @@ import { type, blue } from "#schema";
 @be.define("TriFloat")
 
 @blue.inherit(IRoot)
-export class TriFloat
+export class TriFloat extends IRoot
 {
 
   /** m_value (float) [READWRITE, PERSIST] */

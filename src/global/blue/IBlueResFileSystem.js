@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueResFileSystem.h
 //
 // One place res files can come from. Carbon's paths service holds a list of
@@ -56,7 +57,7 @@ export const BlueResFileSystemForm = Object.freeze({
  */
 
 /** `IBlueResFileSystem` - one source of res files, per blue/include/IBlueResFileSystem.h. */
-export class IBlueResFileSystem
+export class IBlueResFileSystem extends IRoot
 {
   /**
    * The protocols this file system serves (`res`, `http`...), compared with

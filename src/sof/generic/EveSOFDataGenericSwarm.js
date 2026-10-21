@@ -14,7 +14,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataGenericSwarm")
 @blue.inherit(IRoot)
 
-export class EveSOFDataGenericSwarm
+export class EveSOFDataGenericSwarm extends IRoot
 {
 
   /** m_behavior.m_speedMultiplier (EveSwarm::BehaviorProperties) [READWRITE, PERSIST] */

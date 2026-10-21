@@ -11,7 +11,7 @@ import { CjsSchema, blue } from "#schema";
  * value returns, matching the existing concrete follow-key methods.
  */
 @blue.inherit(IRoot)
-export class ITr2FollowCurveKey
+export class ITr2FollowCurveKey extends IRoot
 {
   /**
    * Gets the key position.

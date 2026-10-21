@@ -1,8 +1,9 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITr2GpuBuffer.h:13-25
 import { CjsSchema, meta } from "#schema";
 
 /** Native GPU-buffer contract: a Blue object that wraps one or more Tr2BufferAL. */
-export class ITr2GpuBuffer
+export class ITr2GpuBuffer extends IRoot
 {
   /**
    * Returns the AL buffer; an implementation holding several (TriGeometryRes)

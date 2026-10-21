@@ -35,7 +35,7 @@ export class Tr2StateMachine
    * @type {Tr2StateMachineState|null}
    */
   @blue.read
-  @type.rootRef("Tr2StateMachineState")
+  @type.object.ref("Tr2StateMachineState")
   currentState = null;
 
   /**
@@ -46,7 +46,7 @@ export class Tr2StateMachine
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2StateMachineState")
+  @type.object.ref("Tr2StateMachineState")
   startState = null;
 
   /**

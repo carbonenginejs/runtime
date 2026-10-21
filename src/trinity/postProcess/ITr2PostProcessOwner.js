@@ -15,7 +15,7 @@ import { blue } from "#schema";
  */
 @be.interface("ITr2PostProcessOwner")
 @blue.inherit(IRoot)
-export class ITr2PostProcessOwner
+export class ITr2PostProcessOwner extends IRoot
 {
 
   /**

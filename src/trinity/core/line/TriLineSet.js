@@ -23,7 +23,7 @@ const MAX_VERTICES = 100000;
 @be.define("TriLineSet")
 @blue.inherit(IRoot)
 
-export class TriLineSet
+export class TriLineSet extends IRoot
 {
 
   @type.uint32

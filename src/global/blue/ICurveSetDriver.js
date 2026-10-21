@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/ICurveSetDriver.h:6-8
 import { CjsSchema, blue } from "#schema";
 
@@ -6,7 +7,7 @@ import { CjsSchema, blue } from "#schema";
  * Supplies a curve set's driven time. Carbon derives this interface from IRoot;
  * the shared JavaScript interface follows Blue's plain-class convention.
  */
-export class ICurveSetDriver
+export class ICurveSetDriver extends IRoot
 {
   /**
    * Returns the curve-set time selected by the concrete driver.

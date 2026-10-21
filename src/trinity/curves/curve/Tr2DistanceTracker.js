@@ -70,7 +70,7 @@ export class Tr2DistanceTracker extends ITriFunction
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   sourceObject = null;
 
   /**
@@ -80,7 +80,7 @@ export class Tr2DistanceTracker extends ITriFunction
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   targetObject = null;
 
   /**

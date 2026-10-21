@@ -96,12 +96,12 @@ export class EveChildCloud extends EveSpaceObjectChild
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Material")
+  @type.object.ref("Tr2Material")
   effect = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveCloudEditableVolume")
+  @type.object.ref("EveCloudEditableVolume")
   volume = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

@@ -27,7 +27,7 @@ import { blue as be } from "#blue";
 @blue.define("Tr2PostProcessAttributes")
 @blue.inherit(IRoot)
 @blue.interface()
-export class Tr2PostProcessAttributes
+export class Tr2PostProcessAttributes extends IRoot
 {
 
   /**

@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 /** Defines a named sound-emitter event prefix, position, rotation, and attenuation settings. */
 @be.define("EveSOFDataHullSoundEmitter")
 @blue.inherit(IRoot)
-export class EveSOFDataHullSoundEmitter
+export class EveSOFDataHullSoundEmitter extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

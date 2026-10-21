@@ -45,7 +45,7 @@ function SamplerDescriptionFromOverride(override)
 @be.define("Tr2Material")
 
 @blue.inherit(IRoot)
-export class Tr2Material
+export class Tr2Material extends IRoot
 {
 
   /** m_shader (Tr2ShaderPtr) */

@@ -13,7 +13,7 @@ export class TriStepSetDebugRenderer extends TriRenderStep
 
   /** m_debugRenderer (ITr2DebugRendererPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITr2DebugRenderer")
+  @type.object.ref("ITr2DebugRenderer")
   renderer = null;
 
   /** Carbon method __init__ -> SetDebugRenderer (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */

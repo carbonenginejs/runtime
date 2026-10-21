@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { INotify } from "../../global/blue/INotify.js";
 import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
@@ -27,23 +28,23 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
 @be.mapInterface(IWorldPosition)
 @be.mapInterface(ITr2DebugRenderable)
 @be.mapInterface(INotify)
-export class AudioGameObject
+export class AudioGameObject extends IRoot
 {
   _worldTransform = mat4.create();
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2AudEmitter")
+  @type.object.ref("ITr2AudEmitter")
   audioEmitter = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   translationCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriQuaternionFunction")
+  @type.object.ref("ITriQuaternionFunction")
   rotationCurve = null;
 
   @be.mapAttribute(be.READ | be.PERSIST)

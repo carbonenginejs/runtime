@@ -79,11 +79,11 @@ export class EveTurretSetSingleTurretData
   worldTransforms = [];
 
   /** rtMesh (std::unique_ptr<Tr2RaytracingMesh>) */
-  @type.root("Tr2RaytracingMesh")
+  @type.object.embed("Tr2RaytracingMesh")
   rtMesh = null;
 
   /** rtMeshArea (std::unique_ptr<Tr2RaytracingMeshArea>) */
-  @type.root("Tr2RaytracingMeshArea")
+  @type.object.embed("Tr2RaytracingMeshArea")
   rtMeshArea = null;
 
   /** rtPerObjectData (mutable Tr2ConstantBufferAL) */

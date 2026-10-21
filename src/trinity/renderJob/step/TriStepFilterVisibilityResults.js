@@ -28,7 +28,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   /** m_inputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2VisibilityResults")
+  @type.object.ref("Tr2VisibilityResults")
   inputResults = null;
 
   /** m_objects (PIRootVector) [READ, PERSIST] */
@@ -40,7 +40,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   /** m_outputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2VisibilityResults")
+  @type.object.ref("Tr2VisibilityResults")
   outputResults = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */

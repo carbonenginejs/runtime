@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h
 //   trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
 // Schema: format-carbon resources/Tr2TexturePipelineStepPack.json; maintained by the runtime resource layer.
@@ -14,7 +15,7 @@ import { GetBytesPerPixel, PixelFormat, TextureType } from "#consts/render-conte
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Persisted pipeline-step record mirroring Carbon's pack step, naming the target pixel format and the four per-channel pack sources. */
-export class Tr2TexturePipelineStepPack
+export class Tr2TexturePipelineStepPack extends IRoot
 {
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, PERSIST, ENUM] */

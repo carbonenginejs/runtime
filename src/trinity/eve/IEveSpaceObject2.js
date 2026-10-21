@@ -21,7 +21,7 @@ const SPACE_OBJECT_DEFAULTS = [ "GetWorldVelocity", "IsPickable", "IsAudioOcclud
 
 
 /** Contract for a top-level object an EveSpaceScene drives each frame. */
-export class IEveSpaceObject2
+export class IEveSpaceObject2 extends IRoot
 {
 
   /**

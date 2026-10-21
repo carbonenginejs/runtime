@@ -19,7 +19,7 @@ const TermType = {
  */
 @blue.define("Tr2ExpressionTermInfo")
 @blue.inherit(IRoot)
-export class Tr2ExpressionTermInfo
+export class Tr2ExpressionTermInfo extends IRoot
 {
   /** Native term category; not persisted. */
   @blue.readwrite

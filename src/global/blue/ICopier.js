@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/ICopier.h
 //
 // The copier as its CALLERS see it. `Copier` is the one implementation;
@@ -6,7 +7,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `ICopier` - copies a Blue object through its persisted members, per blueexposure/include/ICopier.h. */
-export class ICopier
+export class ICopier extends IRoot
 {
   /** Carbon's `ICopier::OverrideResult`: what a copy-override callback decided. */
   static OverrideResult = Object.freeze({

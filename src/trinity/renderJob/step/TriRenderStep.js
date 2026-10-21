@@ -12,7 +12,7 @@ import { meta, type, blue } from "#schema";
 @blue.define({ className: "TriRenderStep", abstract: true })
 @blue.interface()
 @blue.inherit(IRoot)
-export class TriRenderStep
+export class TriRenderStep extends IRoot
 {
   static Result = Object.freeze({
     RS_OK: 0,

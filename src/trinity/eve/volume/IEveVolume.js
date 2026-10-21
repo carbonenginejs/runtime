@@ -7,7 +7,7 @@ import { blue } from "#schema";
 /** Required EVE volume contract (IEveVolume.h:10-20). */
 @be.interface("IEveVolume")
 @blue.inherit(IRoot)
-export class IEveVolume
+export class IEveVolume extends IRoot
 {
 
   /**

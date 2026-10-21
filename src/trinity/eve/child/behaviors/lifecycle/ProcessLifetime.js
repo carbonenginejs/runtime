@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
@@ -34,7 +35,7 @@ const SPAWN_POSITION = vec3.create();
 @be.mapInterface(IBehavior)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
-export class ProcessLifetime
+export class ProcessLifetime extends IRoot
 {
   static ProcessPriority = ProcessPriority;
 

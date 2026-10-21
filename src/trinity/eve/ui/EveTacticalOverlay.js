@@ -465,21 +465,21 @@ export class EveTacticalOverlay
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   anchorEffect = null;
 
   /** m_connectorEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   connectorEffect = null;
 
   /** m_velocityEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   velocityEffect = null;
 
   /** m_ranges.x (float) [READWRITE, PERSIST] */
@@ -563,7 +563,7 @@ export class EveTacticalOverlay
   /** m_positionCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   translationCurve = null;
 
   /** m_rootPosition (Vector3) [READWRITE, PERSIST] */
@@ -574,7 +574,7 @@ export class EveTacticalOverlay
 
   /** m_interestObject (EveTacticalOverlayTrackObjectPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("EveTacticalOverlayTrackObject")
+  @type.object.ref("EveTacticalOverlayTrackObject")
   interestObject = null;
 
   // Carbon's deterministic destructor detaches this local store from the three

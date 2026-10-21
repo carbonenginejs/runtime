@@ -119,11 +119,11 @@ export class Tr2ShadowMap
   shadowSplitMode = 0;
 
   @blue.readwrite
-  @type.rootRef("Tr2Denoiser")
+  @type.object.ref("Tr2Denoiser")
   denoiser = new Tr2Denoiser();
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   cascadeEffect = createShadowEffect();
 
   @blue.notify

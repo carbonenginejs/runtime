@@ -8,7 +8,7 @@ import { blue as be } from "#blue";
 @blue.define("EveSOFDataPatternLayerProperties")
 @blue.inherit(IRoot)
 @blue.interface()
-export class EveSOFDataPatternLayerProperties
+export class EveSOFDataPatternLayerProperties extends IRoot
 {
 
   static ProjectionType = {

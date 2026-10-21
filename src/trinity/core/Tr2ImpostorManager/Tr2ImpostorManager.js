@@ -59,7 +59,7 @@ export class Tr2ImpostorManager
 
   /** m_rt (Tr2RenderTargetPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   atlas = null;
 
   /** m_itemHeight (uint32_t) [READWRITE, PERSIST, NOTIFY] */
@@ -78,7 +78,7 @@ export class Tr2ImpostorManager
 
   /** m_effect (Tr2EffectPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_maxUpdates (uint32_t) [READWRITE, PERSIST] */

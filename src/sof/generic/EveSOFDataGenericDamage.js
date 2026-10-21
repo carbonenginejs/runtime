@@ -15,7 +15,7 @@ import { vec4 } from "#math/vec4";
 @be.define("EveSOFDataGenericDamage")
 @blue.inherit(IRoot)
 
-export class EveSOFDataGenericDamage
+export class EveSOFDataGenericDamage extends IRoot
 {
 
   /** m_flickerPerlinSpeed (float) [READWRITE, PERSIST] */

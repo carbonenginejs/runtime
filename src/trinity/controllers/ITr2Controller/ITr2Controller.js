@@ -35,7 +35,7 @@ import { UnlinkReason } from "../enums.js";
 export const ITR2_CONTROLLER = Symbol.for("carbonenginejs.interface.ITr2Controller");
 
 /** Contract for an object that controls another between Start and Stop. */
-export class ITr2Controller
+export class ITr2Controller extends IRoot
 {
 
   /**

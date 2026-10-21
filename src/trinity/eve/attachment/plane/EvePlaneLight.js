@@ -24,7 +24,7 @@ export class EvePlaneLight
   static FT_FADEINOUT = 4;
 
   @meta.owned
-  @type.root("LightData")
+  @type.object.embed("LightData")
   lightData = new LightData();
 
   @type.float32

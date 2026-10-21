@@ -6,7 +6,7 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitterUpdateArg
 
 /** Contract shared by CPU and GPU particle emitters. */
 @blue.inherit(IRoot)
-export class ITr2GenericEmitter
+export class ITr2GenericEmitter extends IRoot
 {
 
   /** Carbon's pure virtual `Update( const UpdateArguments& arguments )` (ITr2GenericEmitter.h:59): updates emitter state for one frame. */

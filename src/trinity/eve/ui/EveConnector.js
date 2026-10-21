@@ -63,7 +63,7 @@ function rotateToPlane(out, point, planePoint, normal)
 @blue.define("EveConnector")
 @blue.inherit(IRoot)
 @blue.interface()
-export class EveConnector
+export class EveConnector extends IRoot
 {
 
   /** m_type (ConnectorType - enum ConnectorType) [READWRITE, PERSIST, ENUM] */
@@ -130,13 +130,13 @@ export class EveConnector
   /** m_destObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   destObject = null;
 
   /** m_sourceObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   sourceObject = null;
 
   /** m_normal (Vector3) [READWRITE, PERSIST] */

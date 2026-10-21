@@ -13,7 +13,7 @@ import { vec4 } from "#math/vec4";
 @be.define("Tr2Sprite2dLineTraceVertex")
 
 @blue.inherit(IRoot)
-export class Tr2Sprite2dLineTraceVertex
+export class Tr2Sprite2dLineTraceVertex extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

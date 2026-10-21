@@ -123,7 +123,7 @@ export class EveEllipseSet extends EveChildTransform
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:27, h:78 */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_lowestLodVisible (Tr2Lod, h:76): the lowest parent LOD the set draws at; public, not exposed. */

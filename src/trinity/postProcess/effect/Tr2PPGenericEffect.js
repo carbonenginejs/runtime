@@ -22,7 +22,7 @@ export class Tr2PPGenericEffect extends Tr2PPEffect
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** Returns the wrapped effect, which may be null when none was authored. */

@@ -1,9 +1,10 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/IWorldPosition.h:11-15
 import { CjsSchema, meta } from "#schema";
 
 
 /** Native IRoot-derived contract for a receiver's world position and rotation. */
-export class IWorldPosition
+export class IWorldPosition extends IRoot
 {
   /**
    * Writes the receiver's world position into a caller-owned vector (Carbon returns it by value, IWorldPosition.h:13).

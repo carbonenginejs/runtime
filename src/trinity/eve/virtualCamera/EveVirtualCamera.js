@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCamera.h
@@ -19,7 +20,7 @@ const SCRUB_MAX_ITERATIONS = 20;
  */
 @be.define("EveVirtualCamera")
 @blue.inherit(ITr2DebugRenderable)
-export class EveVirtualCamera
+export class EveVirtualCamera extends IRoot
 {
   @be.mapAttribute(be.READ)
   @type.vec3

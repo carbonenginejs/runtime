@@ -14,7 +14,7 @@ import { LightData } from "../../lights/LightData.js";
 export class EveHazeSetLight
 {
   @meta.owned
-  @type.root("LightData")
+  @type.object.embed("LightData")
   lightData = new LightData();
 
   @type.rootRef("Tr2LightProfileRes")

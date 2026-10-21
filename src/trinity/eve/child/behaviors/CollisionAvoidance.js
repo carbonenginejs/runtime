@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.cpp
@@ -17,7 +18,7 @@ const NO_FORCES = [];
 @be.define("CollisionAvoidance")
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
-export class CollisionAvoidance
+export class CollisionAvoidance extends IRoot
 {
 
   static ProcessPriority = ProcessPriority;

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.h
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.cpp
@@ -14,7 +15,7 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
 @be.define("Tr2SyncToAnimation")
 @blue.inherit(ITr2StateMachineStateFinalizer)
 @be.mapInterface(ITr2StateMachineStateFinalizer)
-export class Tr2SyncToAnimation
+export class Tr2SyncToAnimation extends IRoot
 {
   /**
    * Animation mask/layer whose completion permits leaving the state.

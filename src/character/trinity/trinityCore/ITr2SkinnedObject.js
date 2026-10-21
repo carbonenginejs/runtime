@@ -4,7 +4,7 @@ import { IRoot } from "#blue/IRoot";
 import { CjsSchema, blue } from "#schema";
 
 /** Carbon skinned-object transform interface; IRoot has no JavaScript base. */
-export class ITr2SkinnedObject
+export class ITr2SkinnedObject extends IRoot
 {
   /**
    * Returns the object's scaling vector.

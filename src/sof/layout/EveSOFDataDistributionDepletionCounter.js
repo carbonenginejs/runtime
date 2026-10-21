@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Stores a named integer counter used to deplete layout-distribution capacity deterministically. */
 @be.define("EveSOFDataDistributionDepletionCounter")
 @blue.inherit(IRoot)
-export class EveSOFDataDistributionDepletionCounter
+export class EveSOFDataDistributionDepletionCounter extends IRoot
 {
 
   /** m_value (int32_t) [READWRITE, PERSIST] */

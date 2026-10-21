@@ -14,7 +14,7 @@ export class TriStepRunJob extends TriRenderStep
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("TriRenderJob")
+  @type.object.ref("TriRenderJob")
   job = null;
 
   /** Stores the nested job this step runs. */

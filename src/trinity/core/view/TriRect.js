@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/TriRect.h
 // Source: trinity/trinity/TriRect.cpp
@@ -14,7 +15,7 @@ import { meta, type, blue } from "#schema";
  * the native concrete self query nor a model-service base is exposed.
  */
 @be.define("TriRect")
-export class TriRect
+export class TriRect extends IRoot
 {
   /** Stored signed left edge. */
   @blue.readwrite

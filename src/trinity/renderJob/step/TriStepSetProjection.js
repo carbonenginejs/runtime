@@ -14,7 +14,7 @@ export class TriStepSetProjection extends TriRenderStep
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("TriProjection")
+  @type.object.ref("TriProjection")
   projection = null;
 
   /** Stores the projection this step installs. */

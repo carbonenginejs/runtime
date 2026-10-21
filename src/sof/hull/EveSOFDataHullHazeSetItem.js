@@ -10,7 +10,7 @@ import { vec3 } from "#math/vec3";
 /** Defines a faction-aware haze item with bone-relative transform, brightness, falloff, saturation, booster influence, and point-light data. */
 @be.define("EveSOFDataHullHazeSetItem")
 @blue.inherit(IRoot)
-export class EveSOFDataHullHazeSetItem
+export class EveSOFDataHullHazeSetItem extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 

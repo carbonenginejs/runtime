@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueResMan.h
 //
 // The resource manager as its CONSUMERS see it. Carbon publishes this
@@ -24,7 +25,7 @@ export const BlueResManQueue = Object.freeze({
 });
 
 /** `IBlueResMan` - the resource manager a consumer sees, per blue/include/IBlueResMan.h. */
-export class IBlueResMan
+export class IBlueResMan extends IRoot
 {
   /**
    * `GetResource( const std::string& path, const std::string& ex, const Be::IID& iid,

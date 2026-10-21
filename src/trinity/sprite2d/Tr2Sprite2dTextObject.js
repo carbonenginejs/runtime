@@ -47,7 +47,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.NOTIFY)
 
-  @type.rootRef("ITr2Sprite2dTexture")
+  @type.object.ref("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_pickRadius (float) [READWRITE] */

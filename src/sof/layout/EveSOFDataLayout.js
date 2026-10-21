@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Defines a named, seeded top-level layout with placements, counters, and randomization policy. */
 @be.define("EveSOFDataLayout")
 @blue.inherit(IRoot)
-export class EveSOFDataLayout
+export class EveSOFDataLayout extends IRoot
 {
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */

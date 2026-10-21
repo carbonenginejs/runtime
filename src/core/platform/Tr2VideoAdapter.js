@@ -14,7 +14,7 @@ import { Tr2VideoDriver } from "./Tr2VideoDriver.js";
  * `isFallbackAdapter`, `features` and `limits` are WebGPU facts Carbon's
  * adapter info does not have.
  */
-export class Tr2VideoAdapter
+export class Tr2VideoAdapter extends IRoot
 {
     /** Video adapter index. */
     index = 0;

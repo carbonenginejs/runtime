@@ -12,7 +12,7 @@ import { finiteNumber } from "./browserHelpers.js";
  * The available size, colour and pixel depth, pixel ratio, orientation and
  * extended-screen fields are browser facts Carbon's mode does not have.
  */
-export class Tr2DisplayMode
+export class Tr2DisplayMode extends IRoot
 {
     /** Back buffer width. */
     width = 0;

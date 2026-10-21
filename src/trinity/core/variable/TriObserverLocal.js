@@ -72,7 +72,7 @@ export class TriObserverLocal extends ITriObserverLocal
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("IBluePlacementObserver")
+  @type.object.ref("IBluePlacementObserver")
   observer = null;
 
 

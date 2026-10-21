@@ -8,7 +8,7 @@ import { CjsSchema, meta, blue } from "#schema";
 
 
 /** Contract for an object that owns lights and hands them to a light manager. */
-export class ITr2LightOwner
+export class ITr2LightOwner extends IRoot
 {
   /**
    * Adds this owner's lights to the manager.

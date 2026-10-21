@@ -47,7 +47,7 @@ export class EveChildExplosion extends EveChildContainer
 
   /** m_globalExplosionContainer (EveChildContainerPtr) [READ] */
   @blue.read
-  @type.rootRef("EveChildContainer")
+  @type.object.ref("EveChildContainer")
   generatedGlobalExplosions = null;
 
   /** m_localExplosionScaling (Vector3) [READWRITE, PERSIST] */
@@ -65,19 +65,19 @@ export class EveChildExplosion extends EveChildContainer
   /** m_globalExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("IEveSpaceObjectChild")
+  @type.object.ref("IEveSpaceObjectChild")
   globalExplosion = null;
 
   /** m_localExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("IEveSpaceObjectChild")
+  @type.object.ref("IEveSpaceObjectChild")
   localExplosion = null;
 
   /** m_localExplosionShared (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("IEveSpaceObjectChild")
+  @type.object.ref("IEveSpaceObjectChild")
   localExplosionShared = null;
 
   /** m_globalExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */

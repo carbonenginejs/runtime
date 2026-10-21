@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueOS.h
 //
 // The OS as its consumers see it, reached through its own extern beside
@@ -33,7 +34,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `IBlueOS` - the clock, the pump, error reporting and process control, per blue/include/IBlueOS.h. */
-export class IBlueOS
+export class IBlueOS extends IRoot
 {
   // ----- Startup and shutdown -----
 

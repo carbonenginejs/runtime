@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITriFunction } from "../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Tr2ProjectBoundingBoxBracket.h
@@ -212,7 +213,7 @@ function clampProjectedSize(size, minSize, maxSize)
 @be.define("Tr2ProjectBoundingBoxBracket")
 @blue.inherit(ITriFunction)
 @be.mapInterface(ITriFunction)
-export class Tr2ProjectBoundingBoxBracket
+export class Tr2ProjectBoundingBoxBracket extends IRoot
 {
   /**
    * Carbon UpdateValue (Tr2ProjectBoundingBoxBracket.cpp:319-358): projects
@@ -425,15 +426,15 @@ export class Tr2ProjectBoundingBoxBracket
   name = "";
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef(BOUNDING_BOX_TYPE)
+  @type.object.ref(BOUNDING_BOX_TYPE)
   object = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2Sprite2dContainer")
+  @type.object.ref("Tr2Sprite2dContainer")
   parent = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2Sprite2dContainer")
+  @type.object.ref("Tr2Sprite2dContainer")
   bracket = null;
 
   @be.mapAttribute(be.READ)

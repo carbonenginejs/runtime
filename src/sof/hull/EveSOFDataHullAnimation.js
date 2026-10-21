@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 /** Identifies a hull animation and records its rotation, translation, timing, and rate endpoints. */
 @be.define("EveSOFDataHullAnimation")
 @blue.inherit(IRoot)
-export class EveSOFDataHullAnimation
+export class EveSOFDataHullAnimation extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2TextureArray.h
 //   trinity/trinity/Tr2TextureArray.cpp
 
@@ -10,7 +11,7 @@ import "#consts/renderContext/resources";
 
 /** Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback. */
 @blue.define({ className: "Tr2TextureArray", purpose: "Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback." })
-export class Tr2TextureArray
+export class Tr2TextureArray extends IRoot
 {
 
     /** m_elements (std::vector<ImageIO::HostBitmap>) */

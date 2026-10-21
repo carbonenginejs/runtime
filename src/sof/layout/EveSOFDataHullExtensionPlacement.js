@@ -52,13 +52,13 @@ export class EveSOFDataHullExtensionPlacement extends IEveSOFDataHullExtensionPl
   /** m_distribution (EveSOFDataHullExtensionPlacementDistributionPlacementPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataHullExtensionPlacementDistributionPlacement")
+  @type.object.ref("EveSOFDataHullExtensionPlacementDistributionPlacement")
   distribution = new EveSOFDataHullExtensionPlacementDistributionPlacement();
 
   /** m_descriptor (EveSOFDNADescriptorPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDNADescriptor")
+  @type.object.ref("EveSOFDNADescriptor")
   descriptor = new EveSOFDNADescriptor();
 
   /** m_locatorSetName (std::string) [READWRITE, PERSIST] */

@@ -109,7 +109,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   /** m_sourceObject (EveSpaceObject2Ptr) [READWRITE, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.NOTIFY)
 
-  @type.rootRef("EveSpaceObject2")
+  @type.object.ref("EveSpaceObject2")
   sourceObject = null;
 
   /** m_multiplier (uint32_t) [READWRITE, PERSIST, NOTIFY] */
@@ -153,7 +153,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** Carbon method CanChangeState (MAP_METHOD_AND_WRAP). */

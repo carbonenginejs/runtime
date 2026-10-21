@@ -33,7 +33,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * @type {IRoot|null}
    */
   @be.mapAttribute(be.READ)
-  @type.rootWeak("IRoot")
+  @type.object.weak("IRoot")
   destination = null;
 
   /**

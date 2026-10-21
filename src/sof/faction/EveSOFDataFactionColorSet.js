@@ -118,7 +118,7 @@ const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "colo
 })
 @blue.inherit(IRoot)
 @blue.interface()
-export class EveSOFDataFactionColorSet
+export class EveSOFDataFactionColorSet extends IRoot
 {
   static ColorType = ColorType;
 

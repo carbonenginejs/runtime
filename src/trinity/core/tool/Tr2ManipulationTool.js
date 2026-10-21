@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ManipulationTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -10,7 +11,7 @@ import { CjsScriptCallback } from "#blue";
 
 /** The interactive manipulator base: axis selection, drag handling and the callback a move reports through. */
 @be.define("Tr2ManipulationTool")
-export class Tr2ManipulationTool
+export class Tr2ManipulationTool extends IRoot
 {
   _moved = false;
   _movement = vec3.create();

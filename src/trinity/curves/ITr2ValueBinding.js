@@ -7,7 +7,7 @@ import { CjsSchema, blue } from "#schema";
  * Contract for applying a value binding. Carbon derives this interface from
  * IRoot; JavaScript uses a plain registered interface without model behavior.
  */
-export class ITr2ValueBinding
+export class ITr2ValueBinding extends IRoot
 {
   /**
    * Copies the bound value to its destination.

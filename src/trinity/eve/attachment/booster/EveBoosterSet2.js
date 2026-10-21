@@ -191,14 +191,14 @@ export class EveBoosterSet2 extends EveEntity
   /** m_effectFar (Tr2EffectPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effectFar = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_boosterRenderables (PEveBoosterSet2RenderableVector) [READ] */
@@ -252,7 +252,7 @@ export class EveBoosterSet2 extends EveEntity
   /** m_glows (EveSpriteSetPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSpriteSet")
+  @type.object.ref("EveSpriteSet")
   glows = null;
 
   /** m_maxSize (float) [READ] */
@@ -296,7 +296,7 @@ export class EveBoosterSet2 extends EveEntity
   /** m_trails (EveTrailsSetPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveTrailsSet")
+  @type.object.ref("EveTrailsSet")
   trails = null;
 
   /**

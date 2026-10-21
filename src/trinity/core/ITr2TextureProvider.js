@@ -1,8 +1,9 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2TextureProvider.h:11-16
 import { CjsSchema, meta } from "#schema";
 
 /** Native texture-provider contract; IRoot has no JavaScript base class. */
-export class ITr2TextureProvider
+export class ITr2TextureProvider extends IRoot
 {
   /**
    * Returns the provider's borrowed AL texture.

@@ -19,7 +19,7 @@ import { Tr2PointLight } from "./Tr2PointLight.js";
 export class Tr2TexturedPointLight extends Tr2PointLight
 {
   @blue.read
-  @type.rootRef("TriTextureRes")
+  @type.object.ref("TriTextureRes")
   texture = null;
 
   // Carbon maps this row into the embedded LightData m_lightData

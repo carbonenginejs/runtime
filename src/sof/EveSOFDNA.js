@@ -34,7 +34,7 @@ const BUILD_CLASSES = Object.freeze([
 @be.define("EveSOFDNA")
 @blue.inherit(IRoot)
 
-export class EveSOFDNA
+export class EveSOFDNA extends IRoot
 {
 
   static DnaCommand = Object.freeze({

@@ -8,25 +8,25 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataFaction")
 
 @blue.inherit(IRoot)
-export class EveSOFDataFaction
+export class EveSOFDataFaction extends IRoot
 {
 
   /** m_areaTypes (EveSOFDataAreaPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataArea")
+  @type.object.ref("EveSOFDataArea")
   areaTypes = null;
 
   /** m_colorSet (EveSOFDataFactionColorSetPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataFactionColorSet")
+  @type.object.ref("EveSOFDataFactionColorSet")
   colorSet = null;
 
   /** m_logoSet (EveSOFDataLogoSetPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataLogoSet")
+  @type.object.ref("EveSOFDataLogoSet")
   logoSet = null;
 
   /** m_description (std::string) [READWRITE, PERSIST] */
@@ -56,7 +56,7 @@ export class EveSOFDataFaction
   /** m_visibilityGroupSet (EveSOFDataFactionVisibilityGroupSetPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataFactionVisibilityGroupSet")
+  @type.object.ref("EveSOFDataFactionVisibilityGroupSet")
   visibilityGroupSet = null;
 
   /** m_resPathInsert (std::string) [READWRITE, PERSIST] */
@@ -92,7 +92,7 @@ export class EveSOFDataFaction
   /** m_defaultPattern (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataPatternLayer")
+  @type.object.ref("EveSOFDataPatternLayer")
   defaultPattern = null;
 
   /** m_defaultPatternLayer1MaterialName (std::string) [READWRITE, PERSIST] */

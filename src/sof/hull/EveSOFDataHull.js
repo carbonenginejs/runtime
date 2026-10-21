@@ -9,7 +9,7 @@ import { vec4 } from "#math/vec4";
 /** Carbon-authored hull record. */
 @blue.define("EveSOFDataHull")
 @blue.inherit(IRoot)
-export class EveSOFDataHull
+export class EveSOFDataHull extends IRoot
 {
 
   static BuildClass = {
@@ -153,7 +153,7 @@ export class EveSOFDataHull
   /** m_booster (EveSOFDataHullBoosterPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("EveSOFDataHullBooster")
+  @type.object.ref("EveSOFDataHullBooster")
   booster = null;
 
   /** m_decalAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */
@@ -171,7 +171,7 @@ export class EveSOFDataHull
   /** m_defaultPattern (EveSOFDataPatternPerHullPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("EveSOFDataPatternPerHull")
+  @type.object.ref("EveSOFDataPatternPerHull")
   defaultPattern = null;
 
   /** m_distortionAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */

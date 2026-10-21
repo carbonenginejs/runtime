@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
 // Source: trinity/trinity/Wod/WodBakingScene.h
@@ -15,7 +16,7 @@ import { meta, type, blue } from "#schema";
 @be.define("WodBakingScene")
 @blue.inherit(ITr2Scene)
 @be.mapInterface(ITr2Scene)
-export class WodBakingScene
+export class WodBakingScene extends IRoot
 {
 
   /** m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY] */
@@ -27,7 +28,7 @@ export class WodBakingScene
 
   /** m_skinnedObject (Tr2SkinnedObjectPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2SkinnedObject")
+  @type.object.ref("Tr2SkinnedObject")
   Avatar = null;
 
   static VisualizeMethod = Object.freeze({

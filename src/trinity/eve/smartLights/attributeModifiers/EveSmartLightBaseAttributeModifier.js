@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightBaseAttributeModifier.h
 import { IsMatch } from "#blue";
@@ -12,7 +13,7 @@ import { LifeTimeFormulas } from "./enums.js";
 @blue.inherit(IInitialize, INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
-export class EveSmartLightBaseAttributeModifier
+export class EveSmartLightBaseAttributeModifier extends IRoot
 {
 
   /** m_lifeTimeFormula (LifeTimeFormulas - enum LifeTimeFormulas) [READWRITE, PERSIST, ENUM] */
@@ -25,7 +26,7 @@ export class EveSmartLightBaseAttributeModifier
   /** m_activationOverLifetime (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2CurveScalar")
+  @type.object.ref("Tr2CurveScalar")
   activationOverLifetime = null;
 
   /** m_activationValue (float) [READ] */

@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueEventListener.h:7-10
 // Source: blue/src/IBlueEventListener_Blue.cpp:6
 import { CjsSchema, blue } from "#schema";
@@ -7,7 +8,7 @@ import { CjsSchema, blue } from "#schema";
  * Receives named events from other subsystems. Carbon derives this interface
  * from IRoot; the shared JavaScript contract follows Blue's plain-class convention.
  */
-export class IBlueEventListener
+export class IBlueEventListener extends IRoot
 {
   /**
    * Handles an event delivered to this listener.

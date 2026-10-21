@@ -36,7 +36,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @type {Tr2MaterialParameterStore|null}
    */
   @blue.read
-  @type.rootRef("Tr2MaterialParameterStore")
+  @type.object.ref("Tr2MaterialParameterStore")
   parent = null;
 
   /**

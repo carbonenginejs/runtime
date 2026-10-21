@@ -81,7 +81,7 @@ function effectAt(path, options = null)
  */
 @blue.define("Tr2PostProcessRenderer")
 @blue.inherit(IRoot)
-export class Tr2PostProcessRenderer
+export class Tr2PostProcessRenderer extends IRoot
 {
   @blue.notify
   @blue.readwrite
@@ -98,7 +98,7 @@ export class Tr2PostProcessRenderer
   // THE EFFECTS CARBON'S CONSTRUCTOR CREATES (cpp:537-635), in its order.
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   tonemappingEffect = effectAt(PostProcessEffectPaths.ToneMapping);
 
   _reactiveMaskEffect = effectAt(PostProcessEffectPaths.ReactiveMask);
@@ -106,7 +106,7 @@ export class Tr2PostProcessRenderer
   _transparencyMaskEffect = effectAt(PostProcessEffectPaths.TransparencyMask);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   bloomHighPassFilter = effectAt(PostProcessEffectPaths.HighPassFilter);
 
   _downSamplerLuminancePreserve = effectAt(PostProcessEffectPaths.Downsample, { LUNINANCE_PRESERVE: "LUNINANCE_PRESERVE_ON" });
@@ -118,19 +118,19 @@ export class Tr2PostProcessRenderer
   _upsamplerVertical = effectAt(PostProcessEffectPaths.Upsample, { UPSAMPLING_STEP: "UPSAMPLING_STEP_SECOND" });
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   dynamicExposureToTextureShader = effectAt(PostProcessEffectPaths.ExposureToTexture);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   dynamicExposureCreateHistogramShader = effectAt(PostProcessEffectPaths.CreateHistograms);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   dynamicExposureMergeHistogramShader = effectAt(PostProcessEffectPaths.MergeHistograms);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   dynamicExposureMeasureExposureShader = effectAt(PostProcessEffectPaths.MeasureExposure);
 
   _fidelityFxCasShader = effectAt(PostProcessEffectPaths.CAS);
@@ -138,46 +138,46 @@ export class Tr2PostProcessRenderer
   _downsampleDepthEffect = effectAt(PostProcessEffectPaths.DownsampleDepth);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   fogColorEffect = effectAt(PostProcessEffectPaths.EnvironmentFogColor);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   fogCompositeEffect = effectAt(PostProcessEffectPaths.EnvironmentFogComposit);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   depthOfFieldBokehBlurShader = effectAt(PostProcessEffectPaths.Bokeh, { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_AVERAGE" });
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   depthOfFieldBokehFillShader = effectAt(PostProcessEffectPaths.Bokeh, { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_MAX" });
 
   _depthOfFieldBokehTAAShader = effectAt(PostProcessEffectPaths.BokehTAA);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   depthOfFieldCoCShader = effectAt(PostProcessEffectPaths.CircleOfConfusion);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   godrayEffect = effectAt(PostProcessEffectPaths.Godrays);
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   signalLossEffect = effectAt(PostProcessEffectPaths.SignalLoss);
 
   _grainShader = Tr2PostProcessRenderer._createGrainShader();
 
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   taaEffect = effectAt(PostProcessEffectPaths.TAA);
 
   _taaCopyEffect = effectAt(PostProcessEffectPaths.TAACopy);
 
   /** Created on first use by RenderBloomDebug (cpp:1115-1144). */
   @blue.readwrite
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   bloomDebugShader = null;
 
   /** Created while the exposure debug is on (cpp:1256-1260), dropped when off. */

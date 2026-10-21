@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholdParameter.h
 import { IsMatch, INotify } from "#blue";
@@ -11,7 +12,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 @blue.inherit(INotify, IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
-export class EveProceduralMethodThresholdParameter
+export class EveProceduralMethodThresholdParameter extends IRoot
 {
 
   _modified = false;
@@ -20,7 +21,7 @@ export class EveProceduralMethodThresholdParameter
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("EveChildRef")
+  @type.object.ref("EveChildRef")
   child = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */

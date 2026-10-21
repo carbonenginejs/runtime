@@ -5,7 +5,7 @@ import { ProcessPriority } from "./enums.js";
 
 
 /** Contract for a drone steering behavior run by a BehaviorGroup; every method but CalculateBehavior has Carbon's default. */
-export class IBehavior
+export class IBehavior extends IRoot
 {
   /**
    * Per-agent scratch size, none by default (h:29-32). Adapted: scratch is one plain record per agent, so any non-zero

@@ -44,7 +44,7 @@ export class TriCurveSet extends IInitialize
   /** Optional owner of the source-time conversion. */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ICurveSetDriver")
+  @type.object.ref("ICurveSetDriver")
   driver = null;
 
   /** Named playback intervals in scaled seconds. */

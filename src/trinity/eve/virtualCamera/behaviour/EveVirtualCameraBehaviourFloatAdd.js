@@ -19,7 +19,7 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2CurveScalar")
+  @type.object.ref("Tr2CurveScalar")
   scaleCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

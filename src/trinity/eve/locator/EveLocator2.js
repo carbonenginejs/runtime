@@ -12,7 +12,7 @@ import { meta, type, blue } from "#schema";
  */
 @be.define("EveLocator2")
 @blue.inherit(IRoot)
-export class EveLocator2
+export class EveLocator2 extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriDevice.h
 import { DestroyGlobalGpuResourcePool, Tr2GpuResourcePool } from "../Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
@@ -46,7 +47,7 @@ import "#consts/renderContext/upscaling";
 // ITriDevice. Its declaration remains quarantined in trinity/dropped; this
 // class currently composes the other two native contracts.
 @blue.inherit(IBlueEvents, ISimTimeRebaseNotify)
-export class TriDevice
+export class TriDevice extends IRoot
 {
 
   static ThrottlingReason = Object.freeze({
@@ -162,7 +163,7 @@ export class TriDevice
   /** m_scene (ITr2ScenePtr) [READWRITE, NOTIFY] */
   @blue.notify
   @blue.readwrite
-  @type.rootRef("ITr2Scene")
+  @type.object.ref("ITr2Scene")
   scene = null;
 
   /** mBackBufferCount (int) [READWRITE, NOTIFY] */

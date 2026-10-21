@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
 import { INotify } from "../../../../../global/blue/INotify.js";
@@ -20,7 +21,7 @@ const DEBUG_END = vec3.create();
 @be.define("SplineTunnelGroup")
 @blue.inherit(INotify)
 @be.mapInterface(INotify)
-export class SplineTunnelGroup
+export class SplineTunnelGroup extends IRoot
 {
   static TunnelGroupType = TunnelGroupType;
 

@@ -11,7 +11,7 @@ import { vec3 } from "#math/vec3";
 /** Defines a logo or usage decal with faction color, bone and transform placement, mesh and material data, and single- or multi-hull index buffers. */
 @blue.define("EveSOFDataHullDecalSetItem")
 @blue.inherit(IRoot)
-export class EveSOFDataHullDecalSetItem
+export class EveSOFDataHullDecalSetItem extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 

@@ -20,23 +20,23 @@ import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
 export class TriStepCopyRenderTarget extends TriRenderStep
 {
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   Destination = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("TriTextureRes")
+  @type.object.ref("TriTextureRes")
   destinationTexture = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   Source = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("TriViewport")
+  @type.object.ref("TriViewport")
   sourceViewport = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("TriViewport")
+  @type.object.ref("TriViewport")
   destinationViewport = null;
 
   /** Reads the destination render target under Carbon's lower-case accessor name. */

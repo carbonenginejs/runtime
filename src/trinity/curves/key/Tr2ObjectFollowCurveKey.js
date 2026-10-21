@@ -33,7 +33,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /** Runtime followed object; notified but not persisted. */
   @blue.notify
   @blue.readwrite
-  @type.rootRef("IRoot")
+  @type.object.ref("IRoot")
   object = null;
 
   /** Authored key time. */

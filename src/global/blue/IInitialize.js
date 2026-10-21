@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/IInitialize.h:12-15
 //
 // One pure method. The interface is three lines; the whole contract is in who
@@ -24,7 +25,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `IInitialize` - everything has been written; link it up. */
-export class IInitialize
+export class IInitialize extends IRoot
 {
   /**
    * `Initialize` - called once after a read fills every member, in place of

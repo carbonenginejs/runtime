@@ -7,7 +7,7 @@ import { meta, blue } from "#schema";
 /** Required distribution placement contract. */
 @be.interface("IEveDistributionMethod")
 @blue.inherit(IRoot)
-export class IEveDistributionMethod
+export class IEveDistributionMethod extends IRoot
 {
 
   /** Regenerates the distribution's complete placement data. */

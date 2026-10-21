@@ -17,7 +17,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an object that accepts inherited faction colour properties. */
-export class IEveInheritPropertiesOwner
+export class IEveInheritPropertiesOwner extends IRoot
 {
 
   /**

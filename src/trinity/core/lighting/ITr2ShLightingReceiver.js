@@ -7,7 +7,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { CjsSchema, blue } from "#schema";
 
 /** Contract for an object that receives SH lighting from Tr2ShLightingManager. */
-export class ITr2ShLightingReceiver
+export class ITr2ShLightingReceiver extends IRoot
 {
   /**
    * Refreshes this object's SH lighting from the manager.

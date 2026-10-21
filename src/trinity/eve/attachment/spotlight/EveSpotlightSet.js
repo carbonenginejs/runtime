@@ -100,12 +100,12 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   coneEffect = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   glowEffect = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

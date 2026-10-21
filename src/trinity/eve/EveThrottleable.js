@@ -12,7 +12,7 @@ import { blue as be, CcpTime } from "#blue";
 @blue.define("EveThrottleable")
 @blue.inherit(IRoot)
 @blue.interface()
-export class EveThrottleable
+export class EveThrottleable extends IRoot
 {
   @blue.read
   @type.float32

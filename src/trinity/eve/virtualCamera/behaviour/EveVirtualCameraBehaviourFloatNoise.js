@@ -27,7 +27,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
 
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2CurveScalar")
+  @type.object.ref("Tr2CurveScalar")
   magnitudeCurve = null;
 
   @blue.readwrite

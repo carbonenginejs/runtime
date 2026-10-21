@@ -33,7 +33,7 @@ const LIST_KINDS = new Set([ "list", "array" ]);
 /**
  * `IRootWriter` - writes an object's members through a writer's primitives.
  */
-export class IRootWriter
+export class IRootWriter extends IRoot
 {
   /** Shared second-sight reference bookkeeping, with writer-owned representations. */
   _written = new Map();

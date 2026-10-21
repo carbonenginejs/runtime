@@ -15,7 +15,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 export class TriStepSetVisualizationMode extends TriRenderStep
 {
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITr2VisualizationModeRenderer")
+  @type.object.ref("ITr2VisualizationModeRenderer")
   object = null;
 
   @be.mapAttribute(be.READWRITE)

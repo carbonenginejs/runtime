@@ -103,7 +103,7 @@ export class EveSmartLightPointLight extends EveEntity
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */
   @blue.read
-  @type.rootRef("Tr2LightProfileRes")
+  @type.object.ref("Tr2LightProfileRes")
   lightProfile = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

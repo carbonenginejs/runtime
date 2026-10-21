@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { ITriFunction } from "../../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Eve/UI/EveProjectBracket.h
 // Source: trinity/trinity/Eve/UI/EveProjectBracket.cpp
@@ -52,7 +53,7 @@ function bicylindricProjection(out, source, projection, viewport, scratch)
 @blue.define("EveProjectBracket")
 @blue.inherit(ITriFunction)
 @blue.interface(ITriFunction)
-export class EveProjectBracket
+export class EveProjectBracket extends IRoot
 {
   /**
    * Carbon UpdateValue (EveProjectBracket.cpp:67-239): projects the tracked
@@ -275,7 +276,7 @@ export class EveProjectBracket
 
   /** m_trackBall (ITriVectorFunctionPtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   trackBall = null;
 
   /** m_cameraDistance (float) [READ] */
@@ -310,7 +311,7 @@ export class EveProjectBracket
 
   /** m_parent (Tr2Sprite2dContainerPtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("Tr2Sprite2dContainer")
+  @type.object.ref("Tr2Sprite2dContainer")
   parent = null;
 
   /** m_dock (bool) [READWRITE] */
@@ -330,17 +331,17 @@ export class EveProjectBracket
 
   /** m_trackTransform (IWorldPositionPtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("IWorldPosition")
+  @type.object.ref("IWorldPosition")
   trackTransform = null;
 
   /** m_bracket (Tr2Sprite2dContainerPtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("Tr2Sprite2dContainer")
+  @type.object.ref("Tr2Sprite2dContainer")
   bracket = null;
 
   /** m_bracketIcon (EveSprite2dBracketPtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("EveSprite2dBracket")
+  @type.object.ref("EveSprite2dBracket")
   bracketIcon = null;
 
   /** m_offsetY (float) [READWRITE] */

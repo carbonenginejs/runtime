@@ -33,7 +33,7 @@ export class TriStepRenderObject extends TriRenderStep
   /** m_effectOverride (Tr2MaterialPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Material")
+  @type.object.ref("Tr2Material")
   effectOverride = null;
 
   /** m_typeEnabled[3] (bool) [READWRITE, PERSIST] */
@@ -63,7 +63,7 @@ export class TriStepRenderObject extends TriRenderStep
   /** m_renderable (ITr2RenderablePtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2Renderable")
+  @type.object.ref("ITr2Renderable")
   renderable = null;
 
   // m_batches (EveSpaceScene::BatchMap). Carbon builds the four accumulators in

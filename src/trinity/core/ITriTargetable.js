@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITriTargetable.h
 import { meta, blue } from "#schema";
 import { ImpactConfiguration } from "../generated/include/enums.js";
@@ -10,7 +11,7 @@ import { ImpactConfiguration } from "../generated/include/enums.js";
  * implementers already take the output first.
  */
 @blue.define({ className: "ITriTargetable", abstract: true })
-export class ITriTargetable
+export class ITriTargetable extends IRoot
 {
   /** Number of damage locators. @returns {number} */
   @blue.abstract

@@ -27,6 +27,6 @@ export class Tr2MaterialArea
 // would register a static as an instance field.
 CjsSchema.blue.inherit(IRoot)(Tr2MaterialArea);
 
-CjsSchema.decorateField(Tr2MaterialArea, "material", blue.readwrite, blue.persist, type.rootRef("Tr2MaterialParameterStore"));
+CjsSchema.decorateField(Tr2MaterialArea, "material", blue.readwrite, blue.persist, type.object.ref("Tr2MaterialParameterStore"));
 CjsSchema.decorateField(Tr2MaterialArea, "metatype", blue.readwrite, blue.persist, type.string);
 CjsSchema.exposure.define("Tr2MaterialArea")(Tr2MaterialArea);

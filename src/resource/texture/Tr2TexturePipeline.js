@@ -22,7 +22,7 @@ const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline"
  * reads and rewrites it, and the caller supplies every input bitmap the steps
  * name, keyed by resource path.
  */
-export class Tr2TexturePipeline
+export class Tr2TexturePipeline extends IRoot
 {
 
   /** m_pipelineType (std::string) [READWRITE, PERSIST] */

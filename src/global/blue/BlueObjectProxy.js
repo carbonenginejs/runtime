@@ -305,8 +305,8 @@ CjsSchema.blue.define(BlueObjectProxy, {
   members: [ { name: "object", key: "_object", type: { kind: "rootRef", className: "IRoot" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true } } ],
   fields: {
     // MAP_PROPERTY rows (BlueObjectProxy_Blue.cpp:18-23, 47-59).
-    object: [ blue.property(), type.rootRef("IRoot") ],
-    builder: [ blue.readwrite, type.rootRef("IBlueObjectBuilder") ],
+    object: [ blue.property(), type.object.ref("IRoot") ],
+    builder: [ blue.readwrite, type.object.ref("IBlueObjectBuilder") ],
     objectMarker: [ blue.readwrite, type.uint32 ],
     temporary: [ blue.property(), type.boolean ],
     isResident: [ blue.property(), type.boolean ]

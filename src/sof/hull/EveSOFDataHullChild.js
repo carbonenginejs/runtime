@@ -11,7 +11,7 @@ import { vec3 } from "#math/vec3";
 /** Places a RED child resource with build and LOD policy, transform, identifier, and group metadata, deriving its display name from the resource path. */
 @be.define("EveSOFDataHullChild")
 @blue.inherit(IRoot)
-export class EveSOFDataHullChild
+export class EveSOFDataHullChild extends IRoot
 {
   static Tr2Lod = Tr2Lod;
 

@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataFactionChild")
 
 @blue.inherit(IRoot)
-export class EveSOFDataFactionChild
+export class EveSOFDataFactionChild extends IRoot
 {
 
   /** m_groupIndex (int32_t) [READWRITE, PERSIST] */

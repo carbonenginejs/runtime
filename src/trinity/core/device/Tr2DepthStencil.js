@@ -35,7 +35,7 @@ import "#consts/renderContext/formats";
 @be.define("Tr2DepthStencil")
 @blue.inherit(ITr2TextureProvider)
 @be.mapInterface(ITr2TextureProvider)
-export class Tr2DepthStencil
+export class Tr2DepthStencil extends IRoot
 {
 
   /** m_name (std::string) [PERSISTONLY] */

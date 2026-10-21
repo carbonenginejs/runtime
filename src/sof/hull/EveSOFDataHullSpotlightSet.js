@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Groups spotlight items with cone, glow, and flare textures plus skinning, depth, and visibility policy. */
 @be.define("EveSOFDataHullSpotlightSet")
 @blue.inherit(IRoot)
-export class EveSOFDataHullSpotlightSet
+export class EveSOFDataHullSpotlightSet extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

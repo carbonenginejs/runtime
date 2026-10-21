@@ -14,7 +14,7 @@ const EMPTY_DATA = new Uint8Array(0); // alloc: shared empty byte payload, never
 @be.define("Tr2ShaderBuffer")
 @blue.inherit(IRoot)
 
-export class Tr2ShaderBuffer
+export class Tr2ShaderBuffer extends IRoot
 {
 
   /** m_size (int) [READ] */

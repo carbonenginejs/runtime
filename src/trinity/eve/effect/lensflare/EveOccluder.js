@@ -20,7 +20,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
  */
 @blue.define({ className: "EveOccluder", purpose: "Groups sprite occlusion elements that can be displayed as one named EVE scene effect." })
 @blue.inherit(IRoot)
-export class EveOccluder
+export class EveOccluder extends IRoot
 {
 
   /** m_sprites (PEveTransformVector) [READ, PERSIST] */

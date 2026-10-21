@@ -48,7 +48,7 @@ export class Tr2StateMachineState
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITr2StateMachineStateFinalizer")
+  @type.object.ref("ITr2StateMachineStateFinalizer")
   finalizer = null;
 
   /**

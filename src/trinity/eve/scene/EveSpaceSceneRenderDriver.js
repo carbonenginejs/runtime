@@ -197,17 +197,17 @@ export class EveSpaceSceneRenderDriver
 
   /** m_projection (TriProjectionPtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("TriProjection")
+  @type.object.ref("TriProjection")
   projection = null;
 
   /** m_camera (EveCameraPtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("EveCamera")
+  @type.object.ref("EveCamera")
   camera = null;
 
   /** m_view (TriViewPtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("TriView")
+  @type.object.ref("TriView")
   view = null;
 
   /** m_settings.clearColor (Color) [READWRITE]; Carbon's default is opaque black (EveSpaceSceneRenderDriver.h:59). */
@@ -217,7 +217,7 @@ export class EveSpaceSceneRenderDriver
 
   /** m_distortionEffect (Tr2EffectPtr) [READ] */
   @blue.read
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   distortionEffect = null;
 
   /** m_settings.enableDistortion (bool) [READWRITE] */
@@ -247,7 +247,7 @@ export class EveSpaceSceneRenderDriver
 
   /** m_fpsRenderer (TriStepRenderFpsPtr) [READ] */
   @blue.read
-  @type.rootRef("TriStepRenderFps")
+  @type.object.ref("TriStepRenderFps")
   fpsRenderer = null;
 
   /** m_mainPassRenderingEnabled (bool) [READWRITE, PERSIST] */
@@ -268,7 +268,7 @@ export class EveSpaceSceneRenderDriver
 
   /** m_postProcess (Tr2PostProcessRendererPtr) [READ], created in the constructor (cpp:151). */
   @blue.read
-  @type.rootRef("Tr2PostProcessRenderer")
+  @type.object.ref("Tr2PostProcessRenderer")
   postProcess = new Tr2PostProcessRenderer();
 
   /** m_settings.showFPS (bool) [READWRITE] */
@@ -278,18 +278,18 @@ export class EveSpaceSceneRenderDriver
 
   /** m_sceneOverlay (ITr2RenderNodePtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("ITr2RenderNode")
+  @type.object.ref("ITr2RenderNode")
   sceneOverlay = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("ITr2RenderNode")
+  @type.object.ref("ITr2RenderNode")
   background = null;
 
   /** m_ssao (Tr2SSAOPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2SSAO")
+  @type.object.ref("Tr2SSAO")
   SSAO = null;
 
   /** m_enableRendering (bool) [READWRITE] */

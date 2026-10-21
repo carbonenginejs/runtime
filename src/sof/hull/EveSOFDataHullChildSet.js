@@ -7,7 +7,7 @@ import { meta, type, blue } from "#schema";
 /** Groups child-resource placements under a named visibility identity. */
 @be.define("EveSOFDataHullChildSet")
 @blue.inherit(IRoot)
-export class EveSOFDataHullChildSet
+export class EveSOFDataHullChildSet extends IRoot
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */

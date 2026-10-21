@@ -75,7 +75,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

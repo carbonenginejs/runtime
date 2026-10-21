@@ -21,7 +21,7 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2DynamicEmitter")
+  @type.object.ref("Tr2DynamicEmitter")
   emitter = null;
 
   /**

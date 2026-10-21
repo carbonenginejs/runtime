@@ -167,7 +167,7 @@ export class EveChildContainer extends EveChildTransform
 
   @blue.readwrite
   @blue.persist
-  @type.rootRef("EveChildInheritProperties")
+  @type.object.ref("EveChildInheritProperties")
   inheritProperties = null;
 
   @blue.readwrite
@@ -198,7 +198,7 @@ export class EveChildContainer extends EveChildTransform
   @meta.adapted
   @blue.read
   @meta.persist
-  @type.rootRef("ITr2GrannyAnimationOwner")
+  @type.object.ref("ITr2GrannyAnimationOwner")
   animationOwner = null;
 
   /**

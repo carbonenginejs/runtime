@@ -37,7 +37,7 @@ export class Tr2Mesh extends Tr2MeshBase
   deferGeometryLoad = false;
 
   @blue.read
-  @type.rootRef("TriGeometryRes")
+  @type.object.ref("TriGeometryRes")
   geometry = null;
 
   /** m_lowResGeometryResource: the stand-in rendered while the authored mesh loads. */

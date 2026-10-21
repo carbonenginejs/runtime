@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/INotify.h:16-39
 //
 // One method. Carbon's own comment states the calling rule precisely, and it is
@@ -20,7 +21,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `INotify` - a mapped member of this instance was modified from outside. */
-export class INotify
+export class INotify extends IRoot
 {
   /**
    * `OnModified` - a Be::NOTIFY member changed; re-derive whatever depended on

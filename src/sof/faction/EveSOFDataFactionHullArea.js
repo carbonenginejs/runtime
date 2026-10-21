@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataFactionHullArea")
 
 @blue.inherit(IRoot)
-export class EveSOFDataFactionHullArea
+export class EveSOFDataFactionHullArea extends IRoot
 {
 
   /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */

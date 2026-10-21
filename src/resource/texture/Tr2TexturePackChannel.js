@@ -4,7 +4,7 @@ import { IRoot } from "#blue/IRoot";
 import { CjsSchema, type, blue } from "#schema";
 
 /** Persisted data record mirroring Carbon's pack-step channel selection: the source channel index, fill value, and source texture path for one output channel. */
-export class Tr2TexturePackChannel
+export class Tr2TexturePackChannel extends IRoot
 {
 
   /** m_channel (uint8_t) [READWRITE, PERSIST, ENUM] */

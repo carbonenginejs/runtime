@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
@@ -33,7 +34,7 @@ const OFFSET_SCRATCH = vec3.create();
 @be.define("EveSceneStaticParticles")
 @blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Renderable)
 @be.mapInterface(IInitialize)
-export class EveSceneStaticParticles
+export class EveSceneStaticParticles extends IRoot
 {
 
   /** Carbon ClusterData records retained on the CPU. */
@@ -75,7 +76,7 @@ export class EveSceneStaticParticles
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2InstancedMesh")
+  @type.object.ref("Tr2InstancedMesh")
   mesh = null;
 
   /** m_maxParticleCount (size_t) [READWRITE] */

@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Combines a geometry resource path with the decal index buffers used by a multi-hull decal. */
 @be.define("EveSOFDataMultiHullDecalIndexBuffers")
 @blue.inherit(IRoot)
-export class EveSOFDataMultiHullDecalIndexBuffers
+export class EveSOFDataMultiHullDecalIndexBuffers extends IRoot
 {
 
   /** m_indexBuffers (PEveSOFDataDecalIndexBufferVector) [READ, PERSIST] */

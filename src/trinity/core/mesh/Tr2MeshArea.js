@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2MeshArea.h
 // Source: trinity/trinity/Tr2MeshArea.cpp
@@ -11,7 +12,7 @@ import { meta, type, blue } from "#schema";
  */
 @be.define("Tr2MeshArea")
 
-export class Tr2MeshArea
+export class Tr2MeshArea extends IRoot
 {
   // m_ownerMeshes (std::vector<Tr2MeshBase*>)
   #ownerMeshes = [];
@@ -48,7 +49,7 @@ export class Tr2MeshArea
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   // DIVERGENCE (deliberate, precedent: EvePlaneSetItem.blinkData): Carbon

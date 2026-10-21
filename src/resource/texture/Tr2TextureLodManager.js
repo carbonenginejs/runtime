@@ -13,7 +13,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
  * device allocation and budget policy in engine packages, so this runtime
  * class owns only deterministic resource membership.
  */
-export class Tr2TextureLodManager
+export class Tr2TextureLodManager extends IRoot
 {
 
   /** gpuMemoryUsed (size_t) */

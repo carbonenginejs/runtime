@@ -17,7 +17,7 @@ import { vec3 } from "#math/vec3";
 @be.define("EveSOFDataTransform")
 @blue.inherit(IRoot)
 
-export class EveSOFDataTransform
+export class EveSOFDataTransform extends IRoot
 {
   /**
    * Locator translation in the owning hull or bone's coordinate space; native m_position (Vector3).

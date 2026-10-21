@@ -139,7 +139,7 @@ export class EveSpaceObjectDecal
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   decalEffect = null;
 
   @be.mapAttribute(be.READWRITE)

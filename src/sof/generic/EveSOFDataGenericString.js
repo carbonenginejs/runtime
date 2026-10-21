@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataGenericString")
 @blue.inherit(IRoot)
 
-export class EveSOFDataGenericString
+export class EveSOFDataGenericString extends IRoot
 {
 
   /** m_str (std::string) [READWRITE, PERSIST] */

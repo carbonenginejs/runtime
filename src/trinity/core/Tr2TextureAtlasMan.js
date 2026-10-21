@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2TextureAtlasMan.h
 // Source: trinity/trinity/Tr2TextureAtlasMan.cpp
@@ -10,7 +11,7 @@ import { Tr2TextureAtlas } from "./Tr2TextureAtlas.js";
 
 /** Holds texture atlases and finds one for a given pixel format. */
 @blue.define({ className: "Tr2TextureAtlasMan", purpose: "Holds texture atlases and finds one for a given pixel format." })
-export class Tr2TextureAtlasMan
+export class Tr2TextureAtlasMan extends IRoot
 {
 
   /** m_atlases (PTr2TextureAtlasVectorRO) [READ] */

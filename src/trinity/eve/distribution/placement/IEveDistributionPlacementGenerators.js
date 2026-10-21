@@ -7,7 +7,7 @@ import { meta, blue } from "#schema";
 /** Required distribution placement-generator contract. */
 @be.interface("IEveDistributionPlacementGenerators")
 @blue.inherit(IRoot)
-export class IEveDistributionPlacementGenerators
+export class IEveDistributionPlacementGenerators extends IRoot
 {
 
   /** Writes the generator's initial placement records. */

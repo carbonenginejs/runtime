@@ -1,3 +1,4 @@
+import { IRoot } from "../blue/IRoot.js";
 // Source: blue/include/ITr2DebugRenderer2.h:13-14,189-194
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch_Blue.cpp:8
 import { CjsSchema, blue } from "#schema";
@@ -8,7 +9,7 @@ import { CjsSchema, blue } from "#schema";
  * It lives with the shared interfaces so providers need no Trinity implementation
  * dependency. Carbon derives it from IRoot; JavaScript uses a plain class.
  */
-export class ITr2DebugRenderable
+export class ITr2DebugRenderable extends IRoot
 {
   /**
    * Adds this object's supported debug options to the caller's set.

@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 @be.define("AudEventKey")
 @blue.inherit(IRoot)
 
-export class AudEventKey
+export class AudEventKey extends IRoot
 {
 
   /** m_value (std::wstring) [READWRITE, PERSIST] */

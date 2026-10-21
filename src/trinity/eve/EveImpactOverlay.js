@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveImpactOverlay.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveImpactOverlay.cpp
@@ -32,7 +33,7 @@ const IMPACT_ARMOR_PARTICLE_LOD_FACTOR = 400;
  */
 @blue.define("EveImpactOverlay")
 @blue.inherit(IInitialize)
-export class EveImpactOverlay
+export class EveImpactOverlay extends IRoot
 {
   @blue.readwrite
   @blue.persist
@@ -44,7 +45,7 @@ export class EveImpactOverlay
   display = true;
 
   @blue.read
-  @type.rootRef("EveDamageOverlay")
+  @type.object.ref("EveDamageOverlay")
   damageOverlay = new EveDamageOverlay();
 
   // EveImpactOverlay_Blue.cpp:33-48: armour/hull state lives on the damage overlay; these names are live properties over it.
@@ -232,7 +233,7 @@ export class EveImpactOverlay
 
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2MeshBase")
+  @type.object.ref("Tr2MeshBase")
   mesh = null;
 
   @blue.read
@@ -244,21 +245,21 @@ export class EveImpactOverlay
   overallShieldImpact = -1;
 
   @blue.readwrite
-  @type.rootRef("Tr2ScalarFader")
+  @type.object.ref("Tr2ScalarFader")
   shieldHardening = new Tr2ScalarFader();
 
   @blue.readwrite
-  @type.rootRef("Tr2ScalarFader")
+  @type.object.ref("Tr2ScalarFader")
   shieldBoosting = new Tr2ScalarFader();
 
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2GpuUniqueEmitter")
+  @type.object.ref("Tr2GpuUniqueEmitter")
   armorImpactEmitter = null;
 
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2GpuUniqueEmitter")
+  @type.object.ref("Tr2GpuUniqueEmitter")
   hullImpactEmitter = null;
 
   _armorImpactLifeTime = 10;

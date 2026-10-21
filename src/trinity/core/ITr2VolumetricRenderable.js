@@ -19,7 +19,7 @@ import { blue } from "#schema";
  */
 @be.interface("ITr2VolumetricRenderable")
 @blue.inherit(IRoot)
-export class ITr2VolumetricRenderable
+export class ITr2VolumetricRenderable extends IRoot
 {
 
   /**

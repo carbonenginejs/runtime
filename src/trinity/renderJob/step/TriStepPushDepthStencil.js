@@ -20,7 +20,7 @@ export class TriStepPushDepthStencil extends TriRenderStep
   pushCurrent = false;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2DepthStencil")
+  @type.object.ref("Tr2DepthStencil")
   depthStencil = null;
 
   /**

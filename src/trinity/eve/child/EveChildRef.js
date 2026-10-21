@@ -86,7 +86,7 @@ export class EveChildRef extends EveChildTransform
 
   /** m_child (IEveSpaceObjectChildPtr) [READ] */
   @blue.read
-  @type.rootRef("IEveSpaceObjectChild")
+  @type.object.ref("IEveSpaceObjectChild")
   child = null;
 
   /** Which LoadChild request is current, so a superseded load is dropped. */

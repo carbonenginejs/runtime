@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataVisibilityGroup")
 @blue.inherit(IRoot)
 
-export class EveSOFDataVisibilityGroup
+export class EveSOFDataVisibilityGroup extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

@@ -14,7 +14,7 @@ import { Tr2Renderer } from "../../../trinity/core/Tr2Renderer.js";
 @be.define("Tr2Model")
 @blue.inherit(IRoot)
 
-export class Tr2Model
+export class Tr2Model extends IRoot
 {
 
   /** m_meshes (PTr2MeshVector) [READ, PERSIST] */

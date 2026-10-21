@@ -12,7 +12,7 @@ import { meta, type, blue } from "#schema";
  */
 @be.define("TriViewport")
 @blue.inherit(IRoot)
-export class TriViewport
+export class TriViewport extends IRoot
 {
   /** Horizontal raster origin; negative window coordinates are valid. */
   @be.mapAttribute(be.READWRITE | be.PERSIST)

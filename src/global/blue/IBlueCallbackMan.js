@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueCallbackMan.h
 //
 // A queue of callbacks run on the callback manager's own threads, or one at a
@@ -11,7 +12,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `IBlueCallbackMan` - a callback queue, per blue/include/IBlueCallbackMan.h. */
-export class IBlueCallbackMan
+export class IBlueCallbackMan extends IRoot
 {
   /** `BCBF_NONE` - no flags (IBlueCallbackMan.h:16). */
   static BCBF_NONE = 0;

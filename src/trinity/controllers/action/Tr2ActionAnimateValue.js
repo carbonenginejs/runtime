@@ -51,7 +51,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   /** m_curve: native scalar curve, without member notification. */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITriScalarFunction")
+  @type.object.ref("ITriScalarFunction")
   curve = null;
 
   /** m_delayBinding: defers a nonempty path binding to Start. */

@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 @be.define("AudSettings")
 @blue.inherit(IRoot)
 
-export class AudSettings
+export class AudSettings extends IRoot
 {
 
   /** m_baseSoundBankPath (std::string) [READWRITE] */

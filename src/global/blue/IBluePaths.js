@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBluePaths.h
 //
 // Paths as its CONSUMERS see it, and a separate service from the resource
@@ -12,7 +13,7 @@
 import { CjsSchema, meta, blue } from "#schema";
 
 /** `IBluePaths` - search paths, resolution, existence and streams, per blue/include/IBluePaths.h. */
-export class IBluePaths
+export class IBluePaths extends IRoot
 {
   /** `InitializeStdAppPaths` - install the standard application search paths. */
   InitializeStdAppPaths() {}

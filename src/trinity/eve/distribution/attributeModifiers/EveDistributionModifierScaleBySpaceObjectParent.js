@@ -27,7 +27,7 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
   /** m_scaleCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   scaleCurve = null;
 
   /** Reports a transform effect whenever a non-zero scale factor is authored. */

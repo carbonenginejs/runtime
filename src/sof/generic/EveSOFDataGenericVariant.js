@@ -13,7 +13,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataGenericVariant")
 @blue.inherit(IRoot)
 
-export class EveSOFDataGenericVariant
+export class EveSOFDataGenericVariant extends IRoot
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
@@ -31,7 +31,7 @@ export class EveSOFDataGenericVariant
   /** m_hullArea (EveSOFDataHullAreaPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataHullArea")
+  @type.object.ref("EveSOFDataHullArea")
   hullArea = null;
 
 }

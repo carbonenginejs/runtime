@@ -33,7 +33,7 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2CurveScalar")
+  @type.object.ref("Tr2CurveScalar")
   interpolationCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

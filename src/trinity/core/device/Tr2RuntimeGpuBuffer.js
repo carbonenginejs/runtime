@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.h
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.cpp
@@ -13,7 +14,7 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 @be.define("Tr2RuntimeGpuBuffer")
 @blue.inherit(ITr2GpuBuffer)
 @be.mapInterface(ITr2GpuBuffer)
-export class Tr2RuntimeGpuBuffer
+export class Tr2RuntimeGpuBuffer extends IRoot
 {
   /** m_buffer: the AL buffer, or null for Carbon's default-constructed one. */
   _buffer = null;

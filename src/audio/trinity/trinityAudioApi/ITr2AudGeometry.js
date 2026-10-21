@@ -3,7 +3,7 @@ import { IRoot } from "#blue/IRoot";
 import { CjsSchema, blue } from "#schema";
 
 /** Transfers Trinity geometry and placement to the audio implementation. */
-export class ITr2AudGeometry
+export class ITr2AudGeometry extends IRoot
 {
   /** Registers a mesh instance using its shared geometry and world transform. */
   SetGeometry(_geometrySetId, _instanceId, _geometryData, _worldTransform) {}

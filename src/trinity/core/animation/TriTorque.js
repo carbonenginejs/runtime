@@ -10,7 +10,7 @@ import { vec3 } from "#math/vec3";
 @be.define("TriTorque")
 
 @blue.inherit(IRoot)
-export class TriTorque
+export class TriTorque extends IRoot
 {
 
   /**

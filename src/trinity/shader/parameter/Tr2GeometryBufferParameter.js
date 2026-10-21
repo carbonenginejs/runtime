@@ -28,7 +28,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITr2GpuBuffer")
+  @type.object.ref("ITr2GpuBuffer")
   gpuBuffer = null;
 
   /** m_isUsedByEffect (bool) [READ] */

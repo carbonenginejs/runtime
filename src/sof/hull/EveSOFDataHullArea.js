@@ -8,7 +8,7 @@ import { EveSOFDataArea } from "../shared/EveSOFDataArea.js";
 /** Carbon-authored hull mesh-area record. */
 @be.define("EveSOFDataHullArea")
 @blue.inherit(IRoot)
-export class EveSOFDataHullArea
+export class EveSOFDataHullArea extends IRoot
 {
   static AreaType = EveSOFDataArea.AreaType;
 

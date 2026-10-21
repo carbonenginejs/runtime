@@ -4,7 +4,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an object that owns space-object attachments (h:7-12). */
-export class IEveSpaceObjectAttachmentOwner
+export class IEveSpaceObjectAttachmentOwner extends IRoot
 {
 
   /**

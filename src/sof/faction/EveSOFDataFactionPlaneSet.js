@@ -9,7 +9,7 @@ import { vec4 } from "#math/vec4";
 @be.define("EveSOFDataFactionPlaneSet")
 
 @blue.inherit(IRoot)
-export class EveSOFDataFactionPlaneSet
+export class EveSOFDataFactionPlaneSet extends IRoot
 {
 
   /** m_groupIndex (int32_t) [READWRITE, PERSIST] */

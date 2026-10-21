@@ -8,7 +8,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { CjsSchema, blue } from "#schema";
 
 /** Contract for a secondary light source Tr2ShLightingManager can register. */
-export class ITr2SecondaryLightSource
+export class ITr2SecondaryLightSource extends IRoot
 {
   /**
    * Adds this object to the manager's secondary light sources.

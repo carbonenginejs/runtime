@@ -5,7 +5,7 @@ import { CjsSchema, meta, blue } from "#schema";
 
 /** Contract for an object that plays and queries named curve sets. */
 @blue.inherit(IRoot)
-export class ITr2CurveSetOwner
+export class ITr2CurveSetOwner extends IRoot
 {
   /**
    * Plays a named curve set and range.

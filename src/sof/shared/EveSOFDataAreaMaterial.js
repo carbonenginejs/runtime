@@ -12,7 +12,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
 @be.define("EveSOFDataAreaMaterial")
 @blue.inherit(IRoot)
 
-export class EveSOFDataAreaMaterial
+export class EveSOFDataAreaMaterial extends IRoot
 {
   /**
    * JavaScript alias of the native faction-color chooser constants used by colorType.

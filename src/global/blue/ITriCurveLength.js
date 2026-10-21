@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/ITriCurveLength.h:8-13
 import { CjsSchema, blue } from "#schema";
 
@@ -6,7 +7,7 @@ import { CjsSchema, blue } from "#schema";
  * Reports a curve's length in seconds. Carbon derives this interface from
  * IRoot; JavaScript uses Blue's plain registered interface convention.
  */
-export class ITriCurveLength
+export class ITriCurveLength extends IRoot
 {
   /**
    * Returns the curve's length in seconds.

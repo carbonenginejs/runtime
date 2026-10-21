@@ -9,7 +9,7 @@ import { vec4 } from "#math/vec4";
 @be.define("EveSOFDataBoosterShape")
 @blue.inherit(IRoot)
 
-export class EveSOFDataBoosterShape
+export class EveSOFDataBoosterShape extends IRoot
 {
 
   /**

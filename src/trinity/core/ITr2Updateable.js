@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITr2Updateable.h
 //
 // Carbon's single-method update contract: anything registered with a
@@ -10,7 +11,7 @@ import { CjsSchema } from "#schema";
 
 
 /** Contract for an object updated once per controller or render-job tick. */
-export class ITr2Updateable
+export class ITr2Updateable extends IRoot
 {
 
   /**

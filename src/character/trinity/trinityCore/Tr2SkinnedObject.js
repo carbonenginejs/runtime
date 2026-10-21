@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2SkinnedObject } from "./ITr2SkinnedObject.js";
@@ -26,7 +27,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 })
 @blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify, ITr2SkinnedObject, ITr2DebugRenderable)
 @blue.interface(ITr2Renderable, IWorldPosition, IListNotify)
-export class Tr2SkinnedObject
+export class Tr2SkinnedObject extends IRoot
 {
 
   /** Native base list observer intentionally does nothing (Tr2SkinnedObject.cpp:743). */
@@ -124,7 +125,7 @@ export class Tr2SkinnedObject
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2SkinnedModel")
+  @type.object.ref("Tr2SkinnedModel")
   visualModel = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
@@ -136,13 +137,13 @@ export class Tr2SkinnedObject
   /** m_animationUpdater (ITr2AnimationUpdaterPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2AnimationUpdater")
+  @type.object.ref("ITr2AnimationUpdater")
   animationUpdater = null;
 
   /** m_worldTransformUpdater (ITr2WorldTransformUpdaterPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2WorldTransformUpdater")
+  @type.object.ref("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
 
   // MAP_ATTRIBUTE("highDetailModel", m_lod.m_highDetailProxy, READWRITE | PERSIST | NOTIFY)

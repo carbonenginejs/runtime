@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.cpp
@@ -29,7 +30,7 @@ function ClampLength(value, maxLength)
 @be.define("Inertia")
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
-export class Inertia
+export class Inertia extends IRoot
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

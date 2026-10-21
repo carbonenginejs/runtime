@@ -7,7 +7,7 @@ import { meta, blue } from "#schema";
 /** Required particle-constraint contract. */
 @blue.inherit(IRoot)
 @be.interface("ITr2GenericParticleConstraint")
-export class ITr2GenericParticleConstraint
+export class ITr2GenericParticleConstraint extends IRoot
 {
 
   /**

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.h
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.cpp
@@ -13,7 +14,7 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 @blue.define({ className: "Tr2GpuStructuredBuffer", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
 @blue.inherit(ITr2GpuBuffer, INotify, IInitialize)
 @blue.interface(INotify, IInitialize, ITr2GpuBuffer)
-export class Tr2GpuStructuredBuffer
+export class Tr2GpuStructuredBuffer extends IRoot
 {
 
   /** Carbon Tr2GpuStructuredBuffer.cpp: create from persisted parameters on the ambient context. */

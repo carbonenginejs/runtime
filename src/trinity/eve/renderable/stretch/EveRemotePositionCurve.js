@@ -36,7 +36,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   startPositionCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

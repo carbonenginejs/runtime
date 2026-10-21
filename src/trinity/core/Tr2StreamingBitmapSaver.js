@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2StreamingBitmapSaver.h
 //   trinity/trinity/Tr2StreamingBitmapSaver.cpp
@@ -24,7 +25,7 @@ const IMAGE_TYPE_RAW_GREYSCALE = 3;
 
 /** Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points. */
 @blue.define({ className: "Tr2StreamingBitmapSaver", purpose: "Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points." })
-export class Tr2StreamingBitmapSaver
+export class Tr2StreamingBitmapSaver extends IRoot
 {
 
   /** m_currentOffset (uint32_t) [READ] - rows are written bottom-up, so it

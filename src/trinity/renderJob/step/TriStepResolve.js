@@ -21,11 +21,11 @@ export class TriStepResolve extends TriRenderStep
   generateMipmap = false;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   source = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   destination = null;
 
   /** Stores the resolve operands in Carbon's destination-first argument order. */

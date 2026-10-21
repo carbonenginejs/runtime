@@ -14,7 +14,7 @@ import { Quality } from "../generated/postProcess/enums.js";
  */
 @be.define("Tr2PostProcess2")
 @blue.inherit(IRoot)
-export class Tr2PostProcess2
+export class Tr2PostProcess2 extends IRoot
 {
 
   // Carbon exposes this as a registered engine setting. Keeping it static makes
@@ -22,37 +22,37 @@ export class Tr2PostProcess2
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPSignalLossEffect")
+  @type.object.ref("Tr2PPSignalLossEffect")
   signalLoss = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPGodRaysEffect")
+  @type.object.ref("Tr2PPGodRaysEffect")
   godRays = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPBloomEffect")
+  @type.object.ref("Tr2PPBloomEffect")
   bloom = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPDynamicExposureEffect")
+  @type.object.ref("Tr2PPDynamicExposureEffect")
   dynamicExposure = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPFilmGrainEffect")
+  @type.object.ref("Tr2PPFilmGrainEffect")
   filmGrain = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPDesaturateEffect")
+  @type.object.ref("Tr2PPDesaturateEffect")
   desaturate = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPFadeEffect")
+  @type.object.ref("Tr2PPFadeEffect")
   fade = null;
 
   @be.mapAttribute(be.READ | be.PERSIST)
@@ -62,41 +62,41 @@ export class Tr2PostProcess2
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPLutEffect")
+  @type.object.ref("Tr2PPLutEffect")
   lut = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPVignetteEffect")
+  @type.object.ref("Tr2PPVignetteEffect")
   vignette = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPFogEffect")
+  @type.object.ref("Tr2PPFogEffect")
   fog = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPDepthOfFieldEffect")
+  @type.object.ref("Tr2PPDepthOfFieldEffect")
   depthOfField = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2PPTaaEffect")
+  @type.object.ref("Tr2PPTaaEffect")
   taa = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPTonemappingEffect")
+  @type.object.ref("Tr2PPTonemappingEffect")
   tonemapping = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPColorCorrectionEffect")
+  @type.object.ref("Tr2PPColorCorrectionEffect")
   colorCorrection = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PPGenericEffect")
+  @type.object.ref("Tr2PPGenericEffect")
   genericEffect = null;
 
   exposureAdjustment = 0;

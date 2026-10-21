@@ -17,7 +17,7 @@ import { meta, type, blue } from "#schema";
 @be.define("EveCustomMask")
 @blue.inherit(IRoot)
 
-export class EveCustomMask
+export class EveCustomMask extends IRoot
 {
   static CUSTOM_MASK_COUNT = 2;
 

@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Groups named sprite items with visibility and skinning policy. */
 @be.define("EveSOFDataHullSpriteSet")
 @blue.inherit(IRoot)
-export class EveSOFDataHullSpriteSet
+export class EveSOFDataHullSpriteSet extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

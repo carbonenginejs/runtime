@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2VisibilityResults.h
 //   trinity/trinity/Tr2VisibilityResults.cpp
@@ -10,7 +11,7 @@ import { meta, blue } from "#schema";
  * and portal consumers to read back.
  */
 @be.define("Tr2VisibilityResults")
-export class Tr2VisibilityResults
+export class Tr2VisibilityResults extends IRoot
 {
 
   // Carbon's m_events is private transient execution state, not Blue data.

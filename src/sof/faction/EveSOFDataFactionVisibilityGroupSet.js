@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataFactionVisibilityGroupSet")
 
 @blue.inherit(IRoot)
-export class EveSOFDataFactionVisibilityGroupSet
+export class EveSOFDataFactionVisibilityGroupSet extends IRoot
 {
 
   /** m_visibilityGroups (PEveSOFDataGenericStringVector) [READ, PERSIST] */

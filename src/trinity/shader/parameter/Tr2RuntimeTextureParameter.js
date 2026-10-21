@@ -24,7 +24,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("ITr2TextureProvider")
+  @type.object.ref("ITr2TextureProvider")
   texture = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

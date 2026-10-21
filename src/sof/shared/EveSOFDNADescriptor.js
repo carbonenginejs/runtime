@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDNADescriptor")
 
 @blue.inherit(IRoot)
-export class EveSOFDNADescriptor
+export class EveSOFDNADescriptor extends IRoot
 {
 
   /** m_material1 (std::string) [READWRITE, PERSIST] */

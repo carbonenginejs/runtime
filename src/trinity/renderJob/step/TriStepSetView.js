@@ -18,12 +18,12 @@ export class TriStepSetView extends TriRenderStep
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("TriView")
+  @type.object.ref("TriView")
   view = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveCamera")
+  @type.object.ref("EveCamera")
   camera = null;
 
   /** Stores the view and camera the step chooses between at execution time. */

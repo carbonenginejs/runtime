@@ -33,7 +33,7 @@ const LOGO_KEYS = Object.freeze(["Primary", "Secondary", "Tertiary", "Marking_01
 @be.define("EveSOFDataMgr")
 @blue.inherit(IRoot)
 
-export class EveSOFDataMgr
+export class EveSOFDataMgr extends IRoot
 {
 
   static DistributionMethod = Object.freeze({

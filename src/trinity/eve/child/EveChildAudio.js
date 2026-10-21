@@ -39,7 +39,7 @@ export class EveChildAudio extends EveChildTransform
 
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.rootRef("ITr2AudEmitter")
+  @type.object.ref("ITr2AudEmitter")
   audioEmitter = null;
 
   /**

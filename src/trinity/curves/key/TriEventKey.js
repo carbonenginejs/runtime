@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
  */
 @blue.inherit(IRoot)
 @be.define("TriEventKey")
-export class TriEventKey
+export class TriEventKey extends IRoot
 {
   /** Event time in seconds. */
   @be.mapAttribute(be.READWRITE | be.PERSIST)

@@ -11,7 +11,7 @@ import { vec3 } from "#math/vec3";
 @be.define("EveSOFDataPatternTransform")
 
 @blue.inherit(IRoot)
-export class EveSOFDataPatternTransform
+export class EveSOFDataPatternTransform extends IRoot
 {
 
   /** m_position (Vector3) [READWRITE, PERSIST] */

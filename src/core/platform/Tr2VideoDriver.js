@@ -9,7 +9,7 @@ import { optionalString, snapshotWebIdl } from "./browserHelpers.js";
  * Browsers normally withhold native driver versions and dates. Unknown values
  * remain null rather than being inferred from the user agent or adapter name.
  */
-export class Tr2VideoDriver
+export class Tr2VideoDriver extends IRoot
 {
     /** Driver release date, or null when the browser withholds it. */
     driverDate = null;

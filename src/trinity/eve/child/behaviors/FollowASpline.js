@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
 import { INotify } from "../../../../global/blue/INotify.js";
@@ -35,7 +36,7 @@ const DEBUG_TRANSFORM = mat4.create();
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 @be.mapInterface(INotify)
-export class FollowASpline
+export class FollowASpline extends IRoot
 {
 
   /** Flattened CPU tunnel references used by the behavior system. */

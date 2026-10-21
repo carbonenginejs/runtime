@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Groups named hull light items and their visibility policy. */
 @be.define("EveSOFDataHullLightSet")
 @blue.inherit(IRoot)
-export class EveSOFDataHullLightSet
+export class EveSOFDataHullLightSet extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

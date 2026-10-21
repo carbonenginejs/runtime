@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueObjectMetadata.h
 //
 // Data about an object that is not one of its members: per object, string keys
@@ -9,7 +10,7 @@ import { CjsSchema, blue } from "#schema";
 export const BLUE_OBJECT_METADATA_KEY = "__bluemetadata__";
 
 /** `IBlueObjectMetadata` - per-object string metadata, per blue/include/IBlueObjectMetadata.h. */
-export class IBlueObjectMetadata
+export class IBlueObjectMetadata extends IRoot
 {
   /** `GetMetadata` - the object's key/value table, or null when it has none. */
   GetMetadata(_owner) {}

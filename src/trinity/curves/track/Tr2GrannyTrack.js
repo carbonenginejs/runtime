@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
@@ -16,7 +17,7 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 @blue.define({ className: "Tr2GrannyTrack", abstract: true })
 @blue.inherit(ITriFunction, IInitialize, ITriCurveLength, INotify)
 @blue.interface(ITriFunction, IInitialize, INotify)
-export class Tr2GrannyTrack
+export class Tr2GrannyTrack extends IRoot
 {
   @blue.notify
   @blue.readwrite
@@ -34,7 +35,7 @@ export class Tr2GrannyTrack
   duration = 0;
 
   @be.mapAttribute(be.READ)
-  @type.rootRef("TriGrannyRes")
+  @type.object.ref("TriGrannyRes")
   grannyRes = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)

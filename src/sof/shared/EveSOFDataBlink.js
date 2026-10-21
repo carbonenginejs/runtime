@@ -7,7 +7,7 @@ import { blue } from "#schema";
 @be.define("EveSOFDataBlink")
 @blue.inherit(IRoot)
 
-export class EveSOFDataBlink
+export class EveSOFDataBlink extends IRoot
 {
 
   /** Reports the empty settings shape; this convenience has no native method.

@@ -8,7 +8,7 @@ import { Tr2ParticleElementDeclarationName } from "./Tr2ParticleElementDeclarati
 /** Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6639.... */
 @blue.inherit(IRoot)
 @be.define("Tr2ParticleElementDeclaration")
-export class Tr2ParticleElementDeclaration
+export class Tr2ParticleElementDeclaration extends IRoot
 {
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */

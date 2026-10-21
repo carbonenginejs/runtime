@@ -806,7 +806,7 @@ CjsSchema.blue.define(TriTextureRes, {
     hadLodRequests: [ type.boolean, blue.read ],
     cpuMip: [ type.uint32, blue.read ],
     gpuMip: [ type.uint32, blue.read ],
-    wrappedRenderTarget: [ type.rootRef("Tr2RenderTarget"), blue.read ],
+    wrappedRenderTarget: [ type.object.ref("Tr2RenderTarget"), blue.read ],
     originalResolution: [ type.uint32, blue.read ],
     originalMemoryUsage: [ type.uint64, meta.read ],
     name: [ type.string, blue.readwrite ],

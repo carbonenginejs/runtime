@@ -14,7 +14,7 @@ import { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPref
 @be.define("EveSOFDataGeneric")
 
 @blue.inherit(IRoot)
-export class EveSOFDataGeneric
+export class EveSOFDataGeneric extends IRoot
 {
   static AreaType = EveSOFDataArea.AreaType;
 
@@ -101,31 +101,31 @@ export class EveSOFDataGeneric
   /** m_bannerShader (PEveSOFDataGenericShader) [READ, PERSIST] */
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.root("EveSOFDataGenericShader")
+  @type.object.embed("EveSOFDataGenericShader")
   bannerShader = new EveSOFDataGenericShader();
 
   /** m_swarm (EveSOFDataGenericSwarmPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataGenericSwarm")
+  @type.object.ref("EveSOFDataGenericSwarm")
   swarm = null;
 
   /** m_damage (EveSOFDataGenericDamagePtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataGenericDamage")
+  @type.object.ref("EveSOFDataGenericDamage")
   damage = null;
 
   /** m_hullDamage (EveSOFDataGenericHullDamagePtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataGenericHullDamage")
+  @type.object.ref("EveSOFDataGenericHullDamage")
   hullDamage = null;
 
   /** m_genericWreckMaterial (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataAreaMaterial")
+  @type.object.ref("EveSOFDataAreaMaterial")
   genericWreckMaterial = null;
 
   /** m_areaShaders (PEveSOFDataGenericShaderVector) [READ, PERSIST] */

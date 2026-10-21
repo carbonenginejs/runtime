@@ -54,15 +54,15 @@ export class EveStretch extends IEveFiringEffectElement
   name = "";
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("ITriVectorFunction")
+ @type.object.ref("ITriVectorFunction")
   source = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("ITriVectorFunction")
+ @type.object.ref("ITriVectorFunction")
   dest = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("IStretchAudio")
+ @type.object.ref("IStretchAudio")
   stretchAudio = null;
   @be.mapAttribute(be.READ)
   @type.int32
@@ -70,11 +70,11 @@ export class EveStretch extends IEveFiringEffectElement
   lodLevel = 0;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("ITriScalarFunction")
+ @type.object.ref("ITriScalarFunction")
   progressCurve = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("TriCurveSet")
+ @type.object.ref("TriCurveSet")
   moveCompletion = null;
   @be.mapAttribute(be.READ | be.PERSIST)
 
@@ -82,7 +82,7 @@ export class EveStretch extends IEveFiringEffectElement
   curveSets = [];
   @be.mapAttribute(be.READ | be.PERSIST)
 
- @type.rootRef("TriFloat")
+ @type.object.ref("TriFloat")
   length = new TriFloat();
   @be.mapAttribute(be.READWRITE)
   @type.boolean
@@ -109,15 +109,15 @@ export class EveStretch extends IEveFiringEffectElement
   sourceLights = [];
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("EveTransform")
+ @type.object.ref("EveTransform")
   destObject = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("EveTransform")
+ @type.object.ref("EveTransform")
   sourceObject = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("EveTransform")
+ @type.object.ref("EveTransform")
   stretchObject = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
@@ -128,11 +128,11 @@ export class EveStretch extends IEveFiringEffectElement
   startTime = -1;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("ITr2Audio")
+ @type.object.ref("ITr2Audio")
   audio = null;
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
- @type.rootRef("EveTransform")
+ @type.object.ref("EveTransform")
   moveObject = null;
 
   _sourcePosition = vec3.create();

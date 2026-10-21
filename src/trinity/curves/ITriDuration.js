@@ -9,7 +9,7 @@ import { CjsSchema, blue } from "#schema";
  * supplies only the native method obligations. Be::Time and TRIEXTRAPOLATION
  * representations remain the concrete class's responsibility.
  */
-export class ITriDuration
+export class ITriDuration extends IRoot
 {
   /**
    * Returns the curve's start time.

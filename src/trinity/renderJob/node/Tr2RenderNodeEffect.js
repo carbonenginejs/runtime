@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RenderNodeEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -10,7 +11,7 @@ import "#consts/graphics/trinityEnums";
 @be.define("Tr2RenderNodeEffect")
 @be.mapInterface(ITr2RenderNode)
 @blue.inherit(ITr2RenderNode)
-export class Tr2RenderNodeEffect
+export class Tr2RenderNodeEffect extends IRoot
 {
 
   /** Carbon's grouped source/parameter bindings. */
@@ -25,12 +26,12 @@ export class Tr2RenderNodeEffect
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_viewport (TriViewportPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("TriViewport")
+  @type.object.ref("TriViewport")
   viewport = null;
 
   /** m_inputNodes (PITr2RenderNodeVector) [READ, PERSIST] */

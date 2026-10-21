@@ -1,9 +1,10 @@
+import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/IList.h:16-35,69-165
 import { CjsSchema, blue } from "#schema";
 
 
 /** Native IRoot-derived typed object-list contract, represented as a plain JS interface. */
-export class IList
+export class IList extends IRoot
 {
   /** @returns {number} The number of items. */
   GetSize() {}

@@ -59,7 +59,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /** m_postProcessAttributes (Tr2PostProcessAttributesPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2PostProcessAttributes")
+  @type.object.ref("Tr2PostProcessAttributes")
   postProcessAttributes = null;
 
   // m_boundingSphere (CcpMath::Sphere) working state as a packed vec4; the

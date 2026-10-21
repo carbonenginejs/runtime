@@ -14,7 +14,7 @@ export class TriStepGenerateMipMaps extends TriRenderStep
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   renderTarget = null;
 
   /** Stores the render target whose mip chain is regenerated. */

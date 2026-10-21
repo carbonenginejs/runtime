@@ -39,7 +39,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2VariableStore")
+  @type.object.ref("Tr2VariableStore")
   variableStore = null;
 
   /**

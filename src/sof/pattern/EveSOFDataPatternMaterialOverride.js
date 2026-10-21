@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataPatternMaterialOverride")
 
 @blue.inherit(IRoot)
-export class EveSOFDataPatternMaterialOverride
+export class EveSOFDataPatternMaterialOverride extends IRoot
 {
 
   /** m_isTargetMtl1 (bool) [READWRITE, PERSIST] */

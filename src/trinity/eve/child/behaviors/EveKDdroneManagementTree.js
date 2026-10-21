@@ -24,7 +24,7 @@ const DEBUG_COLOR = color.create();
 /** A spatial index that builds and incrementally rebalances a k-d tree over a group's drone agents and answers nearest-neighbour and multi-radius range queries against it. */
 @be.define("EveKDdroneManagementTree")
 @blue.inherit(IRoot)
-export class EveKDdroneManagementTree
+export class EveKDdroneManagementTree extends IRoot
 {
 
   /**

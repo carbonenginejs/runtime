@@ -60,7 +60,7 @@ export class Tr2VolumetricsRenderer
   quality = Tr2VolumerticQuality.High;
 
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2TextureReference")
+  @type.object.ref("Tr2TextureReference")
   mieEnvironmentMap = new Tr2TextureReference();
 
   @be.mapAttribute(be.READWRITE)

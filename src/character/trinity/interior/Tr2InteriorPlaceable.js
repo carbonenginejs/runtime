@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { ITr2Interior } from "./ITr2Interior.js";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
 import { ITr2Pickable } from "../../../trinity/core/ITr2Pickable.js";
@@ -17,7 +18,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 @blue.define("Tr2InteriorPlaceable")
 @blue.inherit(ITr2Renderable, IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
 @blue.interface(ITr2Renderable, IInitialize, INotify, ITr2Interior, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
-export class Tr2InteriorPlaceable
+export class Tr2InteriorPlaceable extends IRoot
 {
 
   /** m_placeableResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
@@ -42,7 +43,7 @@ export class Tr2InteriorPlaceable
 
   /** m_placeableRes (WodPlaceableResPtr) [READ] */
   @blue.read
-  @type.rootRef("WodPlaceableRes")
+  @type.object.ref("WodPlaceableRes")
   placeableRes = null;
 
   /** m_display (bool) [READWRITE] */
@@ -63,7 +64,7 @@ export class Tr2InteriorPlaceable
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
   @blue.read
-  @type.rootRef("Tr2VariableStore")
+  @type.object.ref("Tr2VariableStore")
   variableStore = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

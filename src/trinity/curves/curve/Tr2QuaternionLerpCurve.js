@@ -56,7 +56,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriQuaternionFunction")
+  @type.object.ref("ITriQuaternionFunction")
   startCurve = null;
 
   /**
@@ -66,7 +66,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriQuaternionFunction")
+  @type.object.ref("ITriQuaternionFunction")
   endCurve = null;
 
   /**

@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBluePlacementObserver.h:46-51
 // Source: blue/src/IBluePlacementObserver_Blue.cpp:7
 import { CjsSchema, blue } from "#schema";
@@ -7,7 +8,7 @@ import { CjsSchema, blue } from "#schema";
  * Receives multiple forward vectors and positions from another subsystem.
  * Carbon derives this interface from IRoot; JavaScript uses a plain class.
  */
-export class IBlueMultiPlacementObserver
+export class IBlueMultiPlacementObserver extends IRoot
 {
   /**
    * Receives the caller's ordered placement records.

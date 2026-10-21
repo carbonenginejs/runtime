@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
@@ -33,7 +34,7 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 @blue.inherit(IEveSmartLightGroup, IListNotify)
 @be.mapInterface(IEveSmartLightGroup)
 @be.mapInterface(IListNotify)
-export class EveSmartLightBaseGroup
+export class EveSmartLightBaseGroup extends IRoot
 {
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

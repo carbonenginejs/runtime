@@ -1,8 +1,9 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2VisualizationModeRenderer.h:16-27
 import { CjsSchema, meta } from "#schema";
 
 /** Native visualization-mode contract; IRoot has no JavaScript base class. */
-export class ITr2VisualizationModeRenderer
+export class ITr2VisualizationModeRenderer extends IRoot
 {
   /**
    * Selects the renderer-specific visualization mode

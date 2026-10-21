@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.cpp
@@ -19,7 +20,7 @@ const NO_FORCES = [];
 @be.define("Wander")
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
-export class Wander
+export class Wander extends IRoot
 {
 
   static ProcessPriority = ProcessPriority;

@@ -4,7 +4,7 @@ import { CjsSchema, meta, blue } from "#schema";
 
 
 /** Contract for an object that supplies named roots to dynamic bindings. */
-export class ITr2DynamicBindingOwner
+export class ITr2DynamicBindingOwner extends IRoot
 {
   /**
    * Returns the named object roots used to resolve dynamic binding paths.

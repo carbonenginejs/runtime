@@ -55,7 +55,7 @@ function GetUsage(msaaType, flags)
 @be.define("Tr2RenderTarget")
 @blue.inherit(ITr2TextureProvider)
 @be.mapInterface(ITr2TextureProvider)
-export class Tr2RenderTarget
+export class Tr2RenderTarget extends IRoot
 {
 
   /** m_name (std::string) [PERSISTONLY] */

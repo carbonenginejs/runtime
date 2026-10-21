@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 @be.define("Tr2BindingVector3")
 
 @blue.inherit(IRoot)
-export class Tr2BindingVector3
+export class Tr2BindingVector3 extends IRoot
 {
 
   /** m_value (Vector3) [READWRITE, PERSIST] */

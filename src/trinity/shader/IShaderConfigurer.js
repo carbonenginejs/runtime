@@ -4,7 +4,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an object whose shaders take named options, as Tr2ActionSetShaderOption sets them. */
-export class IShaderConfigurer
+export class IShaderConfigurer extends IRoot
 {
   /**
    * Sets a named shader option.

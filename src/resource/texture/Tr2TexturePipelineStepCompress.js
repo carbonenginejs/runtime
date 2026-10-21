@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by the runtime resource layer.
 import { CjsSchema, meta, type, blue } from "#schema";
@@ -18,7 +19,7 @@ const MODES = new Map([
 ]);
 
 /** Persisted pipeline-step record mirroring Carbon's compress step, naming the target pixel format and per-channel error weights. */
-export class Tr2TexturePipelineStepCompress
+export class Tr2TexturePipelineStepCompress extends IRoot
 {
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, PERSIST, ENUM] */

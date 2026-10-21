@@ -17,7 +17,7 @@ const INVALID_UNIQUE_ID = 0;
 @be.define("AudStaticDataRepository")
 @blue.inherit(IRoot)
 
-export class AudStaticDataRepository
+export class AudStaticDataRepository extends IRoot
 {
 
   _events = new Map();

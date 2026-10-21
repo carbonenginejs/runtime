@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp
 import { blue as be, IsMatch, INotify } from "#blue";
@@ -28,7 +29,7 @@ import { CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/ve
 @blue.define("Tr2StaticEmitter")
 @blue.inherit(ITr2GenericEmitter, INotify, IInitialize)
 @blue.interface(ITr2GenericEmitter, INotify, IInitialize)
-export class Tr2StaticEmitter
+export class Tr2StaticEmitter extends IRoot
 {
 
   #isThreadSafe = false;
@@ -51,7 +52,7 @@ export class Tr2StaticEmitter
    * meshes in CMF form.
    */
   @blue.read
-  @type.rootRef("TriGeometryRes")
+  @type.object.ref("TriGeometryRes")
   geometryResource = null;
 
   /** m_meshIndex (uint32_t) [READWRITE, PERSIST] */
@@ -64,7 +65,7 @@ export class Tr2StaticEmitter
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2ParticleSystem")
+  @type.object.ref("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_geometryResourcePath (std::string) [READWRITE, NOTIFY, PERSIST] */

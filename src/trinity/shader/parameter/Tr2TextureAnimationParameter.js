@@ -20,7 +20,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2TextureAnimation")
+  @type.object.ref("Tr2TextureAnimation")
   animation = null;
 
   /** m_channel (BlueSharedString) [READWRITE, PERSIST] */

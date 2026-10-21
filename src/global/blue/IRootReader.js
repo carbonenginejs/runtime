@@ -8,7 +8,7 @@ import { CjsSchema, blue } from "#schema";
 import { IRoot } from "./IRoot.js";
 
 /** `IRootReader` - reads an object tree from a stream, per blue/src/IRootReader.h:15-25. */
-export class IRootReader
+export class IRootReader extends IRoot
 {
   /** `ReadFromStream` - reads the stream's root object, or null on failure. */
   ReadFromStream(_stream) {}

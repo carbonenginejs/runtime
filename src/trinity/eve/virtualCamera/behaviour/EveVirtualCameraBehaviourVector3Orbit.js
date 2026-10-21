@@ -19,12 +19,12 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2CurveScalar")
+  @type.object.ref("Tr2CurveScalar")
   orbitCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2CurveScalar")
+  @type.object.ref("Tr2CurveScalar")
   distanceScalarCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

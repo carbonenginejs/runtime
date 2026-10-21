@@ -22,19 +22,19 @@ export class Tr2AudioStretchBase
   /** m_stretchEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2AudEmitter")
+  @type.object.ref("ITr2AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2AudEmitter")
+  @type.object.ref("ITr2AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2AudEmitter")
+  @type.object.ref("ITr2AudEmitter")
   sourceEmitter = null;
 
   _front = new Float32Array([ 0, 1, 0 ]);

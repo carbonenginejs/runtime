@@ -30,12 +30,12 @@ function BankKey(name)
 @be.define("AudManager")
 @blue.inherit(IRoot, IBlueEvents)
 
-export class AudManager
+export class AudManager extends IRoot
 {
 
   /** m_log (IAudActionLogPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("IAudActionLog")
+  @type.object.ref("IAudActionLog")
   log = null;
 
   /** m_audioCullingEnabled (mutable bool) [READ] */

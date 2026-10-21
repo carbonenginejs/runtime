@@ -22,7 +22,7 @@ export class TriStepRenderPass extends TriRenderStep
   /** m_scene (ITr2MultiPassScenePtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITr2MultiPassScene")
+  @type.object.ref("ITr2MultiPassScene")
   scene = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */

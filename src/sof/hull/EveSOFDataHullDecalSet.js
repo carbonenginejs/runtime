@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Groups named decal items and their visibility policy. */
 @be.define("EveSOFDataHullDecalSet")
 @blue.inherit(IRoot)
-export class EveSOFDataHullDecalSet
+export class EveSOFDataHullDecalSet extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

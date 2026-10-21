@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.cpp
@@ -15,7 +16,7 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
 @be.define("Tr2StateMachineTransition")
 @blue.inherit(INotify)
 @be.mapInterface(INotify)
-export class Tr2StateMachineTransition
+export class Tr2StateMachineTransition extends IRoot
 {
   /**
    * Destination state name resolved within the source state's machine.

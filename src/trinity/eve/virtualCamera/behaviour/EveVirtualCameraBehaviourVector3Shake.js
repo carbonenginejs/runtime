@@ -28,7 +28,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2CurveScalar")
+  @type.object.ref("Tr2CurveScalar")
   magnitudeCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

@@ -17,7 +17,7 @@ export class TriStepSetViewport extends TriRenderStep
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("TriViewport")
+  @type.object.ref("TriViewport")
   viewport = null;
 
   /** Stores the viewport this step installs. */

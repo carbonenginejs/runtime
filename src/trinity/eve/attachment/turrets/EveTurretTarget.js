@@ -26,7 +26,7 @@ export const EVE_TURRET_RANDOM_DELAY_MAX = 0.6;
  */
 @blue.define("EveTurretTarget")
 @blue.inherit(IRoot)
-export class EveTurretTarget
+export class EveTurretTarget extends IRoot
 {
   @blue.read
   @type.vec3

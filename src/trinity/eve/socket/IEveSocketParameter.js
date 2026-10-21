@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/IEveSocketParameter.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -7,7 +8,7 @@ import { meta, blue } from "#schema";
 /** Carbon socket-parameter contract with its interface defaults. */
 @be.interface("IEveSocketParameter")
 @blue.inherit(IInitialize)
-export class IEveSocketParameter
+export class IEveSocketParameter extends IRoot
 {
 
   /** Returns Carbon's default empty socket-parameter name. */

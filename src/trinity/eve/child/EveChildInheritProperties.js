@@ -63,7 +63,7 @@ const COLOR_PROPERTIES = Object.freeze([
 
 @be.define("EveChildInheritProperties")
 @blue.inherit(IRoot)
-export class EveChildInheritProperties
+export class EveChildInheritProperties extends IRoot
 {
   /**
    * Inherited SOF Primary colour, stored as a four-component vector.

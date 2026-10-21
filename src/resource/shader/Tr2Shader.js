@@ -7,7 +7,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
-export class Tr2Shader
+export class Tr2Shader extends IRoot
 {
 
   /** m_sortValue (unsigned int) */

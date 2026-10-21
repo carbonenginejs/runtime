@@ -71,7 +71,7 @@ export class EveChildProceduralContainer extends EveChildTransform
 
   /** m_selectedObject (IEveSpaceObjectChildPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("IEveSpaceObjectChild")
+  @type.object.ref("IEveSpaceObjectChild")
   selectedObject = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
@@ -89,7 +89,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   /** m_selectionMethod (IEveProceduralSelectionMethodPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("IEveProceduralSelectionMethod")
+  @type.object.ref("IEveProceduralSelectionMethod")
   selectionMethod = null;
 
   /** Carbon EveChildProceduralContainer::Initialize (cpp:29-32). */

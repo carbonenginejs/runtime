@@ -154,7 +154,7 @@ export class EveChildParticleSystem extends EveChildTransform
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2InstancedMesh")
+  @type.object.ref("Tr2InstancedMesh")
   mesh = null;
 
   /**

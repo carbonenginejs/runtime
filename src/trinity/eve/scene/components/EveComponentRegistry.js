@@ -15,7 +15,7 @@ import { ITr2PostProcessOwner } from "../../../postProcess/ITr2PostProcessOwner.
 @be.define("EveComponentRegistry")
 @blue.inherit(IRoot)
 
-export class EveComponentRegistry
+export class EveComponentRegistry extends IRoot
 {
 
   #componentCollections = [];

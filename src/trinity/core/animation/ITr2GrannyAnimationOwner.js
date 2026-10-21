@@ -4,7 +4,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an object that owns a Granny animation controller. */
-export class ITr2GrannyAnimationOwner
+export class ITr2GrannyAnimationOwner extends IRoot
 {
 
   /**

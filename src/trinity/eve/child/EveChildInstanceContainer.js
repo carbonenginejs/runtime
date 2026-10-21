@@ -105,7 +105,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("EveChildInheritProperties")
+  @type.object.ref("EveChildInheritProperties")
   inheritProperties = null;
 
   /** m_reset (bool) [READWRITE] */

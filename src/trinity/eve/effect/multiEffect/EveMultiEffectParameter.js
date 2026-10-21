@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.h
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
@@ -15,7 +16,7 @@ import { IsMatch, blue as be } from "#blue";
 @blue.define("EveMultiEffectParameter")
 @blue.inherit(INotify)
 @blue.interface(INotify)
-export class EveMultiEffectParameter
+export class EveMultiEffectParameter extends IRoot
 {
   @blue.readwrite
   @type.int32
@@ -29,7 +30,7 @@ export class EveMultiEffectParameter
 
   @blue.notify
   @blue.readwrite
-  @type.rootRef("IRoot")
+  @type.object.ref("IRoot")
   object = null;
 
   _owner = null;

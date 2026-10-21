@@ -9,7 +9,7 @@ import { vec4 } from "#math/vec4";
 /** Defines a booster transform, functionality, trail, atlas, and light scale. */
 @be.define("EveSOFDataHullBoosterItem")
 @blue.inherit(IRoot)
-export class EveSOFDataHullBoosterItem
+export class EveSOFDataHullBoosterItem extends IRoot
 {
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */

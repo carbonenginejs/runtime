@@ -3,7 +3,7 @@ import { IRoot } from "#blue/IRoot";
 import { CjsSchema, blue } from "#schema";
 
 /** Carbon animation pose-provider interface; IRoot has no JavaScript base. */
-export class ITr2AnimationUpdater
+export class ITr2AnimationUpdater extends IRoot
 {
   /**
    * Updates the pose before physics at the supplied time and model transform.

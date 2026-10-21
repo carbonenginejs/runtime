@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/ICacheable.h:8-18
 //
 // An object that can say how much memory it holds. MotherLode asks for it when
@@ -6,7 +7,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `ICacheable` - reports an object's memory use to the cache. */
-export class ICacheable
+export class ICacheable extends IRoot
 {
   /**
    * `IsMemoryUsageKnown` - whether `GetMemoryUsage` can be asked yet. An

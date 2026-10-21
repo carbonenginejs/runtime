@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueObjectProxy.h:10-27
 //
 // A holder for one object that can be built on demand and dropped again after
@@ -6,7 +7,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `IBlueObjectProxy` - a lazily built, unloadable holder for one object. */
-export class IBlueObjectProxy
+export class IBlueObjectProxy extends IRoot
 {
   /**
    * `SetBuilder` - who builds the object, and the marker that names it.

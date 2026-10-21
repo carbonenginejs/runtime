@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Root SOF data catalog. */
 @be.define("EveSOFData")
 @blue.inherit(IRoot)
-export class EveSOFData
+export class EveSOFData extends IRoot
 {
 
   /** m_faction (PEveSOFDataFactionVector) [READ, PERSIST] */
@@ -19,7 +19,7 @@ export class EveSOFData
   /** m_generic (EveSOFDataGenericPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataGeneric")
+  @type.object.ref("EveSOFDataGeneric")
   generic = null;
 
   /** m_hull (PEveSOFDataHullVector) [READ, PERSIST] */

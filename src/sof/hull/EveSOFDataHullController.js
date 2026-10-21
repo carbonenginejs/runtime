@@ -7,7 +7,7 @@ import { meta, type, blue } from "#schema";
 /** Names a controller resource path and its build filter, deriving the controller name from the path. */
 @be.define("EveSOFDataHullController")
 @blue.inherit(IRoot)
-export class EveSOFDataHullController
+export class EveSOFDataHullController extends IRoot
 {
 
   /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */

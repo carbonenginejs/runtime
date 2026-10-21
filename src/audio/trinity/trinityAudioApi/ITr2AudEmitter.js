@@ -30,7 +30,7 @@ const EMITTER_METHODS = [
 
 
 /** Contract for an audio emitter the runtime can position, name and drive. */
-export class ITr2AudEmitter
+export class ITr2AudEmitter extends IRoot
 {
 
   /**

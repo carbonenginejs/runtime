@@ -13,7 +13,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataGenericDecalShader")
 @blue.inherit(IRoot)
 
-export class EveSOFDataGenericDecalShader
+export class EveSOFDataGenericDecalShader extends IRoot
 {
 
   /**

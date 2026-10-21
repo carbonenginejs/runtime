@@ -13,7 +13,7 @@ import { isVector3 } from "#utils/is";
 
 
 /** Contract for an object that can cast cascaded or point-light shadows. */
-export class IEveShadowCaster
+export class IEveShadowCaster extends IRoot
 {
 
   /**

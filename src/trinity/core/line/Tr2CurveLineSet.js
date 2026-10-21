@@ -293,14 +293,14 @@ export class Tr2CurveLineSet
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
-  @type.rootRef("Tr2Material")
+  @type.object.ref("Tr2Material")
   lineEffect = null;
 
   /** m_pickEffect (Tr2MaterialPtr) [READWRITE, NOTIFY, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
-  @type.rootRef("Tr2Material")
+  @type.object.ref("Tr2Material")
   pickEffect = null;
 
   /** Carbon method AddCurvedLineCrt (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */

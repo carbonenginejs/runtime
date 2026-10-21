@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepGenerateMips.h
 // Marker step: Carbon registers the class with zero attributes; the mip
 // generation itself happens where the pipeline is executed.
@@ -8,7 +9,7 @@ import { CjsSchema, meta, blue } from "#schema";
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Attribute-free persisted Blue marker step mirroring Carbon's mip-generation step; the mip generation itself happens where the pipeline executes. */
-export class Tr2TexturePipelineStepGenerateMips
+export class Tr2TexturePipelineStepGenerateMips extends IRoot
 {
 
   /**

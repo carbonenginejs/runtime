@@ -136,18 +136,18 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2TextureAnimation")
+  @type.object.ref("Tr2TextureAnimation")
   animation = null;
 
   /** m_shadowMapDS (Tr2DepthStencilPtr) [READWRITE, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.NOTIFY)
 
-  @type.rootRef("Tr2DepthStencil")
+  @type.object.ref("Tr2DepthStencil")
   shadowMapDS = null;
 
   /** m_lightMap (Tr2TextureReferencePtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2TextureReference")
+  @type.object.ref("Tr2TextureReference")
   lightmap = new Tr2TextureReference();
 
   /** m_lightmapSizeScale (float) [READ] */
@@ -189,14 +189,14 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   reflectionEffect = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_noiseTextureSize (uint32_t) [READWRITE, PERSIST] */

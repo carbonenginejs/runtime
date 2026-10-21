@@ -51,7 +51,7 @@ const slot = (name, index) => ({ name, key: "materials", index, type: { kind: "r
 })
 @blue.interface()
 @blue.inherit(IRoot)
-export class EveSOFDataArea
+export class EveSOFDataArea extends IRoot
 {
   static AreaType = AreaType;
 

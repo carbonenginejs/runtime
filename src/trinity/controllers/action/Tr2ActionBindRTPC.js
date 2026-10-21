@@ -52,7 +52,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("ITriScalarFunction")
+  @type.object.ref("ITriScalarFunction")
   curve = null;
 
   /**

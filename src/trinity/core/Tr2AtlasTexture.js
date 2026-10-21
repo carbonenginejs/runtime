@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2AtlasTexture.h
 // Source: trinity/trinity/Tr2AtlasTexture.cpp
@@ -29,7 +30,7 @@ import { vec4 } from "#math/vec4";
 @blue.define({ className: "Tr2AtlasTexture", purpose: "A window into a shared texture atlas, or a standalone outsider texture associated with one." })
 @blue.inherit(ICacheable)
 @blue.interface(ICacheable)
-export class Tr2AtlasTexture
+export class Tr2AtlasTexture extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
@@ -75,7 +76,7 @@ export class Tr2AtlasTexture
 
   /** m_textureAtlas (Tr2TextureAtlasPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2TextureAtlas")
+  @type.object.ref("Tr2TextureAtlas")
   atlas = null;
 
   /**

@@ -58,7 +58,7 @@ function DispatchSize(tileSize, totalSize)
  */
 @blue.define("Tr2SSAO")
 @blue.inherit(IRoot)
-export class Tr2SSAO
+export class Tr2SSAO extends IRoot
 {
   @blue.notify
   @blue.readwrite

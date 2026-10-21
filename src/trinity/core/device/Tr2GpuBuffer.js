@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GpuBuffer.h
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
@@ -17,7 +18,7 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2GpuBuffer)
-export class Tr2GpuBuffer
+export class Tr2GpuBuffer extends IRoot
 {
 
   /** Carbon Tr2GpuBuffer.cpp: create from persisted parameters on the ambient context. */

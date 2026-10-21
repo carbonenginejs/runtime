@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
@@ -20,7 +21,7 @@ import { Tr2KelvinColor } from "../../../trinity/core/lighting/Tr2KelvinColor.js
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2InteriorLight)
-export class Tr2InteriorLightSource
+export class Tr2InteriorLightSource extends IRoot
 {
   /** PopulateLightData's AsRGB result. */
   static _kelvinScratch = vec4.create();
@@ -80,7 +81,7 @@ export class Tr2InteriorLightSource
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2KelvinColor")
+  @type.object.ref("Tr2KelvinColor")
   kelvinColor = new Tr2KelvinColor();
 
   /** m_radius (float) [READWRITE, PERSIST, NOTIFY] */

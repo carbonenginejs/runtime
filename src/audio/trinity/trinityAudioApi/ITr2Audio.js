@@ -3,7 +3,7 @@ import { IRoot } from "#blue/IRoot";
 import { CjsSchema, blue } from "#schema";
 
 /** Positions an asset's audio and locates its named emitters. */
-export class ITr2Audio
+export class ITr2Audio extends IRoot
 {
   /** Updates the source and destination world positions. */
   Update(_sourcePosition, _destPosition) {}

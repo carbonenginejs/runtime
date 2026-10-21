@@ -210,18 +210,18 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effectFar = null;
 
   /** Sprite set rendering the glows on the boosters. */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSpriteSet")
+  @type.object.ref("EveSpriteSet")
   glows = null;
 
   /**

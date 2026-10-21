@@ -62,7 +62,7 @@ export class EveChildLineSet extends EveChildTransform
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("EveCurveLineSet")
+  @type.object.ref("EveCurveLineSet")
   lineSet = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
@@ -139,7 +139,7 @@ export class EveChildLineSet extends EveChildTransform
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2Mesh")
+  @type.object.ref("Tr2Mesh")
   mesh = null;
 
   _worldVelocity = vec3.create();

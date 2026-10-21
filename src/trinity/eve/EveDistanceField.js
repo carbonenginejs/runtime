@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/EveDistanceField.h
@@ -24,7 +25,7 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
 @blue.inherit(IListNotify, INotify, ITr2DebugRenderable)
 @be.mapInterface(IListNotify)
 @be.mapInterface(INotify)
-export class EveDistanceField
+export class EveDistanceField extends IRoot
 {
   @be.mapAttribute(be.READ)
   @type.vec3
@@ -60,11 +61,11 @@ export class EveDistanceField
   objects = [];
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("TriView")
+  @type.object.ref("TriView")
   cameraView = null;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("TriCurveSet")
+  @type.object.ref("TriCurveSet")
   curveSet = null;
 
   @be.mapAttribute(be.READWRITE)

@@ -1,3 +1,4 @@
+import { IRoot } from "../global/blue/IRoot.js";
 import { random as carbonRandom } from "#math/random";
 import * as CcpLog from "../global/logging/ccpLog.js";
 import { normalizeResourcePath } from "#utils/path";
@@ -274,7 +275,7 @@ const SOF_INSTANCE_LAYOUT = [
  */
 @blue.define("EveSOF")
 @blue.interface()
-export class EveSOF
+export class EveSOF extends IRoot
 {
 
   /**

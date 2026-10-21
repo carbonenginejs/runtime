@@ -5,7 +5,7 @@ import { blue } from "#schema";
 /** Native IRoot-shaped abstract contract shared by Sprite2D objects. */
 @blue.define({ className: "ITr2SpriteObject", abstract: true })
 @blue.inherit(IRoot)
-export class ITr2SpriteObject
+export class ITr2SpriteObject extends IRoot
 {
   /**
    * Required native GatherSprites contract.

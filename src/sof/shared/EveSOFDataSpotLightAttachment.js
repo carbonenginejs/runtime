@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 @be.define("EveSOFDataSpotLightAttachment")
 @blue.inherit(IRoot)
 
-export class EveSOFDataSpotLightAttachment
+export class EveSOFDataSpotLightAttachment extends IRoot
 {
 
   /**

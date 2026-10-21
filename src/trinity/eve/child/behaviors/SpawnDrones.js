@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.h
@@ -15,7 +16,7 @@ const NO_FORCES = [];
 @be.define("SpawnDrones")
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
-export class SpawnDrones
+export class SpawnDrones extends IRoot
 {
 
   /** m_gridSpacing (Vector3) [READWRITE, PERSIST] */

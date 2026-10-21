@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2PostProcess.h
@@ -11,7 +12,7 @@ import { meta, type, blue } from "#schema";
  */
 @be.define("Tr2PostProcess")
 @blue.inherit(IInitialize)
-export class Tr2PostProcess
+export class Tr2PostProcess extends IRoot
 {
   @be.mapAttribute(be.READ | be.PERSIST)
 

@@ -11,7 +11,7 @@ import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 @be.define("EveSOFDataRace")
 
 @blue.inherit(IRoot)
-export class EveSOFDataRace
+export class EveSOFDataRace extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 
@@ -33,13 +33,13 @@ export class EveSOFDataRace
   /** m_booster (EveSOFDataBoosterPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataBooster")
+  @type.object.ref("EveSOFDataBooster")
   booster = null;
 
   /** m_damage (EveSOFDataRaceDamagePtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataRaceDamage")
+  @type.object.ref("EveSOFDataRaceDamage")
   damage = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

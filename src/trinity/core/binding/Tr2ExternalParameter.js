@@ -40,7 +40,7 @@ export class Tr2ExternalParameter extends IInitialize
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("IRoot")
+  @type.object.ref("IRoot")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */

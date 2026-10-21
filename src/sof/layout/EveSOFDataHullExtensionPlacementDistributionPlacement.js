@@ -12,7 +12,7 @@ import { vec3 } from "#math/vec3";
 // name - the distribution conditions implement the separate BLUE_INTERFACE.
 @be.define("EveSOFDataHullExtensionPlacementDistributionPlacement")
 @blue.inherit(IRoot)
-export class EveSOFDataHullExtensionPlacementDistributionPlacement
+export class EveSOFDataHullExtensionPlacementDistributionPlacement extends IRoot
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

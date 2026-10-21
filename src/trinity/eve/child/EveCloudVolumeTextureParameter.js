@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h:141-171
 //   trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp:394-441
@@ -16,13 +17,13 @@ import { CjsParameter } from "../../shader/parameter/CjsParameter.js";
 @blue.define({ className: "EveCloudVolumeTextureParameter", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
 @blue.inherit(ITriEffectResourceParameter)
 @blue.interface(ITriEffectResourceParameter)
-export class EveCloudVolumeTextureParameter
+export class EveCloudVolumeTextureParameter extends IRoot
 {
 
   /** m_volume (EveCloudEditableVolumePtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveCloudEditableVolume")
+  @type.object.ref("EveCloudEditableVolume")
   volume = null;
 
   /** m_isUsedByEffect (bool) [READ] */

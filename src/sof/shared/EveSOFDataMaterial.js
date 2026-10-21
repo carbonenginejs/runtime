@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataMaterial")
 @blue.inherit(IRoot)
 
-export class EveSOFDataMaterial
+export class EveSOFDataMaterial extends IRoot
 {
 
   /**

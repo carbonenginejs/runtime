@@ -89,7 +89,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.cpp
@@ -19,7 +20,7 @@ const NO_FORCES = [];
 @be.define("InclusionVolume")
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
-export class InclusionVolume
+export class InclusionVolume extends IRoot
 {
 
   static ProcessPriority = ProcessPriority;

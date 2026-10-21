@@ -8,7 +8,7 @@ import { CjsSchema, meta, blue } from "#schema";
  * (IEveSmartLightGroup.h:8-22). Every method has an empty default body in
  * Carbon, not a pure virtual, so a group implements only what it needs.
  */
-export class IEveSmartLightGroup
+export class IEveSmartLightGroup extends IRoot
 {
 
   /** Carbon's empty default (h:11). @param {Float32Array} _color */

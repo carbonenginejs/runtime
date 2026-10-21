@@ -51,12 +51,12 @@ export class EveStretch3 extends IEveFiringEffectElement
   @blue.notify
   @blue.readwrite
   @blue.persist
- @type.rootRef("ITriVectorFunction")
+ @type.object.ref("ITriVectorFunction")
   source = null;
   @blue.notify
   @blue.readwrite
   @blue.persist
- @type.rootRef("ITriVectorFunction")
+ @type.object.ref("ITriVectorFunction")
   dest = null;
   @blue.readwrite
   @blue.persist
@@ -64,11 +64,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   name = "";
   @blue.readwrite
   @blue.persist
- @type.rootRef("TriFloat")
+ @type.object.ref("TriFloat")
   moveProgression = new TriFloat();
   @blue.readwrite
   @blue.persist
- @type.rootRef("IStretchAudio")
+ @type.object.ref("IStretchAudio")
   stretchAudio = null;
   @blue.read
   @blue.persist
@@ -80,7 +80,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   curveSets = [];
   @blue.read
   @blue.persist
- @type.rootRef("TriFloat")
+ @type.object.ref("TriFloat")
   length = new TriFloat();
   @blue.read
   @blue.persist
@@ -164,7 +164,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   startTime = 0;
   @blue.readwrite
   @blue.persist
- @type.rootRef("ITr2Audio")
+ @type.object.ref("ITr2Audio")
   audio = null;
   /** Hidden persisted moveObject storage, distinct from the live setter. */
   @blue.attribute("moveObject")

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.h
 import { IsMatch, INotify, blue as be, CcpTime } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -41,7 +42,7 @@ const DEBUG_COLOR = color.create();
 @blue.define("BehaviorGroupBooster")
 @blue.inherit(IInitialize, INotify)
 @blue.interface(IInitialize, INotify)
-export class BehaviorGroupBooster
+export class BehaviorGroupBooster extends IRoot
 {
 
   _vertexBuffer = MakeBoosterBoxBuffer();
@@ -115,7 +116,7 @@ export class BehaviorGroupBooster
   /** m_boosterEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   boosterEffect = null;
 
   /** m_flareCount (unsigned int) [READ] */
@@ -176,14 +177,14 @@ export class BehaviorGroupBooster
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   ambientFlareEffect = null;
 
   /** m_haloFlareEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   haloFlareEffect = null;
 
   /** m_ambientFlareNoiseAmplitude (float) [READWRITE, PERSIST] */

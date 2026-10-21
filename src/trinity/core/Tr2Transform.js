@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2Transform.h
 // Source: trinity/trinity/Tr2Transform.cpp
 // Source: trinity/trinity/Tr2Transform_Blue.cpp
@@ -75,7 +76,7 @@ function setViewBasis(out, inverseView, scale)
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
 @blue.define("Tr2Transform")
 @blue.inherit(ITr2Renderable)
-export class Tr2Transform
+export class Tr2Transform extends IRoot
 {
 
   /**
@@ -483,7 +484,7 @@ export class Tr2Transform
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("Tr2MeshBase")
+  @type.object.ref("Tr2MeshBase")
   mesh = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */

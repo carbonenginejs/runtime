@@ -7,7 +7,7 @@ import { meta, blue } from "#schema";
 /** Required particle-force contract. */
 @blue.inherit(IRoot)
 @be.interface("ITr2ParticleForce")
-export class ITr2ParticleForce
+export class ITr2ParticleForce extends IRoot
 {
 
   /** Updates force-owned state before particle integration. */

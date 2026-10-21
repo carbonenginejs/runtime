@@ -14,11 +14,11 @@ import { meta, type, blue } from "#schema";
 @be.define("EveTacticalOverlayTrackObject")
 @blue.inherit(IRoot)
 
-export class EveTacticalOverlayTrackObject
+export class EveTacticalOverlayTrackObject extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   translationCurve = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

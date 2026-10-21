@@ -48,7 +48,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   curve = null;
 
   /**

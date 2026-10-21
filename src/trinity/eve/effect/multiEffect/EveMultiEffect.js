@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/EveMultiEffect.h
 // Source: trinity/trinity/Eve/EveMultiEffect.cpp
@@ -25,7 +26,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2DynamicBindingOwner)
 @be.mapInterface(ITr2CurveSetOwner)
-export class EveMultiEffect
+export class EveMultiEffect extends IRoot
 {
 
   /** m_bindings (PTr2DynamicBindingVector) [READ, PERSIST] */

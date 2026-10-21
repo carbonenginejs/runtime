@@ -209,7 +209,7 @@ export class EveChildMesh extends EveChildTransform
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveDamageOverlay")
+  @type.object.ref("EveDamageOverlay")
   damageOverlay = null;
 
   /** The owner record handed to damageOverlay each update (Carbon cpp:1120-1135). */
@@ -227,7 +227,7 @@ export class EveChildMesh extends EveChildTransform
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2MeshBase")
+  @type.object.ref("Tr2MeshBase")
   mesh = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)
@@ -272,7 +272,7 @@ export class EveChildMesh extends EveChildTransform
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2GrannyAnimation")
+  @type.object.ref("Tr2GrannyAnimation")
   animationUpdater = null;
 
   @be.mapAttribute(be.READ | be.PERSIST)

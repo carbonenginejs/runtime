@@ -8,7 +8,7 @@ import { vec2 } from "#math/vec2";
 /** Groups plane items with usage, texture, atlas, visibility, and skinning policy. */
 @blue.define("EveSOFDataHullPlaneSet")
 @blue.inherit(IRoot)
-export class EveSOFDataHullPlaneSet
+export class EveSOFDataHullPlaneSet extends IRoot
 {
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */

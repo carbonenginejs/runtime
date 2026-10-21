@@ -11,7 +11,7 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
  */
 @blue.define({ className: "EveVirtualCameraTransitionBase", abstract: true })
 @blue.inherit(IRoot)
-export class EveVirtualCameraTransitionBase
+export class EveVirtualCameraTransitionBase extends IRoot
 {
   @meta.reference
   @type.rootRef("EveVirtualCamera")

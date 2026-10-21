@@ -51,7 +51,7 @@ export class Tr2DynamicBinding extends INotify
    * @returns {object|null} The destination object.
    */
   @blue.read
-  @type.rootWeak("IRoot")
+  @type.object.weak("IRoot")
   get destination()
   {
     return this._destinationRef ? this._destinationRef.deref() ?? null : null;
@@ -92,7 +92,7 @@ export class Tr2DynamicBinding extends INotify
    * @returns {object|null} The source object.
    */
   @blue.read
-  @type.rootWeak("IRoot")
+  @type.object.weak("IRoot")
   get source()
   {
     return this._sourceRef ? this._sourceRef.deref() ?? null : null;
@@ -125,7 +125,7 @@ export class Tr2DynamicBinding extends INotify
 
   /** Native binding member. */
   @blue.read
-  @type.rootRef("TriValueBinding")
+  @type.object.ref("TriValueBinding")
   binding = null;
 
   /** m_bindingTime (Be::Time, Blue 100ns ticks): the frame time from which Update copies; 0 while unlinked. */

@@ -38,7 +38,7 @@ const slot = (name, index) => ({ name, key: "logos", index, type: { kind: "rootR
 })
 @blue.interface()
 @blue.inherit(IRoot)
-export class EveSOFDataLogoSet
+export class EveSOFDataLogoSet extends IRoot
 {
   static LogoType = LogoType;
 

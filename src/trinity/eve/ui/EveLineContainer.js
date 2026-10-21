@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/UI/EveLineContainer.h
 // Source: trinity/trinity/Eve/UI/EveLineContainer.cpp
@@ -11,7 +12,7 @@ import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 @be.define("EveLineContainer")
 @blue.inherit(IEveSpaceObject2)
 @be.mapInterface(IEveSpaceObject2)
-export class EveLineContainer
+export class EveLineContainer extends IRoot
 {
 
   /** m_connectors (PEveConnectorVector) [READ, PERSIST] */
@@ -29,7 +30,7 @@ export class EveLineContainer
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveCurveLineSet")
+  @type.object.ref("EveCurveLineSet")
   lineSet = null;
 
   /** m_display (bool) [READWRITE] */

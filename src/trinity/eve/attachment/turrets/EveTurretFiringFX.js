@@ -32,7 +32,7 @@ export class EveTurretFiringFX extends EveEntity
    */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("TriCurveSet")
+  @type.object.ref("TriCurveSet")
   startCurveSet = null;
 
   /** m_stopCurveSet (TriCurveSetPtr) [READWRITE, PERSIST]
@@ -41,7 +41,7 @@ export class EveTurretFiringFX extends EveEntity
    */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("TriCurveSet")
+  @type.object.ref("TriCurveSet")
   stopCurveSet = null;
 
   /** m_stretch (PIEveFiringEffectElementVector) [READ, PERSIST]
@@ -209,7 +209,7 @@ export class EveTurretFiringFX extends EveEntity
    */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("TriObserverLocal")
+  @type.object.ref("TriObserverLocal")
   destinationObserver = null;
 
   /** m_sourceObserver (TriObserverLocalPtr) [READWRITE, PERSIST]
@@ -218,7 +218,7 @@ export class EveTurretFiringFX extends EveEntity
    */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("TriObserverLocal")
+  @type.object.ref("TriObserverLocal")
   sourceObserver = null;
 
   /** m_firingDurationOverride (float) [READWRITE, NOTIFY, PERSIST]

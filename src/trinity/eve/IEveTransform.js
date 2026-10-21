@@ -16,7 +16,7 @@ import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for a child entry a space object drives and renders. */
-export class IEveTransform
+export class IEveTransform extends IRoot
 {
 
   /**

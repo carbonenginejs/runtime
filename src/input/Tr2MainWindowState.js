@@ -10,7 +10,7 @@ import "#consts/renderContext/window";
 /**
  * Carbon main-window state record for mode, size, position, and presentation settings.
  */
-export class Tr2MainWindowState
+export class Tr2MainWindowState extends IRoot
 {
     // Defaults are Carbon's State() init list (Tr2MainWindow.cpp:128-136), in
     // Carbon's member order (Tr2MainWindow.h:67-82).

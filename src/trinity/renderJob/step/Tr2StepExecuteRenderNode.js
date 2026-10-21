@@ -19,7 +19,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
 
   /** m_destinationTarget (Tr2RenderTargetPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   destinationTarget = null;
 
   /** m_clearTargetOnFailure (bool) [READWRITE] */
@@ -30,7 +30,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
   /** m_node (ITr2RenderNodePtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("ITr2RenderNode")
+  @type.object.ref("ITr2RenderNode")
   node = null;
 
   /**

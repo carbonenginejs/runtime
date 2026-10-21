@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueObjectBuilder.h:8-25
 //
 // What builds the object behind a BlueObjectProxy. The proxy hands back the
@@ -12,7 +13,7 @@
 import { CjsSchema, meta, blue } from "#schema";
 
 /** `IBlueObjectBuilder` - creates the object a proxy stands for, from a marker. */
-export class IBlueObjectBuilder
+export class IBlueObjectBuilder extends IRoot
 {
   /**
    * `CreateObjectWithYield` - create the object from its marker; may yield the

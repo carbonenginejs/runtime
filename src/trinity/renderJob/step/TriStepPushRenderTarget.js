@@ -17,7 +17,7 @@ export class TriStepPushRenderTarget extends TriRenderStep
   slot = 0;
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2RenderTarget")
+  @type.object.ref("Tr2RenderTarget")
   renderTarget = null;
 
   /** Stores the render target and the slot it is pushed for. */

@@ -32,7 +32,7 @@ export const ResourceFlags = Object.freeze({
  * Native effect-value contract. Its methods deliberately have inert defaults;
  * implementations override only the constant/resource operations they support.
  */
-export class ITr2EffectValue
+export class ITr2EffectValue extends IRoot
 {
   /**
    * Native default leaves the effect constant storage untouched.

@@ -10,7 +10,7 @@ import { Tr2Lod } from "#consts/trinity";
 @blue.define("EveSOFDataInstancedMesh")
 @blue.interface()
 @blue.inherit(IRoot)
-export class EveSOFDataInstancedMesh
+export class EveSOFDataInstancedMesh extends IRoot
 {
   static Tr2Lod = Tr2Lod;
 

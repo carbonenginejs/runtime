@@ -10,7 +10,7 @@ import { type, blue } from "#schema";
 @be.define("TriVector4")
 @blue.inherit(IRoot)
 
-export class TriVector4
+export class TriVector4 extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 

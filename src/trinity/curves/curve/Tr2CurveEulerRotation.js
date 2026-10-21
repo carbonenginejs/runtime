@@ -29,19 +29,19 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
   /** Owned yaw component curve in radians. */
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.root("Tr2CurveScalar")
+  @type.object.embed("Tr2CurveScalar")
   yaw = new Tr2CurveScalar();
 
   /** Owned pitch component curve in radians. */
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.root("Tr2CurveScalar")
+  @type.object.embed("Tr2CurveScalar")
   pitch = new Tr2CurveScalar();
 
   /** Owned roll component curve in radians. */
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.root("Tr2CurveScalar")
+  @type.object.embed("Tr2CurveScalar")
   roll = new Tr2CurveScalar();
 
   /** Cached quaternion; exposed read-only without persistence. */

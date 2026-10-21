@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { IInitialize } from "#blue/IInitialize";
 import { ITr2AnimationUpdater } from "./ITr2AnimationUpdater.js";
@@ -9,7 +10,7 @@ import { meta, type, blue } from "#schema";
 @blue.inherit(IInitialize, ITr2AnimationUpdater)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2AnimationUpdater)
-export class Tr2GStateAnimation
+export class Tr2GStateAnimation extends IRoot
 {
 
   /** m_resPath (std::string) [PERSISTONLY] */

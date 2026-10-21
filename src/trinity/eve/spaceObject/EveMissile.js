@@ -35,7 +35,7 @@ export class EveMissile extends EveSpaceObject2
   @type.boolean updateWarheads = true;
   @be.mapAttribute(be.READWRITE)
   @meta.reference
-  @type.rootRef("ITriTargetable") target = null;
+  @type.object.ref("ITriTargetable") target = null;
   @be.mapAttribute(be.READWRITE)
   @type.float32 targetRadius = 0;
   @blue.readwrite

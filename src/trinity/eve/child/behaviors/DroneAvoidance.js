@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.cpp
@@ -25,7 +26,7 @@ const DEBUG_COLOR = color.create();
 @be.define("DroneAvoidance")
 @blue.inherit(IBehavior)
 @be.mapInterface(IBehavior)
-export class DroneAvoidance
+export class DroneAvoidance extends IRoot
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */

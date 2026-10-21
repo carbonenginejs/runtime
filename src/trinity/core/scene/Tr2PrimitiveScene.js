@@ -38,7 +38,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   textLabels = [];
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2ManipulationTool")
+  @type.object.ref("Tr2ManipulationTool")
   manipulator = null;
 
   @type.rawStruct("Tr2PickBuffer")

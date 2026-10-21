@@ -8,7 +8,7 @@ import { Quality } from "../../generated/postProcess/enums.js";
 /** Provides the shared display gate for a post-process effect. */
 @blue.define("Tr2PPEffect")
 @blue.inherit(IRoot)
-export class Tr2PPEffect
+export class Tr2PPEffect extends IRoot
 {
 
   /** m_display (bool) [READWRITE, NOTIFY] */

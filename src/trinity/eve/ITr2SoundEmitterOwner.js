@@ -4,7 +4,7 @@ import { CjsSchema, meta, blue } from "#schema";
 
 
 /** Contract for a scene object that finds named sound emitters. */
-export class ITr2SoundEmitterOwner
+export class ITr2SoundEmitterOwner extends IRoot
 {
   /**
    * Finds a named audio emitter.

@@ -15,7 +15,7 @@ export class TriStepRenderEffect extends TriRenderStep
 
   /** m_shaderBuffer (Tr2ShaderBufferPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2ShaderBuffer")
+  @type.object.ref("Tr2ShaderBuffer")
   shaderBuffer = null;
 
   /** m_brTexCoord (Vector2) [READWRITE] */
@@ -25,7 +25,7 @@ export class TriStepRenderEffect extends TriRenderStep
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_tlTexCoord (Vector2) [READWRITE] */

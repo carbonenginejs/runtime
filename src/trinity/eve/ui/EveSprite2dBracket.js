@@ -14,14 +14,14 @@ import { meta, type, blue } from "#schema";
 @be.define("EveSprite2dBracket")
 @blue.inherit(IRoot)
 
-export class EveSprite2dBracket
+export class EveSprite2dBracket extends IRoot
 {
   @be.mapAttribute(be.READWRITE)
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("Tr2AtlasTexture")
+  @type.object.ref("Tr2AtlasTexture")
   icon = null;
 
   @be.mapAttribute(be.READWRITE)

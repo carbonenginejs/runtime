@@ -111,7 +111,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
 
   @blue.readwrite
   @blue.persist
-  @type.rootRef("IEveDistributionMethod")
+  @type.object.ref("IEveDistributionMethod")
   distribution = null;
 
   @blue.readwrite

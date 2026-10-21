@@ -1,8 +1,9 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2Renderable.h
 import { CjsSchema, blue } from "#schema";
 
 /** Native nominal picking contract, independent of the renderable contract. */
-export class ITr2Pickable
+export class ITr2Pickable extends IRoot
 {
   /**
    * Carbon's pure virtual `IRoot* GetID( uint16_t areaId )` (ITr2Renderable.h:91):

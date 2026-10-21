@@ -211,7 +211,7 @@ export class EveChildTurret extends EveChildMesh
   /** The observer for turret movement sounds; positioned automatically. */
   @blue.readwrite
   @blue.persist
-  @type.rootRef("TriObserverLocal")
+  @type.object.ref("TriObserverLocal")
   turretMovementObserver = null;
 
   /** Whether mechanical movement sounds play when events are authored. */
@@ -236,7 +236,7 @@ export class EveChildTurret extends EveChildMesh
   // enabled (EveChildTurret.cpp:26-27); Blue exposes it READ-only.
   @blue.attribute("target")
   @blue.read
-  @type.rootRef("EveTurretTarget")
+  @type.object.ref("EveTurretTarget")
   _target = new EveTurretTarget();
 
   _aiming = new EveTurretAiming();

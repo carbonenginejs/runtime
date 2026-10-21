@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBluePlacementObserver.h:31-34
 // Source: blue/src/IBluePlacementObserver_Blue.cpp:6
 import { CjsSchema, blue } from "#schema";
@@ -7,7 +8,7 @@ import { CjsSchema, blue } from "#schema";
  * Receives orientation and position from another subsystem. Carbon derives this
  * interface from IRoot; the JavaScript contract follows Blue's plain-class convention.
  */
-export class IBluePlacementObserver
+export class IBluePlacementObserver extends IRoot
 {
   /**
    * Receives a placement's forward vector, up vector and position, in that order.

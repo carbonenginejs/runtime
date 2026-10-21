@@ -1,3 +1,4 @@
+import { IRoot } from "../blue/IRoot.js";
 // Source: trinity/trinity/Include/ITr2BoundingBox.h
 import { CjsSchema, blue, meta } from "../schema/index.js";
 
@@ -5,7 +6,7 @@ import { CjsSchema, blue, meta } from "../schema/index.js";
 /**
  * Dependency-free contract for objects that publish a ready world-space axis-aligned bounding box.
  */
-export class ITr2BoundingBox
+export class ITr2BoundingBox extends IRoot
 {
 
     /** Writes the current world-space minimum and maximum bounds. */

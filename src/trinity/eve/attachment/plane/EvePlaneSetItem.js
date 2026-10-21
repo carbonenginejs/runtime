@@ -16,7 +16,7 @@ import { meta, type, blue } from "#schema";
  */
 @be.define("EvePlaneSetItem")
 @blue.inherit(IRoot)
-export class EvePlaneSetItem
+export class EvePlaneSetItem extends IRoot
 {
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

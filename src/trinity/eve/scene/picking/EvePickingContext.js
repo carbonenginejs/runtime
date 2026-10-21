@@ -11,7 +11,7 @@ import { meta, type, blue } from "#schema";
  */
 @be.define("EvePickingContext")
 @blue.inherit(IRoot)
-export class EvePickingContext
+export class EvePickingContext extends IRoot
 {
   @type.list("EvePendingPickingReadback")
   readbacks = [];

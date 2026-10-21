@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLimitSize.json; maintained by the runtime resource layer.
 import * as CcpLog from "../../global/logging/ccpLog.js";
@@ -8,7 +9,7 @@ import { HostBitmap } from "#imageio";
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Persisted pipeline-step record mirroring Carbon's size-limit step, holding the maximum width and height the bitmap may keep. */
-export class Tr2TexturePipelineStepLimitSize
+export class Tr2TexturePipelineStepLimitSize extends IRoot
 {
 
   /** m_maxHeight (uint32_t) [READWRITE, PERSIST] */

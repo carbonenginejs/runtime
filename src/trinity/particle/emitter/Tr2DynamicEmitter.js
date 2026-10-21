@@ -59,7 +59,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
-  @type.rootRef("Tr2ParticleSystem")
+  @type.object.ref("Tr2ParticleSystem")
   particleSystem = null;
 
   /**

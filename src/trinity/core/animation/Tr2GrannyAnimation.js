@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2AnimationUpdater } from "../../../character/trinity/trinityCore/ITr2AnimationUpdater.js";
 // Source: trinity/trinity/Tr2GrannyAnimation.h
@@ -111,7 +112,7 @@ function sampleCmfChannel(out, curves, channel, time)
 @blue.inherit(IInitialize, ITr2AnimationUpdater)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2AnimationUpdater)
-export class Tr2GrannyAnimation
+export class Tr2GrannyAnimation extends IRoot
 {
 
   /** Last path resolved by Initialize; empty for explicitly attached resources. */
@@ -228,12 +229,12 @@ export class Tr2GrannyAnimation
 
   /** m_grannyRes (TriGrannyResPtr) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("TriGrannyRes")
+  @type.object.ref("TriGrannyRes")
   grannyRes = null;
 
   /** m_eventListener (IBlueEventListenerPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("IBlueEventListener")
+  @type.object.ref("IBlueEventListener")
   eventListener = null;
 
   /** m_animationEnabled (bool) [READWRITE] */

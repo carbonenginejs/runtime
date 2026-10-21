@@ -39,7 +39,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   /** The GEOMETRY route supplies TriGeometryRes in JS, replacing the raw SDK handle. */
   @blue.read
-  @type.rootRef("TriGeometryRes")
+  @type.object.ref("TriGeometryRes")
   grannyRes = null;
 
   @type.float32Array

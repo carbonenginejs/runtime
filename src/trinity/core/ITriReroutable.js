@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITriReroutable.h:8-16
 //
 // A value whose storage can be MOVED somewhere else, and which tells its
@@ -18,7 +19,7 @@ import { CjsSchema } from "#schema";
 
 
 /** A value whose storage can be pointed elsewhere, notifying its bindings. */
-export class ITriReroutable
+export class ITriReroutable extends IRoot
 {
 
   /** Points this value's storage at `dest`, or back at its own with null. */

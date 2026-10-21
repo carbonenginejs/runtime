@@ -1,9 +1,10 @@
+import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/IList.h:57-65
 // BLUELISTEVENT remains shared vocabulary in #consts/blue.
 import { CjsSchema, blue } from "#schema";
 
 /** `IListNotify` - the single observer a Blue list notifies. */
-export class IListNotify
+export class IListNotify extends IRoot
 {
   /**
    * `OnListModified` - the list changed.

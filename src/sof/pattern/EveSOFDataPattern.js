@@ -11,7 +11,7 @@ import { ErrSOFProjectionNotFound } from "./ErrSOFProjectionNotFound.js";
 @be.define("EveSOFDataPattern")
 
 @blue.inherit(IRoot)
-export class EveSOFDataPattern
+export class EveSOFDataPattern extends IRoot
 {
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */
@@ -29,13 +29,13 @@ export class EveSOFDataPattern
   /** m_layer1 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataPatternLayer")
+  @type.object.ref("EveSOFDataPatternLayer")
   layer1 = null;
 
   /** m_layer2 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
-  @type.rootRef("EveSOFDataPatternLayer")
+  @type.object.ref("EveSOFDataPatternLayer")
   layer2 = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

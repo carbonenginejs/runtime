@@ -19,7 +19,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
 
   /** m_clientBall (ITriVectorFunctionPtr) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("ITriVectorFunction")
+  @type.object.ref("ITriVectorFunction")
   clientBall = null;
 
   /** m_offsetPosition (Vector3) [READWRITE] */

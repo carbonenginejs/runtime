@@ -40,7 +40,7 @@ function blendOverAlpha(bytes, index, col, sourceAlpha)
 /** Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points. */
 @blue.define({ className: "Tr2SBitWrapper", purpose: "Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points." })
 @blue.inherit(IRoot)
-export class Tr2SBitWrapper
+export class Tr2SBitWrapper extends IRoot
 {
 
   /** x (int) [READ] */

@@ -1,9 +1,10 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITr2InstanceData.h
 import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for a provider of instance-stream data and layout metadata. */
-export class ITr2InstanceData
+export class ITr2InstanceData extends IRoot
 {
 
   /** Whether the provider's instance stream is ready for batch collection. */

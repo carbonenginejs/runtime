@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp
@@ -12,7 +13,7 @@ import { vec4 } from "#math/vec4";
 @be.define("EveCloudVolumeBall")
 @blue.inherit(INotify)
 @be.mapInterface(INotify)
-export class EveCloudVolumeBall
+export class EveCloudVolumeBall extends IRoot
 {
 
   /** m_ballData.m_position (Vector3) [READWRITE, PERSIST, NOTIFY] */

@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/IUnloadable.h:7-11
 //
 // An object that can give up its heavy state while something still holds it,
@@ -7,7 +8,7 @@
 import { CjsSchema, blue } from "#schema";
 
 /** `IUnloadable` - releases and restores an object's state in place. */
-export class IUnloadable
+export class IUnloadable extends IRoot
 {
   /**
    * `UnloadWhenUnreferenced` - release state; the object stays held.

@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
 @be.define("EveSOFDataTexture")
 @blue.inherit(IRoot)
 
-export class EveSOFDataTexture
+export class EveSOFDataTexture extends IRoot
 {
 
   /** m_resFilePath (std::string) [READWRITE, PERSIST] */

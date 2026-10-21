@@ -1,3 +1,4 @@
+import { IRoot } from "./IRoot.js";
 // Source: blue/include/ITriFunction.h:30-34
 import { CjsSchema, meta, blue } from "#schema";
 
@@ -7,7 +8,7 @@ import { CjsSchema, meta, blue } from "#schema";
  * derives this interface from IRoot; JavaScript follows Blue's plain registered
  * interface convention without supplying a new root implementation.
  */
-export class ITriFunction
+export class ITriFunction extends IRoot
 {
   /**
    * Updates the current value at the supplied time.
