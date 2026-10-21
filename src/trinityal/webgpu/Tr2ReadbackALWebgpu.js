@@ -5,7 +5,10 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "../ALResult.js";
 
-/** A texture snapshot whose readiness follows WebGPU staging-buffer completion. */
+/** A texture snapshot whose readiness follows WebGPU staging-buffer completion.
+ *
+ * Carbon: Tr2ReadbackAL (trinity/trinityal/metal/Tr2TextureALMetal.h:14)
+ */
 export class Tr2ReadbackALWebgpu extends Tr2DeviceResourceAL
 {
   _buffer = null;
@@ -91,7 +94,6 @@ CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "GetMemoryClass", blue.method);
 CjsSchema.blue.define(Tr2ReadbackALWebgpu, {
   className: "Tr2ReadbackALWebgpu",
-  donors: [ "Tr2ReadbackAL" ],
   methods: { IsReady: [meta.adapted], IsValid: [meta.implemented], Map: [meta.adapted],
     Destroy: [meta.adapted], Describe: [meta.implemented], GetMemoryClass: [meta.implemented] }
 });

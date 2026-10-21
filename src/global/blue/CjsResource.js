@@ -35,6 +35,8 @@ import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
  * Resources are not model graph objects: BLACK/RED graphs persist resource
  * paths (including empty paths), while CjsBlueResMan constructs, initializes,
  * caches, and hydrates the corresponding runtime resource instances.
+ *
+ * Modelled on: BlueAsyncRes (blue/include/BlueAsyncRes.h:30)
  */
 export class CjsResource
 {
@@ -1129,7 +1131,6 @@ meta.events(CjsResource);
 // Field order is key order, and GetValues() exports in that order.
 CjsSchema.meta.define(CjsResource, {
   className: "CjsResource",
-  donors: [ "BlueAsyncRes" ],
   fields: {
     path: type.path,
     ext: type.string,

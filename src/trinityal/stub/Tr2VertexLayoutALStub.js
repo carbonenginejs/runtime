@@ -26,6 +26,8 @@ import { ALResult } from "../ALResult.js";
 
 /**
  * An accepted vertex definition.
+ *
+ * Carbon: Tr2VertexLayoutAL (trinity/trinityal/stub/Tr2VertexLayoutALStub.h:13)
  */
 export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
 {
@@ -113,4 +115,4 @@ CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2VertexLayoutALStub, { className: "Tr2VertexLayoutALStub", donors: [ "Tr2VertexLayoutAL" ] });
+CjsSchema.blue.define(Tr2VertexLayoutALStub, { className: "Tr2VertexLayoutALStub" });

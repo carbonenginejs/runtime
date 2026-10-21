@@ -56,14 +56,14 @@ test("backend donor audit exempts names but never treats a missing donor as decl
 {
     const missing=inspect(`import {meta} from '#schema'; @meta.define('CjsGpu') class CjsGpu {}`,'src/trinityal/webgpu/CjsGpu.js');
     assert.ok(missing.some(f=>f.rule==='backend-donor'));
-    const present=inspect(`import {blue,meta} from '#schema'; @meta.implemented @blue.define({className:'CjsGpu',donors:['Native']}) class CjsGpu {}`,'src/trinityal/webgpu/CjsGpu.js');
+    const present=inspect(`import {blue,meta} from '#schema'; /** Carbon: Native (native/Native.h:1) */ @meta.implemented @blue.define({className:'CjsGpu'}) class CjsGpu {}`,'src/trinityal/webgpu/CjsGpu.js');
     assert.ok(!present.some(f=>['backend-donor','cjs-donor'].includes(f.rule)));
 });
 
 test("literal imperative registrations carry method states and native identity",()=>
 {
-    const findings=inspect(`import {CjsSchema,meta,blue} from '#schema'; class Example {Call(){}}
-        CjsSchema.blue.define(Example,{className:'Example',donors:['Native'],methods:{Call:[meta.implemented]}});`);
+    const findings=inspect(`import {CjsSchema,meta,blue} from '#schema'; /** Carbon: Native (native/Native.h:1) */ class Example {Call(){}}
+        CjsSchema.blue.define(Example,{className:'Example',methods:{Call:[meta.implemented]}});`);
     assert.ok(!findings.some(f=>f.member==='Call'&&['required-state','carbon-origin-name'].includes(f.rule)));
 });
 
@@ -132,25 +132,24 @@ test("direct static and prototype metadata retain state and factory rename argum
         && ['required-state', 'carbon-origin-name'].includes(f.rule)));
 });
 
-test("donor annotations replace serialized-name inference in either class decorator order", () =>
+test("class donor comments preserve native audit independent of registration syntax", () =>
 {
-    const base = inspect(`import {blue,meta} from '#schema';
-        @blue.define({className:'CjsAlias',donors:['Native']}) class CjsAlias { Call(){} }`);
     const relevant = findings => findings.filter(f => ['cjs-donor','carbon-origin-name'].includes(f.rule))
         .map(findingFingerprint).sort();
+    const expected = inspect(`import {blue,meta} from '#schema';
+        /** Carbon: Native (native/Native.h:1) */
+        @blue.define('CjsAlias') class CjsAlias { Call(){} }`);
     for (const definition of ["blue.define('CjsAlias')", "target.define('CjsAlias')"])
     {
-        for (const donorFirst of [true, false])
-        {
-            const declarations = [`@${definition}`, "@meta.carbon('Native')"];
-            if (donorFirst) declarations.reverse();
-            const findings = inspect(`import {blue,meta} from '#schema'; import {exposure as target} from '#be';
-                ${declarations.join('\n')} class CjsAlias { Call(){} }`);
-            assert.deepEqual(relevant(findings), relevant(base));
-        }
+        const findings = inspect(`import {blue,meta} from '#schema'; import {exposure as target} from '#be';
+            /** Carbon: Native (native/Native.h:1) */
+            @${definition} export class CjsAlias { Call(){} }`);
+        assert.deepEqual(relevant(findings), relevant(expected));
     }
-    const imperative = inspect(`import {CjsSchema} from '#schema'; class CjsAlias { Call(){} }
-        CjsSchema.blue.define(CjsAlias,{className:'CjsAlias'});
-        CjsSchema.meta.carbon('Native')(CjsAlias);`);
-    assert.deepEqual(relevant(imperative), relevant(base));
+    const imperative = inspect(`import {CjsSchema} from '#schema';
+        /** Carbon: Native (native/Native.h:1) */ class CjsAlias { Call(){} }
+        CjsSchema.blue.define(CjsAlias,{className:'CjsAlias'});`);
+    assert.deepEqual(relevant(imperative), relevant(expected));
+    assert.ok(expected.some(f => f.rule === 'cjs-donor'));
+    assert.ok(!expected.some(f => f.rule === 'carbon-origin-name'));
 });

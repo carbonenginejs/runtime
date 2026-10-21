@@ -318,6 +318,23 @@ test("AL parity CLI recognizes type.define, meta.define and types.define donor d
   assert.equal(reports[0], reports[2]);
 });
 
+test("AL parity CLI reads Carbon and Modelled on class comments", () =>
+{
+  const replica = runScanner("scripts/lint-al-parity.js",
+    alFixture("/** Carbon: NativeProbe (NativeProbe.h:1-5) */"));
+  expectStatus(replica, 0);
+  assert.match(replica.stdout, /AL parity OK: 1 classes compared, 0 known gap/);
+  const modelled = runScanner("scripts/lint-al-parity.js",
+    alFixture("/** Modelled on: NativeProbe (NativeProbe.h:1-5) */"));
+  expectStatus(modelled, 0);
+  assert.match(modelled.stdout, /RenamedProbe is modelled on NativeProbe/);
+  assert.match(modelled.stdout, /AL parity OK: 0 classes compared/);
+  const unrelated = runScanner("scripts/lint-al-parity.js",
+    alFixture('/** Carbon: NativeProbe (NativeProbe.h:1-5) */ function Unrelated() {}'));
+  expectStatus(unrelated, 1);
+  assert.match(unrelated.stderr, /RenamedProbe matches no class/);
+});
+
 test("AL parity CLI does not assign donors from unrelated or computed define declarations", () =>
 {
   for (const decorator of [ "other.define", "meta['define']" ])

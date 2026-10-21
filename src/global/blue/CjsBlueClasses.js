@@ -55,7 +55,10 @@ const EDIT_FLAGS = 0x100;
 const EDIT_ENUM = 0x200;
 
 
-/** `CjsBlueClasses` - the class registry `be.classes` holds, per blueexposure/BlueClasses.cpp. */
+/** `CjsBlueClasses` - the class registry `be.classes` holds, per blueexposure/BlueClasses.cpp.
+ *
+ * Carbon: BlueClasses (blueexposure/BlueClasses.h:23)
+ */
 export class CjsBlueClasses extends IBlueClasses
 {
 
@@ -657,4 +660,3 @@ CjsSchema.blue.define(CjsBlueClasses, {
     GetPersistedClassesReport: [ blue.method, meta.adapted ]
   }
 });
-CjsSchema.meta.carbon("BlueClasses")(CjsBlueClasses);

@@ -10,6 +10,8 @@ const { Types } = CjsConstantLayout;
 /**
  * EveLensflare.cpp:41-45 - same bytes bound to VS and PS. `indices[2..3]` are
  * never written in Carbon and are left as allocator garbage.
+ *
+ * Modelled on: EveLensflarePerObjectData::Data (trinity/trinity/Eve/EveLensflare.cpp:41)
  */
 export class CjsEveLensflareLayout
 {
@@ -24,4 +26,4 @@ export class CjsEveLensflareLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveLensflareLayout, {"className": "CjsEveLensflareLayout", "donors": ["EveLensflarePerObjectData::Data"]});
+CjsSchema.meta.define(CjsEveLensflareLayout, {"className": "CjsEveLensflareLayout"});

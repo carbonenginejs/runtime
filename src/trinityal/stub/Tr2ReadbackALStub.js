@@ -5,7 +5,10 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "../ALResult.js";
 
-/** Carbon's immediately ready, independently copied CPU texture snapshot. */
+/** Carbon's immediately ready, independently copied CPU texture snapshot.
+ *
+ * Carbon: Tr2ReadbackAL (trinity/trinityal/stub/Tr2TextureALStub.h:14)
+ */
 export class Tr2ReadbackALStub extends Tr2DeviceResourceAL
 {
   _data = null;
@@ -66,7 +69,6 @@ CjsSchema.decorateMethod(Tr2ReadbackALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsValid", blue.method);
 CjsSchema.blue.define(Tr2ReadbackALStub, {
   className: "Tr2ReadbackALStub",
-  donors: [ "Tr2ReadbackAL" ],
   methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted],
     Destroy: [meta.adapted], Describe: [meta.implemented], GetMemoryClass: [meta.implemented] }
 });

@@ -68,6 +68,8 @@ export class CjsCarbonEffectBodyReader extends CjsByteReader
  * question. Versions below 8 are still rejected outright — those branches
  * have no examined file and no writer to check against, and applying newer
  * rules to an older layout misaligns fields silently.
+ *
+ * Modelled on: Tr2EffectRes (trinity/trinity/Resources/Tr2EffectRes.h:27)
  */
 export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
 {
@@ -494,4 +496,4 @@ export default CjsCarbonEffectReader;
 
 CjsSchema.meta.define("CjsCarbonEffectBodyReader")(CjsCarbonEffectBodyReader);
 
-CjsSchema.meta.define(CjsCarbonEffectReader, { className: "CjsCarbonEffectReader", donors: [ "Tr2EffectRes" ] });
+CjsSchema.meta.define(CjsCarbonEffectReader, { className: "CjsCarbonEffectReader" });

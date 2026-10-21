@@ -77,6 +77,8 @@ export function AttributeFormat(gl, element)
 
 /**
  * A vertex layout on a WebGL2 device.
+ *
+ * Carbon: Tr2VertexLayoutAL (trinity/trinityal/dx11/Tr2VertexLayoutALDx11.h:24)
  */
 export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -259,4 +261,4 @@ CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2VertexLayoutALWebgl2, { className: "Tr2VertexLayoutALWebgl2", donors: [ "Tr2VertexLayoutAL" ] });
+CjsSchema.blue.define(Tr2VertexLayoutALWebgl2, { className: "Tr2VertexLayoutALWebgl2" });

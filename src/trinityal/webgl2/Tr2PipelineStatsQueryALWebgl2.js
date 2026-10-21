@@ -18,6 +18,8 @@ import { Tr2PipelineStatsDataALWebgl2 } from "./Tr2PipelineStatsDataALWebgl2.js"
 
 /**
  * A pipeline statistics query on a WebGL2 device, which cannot be created.
+ *
+ * Carbon: Tr2PipelineStatsQueryAL (trinity/trinityal/dx11/Tr2PipelineStatsQueryALDx11.h:18)
  */
 export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -181,4 +183,4 @@ CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValue", blue.method)
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2PipelineStatsQueryALWebgl2, { className: "Tr2PipelineStatsQueryALWebgl2", donors: [ "Tr2PipelineStatsQueryAL" ] });
+CjsSchema.blue.define(Tr2PipelineStatsQueryALWebgl2, { className: "Tr2PipelineStatsQueryALWebgl2" });

@@ -48,7 +48,7 @@ else
             if (type.kind !== "struct") continue;
             for (const declaration of classes.get(type.qualifiedName) ?? [])
             {
-                // Declaration aliases (`carbon:`/`modelledOn:`) name a donor but
+                // Native identities and class `Carbon:` comments name a donor but
                 // carry no AST node; there are no field initializers to compare.
                 if (!declaration.node) continue;
                 structs++;

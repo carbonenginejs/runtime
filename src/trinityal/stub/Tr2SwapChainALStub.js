@@ -28,6 +28,8 @@ const STUB_BACK_BUFFER_SIZE = 4;
 
 /**
  * A swap chain whose presents complete immediately.
+ *
+ * Carbon: Tr2SwapChainAL (trinity/trinityal/stub/Tr2SwapChainALStub.h:14)
  */
 export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
 {
@@ -163,4 +165,4 @@ CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetWidth", blue.method);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetHeight", blue.method);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub", donors: [ "Tr2SwapChainAL" ] });
+CjsSchema.blue.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub" });

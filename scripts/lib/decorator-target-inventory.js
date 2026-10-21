@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { parse } from "@babel/parser";
+import { classDonorComments } from "./carbon-donor-comments.js";
 const slash = s => s.replaceAll("\\", "/");
 const hash = s => crypto.createHash("sha256").update(s).digest("hex");
 function files(dir, extensions, excluded = new Set([".git", "node_modules", "npm", "dist"])) {
@@ -78,12 +79,13 @@ for (const file of files(path.join(root,"src"), [".js"])) {
         decorators.push({source, dropped, ...d});
         return d;
     };
+    const donorComments = new Map(classDonorComments(ast).map(c => [c.start, c.entries]));
     const local = new Map(), classNodes = [];
     walk(ast.program,n => {if(["ClassDeclaration","ClassExpression"].includes(n.type) && n.id) classNodes.push(n);});
     for(const n of classNodes) {
         const c = {source, dropped, name:n.id.name, line:n.loc.start.line,
             extends:src(n.superClass), decorators:(n.decorators??[]).map(d=>deco(d)), definitions:[],
-            members:[], imports, sourceHash:hash(raw)};
+            donorComments: donorComments.get(n.start) ?? [], members:[], imports, sourceHash:hash(raw)};
         for(const m of n.body.body) {
             if(!m.key) continue;
             c.members.push({name:key(m.key), static:!!m.static, kind:m.kind??m.type,

@@ -90,7 +90,7 @@ test("Blue and schema share registration and resolve qualified fields after regi
 {
     assert.equal(EnumRegistrationType.ENUM_REG_VALUES_ON_MODULE, 1);
     assert.equal(EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE, 2);
-    assert.equal(CjsSchema.getSchema(CjsBlueEnumRegistry).modelledOn, "BlueRegistration");
+    assert.equal(Object.hasOwn(CjsSchema.getSchema(CjsBlueEnumRegistry), "modelledOn"), false);
     for (const name of ["RegisterEnum", "HasEnum", "GetEnum", "GetEnumInfo", "GetEnumName", "GetNameFromValue", "GetNameFromBitmask"])
     {
         assert.ok(CjsSchema.getMethod(CjsBlueEnumRegistry, name).impl);

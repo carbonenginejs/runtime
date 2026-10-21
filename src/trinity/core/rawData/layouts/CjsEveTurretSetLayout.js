@@ -10,6 +10,9 @@ const { Identity: IDENTITY, Types, Zero4: ZERO4 } = CjsConstantLayout;
 /**
  * EveTurretSet.h:47 (vs) / :63 (ps). The turret translation and rotation rings
  * are filled for VISIBLE turrets only; the remainder stays allocator garbage.
+ *
+ * Modelled on: EveTurretSetVSData (trinity/trinity/Eve/Turret/EveTurretSet.h:46)
+ * Modelled on: EveTurretSetPSData (trinity/trinity/Eve/Turret/EveTurretSet.h:62)
  */
 export class CjsEveTurretSetLayout
 {
@@ -43,4 +46,4 @@ export class CjsEveTurretSetLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveTurretSetLayout, {"className": "CjsEveTurretSetLayout", "donors": ["EveTurretSetVSData", "EveTurretSetPSData"]});
+CjsSchema.meta.define(CjsEveTurretSetLayout, {"className": "CjsEveTurretSetLayout"});

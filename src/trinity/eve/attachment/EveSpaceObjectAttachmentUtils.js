@@ -7,8 +7,11 @@ import { meta } from "#schema";
 import { blue } from "#blue";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
-/** Static attachment helpers matching Carbon's namespace. */
-@meta.define({ className: "EveSpaceObjectAttachmentUtils", donors: ["EveSpaceObjectAttachmentUtils"] })
+/** Static attachment helpers matching Carbon's namespace.
+ *
+ * Modelled on: EveSpaceObjectAttachmentUtils (trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpaceObjectAttachmentUtils.h:5)
+ */
+@meta.define({ className: "EveSpaceObjectAttachmentUtils" })
 export class EveSpaceObjectAttachmentUtils
 {
   /** Carbon FadeType (EveSpaceObjectAttachmentUtils.h:7-14). */

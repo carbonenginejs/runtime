@@ -69,6 +69,9 @@ function enumValue(names, value, label)
 
 /**
  * Growable little-endian struct buffer with tagged span support.
+ *
+ * Modelled on: FlattenedBuffer (mesh/include/cmf/writer.h:61)
+ * Modelled on: FlattenVisitor (mesh/include/cmf/writer.h:67)
  */
 class Flattener
 {
@@ -737,4 +740,4 @@ export async function writeCmfAsync(graph, options = {})
     return writeCmf(graph, { ...options, compress: options.compress !== false });
 }
 
-CjsSchema.meta.define(Flattener, { className: "Flattener", donors: [ "FlattenedBuffer", "FlattenVisitor" ] });
+CjsSchema.meta.define(Flattener, { className: "Flattener" });

@@ -101,6 +101,8 @@ function cpuReadUsage(cpuUsage, usage)
  * It deliberately does NOT extend `Tr2BaseDeviceResourceAL`: that base lives in
  * Trinity and registers into a Trinity-side resource list, and the engine does
  * not import Trinity classes for identity. It implements the same surface.
+ *
+ * Carbon: Tr2BufferAL (trinity/trinityal/include/Tr2BufferAL.h:42)
  */
 export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
 {
@@ -579,4 +581,4 @@ CjsSchema.decorateMethod(CjsWebgpuBufferAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuBufferAL, "SetName", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetSrvIndexInHeap", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetUavIndexInHeap", blue.method);
-CjsSchema.blue.define(CjsWebgpuBufferAL, { className: "CjsWebgpuBufferAL", donors: [ "Tr2BufferAL" ] });
+CjsSchema.blue.define(CjsWebgpuBufferAL, { className: "CjsWebgpuBufferAL" });

@@ -147,7 +147,10 @@ const SRGB_VIEW_FORMATS = new Map([
   [ "bc7-rgba-unorm", "bc7-rgba-unorm-srgb" ]
 ]);
 
-/** The WebGPU backend's counterpart of Metal's `MetalUtils`. */
+/** The WebGPU backend's counterpart of Metal's `MetalUtils`.
+ *
+ * Modelled on: MetalUtils (trinity/trinityal/metal/MetalUtils.h:33)
+ */
 export class CjsWebgpuUtils
 {
 
@@ -231,4 +234,4 @@ export class CjsWebgpuUtils
 // straight from source by its tests.
 CjsSchema.decorateMethod(CjsWebgpuUtils, "SetupPixelFormatConversionTable", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuUtils, "GetGPUTextureFormat", blue.method, meta.renamed("GetMTLPixelFormat"));
-CjsSchema.meta.define(CjsWebgpuUtils, { className: "CjsWebgpuUtils", donors: [ "MetalUtils" ] });
+CjsSchema.meta.define(CjsWebgpuUtils, { className: "CjsWebgpuUtils" });

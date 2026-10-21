@@ -10,6 +10,8 @@ const { Types } = CjsConstantLayout;
 /**
  * EveStretch2.cpp:327-337 - Carbon uploads the contiguous member run
  * m_source..m_effectData[2] (EveStretch2.h:105-109) as four vec4s to VS and PS.
+ *
+ * Modelled on: EveStretch2 (trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h:25)
  */
 export class CjsEveStretch2Layout
 {
@@ -25,4 +27,4 @@ export class CjsEveStretch2Layout
   });
 }
 
-CjsSchema.meta.define(CjsEveStretch2Layout, {"className": "CjsEveStretch2Layout", "donors": ["EveStretch2"]});
+CjsSchema.meta.define(CjsEveStretch2Layout, {"className": "CjsEveStretch2Layout"});

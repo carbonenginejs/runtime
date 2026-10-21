@@ -64,6 +64,8 @@ function SlotFor(description, kind, binding)
 /**
  * A `Tr2ResourceSetAL` holding the resolved bindings a draw's bind groups are
  * assembled from.
+ *
+ * Carbon: Tr2ResourceSetAL (trinity/trinityal/include/Tr2ResourceSetAL.h:129)
  */
 export class CjsWebgpuResourceSetAL
 {
@@ -312,4 +314,4 @@ CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Destroy", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "SetName", blue.method);
-CjsSchema.blue.define(CjsWebgpuResourceSetAL, { className: "CjsWebgpuResourceSetAL", donors: [ "Tr2ResourceSetAL" ] });
+CjsSchema.blue.define(CjsWebgpuResourceSetAL, { className: "CjsWebgpuResourceSetAL" });

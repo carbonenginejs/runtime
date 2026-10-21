@@ -1085,9 +1085,8 @@ export class CjsSchema
      * The Carbon-stamped decorators (ruling 2026-10-15): each is the `meta`
      * decorator of the same name, and also records that the member, method or
      * class is Carbon's. `interface`, `inherit` and `chainTo` exist only here.
-     * `define` takes a class name, a definition object (`donors` names the
-     * Carbon class a renamed port replicates) or, for a class without
-     * decorators, the constructor and its definition.
+     * `define` takes a class name, a definition object or, for a class without
+     * decorators, the constructor and its definition. Extra donors live in class JSDoc.
      */
     static blue = {
         ...Object.fromEntries(FLAG_NAMES.map(name =>
@@ -1705,11 +1704,8 @@ function fieldDecorator(namespace, value)
 /**
  * meta.define / blue.define: a decorator for a class name or definition, or -
  * given a constructor - the explicit registration for a class without
- * decorators. `blue` stamps the class as Carbon's; `donors` lists the Carbon
- * classes it draws on: for `blue`, the one Carbon class a renamed port
- * replicates; for `meta`, the classes ours is built from. A `meta` class that
- * replicates one Carbon type Carbon does not expose (a nested struct) names it
- * with `carbon:` instead, which records the provenance and stamps nothing.
+ * decorators. `blue` stamps the class as Carbon's. Unexposed Carbon identity
+ * remains in `carbon`; extra and modelled-on donors live in class JSDoc.
  *
  * @param {Function|string|object} definitionOrConstructor Constructor, class name or definition.
  * @param {string|object} [definition] The definition, with a constructor.
@@ -1721,32 +1717,16 @@ function defineEntry(definitionOrConstructor, definition, carbon)
     if (typeof definitionOrConstructor === "function")
     {
         const Constructor = definitionOrConstructor;
-        defineClassMetadata(Constructor, normalizeClassDefinition(Constructor, withDonors(definition, carbon)));
+        defineClassMetadata(Constructor, normalizeClassDefinition(Constructor, withCarbonStamp(definition, carbon)));
         return CjsSchema;
     }
-    return classDefinitionDecorator(withDonors(definitionOrConstructor, carbon));
+    return classDefinitionDecorator(withCarbonStamp(definitionOrConstructor, carbon));
 }
 
-/**
- * Folds `donors` and the Carbon stamp into the stored definition keys.
- *
- * @param {string|object} definition Class name or definition.
- * @param {boolean} carbon Whether the class is Carbon's.
- * @returns {object} The definition with `blue`, `donors` and `carbon`/`modelledOn` set.
- */
-function withDonors(definition, carbon)
+/** Adds the legacy Carbon stamp without storing tooling-only donor comments. */
+function withCarbonStamp(definition, carbon)
 {
     const result = typeof definition === "string" ? { className: definition } : { ...(definition || {}) };
-    if (result.donors !== undefined)
-    {
-        const donors = (Array.isArray(result.donors) ? result.donors : [ result.donors ])
-            .map(name => typeof name === "string" ? name.trim() : "");
-        if (!donors.length || donors.some(name => !name)) throw new TypeError("define donors must be non-empty Carbon class names.");
-        if (carbon && donors.length !== 1) throw new TypeError("blue.define donors names the one Carbon class a renamed port replicates.");
-        result.donors = donors;
-        if (carbon) result.carbon ??= donors[0];
-        else result.modelledOn ??= donors[0];
-    }
     if (carbon) result.blue = true;
     return result;
 }
@@ -2292,8 +2272,6 @@ function defineClassMetadata(Constructor, definition)
     if (definition.carbon) schema.carbon = definition.carbon;
     if (definition.blue) schema.blue = true;
     if (definition.interface) schema.interface = true;
-    if (definition.donors) schema.donors = [ ...definition.donors ];
-    if (definition.modelledOn) schema.modelledOn = definition.modelledOn;
     if (definition.aliases) schema.aliases = [...definition.aliases];
     if (Object.hasOwn(definition, "abstract")) schema.abstract = definition.abstract;
     if (definition.unused) installUnusedMethods(Constructor, definition, schema);
@@ -2819,19 +2797,9 @@ function buildClassInfo(Constructor, namespaces)
         result.carbon = schema.carbon;
     }
 
-    if (schema?.modelledOn)
-    {
-        result.modelledOn = schema.modelledOn;
-    }
-
     if (schema?.blue)
     {
         result.blue = true;
-    }
-
-    if (schema?.donors?.length)
-    {
-        result.donors = [ ...schema.donors ];
     }
 
     if (schema?.aliases?.length)
@@ -2957,7 +2925,6 @@ function getOrCreateClassSchema(Constructor)
             purpose: null,
             sourceClass: null,
             carbon: null,
-            modelledOn: null,
             aliases: null,
             unused: null,
             fields: [],
@@ -3137,46 +3104,17 @@ function normalizeClassDefinition(Constructor, definition)
             throw new TypeError("CjsSchema.define purpose cannot close a JSDoc comment.");
         }
     }
-    // REPLICATES AND MODELLED ON ARE DIFFERENT CLAIMS, and only the first can
-    // be checked. `carbon` names a class this one REPLICATES: same contract,
-    // method for method, so a parity check may hold us to its whole surface.
-    // `modelledOn` names a class this one TOOK ITS SHAPE FROM and does not
-    // replicate - `CjsWebgpuWorkQueue` is modelled on `MetalWorkQueue`, whose
-    // 113 methods are the entire command recorder against our 27, because the
-    // rest of that surface lives on the pipeline, the resource set and the
-    // render context here. Declaring the second as the first would report 101
-    // absences as debt; declaring nothing leaves the class unchecked and its
-    // provenance unrecorded.
-    //
-    // NEITHER IS `sourceClass`, which is SERIALIZATION identity - the name a
-    // document calls this class on the wire, where it differs from className.
-    // A donor is not a wire name: writing `MetalWorkQueue` there would tell
-    // dehydration the class serializes under that name.
-    for (const [ key, what ] of [ [ "carbon", "replicates" ], [ "modelledOn", "is modelled on" ] ])
+    // Native identity is runtime metadata; donors are checked from class JSDoc.
+    if (Object.hasOwn(result, "donors") || Object.hasOwn(result, "modelledOn"))
+        throw new TypeError("Class donors and modelledOn are retired; use Carbon: or Modelled on: class JSDoc lines.");
+    if (result.carbon !== undefined && result.carbon !== null)
     {
-        if (result[key] === undefined || result[key] === null) continue;
-
-        if (key === "carbon" && Array.isArray(result[key]))
+        if (Array.isArray(result.carbon))
         {
-            if (!result[key].length) throw new TypeError("Carbon identities cannot be empty.");
-            result[key] = result[key].map(exposureName);
-            continue;
+            if (!result.carbon.length) throw new TypeError("Carbon identities cannot be empty.");
+            result.carbon = result.carbon.map(exposureName);
         }
-        if (typeof result[key] !== "string" || !result[key].trim())
-        {
-            throw new TypeError(`CjsSchema.define ${key} must be a non-empty Carbon class name when provided.`);
-        }
-
-        result[key] = result[key].trim();
-        void what;
-    }
-
-    if (result.carbon && result.modelledOn)
-    {
-        throw new TypeError(
-            "CjsSchema.define takes carbon or modelledOn, not both: a class either replicates its "
-            + "donor's contract or is modelled on it, and the two are different claims."
-        );
+        else result.carbon = exposureName(result.carbon);
     }
 
     if (!result.sourceClass && result.className) result.sourceClass = result.className;
@@ -3764,7 +3702,6 @@ function describeValuesInput(value)
 // import schema: both Blue and schema need its storage during module loading.
 CjsSchema.meta.define(CjsBlueEnumRegistry, {
     className: "CjsBlueEnumRegistry",
-    donors: [ "BlueRegistration", "EnumRegistration", "EnumTypeRegistration", "PyBlueEnumObject" ],
     fields: {},
     methods: Object.fromEntries([
         "Create", "Register", "Get", "Set", "GetValueName", "GetValueNameAsBitMask", "_Register",
@@ -3832,54 +3769,12 @@ function exposureClassDecorator(name, identityOnly)
     };
 }
 
-/**
- * Names native donors without replacing an explicit class identity. A standalone
- * declaration still registers its first donor name. Stage-3 class initializers
- * run after all class decorators, so either order with be.define registers once.
- */
+/** Registers an unexposed native class identity; extra donors belong in class JSDoc. */
 function carbonClassDecorator(names)
 {
-    const donors = (Array.isArray(names) ? names : [ names ]).map(exposureName);
-    if (!donors.length) throw new TypeError("meta.carbon requires at least one native name.");
-    const carbon = Array.isArray(names) ? donors : donors[0];
-    const define = classDefinitionDecorator({ className: donors[0], carbon });
-
-    /** Updates provenance only, including previously cached schema exports. */
-    function annotate(Constructor)
-    {
-        const schema = getOrCreateClassSchema(Constructor);
-        schema.carbon = carbon;
-        schema.donors = [ ...donors ];
-        SCHEMA_GENERATION += 1;
-    }
-
-    return function (Constructor, context)
-    {
-        if (typeof Constructor !== "function" || context && context.kind !== "class")
-            throw new TypeError("meta.carbon requires a class constructor.");
-
-        if (isRegisteredClass(Constructor))
-        {
-            annotate(Constructor);
-            return;
-        }
-
-        if (context)
-        {
-            // Publish the origin before another class decorator seals its rows;
-            // defer the fallback identity until an explicit definition can run.
-            getOrCreateClassSchema(Constructor).carbon = carbon;
-            SCHEMA_GENERATION += 1;
-            context.addInitializer(function ()
-            {
-                if (isRegisteredClass(this)) annotate(this);
-                else define(this, context);
-            });
-            return;
-        }
-
-        define(Constructor);
-    };
+    const identities = (Array.isArray(names) ? names : [ names ]).map(exposureName);
+    if (!identities.length) throw new TypeError("meta.carbon requires at least one native name.");
+    return classDefinitionDecorator({ className: identities[0], carbon: Array.isArray(names) ? identities : identities[0] });
 }
 
 /** Converts explicit native bits to the legacy flags without inferring ENUM/FLAGS from a type. */

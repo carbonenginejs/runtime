@@ -18,6 +18,8 @@ import { CjsDdsFormat } from "../resource/formats/dds/CjsDdsFormat.js";
 
 /**
  * Carbon's BC1-BC3 CPU decompressor (`trinity/trinityal/BcDecompress.cpp`).
+ *
+ * Modelled on: BcDecompress (trinity/trinityal/BcDecompress.h:10)
  */
 export class BcDecompress
 {
@@ -46,4 +48,4 @@ export class BcDecompress
 
 // Carbon's BcDecompress is a free function, not a class, so there is no class
 // surface to compare: the class is modelled on it and carries it as a static.
-CjsSchema.meta.define(BcDecompress, { className: "BcDecompress", donors: [ "BcDecompress" ] });
+CjsSchema.meta.define(BcDecompress, { className: "BcDecompress" });

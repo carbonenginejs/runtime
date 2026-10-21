@@ -17,10 +17,10 @@ test("ICustomPersist registers one identity with exactly its four native abstrac
   assert.equal(CjsSchema.getConstructor("ICustomPersist"), ICustomPersist);
   assert.equal(blue.classes.GetClassRegistration("ICustomPersist").type, ICustomPersist);
   assert.deepEqual(Object.getOwnPropertyNames(ICustomPersist.prototype), [ "constructor", ...methods ]);
-  assert.equal(Object.getPrototypeOf(ICustomPersist.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(ICustomPersist.prototype), ExposureRoot.prototype);
   assert.deepEqual(CjsSchema.getSchema(ICustomPersist).members, []);
   assert.deepEqual(CjsSchema.getSchema(ICustomPersist).properties, []);
-  assert.deepEqual(Array.from(mappedInterfaces(ICustomPersist)), []);
+  assert.deepEqual(Array.from(mappedInterfaces(ICustomPersist)), [ExposureRoot]);
   for (const method of methods)
   {
     assert.equal(CjsSchema.getMethod(ICustomPersist, method).impl.status, "abstract");

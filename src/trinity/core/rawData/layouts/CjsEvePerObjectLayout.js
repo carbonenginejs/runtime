@@ -11,6 +11,9 @@ const { Identity: IDENTITY, Types } = CjsConstantLayout;
  * EveConstantBufferFormats.h:16/:11 - the generic Tr2PerObjectDataStandard
  * pair, consumed by EveLineSet / EveCurveLineSet / EveEllipseSet. Each half is
  * one WorldMat, uploaded as two separate buffers.
+ *
+ * Modelled on: EvePerObjectVSData (trinity/trinity/Eve/EveConstantBufferFormats.h:16)
+ * Modelled on: EvePerObjectPSData (trinity/trinity/Eve/EveConstantBufferFormats.h:11)
  */
 export class CjsEvePerObjectLayout
 {
@@ -26,4 +29,4 @@ export class CjsEvePerObjectLayout
   });
 }
 
-CjsSchema.meta.define(CjsEvePerObjectLayout, {"className": "CjsEvePerObjectLayout", "donors": ["EvePerObjectVSData", "EvePerObjectPSData"]});
+CjsSchema.meta.define(CjsEvePerObjectLayout, {"className": "CjsEvePerObjectLayout"});

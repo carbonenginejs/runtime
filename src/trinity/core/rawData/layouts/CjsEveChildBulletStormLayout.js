@@ -11,6 +11,8 @@ const { Identity: IDENTITY, Types } = CjsConstantLayout;
  * EveChildBulletStorm.h:20 - VS only. `targetPositionsWS` slots past the filled
  * target count stay allocator garbage (cpp:403-407); the bound is a bare
  * literal `[10]` in Carbon, not a named constant.
+ *
+ * Modelled on: EveChildBulletStormPerObjectData (trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.h:20)
  */
 export class CjsEveChildBulletStormLayout
 {
@@ -26,4 +28,4 @@ export class CjsEveChildBulletStormLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveChildBulletStormLayout, {"className": "CjsEveChildBulletStormLayout", "donors": ["EveChildBulletStormPerObjectData"]});
+CjsSchema.meta.define(CjsEveChildBulletStormLayout, {"className": "CjsEveChildBulletStormLayout"});

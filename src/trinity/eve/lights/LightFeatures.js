@@ -5,8 +5,10 @@ import { type, blue } from "#schema";
 /**
  * Carbon LightFeatures: what a light's owner contributes to its conversion -
  * the light profile's index, and the parent's scale and brightness.
+ *
+ * Carbon: LightFeatures (trinity/trinity/Lights/Tr2Light.h:11)
  */
-@blue.define({ className: "LightFeatures", donors: [ "LightFeatures" ] })
+@blue.define({ className: "LightFeatures" })
 export class LightFeatures
 {
 

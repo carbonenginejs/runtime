@@ -83,6 +83,8 @@ function hashBytes(bytes)
  *   (`StringTable.cpp:59-62`), which reassigns *every* offset — including
  *   offsets already baked into packed bodies. Carbon avoids the corruption by
  *   interning all late strings before the packing pass; we fail closed instead.
+ *
+ * Carbon: StringTable (trinity/shadercompiler/StringTable.h:28)
  */
 export class CjsStringTable
 {
@@ -305,4 +307,4 @@ export class CjsStringTable
 
 export default CjsStringTable;
 
-CjsSchema.blue.define(CjsStringTable, { className: "CjsStringTable", donors: [ "StringTable" ] });
+CjsSchema.blue.define(CjsStringTable, { className: "CjsStringTable" });

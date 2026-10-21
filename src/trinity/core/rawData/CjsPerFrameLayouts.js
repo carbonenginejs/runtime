@@ -285,6 +285,14 @@ const GROUPS = Object.freeze({
  * Deliberately a sibling of CjsPerObjectLayouts rather than more entries in
  * it: the two tiers have different lifetimes, different owners (scene vs
  * renderable), and an engine binds them to different slots.
+ *
+ * Modelled on: Tr2PerFrameVSData (trinity/trinity/Tr2ConstantBufferFormats.h:53)
+ * Modelled on: Tr2PerFramePSData (trinity/trinity/Tr2ConstantBufferFormats.h:73)
+ * Modelled on: Tr2PerFrameVSDataDebug (trinity/trinity/Tr2ConstantBufferFormats.h:66)
+ * Modelled on: Tr2PerFrameShadowPSData (trinity/trinity/Tr2ConstantBufferFormats.h:10)
+ * Modelled on: EveSpaceScene::PerFrameVSData (trinity/trinity/Eve/EveSpaceScene.h:300)
+ * Modelled on: EveSpaceScene::PerFramePSData (trinity/trinity/Eve/EveSpaceScene.h:240)
+ * Modelled on: EveSpaceScene::SunData (trinity/trinity/Eve/EveSpaceScene.h:218)
  */
 export class CjsPerFrameLayouts
 {
@@ -355,4 +363,4 @@ export class CjsPerFrameLayouts
 
 }
 
-CjsSchema.meta.define(CjsPerFrameLayouts, {"className": "CjsPerFrameLayouts", "donors": ["Tr2PerFrameVSData", "Tr2PerFramePSData", "Tr2PerFrameVSDataDebug", "Tr2PerFrameShadowPSData", "EveSpaceScene::PerFrameVSData", "EveSpaceScene::PerFramePSData", "EveSpaceScene::SunData"]});
+CjsSchema.meta.define(CjsPerFrameLayouts, {"className": "CjsPerFrameLayouts"});

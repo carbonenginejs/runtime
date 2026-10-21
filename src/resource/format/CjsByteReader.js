@@ -26,6 +26,8 @@ const textDecoder = new TextDecoder("utf-8", { fatal: false });
  * `ReadTableBlob`, `ReadTableBlobOptional`) model Carbon's string table, where a
  * single `uint32` offset resolves either to a NUL-terminated string or to a
  * sized blob inside the same arena (`trinity/shadercompiler/StringTable.cpp`).
+ *
+ * Modelled on: EffectStream (trinity/trinity/Shader/Tr2EffectDescription.cpp:38)
  */
 export class CjsByteReader extends CjsReader
 {
@@ -378,4 +380,4 @@ export class CjsByteReader extends CjsReader
 
 export default CjsByteReader;
 
-CjsSchema.meta.define(CjsByteReader, { className: "CjsByteReader", donors: [ "EffectStream" ] });
+CjsSchema.meta.define(CjsByteReader, { className: "CjsByteReader" });

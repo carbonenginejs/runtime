@@ -33,6 +33,8 @@ const WRAPPERS = {
  * Static set of read and skip routines that decode or skip individual Black
  * property values (primitives, strings, arrays, structure lists,
  * dictionaries, and binary blocks) from their type descriptors.
+ *
+ * Modelled on: BlackReader (blue/src/BlackReader.h:17)
  */
 export class CjsBlackPropertyReaders
 {
@@ -835,4 +837,4 @@ export class CjsBlackPropertyReaders
     }
 }
 
-CjsSchema.meta.define(CjsBlackPropertyReaders, { className: "CjsBlackPropertyReaders", donors: [ "BlackReader" ] });
+CjsSchema.meta.define(CjsBlackPropertyReaders, { className: "CjsBlackPropertyReaders" });

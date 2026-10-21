@@ -7,7 +7,10 @@ import { CjsConstantLayout } from "../CjsConstantLayout.js";
 const { Identity: IDENTITY, Types } = CjsConstantLayout;
 
 
-/** Per-object constant-buffer layout for `EveSceneStaticParticlesPerObjectData` (EveSceneStaticParticles.h:105). */
+/** Per-object constant-buffer layout for `EveSceneStaticParticlesPerObjectData` (EveSceneStaticParticles.h:105).
+ *
+ * Modelled on: EveSceneStaticParticlesPerObjectData::Data (trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h:123)
+ */
 export class CjsEveSceneStaticParticlesLayout
 {
   static structConfig = Object.freeze({
@@ -21,4 +24,4 @@ export class CjsEveSceneStaticParticlesLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSceneStaticParticlesLayout, {"className": "CjsEveSceneStaticParticlesLayout", "donors": ["EveSceneStaticParticlesPerObjectData::Data"]});
+CjsSchema.meta.define(CjsEveSceneStaticParticlesLayout, {"className": "CjsEveSceneStaticParticlesLayout"});

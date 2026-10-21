@@ -153,6 +153,8 @@ function StreamMask(layout)
  *
  * Carbon's `PSODescription` is a plain struct with an `operator==` and a hash;
  * this is the same: `UpdateHash` and `BlockEquals`.
+ *
+ * Carbon: PSODescription (trinity/trinityal/dx12/util/PsoDescription.h:14)
  */
 export class CjsWebgpuPsoDescription
 {
@@ -440,4 +442,4 @@ export class CjsWebgpuPsoDescription
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
 CjsSchema.decorateMethod(CjsWebgpuPsoDescription, "UpdateHash", blue.method);
-CjsSchema.blue.define(CjsWebgpuPsoDescription, { className: "CjsWebgpuPsoDescription", donors: [ "PSODescription" ] });
+CjsSchema.blue.define(CjsWebgpuPsoDescription, { className: "CjsWebgpuPsoDescription" });

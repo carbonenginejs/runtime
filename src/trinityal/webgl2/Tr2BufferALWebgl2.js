@@ -106,6 +106,8 @@ export function DataTextureLayout(gl, format, structured)
 
 /**
  * A buffer on a WebGL2 device.
+ *
+ * Carbon: Tr2BufferAL (trinity/trinityal/dx11/Tr2BufferALDx11.h:14)
  */
 export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -674,4 +676,4 @@ CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetUavIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "SetName", blue.method);
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetGpuResource", blue.method);
-CjsSchema.blue.define(Tr2BufferALWebgl2, { className: "Tr2BufferALWebgl2", donors: [ "Tr2BufferAL" ] });
+CjsSchema.blue.define(Tr2BufferALWebgl2, { className: "Tr2BufferALWebgl2" });

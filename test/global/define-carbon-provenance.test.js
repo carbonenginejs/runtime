@@ -88,20 +88,14 @@ test("meta.define with carbon records provenance and nothing else", () =>
   assert.deepEqual(portedRest[2], {}, "no method is reported as Carbon's");
 });
 
-test("donors still read as modelledOn under meta and as the replica under blue", () =>
+test("retired donor definition options fail before registering a class", () =>
 {
-  const Modelled = Shape();
-  CjsSchema.meta.define(Modelled, { className: "DefineCarbonModelled", donors: [ "DefineCarbonOwner::Nested" ] });
-  assert.equal(CjsSchema.getSchema(Modelled).modelledOn, "DefineCarbonOwner::Nested");
-  assert.equal(Object.hasOwn(CjsSchema.getSchema(Modelled), "carbon"), false);
-
-  const Stamped = Shape();
-  CjsSchema.blue.define(Stamped, { className: "DefineCarbonStamped", donors: [ "DefineCarbonOwner::Nested" ] });
-  assert.equal(CjsSchema.getSchema(Stamped).carbon, "DefineCarbonOwner::Nested");
-  assert.equal(CjsSchema.getSchema(Stamped).blue, true, "only blue.define stamps the class as Blue");
-});
-
-test("a define takes carbon or modelledOn, not both", () =>
-{
-  assert.throws(() => CjsSchema.meta.define(Shape(), { className: "DefineCarbonBoth", carbon: "A::B", donors: [ "A::B" ] }), /carbon or modelledOn/);
+  for (const namespace of [CjsSchema.meta, CjsSchema.blue, CjsSchema])
+    for (const option of ["donors", "modelledOn"])
+    {
+      const Constructor = Shape();
+      const className = `RetiredDonor${option}${namespace === CjsSchema ? "schema" : namespace === CjsSchema.meta ? "meta" : "blue"}`;
+      assert.throws(() => namespace.define(Constructor, {className, [option]: option === "donors" ? ["Native"] : "Native"}), /retired.*JSDoc/);
+      assert.equal(CjsSchema.getConstructor(className), null);
+    }
 });

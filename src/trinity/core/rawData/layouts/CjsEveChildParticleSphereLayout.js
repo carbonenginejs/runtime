@@ -10,6 +10,8 @@ const { Identity: IDENTITY, Types } = CjsConstantLayout;
 /**
  * EveChildParticleSphere.cpp:19-41 - the anonymous-namespace record, vertex stage only: the world matrix (written
  * transposed) and its inverse (written as is, which a row-major read sees as the inverse transpose).
+ *
+ * Modelled on: EveChildParticleSpherePerObjectData::Data (trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.cpp:33)
  */
 export class CjsEveChildParticleSphereLayout
 {
@@ -24,4 +26,4 @@ export class CjsEveChildParticleSphereLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveChildParticleSphereLayout, {"className": "CjsEveChildParticleSphereLayout", "donors": ["EveChildParticleSpherePerObjectData::Data"]});
+CjsSchema.meta.define(CjsEveChildParticleSphereLayout, {"className": "CjsEveChildParticleSphereLayout"});

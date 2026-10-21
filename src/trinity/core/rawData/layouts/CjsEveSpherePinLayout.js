@@ -7,7 +7,10 @@ import { CjsConstantLayout } from "../CjsConstantLayout.js";
 const { Identity: IDENTITY, Types } = CjsConstantLayout;
 
 
-/** EveSpherePin.h:25 - the ui variant (EveSpherePin.cpp:415-425). */
+/** EveSpherePin.h:25 - the ui variant (EveSpherePin.cpp:415-425).
+ *
+ * Modelled on: EveSpherePinPerObjectData (trinity/trinity/Eve/UI/EveSpherePin.h:25)
+ */
 export class CjsEveSpherePinLayout
 {
   static structConfig = Object.freeze({
@@ -26,4 +29,4 @@ export class CjsEveSpherePinLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSpherePinLayout, {"className": "CjsEveSpherePinLayout", "donors": ["EveSpherePinPerObjectData"]});
+CjsSchema.meta.define(CjsEveSpherePinLayout, {"className": "CjsEveSpherePinLayout"});

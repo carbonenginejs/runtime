@@ -14,7 +14,10 @@ import { TriRenderBatchAccumulator, DefaultKeyGenerator, EffectKeyGenerator } fr
 /**
  * One render-batch accumulator per TriBatchType, with the scene-level collect,
  * finalize and clear flow over them.
- * It keeps `donors`, not `carbon`, because it is modelled on Carbon's `EveSpaceScene::BatchMap` typedef plus the scene batch flow rather than a straight nested port, and its published name (`./trinity/core`) stays.
+ * The Modelled on line records Carbon's BatchMap typedef and scene batch flow.
+ * The JavaScript wrapper keeps its published name in `./trinity/core`.
+ *
+ * Modelled on: EveSpaceScene::BatchMap (trinity/trinity/Eve/EveSpaceScene.h:203)
  */
 export class TriRenderBatchMap
 {
@@ -129,4 +132,4 @@ export class TriRenderBatchMap
   }
 }
 
-CjsSchema.meta.define(TriRenderBatchMap, { className: "TriRenderBatchMap", donors: ["EveSpaceScene::BatchMap"] });
+CjsSchema.meta.define(TriRenderBatchMap, { className: "TriRenderBatchMap" });

@@ -23,6 +23,8 @@ const BLUE_OBJECT_METADATA_KEY = "__bluemetadata__";
  * This transport owns the binary buffer, string tables, numeric references,
  * and binary read cursor. `ResetReadState()` clears only per-read graph state;
  * each read entrypoint separately restores the cursor to `dataOffset`.
+ *
+ * Carbon: BlackReader (blue/src/BlackReader.h:17)
  */
 export class CjsBlackReader extends CjsBlueReader
 {
@@ -1107,4 +1109,4 @@ function WithClassStructure(field, className, fieldName)
 // obligations: this reader throws from CreateObject rather than returning null.
 blue.inherit(IBlueObjectBuilder)(CjsBlackReader, { kind: "class" });
 
-CjsSchema.blue.define(CjsBlackReader, { className: "CjsBlackReader", donors: [ "BlackReader" ] });
+CjsSchema.blue.define(CjsBlackReader, { className: "CjsBlackReader" });

@@ -15,6 +15,8 @@ const { Identity: IDENTITY, Types, Zero4: ZERO4 } = CjsConstantLayout;
  * Field order is NOT the same as the EveSpaceObject VS/PS pair: the five clip
  * scalars sit at fields 6-10 here, before the ellipsoid. Since the upload is a
  * raw memcpy, that order is the contract.
+ *
+ * Modelled on: EveSpacePerObjectData (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:145)
  */
 export class CjsEveSpacePerObjectLayout
 {
@@ -52,4 +54,4 @@ export class CjsEveSpacePerObjectLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSpacePerObjectLayout, {"className": "CjsEveSpacePerObjectLayout", "donors": ["EveSpacePerObjectData"]});
+CjsSchema.meta.define(CjsEveSpacePerObjectLayout, {"className": "CjsEveSpacePerObjectLayout"});

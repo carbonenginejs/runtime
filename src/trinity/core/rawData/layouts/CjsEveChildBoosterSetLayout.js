@@ -11,6 +11,9 @@ const { Identity: IDENTITY, Types } = CjsConstantLayout;
  * EveChildBoosterSet.h:39-56. `worldMatrix` is written with SetAndTranspose
  * from the LOGICAL parent transform (Carbon Transpose at cpp:543);
  * `instanceOffset` is the ring-buffer frame offset the AL backend supplies.
+ *
+ * Modelled on: EveChildBoosterSetPerObjectData::VertexShaderData (trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.h:39)
+ * Modelled on: EveChildBoosterSetPerObjectData::PixelShaderData (trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.h:50)
  */
 export class CjsEveChildBoosterSetLayout
 {
@@ -37,4 +40,4 @@ export class CjsEveChildBoosterSetLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveChildBoosterSetLayout, {"className": "CjsEveChildBoosterSetLayout", "donors": ["EveChildBoosterSetPerObjectData::VertexShaderData", "EveChildBoosterSetPerObjectData::PixelShaderData"]});
+CjsSchema.meta.define(CjsEveChildBoosterSetLayout, {"className": "CjsEveChildBoosterSetLayout"});

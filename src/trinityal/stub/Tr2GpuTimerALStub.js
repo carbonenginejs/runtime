@@ -7,6 +7,8 @@ import { ALResult } from "../ALResult.js";
 
 /**
  * Times a bracketed span of GPU work.
+ *
+ * Carbon: Tr2GpuTimerAL (trinity/trinityal/stub/Tr2GpuTimerALStub.h:12)
  */
 export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
 {
@@ -111,4 +113,4 @@ CjsSchema.decorateMethod(Tr2GpuTimerALStub, "End", blue.method);
 CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetTime", blue.method);
 CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2GpuTimerALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2GpuTimerALStub, { className: "Tr2GpuTimerALStub", donors: [ "Tr2GpuTimerAL" ] });
+CjsSchema.blue.define(Tr2GpuTimerALStub, { className: "Tr2GpuTimerALStub" });

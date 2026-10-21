@@ -36,6 +36,8 @@ import { ShaderType } from "#consts/render-context";
 
 /**
  * A compiled shader for one pipeline stage.
+ *
+ * Carbon: Tr2ShaderAL (trinity/trinityal/stub/Tr2ShaderALStub.h:17)
  */
 export class Tr2ShaderALStub extends Tr2DeviceResourceAL
 {
@@ -177,4 +179,4 @@ CjsSchema.decorateMethod(Tr2ShaderALStub, "GetSignature", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderALStub, "SetNullShaderType", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2ShaderALStub, { className: "Tr2ShaderALStub", donors: [ "Tr2ShaderAL" ] });
+CjsSchema.blue.define(Tr2ShaderALStub, { className: "Tr2ShaderALStub" });

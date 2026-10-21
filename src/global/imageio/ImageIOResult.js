@@ -9,7 +9,10 @@
 import { CjsSchema, blue } from "#schema";
 
 
-/** `ImageIO::Result` - an image operation's outcome. */
+/** `ImageIO::Result` - an image operation's outcome.
+ *
+ * Carbon: Result (imageio/include/ImageIOResult.h:10)
+ */
 export class ImageIOResult
 {
 
@@ -81,7 +84,7 @@ export class ImageIOResult
 
 // A call, not a decorator: see BitmapDimensions.js.
 CjsSchema.blue.define(ImageIOResult, {
-  className: "ImageIOResult", donors: [ "Result" ],
+  className: "ImageIOResult",
   methods: {
     GetErrorMessage: [ blue.method ]
   }

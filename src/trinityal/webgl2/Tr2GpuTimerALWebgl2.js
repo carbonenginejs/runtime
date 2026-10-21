@@ -33,6 +33,8 @@ const END_ISSUED = 3;
 
 /**
  * A GPU timer on a WebGL2 device.
+ *
+ * Carbon: Tr2GpuTimerAL (trinity/trinityal/dx11/Tr2GpuTimerALDx11.h:14)
  */
 export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -215,4 +217,4 @@ CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2GpuTimerALWebgl2, { className: "Tr2GpuTimerALWebgl2", donors: [ "Tr2GpuTimerAL" ] });
+CjsSchema.blue.define(Tr2GpuTimerALWebgl2, { className: "Tr2GpuTimerALWebgl2" });

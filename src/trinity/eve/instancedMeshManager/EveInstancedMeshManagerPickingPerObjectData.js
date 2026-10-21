@@ -13,8 +13,10 @@ import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectD
  *
  * The class name carries the manager's prefix because Carbon's name is
  * file-local and our class namespace is flat.
+ *
+ * Carbon: PickingPerObjectData (trinity/trinity/Eve/EveInstancedMeshManager.cpp:23)
  */
-@blue.define({ className: "EveInstancedMeshManagerPickingPerObjectData", donors: [ "PickingPerObjectData" ] })
+@blue.define({ className: "EveInstancedMeshManagerPickingPerObjectData" })
 export class EveInstancedMeshManagerPickingPerObjectData extends Tr2PerObjectData
 {
 

@@ -30,6 +30,11 @@ export const EnumRegistrationType = Object.freeze({
  * or mask with no matching entry throws RangeError, and invalid input
  * (fractions, out-of-range integers, strings, BigInt, malformed metadata)
  * throws TypeError.
+ *
+ * Modelled on: BlueRegistration (blueexposure/include/BlueRegistration.h:84)
+ * Modelled on: EnumRegistration (blueexposure/include/BlueRegistration.h:242)
+ * Modelled on: EnumTypeRegistration (blueexposure/include/BlueRegistration.h:270)
+ * Modelled on: PyBlueEnumObject (blueexposure/BlueRegistrationPython.cpp:24)
  */
 export class CjsBlueEnumRegistry
 {

@@ -47,7 +47,7 @@ test("source indexing retains imported-first donors and exposes their enum decla
     assert.deepEqual([...enums[0].members], [["FIRST", 3], ["SECOND", 7]]);
 });
 
-test("blue.define donors declare a ported donor; meta.define donors do not", async t =>
+test("Carbon class comments declare a ported donor; Modelled on comments do not", async t =>
 {
     const directory = await mkdtemp(join(tmpdir(), "carbon-provenance-"));
     t.after(() =>
@@ -61,12 +61,17 @@ test("blue.define donors declare a ported donor; meta.define donors do not", asy
     await mkdir(join(packageRoot, "src", "dropped"), { recursive: true });
     await mkdir(join(carbonRoot, "donor"), { recursive: true });
     await writeFile(join(carbonRoot, "donor", "Owner.h"), "class Owner {};\n");
-    await writeFile(join(packageRoot, "src", "Ported.js"),
-        "export class CjsPorted {}\nCjsSchema.blue.define(CjsPorted, {\n  className: \"CjsPorted\",\n  donors: [ \"Replicated\" ],\n  fields: {}\n});\n" +
-        "@blue.define({ className: \"CjsDecorated\", donors: [\"Decorated\"] })\nexport class CjsDecorated {}\n");
-    await writeFile(join(packageRoot, "src", "Modelled.js"),
-        "export class CjsModelled {}\nCjsSchema.meta.define(CjsModelled, { className: \"CjsModelled\", donors: [ \"Modelled\" ] });\n" +
-        "@meta.define({ className: \"CjsNested\", carbon: \"Nested\" })\nexport class CjsNested {}\n");
+    await writeFile(join(packageRoot, "src", "Ported.js"), `
+        /** Carbon: Replicated (donor/Owner.h:1) */
+        export class CjsPorted {}
+        CjsSchema.blue.define(CjsPorted, {className: "CjsPorted", fields: {}});
+        /** Carbon: Decorated (donor/Owner.h:1) */
+        @blue.define("CjsDecorated") export class CjsDecorated {}`);
+    await writeFile(join(packageRoot, "src", "Modelled.js"), `
+        /** Modelled on: Modelled (donor/Owner.h:1) */
+        export class CjsModelled {}
+        CjsSchema.meta.define(CjsModelled, {className: "CjsModelled"});
+        @meta.define({className: "CjsNested", carbon: "Nested"}) export class CjsNested {}`);
     await writeFile(join(packageRoot, "src", "dropped", "Record.js"),
         "@meta.define({ className: \"Record\", carbon: \"RecordDonor\" })\nexport class Record {}\n");
     const { classes } = await sourceIndex(packageRoot, carbonRoot);
@@ -75,7 +80,7 @@ test("blue.define donors declare a ported donor; meta.define donors do not", asy
         assert.ok((classes.get(donor) ?? []).some(entry => entry.declared && !entry.dropped), `${donor} is declared`);
     }
     assert.ok(classes.get("RecordDonor").some(entry => entry.declared && entry.dropped));
-    assert.equal(classes.has("Modelled"), false, "a meta.define donor is modelled on, not ported");
+    assert.equal(classes.has("Modelled"), false, "a Modelled on comment does not claim a port");
 });
 
 test("source indexing reads class donor annotations without crediting unrelated text", async t =>
@@ -101,7 +106,8 @@ test("source indexing reads class donor annotations without crediting unrelated 
         other.carbon('Unrelated')(Explicit);
         meta.carbon('UnknownTarget')(Missing);
         meta.carbon(computed)(Explicit);
-        meta.define({className:'Modelled',donors:['ModelledOnly']})(Explicit);
+        /** Modelled on: ModelledOnly (donor/Owner.h:1) */ class Modelled {}
+        meta.define('Modelled')(Modelled);
     `);
     const { classes } = await sourceIndex(packageRoot, carbonRoot);
     for (const donor of ['Qualified::Native', 'MergedNative', 'ExplicitNative'])

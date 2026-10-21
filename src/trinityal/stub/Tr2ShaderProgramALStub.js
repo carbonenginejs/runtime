@@ -19,6 +19,8 @@ import { Tr2RegisterMapAL } from "../Tr2ResourceSetAL/Tr2RegisterMapAL.js";
 
 /**
  * A linked program over one shader per stage.
+ *
+ * Carbon: Tr2ShaderProgramAL (trinity/trinityal/stub/Tr2ShaderProgramALStub.h:12)
  */
 export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 {
@@ -144,4 +146,4 @@ CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2ShaderProgramALStub, { className: "Tr2ShaderProgramALStub", donors: [ "Tr2ShaderProgramAL" ] });
+CjsSchema.blue.define(Tr2ShaderProgramALStub, { className: "Tr2ShaderProgramALStub" });

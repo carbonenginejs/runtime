@@ -40,6 +40,8 @@ export const CONST_ALIGNMENT = 256;
 /**
  * A per-frame arena of `GPUBuffer` pages that constant buffers are suballocated
  * into when they are bound.
+ *
+ * Carbon: ConstantBufferAllocator (trinity/trinityal/metal/MetalUtils.h:77)
  */
 export class CjsWebgpuConstantArena
 {
@@ -181,4 +183,4 @@ CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Allocate", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetPage", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "_CreatePage", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetTotalUploadedSize", blue.method);
-CjsSchema.blue.define(CjsWebgpuConstantArena, { className: "CjsWebgpuConstantArena", donors: [ "ConstantBufferAllocator" ] });
+CjsSchema.blue.define(CjsWebgpuConstantArena, { className: "CjsWebgpuConstantArena" });

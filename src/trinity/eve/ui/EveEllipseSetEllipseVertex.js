@@ -17,8 +17,10 @@ import { type, blue } from "#schema";
  *
  * Carbon leaves both members unset; the JavaScript constructor is that
  * default constructor.
+ *
+ * Carbon: EllipseVertex (trinity/trinity/Eve/UI/EveEllipseSet.cpp:18)
  */
-@blue.define({ className: "EveEllipseSetEllipseVertex", donors: [ "EllipseVertex" ] })
+@blue.define({ className: "EveEllipseSetEllipseVertex" })
 export class EveEllipseSetEllipseVertex
 {
 

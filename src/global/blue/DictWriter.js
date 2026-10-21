@@ -45,6 +45,8 @@ export const DEFAULT_SIZE_WARNING_BYTES = 1024 * 1024 * 1024;
 
 /**
  * `DictWriter` - writes an object as a plain values bag.
+ *
+ * Modelled on: YamlWriter (blue/src/YamlWriter.h:16)
  */
 export class DictWriter extends IRootWriter
 {
@@ -272,7 +274,7 @@ function EstimateJsonBytes(value)
   }
 }
 
-CjsSchema.meta.define(DictWriter, { className: "DictWriter", donors: [ "YamlWriter" ] });
+CjsSchema.meta.define(DictWriter, { className: "DictWriter" });
 CjsSchema.decorateMethod(DictWriter, "WriteIRoot", blue.method, meta.adapted);
 CjsSchema.decorateMethod(DictWriter, "WriteBinaryBlock", blue.method, meta.adapted);
 CjsSchema.decorateMethod(DictWriter, "WriteMemberName", blue.method, meta.adapted);

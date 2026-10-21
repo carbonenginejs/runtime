@@ -3,7 +3,11 @@ import { CjsSchema } from "#schema";
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
 const { Types } = CjsConstantLayout;
 
-/** Native Cloud2 PerObjectData; 34 registers shared by vertex and pixel families. */
+/** Native Cloud2 PerObjectData; 34 registers shared by vertex and pixel families.
+ *
+ * Modelled on: EveChildCloud2::PerObjectData (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h:115)
+ * Modelled on: EveChildCloud2::LightData (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h:107)
+ */
 export class CjsEveChildCloud2Layout
 {
   static structConfig = {
@@ -34,4 +38,4 @@ export class CjsEveChildCloud2Layout
   };
 }
 
-CjsSchema.meta.define(CjsEveChildCloud2Layout, {"className": "CjsEveChildCloud2Layout", "donors": ["EveChildCloud2::PerObjectData", "EveChildCloud2::LightData"]});
+CjsSchema.meta.define(CjsEveChildCloud2Layout, {"className": "CjsEveChildCloud2Layout"});

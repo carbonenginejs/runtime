@@ -15,6 +15,8 @@ export const MAX_TURBULENCE_LENGTH = 4096;
  * hold it as 32 floats, and `write` is its constructor from EmitterParams
  * (cpp:59-77). Adapted: Carbon constructs a struct value; JavaScript writes
  * into storage the request record already owns.
+ *
+ * Modelled on: Tr2GpuParticleSystem::EmitterParamsGpu (trinity/trinity/Particle/Tr2GpuParticleSystem.h:179)
  */
 export class Tr2GpuParticleSystemEmitterParamsGpu
 {
@@ -57,4 +59,4 @@ export class Tr2GpuParticleSystemEmitterParamsGpu
   }
 }
 
-CjsSchema.meta.define(Tr2GpuParticleSystemEmitterParamsGpu, { className: "Tr2GpuParticleSystemEmitterParamsGpu", donors: [ "Tr2GpuParticleSystem::EmitterParamsGpu" ] });
+CjsSchema.meta.define(Tr2GpuParticleSystemEmitterParamsGpu, { className: "Tr2GpuParticleSystemEmitterParamsGpu" });

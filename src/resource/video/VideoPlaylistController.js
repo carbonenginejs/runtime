@@ -9,7 +9,10 @@ import { ColorPrefix } from "../texture/solidColorTexture.js";
 
 const registrations = new WeakMap();
 
-/** Carbon's _VideoPlaylistController, sharing a texture and injected browser player. */
+/** Carbon's _VideoPlaylistController, sharing a texture and injected browser player.
+ *
+ * Carbon: _VideoPlaylistController (videoplayer/python/videoplayer/playlistresource.py:24)
+ */
 export class VideoPlaylistController extends IBlueDynamicResourceConstructor
 {
   playlist = [];
@@ -192,7 +195,6 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
 
 CjsSchema.blue.define(VideoPlaylistController, {
   className: "VideoPlaylistController",
-  donors: [ "_VideoPlaylistController" ],
   methods: {
   GetResource: [blue.method, meta.adapted], IsCacheable: [], SetPlaylist: [], Destruct: [meta.adapted]
 }

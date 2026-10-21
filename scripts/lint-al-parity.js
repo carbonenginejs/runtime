@@ -1,3 +1,4 @@
+import { classDonorComments } from "./lib/carbon-donor-comments.js";
 // Does each abstraction-layer class still have the methods its Carbon donor
 // declares, and no invented ones it never declared?
 //
@@ -221,64 +222,29 @@ function citedSources(code)
 }
 
 
-/**
- * What each class in a file declares about its Carbon donor, from the schema:
- * `@type.define({ className, carbon })` or `({ className, modelledOn })`.
- *
- * WHY A DECLARATION EXISTS AT ALL. Nothing here infers a donor from our class
- * name, so every class whose name is not already Carbon's has to say what it
- * ports. That is most of the layer, because each backend class carries its
- * backend in the name. Four files go further and port classes that are
- * backend-INTERNAL in Carbon and named freely - `MetalWorkQueue`,
- * `PSODescription`, `ConstantBufferAllocator`, and `ImageIO::BitmapDimensions`
- * reached through a typedef - which no convention could have reached at all.
- *
- * WHY TWO KEYS. A class that REPLICATES its donor can be held to that donor's
- * whole surface; a class MODELLED ON one cannot. `CjsWebgpuWorkQueue` takes
- * Metal's encoder lifetime and leaves the other 101 methods of its command
- * recorder to the pipeline, the resource set and the render context. Comparing
- * it as a replica reports those as debt; comparing it not at all loses the
- * provenance. `modelledOn` records the second without claiming the first.
- *
- * BOTH SPELLINGS. `@type.define({...})` is the decorator every schema'd Trinity
- * class uses; `CjsSchema.define(Class, {...})` is the same metadata as a call,
- * which is what the AL uses because its tests import it straight from `src/`
- * and raw Node cannot parse a decorator.
- *
- * PARSED, NOT IMPORTED. This script reads source text and never loads the
- * runtime, so the declaration is read the same way its `// Source:` header is.
- *
- * @param {string} code File contents.
- * @returns {Map<string, {carbon: string|null, modelledOn: string|null}>} By class name.
- */
+/** Native identity stays executable; extra and modelled-on donors are class JSDoc. */
 function declaredDonors(code)
 {
     const declared = new Map();
-    // Ruling 2026-10-15: `blue.define` donors name the Carbon class a renamed
-    // port replicates; `meta.define` donors name the classes ours is built from.
+    // Held legacy bindings name unexposed Carbon identities, including nested structs.
     const blocks = [
         ...code.matchAll(/@(?:type|types|meta|blue)\.define\(\s*\{([\s\S]*?)\}\s*\)/g),
         ...code.matchAll(/CjsSchema\.(?:(?:blue|meta)\.)?define\(\s*[A-Za-z0-9_]+\s*,\s*\{([\s\S]*?)\}\s*\)/g)
     ];
-
-    for (const block of blocks)
+    for (const [, body] of blocks)
     {
-        const body = block[1];
-        const className = body.match(/className:\s*"([^"]+)"/);
-
-        if (!className) continue;
-
-        const stamped = /(?:@blue|CjsSchema\.blue)\.define/.test(block[0]);
-        const donor = body.match(/\bdonors:\s*\[\s*"([^"]+)"/);
-        const carbon = body.match(/\bcarbon:\s*"([^"]+)"/) ?? (stamped ? donor : null);
-        const modelledOn = body.match(/\bmodelledOn:\s*"([^"]+)"/) ?? (stamped ? null : donor);
-
-        declared.set(className[1], {
-            carbon: carbon ? carbon[1].split("::").pop() : null,
-            modelledOn: modelledOn ? modelledOn[1].split("::").pop() : null
+        const name = body.match(/className:\s*"([^"]+)"/), carbon = body.match(/\bcarbon:\s*"([^"]+)"/);
+        if (name && carbon) declared.set(name[1], { carbon: carbon[1].split("::").pop(), modelledOn: null });
+    }
+    for (const c of classDonorComments(code))
+    {
+        const carbon = c.entries.find(e => !e.error && e.kind === "Carbon");
+        const modelled = c.entries.find(e => !e.error && e.kind === "Modelled on");
+        if (carbon || modelled) declared.set(c.name, {
+            carbon: carbon?.name.split("::").pop() ?? null,
+            modelledOn: modelled?.name.split("::").pop() ?? null
         });
     }
-
     return declared;
 }
 
@@ -563,7 +529,7 @@ for (const { relative, code, ours } of parsed)
         {
             problems.push(`${relative} ${jsClass} matches no class in its cited donors `
                 + `(tried ${candidates.join(", ")}). Name the donor with `
-                + "`carbon:` in this class's CjsSchema.define, or `modelledOn:` if it "
+                + "a class JSDoc `Carbon:` line, or `Modelled on:` if it "
                 + "deliberately does not replicate one.");
             continue;
         }

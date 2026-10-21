@@ -11,7 +11,10 @@
 import { CjsSchema, meta, blue } from "#schema";
 import { BlueResFileSystemForm, IBlueResFileSystem } from "./IBlueResFileSystem.js";
 
-/** `CjsBlueResFileSystemCallback` - `res:` paths read through a page's function. */
+/** `CjsBlueResFileSystemCallback` - `res:` paths read through a page's function.
+ *
+ * Modelled on: IBlueResFileSystem (blue/include/IBlueResFileSystem.h:9)
+ */
 export class CjsBlueResFileSystemCallback extends IBlueResFileSystem
 {
   /** The protocol served (see IBlueResFileSystem.js). */
@@ -74,7 +77,6 @@ export class CjsBlueResFileSystemCallback extends IBlueResFileSystem
 
 CjsSchema.meta.define(CjsBlueResFileSystemCallback, {
   className: "CjsBlueResFileSystemCallback",
-  donors: [ "IBlueResFileSystem" ],
   fields: {},
   methods: {
     FileExists: [ blue.method, meta.adapted ],

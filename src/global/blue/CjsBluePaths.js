@@ -65,7 +65,10 @@ const BRIDGES = {
 /** `BluePaths::BeforeOrAfter` (BluePaths.h:24-28) - where `RegisterFileSystem` places a file system. */
 export const BluePathsBeforeOrAfter = Object.freeze({ BEFORE: 0, AFTER: 1 });
 
-/** `BluePaths` - res file systems asked in turn, and the remote cache for listed-versus-here. */
+/** `BluePaths` - res file systems asked in turn, and the remote cache for listed-versus-here.
+ *
+ * Carbon: BluePaths (blue/src/BluePaths.h:13)
+ */
 export class CjsBluePaths extends IBluePaths
 {
   /** @type {import("./IBlueResFileSystem.js").IBlueResFileSystem|null} */
@@ -337,7 +340,7 @@ CjsSchema.blue.define(CjsBluePaths, {
     GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });
-CjsSchema.meta.carbon("BluePaths")(CjsBluePaths);
+
 
 /**
  * The form to ask a file system for: the first accepted form it produces;

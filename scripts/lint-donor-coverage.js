@@ -28,7 +28,7 @@ else
                     && ["TrinityALImpl::Tr2BaseDeviceResourceAL", "TrinityALImpl::Tr2DeviceResourceAL"].includes(type.qualifiedName)
                     ? type.name : type.qualifiedName;
             // Carbon namespaces many backend types (TrinityALImpl::PSODescription)
-            // while a `carbon:`/`modelledOn:` declaration names the bare class. Accept
+            // while a `carbon:` identity or class `Carbon:` comment names the bare class. Accept
             // the trailing segment, but only where a class DECLARED that donor - an
             // unqualified JS class of the same name is not evidence of a port.
             const declared = name => (classes.get(name) ?? []).some(entry => entry.declared);

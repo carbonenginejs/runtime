@@ -15,6 +15,9 @@ const { Identity: IDENTITY, Types, Zero4: ZERO4 } = CjsConstantLayout;
  *
  * The HLSL counterpart names are from shadercompiler/tests/RayTracingTest.cpp:654-666,
  * which declares this block field-for-field.
+ *
+ * Modelled on: EveSpaceObjectVSData (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:101)
+ * Modelled on: EveSpaceObjectPSData (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:124)
  */
 export class CjsEveSpaceObjectLayout
 {
@@ -85,4 +88,4 @@ export class CjsEveSpaceObjectLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSpaceObjectLayout, {"className": "CjsEveSpaceObjectLayout", "donors": ["EveSpaceObjectVSData", "EveSpaceObjectPSData"]});
+CjsSchema.meta.define(CjsEveSpaceObjectLayout, {"className": "CjsEveSpaceObjectLayout"});

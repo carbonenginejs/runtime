@@ -267,6 +267,8 @@ function PixelsFor(gl, type, bytes)
 
 /**
  * A texture on a WebGL2 device.
+ *
+ * Carbon: Tr2TextureAL (trinity/trinityal/dx11/Tr2TextureALDx11.h:54)
  */
 export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -1433,5 +1435,5 @@ CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetUavIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "SetName", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetName", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Describe", blue.method);
-CjsSchema.blue.define(Tr2TextureALWebgl2, { className: "Tr2TextureALWebgl2", donors: [ "Tr2TextureAL" ] });
+CjsSchema.blue.define(Tr2TextureALWebgl2, { className: "Tr2TextureALWebgl2" });
 

@@ -87,6 +87,8 @@ let primaryRenderContext = null;
  * render-texture helpers - are NOT here, because Carbon does not put them on
  * the AL either: they belong to `Tr2Renderer`, `Tr2EffectStateManager` and the
  * `TriStep*` types themselves.
+ *
+ * Carbon: Tr2RenderContextAL (trinity/trinityal/stub/Tr2RenderContextStub.h:53)
  */
 export class Tr2RenderContextALStub
 {
@@ -1704,4 +1706,4 @@ CjsSchema.decorateMethod(Tr2RenderContextALStub, "DeleteUpscalingContext", blue.
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "GetUpscalingInfo", blue.method);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "GetSupportedUpscalingTechniques", blue.method);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "GetUpscalingSetup", blue.method);
-CjsSchema.blue.define(Tr2RenderContextALStub, { className: "Tr2RenderContextALStub", donors: [ "Tr2RenderContextAL" ] });
+CjsSchema.blue.define(Tr2RenderContextALStub, { className: "Tr2RenderContextALStub" });

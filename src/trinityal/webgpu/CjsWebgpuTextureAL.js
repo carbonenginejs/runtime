@@ -77,6 +77,8 @@ function StorageFormatFor(format)
 
 /**
  * A `Tr2TextureAL` backed by a WebGPU `GPUTexture`, created with all of its data.
+ *
+ * Carbon: Tr2TextureAL (trinity/trinityal/include/Tr2TextureAL.h:45)
  */
 export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 {
@@ -1041,4 +1043,4 @@ CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "SetName", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetName", blue.method);
-CjsSchema.blue.define(CjsWebgpuTextureAL, { className: "CjsWebgpuTextureAL", donors: [ "Tr2TextureAL" ], methods: { RequestAverageColor: [] } });
+CjsSchema.blue.define(CjsWebgpuTextureAL, { className: "CjsWebgpuTextureAL",  methods: { RequestAverageColor: [] } });

@@ -63,6 +63,8 @@ function StageInput()
 
 /**
  * A resource set on a WebGL2 device.
+ *
+ * Carbon: Tr2ResourceSetAL (trinity/trinityal/dx11/Tr2ResourceSetALDx11.h:11)
  */
 export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -372,4 +374,4 @@ CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2ResourceSetALWebgl2, { className: "Tr2ResourceSetALWebgl2", donors: [ "Tr2ResourceSetAL" ] });
+CjsSchema.blue.define(Tr2ResourceSetALWebgl2, { className: "Tr2ResourceSetALWebgl2" });

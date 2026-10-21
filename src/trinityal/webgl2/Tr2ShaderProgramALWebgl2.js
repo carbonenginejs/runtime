@@ -59,6 +59,8 @@ function BlockNameOf(name)
 
 /**
  * Linked shader stages on a WebGL2 device.
+ *
+ * Carbon: Tr2ShaderProgramAL (trinity/trinityal/dx11/Tr2ShaderProgramALDx11.h:13)
  */
 export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -429,4 +431,4 @@ CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetMemoryClass", blue.method
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "SetName", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "CreateCommandSignatures", blue.method);
-CjsSchema.blue.define(Tr2ShaderProgramALWebgl2, { className: "Tr2ShaderProgramALWebgl2", donors: [ "Tr2ShaderProgramAL" ] });
+CjsSchema.blue.define(Tr2ShaderProgramALWebgl2, { className: "Tr2ShaderProgramALWebgl2" });

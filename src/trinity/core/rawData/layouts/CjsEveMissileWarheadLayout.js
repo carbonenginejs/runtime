@@ -7,7 +7,10 @@ import { CjsConstantLayout } from "../CjsConstantLayout.js";
 const { Identity: IDENTITY, Types } = CjsConstantLayout;
 
 
-/** Per-object constant-buffer layout for `EveMissileWarheadPerObjectData` (EveMissileWarhead.h:194). */
+/** Per-object constant-buffer layout for `EveMissileWarheadPerObjectData` (EveMissileWarhead.h:194).
+ *
+ * Modelled on: EveMissileWarhead (trinity/trinity/Eve/SpaceObject/EveMissileWarhead.h:21)
+ */
 export class CjsEveMissileWarheadLayout
 {
   static structConfig = Object.freeze({
@@ -21,4 +24,4 @@ export class CjsEveMissileWarheadLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveMissileWarheadLayout, {"className": "CjsEveMissileWarheadLayout", "donors": ["EveMissileWarhead"]});
+CjsSchema.meta.define(CjsEveMissileWarheadLayout, {"className": "CjsEveMissileWarheadLayout"});

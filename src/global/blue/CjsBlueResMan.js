@@ -251,6 +251,8 @@ function dynamicResourceError(path, name, code, message)
  * formats, publishes canonical resources into a `CjsMotherLode` registry under
  * exact-owner generation guards, and drives the main/background work queues,
  * read-operation caching, reload staging, and automatic purge policy.
+ *
+ * Carbon: BlueResMan (blue/src/BlueResMan.h:21)
  */
 export class CjsBlueResMan
 {
@@ -5306,7 +5308,7 @@ CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject", blue.method, meta.adapted)
 CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject__WChars", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "OnTick", blue.method, meta.implemented);
 CjsSchema.exposure.define("CjsBlueResMan")(CjsBlueResMan);
-CjsSchema.meta.carbon("BlueResMan")(CjsBlueResMan);
+
 
 /**
  * Reads a file's bytes through `be.paths`; a file no file system has is an

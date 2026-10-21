@@ -37,6 +37,8 @@ export const Tr2StubPlatformCaps = Object.freeze({
 
 /**
  * The capabilities the stub backend reports.
+ *
+ * Carbon: Tr2CapsAL (trinity/trinityal/stub/Tr2CapsALStub.h:21)
  */
 export class Tr2CapsALStub
 {
@@ -116,4 +118,4 @@ CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsStandaloneSwapChain", blue.meth
 CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVertexShaderTextures", blue.method);
 CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVariableRefreshRate", blue.method);
 CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsRaytracing", blue.method);
-CjsSchema.blue.define(Tr2CapsALStub, { className: "Tr2CapsALStub", donors: [ "Tr2CapsAL" ] });
+CjsSchema.blue.define(Tr2CapsALStub, { className: "Tr2CapsALStub" });

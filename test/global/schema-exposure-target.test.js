@@ -365,41 +365,32 @@ test("separate Stage-3 interface maps preserve native row order while imperative
     for (const Constructor of [Sample, Imperative, Legacy]) unregisterClass(CjsSchema.getClassName(Constructor));
 });
 
-test("donor annotation preserves explicit registration, cached rows and factory policy", () =>
+test("class donor comments leave registration, rows and factory policy unchanged", () =>
 {
+    /** Carbon: NativeDonor (native/Donor.h:1) */
     class Sample { Run() {} }
     CjsSchema.decorateMethod(Sample, "Run", exposure.mapMethod(), meta.implemented);
-    exposure.define("DonorAnnotationExplicit")(Sample);
-    const cached = CjsSchema.getSchema(Sample);
-    const table = [ ...mappedInterfaces(Sample) ];
-    const revision = getClassRegistrationRevision();
-    meta.carbon(["DonorAnnotationNativeA", "DonorAnnotationNativeB"])(Sample);
+    exposure.define("CommentDonorExplicit")(Sample);
     const schema = CjsSchema.getSchema(Sample);
-    assert.equal(getClassRegistrationRevision(), revision);
-    assert.equal(CjsSchema.getConstructor("DonorAnnotationExplicit"), Sample);
-    assert.equal(CjsSchema.getConstructor("DonorAnnotationNativeA"), null);
-    assert.equal(CjsSchema.getConstructor("DonorAnnotationNativeB"), null);
-    assert.deepEqual(schema.carbon, ["DonorAnnotationNativeA", "DonorAnnotationNativeB"]);
-    assert.deepEqual(schema.donors, schema.carbon);
-    assert.equal(schema.className, cached.className);
-    assert.deepEqual(schema.methods, cached.methods);
-    assert.deepEqual([ ...mappedInterfaces(Sample) ], table);
-    assert.equal(getClassRegistration("DonorAnnotationExplicit").createFn().constructor, Sample);
-    assert.throws(() => meta.carbon([]), /at least one/);
-    assert.throws(() => meta.carbon("Bad")({}, { kind: "class" }), /constructor/);
-    assert.throws(() => meta.carbon("Bad")(Sample, { kind: "method" }), /constructor/);
+    assert.equal(CjsSchema.getConstructor("CommentDonorExplicit"), Sample);
+    assert.equal(CjsSchema.getConstructor("NativeDonor"), null);
+    for (const key of ["carbon", "donors", "modelledOn"]) assert.equal(Object.hasOwn(schema, key), false);
+    assert.equal(CjsSchema.getMethod(Sample, "Run").impl.status, "implemented");
+    assert.deepEqual([...mappedInterfaces(Sample)], [IRoot, Sample]);
+    assert.equal(getClassRegistration("CommentDonorExplicit").createFn().constructor, Sample);
 });
 
-for (const donorFirst of [true, false]) test(`Stage-3 donor annotation registers once with donor first ${donorFirst}`, async () =>
+test("Stage-3 donor comments coexist with exposure without registering donor identities", async () =>
 {
     const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
     const targetUrl = new URL("../../src/global/schema/be.js", import.meta.url).href;
-    const name = `DonorStack${donorFirst}`, donor = `NativeDonorStack${donorFirst}`;
-    const annotations = [`@exposure.define("${name}")`, `@meta.carbon("${donor}")`];
-    if (donorFirst) annotations.reverse();
     const source = `import { meta, type } from ${JSON.stringify(schemaUrl)};
         import { exposure } from ${JSON.stringify(targetUrl)};
-        ${annotations.join("\n")}
+        /**
+         * Carbon: CommentNativeDonor (native/Donor.h:1-3)
+         * Modelled on: ShapeDonor (native/Shape.h:2)
+         */
+        @exposure.define("CommentDonorStage3")
         export class Sample {
             @exposure.mapAttribute(exposure.READWRITE) @type.float32 value = 2;
             @exposure.mapMethod() @meta.implemented Run() { return this.value; }
@@ -409,14 +400,13 @@ for (const donorFirst of [true, false]) test(`Stage-3 donor annotation registers
     const revision = getClassRegistrationRevision();
     const { Sample } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
     assert.equal(getClassRegistrationRevision(), revision + 1);
-    assert.equal(CjsSchema.getConstructor(name), Sample);
-    assert.equal(CjsSchema.getConstructor(donor), null);
+    assert.equal(CjsSchema.getConstructor("CommentDonorStage3"), Sample);
+    assert.equal(CjsSchema.getConstructor("CommentNativeDonor"), null);
     const schema = CjsSchema.getSchema(Sample);
-    assert.equal(schema.carbon, donor);
-    assert.deepEqual(schema.donors, [donor]);
+    for (const key of ["carbon", "donors", "modelledOn"]) assert.equal(Object.hasOwn(schema, key), false);
     assert.equal(schema.members[0].name, "value");
     assert.equal(CjsSchema.getMethod(Sample, "Run").impl.status, "implemented");
-    assert.deepEqual([ ...mappedInterfaces(Sample) ], [IRoot, Sample]);
+    assert.deepEqual([...mappedInterfaces(Sample)], [IRoot, Sample]);
     assert.equal(new Sample().Run(), 2);
 });
 

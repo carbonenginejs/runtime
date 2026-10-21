@@ -28,6 +28,8 @@ import { Tr2ConstantUsageAL } from "../Tr2ConstantBufferAL/Tr2ConstantBufferAL.j
 
 /**
  * A constant buffer on a WebGL2 device.
+ *
+ * Carbon: Tr2ConstantBufferAL (trinity/trinityal/dx11/Tr2ConstantBufferALDx11.h:16)
  */
 export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -266,4 +268,4 @@ CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetSize", blue.method);
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2ConstantBufferALWebgl2, { className: "Tr2ConstantBufferALWebgl2", donors: [ "Tr2ConstantBufferAL" ] });
+CjsSchema.blue.define(Tr2ConstantBufferALWebgl2, { className: "Tr2ConstantBufferALWebgl2" });

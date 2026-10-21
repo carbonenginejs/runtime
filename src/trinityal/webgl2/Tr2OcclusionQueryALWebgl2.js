@@ -28,6 +28,8 @@ import { Tr2OcclusionQueryAL } from "../Tr2OcclusionQueryAL/Tr2OcclusionQueryAL.
 
 /**
  * An occlusion query on a WebGL2 device.
+ *
+ * Carbon: Tr2OcclusionQueryAL (trinity/trinityal/dx11/Tr2OcclusionQueryALDx11.h:16)
  */
 export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -200,4 +202,4 @@ CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2OcclusionQueryALWebgl2, { className: "Tr2OcclusionQueryALWebgl2", donors: [ "Tr2OcclusionQueryAL" ] });
+CjsSchema.blue.define(Tr2OcclusionQueryALWebgl2, { className: "Tr2OcclusionQueryALWebgl2" });

@@ -3,7 +3,10 @@ import { CjsSchema } from "#schema";
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
 
 
-/** The two world-space planet spheres read by the screen-space shadow resolve. */
+/** The two world-space planet spheres read by the screen-space shadow resolve.
+ *
+ * Modelled on: EveSpaceScene::EvePlanetPerObjData (trinity/trinity/Eve/EveSpaceScene.h:329)
+ */
 export class CjsEveSpaceSceneLayout
 {
   static structConfig = Object.freeze({
@@ -16,4 +19,4 @@ export class CjsEveSpaceSceneLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSpaceSceneLayout, {"className": "CjsEveSpaceSceneLayout", "donors": ["EveSpaceScene::EvePlanetPerObjData"]});
+CjsSchema.meta.define(CjsEveSpaceSceneLayout, {"className": "CjsEveSpaceSceneLayout"});

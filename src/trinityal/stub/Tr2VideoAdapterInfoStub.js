@@ -38,6 +38,8 @@ const UNSPECIFIED = 0;
 
 /**
  * Adapter and display-mode enumeration.
+ *
+ * Carbon: Tr2VideoAdapterInfo (trinity/trinityal/stub/Tr2VideoAdapterInfoALStub.h:18)
  */
 export class Tr2VideoAdapterInfoStub
 {
@@ -226,4 +228,4 @@ CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "SupportsBackBufferFormat", bl
 CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "SupportsRenderTargetFormat", blue.method);
 CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "AreAdaptersDifferent", blue.method);
 CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "RefreshData", blue.method);
-CjsSchema.blue.define(Tr2VideoAdapterInfoStub, { className: "Tr2VideoAdapterInfoStub", donors: [ "Tr2VideoAdapterInfo" ] });
+CjsSchema.blue.define(Tr2VideoAdapterInfoStub, { className: "Tr2VideoAdapterInfoStub" });

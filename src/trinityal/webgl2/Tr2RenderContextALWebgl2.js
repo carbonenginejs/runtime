@@ -197,6 +197,8 @@ function ClearColor(value)
 
 /**
  * A render context on a WebGL2 device.
+ *
+ * Carbon: Tr2RenderContextAL (trinity/trinityal/dx11/Tr2RenderContextDx11.h:56)
  */
 export class Tr2RenderContextALWebgl2
 {
@@ -2602,4 +2604,4 @@ CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetSupportedUpscalingTechniq
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetUpscalingSetup", blue.method);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ReleaseDeviceResources", blue.method);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "Destroy", blue.method);
-CjsSchema.blue.define(Tr2RenderContextALWebgl2, { className: "Tr2RenderContextALWebgl2", donors: [ "Tr2RenderContextAL" ] });
+CjsSchema.blue.define(Tr2RenderContextALWebgl2, { className: "Tr2RenderContextALWebgl2" });

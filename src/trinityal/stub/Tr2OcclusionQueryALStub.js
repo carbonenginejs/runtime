@@ -13,6 +13,8 @@ import { Tr2OcclusionQueryAL } from "../Tr2OcclusionQueryAL/Tr2OcclusionQueryAL.
 
 /**
  * Counts the pixels a bracketed draw passed.
+ *
+ * Carbon: Tr2OcclusionQueryAL (trinity/trinityal/stub/Tr2OcclusionQueryALStub.h:11)
  */
 export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
 {
@@ -138,4 +140,4 @@ CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "End", blue.method);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetPixelCount", blue.method);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2OcclusionQueryALStub, { className: "Tr2OcclusionQueryALStub", donors: [ "Tr2OcclusionQueryAL" ] });
+CjsSchema.blue.define(Tr2OcclusionQueryALStub, { className: "Tr2OcclusionQueryALStub" });

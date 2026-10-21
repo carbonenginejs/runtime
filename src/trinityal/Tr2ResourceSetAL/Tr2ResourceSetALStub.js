@@ -14,6 +14,8 @@ import { ALResult } from "../ALResult.js";
  * resource set lives in a descriptor heap or bind group there is none of here.
  * The description is kept, which is the departure every stub in this family
  * makes: a headless caller can read back what it asked to bind.
+ *
+ * Carbon: Tr2ResourceSetAL (trinity/trinityal/stub/Tr2ResourceSetALStub.h:11)
  */
 export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
 {
@@ -109,4 +111,4 @@ CjsSchema.decorateMethod(Tr2ResourceSetALStub, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2ResourceSetALStub, { className: "Tr2ResourceSetALStub", donors: [ "Tr2ResourceSetAL" ] });
+CjsSchema.blue.define(Tr2ResourceSetALStub, { className: "Tr2ResourceSetALStub" });

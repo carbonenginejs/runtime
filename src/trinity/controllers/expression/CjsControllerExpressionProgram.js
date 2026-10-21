@@ -79,6 +79,8 @@ const CURVE_EXPRESSION_TERMS = [
  * Compiles a Carbon controller or curve expression into an AST and evaluates it
  * without dynamic JavaScript eval, exposing the referenced variable and function
  * names for dirty tracking.
+ *
+ * Modelled on: CcpParser::Program (parser/include/ccpparser.h:25)
  */
 export class CjsControllerExpressionProgram
 {
@@ -341,4 +343,4 @@ export class CjsControllerExpressionProgram
  * chain.
  */
 
-CjsSchema.meta.define(CjsControllerExpressionProgram, { className: "CjsControllerExpressionProgram", donors: [ "CcpParser::Program" ] });
+CjsSchema.meta.define(CjsControllerExpressionProgram, { className: "CjsControllerExpressionProgram" });

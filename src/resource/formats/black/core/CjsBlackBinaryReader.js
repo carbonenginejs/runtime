@@ -3,6 +3,8 @@ import { CjsSchema } from "#schema/CjsSchema";
 /**
  * Bounds-aware `DataView` cursor that provides the primitive reads and
  * end-of-stream checks the Black transport decodes with.
+ *
+ * Modelled on: BlackReader (blue/src/BlackReader.h:17)
  */
 export class CjsBlackBinaryReader
 {
@@ -402,4 +404,4 @@ export class CjsBlackBinaryReader
     static utf16Decoder = new TextDecoder("utf-16le");
 }
 
-CjsSchema.meta.define(CjsBlackBinaryReader, { className: "CjsBlackBinaryReader", donors: [ "BlackReader" ] });
+CjsSchema.meta.define(CjsBlackBinaryReader, { className: "CjsBlackBinaryReader" });

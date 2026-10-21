@@ -1,5 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { classDonorComments } from "./carbon-donor-comments.js";
 import { parse } from "@babel/parser";
 import { headerTypes, jsClasses, jsProvenance } from "./carbon-header-shape.js";
 
@@ -18,40 +19,16 @@ export async function filesUnder(directory, extensions)
 }
 
 
-/**
- * The Carbon donors a file's class definitions declare as ported.
- *
- * `meta.carbon(...)` declares literal native names independently of registration.
- * The older `donors: [ "X" ]` in a `blue.define` names the one
- * Carbon class a renamed port replicates (ruling 2026-10-15, which replaced
- * `carbon:`); CjsSchema folds it into the definition's `carbon`. A bare
- * `carbon: "X"` still declares a `meta` class that replicates a Carbon type
- * Carbon does not expose, and every dropped/ record.
- *
- * `donors` in a `meta.define` (the old `modelledOn:`) deliberately does NOT
- * count. It declares that a class declines to replicate the donor's surface,
- * so it cannot answer whether the donor is ported - and counting it hid a real
- * gap: a WebGPU encode state "modelled on" Tr2RenderContextBase satisfied
- * coverage for a Trinity base that was never written. A modelled donor is
- * written into a dropped/ tree like any other, with the reason.
- *
- * @param {string} source File contents.
- * @returns {string[]} Declared donor class names.
- */
+/** Native identities and class Carbon lines count as ported; Modelled on lines do not. */
 function declaredDonors(source)
 {
     const donors = [];
-    for (const [ , donor ] of source.matchAll(/\bcarbon:\s*"(\w+)"/g)) donors.push(donor);
-
-    const blocks = [
-        ...source.matchAll(/@blue\.define\(\s*\{([\s\S]*?)\}\s*\)/g),
-        ...source.matchAll(/CjsSchema\.blue\.define\(\s*\w+\s*,\s*\{([\s\S]*?)\}\s*\)/g)
-    ];
-    for (const [ , body ] of blocks)
-    {
-        const donor = body.match(/\bdonors:\s*\[\s*"(\w+)"\s*\]/);
-        if (donor) donors.push(donor[1]);
-    }
+    // Retain the identity of unexposed Carbon classes and dropped records.
+    for (const [ , donor ] of source.matchAll(/\bcarbon:\s*"([\w:]+)"/g)) donors.push(donor);
+    try {
+        for (const c of classDonorComments(source)) for (const entry of c.entries)
+            if (!entry.error && entry.kind === "Carbon") donors.push(entry.name);
+    } catch { /* The existing syntax reader below also handles parse failures. */ }
     // Read annotations as syntax, so comments, strings and unrelated calls cannot
     // claim a port. Only class decorators and top-level applications to a class
     // declared in this module are declarations.

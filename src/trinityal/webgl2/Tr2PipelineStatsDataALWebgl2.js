@@ -9,6 +9,8 @@ import { CjsSchema } from "#schema";
 
 /**
  * A pipeline statistics record on a WebGL2 device, which holds no values.
+ *
+ * Carbon: Tr2PipelineStatsDataAL (trinity/trinityal/dx11/Tr2PipelineStatsQueryALDx11.h:11)
  */
 export class Tr2PipelineStatsDataALWebgl2
 {
@@ -16,4 +18,4 @@ export class Tr2PipelineStatsDataALWebgl2
   data = [];
 }
 
-CjsSchema.blue.define(Tr2PipelineStatsDataALWebgl2, { className: "Tr2PipelineStatsDataALWebgl2", donors: [ "Tr2PipelineStatsDataAL" ] });
+CjsSchema.blue.define(Tr2PipelineStatsDataALWebgl2, { className: "Tr2PipelineStatsDataALWebgl2" });

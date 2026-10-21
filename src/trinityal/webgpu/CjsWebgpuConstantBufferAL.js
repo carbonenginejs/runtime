@@ -47,6 +47,8 @@ let nextConstantBufferId = 1;
 /**
  * A `Tr2ConstantBufferAL` whose contents live in a CPU shadow copy, suballocated
  * into the frame's constant arena when they are bound.
+ *
+ * Carbon: Tr2ConstantBufferAL (trinity/trinityal/include/Tr2ConstantBufferAL.h:26)
  */
 export class CjsWebgpuConstantBufferAL
 {
@@ -238,4 +240,4 @@ CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Destroy", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetName", blue.method);
-CjsSchema.blue.define(CjsWebgpuConstantBufferAL, { className: "CjsWebgpuConstantBufferAL", donors: [ "Tr2ConstantBufferAL" ] });
+CjsSchema.blue.define(CjsWebgpuConstantBufferAL, { className: "CjsWebgpuConstantBufferAL" });

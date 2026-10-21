@@ -31,7 +31,10 @@ const ABSENT_STATUSES = new Set([ 404, 410 ]);
 /** HTTP statuses worth retrying: the request may succeed if made again. */
 const RETRY_STATUSES = new Set([ 408, 429, 500, 502, 503, 504 ]);
 
-/** `CjsBlueResFileSystemFetch` - `res:` and `http(s):` paths read with `fetch`. */
+/** `CjsBlueResFileSystemFetch` - `res:` and `http(s):` paths read with `fetch`.
+ *
+ * Modelled on: BlueResFileSystemRemote (blue/src/BlueResFileSystemRemote.h:9)
+ */
 export class CjsBlueResFileSystemFetch extends IBlueResFileSystem
 {
   /** The protocols served: `res:` through the URL table, `http(s):` as they are. */
@@ -471,7 +474,6 @@ function wait(milliseconds, signal)
 
 CjsSchema.meta.define(CjsBlueResFileSystemFetch, {
   className: "CjsBlueResFileSystemFetch",
-  donors: [ "BlueResFileSystemRemote" ],
   fields: {},
   methods: {
     SetPath: [],

@@ -22,7 +22,10 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 
 
-/** A fence the backend has accepted. */
+/** A fence the backend has accepted.
+ *
+ * Carbon: Tr2FenceAL (trinity/trinityal/stub/Tr2FenceALStub.h:11)
+ */
 export class Tr2FenceALStub extends Tr2DeviceResourceAL
 {
   /** m_isValid */
@@ -153,4 +156,4 @@ CjsSchema.decorateMethod(Tr2FenceALStub, "IsReached", blue.method);
 CjsSchema.decorateMethod(Tr2FenceALStub, "Wait", blue.method);
 CjsSchema.decorateMethod(Tr2FenceALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2FenceALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2FenceALStub, { className: "Tr2FenceALStub", donors: [ "Tr2FenceAL" ] });
+CjsSchema.blue.define(Tr2FenceALStub, { className: "Tr2FenceALStub" });

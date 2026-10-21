@@ -33,6 +33,9 @@ export function flagMask(value)
 function identity(c)
 {
     const native = [], donors = [];
+    const carbonComments = (c.donorComments ?? []).filter(d => !d.error && d.kind === "Carbon").map(d => d.name);
+    native.push(...carbonComments);
+    donors.push(...(c.donorComments ?? []).filter(d => !d.error).map(d => d.name));
     const annotations = c.definitions.filter(d => d.kind === "meta.carbon");
     const exposed = c.definitions.some(d => d.namespace === "blue" || d.namespace === "exposure");
     let own = false, declared = false;
@@ -47,11 +50,9 @@ function identity(c)
             if (exposed) donors.push(...names);
         }
         else if (d.namespace === "blue" || d.namespace === "exposure")
-            native.push(...(annotations.length ? [] : typeof v === "string" ? [v] : v?.carbon ? [].concat(v.carbon) : v?.donors ?? [v?.className]));
+            native.push(...(annotations.length || carbonComments.length ? [] : typeof v === "string" ? [v] : v?.carbon ? [].concat(v.carbon) : [v?.className]));
         else if (v?.carbon) native.push(...[].concat(v.carbon));
         else own = true;
-        if (v?.donors) donors.push(...[].concat(v.donors));
-        if (v?.modelledOn) donors.push(...[].concat(v.modelledOn));
     }
     return {native:[...new Set(native.filter(x=>typeof x==="string"))],donors:[...new Set(donors)],own,declared};
 }

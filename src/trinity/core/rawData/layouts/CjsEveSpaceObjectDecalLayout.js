@@ -11,6 +11,9 @@ const { Identity: IDENTITY, Types, Zero4: ZERO4 } = CjsConstantLayout;
  * EveSpaceObjectDecal.h:27-45 - uploaded as two constant buffers
  * (cpp:975-976). `unused` shares clipRadius2Sq's register and is Carbon's
  * explicit pad; it is declared so the layout is right and never written.
+ *
+ * Modelled on: DecalVSPerObjectData (trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h:27)
+ * Modelled on: DecalPSPerObjectData (trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h:37)
  */
 export class CjsEveSpaceObjectDecalLayout
 {
@@ -42,4 +45,4 @@ export class CjsEveSpaceObjectDecalLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveSpaceObjectDecalLayout, {"className": "CjsEveSpaceObjectDecalLayout", "donors": ["DecalVSPerObjectData", "DecalPSPerObjectData"]});
+CjsSchema.meta.define(CjsEveSpaceObjectDecalLayout, {"className": "CjsEveSpaceObjectDecalLayout"});

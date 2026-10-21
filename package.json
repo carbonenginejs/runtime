@@ -291,7 +291,7 @@
   "scripts": {
     "audit:decorator-target": "node scripts/lint-decorator-target.js",
     "build:npm": "node scripts/build-npm.js && rollup -c && node scripts/build-min.js",
-    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:undeclared-fields && npm run lint:instanceof && npm run lint:constructor-name && npm run lint:private-references && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs && npm run lint:format-jsdoc",
+    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:undeclared-fields && npm run lint:instanceof && npm run lint:constructor-name && npm run lint:private-references && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-comments && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs && npm run lint:format-jsdoc",
     "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
     "lint:optional-calls": "node scripts/lint-optional-calls.js",
     "lint:undeclared-fields": "node scripts/lint-undeclared-fields.js",
@@ -299,6 +299,7 @@
     "lint:source": "node scripts/lint-source.js",
     "lint:class-shape": "node scripts/lint-class-shape.js",
     "lint:class-file-naming": "node scripts/lint-class-file-naming.js",
+    "lint:donor-comments": "node scripts/lint-donor-comments.js",
     "lint:donor-coverage": "node scripts/lint-donor-coverage.js",
     "lint:enum-parity": "node scripts/lint-enum-parity.js",
     "lint:struct-defaults": "node scripts/lint-struct-defaults.js",

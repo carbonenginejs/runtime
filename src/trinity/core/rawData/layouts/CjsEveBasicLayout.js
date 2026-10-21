@@ -7,7 +7,10 @@ import { CjsConstantLayout } from "../CjsConstantLayout.js";
 const { Identity: IDENTITY, Types } = CjsConstantLayout;
 
 
-/** EveTransform.h:161-163 - three matrices, the simplest placeable payload. */
+/** EveTransform.h:161-163 - three matrices, the simplest placeable payload.
+ *
+ * Modelled on: EveBasicPerObjectData (trinity/trinity/Eve/EveTransform.h:148)
+ */
 export class CjsEveBasicLayout
 {
   static structConfig = Object.freeze({
@@ -22,4 +25,4 @@ export class CjsEveBasicLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveBasicLayout, {"className": "CjsEveBasicLayout", "donors": ["EveBasicPerObjectData"]});
+CjsSchema.meta.define(CjsEveBasicLayout, {"className": "CjsEveBasicLayout"});

@@ -2,7 +2,7 @@
 // Source: trinity/trinityal/metal/MetalWorkQueue.mm
 //
 // MODELLED ON `MetalWorkQueue`, NOT A REPLICA OF IT - which is what the
-// `modelledOn` declaration below says, and why the parity check does not hold
+// `Modelled on:` class JSDoc line below says, and why the parity check does not hold
 // this class to that class's surface. Metal's work queue declares 113 methods
 // to this file's 27, because it is the whole command recorder; comparing them
 // would report 101 absences as debt when the surface simply lives elsewhere
@@ -75,6 +75,8 @@ export const EncoderType = Object.freeze({
  * DEVICE-FREE, for the reason Carbon's stub backend is: the rules are the part
  * worth testing, and they need no GPU. A caller applies the transitions this
  * reports to a real command encoder.
+ *
+ * Modelled on: MetalWorkQueue (trinity/trinityal/metal/MetalWorkQueue.h:173)
  */
 export class CjsWebgpuWorkQueue
 {
@@ -1181,4 +1183,4 @@ CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DispatchThreadgroupsIndirect", blu
 CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawPrimitivesIndirect", blue.method, meta.renamed("DrawPrimitives"));
 CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawIndexedPrimitivesIndirect", blue.method, meta.renamed("DrawIndexedPrimitives"));
 CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetDepthAttachment", blue.method, meta.renamed("SetDepthStencilAttachment"));
-CjsSchema.meta.define(CjsWebgpuWorkQueue, { className: "CjsWebgpuWorkQueue", donors: [ "MetalWorkQueue" ] });
+CjsSchema.meta.define(CjsWebgpuWorkQueue, { className: "CjsWebgpuWorkQueue" });

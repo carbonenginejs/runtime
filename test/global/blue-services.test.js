@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { classDonorComments } from "../../scripts/lib/carbon-donor-comments.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { blue, CjsBlue, CjsBlueOS, CjsBlueResMan, CjsBlueClasses, CjsBluePaths } from "../../npm/dist/global/blue/index.js";
@@ -7,7 +9,7 @@ import { CjsLibrary } from "../../npm/dist/core/CjsLibrary.js";
 import { CjsWwiseSoundEngineStub } from "../../npm/dist/global/audio/CjsWwiseSoundEngineStub.js";
 import { AudGameObjResource } from "../../npm/dist/audio/trinity/audio/AudGameObjResource.js";
 
-test("CjsBlue owns inert defaults with explicit donor identities and shared registries", () =>
+test("CjsBlue owns inert defaults with comment donors and shared registries", () =>
 {
   const value = new CjsBlue();
   assert.equal(value.resMan.constructor, CjsBlueResMan);
@@ -22,8 +24,15 @@ test("CjsBlue owns inert defaults with explicit donor identities and shared regi
   assert.equal(value.os.GetInfo().pumpTicksTotal, 0);
   assert.equal(value.resMan.workerLoader.worker, null);
   assert.equal(value.resMan.GetPendingLoads(), 0);
-  assert.equal(CjsSchema.getSchema(CjsBlueResMan).carbon, "BlueResMan");
-  assert.equal(CjsSchema.getSchema(CjsBlueClasses).carbon, "BlueClasses");
+  for (const [Class, name, donor] of [[CjsBlueResMan, "CjsBlueResMan", "BlueResMan"], [CjsBlueClasses, "CjsBlueClasses", "BlueClasses"]])
+  {
+    assert.equal(CjsSchema.getClassName(Class), name);
+    assert.equal(CjsSchema.getConstructor(name), Class);
+    assert.equal(Object.hasOwn(CjsSchema.getSchema(Class), "carbon"), false);
+    const source = readFileSync(new URL(`../../src/global/blue/${name}.js`, import.meta.url), "utf8");
+    const declared = classDonorComments(source).find(c => c.name === name);
+    assert.deepEqual(declared.entries.map(e => [e.kind, e.name]), [["Carbon", donor]]);
+  }
 });
 
 test("Blue Fetch routes DNA and resource schemes without changing options or results", async () =>

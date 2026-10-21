@@ -12,6 +12,9 @@ const { Identity: IDENTITY, Types } = CjsConstantLayout;
  * as two constant buffers (cpp:1325-1329). `boosterIntensity` is declared on
  * BOTH stages and written separately for each; it is not a duplicate. The
  * padding scalars are Carbon's explicit register pads and stay unwritten.
+ *
+ * Modelled on: EveBoosterSetPerObjectData::VertexShaderData (trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h:51)
+ * Modelled on: EveBoosterSetPerObjectData::PixelShaderData (trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h:66)
  */
 export class CjsEveBoosterSetLayout
 {
@@ -41,4 +44,4 @@ export class CjsEveBoosterSetLayout
   });
 }
 
-CjsSchema.meta.define(CjsEveBoosterSetLayout, {"className": "CjsEveBoosterSetLayout", "donors": ["EveBoosterSetPerObjectData::VertexShaderData", "EveBoosterSetPerObjectData::PixelShaderData"]});
+CjsSchema.meta.define(CjsEveBoosterSetLayout, {"className": "CjsEveBoosterSetLayout"});

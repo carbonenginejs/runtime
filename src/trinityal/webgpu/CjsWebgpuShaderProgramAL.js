@@ -74,6 +74,8 @@ function LayoutKey(binding)
  * and the layout lived only in a package the abstraction layer had no route to.
  *
  * Register maps retain signature order before physical WebGPU bindings merge.
+ *
+ * Carbon: Tr2ShaderProgramAL (trinity/trinityal/include/Tr2ShaderProgramAL.h:33)
  */
 export class CjsWebgpuShaderProgramAL
 {
@@ -432,4 +434,4 @@ CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Destroy", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "SetName", blue.method);
-CjsSchema.blue.define(CjsWebgpuShaderProgramAL, { className: "CjsWebgpuShaderProgramAL", donors: [ "Tr2ShaderProgramAL" ] });
+CjsSchema.blue.define(CjsWebgpuShaderProgramAL, { className: "CjsWebgpuShaderProgramAL" });

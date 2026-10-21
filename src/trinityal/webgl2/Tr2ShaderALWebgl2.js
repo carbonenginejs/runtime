@@ -57,6 +57,8 @@ function BytesFrom(bytecode)
 
 /**
  * One compiled shader stage on a WebGL2 device.
+ *
+ * Carbon: Tr2ShaderAL (trinity/trinityal/dx11/Tr2ShaderALDx11.h:21)
  */
 export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -295,4 +297,4 @@ CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetSignature", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2ShaderALWebgl2, { className: "Tr2ShaderALWebgl2", donors: [ "Tr2ShaderAL" ] });
+CjsSchema.blue.define(Tr2ShaderALWebgl2, { className: "Tr2ShaderALWebgl2" });

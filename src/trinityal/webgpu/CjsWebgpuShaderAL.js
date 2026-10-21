@@ -178,6 +178,8 @@ function StageBindings(type, signature)
  * produced it moved on. This keeps the source for the same reason: a pipeline
  * built later needs the entry point and the module, and a compilation error
  * needs the text to report against.
+ *
+ * Carbon: Tr2ShaderAL (trinity/trinityal/include/Tr2ShaderAL.h:163)
  */
 export class CjsWebgpuShaderAL
 {
@@ -445,4 +447,4 @@ CjsSchema.decorateMethod(CjsWebgpuShaderAL, "SetNullShaderType", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuShaderAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuShaderAL, "SetName", blue.method);
-CjsSchema.blue.define(CjsWebgpuShaderAL, { className: "CjsWebgpuShaderAL", donors: [ "Tr2ShaderAL" ] });
+CjsSchema.blue.define(CjsWebgpuShaderAL, { className: "CjsWebgpuShaderAL" });

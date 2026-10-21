@@ -57,6 +57,8 @@ const NO_HEAP_INDEX = 0xffffffff;
 
 /**
  * A texture that validates like a real one and holds its pixels on the CPU.
+ *
+ * Carbon: Tr2TextureAL (trinity/trinityal/stub/Tr2TextureALStub.h:39)
  */
 export class Tr2TextureALStub extends Tr2DeviceResourceAL
 {
@@ -692,4 +694,4 @@ CjsSchema.decorateMethod(Tr2TextureALStub, "GetSrvIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALStub, "GetUavIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALStub, "SetName", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALStub, "GetName", blue.method);
-CjsSchema.blue.define(Tr2TextureALStub, { className: "Tr2TextureALStub", donors: [ "Tr2TextureAL" ] });
+CjsSchema.blue.define(Tr2TextureALStub, { className: "Tr2TextureALStub" });

@@ -14,7 +14,10 @@ import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
 
-/** A frame fence: reached once the frame it was put in has been submitted. */
+/** A frame fence: reached once the frame it was put in has been submitted.
+ *
+ * Carbon: Tr2FenceAL (trinity/trinityal/metal/Tr2FenceALMetal.h:12)
+ */
 export class CjsWebgpuFenceAL
 {
   /** m_frame */
@@ -157,4 +160,4 @@ CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Wait", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "SetName", blue.method);
-CjsSchema.blue.define(CjsWebgpuFenceAL, { className: "CjsWebgpuFenceAL", donors: [ "Tr2FenceAL" ] });
+CjsSchema.blue.define(CjsWebgpuFenceAL, { className: "CjsWebgpuFenceAL" });

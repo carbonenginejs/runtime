@@ -160,6 +160,8 @@ const BEQI_SILENT = 0x1;
  * sized by its own `GetMemoryUsage`, and `TrimCache` drops the oldest while the
  * total is over budget. Every other expired entry is purged. Use takes an
  * entry back out of the cache, as Carbon's `Lookup` does (:149-157).
+ *
+ * Carbon: MotherLode (blue/src/MotherLode.h:50)
  */
 export class CjsMotherLode
 {
@@ -1699,4 +1701,3 @@ CjsSchema.blue.define(CjsMotherLode, {
     _WeakRefNotify: [ blue.method, meta.renamed("WeakRefNotify"), meta.adapted ]
   }
 });
-CjsSchema.meta.carbon("MotherLode")(CjsMotherLode);

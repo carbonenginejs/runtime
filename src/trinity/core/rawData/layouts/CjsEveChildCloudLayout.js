@@ -4,7 +4,10 @@ import { CjsConstantLayout } from "../CjsConstantLayout.js";
 
 const { Types } = CjsConstantLayout;
 
-/** Native legacy cloud VS payload; field order is the shader ABI. */
+/** Native legacy cloud VS payload; field order is the shader ABI.
+ *
+ * Modelled on: EveChildCloudPerObjectData::Data (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp:49)
+ */
 export class CjsEveChildCloudLayout
 {
   static structConfig = {
@@ -24,4 +27,4 @@ export class CjsEveChildCloudLayout
   };
 }
 
-CjsSchema.meta.define(CjsEveChildCloudLayout, {"className": "CjsEveChildCloudLayout", "donors": ["EveChildCloudPerObjectData::Data"]});
+CjsSchema.meta.define(CjsEveChildCloudLayout, {"className": "CjsEveChildCloudLayout"});

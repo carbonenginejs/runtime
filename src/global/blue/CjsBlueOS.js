@@ -14,6 +14,8 @@ const TICKS_PER_MILLISECOND = 10000;
  * Carbon's `BeOS`, as much of it as is honest: the clock and the pump.
  *
  * Composed at runtime without authored fields or serialized instance state.
+ *
+ * Carbon: BlueOS (blue/src/BlueOS.h:41)
  */
 export class CjsBlueOS extends IBlueOS
 {
@@ -346,4 +348,3 @@ CjsSchema.blue.define(CjsBlueOS, {
     RunStackless: [ blue.method, meta.adapted ]
   }
 });
-CjsSchema.meta.carbon("BlueOS")(CjsBlueOS);

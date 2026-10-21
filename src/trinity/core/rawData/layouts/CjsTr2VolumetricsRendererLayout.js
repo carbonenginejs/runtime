@@ -22,6 +22,8 @@ const SHADOW_FRUSTUM_COUNT = 16;
  * DynamicLights carries each light's packed PerLightData words; its flag, half-float and shadow-atlas words are bit
  * fields, so the lanes are uint32 and copy without passing through a float. Extinction, LinearizeDepthParams and
  * pad0 are never written by Carbon.
+ *
+ * Modelled on: Tr2VolumetricsRenderer::FogPerObjectData (trinity/trinity/Tr2VolumetricsRenderer.h:226)
  */
 export class CjsTr2VolumetricsRendererLayout
 {
@@ -94,4 +96,4 @@ export class CjsTr2VolumetricsRendererLayout
   static SHADOW_FRUSTUM_COUNT = SHADOW_FRUSTUM_COUNT;
 }
 
-CjsSchema.meta.define(CjsTr2VolumetricsRendererLayout, {"className": "CjsTr2VolumetricsRendererLayout", "donors": ["Tr2VolumetricsRenderer::FogPerObjectData"]});
+CjsSchema.meta.define(CjsTr2VolumetricsRendererLayout, {"className": "CjsTr2VolumetricsRendererLayout"});

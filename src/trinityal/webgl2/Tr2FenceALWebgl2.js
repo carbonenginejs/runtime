@@ -22,6 +22,8 @@ import { RenderContextALOf } from "../renderContextAL.js";
 
 /**
  * A GPU fence on a WebGL2 device.
+ *
+ * Carbon: Tr2FenceAL (trinity/trinityal/dx11/Tr2FenceALDx11.h:11)
  */
 export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -205,4 +207,4 @@ CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2FenceALWebgl2, { className: "Tr2FenceALWebgl2", donors: [ "Tr2FenceAL" ] });
+CjsSchema.blue.define(Tr2FenceALWebgl2, { className: "Tr2FenceALWebgl2" });

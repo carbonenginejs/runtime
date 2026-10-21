@@ -76,6 +76,8 @@ export const CjsWebgpuPlatformCaps = Object.freeze({
 
 /**
  * The capabilities the WebGPU backend reports.
+ *
+ * Carbon: Tr2CapsAL (trinity/trinityal/metal/Tr2CapsALMetal.h:20)
  */
 export class CjsWebgpuCapsAL
 {
@@ -179,4 +181,4 @@ CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsStandaloneSwapChain", blue.me
 CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsVertexShaderTextures", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsVariableRefreshRate", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsRaytracing", blue.method);
-CjsSchema.blue.define(CjsWebgpuCapsAL, { className: "CjsWebgpuCapsAL", donors: [ "Tr2CapsAL" ] });
+CjsSchema.blue.define(CjsWebgpuCapsAL, { className: "CjsWebgpuCapsAL" });

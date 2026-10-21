@@ -63,6 +63,9 @@ const STAGE_KIND = new Map([
  * `EffectData`, each stage's program being WGSL, each pass carrying its
  * binding block. Implements the driver's compiler interface (`Create`,
  * `CompileEffect`), as `EffectCompilerMetal` does.
+ *
+ * Modelled on: EffectCompilerMetal (trinity/shadercompiler/EffectCompilerMetal.h:75)
+ * Modelled on: EffectCompilerDX11 (trinity/shadercompiler/EffectCompilerDX11.h:9)
  */
 export class CjsFxEffectCompilerWebGPU
 {
@@ -621,4 +624,4 @@ function CollectConstants(state, stage, annotations, globalsStructs)
     return true;
 }
 
-CjsSchema.meta.define(CjsFxEffectCompilerWebGPU, { className: "CjsFxEffectCompilerWebGPU", donors: [ "EffectCompilerMetal", "EffectCompilerDX11" ] });
+CjsSchema.meta.define(CjsFxEffectCompilerWebGPU, { className: "CjsFxEffectCompilerWebGPU" });

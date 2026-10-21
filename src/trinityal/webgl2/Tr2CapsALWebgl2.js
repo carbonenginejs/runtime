@@ -49,6 +49,8 @@ export const Tr2Webgl2PlatformCaps = Object.freeze({
 
 /**
  * The capabilities the WebGL2 backend reports.
+ *
+ * Carbon: Tr2CapsAL (trinity/trinityal/dx11/Tr2CapsALDx11.h:21)
  */
 export class Tr2CapsALWebgl2
 {
@@ -138,4 +140,4 @@ CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsStandaloneSwapChain", blue.me
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVertexShaderTextures", blue.method);
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVariableRefreshRate", blue.method);
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsRaytracing", blue.method);
-CjsSchema.blue.define(Tr2CapsALWebgl2, { className: "Tr2CapsALWebgl2", donors: [ "Tr2CapsAL" ] });
+CjsSchema.blue.define(Tr2CapsALWebgl2, { className: "Tr2CapsALWebgl2" });

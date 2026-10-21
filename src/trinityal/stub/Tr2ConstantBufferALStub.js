@@ -26,6 +26,8 @@ export { Tr2ConstantUsageAL };
 
 /**
  * A constant buffer holding its shadow copy on the CPU.
+ *
+ * Carbon: Tr2ConstantBufferAL (trinity/trinityal/stub/Tr2ConstantBufferALStub.h:11)
  */
 export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
 {
@@ -160,4 +162,4 @@ CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetSize", blue.method);
 CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2ConstantBufferALStub, { className: "Tr2ConstantBufferALStub", donors: [ "Tr2ConstantBufferAL" ] });
+CjsSchema.blue.define(Tr2ConstantBufferALStub, { className: "Tr2ConstantBufferALStub" });

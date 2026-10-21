@@ -14,6 +14,8 @@ const { Identity: IDENTITY, Types } = CjsConstantLayout;
  * Trinity-layer classes. The layout lives here because the catalog is the
  * org-wide truth, exported on the `/perobject` subpath; whichever package ports
  * the placeable consumes it from there rather than redeclaring it.
+ *
+ * Modelled on: Tr2PerObjectVSData (trinity/trinity/Tr2ConstantBufferFormats.h:35)
  */
 export class CjsTr2PerObjectLayout
 {
@@ -30,4 +32,4 @@ export class CjsTr2PerObjectLayout
   });
 }
 
-CjsSchema.meta.define(CjsTr2PerObjectLayout, {"className": "CjsTr2PerObjectLayout", "donors": ["Tr2PerObjectVSData"]});
+CjsSchema.meta.define(CjsTr2PerObjectLayout, {"className": "CjsTr2PerObjectLayout"});

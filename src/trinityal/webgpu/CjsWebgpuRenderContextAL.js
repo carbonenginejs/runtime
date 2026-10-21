@@ -247,7 +247,10 @@ let primaryRenderContext = null;
 // the constant buffer, whose `SetConstants` keys the bound table with it too.
 
 
-/** WebGPU behind the abstraction layer, holding a work queue as Metal does. */
+/** WebGPU behind the abstraction layer, holding a work queue as Metal does.
+ *
+ * Carbon: Tr2RenderContextAL (trinity/trinityal/metal/Tr2RenderContextMetal.h:55)
+ */
 export class CjsWebgpuRenderContextAL
 {
   /**
@@ -3809,4 +3812,4 @@ CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawPrimitive", blue.method)
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawPrimitiveUP", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawIndexedPrimitiveUP", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "ComputeVertexCount", blue.method);
-CjsSchema.blue.define(CjsWebgpuRenderContextAL, { className: "CjsWebgpuRenderContextAL", donors: [ "Tr2RenderContextAL" ] });
+CjsSchema.blue.define(CjsWebgpuRenderContextAL, { className: "CjsWebgpuRenderContextAL" });

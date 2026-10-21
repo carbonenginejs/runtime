@@ -106,6 +106,8 @@ export function readBitsAt(bytes, startBit, count)
  * a throw — overrides `Exhausted()` instead. That is the one genuine
  * behavioural axis here, and it has two real callers pulling in opposite
  * directions, which is why it is a hook and not an option flag.
+ *
+ * Modelled on: BitPackerCore (blue/include/BitPacker.h:37)
  */
 export class CjsBitReader extends CjsReader
 {
@@ -320,4 +322,4 @@ export class CjsBitReader extends CjsReader
 
 export default CjsBitReader;
 
-CjsSchema.meta.define(CjsBitReader, { className: "CjsBitReader", donors: [ "BitPackerCore" ] });
+CjsSchema.meta.define(CjsBitReader, { className: "CjsBitReader" });

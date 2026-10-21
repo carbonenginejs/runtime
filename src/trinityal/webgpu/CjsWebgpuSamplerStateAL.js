@@ -31,6 +31,8 @@ const NO_HEAP_INDEX = 0xffffffff;
 /**
  * A `Tr2SamplerStateAL` backed by a `GPUSampler` created from Carbon's
  * authored sampler description.
+ *
+ * Carbon: Tr2SamplerStateAL (trinity/trinityal/include/Tr2SamplerStateAL.h:17)
  */
 export class CjsWebgpuSamplerStateAL
 {
@@ -171,4 +173,4 @@ CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Destroy", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "SetName", blue.method);
-CjsSchema.blue.define(CjsWebgpuSamplerStateAL, { className: "CjsWebgpuSamplerStateAL", donors: [ "Tr2SamplerStateAL" ] });
+CjsSchema.blue.define(CjsWebgpuSamplerStateAL, { className: "CjsWebgpuSamplerStateAL" });

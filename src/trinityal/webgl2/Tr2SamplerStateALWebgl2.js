@@ -79,6 +79,8 @@ function MinFilter(gl, minLinear, mipLinear)
 
 /**
  * A sampler state on a WebGL2 device.
+ *
+ * Carbon: Tr2SamplerStateAL (trinity/trinityal/dx11/Tr2SamplerStateALDx11.h:12)
  */
 export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -264,4 +266,4 @@ CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "SetName", blue.method);
-CjsSchema.blue.define(Tr2SamplerStateALWebgl2, { className: "Tr2SamplerStateALWebgl2", donors: [ "Tr2SamplerStateAL" ] });
+CjsSchema.blue.define(Tr2SamplerStateALWebgl2, { className: "Tr2SamplerStateALWebgl2" });

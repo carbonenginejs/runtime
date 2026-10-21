@@ -41,6 +41,8 @@ const NO_HEAP_INDEX = 0xffffffff;
 
 /**
  * A buffer that holds its bytes on the CPU.
+ *
+ * Carbon: Tr2BufferAL (trinity/trinityal/stub/Tr2BufferALStub.h:11)
  */
 export class Tr2BufferALStub extends Tr2DeviceResourceAL
 {
@@ -295,4 +297,4 @@ CjsSchema.decorateMethod(Tr2BufferALStub, "UpdateBuffer", blue.method);
 CjsSchema.decorateMethod(Tr2BufferALStub, "GetSrvIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2BufferALStub, "GetUavIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2BufferALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2BufferALStub, { className: "Tr2BufferALStub", donors: [ "Tr2BufferAL" ] });
+CjsSchema.blue.define(Tr2BufferALStub, { className: "Tr2BufferALStub" });

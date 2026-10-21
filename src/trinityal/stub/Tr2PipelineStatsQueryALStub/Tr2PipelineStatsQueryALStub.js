@@ -11,6 +11,8 @@ import { ALResult } from "../../ALResult.js";
  * Carbon's stub is the most permissive of the three: it is always valid and
  * every call succeeds, because there is nothing to allocate and no state worth
  * mispairing.
+ *
+ * Carbon: Tr2PipelineStatsQueryAL (trinity/trinityal/stub/Tr2PipelineStatsQueryALStub.h:16)
  */
 export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
 {
@@ -163,4 +165,4 @@ CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetValue", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "SetName", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Describe", blue.method);
-CjsSchema.blue.define(Tr2PipelineStatsQueryALStub, { className: "Tr2PipelineStatsQueryALStub", donors: [ "Tr2PipelineStatsQueryAL" ] });
+CjsSchema.blue.define(Tr2PipelineStatsQueryALStub, { className: "Tr2PipelineStatsQueryALStub" });

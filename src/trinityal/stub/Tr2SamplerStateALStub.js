@@ -31,6 +31,8 @@ const NO_HEAP_INDEX = 0xffffffff;
 
 /**
  * A sampler state the backend has accepted.
+ *
+ * Carbon: Tr2SamplerStateAL (trinity/trinityal/stub/Tr2SamplerStateALStub.h:11)
  */
 export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
 {
@@ -131,4 +133,4 @@ CjsSchema.decorateMethod(Tr2SamplerStateALStub, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2SamplerStateALStub, "SetName", blue.method);
-CjsSchema.blue.define(Tr2SamplerStateALStub, { className: "Tr2SamplerStateALStub", donors: [ "Tr2SamplerStateAL" ] });
+CjsSchema.blue.define(Tr2SamplerStateALStub, { className: "Tr2SamplerStateALStub" });

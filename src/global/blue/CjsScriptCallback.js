@@ -12,6 +12,8 @@ import { CjsSchema, meta, blue } from "../schema/index.js";
  * A JavaScript function is wrapped once at the boundary through
  * {@link CjsScriptCallback.from}; runtime hot paths then call `Call` or
  * `CallVoid` directly.
+ *
+ * Carbon: BlueScriptCallback (blueexposure/include/BlueScriptCallback.h:54)
  */
 export class CjsScriptCallback
 {
@@ -128,4 +130,3 @@ CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", blue.method, meta.adapte
 // a deliberately renamed port is indistinguishable from an invention, which is
 // exactly how this class read before 2026-09-13.
 CjsSchema.blue.define(CjsScriptCallback, { className: "CjsScriptCallback" });
-CjsSchema.meta.carbon("BlueScriptCallback")(CjsScriptCallback);

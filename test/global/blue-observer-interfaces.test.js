@@ -30,8 +30,8 @@ test("Blue observer interfaces register one identity and only their native abstr
     assert.deepEqual(CjsSchema.getSchema(Type).members, []);
     assert.deepEqual(CjsSchema.getSchema(Type).properties, []);
     assert.deepEqual(Object.getOwnPropertyNames(Type.prototype), ["constructor", method]);
-    assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
-    assert.deepEqual(Array.from(mappedInterfaces(Type)), []);
+    assert.equal(Object.getPrototypeOf(Type.prototype), ExposureRoot.prototype);
+    assert.deepEqual(Array.from(mappedInterfaces(Type)), [ExposureRoot]);
   }
 });
 

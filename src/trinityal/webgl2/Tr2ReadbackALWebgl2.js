@@ -23,6 +23,8 @@ import { SwapRedBlue } from "./Tr2TextureALWebgl2.js";
  * dx11's `CopySubresourceRegion` is, and the map is `getBufferSubData`, which
  * waits for that copy as dx11's `Map(READ)` waits for the staging texture
  * (`:350-352`). BGRA data comes back swizzled to BGRA, as `MapForReading`'s.
+ *
+ * Carbon: Tr2ReadbackAL (trinity/trinityal/dx11/Tr2TextureALDx11.h:26)
  */
 export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
 {
@@ -158,4 +160,4 @@ CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "IsValid", blue.method);
-CjsSchema.blue.define(Tr2ReadbackALWebgl2, { className: "Tr2ReadbackALWebgl2", donors: [ "Tr2ReadbackAL" ] });
+CjsSchema.blue.define(Tr2ReadbackALWebgl2, { className: "Tr2ReadbackALWebgl2" });
