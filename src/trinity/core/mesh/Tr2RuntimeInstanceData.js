@@ -648,7 +648,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Carbon's Granny writer requires the native Granny SDK and filesystem. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   SaveToGranny(...args)
   {

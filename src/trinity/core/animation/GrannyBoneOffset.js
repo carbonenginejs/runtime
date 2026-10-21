@@ -61,7 +61,7 @@ export class GrannyBoneOffset extends IInitialize
   }
 
   /** Drops every named bone offset along with the rig binding. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearTransforms()
   {
@@ -75,7 +75,7 @@ export class GrannyBoneOffset extends IInitialize
    * rig binding. JavaScript string coercion and falsy-name rejection preserve
    * the existing name adapter; gl-matrix stores the native quaternion layout.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetRotation(bone, r, i, j, k)
   {
@@ -90,7 +90,7 @@ export class GrannyBoneOffset extends IInitialize
    * stored for it, and invalidates the rig binding. The existing JavaScript
    * adapter coerces truthy names to strings and rejects falsy names.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetOffset(bone, x, y, z)
   {

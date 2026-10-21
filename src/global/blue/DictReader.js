@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: blue/src/DictReader.h
 // Source: blue/src/DictReader.cpp
 // Source: blue/src/YamlReader.cpp (anchors: ExtractAnchorFromMappingStart, ReadIRootClass)
@@ -1589,7 +1590,7 @@ function IsPlainObject(value)
 CjsSchema.blue.inherit(IRoot)(DictReader);
 
 CjsSchema.exposure.define("DictReader")(DictReader);
-CjsSchema.decorateMethod(DictReader, "CreateObject", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "CreateObject", be.mapMethod(), meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadList", blue.method, meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadStructureList", blue.method, meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadIRootPtr", meta.adapted);

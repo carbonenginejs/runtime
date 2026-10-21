@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
 import { CjsSchema, meta, blue } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
@@ -266,8 +267,8 @@ CjsSchema.decorateMethod(Tr2GrannyStateRes, "DoLoad", blue.method, meta.adapted)
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetCharacterInfo", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetGStateAnimFileRefPaths", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsFullyLoaded", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.exposure.define("Tr2GrannyStateRes")(Tr2GrannyStateRes);
 blue.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2GrannyStateRes);

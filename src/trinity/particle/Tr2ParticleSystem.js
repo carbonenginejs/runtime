@@ -541,7 +541,7 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon method SaveToGranny (MAP_METHOD_AND_WRAP). */
-  @legacyBlue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   SaveToGranny(...args)
   {

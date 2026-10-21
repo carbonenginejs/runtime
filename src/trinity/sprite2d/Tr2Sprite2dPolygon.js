@@ -263,7 +263,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Array<number[]>} triangles Sequence of 3-item vertex index arrays.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   AppendTriangles(triangles)
   {
@@ -306,7 +306,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {number[]|Array<number[]>} [texCoords1] 2-item UV or sequence of them.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   AppendVertices(positions, positionTransform, colors, texCoords0, texCoords1)
   {
@@ -393,7 +393,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {number[]|Array<number[]>|null} [texCoords1] 2-item UV, sequence of them, or null.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   SetVertices(positions, positionTransform, colors, texCoords0, texCoords1)
   {

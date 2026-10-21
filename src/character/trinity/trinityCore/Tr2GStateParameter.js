@@ -28,7 +28,7 @@ export class Tr2GStateParameter extends IInitialize
   nodename = "";
 
   /** Carbon method GetName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetName()
   {
@@ -36,7 +36,7 @@ export class Tr2GStateParameter extends IInitialize
   }
 
   /** Carbon method GetNodeName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetNodeName()
   {
@@ -44,7 +44,7 @@ export class Tr2GStateParameter extends IInitialize
   }
 
   /** Carbon method GetValue (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetValue()
   {
@@ -52,7 +52,7 @@ export class Tr2GStateParameter extends IInitialize
   }
 
   /** Carbon method SetName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetName(name)
   {
@@ -60,7 +60,7 @@ export class Tr2GStateParameter extends IInitialize
   }
 
   /** Carbon method SetNodeName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetNodeName(name)
   {
@@ -68,7 +68,7 @@ export class Tr2GStateParameter extends IInitialize
   }
 
   /** Carbon method SetValue (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetValue(value)
   {

@@ -184,7 +184,7 @@ export class Tr2GpuStructuredBuffer extends IRoot
   }
 
   /** Carbon method DebugGetData -> PyGetData (MAP_METHOD). */
-  @blue.method
+  @be.mapMethod()
   @meta.notImplemented
   DebugGetData(...args)
   {

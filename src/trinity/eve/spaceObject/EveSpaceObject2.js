@@ -4650,7 +4650,7 @@ export class EveSpaceObject2 extends EveEntity
    * LocatorStructureList shape) or the same [position, rotation, boneIndex]
    * tuple shape it returns.
    */
-  @legacyBlue.method
+  @be.mapMethod()
   @meta.adapted
   TransformLocators(locators = [])
   {
@@ -4679,7 +4679,7 @@ export class EveSpaceObject2 extends EveEntity
    * boneIndex] tuples (Carbon script GetTransformedLocatorsFromSet maps to
    * PyGetTransformedLocatorsFromSet, EveSpaceObject2_Blue.cpp:146-181).
    */
-  @legacyBlue.method
+  @be.mapMethod()
   @meta.implemented
   GetTransformedLocatorsFromSet(locatorSetName)
   {

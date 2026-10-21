@@ -1538,7 +1538,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {Tr2AtlasTexture[]} The textures.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetTexturesOutsideAtlas()
   {

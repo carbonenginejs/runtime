@@ -28,7 +28,7 @@ export class TriStepSetVariableStore extends TriRenderStep
   value = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(name = undefined, value = undefined)
   {

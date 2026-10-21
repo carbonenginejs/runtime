@@ -46,7 +46,7 @@ export class TriRect extends IRoot
    * zero. JavaScript defaults adapt the exposed native SetDimentions wrapper;
    * direct assignments retain the existing JavaScript number representation.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   __init__(left = 0, top = 0, right = 0, bottom = 0)
   {
@@ -62,7 +62,7 @@ export class TriRect extends IRoot
    * wrapper, using undefined instead of Be::Optional assignment state; it is
    * not the unexposed native SetRect(Tr2Rect*) overload.
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   SetRect(left, top, right, bottom)
   {

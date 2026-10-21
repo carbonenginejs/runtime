@@ -175,7 +175,7 @@ export class Tr2SBitWrapper extends IRoot
    * Copies browser grayscale coverage with Carbon's clipped, bottom-origin placement.
    * Adapted: typed byte views replace the Python writable-buffer interface.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ToBuffer(buffer, width, height, pitch, x, y, color)
   {
@@ -281,7 +281,7 @@ export class Tr2SBitWrapper extends IRoot
    * @param {number} extraSpace Extra underline length after the advance.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ToBufferWithUnderline(buffer, width, height, pitch, x, y, color, extraSpace)
   {

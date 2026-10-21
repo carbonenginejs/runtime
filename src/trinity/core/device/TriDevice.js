@@ -276,7 +276,7 @@ export class TriDevice extends IRoot
    * The returned vectors are detached from the picking helper's reusable
    * scratch storage, so a later query cannot mutate an earlier result.
    */
-  @legacyBlue.method
+  @be.mapMethodAsMethod()
   @meta.adapted
   GetPickRayFromViewport(x, y, viewport, view, projection)
   {
@@ -509,7 +509,7 @@ export class TriDevice extends IRoot
    * @param {object} resource A `Tr2DeviceResource`.
    * @returns {void}
    */
-  @legacyBlue.method
+  @be.mapMethodAsMethod()
   @meta.implemented
   static RegisterResource(resource)
   {
@@ -1146,7 +1146,7 @@ export class TriDevice extends IRoot
   }
 
   /** Carbon method RefreshDeviceResources (MAP_METHOD_AND_WRAP). */
-  @legacyBlue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   RefreshDeviceResources(...args)
   {
@@ -1175,7 +1175,7 @@ export class TriDevice extends IRoot
    *
    * @returns {boolean} True, as Carbon's does.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Render()
   {

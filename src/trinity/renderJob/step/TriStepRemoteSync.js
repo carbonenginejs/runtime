@@ -16,9 +16,13 @@ export class TriStepRemoteSync extends TriRenderStep
 {
   #id = -1;
 
-  /** Stores the identifier of the synchronization event this step would wait on. */
-  @blue.method
-  @meta.adapted
+  /**
+   * Stores the identifier of the synchronization event this step would wait on.
+   *
+   * Not supported: `_WIN32` build only; the step waits on a Windows event primitive, which a browser does not have.
+   */
+  @be.mapMethodAndWrapOptionalArgs()
+  @meta.notSupported
   __init__(id = -1)
   {
     this.SetId(id);

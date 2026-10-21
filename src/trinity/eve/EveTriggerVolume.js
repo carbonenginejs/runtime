@@ -124,7 +124,7 @@ export class EveTriggerVolume extends IRoot
    * Sets the callable invoked on enter/exit transitions as
    * callback(name, entered); pass null to clear it.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetCallback(callback)
   {

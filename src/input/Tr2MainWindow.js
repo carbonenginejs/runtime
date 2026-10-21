@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { CjsSchema, blue, meta } from "#schema";
 import { IRoot } from "../global/blue/IRoot.js";
 import { IBlueEvents } from "../global/blue/IBlueEvents.js";
@@ -466,13 +467,21 @@ export class Tr2MainWindow
         return 0;
     }
 
-    /** Returns false: browsers expose no Windows message filter. */
+    /**
+     * Returns false: browsers expose no Windows message filter.
+     *
+     * Not supported: `_WIN32` build only; there is no window handle to filter messages on.
+     */
     SetWindowsMessageFilter()
     {
         return false;
     }
 
-    /** Returns the explicit unsupported Windows message-filter result, `[false, []]`. */
+    /**
+     * Returns the explicit unsupported Windows message-filter result, `[false, []]`.
+     *
+     * Not supported: `_WIN32` build only; there is no window handle to filter messages on.
+     */
     GetWindowsMessageFilter()
     {
         return [ false, [] ];
@@ -649,7 +658,7 @@ CjsSchema.decorateMethod(Tr2MainWindow, "GetCursorPos", blue.method, meta.adapte
 CjsSchema.decorateMethod(Tr2MainWindow, "SetCursorPos", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "IsKeyToggled", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetBackBufferFormat", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2MainWindow, "SetWindowsMessageFilter", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowsMessageFilter", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "SetWindowsMessageFilter", be.mapMethodAndWrap(), meta.notSupported);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowsMessageFilter", be.mapMethodAndWrap(), meta.notSupported);
 CjsSchema.decorateMethod(Tr2MainWindow, "ProcessMessages", blue.method, meta.adapted);
 CjsSchema.exposure.define("Tr2MainWindow")(Tr2MainWindow);

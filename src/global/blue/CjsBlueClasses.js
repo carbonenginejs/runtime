@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: blueexposure/BlueClasses.h
 // Source: blueexposure/BlueClasses.cpp
 // Source: blueexposure/include/BlueTypes.h:409-419 (Be::ClassRegistration)
@@ -368,8 +369,8 @@ export class CjsBlueClasses extends IBlueClasses
    * `LiveList` (BlueClasses_Blue.cpp:116-160, `BLUE_LIVELIST_ENABLED` builds
    * only): live and lock counts per class and per tracked instance.
    *
-   * Not supported: it reports LiveCount's and LockCount's numbers, which
-   * JavaScript does not keep.
+   * Not used: live-object enumeration is a `BLUE_LIVELIST_ENABLED` debugging aid, and it reports
+   * LiveCount's and LockCount's numbers, which JavaScript does not keep.
    *
    * @returns {never}
    * @throws {Error} Always.
@@ -652,7 +653,7 @@ CjsSchema.blue.define(CjsBlueClasses, {
     LiveCount: [ blue.method, meta.notSupported ],
     LockCount: [ blue.method, meta.notSupported ],
     GetWrapperList: [ blue.method, meta.notSupported ],
-    LiveList: [ blue.method, meta.notSupported ],
+    LiveList: [ be.mapMethod(), meta.notUsed ],
     ProcessAllPendingDeletes: [ blue.method, meta.noop ],
     Copy: [ blue.method, meta.implemented ],
     Find: [ blue.method, meta.adapted ],

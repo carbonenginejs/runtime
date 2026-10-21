@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
@@ -593,7 +594,7 @@ CjsSchema.blue.define(Tr2EffectRes, {
     GetShader: [ blue.method, meta.adapted ],
     GetShaderByIndex: [],
     SetPermutationTranslator: [],
-    GetPermutationDescription: [ blue.method, meta.adapted ],
+    GetPermutationDescription: [ be.mapMethodAndWrap(), meta.adapted ],
     ReleaseResources: [ blue.method, meta.adapted ],
     IsMemoryUsageKnown: [ blue.method, meta.implemented ],
     GetMemoryUsage: [ blue.method, meta.adapted ]

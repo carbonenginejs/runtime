@@ -265,7 +265,7 @@ export class TriEventCurve extends ITriFunction
    * @param {*} args Callable arguments.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   AddCallableKey(time, callable, args)
   {
@@ -382,7 +382,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {Function|null}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetCallableKeyValue(index)
   {
@@ -394,7 +394,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {*}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetCallableKeyArgs(index)
   {

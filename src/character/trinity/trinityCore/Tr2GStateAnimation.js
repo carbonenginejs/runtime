@@ -63,7 +63,7 @@ export class Tr2GStateAnimation extends IRoot
    * Returns the authored Granny animation resource path stored by this graph
    * shell.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.string
   get resPath()
   {
@@ -80,7 +80,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Returns the authored state-graph resource path stored by this graph shell. */
-  @blue.property()
+  @be.mapProperty()
   @type.string
   get gStateResPath()
   {
@@ -97,7 +97,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Returns the authored Granny model name stored by this graph shell. */
-  @blue.property()
+  @be.mapProperty()
   @type.string
   get model()
   {
@@ -179,7 +179,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method ClearScrub (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   ClearScrub(...args)
   {
@@ -187,7 +187,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method ForceChangeToState (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   ForceChangeToState(...args)
   {
@@ -195,7 +195,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetActiveMachineElementName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetActiveMachineElementName(...args)
   {
@@ -203,7 +203,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetAnimationTime (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetAnimationTime(...args)
   {
@@ -211,7 +211,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetGStateAnimFileRefPaths (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetGStateAnimFileRefPaths(...args)
   {
@@ -219,7 +219,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetParameter (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetParameter(...args)
   {
@@ -227,7 +227,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetParameterByName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetParameterByName(...args)
   {
@@ -235,7 +235,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetParameterIndexByName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetParameterIndexByName(...args)
   {
@@ -243,7 +243,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetParameterRange (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetParameterRange(...args)
   {
@@ -251,7 +251,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetParameters (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetParameters(...args)
   {
@@ -259,7 +259,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetScrubOffset (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetScrubOffset(...args)
   {
@@ -267,7 +267,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetStartStateIdx (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetStartStateIdx(...args)
   {
@@ -275,7 +275,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetTopLevelNodeNames (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetTopLevelNodeNames(...args)
   {
@@ -283,7 +283,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetTopLevelParameterNodeNames (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetTopLevelParameterNodeNames(...args)
   {
@@ -291,7 +291,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method GetTopLevelStateNodeNames (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetTopLevelStateNodeNames(...args)
   {
@@ -299,7 +299,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method InstantiateCharacter (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   InstantiateCharacter(...args)
   {
@@ -307,7 +307,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method IsFullyLoaded (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   IsFullyLoaded(...args)
   {
@@ -315,7 +315,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method LoadModelFromGstate (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   LoadModelFromGstate(...args)
   {
@@ -323,7 +323,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method PlayFromScrub (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   PlayFromScrub(...args)
   {
@@ -331,7 +331,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method RequestChangeToState (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   RequestChangeToState(...args)
   {
@@ -339,7 +339,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method RequestParameter (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   RequestParameter(...args)
   {
@@ -347,7 +347,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method RequestParameterByName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   RequestParameterByName(...args)
   {
@@ -355,7 +355,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method ResetParamsToDefault (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   ResetParamsToDefault(...args)
   {
@@ -363,7 +363,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method SetParameter (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   SetParameter(...args)
   {
@@ -371,7 +371,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method SetScrubOffset (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   SetScrubOffset(...args)
   {
@@ -379,7 +379,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method SetStartStateByName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   SetStartStateByName(...args)
   {
@@ -387,7 +387,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method SetStartStateIdx (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   SetStartStateIdx(...args)
   {
@@ -395,7 +395,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method StartScrub (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   StartScrub(...args)
   {
@@ -403,7 +403,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method StartTransitionByName (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   StartTransitionByName(...args)
   {
@@ -411,7 +411,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method StopPlayFromScrub (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   StopPlayFromScrub(...args)
   {
@@ -419,7 +419,7 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Carbon method TogglePauseAnimations (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   TogglePauseAnimations(...args)
   {

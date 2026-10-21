@@ -814,7 +814,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {string[]|string} [names] Sequence of names.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   AppendVertices(positions, positionTransform, colors, names)
   {
@@ -888,7 +888,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {string[]|string|null} [names] Name, sequence of names, or null.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   SetVertices(positions, positionTransform, colors, names)
   {
