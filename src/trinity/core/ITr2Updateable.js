@@ -29,4 +29,4 @@ export class ITr2Updateable
 }
 
 
-CjsSchema.blue.define(ITr2Updateable, { className: "ITr2Updateable" });
+CjsSchema.exposure.interface("ITr2Updateable")(ITr2Updateable);

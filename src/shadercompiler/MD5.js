@@ -220,14 +220,10 @@ export class MD5
     static hashBytes = 16;
 }
 
-CjsSchema.blue.define(MD5, {
-    className: "MD5",
-    methods: {
-        reset: [blue.method],
-        add: [blue.method],
-        getHash: [blue.method],
-        getHash__Bytes: [meta.renamed("getHash")],
-        _processBuffer: [meta.renamed("processBuffer")],
-        _processBlock: [meta.renamed("processBlock")]
-    }
-});
+CjsSchema.decorateMethod(MD5, "reset", blue.method);
+CjsSchema.decorateMethod(MD5, "add", blue.method);
+CjsSchema.decorateMethod(MD5, "getHash", blue.method);
+CjsSchema.decorateMethod(MD5, "getHash__Bytes", meta.renamed("getHash"));
+CjsSchema.decorateMethod(MD5, "_processBuffer", meta.renamed("processBuffer"));
+CjsSchema.decorateMethod(MD5, "_processBlock", meta.renamed("processBlock"));
+CjsSchema.meta.carbon("MD5")(MD5);

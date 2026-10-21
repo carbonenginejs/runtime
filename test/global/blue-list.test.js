@@ -1,7 +1,7 @@
 import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, be } from "@carbonenginejs/runtime/blue";
+import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, blue as be } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, type, blue } from "@carbonenginejs/runtime/schema";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";

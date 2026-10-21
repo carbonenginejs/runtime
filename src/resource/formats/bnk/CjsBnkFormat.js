@@ -335,4 +335,4 @@ export class CjsBnkFormat extends CjsFormat
 
 export default CjsBnkFormat;
 
-CjsSchema.meta.define(CjsBnkFormat, { className: "CjsBnkFormat" });
+CjsSchema.meta.define("CjsBnkFormat")(CjsBnkFormat);

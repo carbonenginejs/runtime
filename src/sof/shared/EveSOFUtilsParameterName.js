@@ -1,8 +1,9 @@
+import { meta } from "#schema";
 import { blue } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFUtils.h
 
 /** Parses and remaps Carbon SOF material parameter prefixes. */
-@blue.define("EveSOFUtilsParameterName")
+@meta.carbon("EveSOFUtilsParameterName")
 export class EveSOFUtilsParameterName
 {
 

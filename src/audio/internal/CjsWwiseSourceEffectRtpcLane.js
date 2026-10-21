@@ -300,4 +300,4 @@ function FilteredControlKey(curve)
     return `${curve.scope}\0${curve.rtpc}`;
 }
 
-CjsSchema.meta.define(CjsWwiseSourceEffectRtpcLane, { className: "CjsWwiseSourceEffectRtpcLane" });
+CjsSchema.meta.define("CjsWwiseSourceEffectRtpcLane")(CjsWwiseSourceEffectRtpcLane);

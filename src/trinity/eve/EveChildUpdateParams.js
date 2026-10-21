@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveSpaceObjectChild.h
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -10,7 +11,7 @@ import { type, blue } from "#schema";
  * and the owner's motion and activation state. Rebuilt by the parent for each
  * child update, so nothing in it survives the call.
  */
-@blue.define("EveChildUpdateParams")
+@meta.carbon("EveChildUpdateParams")
 export class EveChildUpdateParams
 {
   @type.rootRef("IEveSpaceObject2")

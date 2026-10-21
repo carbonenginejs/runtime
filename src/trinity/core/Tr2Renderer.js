@@ -97,7 +97,7 @@ const PLANE_SCRATCH = new Float32Array(4);
  * Class and method decorators expose identity and native contracts to tooling
  * independently of graph hydration.
  */
-@blue.define("Tr2Renderer")
+@meta.carbon("Tr2Renderer")
 export class Tr2Renderer
 {
   // Carbon's header calls these the defaults "for the currently set shader

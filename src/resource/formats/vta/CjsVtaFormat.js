@@ -294,4 +294,4 @@ export class CjsVtaFormat extends CjsImageFormat
 
 export default CjsVtaFormat;
 
-CjsSchema.meta.define(CjsVtaFormat, { className: "CjsVtaFormat" });
+CjsSchema.meta.define("CjsVtaFormat")(CjsVtaFormat);

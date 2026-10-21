@@ -8,7 +8,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { be, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveChildContainer, ExecuteMainThreadActions, Tr2ControllerReference } from "../../npm/dist/trinity/index.js";
 import { StubResMan } from "../support/stubResMan.js";
@@ -34,19 +34,19 @@ test("real fx_01a loads its stand-alone controller and animates all five rib Dif
     assert.equal(createHash("md5").update(data).digest("hex"), md5, name);
     bytes.push(data);
   }
-  const previous = be.resMan;
-  const getActualTime = be.os.GetActualTime;
-  const getFrameTime = be.os.GetCurrentFrameTime;
+  const previous = blue.resMan;
+  const getActualTime = blue.os.GetActualTime;
+  const getFrameTime = blue.os.GetCurrentFrameTime;
   t.after(() =>
   {
-    be.resMan = previous;
-    be.os.GetActualTime = getActualTime;
-    be.os.GetCurrentFrameTime = getFrameTime;
+    blue.resMan = previous;
+    blue.os.GetActualTime = getActualTime;
+    blue.os.GetCurrentFrameTime = getFrameTime;
     ExecuteMainThreadActions();
   });
   let ticks = 0;
-  be.os.GetActualTime = () => ticks;
-  be.os.GetCurrentFrameTime = () => ticks;
+  blue.os.GetActualTime = () => ticks;
+  blue.os.GetCurrentFrameTime = () => ticks;
   let reads = 0;
   const manager = new CjsBlueResMan({ source: { Read(path)
   {
@@ -59,7 +59,7 @@ test("real fx_01a loads its stand-alone controller and animates all five rib Dif
   // controller objects use the real manager and Black object-builder route.
   const resourceHandles = new StubResMan();
   manager.GetResource = resourceHandles.GetResource.bind(resourceHandles);
-  be.resMan = manager;
+  blue.resMan = manager;
   const root = CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(bytes[0]).object);
   root.SetInheritProperties(Array.from({ length: 128 }, () => [ 1, 1, 1, 1 ]));
   root.StartControllers();

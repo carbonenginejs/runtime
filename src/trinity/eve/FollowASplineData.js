@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
 import { type, blue } from "#schema";
 
@@ -8,7 +9,7 @@ import { type, blue } from "#schema";
  * behaviour allocates one record per agent and rewrites it on every behaviour
  * update.
  */
-@blue.define("FollowASplineData")
+@meta.carbon("FollowASplineData")
 export class FollowASplineData
 {
   @type.int32

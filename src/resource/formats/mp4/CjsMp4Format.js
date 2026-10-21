@@ -197,4 +197,4 @@ export class CjsMp4Format extends CjsFormat
 
 export default CjsMp4Format;
 
-CjsSchema.meta.define(CjsMp4Format, { className: "CjsMp4Format" });
+CjsSchema.meta.define("CjsMp4Format")(CjsMp4Format);

@@ -269,4 +269,4 @@ function alignColumns(rows)
     return rows.map(([code, note]) => `${code.padEnd(width)}  ${note}`);
 }
 
-CjsSchema.meta.define(CjsFxCBufferHeader, { className: "CjsFxCBufferHeader" });
+CjsSchema.meta.define("CjsFxCBufferHeader")(CjsFxCBufferHeader);

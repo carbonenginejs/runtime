@@ -671,4 +671,4 @@ function NormalizeBytes(input)
 
 export default CjsFsd64Binary;
 
-CjsSchema.meta.define(CjsFsd64Binary, { className: "CjsFsd64Binary" });
+CjsSchema.meta.define("CjsFsd64Binary")(CjsFsd64Binary);

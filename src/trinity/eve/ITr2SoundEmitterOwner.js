@@ -28,4 +28,4 @@ export class ITr2SoundEmitterOwner
 CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "FindSoundEmitter", meta.abstract);
 CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "AddObserver", meta.noop);
 CjsSchema.blue.inherit(IRoot)(ITr2SoundEmitterOwner);
-CjsSchema.blue.define(ITr2SoundEmitterOwner, { className: "ITr2SoundEmitterOwner" });
+CjsSchema.exposure.interface("ITr2SoundEmitterOwner")(ITr2SoundEmitterOwner);

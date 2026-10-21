@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes_Blue.cpp
@@ -59,9 +60,14 @@ function FindDamageLocators(sets)
  * instanced mesh manager, owning their registration handles, instance flags and
  * world cull bounds.
  */
-@blue.define("EveChildInstancedMeshes")
+@be.define("EveChildInstancedMeshes")
 @blue.inherit(ITr2Renderable, IEveShadowCaster, IEveInstanceMeshProvider)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, EveEntity, ITr2Renderable, IEveShadowCaster, IEveInstanceMeshProvider)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IEveShadowCaster)
+@be.mapInterface(IEveInstanceMeshProvider)
 export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
   @blue.readwrite

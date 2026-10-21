@@ -79,4 +79,4 @@ export class CjsFsd64SchemaReader
 
 export default CjsFsd64SchemaReader;
 
-CjsSchema.meta.define(CjsFsd64SchemaReader, { className: "CjsFsd64SchemaReader" });
+CjsSchema.meta.define("CjsFsd64SchemaReader")(CjsFsd64SchemaReader);

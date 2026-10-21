@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -12,9 +13,12 @@ import { vec3 } from "#math/vec3";
 import { EveSmartLightAttributeModifierExpressionBucketArguments } from "./EveSmartLightAttributeModifierExpressionBucketArguments.js";
 
 /** EveSmartLightAttributeModifierExpressionBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash 02cc58c3.... */
-@blue.define("EveSmartLightAttributeModifierExpressionBucket")
+@be.define("EveSmartLightAttributeModifierExpressionBucket")
 @blue.inherit(IInitialize)
-@blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize)
+@be.mapInterface(EveSmartLightAttributeModifierBucket)
+@be.mapInterface(IEveSmartLightGroupAttributeModifier)
+@be.mapInterface(EveSmartLightBaseAttributeModifier)
+@be.mapInterface(IInitialize)
 export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLightAttributeModifierBucket
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSetItem.cpp
@@ -11,7 +12,7 @@ import { meta, type, blue } from "#schema";
  * One authored sprite: its bone attachment, position, blink timing, scale range,
  * falloff and normal and warp colours.
  */
-@blue.define("EveSpriteSetItem")
+@be.define("EveSpriteSetItem")
 @blue.inherit(IRoot)
 export class EveSpriteSetItem
 {

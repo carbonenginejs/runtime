@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPGodRaysEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPGodRaysEffect.json.).
 import { type, blue } from "#schema";
@@ -5,9 +6,9 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec4 } from "#math/vec4";
 
 /** Carries the color, intensity, and noise texture used for post-process god rays. */
-@blue.define("Tr2PPGodRaysEffect")
-@blue.chainTo(Tr2PPEffect)
-@blue.interface(Tr2PPEffect)
+@be.define("Tr2PPGodRaysEffect")
+@be.exposureChainTo(Tr2PPEffect)
+@be.mapInterface(Tr2PPEffect)
 export class Tr2PPGodRaysEffect extends Tr2PPEffect
 {
 

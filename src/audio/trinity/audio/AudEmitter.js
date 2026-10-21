@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudEmitter.h + AudEmitter.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEmitter.json.
@@ -10,10 +11,13 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 
 /** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
-@blue.define("AudEmitter")
+@be.define("AudEmitter")
 @blue.inherit(ITr2AudEmitter, IBlueEventListener, IBluePlacementObserver, ITr2DebugRenderable)
-@blue.interface(IBlueEventListener, IBluePlacementObserver, ITr2AudEmitter, ITr2DebugRenderable)
-@blue.chainTo(AudGameObjResource)
+@be.mapInterface(IBlueEventListener)
+@be.mapInterface(IBluePlacementObserver)
+@be.mapInterface(ITr2AudEmitter)
+@be.mapInterface(ITr2DebugRenderable)
+@be.exposureChainTo(AudGameObjResource)
 export class AudEmitter extends AudGameObjResource
 {
 

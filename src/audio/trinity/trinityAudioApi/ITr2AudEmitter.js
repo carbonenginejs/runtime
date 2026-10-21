@@ -133,4 +133,4 @@ export class ITr2AudEmitter
 for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, blue.abstract);
 CjsSchema.decorateMethod(ITr2AudEmitter, "Initialize__WithParameters", meta.renamed("Initialize"));
 blue.inherit(IRoot)(ITr2AudEmitter);
-CjsSchema.blue.define(ITr2AudEmitter, { className: "ITr2AudEmitter" });
+CjsSchema.exposure.interface("ITr2AudEmitter")(ITr2AudEmitter);

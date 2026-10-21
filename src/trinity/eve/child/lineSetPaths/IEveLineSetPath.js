@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/IEveLineSetPath.h
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -6,7 +7,7 @@ import { EveChildTransform } from "../EveChildTransform.js";
 
 
 /** Required line-set path contract on the shared child-transform spine. */
-@blue.define("IEveLineSetPath")
+@be.interface("IEveLineSetPath")
 export class IEveLineSetPath extends EveChildTransform
 {
 

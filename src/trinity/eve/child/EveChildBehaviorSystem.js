@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.cpp
 import { IsMatch } from "#blue";
@@ -35,10 +36,14 @@ import { ITr2DebugRenderable } from "#interfaces";
  * A child that drives behaviour groups - swarms, drones and the like - from its
  * own placement under the hull.
  */
-@blue.define("EveChildBehaviorSystem")
+@be.define("EveChildBehaviorSystem")
 @blue.inherit(ITr2Renderable)
 @blue.inherit(INotify, IInitialize, IListNotify, ITr2DebugRenderable)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, INotify, EveEntity)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(INotify)
+@be.mapInterface(EveEntity)
 export class EveChildBehaviorSystem extends EveChildTransform
 {
 

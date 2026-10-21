@@ -53,4 +53,4 @@ CjsSchema.decorateMethod(ITriEffectParameter, "GetParameterName", blue.abstract)
 CjsSchema.decorateMethod(ITriEffectParameter, "RebuildEffectHandles", blue.abstract);
 CjsSchema.decorateMethod(ITriEffectParameter, "GetHashValue", blue.abstract);
 CjsSchema.decorateMethod(ITriEffectParameter, "SupportsDirtyNotification", blue.method);
-CjsSchema.blue.define(ITriEffectParameter, { className: "ITriEffectParameter" });
+CjsSchema.exposure.interface("ITriEffectParameter")(ITriEffectParameter);

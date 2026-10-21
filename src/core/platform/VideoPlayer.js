@@ -500,15 +500,23 @@ export class VideoPlayer
 }
 
 blue.inherit(INotify, IBlueEvents)(VideoPlayer);
-blue.interface(IRoot)(VideoPlayer);
-CjsSchema.blue.define(VideoPlayer, {
-  className: "VideoPlayer",
-  methods: {
-  Create: [blue.method, meta.adapted], Update: [blue.method, meta.adapted], Pause: [blue.method, meta.adapted], Resume: [blue.method, meta.adapted],
-  IsPaused: [blue.method, meta.adapted], GetMediaTime: [blue.method, meta.adapted], GetDuration: [blue.method, meta.adapted],
-  GetDownloadedMediaTime: [blue.method, meta.adapted], GetVideoInfo: [blue.method, meta.adapted],
-  ClearTextures: [blue.method, meta.adapted], OnModified: [blue.method, meta.adapted], OnTick: [blue.method, meta.adapted],
-  SetBgraTexture: [blue.method, meta.adapted], GetBgraTexture: [blue.method, meta.implemented],
-  Seek: [blue.method, meta.adapted], GetState: [blue.method, meta.adapted], Validate: [blue.method, meta.adapted], Destruct: [meta.adapted]
-}
-});
+
+CjsSchema.decorateMethod(VideoPlayer, "Create", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Update", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Pause", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Resume", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "IsPaused", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "GetMediaTime", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "GetDuration", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "GetDownloadedMediaTime", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "GetVideoInfo", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "ClearTextures", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "OnModified", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "OnTick", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "SetBgraTexture", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "GetBgraTexture", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VideoPlayer, "Seek", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "GetState", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Validate", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Destruct", meta.adapted);
+CjsSchema.exposure.define("VideoPlayer")(VideoPlayer);

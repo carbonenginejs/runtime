@@ -200,22 +200,16 @@ export class Tr2VideoAdapters
 export default Tr2VideoAdapters;
 
 blue.inherit(IRoot)(Tr2VideoAdapters);
-blue.interface()(Tr2VideoAdapters);
-CjsSchema.blue.define(Tr2VideoAdapters, {
-    className: "Tr2VideoAdapters",
-    fields: {
-        DEFAULT_ADAPTER: [blue.read]
-    },
-    methods: {
-        RefreshData: [blue.method, meta.adapted],
-        GetAdapterCount: [blue.method, meta.adapted],
-        GetAdapterInfo: [blue.method, meta.adapted],
-        GetCurrentDisplayMode: [blue.method, meta.adapted],
-        GetDisplayModeCount: [blue.method, meta.adapted],
-        GetDisplayMode: [blue.method, meta.adapted],
-        SupportsBackBufferFormat: [blue.method, meta.adapted],
-        SupportsRenderTargetFormat: [blue.method, meta.adapted],
-        GetMaxTextureSize: [blue.method, meta.adapted],
-        Refresh: [meta.renamed("RefreshData"), meta.adapted]
-    }
-});
+
+CjsSchema.decorateField(Tr2VideoAdapters, "DEFAULT_ADAPTER", blue.read);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "RefreshData", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "GetAdapterCount", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "GetAdapterInfo", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "GetCurrentDisplayMode", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "GetDisplayModeCount", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "GetDisplayMode", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "SupportsBackBufferFormat", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "SupportsRenderTargetFormat", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "GetMaxTextureSize", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "Refresh", meta.renamed("RefreshData"), meta.adapted);
+CjsSchema.exposure.define("Tr2VideoAdapters")(Tr2VideoAdapters);

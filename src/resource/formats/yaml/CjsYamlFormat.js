@@ -235,4 +235,4 @@ export class CjsYamlFormat extends CjsFormat
 
 export default CjsYamlFormat;
 
-CjsSchema.meta.define(CjsYamlFormat, { className: "CjsYamlFormat" });
+CjsSchema.meta.define("CjsYamlFormat")(CjsYamlFormat);

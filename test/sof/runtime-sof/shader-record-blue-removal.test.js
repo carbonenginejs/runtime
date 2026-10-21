@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { be, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
+import { blue, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
 import { EveSOFDataGenericShader as Shader } from "../../../npm/dist/sof/generic/EveSOFDataGenericShader.js";
 import { EveSOFDataGenericDecalShader as Decal } from "../../../npm/dist/sof/generic/EveSOFDataGenericDecalShader.js";
@@ -37,7 +37,7 @@ test("shader records retain exact native tables, exposure order, flags and indep
     [Decal, ["shader", "parameters", "defaultTextures", "parentTextures", "additive"], ["shader"]]
   ])
   {
-    const a = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class)), b = new Class();
+    const a = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class)), b = new Class();
     assert.equal(a.constructor, Class); assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in a, false);
     assert.equal("from" in Class, false); assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]);

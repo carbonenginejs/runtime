@@ -329,4 +329,4 @@ function defaultNow() {
   return CjsBlueOS.Monotonic();
 }
 
-CjsSchema.meta.define(CjsResManWorkQueue, { className: "CjsResManWorkQueue" });
+CjsSchema.meta.define("CjsResManWorkQueue")(CjsResManWorkQueue);

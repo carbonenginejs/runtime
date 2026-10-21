@@ -147,12 +147,8 @@ export class Tr2SamplerSetup
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.blue.define(Tr2SamplerSetup, {
-  className: "Tr2SamplerSetup",
-  fields: {
-    name: type.string,
-    hasName: [ meta.adapted, type.boolean ],
-    sampler: type.rawStruct("Tr2SamplerStateAL"),
-    isDynamic: [ meta.adapted, type.boolean ]
-  }
-});
+CjsSchema.decorateField(Tr2SamplerSetup, "name", type.string);
+CjsSchema.decorateField(Tr2SamplerSetup, "hasName", meta.adapted, type.boolean);
+CjsSchema.decorateField(Tr2SamplerSetup, "sampler", type.rawStruct("Tr2SamplerStateAL"));
+CjsSchema.decorateField(Tr2SamplerSetup, "isDynamic", meta.adapted, type.boolean);
+CjsSchema.meta.carbon("Tr2SamplerSetup")(Tr2SamplerSetup);

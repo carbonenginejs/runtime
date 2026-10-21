@@ -26,4 +26,4 @@ export class DxbcReadError extends Error
     }
 }
 
-CjsSchema.meta.define(DxbcReadError, { className: "DxbcReadError" });
+CjsSchema.meta.define("DxbcReadError")(DxbcReadError);

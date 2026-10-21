@@ -62,9 +62,5 @@ export class RegisterInputDescription
     });
 }
 
-CjsSchema.blue.define(RegisterInputDescription, {
-    className: "RegisterInputDescription",
-    methods: {
-        Equals: [meta.renamed("operator==")]
-    }
-});
+CjsSchema.decorateMethod(RegisterInputDescription, "Equals", meta.renamed("operator=="));
+CjsSchema.meta.carbon("RegisterInputDescription")(RegisterInputDescription);

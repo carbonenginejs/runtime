@@ -11,7 +11,7 @@ import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
 import { CjsSchema, meta, type, blue } from "#schema";
-import { be, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
+import { blue as be, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
 import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
 import { Tr2DepthStencil } from "../../../trinity/core/device/Tr2DepthStencil.js";

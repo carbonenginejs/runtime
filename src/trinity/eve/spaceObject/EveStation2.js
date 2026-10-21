@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveStation2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveStation2.cpp
 import { meta, blue } from "#schema";
@@ -11,9 +12,10 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
  * activation scales the prepared shader data; the native GetBatches override
  * only forwards to the inherited implementation.
  */
-@blue.define("EveStation2")
-@blue.interface(IEveSpaceObject2, ITr2Renderable)
-@blue.chainTo(EveSpaceObject2)
+@be.define("EveStation2")
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2Renderable)
+@be.exposureChainTo(EveSpaceObject2)
 export class EveStation2 extends EveSpaceObject2
 {
   /**

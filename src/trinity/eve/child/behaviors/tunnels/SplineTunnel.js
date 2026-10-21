@@ -1,9 +1,10 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/behaviors/SplineTunnel.json.).
 import { type, blue } from "#schema";
 
 /** SplineTunnel (eve/child/behaviors) - generated from schema shapeHash d53f1701.... */
-@blue.define("SplineTunnel")
+@meta.carbon("SplineTunnel")
 export class SplineTunnel
 {
 

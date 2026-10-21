@@ -394,4 +394,4 @@ function CreateAuthoredAuxRouting(value, label)
     return result;
 }
 
-CjsSchema.meta.define(CjsAudioLibraryBuilderBusGraphConstructionSession, { className: "CjsAudioLibraryBuilderBusGraphConstructionSession" });
+CjsSchema.meta.define("CjsAudioLibraryBuilderBusGraphConstructionSession")(CjsAudioLibraryBuilderBusGraphConstructionSession);

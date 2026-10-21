@@ -26,4 +26,4 @@ export class HlslEffectReadError extends Error
     }
 }
 
-CjsSchema.meta.define(HlslEffectReadError, { className: "HlslEffectReadError" });
+CjsSchema.meta.define("HlslEffectReadError")(HlslEffectReadError);

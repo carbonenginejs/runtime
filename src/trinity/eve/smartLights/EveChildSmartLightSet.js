@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveChildSmartLightSet.h
 import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
@@ -15,10 +16,16 @@ import { mat4 } from "#math/mat4";
 import { BLUELISTEVENT } from "#consts/blue";
 
 /** A child that drives a placement distribution and fans its per-frame update, visibility, rendering and registration across a set of smart-light groups. */
-@blue.define("EveChildSmartLightSet")
+@be.define("EveChildSmartLightSet")
 @blue.inherit(IEveInheritPropertiesOwner)
 @blue.inherit(ITr2DebugRenderable, INotify, IListNotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2DebugRenderable, INotify, IListNotify, IEveInheritPropertiesOwner, EveEntity)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2DebugRenderable)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(IEveInheritPropertiesOwner)
+@be.mapInterface(EveEntity)
 export class EveChildSmartLightSet extends EveChildTransform
 {
 

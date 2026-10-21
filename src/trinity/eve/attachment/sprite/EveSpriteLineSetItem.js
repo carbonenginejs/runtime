@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSetItem.cpp
@@ -12,7 +13,7 @@ import { meta, type, blue } from "#schema";
  * One authored run of identical sprites, laid out either evenly along a line or
  * distributed around a circle, with the blink timing and colour they share.
  */
-@blue.define("EveSpriteLineSetItem")
+@be.define("EveSpriteLineSetItem")
 @blue.inherit(IRoot)
 export class EveSpriteLineSetItem
 {

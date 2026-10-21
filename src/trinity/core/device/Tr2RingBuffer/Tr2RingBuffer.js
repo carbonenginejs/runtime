@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RingBuffer.h
 // Source: trinity/trinity/Tr2RingBuffer.cpp
 //
@@ -65,9 +66,9 @@ const INVALID_OFFSET = 0xffffffff;
 /**
  * One upload arena per data type, fenced by frame.
  */
-@blue.define("Tr2RingBuffer")
+@be.define("Tr2RingBuffer")
 @blue.inherit(ITr2GpuBuffer)
-@blue.interface()
+
 export class Tr2RingBuffer
 {
   /** One arena per data type, as Carbon's typed `GetInstance` gives. */

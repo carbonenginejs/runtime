@@ -26,14 +26,10 @@ export class TriMorphTargetGeometryConstants
 
 }
 
-CjsSchema.blue.define(TriMorphTargetGeometryConstants, {
-  className: "TriMorphTargetGeometryConstants",
-  fields: {
-    vertexBufferStride: type.uint32,
-    positionOffset: type.uint32,
-    positionType: type.uint32,
-    tangentOffset: type.uint32,
-    tangentType: type.uint32,
-    vertexCount: type.uint32
-  }
-});
+CjsSchema.decorateField(TriMorphTargetGeometryConstants, "vertexBufferStride", type.uint32);
+CjsSchema.decorateField(TriMorphTargetGeometryConstants, "positionOffset", type.uint32);
+CjsSchema.decorateField(TriMorphTargetGeometryConstants, "positionType", type.uint32);
+CjsSchema.decorateField(TriMorphTargetGeometryConstants, "tangentOffset", type.uint32);
+CjsSchema.decorateField(TriMorphTargetGeometryConstants, "tangentType", type.uint32);
+CjsSchema.decorateField(TriMorphTargetGeometryConstants, "vertexCount", type.uint32);
+CjsSchema.meta.carbon("TriMorphTargetGeometryConstants")(TriMorphTargetGeometryConstants);

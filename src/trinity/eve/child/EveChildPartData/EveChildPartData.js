@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData_Blue.cpp
@@ -16,9 +17,10 @@ import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
  * below is the JavaScript adaptation required for the documented state to
  * survive a model values round trip.
  */
-@blue.define("EveChildPartData")
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild)
-@blue.chainTo(EveSpaceObjectChild)
+@be.define("EveChildPartData")
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.exposureChainTo(EveSpaceObjectChild)
 export class EveChildPartData extends EveSpaceObjectChild
 {
   @meta.persist

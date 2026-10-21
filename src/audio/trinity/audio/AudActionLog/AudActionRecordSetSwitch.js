@@ -39,7 +39,5 @@ export class AudActionRecordSetSwitch extends AudActionRecord
 
 }
 
-CjsSchema.blue.define(AudActionRecordSetSwitch, {
-    className: "AudActionRecordSetSwitch",
-    methods: { ToPyObject: [blue.method, meta.adapted] }
-});
+CjsSchema.decorateMethod(AudActionRecordSetSwitch, "ToPyObject", blue.method, meta.adapted);
+CjsSchema.meta.carbon("AudActionRecordSetSwitch")(AudActionRecordSetSwitch);

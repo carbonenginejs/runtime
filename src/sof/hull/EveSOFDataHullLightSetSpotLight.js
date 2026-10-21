@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -8,8 +9,8 @@ import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 // Carbon derives this from EveSOFDataHullLightSetItem (EveSOFData.h:
 // 1422-1429) and maps the full base surface (including lightColor) plus
 // rotation, innerAngle, and outerAngle (EveSOFData_Blue.cpp:1096-1114).
-@blue.define("EveSOFDataHullLightSetSpotLight")
-@blue.interface(EveSOFDataHullLightSetItem)
+@be.define("EveSOFDataHullLightSetSpotLight")
+@be.mapInterface(EveSOFDataHullLightSetItem)
 export class EveSOFDataHullLightSetSpotLight extends EveSOFDataHullLightSetItem
 {
 

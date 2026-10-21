@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { meta, type, blue } from "#schema";
@@ -9,9 +10,9 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that overrides whatever the earlier behaviours accumulated
  * with an authored constant.
  */
-@blue.define("EveVirtualCameraBehaviourFloatSet")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourFloatBase)
+@be.define("EveVirtualCameraBehaviourFloatSet")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourFloatBase)
 export class EveVirtualCameraBehaviourFloatSet extends EveVirtualCameraBehaviourFloatBase
 {
   @blue.readwrite

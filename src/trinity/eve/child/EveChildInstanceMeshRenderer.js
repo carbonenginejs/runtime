@@ -20,7 +20,7 @@ import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { Tr2RuntimeInstanceData } from "../../core/mesh/Tr2RuntimeInstanceData.js";
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 

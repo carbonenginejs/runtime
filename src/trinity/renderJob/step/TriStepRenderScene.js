@@ -1,12 +1,13 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderScene.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that renders one scene at its point in the job order. */
-@blue.define("TriStepRenderScene")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRenderScene")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRenderScene extends TriRenderStep
 {
 

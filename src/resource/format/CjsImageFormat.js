@@ -469,4 +469,4 @@ export class CjsImageFormat extends CjsFormat
 
 }
 
-CjsSchema.meta.define(CjsImageFormat, { className: "CjsImageFormat" });
+CjsSchema.meta.define("CjsImageFormat")(CjsImageFormat);

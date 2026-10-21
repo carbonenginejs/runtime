@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { EveEntity } from "../../EveEntity.js";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
@@ -26,9 +27,15 @@ import { sph3 } from "#math/sph3";
  * transform children pinned at each end, stretched along the span, and
  * travelling from one end to the other.
  */
-@blue.define("EveStretch")
+@be.define("EveStretch")
 @blue.inherit(INotify, IEveTransform, IEveSpaceObject2, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
-@blue.interface(INotify, IEveTransform, IEveSpaceObject2, IEveFiringEffectElement, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
+@be.mapInterface(INotify)
+@be.mapInterface(IEveTransform)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(IEveFiringEffectElement)
+@be.mapInterface(ITr2DebugRenderable)
+@be.mapInterface(ITr2LightOwner)
+@be.mapInterface(EveEntity)
 export class EveStretch extends IEveFiringEffectElement
 {
 

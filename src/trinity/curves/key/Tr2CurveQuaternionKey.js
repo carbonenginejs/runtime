@@ -12,7 +12,7 @@ import { Tr2CurveInterpolation } from "../enums.js";
  * Native 64-bit size 24; offsets and storage types: trinity/trinity/
  * Curves/Tr2CurveQuaternion.h:9-19; Curves/Tr2CurveQuaternion.cpp:11-17.
  */
-@blue.define("Tr2CurveQuaternionKey")
+@meta.carbon("Tr2CurveQuaternionKey")
 @meta.struct.define({ size: 24 })
 export class Tr2CurveQuaternionKey
 {

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveColor.h
 // Source: trinity/trinity/Curves/Tr2CurveColor.cpp
 import { color } from "#math/color";
@@ -16,9 +17,11 @@ const CLAMP_MIN = vec4.create();
  * result is converted to gamma space when srgbOutput is set.
  * JavaScript combines native time overloads as seconds-first calls with output last.
  */
-@blue.define("Tr2CurveColor")
+@be.define("Tr2CurveColor")
 @blue.inherit(ITriCurveLength)
-@blue.interface(ITriColorFunction, ITriFunction, ITriCurveLength)
+@be.mapInterface(ITriColorFunction)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2CurveColor extends ITriColorFunction
 {
   /**

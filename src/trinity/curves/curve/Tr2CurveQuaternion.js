@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.h
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
 import { ITriQuaternionFunction, ITriCurveLength, ITriFunction } from "#blue";
@@ -12,9 +13,11 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
  * independent extrapolation modes before the first and after the last key.
  * JavaScript keeps time-first output-buffer calls instead of native output-first overloads.
  */
-@blue.define("Tr2CurveQuaternion")
+@be.define("Tr2CurveQuaternion")
 @blue.inherit(ITriCurveLength)
-@blue.interface(ITriQuaternionFunction, ITriFunction, ITriCurveLength)
+@be.mapInterface(ITriQuaternionFunction)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2CurveQuaternion extends ITriQuaternionFunction
 {
   /**

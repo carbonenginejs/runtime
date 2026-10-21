@@ -21,6 +21,4 @@ export class SymbolAnnotation
     value = new ScannerToken();
 }
 
-CjsSchema.blue.define(SymbolAnnotation, {
-    className: "SymbolAnnotation"
-});
+CjsSchema.meta.carbon("SymbolAnnotation")(SymbolAnnotation);

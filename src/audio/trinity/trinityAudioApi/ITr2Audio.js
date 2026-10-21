@@ -17,7 +17,4 @@ for (const method of [ "Update", "FindEmitterByName" ])
   CjsSchema.decorateMethod(ITr2Audio, method, blue.abstract);
 }
 blue.inherit(IRoot)(ITr2Audio);
-CjsSchema.blue.define(ITr2Audio, {
-  className: "ITr2Audio",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITr2Audio")(ITr2Audio);

@@ -31,4 +31,4 @@ export class ErrSOFAreaShaderNotFound extends Error
   }
 }
 
-CjsSchema.meta.define(ErrSOFAreaShaderNotFound, { className: "ErrSOFAreaShaderNotFound" });
+CjsSchema.meta.define("ErrSOFAreaShaderNotFound")(ErrSOFAreaShaderNotFound);

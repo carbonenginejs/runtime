@@ -164,21 +164,17 @@ function presentIntervalName(value)
 // source (package.json "./input"), so the schema is defined here rather than
 // with decorator syntax.
 blue.inherit(IRoot)(Tr2MainWindowState);
-blue.interface()(Tr2MainWindowState);
+
 CjsSchema.decorateMethod(Tr2MainWindowState, "ToString", blue.method);
 CjsSchema.decorateMethod(Tr2MainWindowState, "__str__", meta.renamed("ToString"));
-CjsSchema.blue.define(Tr2MainWindowState, {
-  className: "Tr2MainWindowState",
-  fields: {
-        windowMode: [ type.int32, type.enum("trinity.Tr2WindowMode"), blue.readwrite, blue.persist ],
-        adapter: [ type.uint32, blue.readwrite, blue.persist ],
-        width: [ type.uint32, blue.readwrite, blue.persist ],
-        height: [ type.uint32, blue.readwrite, blue.persist ],
-        presentInterval: [ type.int32, type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), blue.readwrite, blue.persist ],
-        left: [ type.int32, blue.readwrite, blue.persist ],
-        top: [ type.int32, blue.readwrite, blue.persist ],
-        showState: [ type.int32, type.enum("trinity.Tr2WindowShowState"), blue.readwrite, blue.persist ]
-    }
-});
+CjsSchema.decorateField(Tr2MainWindowState, "windowMode", type.int32, type.enum("trinity.Tr2WindowMode"), blue.readwrite, blue.persist);
+CjsSchema.decorateField(Tr2MainWindowState, "adapter", type.uint32, blue.readwrite, blue.persist);
+CjsSchema.decorateField(Tr2MainWindowState, "width", type.uint32, blue.readwrite, blue.persist);
+CjsSchema.decorateField(Tr2MainWindowState, "height", type.uint32, blue.readwrite, blue.persist);
+CjsSchema.decorateField(Tr2MainWindowState, "presentInterval", type.int32, type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), blue.readwrite, blue.persist);
+CjsSchema.decorateField(Tr2MainWindowState, "left", type.int32, blue.readwrite, blue.persist);
+CjsSchema.decorateField(Tr2MainWindowState, "top", type.int32, blue.readwrite, blue.persist);
+CjsSchema.decorateField(Tr2MainWindowState, "showState", type.int32, type.enum("trinity.Tr2WindowShowState"), blue.readwrite, blue.persist);
+CjsSchema.exposure.define("Tr2MainWindowState")(Tr2MainWindowState);
 
 export default Tr2MainWindowState;

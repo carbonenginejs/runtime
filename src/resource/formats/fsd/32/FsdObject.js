@@ -190,4 +190,4 @@ function ThrowUnlistedOptional(attributeName, path)
 
 export default FsdObject;
 
-CjsSchema.blue.define(FsdObject, { className: "FsdObject" });
+CjsSchema.exposure.define("FsdObject")(FsdObject);

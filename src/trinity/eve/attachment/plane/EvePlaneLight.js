@@ -12,7 +12,7 @@ import { FadeType } from "../EveSpaceObjectAttachmentUtils.js";
  * phase, fade type, light profile and the bone matrix resolved for it each
  * frame.
  */
-@blue.define("EvePlaneLight")
+@meta.carbon("EvePlaneLight")
 export class EvePlaneLight
 {
   static FadeType = FadeType;

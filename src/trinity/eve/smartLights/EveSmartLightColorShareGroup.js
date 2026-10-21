@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightColorShareGroup.h
 import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
@@ -14,10 +15,13 @@ import { vec4 } from "#math/vec4";
 import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group that computes one shared faction-aware colour, applies it to its child light groups, and fans out their per-frame updates. */
-@blue.define("EveSmartLightColorShareGroup")
+@be.define("EveSmartLightColorShareGroup")
 @blue.inherit(EveSmartLightBaseGroup, INotify)
-@blue.interface(EveSmartLightBaseGroup, INotify, IListNotify, EveEntity)
-@blue.chainTo(EveSmartLightBaseGroup)
+@be.mapInterface(EveSmartLightBaseGroup)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(EveEntity)
+@be.exposureChainTo(EveSmartLightBaseGroup)
 export class EveSmartLightColorShareGroup extends EveEntity
 {
 

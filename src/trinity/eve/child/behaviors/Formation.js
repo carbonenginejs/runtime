@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -35,9 +36,9 @@ function ClampLength(value, maxLength)
 }
 
 /** A steering behaviour that detects when a drone group's motion has converged, organises the agents into a rotating slot grid, and pulls each agent toward its assigned slot. */
-@blue.define("Formation")
+@be.define("Formation")
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.mapInterface(IBehavior)
 export class Formation
 {
 

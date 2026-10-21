@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { INotify } from "../../global/blue/INotify.js";
 import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
 import { IWorldPosition } from "../core/IWorldPosition.js";
@@ -19,9 +20,13 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
  * curves, so a sound can sit anywhere in a scene without being attached to an
  * asset.
  */
-@blue.define("AudioGameObject")
+@be.define("AudioGameObject")
 @blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2DebugRenderable, INotify)
-@blue.interface(IEveSpaceObject2, IInitialize, IWorldPosition, ITr2DebugRenderable, INotify)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IWorldPosition)
+@be.mapInterface(ITr2DebugRenderable)
+@be.mapInterface(INotify)
 export class AudioGameObject
 {
   _worldTransform = mat4.create();

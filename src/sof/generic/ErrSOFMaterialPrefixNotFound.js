@@ -34,4 +34,4 @@ export class ErrSOFMaterialPrefixNotFound extends Error
   }
 }
 
-CjsSchema.meta.define(ErrSOFMaterialPrefixNotFound, { className: "ErrSOFMaterialPrefixNotFound" });
+CjsSchema.meta.define("ErrSOFMaterialPrefixNotFound")(ErrSOFMaterialPrefixNotFound);

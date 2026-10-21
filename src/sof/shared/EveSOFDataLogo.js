@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -5,9 +6,9 @@ import { type, blue } from "#schema";
 import { EveSOFDataTexture } from "./EveSOFDataTexture.js";
 
 /** Stores a logo texture set and supports assignment and composition with another logo value. */
-@blue.define("EveSOFDataLogo")
+@be.define("EveSOFDataLogo")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataLogo
 {
 

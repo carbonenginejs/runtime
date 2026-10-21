@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch/enums.js";
-import { be, ITriVectorFunction } from "#blue";
+import { blue as be, ITriVectorFunction } from "#blue";
 
 
 /**

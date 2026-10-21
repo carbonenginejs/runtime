@@ -18,4 +18,4 @@ export class DxbcReader extends CjsByteReader
 
 export default DxbcReader;
 
-CjsSchema.meta.define(DxbcReader, { className: "DxbcReader" });
+CjsSchema.meta.define("DxbcReader")(DxbcReader);

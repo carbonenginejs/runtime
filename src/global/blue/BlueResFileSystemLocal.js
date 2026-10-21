@@ -135,30 +135,25 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   ListDirFromScript(_dir) { return noDisk("ListDirFromScript"); }
 }
 
-CjsSchema.blue.interface(IBlueResFileSystem)(BlueResFileSystemLocal);
-CjsSchema.blue.define(BlueResFileSystemLocal, {
-  className: "BlueResFileSystemLocal",
-  fields: {},
-  methods: {
-    FileExists: [ blue.method, meta.notImplemented ],
-    IsDirectory: [ blue.method, meta.notImplemented ],
-    GetDirectoryContents: [ blue.method, meta.notImplemented ],
-    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.notImplemented ],
-    ResolvePathW: [ blue.method, meta.notImplemented ],
-    ResolvePath: [ blue.method, meta.implemented ],
-    Initialize: [ blue.method, meta.notImplemented ],
-    InitializeStdAppPaths: [ blue.method, meta.notImplemented ],
-    SetSearchPath: [ blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented ],
-    GetSearchPath: [ blue.method, meta.renamed("GetSearchPathW"), meta.notImplemented ],
-    ClearSearchPaths: [ blue.method, meta.notImplemented ],
-    ResolvePathForWriting: [ blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented ],
-    ResolvePathToRoot: [ blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented ],
-    GetExpandedSearchPaths: [ blue.method, meta.notImplemented ],
-    GetExpandedSearchPaths__Key: [ blue.method, meta.notImplemented ],
-    LogPaths: [ blue.method, meta.notImplemented ],
-    GetInitialWorkingDirectory: [ blue.method, meta.notImplemented ],
-    GetAllSearchPaths: [ blue.method, meta.notImplemented ],
-    GetExpandedSearchPathsAsDict: [ blue.method, meta.implemented ],
-    ListDirFromScript: [ blue.method, meta.notImplemented ]
-  }
-});
+CjsSchema.exposure.mapInterface(IBlueResFileSystem)(BlueResFileSystemLocal);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "FileExists", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "IsDirectory", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetDirectoryContents", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathW", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePath", blue.method, meta.implemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "Initialize", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "InitializeStdAppPaths", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "SetSearchPath", blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetSearchPath", blue.method, meta.renamed("GetSearchPathW"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ClearSearchPaths", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathForWriting", blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathToRoot", blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths__Key", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "LogPaths", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetInitialWorkingDirectory", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetAllSearchPaths", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPathsAsDict", blue.method, meta.implemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ListDirFromScript", blue.method, meta.notImplemented);
+CjsSchema.exposure.define("BlueResFileSystemLocal")(BlueResFileSystemLocal);

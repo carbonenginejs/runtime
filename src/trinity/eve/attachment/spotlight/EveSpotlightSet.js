@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.cpp
@@ -73,9 +74,12 @@ const DEBUG_CONE_OFFSET = vec3.fromValues(0, 0, 0.5);
  * A hull's authored spotlights, owning their static and per-bone bounds, the
  * cone and glow effects that draw them, and the spot lights they emit.
  */
-@blue.define("EveSpotlightSet")
+@be.define("EveSpotlightSet")
 @blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IEveSpaceObjectAttachment)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2LightOwner)
 export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
 

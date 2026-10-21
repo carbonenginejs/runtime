@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.cpp
@@ -25,9 +26,11 @@ const BIND_VALID = 1;
 const BIND_INVALID = 2;
 
 /** A model that binds a particle system's position, velocity and lifetime elements and its attribute generators for a sphere-distributed ambient effect. */
-@blue.define("EveChildParticleSphere")
+@be.define("EveChildParticleSphere")
 @blue.inherit(ITr2Renderable)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2Renderable)
 export class EveChildParticleSphere extends EveSpaceObjectChild
 {
 

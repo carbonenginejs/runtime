@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { be, BlueList } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueList } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { Tr2Sprite2dClipRect } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dClipRect.js";
@@ -16,7 +16,7 @@ for(const [Class,fields,types,table]of [
  [Tr2Sprite2dClipRect,["left","top","right","bottom"],["float32","float32","float32","float32"],[]],
  [Tr2Sprite2dLineTraceVertex,["name","position","color"],["string","vec2","color"],[Tr2Sprite2dLineTraceVertex]]
 ])test(getRegisteredClassName(Class)+" native declaration and exposure shape",()=>{
- const value=be.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Object.prototype);assert.deepEqual(Object.keys(value),fields);
+ const value=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Object.prototype);assert.deepEqual(Object.keys(value),fields);
  assert.deepEqual(fields.map(key=>CjsSchema.getField(Class,key).type.kind),types);assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
  for(const key of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(key in value,false);assert.equal("from" in Class,false);
 });
@@ -24,7 +24,7 @@ for(const [Class,fields,types,table]of [
 test("line trace vertex has independent native defaults and persistent typed record copying",()=>{
  const first=new Tr2Sprite2dLineTraceVertex(),second=new Tr2Sprite2dLineTraceVertex();assert.equal(first.name,"");assert.deepEqual([...first.position],[0,0]);assert.deepEqual([...first.color],[1,1,1,1]);assert.notEqual(first.position,second.position);assert.notEqual(first.color,second.color);
  const list=new BlueList(Tr2Sprite2dLineTraceVertex);assert.equal(list.Append(first),true);assert.equal(list.Append({}),false);
- new DictReader({declarations:true}).ReadInto(first,{name:"point",position:[2,3],color:[0,1,0,1]});be.classes.CopyTo(first,second);assert.equal(second.name,"point");assert.deepEqual([...second.position],[2,3]);assert.deepEqual([...second.color],[0,1,0,1]);assert.notEqual(first.position,second.position);
+ new DictReader({declarations:true}).ReadInto(first,{name:"point",position:[2,3],color:[0,1,0,1]});blue.classes.CopyTo(first,second);assert.equal(second.name,"point");assert.deepEqual([...second.position],[2,3]);assert.deepEqual([...second.color],[0,1,0,1]);assert.notEqual(first.position,second.position);
  const written=new DictWriter().WriteObject(second,{}, {persistOnly:true});assert.deepEqual(Object.keys(written),["name","position","color"]);assert.equal(written.name,"point");
 });
 

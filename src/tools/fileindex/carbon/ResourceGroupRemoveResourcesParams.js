@@ -10,6 +10,5 @@ export class ResourceGroupRemoveResourcesParams
     callbackSettings = new CallbackSettings();
 }
 
-CjsSchema.blue.define(ResourceGroupRemoveResourcesParams, { className: "ResourceGroupRemoveResourcesParams", fields: {
-        errorIfResourceNotFound: [type.boolean]
-    } });
+CjsSchema.decorateField(ResourceGroupRemoveResourcesParams, "errorIfResourceNotFound", type.boolean);
+CjsSchema.meta.carbon("ResourceGroupRemoveResourcesParams")(ResourceGroupRemoveResourcesParams);

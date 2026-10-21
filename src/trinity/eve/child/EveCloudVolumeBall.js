@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume_Blue.cpp
@@ -8,9 +9,9 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Runtime model for one editable cloud-volume ball. */
-@blue.define("EveCloudVolumeBall")
+@be.define("EveCloudVolumeBall")
 @blue.inherit(INotify)
-@blue.interface(INotify)
+@be.mapInterface(INotify)
 export class EveCloudVolumeBall
 {
 

@@ -39,7 +39,5 @@ export class AudActionRecordExecuteActionOnPlayingID extends AudActionRecord
 
 }
 
-CjsSchema.blue.define(AudActionRecordExecuteActionOnPlayingID, {
-    className: "AudActionRecordExecuteActionOnPlayingID",
-    methods: { ToPyObject: [blue.method, meta.adapted] }
-});
+CjsSchema.decorateMethod(AudActionRecordExecuteActionOnPlayingID, "ToPyObject", blue.method, meta.adapted);
+CjsSchema.meta.carbon("AudActionRecordExecuteActionOnPlayingID")(AudActionRecordExecuteActionOnPlayingID);

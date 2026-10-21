@@ -55,15 +55,9 @@ export class Tr2RaycastGeometryRes extends CjsResource
 }
 
 
-CjsSchema.blue.interface(Tr2RaycastGeometryRes)(Tr2RaycastGeometryRes);
-CjsSchema.blue.define(Tr2RaycastGeometryRes, {
-  className: "Tr2RaycastGeometryRes",
-  methods: {
-    SetLodIndices: [ blue.method, meta.implemented ],
-    GetBVH: [ blue.method, meta.adapted ]
-  },
-  fields: {
-    lodIndices: type.list("int32_t"),
-    bvh: type.rawStruct("BVH::BoundingVolumeHierarchy")
-  }
-});
+
+CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "SetLodIndices", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "GetBVH", blue.method, meta.adapted);
+CjsSchema.decorateField(Tr2RaycastGeometryRes, "lodIndices", type.list("int32_t"));
+CjsSchema.decorateField(Tr2RaycastGeometryRes, "bvh", type.rawStruct("BVH::BoundingVolumeHierarchy"));
+CjsSchema.exposure.define("Tr2RaycastGeometryRes")(Tr2RaycastGeometryRes);

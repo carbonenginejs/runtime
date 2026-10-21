@@ -117,4 +117,4 @@ export class CjsFsdFormat extends CjsFormat
 
 export default CjsFsdFormat;
 
-CjsSchema.meta.define(CjsFsdFormat, { className: "CjsFsdFormat" });
+CjsSchema.meta.define("CjsFsdFormat")(CjsFsdFormat);

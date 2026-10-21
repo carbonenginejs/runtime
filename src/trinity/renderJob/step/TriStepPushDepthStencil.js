@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.cpp
 import { meta, type, blue } from "#schema";
@@ -9,9 +10,9 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pushes either a named depth-stencil or the currently bound one onto
  * the render context's depth-stencil stack.
  */
-@blue.define("TriStepPushDepthStencil")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPushDepthStencil")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPushDepthStencil extends TriRenderStep
 {
   @blue.readwrite

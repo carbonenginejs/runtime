@@ -68,28 +68,24 @@ export class TriRtGeometryConstants
 
 }
 
-CjsSchema.blue.define(TriRtGeometryConstants, {
-  className: "TriRtGeometryConstants",
-  fields: {
-    indexBufferId: type.uint32,
-    indexBufferStride: type.uint32,
-    indexOffset: type.uint32,
-    vertexBufferId: type.uint32,
-    vertexBufferStride: type.uint32,
-    positionOffset: type.uint32,
-    positionType: type.uint32,
-    normalOffset: type.uint32,
-    normalType: type.uint32,
-    tangentOffset: type.uint32,
-    tangentType: type.uint32,
-    bitangentOffset: type.uint32,
-    bitangentType: type.uint32,
-    texCoord0Offset: type.uint32,
-    texCoord0Type: type.uint32,
-    texCoord1Offset: type.uint32,
-    texCoord1Type: type.uint32,
-    texCoord2Offset: type.uint32,
-    texCoord2Type: type.uint32,
-    padding: type.uint32
-  }
-});
+CjsSchema.decorateField(TriRtGeometryConstants, "indexBufferId", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "indexBufferStride", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "indexOffset", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "vertexBufferId", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "vertexBufferStride", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "positionOffset", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "positionType", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "normalOffset", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "normalType", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "tangentOffset", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "tangentType", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "bitangentOffset", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "bitangentType", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "texCoord0Offset", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "texCoord0Type", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "texCoord1Offset", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "texCoord1Type", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "texCoord2Offset", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "texCoord2Type", type.uint32);
+CjsSchema.decorateField(TriRtGeometryConstants, "padding", type.uint32);
+CjsSchema.meta.carbon("TriRtGeometryConstants")(TriRtGeometryConstants);

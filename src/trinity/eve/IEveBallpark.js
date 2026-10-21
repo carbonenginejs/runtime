@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Include/IEveBallpark.h
 import { blue } from "#schema";
 import { IEveReferencePoint } from "./IEveReferencePoint.js";
 
 
 /** Required host ballpark contract used by EVE scene updates. */
-@blue.define("IEveBallpark")
+@be.interface("IEveBallpark")
 export class IEveBallpark extends IEveReferencePoint
 {
 

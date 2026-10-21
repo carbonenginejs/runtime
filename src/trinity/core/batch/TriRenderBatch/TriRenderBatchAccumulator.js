@@ -184,4 +184,4 @@ CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetBatches", blue.method);
 CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Finalize", blue.method);
 CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetBatchCount", blue.method);
 CjsSchema.decorateMethod(TriRenderBatchAccumulator, "IsChainedByEffect", blue.method);
-CjsSchema.blue.define(TriRenderBatchAccumulator, { className: "TriRenderBatchAccumulator" });
+CjsSchema.meta.carbon("TriRenderBatchAccumulator")(TriRenderBatchAccumulator);

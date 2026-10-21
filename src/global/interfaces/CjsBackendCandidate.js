@@ -27,4 +27,4 @@ export class CjsBackendCandidate
 
 CjsSchema.decorateMethod(CjsBackendCandidate, "Prove", meta.abstract);
 
-CjsSchema.meta.define(CjsBackendCandidate, { className: "CjsBackendCandidate" });
+CjsSchema.meta.define("CjsBackendCandidate")(CjsBackendCandidate);

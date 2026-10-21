@@ -274,4 +274,4 @@ export class CjsJpegFormat extends CjsImageFormat
 
 export default CjsJpegFormat;
 
-CjsSchema.meta.define(CjsJpegFormat, { className: "CjsJpegFormat" });
+CjsSchema.meta.define("CjsJpegFormat")(CjsJpegFormat);

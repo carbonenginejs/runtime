@@ -7,7 +7,7 @@ composeStubResMan();
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import {
   EveSpaceScene, EveSpaceSceneRenderDriver, EveTurretFiringFX, EveUpdateContext,
@@ -67,7 +67,7 @@ test("TriCurveSet script Update reads Blue's frame time at the call (CE-51 cast 
   const driverTimes = [];
   set.driver = { GetCurveSetTime(time) { driverTimes.push(time); return time; } };
   let frameTime = 40_000_000;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => frameTime);
   set.UpdateWithCurrentTime();
   frameTime = 50_000_000;
   set.UpdateWithCurrentTime();
@@ -96,7 +96,7 @@ test("device render jobs preserve tick timestamps through the real scene context
     driver.Destruct();
     target.Destroy();
     device.InvalidateAndUnregisterForTicks();
-    be.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
+    blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
     gTriDev.device = previousDevice;
     Tr2RenderContext_GetMainThreadRenderContext().SetRenderContextAL(previousAL);
   });
@@ -152,7 +152,7 @@ test("firing cleanup passes raw Blue ticks into each fresh EveUpdateContext", t 
     return update.call(this, context);
   });
   let ticks = 25_000_000;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => ticks);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => ticks);
   firing.CleanUp();
   ticks = 50_000_000;
   firing.CleanUp();

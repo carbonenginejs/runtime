@@ -352,4 +352,4 @@ class Bc7BitReader extends CjsBitReader
     }
 }
 
-CjsSchema.meta.define(Bc7BitReader, { className: "Bc7BitReader" });
+CjsSchema.meta.define("Bc7BitReader")(Bc7BitReader);

@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:297-302
 import { blue } from "#schema";
 
@@ -8,7 +9,7 @@ import { blue } from "#schema";
  * frame EveInstancedMeshManager.CollectMeshes asks each registered provider
  * to register what it has not yet registered.
  */
-@blue.define("IEveInstanceMeshProvider")
+@meta.carbon("IEveInstanceMeshProvider")
 export class IEveInstanceMeshProvider
 {
 

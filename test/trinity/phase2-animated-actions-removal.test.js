@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, type } from "../../npm/dist/global/schema/index.js";
-import { be, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
+import { blue, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
@@ -85,7 +85,7 @@ for (const Type of [Tr2ActionAnimateValue, Tr2ActionAnimateCurveSet])
 {
   test(`${CjsSchema.getClassName(Type)} updates retained expressions until a Blue notification`, t =>
   {
-    t.mock.method(be.os, "GetCurrentFrameTime", () => 100000000);
+    t.mock.method(blue.os, "GetCurrentFrameTime", () => 100000000);
     const { action, controller, output, updates } = AnimationFixture(Type);
     assert.equal(action.isExpressionValid, false);
     action.value = "2";

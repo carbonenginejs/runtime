@@ -48,4 +48,4 @@ CjsSchema.decorateField(TriRenderBatchAreaBlocksWithSharedMaterial, "shaderMater
 CjsSchema.decorateField(TriRenderBatchAreaBlocksWithSharedMaterial, "areaBlockVector", type.array(TriRenderBatchAreaBlock));
 CjsSchema.decorateMethod(TriRenderBatchAreaBlocksWithSharedMaterial, "Optimize", blue.method);
 CjsSchema.decorateMethod(TriRenderBatchAreaBlocksWithSharedMaterial, "Clear", blue.method);
-CjsSchema.blue.define(TriRenderBatchAreaBlocksWithSharedMaterial, { className: "TriRenderBatchAreaBlocksWithSharedMaterial" });
+CjsSchema.meta.carbon("TriRenderBatchAreaBlocksWithSharedMaterial")(TriRenderBatchAreaBlocksWithSharedMaterial);

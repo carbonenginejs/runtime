@@ -68,14 +68,8 @@ export class Location
 }
 
 
-CjsSchema.blue.define(Location, {
-  className: "Location",
-  fields: {
-        location: [type.string]
-    },
-  methods: {
-        SetFromRelativePathAndDataChecksum: [ blue.method, meta.adapted ],
-        ToString: [ blue.method, meta.implemented ],
-        CalculateLocationFromChecksums: [ blue.method, meta.implemented ]
-    }
-});
+CjsSchema.decorateField(Location, "location", type.string);
+CjsSchema.decorateMethod(Location, "SetFromRelativePathAndDataChecksum", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Location, "ToString", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Location, "CalculateLocationFromChecksums", blue.method, meta.implemented);
+CjsSchema.meta.carbon("Location")(Location);

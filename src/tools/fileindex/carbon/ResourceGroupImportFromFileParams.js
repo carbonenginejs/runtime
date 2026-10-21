@@ -14,6 +14,5 @@ export class ResourceGroupImportFromFileParams
     read = null;
 }
 
-CjsSchema.blue.define(ResourceGroupImportFromFileParams, { className: "ResourceGroupImportFromFileParams", fields: {
-        filename: [type.string]
-    } });
+CjsSchema.decorateField(ResourceGroupImportFromFileParams, "filename", type.string);
+CjsSchema.meta.carbon("ResourceGroupImportFromFileParams")(ResourceGroupImportFromFileParams);

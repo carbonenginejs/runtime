@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/ITr2GenericParticleConstraint.h
 import { meta, blue } from "#schema";
@@ -5,7 +6,7 @@ import { meta, blue } from "#schema";
 
 /** Required particle-constraint contract. */
 @blue.inherit(IRoot)
-@blue.define("ITr2GenericParticleConstraint")
+@be.interface("ITr2GenericParticleConstraint")
 export class ITr2GenericParticleConstraint
 {
 

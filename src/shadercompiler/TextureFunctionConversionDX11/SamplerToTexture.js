@@ -15,6 +15,4 @@ export class SamplerToTexture
     processed = false;
 }
 
-CjsSchema.blue.define(SamplerToTexture, {
-    className: "SamplerToTexture"
-});
+CjsSchema.meta.carbon("SamplerToTexture")(SamplerToTexture);

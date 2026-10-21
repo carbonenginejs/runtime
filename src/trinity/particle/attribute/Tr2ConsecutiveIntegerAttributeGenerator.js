@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ConsecutiveIntegerAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -7,8 +8,8 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates a per-particle attribute as a cycling, wrapped incrementing integer counter within a range. */
-@blue.interface(ITr2AttributeGenerator)
-@blue.define("Tr2ConsecutiveIntegerAttributeGenerator")
+@be.mapInterface(ITr2AttributeGenerator)
+@be.define("Tr2ConsecutiveIntegerAttributeGenerator")
 export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenerator
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2MeshArea.h
 // Source: trinity/trinity/Tr2MeshArea.cpp
 // Source: trinity/trinity/Tr2MeshArea_Blue.cpp
@@ -8,8 +9,8 @@ import { meta, type, blue } from "#schema";
  * One drawable range of a mesh: the index and count of geometry groups plus the
  * effect, shadow, depth and LOD state that decide how the range is batched.
  */
-@blue.define("Tr2MeshArea")
-@blue.interface()
+@be.define("Tr2MeshArea")
+
 export class Tr2MeshArea
 {
   // m_ownerMeshes (std::vector<Tr2MeshBase*>)

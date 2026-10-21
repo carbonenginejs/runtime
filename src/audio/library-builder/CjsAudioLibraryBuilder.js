@@ -4307,4 +4307,4 @@ function sortedKeys(value)
     return sorted;
 }
 
-CjsSchema.meta.define(CjsAudioLibraryBuilder, { className: "CjsAudioLibraryBuilder" });
+CjsSchema.meta.define("CjsAudioLibraryBuilder")(CjsAudioLibraryBuilder);

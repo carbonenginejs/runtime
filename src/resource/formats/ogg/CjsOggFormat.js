@@ -212,4 +212,4 @@ export class CjsOggFormat extends CjsFormat
 
 export default CjsOggFormat;
 
-CjsSchema.meta.define(CjsOggFormat, { className: "CjsOggFormat" });
+CjsSchema.meta.define("CjsOggFormat")(CjsOggFormat);

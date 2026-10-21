@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
 import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, be, IInitialize, INotify } from "#blue";
+import { IsMatch, blue as be, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 

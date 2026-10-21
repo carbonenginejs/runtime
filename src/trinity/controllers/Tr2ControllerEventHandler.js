@@ -1,8 +1,9 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.h
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler_Blue.cpp
 import { meta, type, blue } from "#schema";
-import { BlueList, be, CjsBlueClasses } from "#blue";
+import { BlueList, blue as be, CjsBlueClasses } from "#blue";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IListNotify } from "#blue/IListNotify";
@@ -168,4 +169,4 @@ export class Tr2ControllerEventHandler extends IListNotify
 }
 
 // Native exposure ends at this concrete table (Tr2ControllerEventHandler_Blue.cpp).
-blue.interface(IListNotify)(Tr2ControllerEventHandler);
+CjsSchema.exposure.mapInterface(IListNotify)(Tr2ControllerEventHandler);

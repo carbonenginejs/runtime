@@ -33,4 +33,4 @@ for (const method of [
 {
   CjsSchema.decorateMethod(ITr2ImpostorSource, method, meta.abstract);
 }
-CjsSchema.blue.define(ITr2ImpostorSource, { className: "ITr2ImpostorSource" });
+CjsSchema.exposure.interface("ITr2ImpostorSource")(ITr2ImpostorSource);

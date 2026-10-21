@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RuntimeInstanceData.h
 // Source: trinity/trinity/Tr2RuntimeInstanceData.cpp
 // Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
@@ -23,9 +24,10 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
  * per-instance rows and their bounding box - and can spawn the same rows into a
  * particle system on demand.
  */
-@blue.define("Tr2RuntimeInstanceData")
+@be.define("Tr2RuntimeInstanceData")
 @blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
-@blue.interface(ITr2InstanceData, ITr2GpuBuffer)
+@be.mapInterface(ITr2InstanceData)
+@be.mapInterface(ITr2GpuBuffer)
 export class Tr2RuntimeInstanceData
 {
   /**

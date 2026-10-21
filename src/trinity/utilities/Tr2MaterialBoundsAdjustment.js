@@ -9,7 +9,7 @@ import { box3 } from "#math/box3";
  * class. The registered typed fields retain JavaScript inspection/dictionary
  * transport only: no native query, read or persistence flags are invented.
  */
-@blue.define("Tr2MaterialBoundsAdjustment")
+@meta.carbon("Tr2MaterialBoundsAdjustment")
 export class Tr2MaterialBoundsAdjustment
 {
 

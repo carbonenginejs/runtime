@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
@@ -88,9 +89,10 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 
 
 /** Produces tactical anchor, range, and velocity quad-instance records. */
-@blue.define("EveTacticalOverlay")
+@be.define("EveTacticalOverlay")
 @blue.inherit(IEveSpaceObject2, IInitialize, INotify)
-@blue.interface(IEveSpaceObject2, IInitialize)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(IInitialize)
 export class EveTacticalOverlay
 {
   /** Initializes the effect-local variable-store records. */

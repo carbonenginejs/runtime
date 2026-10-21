@@ -174,4 +174,4 @@ export function RegisterTexturePack(resourceManager)
   return resourceManager;
 }
 
-CjsSchema.meta.define(CjsTexturePackConstructor, { className: "CjsTexturePackConstructor" });
+CjsSchema.meta.define("CjsTexturePackConstructor")(CjsTexturePackConstructor);

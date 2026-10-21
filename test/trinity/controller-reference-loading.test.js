@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { be, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsLoadingObject } from "../../npm/dist/resource/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2Controller, Tr2ControllerReference, UnlinkReason } from "../../npm/dist/trinity/index.js";
 
 function installLoader(t, load)
 {
-  const previous = be.resMan;
-  be.resMan = { LoadObject: load };
-  t.after(() => { be.resMan = previous; });
+  const previous = blue.resMan;
+  blue.resMan = { LoadObject: load };
+  t.after(() => { blue.resMan = previous; });
 }
 
 function recordingController(events)
@@ -145,9 +145,9 @@ test("references sharing a path get separate controllers built from one cached d
     Format: class { static read() { return { _type: "Tr2Controller", variables: [ { _type: "Tr2ControllerFloatVariable", name: "x", value: 2 } ] }; } },
     Target: Tr2Controller
   });
-  const previous = be.resMan;
-  be.resMan = manager;
-  t.after(() => { be.resMan = previous; });
+  const previous = blue.resMan;
+  blue.resMan = manager;
+  t.after(() => { blue.resMan = previous; });
   const a = new Tr2ControllerReference();
   const b = new Tr2ControllerReference();
   a.path = b.path = "res:/controller.red";

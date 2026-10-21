@@ -73,9 +73,5 @@ export class Constant
     });
 }
 
-CjsSchema.blue.define(Constant, {
-    className: "Constant",
-    methods: {
-        Equals: [meta.renamed("operator==")]
-    }
-});
+CjsSchema.decorateMethod(Constant, "Equals", meta.renamed("operator=="));
+CjsSchema.meta.carbon("Constant")(Constant);

@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
-import { be, BlueResFileSystemForm, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResFileSystemForm, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
 import {
   CjsSofLibraryBuilder,
   EveSOF,
@@ -6146,7 +6146,7 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
     async GetStreamFromPath() { return null; }
     ResolvePathW(path) { return path; }
   })();
-  be.paths.RegisterFileSystem(fileSystem);
+  blue.paths.RegisterFileSystem(fileSystem);
   try
   {
     const global = (await EveSOF.Create({ black: makeData("insert") }));
@@ -6155,7 +6155,7 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
   }
   finally
   {
-    be.paths.UnregisterFileSystem(fileSystem);
+    blue.paths.UnregisterFileSystem(fileSystem);
   }
 
   // The temporary resFileIndex adapter still overrides paths.

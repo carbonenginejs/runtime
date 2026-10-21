@@ -56,4 +56,4 @@ export function RegisterSolidColorTexture(resourceManager)
   return resourceManager;
 }
 
-CjsSchema.blue.define(SolidColorTextureConstructor, { className: "SolidColorTextureConstructor" });
+CjsSchema.meta.carbon("SolidColorTextureConstructor")(SolidColorTextureConstructor);

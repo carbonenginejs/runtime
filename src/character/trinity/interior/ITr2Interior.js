@@ -10,4 +10,4 @@ export class ITr2Interior extends ITr2InteriorCullable
 
 }
 CjsSchema.decorateMethod(ITr2Interior, "GetPerObjectDataWithPerInstanceLighting", blue.abstract);
-CjsSchema.blue.define(ITr2Interior, { className: "ITr2Interior", fields: {} });
+CjsSchema.exposure.interface("ITr2Interior")(ITr2Interior);

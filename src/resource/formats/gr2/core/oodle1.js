@@ -639,8 +639,8 @@ export const oodle1 = {
     decompressOodle1
 };
 
-CjsSchema.meta.define(Decoder, { className: "Decoder" });
+CjsSchema.meta.define("Decoder")(Decoder);
 
-CjsSchema.meta.define(WeighWindow, { className: "WeighWindow" });
+CjsSchema.meta.define("WeighWindow")(WeighWindow);
 
-CjsSchema.meta.define(Dictionary, { className: "Dictionary" });
+CjsSchema.meta.define("Dictionary")(Dictionary);

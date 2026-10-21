@@ -646,4 +646,4 @@ export class DxbcGlslOperandFormatter
     }
 }
 
-CjsSchema.meta.define(DxbcGlslOperandFormatter, { className: "DxbcGlslOperandFormatter" });
+CjsSchema.meta.define("DxbcGlslOperandFormatter")(DxbcGlslOperandFormatter);

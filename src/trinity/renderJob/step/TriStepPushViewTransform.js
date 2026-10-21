@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPushViewTransform.h
 // Source: trinity/trinity/RenderJob/TriStepPushViewTransform.cpp
 import { meta, blue } from "#schema";
@@ -9,9 +10,9 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 // view transform (Tr2Renderer::PushViewTransform).
 
 /** Step that saves the current view transform so a later pop can restore it. */
-@blue.define("TriStepPushViewTransform")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPushViewTransform")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPushViewTransform extends TriRenderStep
 {
   /**

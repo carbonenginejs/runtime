@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
-  IBlueEventListener, IBluePlacementObserver, IBlueMultiPlacementObserver, PositionDescription, be
+  IBlueEventListener, IBluePlacementObserver, IBlueMultiPlacementObserver, PositionDescription, blue as be
 } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue } from "@carbonenginejs/runtime/schema";
 import { vec3 } from "@carbonenginejs/runtime/math/vec3";

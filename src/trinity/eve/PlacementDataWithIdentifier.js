@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/IEveDistributionModifier.h
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -10,7 +11,7 @@ import { type, blue } from "#schema";
  * have accumulated, and the identity and lifetime that let those modifiers
  * recognise the same placement between frames.
  */
-@blue.define("PlacementDataWithIdentifier")
+@meta.carbon("PlacementDataWithIdentifier")
 export class PlacementDataWithIdentifier
 {
   @type.vec3

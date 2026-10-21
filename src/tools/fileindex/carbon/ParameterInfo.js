@@ -175,16 +175,10 @@ const PARAMETERS = new Map([
     new ParameterInfo(Parameter.REMOVED_RESOURCE_RELATIVE_PATHS, "RemovedResourceRelativePaths", [ span(CONTEXT_PATCH_GROUP, VERSION_0_1_0) ])
 ].map(info => [ info.id, info ]));
 
-CjsSchema.blue.define(ParameterInfo, {
-  className: "ParameterInfo",
-  fields: {
-        id: [type.int32, type.enum(Parameter)],
-        tag: [type.string],
-        isOptional: [type.boolean]
-    },
-  methods: {
-        getParameterInfo: [ meta.adapted ],
-        isParameterExpected: [ meta.adapted ],
-        isParameterRequired: [ meta.adapted ]
-    }
-});
+CjsSchema.decorateField(ParameterInfo, "id", type.int32, type.enum(Parameter));
+CjsSchema.decorateField(ParameterInfo, "tag", type.string);
+CjsSchema.decorateField(ParameterInfo, "isOptional", type.boolean);
+CjsSchema.decorateMethod(ParameterInfo, "getParameterInfo", meta.adapted);
+CjsSchema.decorateMethod(ParameterInfo, "isParameterExpected", meta.adapted);
+CjsSchema.decorateMethod(ParameterInfo, "isParameterRequired", meta.adapted);
+CjsSchema.meta.carbon("ParameterInfo")(ParameterInfo);

@@ -62,7 +62,7 @@ import { TriShadowFrustum } from "./shadows/TriShadowFrustum.js";
 import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { ExecuteMainThreadActions } from "../../core/continueOnMainThread.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { EvePickingContext, EvePendingPickingReadback } from "./picking/index.js";

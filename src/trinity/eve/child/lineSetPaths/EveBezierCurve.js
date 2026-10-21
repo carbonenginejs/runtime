@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveBezierCurve.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveBezierCurve.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveBezierCurve_Blue.cpp
@@ -26,9 +27,10 @@ const DEBUG_POSITION = vec3.create();
  * endpoints through one control point and emits the resulting chain as line
  * segments.
  */
-@blue.define("EveBezierCurve")
+@be.define("EveBezierCurve")
 @blue.inherit(INotify, IInitialize)
-@blue.interface(IEveLineSetPath, INotify)
+@be.mapInterface(IEveLineSetPath)
+@be.mapInterface(INotify)
 export class EveBezierCurve extends IEveLineSetPath
 {
   @blue.readwrite

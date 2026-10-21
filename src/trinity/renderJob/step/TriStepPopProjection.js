@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPopProjection.h
 // Source: trinity/trinity/RenderJob/TriStepPopProjection.cpp
 import { meta, blue } from "#schema";
@@ -12,9 +13,9 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
  * Step that pops the render context's projection stack, restoring the projection saved
  * by an earlier push.
  */
-@blue.define("TriStepPopProjection")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPopProjection")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPopProjection extends TriRenderStep
 {
   /** Restores the projection saved by the matching push step. */

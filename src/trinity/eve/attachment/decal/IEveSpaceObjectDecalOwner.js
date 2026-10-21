@@ -18,4 +18,4 @@ export class IEveSpaceObjectDecalOwner
 
 CjsSchema.decorateMethod(IEveSpaceObjectDecalOwner, "AddDecal", blue.abstract);
 CjsSchema.blue.inherit(IRoot)(IEveSpaceObjectDecalOwner);
-CjsSchema.blue.define(IEveSpaceObjectDecalOwner, { className: "IEveSpaceObjectDecalOwner" });
+CjsSchema.exposure.interface("IEveSpaceObjectDecalOwner")(IEveSpaceObjectDecalOwner);

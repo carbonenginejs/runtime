@@ -8,7 +8,7 @@
 // Input is not this class's job: attach the input manager to this canvas (it
 // is on top, so it receives the pointer) and let its consumers route.
 import { CjsSchema, blue, meta } from "#schema";
-import { be, IBlueEvents } from "#blue";
+import { blue as be, IBlueEvents } from "#blue";
 
 /**
  * A 2D canvas pinned over a 3D canvas: same backing size, same CSS box,

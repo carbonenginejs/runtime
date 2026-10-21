@@ -65,4 +65,4 @@ export class CjsAudioLibraryBuilderWwiseNodeBaseAncestry
     }
 }
 
-CjsSchema.meta.define(CjsAudioLibraryBuilderWwiseNodeBaseAncestry, { className: "CjsAudioLibraryBuilderWwiseNodeBaseAncestry" });
+CjsSchema.meta.define("CjsAudioLibraryBuilderWwiseNodeBaseAncestry")(CjsAudioLibraryBuilderWwiseNodeBaseAncestry);

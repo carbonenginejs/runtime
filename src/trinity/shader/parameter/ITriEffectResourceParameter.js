@@ -46,4 +46,4 @@ export class ITriEffectResourceParameter extends ITriEffectParameter
 
 CjsSchema.decorateMethod(ITriEffectResourceParameter, "OnAddedToMaterial", blue.method);
 CjsSchema.decorateMethod(ITriEffectResourceParameter, "OnRemovedFromMaterial", blue.method);
-CjsSchema.blue.define(ITriEffectResourceParameter, { className: "ITriEffectResourceParameter" });
+CjsSchema.exposure.interface("ITriEffectResourceParameter")(ITriEffectResourceParameter);

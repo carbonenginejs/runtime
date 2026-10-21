@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/UI/EveEllipseDefinition.h
 import { type, blue } from "#schema";
 import { INotify } from "../../../global/blue/INotify.js";
@@ -10,9 +11,9 @@ import { vec3 } from "#math/vec3";
  * One authored ellipse of an ellipse set - centre, plane normal, in-plane
  * rotation in degrees and the two semi-axis lengths.
  */
-@blue.define("EveEllipseDefinition")
+@be.define("EveEllipseDefinition")
 @blue.inherit(INotify)
-@blue.interface(INotify)
+@be.mapInterface(INotify)
 export class EveEllipseDefinition
 {
   _dirtyFlag = null;

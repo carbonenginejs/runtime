@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RenderNodeEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -6,8 +7,8 @@ import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import "#consts/graphics/trinityEnums";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
-@blue.define("Tr2RenderNodeEffect")
-@blue.interface(ITr2RenderNode)
+@be.define("Tr2RenderNodeEffect")
+@be.mapInterface(ITr2RenderNode)
 @blue.inherit(ITr2RenderNode)
 export class Tr2RenderNodeEffect
 {

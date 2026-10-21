@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierProcessLifetime.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -5,8 +6,8 @@ import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { DistributionEntityLifeTimeEvent } from "./enums.js";
 
 /** Ends or respawns a distributed placement with the authored lifetime event after its lifetime duration expires. */
-@blue.define("EveDistributionModifierProcessLifetime")
-@blue.interface(IEveDistributionModifier)
+@be.define("EveDistributionModifierProcessLifetime")
+@be.mapInterface(IEveDistributionModifier)
 export class EveDistributionModifierProcessLifetime extends IEveDistributionModifier
 {
 

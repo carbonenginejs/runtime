@@ -170,4 +170,4 @@ export class CjsBmpFormat extends CjsImageFormat
 }
 
 export default CjsBmpFormat;
-CjsSchema.meta.define(CjsBmpFormat, { className: "CjsBmpFormat" });
+CjsSchema.meta.define("CjsBmpFormat")(CjsBmpFormat);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h
@@ -48,9 +49,12 @@ const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
  * flares, trails, set bounding sphere and flickering point lights that its
  * renderable instances draw.
  */
-@blue.define("EveBoosterSet2")
+@be.define("EveBoosterSet2")
 @blue.inherit(IInitialize, INotify, Tr2DeviceResource, ITr2LightOwner)
-@blue.interface(INotify, IInitialize, EveEntity, ITr2LightOwner)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2LightOwner)
 export class EveBoosterSet2 extends EveEntity
 {
 

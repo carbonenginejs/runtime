@@ -90,4 +90,4 @@ CjsSchema.decorateMethod(ITr2EffectValue, "CopyValueToEffect", blue.method);
 CjsSchema.decorateMethod(ITr2EffectValue, "CopyToResourceSet", blue.method);
 CjsSchema.decorateMethod(ITr2EffectValue, "ApplyUav", blue.method);
 CjsSchema.decorateMethod(ITr2EffectValue, "AddUsedTexture", blue.method);
-CjsSchema.blue.define(ITr2EffectValue, { className: "ITr2EffectValue", fields: {} });
+CjsSchema.exposure.interface("ITr2EffectValue")(ITr2EffectValue);

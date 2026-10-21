@@ -1,7 +1,7 @@
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import {
   ContinueOnMainThread,
   ExecuteMainThreadActions,
@@ -246,7 +246,7 @@ test("Tr2Controller queues updateable Updates with Blue ticks (Tr2Controller.cpp
 {
   ExecuteMainThreadActions();
   const frame = 133000000000000000;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => frame);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => frame);
   const calls = [];
   const controller = new Tr2Controller();
   controller.updateThrottle = false;
@@ -292,7 +292,7 @@ test("state run times are TimeAsFloat tick differences of Blue frame time", t =>
   ExecuteMainThreadActions();
   const start = 133000000000000000;
   let ticks = start;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => ticks);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => ticks);
   const controller = new Tr2Controller();
   const state = new Tr2StateMachineState();
   const machine = new Tr2StateMachine();

@@ -20,4 +20,4 @@ for (const method of [ "SetGeometry", "SetGeometryTransform", "RemoveGeometry" ]
   CjsSchema.decorateMethod(ITr2AudGeometry, method, blue.abstract);
 }
 blue.inherit(IRoot)(ITr2AudGeometry);
-CjsSchema.blue.define(ITr2AudGeometry, { className: "ITr2AudGeometry" });
+CjsSchema.exposure.interface("ITr2AudGeometry")(ITr2AudGeometry);

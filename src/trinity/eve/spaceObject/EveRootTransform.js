@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/EveRootTransform.h
 // Source: trinity/trinity/Eve/EveRootTransform.cpp
@@ -18,10 +19,14 @@ import { ITriTargetable } from "../../core/ITriTargetable.js";
  * A detached transform root whose own ball and model curves drive its matrix and
  * which stands in as a single targetable point for missiles and impacts.
  */
-@blue.define("EveRootTransform")
+@be.define("EveRootTransform")
 @blue.inherit(ITriTargetable)
-@blue.interface(IEveSpaceObject2, ITriTargetable, IWorldPosition, ITr2BoundingBox, ITr2Pickable)
-@blue.chainTo(Tr2Transform)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITriTargetable)
+@be.mapInterface(IWorldPosition)
+@be.mapInterface(ITr2BoundingBox)
+@be.mapInterface(ITr2Pickable)
+@be.exposureChainTo(Tr2Transform)
 export class EveRootTransform extends EveTransform
 {
 

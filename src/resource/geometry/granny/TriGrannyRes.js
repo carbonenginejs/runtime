@@ -76,13 +76,9 @@ export class TriGrannyRes extends CjsResource
   static payload = ResourceRequirement.GEOMETRY;
 }
 
-CjsSchema.blue.interface(TriGrannyRes)(TriGrannyRes);
-CjsSchema.blue.define(TriGrannyRes, {
-  className: "TriGrannyRes",
-  methods: {
-    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
-    GetMemoryUsage: [ blue.method, meta.implemented ]
-  }
-});
+
+CjsSchema.decorateMethod(TriGrannyRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
+CjsSchema.decorateMethod(TriGrannyRes, "GetMemoryUsage", blue.method, meta.implemented);
+CjsSchema.exposure.define("TriGrannyRes")(TriGrannyRes);
 blue.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
-blue.interface(ICacheable)(TriGrannyRes);
+CjsSchema.exposure.mapInterface(ICacheable)(TriGrannyRes);

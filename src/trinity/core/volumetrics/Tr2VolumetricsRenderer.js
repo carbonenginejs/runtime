@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
@@ -49,7 +50,7 @@ const FOG_LIGHT_BITS = new Uint32Array(FOG_LIGHTS.buffer); // alloc: uint32 view
  * Renders cloud slices and shadows, blends scene fog settings and keeps the fog's Mie environment map. The froxel fog
  * passes themselves wait on WGSL translation of their compute effects (see _RenderFog_Resources).
  */
-@blue.define("Tr2VolumetricsRenderer")
+@be.define("Tr2VolumetricsRenderer")
 @blue.inherit(IRoot)
 export class Tr2VolumetricsRenderer
 {

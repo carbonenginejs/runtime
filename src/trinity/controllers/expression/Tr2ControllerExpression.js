@@ -12,7 +12,7 @@ import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram
  * existing JavaScript bindings, without a native Blue query table. The AST
  * evaluator adapter and its recorded parser gaps remain unchanged.
  */
-@blue.define("Tr2ControllerExpression")
+@meta.carbon("Tr2ControllerExpression")
 export class Tr2ControllerExpression
 {
   /**

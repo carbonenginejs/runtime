@@ -2,7 +2,7 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.cpp
 import { type, blue } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
-import { be, EnumRegistrationType } from "#blue";
+import { blue as be, EnumRegistrationType } from "#blue";
 
 
 /**

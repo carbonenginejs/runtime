@@ -405,4 +405,4 @@ function AssertJSONValue(value, active = new Set())
 
 export default CjsJsonlFormat;
 
-CjsSchema.meta.define(CjsJsonlFormat, { className: "CjsJsonlFormat" });
+CjsSchema.meta.define("CjsJsonlFormat")(CjsJsonlFormat);

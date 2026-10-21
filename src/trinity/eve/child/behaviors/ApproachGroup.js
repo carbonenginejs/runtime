@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ApproachGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ApproachGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -20,9 +21,9 @@ const DEBUG_FAR_COLOR = color.fromARGB(color.create(), 0xff1111ff);
 const DEBUG_COLOR = color.create();
 
 /** A steering behaviour that pulls each drone toward the centroid of its nearby neighbours, recomputing the pull force on a throttled schedule and reusing it between refreshes. */
-@blue.define("ApproachGroup")
+@be.define("ApproachGroup")
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.mapInterface(IBehavior)
 export class ApproachGroup
 {
 

@@ -291,8 +291,8 @@ export function ilog(value)
     return result;
 }
 
-CjsSchema.meta.define(WemBitstreamError, { className: "WemBitstreamError" });
+CjsSchema.meta.define("WemBitstreamError")(WemBitstreamError);
 
-CjsSchema.meta.define(BitReader, { className: "BitReader" });
+CjsSchema.meta.define("BitReader")(BitReader);
 
-CjsSchema.meta.define(OggPageWriter, { className: "OggPageWriter" });
+CjsSchema.meta.define("OggPageWriter")(OggPageWriter);

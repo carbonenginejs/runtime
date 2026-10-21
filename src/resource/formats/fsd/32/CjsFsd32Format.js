@@ -211,4 +211,4 @@ function NormalizeBytes(input, options)
 
 export default CjsFsd32Format;
 
-CjsSchema.meta.define(CjsFsd32Format, { className: "CjsFsd32Format" });
+CjsSchema.meta.define("CjsFsd32Format")(CjsFsd32Format);

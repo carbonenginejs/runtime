@@ -104,4 +104,4 @@ function readFormatOnCurrentThread(
   throw new TypeError(`${Format.name} does not expose a read operation.`);
 }
 
-CjsSchema.meta.define(CjsResManMainThreadLoader, { className: "CjsResManMainThreadLoader" });
+CjsSchema.meta.define("CjsResManMainThreadLoader")(CjsResManMainThreadLoader);

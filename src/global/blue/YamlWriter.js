@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: blue/src/YamlWriter.h
 // Source: blue/src/YamlWriter.cpp
 import { Alias, Document, Pair, Scalar, YAMLMap, YAMLSeq, isSeq } from "yaml";
@@ -18,8 +19,8 @@ const YAML_WRITER_METADATA_KEYS = new Set([
 
 /** Carbon's YAML writer, using buffered yaml nodes in place of libyaml events. */
 @blue.inherit(IRootWriter)
-@blue.interface()
-@blue.define({ className: "YamlWriter" })
+
+@be.define("YamlWriter")
 export class YamlWriter extends IRootWriter
 {
   _skipDefaults = true;

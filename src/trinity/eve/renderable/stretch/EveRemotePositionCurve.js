@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveRemotePositionCurve.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveRemotePositionCurve.cpp
 import { num } from "#math/num";
@@ -10,8 +11,8 @@ import { ITriVectorFunction, CcpTime } from "#blue";
  * A vector function that offsets a start-point curve by a vector sweeping from
  * one authored direction to another over a fixed time, once or repeatedly.
  */
-@blue.define("EveRemotePositionCurve")
-@blue.interface(ITriVectorFunction)
+@be.define("EveRemotePositionCurve")
+@be.mapInterface(ITriVectorFunction)
 export class EveRemotePositionCurve extends ITriVectorFunction
 {
   @blue.readwrite

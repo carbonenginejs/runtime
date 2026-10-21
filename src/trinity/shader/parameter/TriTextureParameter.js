@@ -10,7 +10,7 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ResourceRequirement } from "#resource";
 import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
 import { TriTextureRes } from "#resource/texture";
-import { be, CjsResource } from "#blue";
+import { blue as be, CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";

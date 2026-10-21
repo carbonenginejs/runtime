@@ -17,6 +17,4 @@ export class ParameterInfo
     argumentIndex = 0;
 }
 
-CjsSchema.blue.define(ParameterInfo, {
-    className: "ParameterInfo"
-});
+CjsSchema.meta.carbon("ParameterInfo")(ParameterInfo);

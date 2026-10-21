@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:557-566
@@ -10,9 +11,9 @@ import { ReflectionMode } from "#consts/graphics";
  * preserve native defaults; no initialization, update or resource lifecycle
  * is required, and the native destructor is empty.
  */
-@blue.define("EveSOFDataGenericHullCategory")
+@be.define("EveSOFDataGenericHullCategory")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataGenericHullCategory
 {
   /** Existing JavaScript alias for the native reflection-mode chooser. */

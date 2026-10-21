@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/UI/EveLineContainer.h
 // Source: trinity/trinity/Eve/UI/EveLineContainer.cpp
 // Source: trinity/trinity/Eve/UI/EveLineContainer_Blue.cpp
@@ -7,9 +8,9 @@ import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 
 
 /** Owns and updates a connector-built EveCurveLineSet. */
-@blue.define("EveLineContainer")
+@be.define("EveLineContainer")
 @blue.inherit(IEveSpaceObject2)
-@blue.interface(IEveSpaceObject2)
+@be.mapInterface(IEveSpaceObject2)
 export class EveLineContainer
 {
 

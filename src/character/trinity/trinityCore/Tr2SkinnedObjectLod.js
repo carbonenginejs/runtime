@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.h
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.cpp
-import { be, CcpTime, IsMatch } from "#blue";
+import { blue as be, CcpTime, IsMatch } from "#blue";
 import { meta, blue } from "#schema";
 
 const LOW_DETAIL_THRESHOLD = 150;
@@ -30,7 +30,7 @@ const AVATAR_RESOURCE_UNLOADING_TIME_THRESHOLD = 10.0;
  * Each proxy is a `BlueObjectProxy` (Tr2SkinnedObjectLOD.h:75-77,
  * `IBlueObjectProxyPtr`), or null.
  */
-@blue.define("Tr2SkinnedObjectLod")
+@meta.carbon("Tr2SkinnedObjectLod")
 export class Tr2SkinnedObjectLod
 {
   /** `m_highDetailProxy` (IBlueObjectProxyPtr). @type {import("#blue").IBlueObjectProxy|null} */

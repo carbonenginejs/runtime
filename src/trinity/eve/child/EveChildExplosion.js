@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta, type, blue } from "#schema";
-import { be, ICopier } from "#blue";
+import { blue as be, ICopier } from "#blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";

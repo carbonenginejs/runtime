@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
 import { INotify } from "../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
@@ -29,10 +30,11 @@ const NO_FORCES = [];
 const DEBUG_TRANSFORM = mat4.create();
 
 /** A steering behaviour that pulls unassigned drones into spline tunnel entrances and steers locked drones along their assigned tunnel's points toward the exit. */
-@blue.define("FollowASpline")
+@be.define("FollowASpline")
 @blue.inherit(INotify)
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior, INotify)
+@be.mapInterface(IBehavior)
+@be.mapInterface(INotify)
 export class FollowASpline
 {
 

@@ -19,7 +19,7 @@ const DEBUG_LINE_EFFECT_PATH = "res:/Graphics/Effect/Managed/Utility/DebugLine.f
  * declarations debug geometry uses, a position-only one and a position-and-colour one. Carbon keeps one global
  * instance, g_debugResourceHelper; it is created here on first use (TriDebugResourceHelper.g_debugResourceHelper()).
  */
-@blue.define("TriDebugResourceHelper")
+@meta.carbon("TriDebugResourceHelper")
 export class TriDebugResourceHelper
 {
   /** m_vertexPosColorDecl */

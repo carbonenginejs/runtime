@@ -38,4 +38,4 @@ export class ErrSOFProjectionNotFound extends Error
   }
 }
 
-CjsSchema.meta.define(ErrSOFProjectionNotFound, { className: "ErrSOFProjectionNotFound" });
+CjsSchema.meta.define("ErrSOFProjectionNotFound")(ErrSOFProjectionNotFound);

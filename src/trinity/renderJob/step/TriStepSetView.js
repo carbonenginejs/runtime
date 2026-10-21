@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetView.h
 // Source: trinity/trinity/RenderJob/TriStepSetView.cpp
 import { meta, type, blue } from "#schema";
@@ -10,9 +11,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that installs the view transform for the steps that follow, taken either
  * from an authored view or from a camera updated against the current viewport.
  */
-@blue.define("TriStepSetView")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetView")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetView extends TriRenderStep
 {
   @blue.readwrite

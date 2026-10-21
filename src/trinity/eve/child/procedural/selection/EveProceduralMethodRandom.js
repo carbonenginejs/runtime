@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandom.h
 import { IsMatch, INotify, IListNotify } from "#blue";
@@ -12,9 +13,12 @@ import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.j
 const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodRandom (eve/child/procedural/selection) - generated from schema shapeHash 9e2d2332.... */
-@blue.define("EveProceduralMethodRandom")
+@be.define("EveProceduralMethodRandom")
 @blue.inherit(INotify, IListNotify, IInitialize)
-@blue.interface(IEveProceduralSelectionMethod, INotify, IListNotify, IInitialize)
+@be.mapInterface(IEveProceduralSelectionMethod)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(IInitialize)
 export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 {
 

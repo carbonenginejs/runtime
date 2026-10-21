@@ -13,7 +13,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta, type, blue } from "#schema";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { num } from "#math/num";
 import { Tr2ColorAttachment, Tr2BufferDescriptionAL, Tr2ConstantBufferAL, Tr2SubresourceData } from "#trinityal";
 import {

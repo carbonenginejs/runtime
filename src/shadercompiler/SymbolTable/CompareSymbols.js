@@ -59,9 +59,5 @@ function serialOf(node)
     return node === null ? -1 : node.serial;
 }
 
-CjsSchema.blue.define(CompareSymbols, {
-    className: "CompareSymbols",
-    methods: {
-        compare: [meta.renamed("operator()")]
-    }
-});
+CjsSchema.decorateMethod(CompareSymbols, "compare", meta.renamed("operator()"));
+CjsSchema.meta.carbon("CompareSymbols")(CompareSymbols);

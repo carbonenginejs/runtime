@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dTriangle.json.).
@@ -9,8 +10,8 @@ import { type, blue } from "#schema";
  * Adapted storage: Carbon keeps `uint16_t m_index[3]` and exposes its elements as `index0..2`; the schema
  * describes one field per exposed attribute, so the three elements are stored under their exposure names.
  */
-@blue.define("Tr2Sprite2dTriangle")
-@blue.interface()
+@be.define("Tr2Sprite2dTriangle")
+
 @blue.inherit(IRoot)
 export class Tr2Sprite2dTriangle
 {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { be, CjsBlue, CjsBlueOS, CjsBlueResMan, CjsBlueClasses, CjsBluePaths } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlue, CjsBlueOS, CjsBlueResMan, CjsBlueClasses, CjsBluePaths } from "../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../npm/dist/global/blue/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsLibrary } from "../../npm/dist/core/CjsLibrary.js";
@@ -14,7 +14,7 @@ test("CjsBlue owns inert defaults with explicit donor identities and shared regi
   assert.equal(value.classes.constructor, CjsBlueClasses);
   assert.equal(value.paths.constructor, CjsBluePaths);
   assert.equal(value.os.constructor, CjsBlueOS);
-  assert.equal(value.enums, be.enums);
+  assert.equal(value.enums, blue.enums);
   assert.equal(value.sof, null);
   assert.equal(value.audio.constructor, CjsWwiseSoundEngineStub);
   assert.equal(value.audio._initialized, false);
@@ -55,10 +55,10 @@ test("first startup activates unchanged defaults and exact restoration returns t
   {
     const previous = installBlueServices();
     assert.equal(previous.running, false);
-    assert.equal(be.os.IsRegisteredForTicks(be.resMan), true);
+    assert.equal(blue.os.IsRegisteredForTicks(blue.resMan), true);
     const active = installBlueServices(previous, previous.running);
     assert.equal(active.running, true);
-    assert.equal(be.os.IsRegisteredForTicks(be.resMan), false);
+    assert.equal(blue.os.IsRegisteredForTicks(blue.resMan), false);
   }
   finally { installBlueServices(before, before.running); }
 });
@@ -67,27 +67,27 @@ test("SOF/audio installation validates atomically and graph audio follows the sa
 {
   const snapshot = installBlueServices({}, true);
   t.after(() => installBlueServices(snapshot, snapshot.running));
-  const register = t.mock.method(be.os, "RegisterForTicks");
-  const unregister = t.mock.method(be.os, "UnregisterForTicks");
-  const oldSof = be.sof, oldAudio = be.audio;
+  const register = t.mock.method(blue.os, "RegisterForTicks");
+  const unregister = t.mock.method(blue.os, "UnregisterForTicks");
+  const oldSof = blue.sof, oldAudio = blue.audio;
   assert.throws(() => installBlueServices({sof: {Fetch() {}}, audio: null}), TypeError);
-  assert.equal(be.sof, oldSof);
-  assert.equal(be.audio, oldAudio);
+  assert.equal(blue.sof, oldSof);
+  assert.equal(blue.audio, oldAudio);
   const audio = new CjsWwiseSoundEngineStub(), sof = {Fetch: () => "built"};
   t.mock.method(audio, "Init", () => assert.fail("installation must not initialize playback"));
   installBlueServices({sof, audio});
-  assert.equal(be.sof, sof);
+  assert.equal(blue.sof, sof);
   assert.equal(AudGameObjResource.backend, audio);
   assert.equal(register.mock.callCount(), 0);
   assert.equal(unregister.mock.callCount(), 0);
   AudGameObjResource.backend = null;
-  assert.equal(be.audio.constructor, CjsWwiseSoundEngineStub);
-  assert.notEqual(be.audio, audio);
+  assert.equal(blue.audio.constructor, CjsWwiseSoundEngineStub);
+  assert.notEqual(blue.audio, audio);
 });
 
 test("CjsLibrary initializes once, rejects a second root and restores borrowed providers", async t =>
 {
-  const original = {resMan: be.resMan, paths: be.paths, os: be.os, sof: be.sof, audio: be.audio};
+  const original = {resMan: blue.resMan, paths: blue.paths, os: blue.os, sof: blue.sof, audio: blue.audio};
   const library = new CjsLibrary(), second = new CjsLibrary();
   t.after(() => library.Shutdown());
   t.after(() => second.Shutdown());
@@ -97,11 +97,11 @@ test("CjsLibrary initializes once, rejects a second root and restores borrowed p
   const first = library.Initialize({os, sof, audio});
   assert.deepEqual(await Promise.all([first, library.Initialize()]), [library, library]);
   await assert.rejects(second.Initialize(), /already active/);
-  assert.equal(os.IsRegisteredForTicks(be.resMan), true);
+  assert.equal(os.IsRegisteredForTicks(blue.resMan), true);
   assert.equal(await library.Fetch("a:b:c"), result);
   assert.equal(await library.Initialize(), library);
   await library.Shutdown();
-  for (const [key, value] of Object.entries(original)) assert.equal(be[key], value, key);
+  for (const [key, value] of Object.entries(original)) assert.equal(blue[key], value, key);
   assert.equal(os.IsRegisteredForTicks(original.resMan), false);
   assert.equal(original.os.IsRegisteredForTicks(original.resMan), false);
   assert.equal(audio._initialized, false);
@@ -113,7 +113,7 @@ test("failed initial tick registration leaves no publication or active-root clai
 {
   const library = new CjsLibrary(), os = new CjsBlueOS();
   t.after(() => library.Shutdown());
-  const previous = {os: be.os, sof: be.sof, audio: be.audio};
+  const previous = {os: blue.os, sof: blue.sof, audio: blue.audio};
   const originalRegister = os.RegisterForTicks;
   let refuse = true;
   t.mock.method(os, "RegisterForTicks", function(...args)
@@ -123,26 +123,26 @@ test("failed initial tick registration leaves no publication or active-root clai
   });
   const sof = {Fetch() {}};
   await assert.rejects(library.Initialize({os, sof}), /registration failed after mutation/);
-  assert.equal(os.IsRegisteredForTicks(be.resMan), false);
-  for (const [key, value] of Object.entries(previous)) assert.equal(be[key], value);
+  assert.equal(os.IsRegisteredForTicks(blue.resMan), false);
+  for (const [key, value] of Object.entries(previous)) assert.equal(blue[key], value);
   refuse = false;
   await library.Initialize({os, sof});
-  assert.equal(os.IsRegisteredForTicks(be.resMan), true);
+  assert.equal(os.IsRegisteredForTicks(blue.resMan), true);
   await library.Shutdown();
-  assert.equal(os.IsRegisteredForTicks(be.resMan), false);
+  assert.equal(os.IsRegisteredForTicks(blue.resMan), false);
 });
 
 test("default SOF installation is deferred and does not fetch its catalog", async t =>
 {
   const library = new CjsLibrary();
   t.after(() => library.Shutdown());
-  const before = be.sof;
-  t.mock.method(be.resMan, "Fetch", () => assert.fail("startup must not fetch"));
+  const before = blue.sof;
+  t.mock.method(blue.resMan, "Fetch", () => assert.fail("startup must not fetch"));
   await library.Initialize();
-  assert.equal(CjsSchema.getClassName(be.sof.constructor), "EveSOF");
-  assert.equal(typeof be.sof.Fetch, "function");
+  assert.equal(CjsSchema.getClassName(blue.sof.constructor), "EveSOF");
+  assert.equal(typeof blue.sof.Fetch, "function");
   await library.Shutdown();
-  assert.equal(be.sof, before);
+  assert.equal(blue.sof, before);
 });
 
 test("provider hook reentry shares startup and preserves the active-root claim", async t =>
@@ -161,7 +161,7 @@ test("provider hook reentry shares startup and preserves the active-root claim",
   await library.Initialize({os, sof});
   assert.deepEqual(await nested, {value: library});
   await assert.rejects(second.Initialize({sof}), /already active/);
-  assert.equal(os.IsRegisteredForTicks(be.resMan), true);
+  assert.equal(os.IsRegisteredForTicks(blue.resMan), true);
   await library.Shutdown();
   await second.Initialize({sof});
   await second.Shutdown();

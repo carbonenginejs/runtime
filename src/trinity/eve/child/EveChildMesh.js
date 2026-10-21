@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
@@ -69,11 +70,22 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
  * decals, lights, attachments, morph weights, world bounds and screen-size LOD
  * state.
  */
-@blue.define("EveChildMesh")
+@be.define("EveChildMesh")
 @blue.inherit(ITr2Renderable, IEveShadowCaster)
 @blue.inherit(IListNotify)
 @blue.inherit(IInitialize, INotify, IListNotify, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, IEveSpaceObjectAttachmentOwner)
-@blue.interface(EveEntity, IEveSpaceObjectDecalOwner, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, ITr2GrannyAnimationOwner, IEveSpaceObjectAttachmentOwner, ITr2LightOwner, ITr2Pickable, IEveShadowCaster)
+@be.mapInterface(EveEntity)
+@be.mapInterface(IEveSpaceObjectDecalOwner)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2GrannyAnimationOwner)
+@be.mapInterface(IEveSpaceObjectAttachmentOwner)
+@be.mapInterface(ITr2LightOwner)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(IEveShadowCaster)
 export class EveChildMesh extends EveChildTransform
 {
   _isMorphsBaked = false;

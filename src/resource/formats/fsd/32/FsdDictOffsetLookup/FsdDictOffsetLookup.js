@@ -58,4 +58,4 @@ export class FsdDictOffsetLookup
 
 export default FsdDictOffsetLookup;
 
-CjsSchema.blue.define(FsdDictOffsetLookup, { className: "FsdDictOffsetLookup" });
+CjsSchema.meta.carbon("FsdDictOffsetLookup")(FsdDictOffsetLookup);

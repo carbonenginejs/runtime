@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -6,8 +7,11 @@ import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttribute
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 
 /** EveSmartLightAttributeModifierBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash cade668b.... */
-@blue.define("EveSmartLightAttributeModifierBucket")
-@blue.interface(IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize, INotify)
+@be.define("EveSmartLightAttributeModifierBucket")
+@be.mapInterface(IEveSmartLightGroupAttributeModifier)
+@be.mapInterface(EveSmartLightBaseAttributeModifier)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAttributeModifier
 {
 

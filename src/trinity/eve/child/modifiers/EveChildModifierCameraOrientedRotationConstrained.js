@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierCameraOrientedRotationConstrained.cpp
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -13,8 +14,8 @@ const UP = vec3.fromValues(0, 1, 0);
  * Transform modifier that yaws a child about world up until it faces the camera
  * in the horizontal plane, leaving its authored pitch and roll intact.
  */
-@blue.define("EveChildModifierCameraOrientedRotationConstrained")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierCameraOrientedRotationConstrained")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierCameraOrientedRotationConstrained extends IEveChildTransformModifier
 {
   static scratch = {

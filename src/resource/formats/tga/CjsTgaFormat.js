@@ -276,4 +276,4 @@ export class CjsTgaFormat extends CjsImageFormat
 
 export default CjsTgaFormat;
 
-CjsSchema.meta.define(CjsTgaFormat, { className: "CjsTgaFormat" });
+CjsSchema.meta.define("CjsTgaFormat")(CjsTgaFormat);

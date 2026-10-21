@@ -3802,4 +3802,4 @@ DxbcGlslEmitter.prototype._assemble = function _assemble(state)
     return `${lines.join("\n")}\n`;
 };
 
-CjsSchema.meta.define(DxbcGlslEmitter, { className: "DxbcGlslEmitter" });
+CjsSchema.meta.define("DxbcGlslEmitter")(DxbcGlslEmitter);

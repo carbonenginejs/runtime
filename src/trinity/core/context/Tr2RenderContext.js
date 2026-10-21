@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RenderContext.h (name/role)
 //   trinity/trinityal/*/Tr2RenderContext*.h (command surface)
 // Hand-maintained amalgam of two Carbon surfaces (audited 2026-07-18):
@@ -39,7 +40,7 @@ const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 const DEFAULT_TECHNIQUE = "Main";
 
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
-@blue.define("Tr2RenderContext")
+@be.define("Tr2RenderContext")
 export class Tr2RenderContext
 {
   /**

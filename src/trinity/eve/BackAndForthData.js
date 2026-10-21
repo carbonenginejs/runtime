@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 import { vec3 } from "#math/vec3";
 import { type, blue } from "#schema";
@@ -9,7 +10,7 @@ import { type, blue } from "#schema";
  * trip it is. The behaviour allocates one record per agent and rewrites it on
  * every behaviour update.
  */
-@blue.define("BackAndForthData")
+@meta.carbon("BackAndForthData")
 export class BackAndForthData
 {
   @type.vec3

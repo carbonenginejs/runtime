@@ -326,7 +326,7 @@ export class CjsBlueOS extends IBlueOS
   }
 }
 
-CjsSchema.blue.interface(IBlueOS)(CjsBlueOS);
+CjsSchema.exposure.mapInterface(IBlueOS)(CjsBlueOS);
 CjsSchema.blue.inherit(BeInfo)(CjsBlueOS);
 CjsSchema.blue.define(CjsBlueOS, {
   className: "CjsBlueOS",

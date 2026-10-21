@@ -20,6 +20,4 @@ export class Uav
     isAutoregister = false;
 }
 
-CjsSchema.blue.define(Uav, {
-    className: "Uav"
-});
+CjsSchema.meta.carbon("Uav")(Uav);

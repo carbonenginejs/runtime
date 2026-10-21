@@ -25,7 +25,6 @@ export class ITr2Pickable
   GetPickingBatches(_batches, _pickTypes, _perObjectData) {}
 }
 
-CjsSchema.blue.define(ITr2Pickable, {
-  className: "ITr2Pickable",
-  methods: { GetID: blue.abstract, GetPickingBatches: blue.abstract }
-});
+CjsSchema.decorateMethod(ITr2Pickable, "GetID", blue.abstract);
+CjsSchema.decorateMethod(ITr2Pickable, "GetPickingBatches", blue.abstract);
+CjsSchema.exposure.interface("ITr2Pickable")(ITr2Pickable);

@@ -43,19 +43,15 @@ export class TriGeometryResMeshData
 
 }
 
-CjsSchema.blue.define(TriGeometryResMeshData, {
-  className: "TriGeometryResMeshData",
-  fields: {
-    name: type.string,
-    vertexDeclarationHandle: type.uint32,
-    bytesPerVertex: type.uint32,
-    minBounds: type.vec3,
-    maxBounds: type.vec3,
-    boundingSphere: type.vec4,
-    jointBindings: type.list("TriJointBinding"),
-    audioGeometry: type.rawStruct("AudioGeometryResData"),
-    decals: type.list("MeshDecalData"),
-    lodMask: type.uint32,
-    lods: type.list("TriGeometryResLodData")
-  }
-});
+CjsSchema.decorateField(TriGeometryResMeshData, "name", type.string);
+CjsSchema.decorateField(TriGeometryResMeshData, "vertexDeclarationHandle", type.uint32);
+CjsSchema.decorateField(TriGeometryResMeshData, "bytesPerVertex", type.uint32);
+CjsSchema.decorateField(TriGeometryResMeshData, "minBounds", type.vec3);
+CjsSchema.decorateField(TriGeometryResMeshData, "maxBounds", type.vec3);
+CjsSchema.decorateField(TriGeometryResMeshData, "boundingSphere", type.vec4);
+CjsSchema.decorateField(TriGeometryResMeshData, "jointBindings", type.list("TriJointBinding"));
+CjsSchema.decorateField(TriGeometryResMeshData, "audioGeometry", type.rawStruct("AudioGeometryResData"));
+CjsSchema.decorateField(TriGeometryResMeshData, "decals", type.list("MeshDecalData"));
+CjsSchema.decorateField(TriGeometryResMeshData, "lodMask", type.uint32);
+CjsSchema.decorateField(TriGeometryResMeshData, "lods", type.list("TriGeometryResLodData"));
+CjsSchema.meta.carbon("TriGeometryResMeshData")(TriGeometryResMeshData);

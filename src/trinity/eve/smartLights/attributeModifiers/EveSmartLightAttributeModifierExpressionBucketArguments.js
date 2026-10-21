@@ -6,10 +6,7 @@ import { type, meta } from "#schema";
  * expression's variable bindings, refreshed every update and read by the
  * compiled expression.
  */
-@meta.define({
-  className: "EveSmartLightAttributeModifierExpressionBucketArguments",
-  carbon: "EveSmartLightAttributeModifierExpressionBucket::Arguments"
-})
+@meta.carbon("EveSmartLightAttributeModifierExpressionBucket::Arguments")
 export class EveSmartLightAttributeModifierExpressionBucketArguments
 {
 

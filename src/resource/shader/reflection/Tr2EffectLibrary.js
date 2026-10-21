@@ -203,21 +203,17 @@ export class Tr2EffectLibrary
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.blue.define(Tr2EffectLibrary, {
-  className: "Tr2EffectLibrary",
-  fields: {
-    payloadSize: type.uint32,
-    libraryHandle: type.uint32,
-    rayGenName: type.string,
-    missName: type.string,
-    closestHitName: type.string,
-    anyHitName: type.string,
-    intersectionName: type.string,
-    hitGroupName: type.string,
-    globalInput: type.rawStruct("Tr2EffectStageInput"),
-    localInput: type.rawStruct("Tr2EffectStageInput"),
-    globalResourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    sourceProgram: [ meta.adapted, type.rawStruct("CjsEffectSourceProgram") ],
-    exports: [ meta.adapted, type.rawStruct("CjsEffectLibraryExports") ]
-  }
-});
+CjsSchema.decorateField(Tr2EffectLibrary, "payloadSize", type.uint32);
+CjsSchema.decorateField(Tr2EffectLibrary, "libraryHandle", type.uint32);
+CjsSchema.decorateField(Tr2EffectLibrary, "rayGenName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "missName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "closestHitName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "anyHitName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "intersectionName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "hitGroupName", type.string);
+CjsSchema.decorateField(Tr2EffectLibrary, "globalInput", type.rawStruct("Tr2EffectStageInput"));
+CjsSchema.decorateField(Tr2EffectLibrary, "localInput", type.rawStruct("Tr2EffectStageInput"));
+CjsSchema.decorateField(Tr2EffectLibrary, "globalResourceSetDesc", type.rawStruct("Tr2ResourceSetDescriptionAL"));
+CjsSchema.decorateField(Tr2EffectLibrary, "sourceProgram", meta.adapted, type.rawStruct("CjsEffectSourceProgram"));
+CjsSchema.decorateField(Tr2EffectLibrary, "exports", meta.adapted, type.rawStruct("CjsEffectLibraryExports"));
+CjsSchema.meta.carbon("Tr2EffectLibrary")(Tr2EffectLibrary);

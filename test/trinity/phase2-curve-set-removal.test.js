@@ -13,7 +13,7 @@ import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { ISimTimeRebaseNotify } from "../../npm/dist/global/blue/ISimTimeRebaseNotify.js";
 import { ITriFunction } from "../../npm/dist/global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../npm/dist/global/blue/ITriCurveLength.js";
-import { be } from "../../npm/dist/global/blue/blue.js";
+import { blue as be } from "../../npm/dist/global/blue/blue.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { TriDevice } from "../../npm/dist/trinity/core/device/TriDevice.js";

@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
 import { type, blue } from "#schema";
 
@@ -7,7 +8,7 @@ import { type, blue } from "#schema";
  * agent is assigned, how far along that tunnel it is, and whether it has spawned
  * or already used its entry and exit tunnels.
  */
-@blue.define("ProcessLifetimeData")
+@meta.carbon("ProcessLifetimeData")
 export class ProcessLifetimeData
 {
   @type.boolean

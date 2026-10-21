@@ -128,4 +128,4 @@ function Utf8Key(key)
 
 export default SemiFastStringLoadingHashedOffsetLookup;
 
-CjsSchema.blue.define(SemiFastStringLoadingHashedOffsetLookup, { className: "SemiFastStringLoadingHashedOffsetLookup" });
+CjsSchema.meta.carbon("SemiFastStringLoadingHashedOffsetLookup")(SemiFastStringLoadingHashedOffsetLookup);

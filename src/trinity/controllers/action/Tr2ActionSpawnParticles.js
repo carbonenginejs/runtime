@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles_Blue.cpp
@@ -10,7 +12,7 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
  * Controller action that emits a one-shot burst of particles from a dynamic
  * emitter when it starts.
  */
-@blue.define("Tr2ActionSpawnParticles")
+@be.define("Tr2ActionSpawnParticles")
 export class Tr2ActionSpawnParticles extends ITr2ControllerAction
 {
   /**
@@ -61,4 +63,4 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSpawnParticles_Blue.cpp:12-13,17).
-blue.interface(ITr2ControllerAction)(Tr2ActionSpawnParticles);
+CjsSchema.exposure.mapInterface(ITr2ControllerAction)(Tr2ActionSpawnParticles);

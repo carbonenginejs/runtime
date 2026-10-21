@@ -342,7 +342,7 @@ export class IRootReaderBase
   }
 }
 
-CjsSchema.blue.define(IRootReaderBase, { className: "IRootReaderBase" });
+CjsSchema.meta.carbon("IRootReaderBase")(IRootReaderBase);
 CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", blue.method, meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", blue.method, meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadStructureList", blue.method, meta.adapted);

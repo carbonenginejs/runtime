@@ -22,4 +22,4 @@ export class ICatchupTicks extends IVariableTicker
 
 CjsSchema.decorateMethod(ICatchupTicks, "OnPostFrameTick", blue.abstract);
 
-CjsSchema.blue.define(ICatchupTicks, { className: "ICatchupTicks", fields: {} });
+CjsSchema.meta.carbon("ICatchupTicks")(ICatchupTicks);

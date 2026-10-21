@@ -122,4 +122,4 @@ CjsSchema.decorateMethod(Tr2RingBufferOffsets, "GetCurrentFrameOffset", blue.met
 CjsSchema.decorateMethod(Tr2RingBufferOffsets, "GetPreviousFrameOffset", blue.method);
 CjsSchema.decorateMethod(Tr2RingBufferOffsets, "UploadTransforms", blue.method);
 CjsSchema.decorateMethod(Tr2RingBufferOffsets, "AdvanceFrame", blue.method);
-CjsSchema.blue.define(Tr2RingBufferOffsets, { className: "Tr2RingBufferOffsets" });
+CjsSchema.meta.carbon("Tr2RingBufferOffsets")(Tr2RingBufferOffsets);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Audio/Tr2AudioStretchAuto.h
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchAuto.json.
@@ -6,8 +7,9 @@ import { ITr2Audio } from "../trinityAudioApi/ITr2Audio.js";
 import { Tr2AudioStretchBase } from "./Tr2AudioStretchBase.js";
 
 /** Adds authored impact, outburst, and stretch event triggers to a three-emitter audio stretch. */
-@blue.define("Tr2AudioStretchAuto")
-@blue.interface(Tr2AudioStretchBase, ITr2Audio)
+@be.define("Tr2AudioStretchAuto")
+@be.mapInterface(Tr2AudioStretchBase)
+@be.mapInterface(ITr2Audio)
 export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
 {
 

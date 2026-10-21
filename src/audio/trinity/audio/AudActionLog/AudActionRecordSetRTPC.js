@@ -43,7 +43,5 @@ export class AudActionRecordSetRTPC extends AudActionRecord
 
 }
 
-CjsSchema.blue.define(AudActionRecordSetRTPC, {
-    className: "AudActionRecordSetRTPC",
-    methods: { ToPyObject: [blue.method, meta.adapted] }
-});
+CjsSchema.decorateMethod(AudActionRecordSetRTPC, "ToPyObject", blue.method, meta.adapted);
+CjsSchema.meta.carbon("AudActionRecordSetRTPC")(AudActionRecordSetRTPC);

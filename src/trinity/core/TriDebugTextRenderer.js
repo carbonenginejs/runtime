@@ -50,7 +50,7 @@ function FormatTruncated(msg, args)
 }
 
 /** Queues and draws debug text (TriDebugTextRenderer.h:19-79). */
-@blue.define("TriDebugTextRenderer")
+@meta.carbon("TriDebugTextRenderer")
 export class TriDebugTextRenderer
 {
 

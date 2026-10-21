@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:80-91
@@ -8,9 +9,9 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
  * Native IRoot-only data with a self-only Blue table. Defaults retain native
  * construction; the empty destructor needs no resource or update lifecycle.
  */
-@blue.define("EveSOFDataAreaMaterial")
+@be.define("EveSOFDataAreaMaterial")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataAreaMaterial
 {
   /**

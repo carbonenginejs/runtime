@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/TriValueBinding.h
 // Source: trinity/trinity/TriValueBinding.cpp
 // Source: trinity/trinity/TriValueBinding_Blue.cpp
@@ -12,9 +13,10 @@ import { vec4 } from "#math/vec4";
  * object, applying a scale and per-component offset through a type-checked copy
  * plan built when the endpoints resolve.
  */
-@blue.define("TriValueBinding")
+@be.define("TriValueBinding")
 @blue.inherit(ITr2ValueBinding)
-@blue.interface(ITr2ValueBinding, INotify)
+@be.mapInterface(ITr2ValueBinding)
+@be.mapInterface(INotify)
 export class TriValueBinding extends INotify
 {
   /** m_name (std::string) [READWRITE, PERSIST] */

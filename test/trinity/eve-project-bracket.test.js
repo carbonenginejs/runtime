@@ -6,7 +6,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be, CjsScriptCallback } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsScriptCallback } from "../../npm/dist/global/blue/index.js";
 import { gTriDev, TriDevice, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext, TriViewport } from "../../npm/dist/trinity/core/index.js";
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
@@ -81,7 +81,7 @@ test("EveProjectBracket samples the priority track ball on the OS frame clock (E
   const bracket = new eve.EveProjectBracket();
   makeContext({ animationTime: 17.25, viewport: [ 10, 20, 200, 100 ] });
   const frame = 123456789;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => frame);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => frame);
   const calls = [];
   bracket.integerCoordinates = false;
   bracket.ballTrackingScaling = 2;

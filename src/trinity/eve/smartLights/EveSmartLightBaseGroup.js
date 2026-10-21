@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IEveSmartLightGroup } from "./IEveSmartLightGroup.js";
@@ -28,9 +29,10 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 }
 
 /** The shared faction-colour resolution and attribute-modifier surface flattened into every smart-light group implementation. */
-@blue.define("EveSmartLightBaseGroup")
+@be.define("EveSmartLightBaseGroup")
 @blue.inherit(IEveSmartLightGroup, IListNotify)
-@blue.interface(IEveSmartLightGroup, IListNotify)
+@be.mapInterface(IEveSmartLightGroup)
+@be.mapInterface(IListNotify)
 export class EveSmartLightBaseGroup
 {
 

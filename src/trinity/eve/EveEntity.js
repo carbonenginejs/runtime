@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveEntity.h
 //   trinity/trinity/Eve/EveEntity.cpp
@@ -8,8 +9,8 @@ import { meta, blue } from "#schema";
  * tracking which registry they belong to and the slot index the registry
  * assigned for each component type.
  */
-@blue.define("EveEntity")
-@blue.interface()
+@be.define("EveEntity")
+
 @blue.inherit(IRoot)
 export class EveEntity
 {

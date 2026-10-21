@@ -93,15 +93,9 @@ export class Tr2TexturePipeline
 }
 
 CjsSchema.blue.inherit(IRoot)(Tr2TexturePipeline);
-CjsSchema.blue.interface(Tr2TexturePipeline)(Tr2TexturePipeline);
-CjsSchema.blue.define(Tr2TexturePipeline, {
-  className: "Tr2TexturePipeline",
-  fields: {
-    pipelineType: [ blue.readwrite, blue.persist, type.string ],
-    steps: [ blue.read, blue.persist, type.list("ITr2TexturePipelineStep") ]
-  },
-  methods: {
-    Execute: [ blue.method, meta.adapted ],
-    GetResourceDependencies: [ blue.method, meta.adapted ]
-  }
-});
+
+CjsSchema.decorateField(Tr2TexturePipeline, "pipelineType", blue.readwrite, blue.persist, type.string);
+CjsSchema.decorateField(Tr2TexturePipeline, "steps", blue.read, blue.persist, type.list("ITr2TexturePipelineStep"));
+CjsSchema.decorateMethod(Tr2TexturePipeline, "Execute", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2TexturePipeline, "GetResourceDependencies", blue.method, meta.adapted);
+CjsSchema.exposure.define("Tr2TexturePipeline")(Tr2TexturePipeline);

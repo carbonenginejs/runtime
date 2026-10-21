@@ -1064,7 +1064,7 @@ export class CjsSchema
          */
         setting: SETTING_DECORATOR,
         struct: createStructNamespace(),
-        // Numeric flags select the complete target row; legacy named/indexed declarations remain supported.
+        // Transitional typeof overload dispatch violates the no-argument-inspection rule; remove it when the last legacy caller is migrated.
         attribute: (flagsOrName, nameOrOptions) => typeof flagsOrName === "number"
             ? ownAttributeDecorator(flagsOrName, nameOrOptions)
             : declarationDecorator("member", flagsOrName, nameOrOptions),
@@ -3775,7 +3775,7 @@ CjsSchema.meta.define(CjsBlueEnumRegistry, {
 
 CjsSchema.blue.define(CcpLogChannel_t, { className: "CcpLogChannel_t" });
 
-CjsSchema.meta.define(CjsSchema, { className: "CjsSchema" });
+CjsSchema.meta.define("CjsSchema")(CjsSchema);
 
 CjsSchema.meta.define(CjsError, { className: "CjsError" });
 

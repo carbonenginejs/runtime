@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Lights/Tr2FactionLight.h
 import { IsMatch, IInitialize, INotify } from "#blue";
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -32,9 +33,12 @@ const DEBUG_SELECTED_OFFSET = color.fromValues(0, 0, 0, 0.2);
 const TRI_2PI = Math.fround(6.283185307);
 
 /** A light whose colour is derived from a faction palette entry blended by a saturation factor, in addition to its own authored light attributes. */
-@blue.define("Tr2FactionLight")
+@be.define("Tr2FactionLight")
 @blue.inherit(IEveInheritPropertiesOwner)
-@blue.interface(IEveInheritPropertiesOwner, Tr2Light, IInitialize, INotify)
+@be.mapInterface(IEveInheritPropertiesOwner)
+@be.mapInterface(Tr2Light)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2FactionLight extends Tr2Light
 {
 

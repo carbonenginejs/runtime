@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
@@ -13,9 +14,9 @@ const INVALID_UNIQUE_ID = 0;
  * project, letting the engine reason about events without Wwise. Populated at
  * runtime (no persisted fields) from a plain audio metadata object.
  */
-@blue.define("AudStaticDataRepository")
+@be.define("AudStaticDataRepository")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class AudStaticDataRepository
 {
 

@@ -2,7 +2,7 @@
 import { meta, blue } from "#schema";
 
 /** Stable-sort policy for interior render batches. */
-@blue.define("Tr2IntKeyGenerator")
+@meta.carbon("Tr2IntKeyGenerator")
 export class Tr2IntKeyGenerator
 {
 

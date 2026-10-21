@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard3D.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard3D.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard3D_Blue.cpp
@@ -13,8 +14,8 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
  * billboard that preserves the child's authored scale or as a free one that
  * screen-aligns and then re-aligns along the camera direction.
  */
-@blue.define("EveChildModifierBillboard3D")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierBillboard3D")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierBillboard3D extends IEveChildTransformModifier
 {
   @blue.readwrite

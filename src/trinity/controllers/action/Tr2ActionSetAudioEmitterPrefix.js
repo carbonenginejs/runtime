@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix_Blue.cpp
@@ -9,8 +10,8 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
  * Controller action that sets the event-name prefix on a named audio emitter
  * when it starts, changing which bank events later sounds resolve to.
  */
-@blue.define("Tr2ActionSetAudioEmitterPrefix")
-@blue.interface(ITr2ControllerAction)
+@be.define("Tr2ActionSetAudioEmitterPrefix")
+@be.mapInterface(ITr2ControllerAction)
 export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
 {
   /** m_emitterName: narrow emitter lookup name. */

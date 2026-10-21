@@ -22,4 +22,4 @@ export class VectorSchemaAttributes
 
 export default VectorSchemaAttributes;
 
-CjsSchema.blue.define(VectorSchemaAttributes, { className: "VectorSchemaAttributes" });
+CjsSchema.meta.carbon("VectorSchemaAttributes")(VectorSchemaAttributes);

@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAgent.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/behaviors/DroneAgent.json.).
 import { type, blue } from "#schema";
@@ -6,7 +7,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** DroneAgent (eve/child/behaviors) - generated from schema shapeHash c50899e8.... */
-@blue.define("DroneAgent")
+@meta.carbon("DroneAgent")
 export class DroneAgent
 {
 

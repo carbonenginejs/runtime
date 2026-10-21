@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
@@ -10,9 +11,9 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that lags the camera position or point of interest behind
  * its target, giving a smooth follow with no overshoot.
  */
-@blue.define("EveVirtualCameraBehaviourVector3Damping")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@be.define("EveVirtualCameraBehaviourVector3Damping")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBehaviourVector3Base
 {
   /** m_dampingRatio; Carbon exposes the member name itself (EveVirtualCameraBehaviour_Blue.cpp:206). */

@@ -126,4 +126,4 @@ export class CjsStorageBackend
     }
 }
 
-CjsSchema.meta.define(CjsStorageBackend, { className: "CjsStorageBackend" });
+CjsSchema.meta.define("CjsStorageBackend")(CjsStorageBackend);

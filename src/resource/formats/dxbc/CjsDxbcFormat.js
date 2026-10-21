@@ -228,4 +228,4 @@ export class CjsDxbcFormat extends CjsFormat
 
 export default CjsDxbcFormat;
 
-CjsSchema.meta.define(CjsDxbcFormat, { className: "CjsDxbcFormat" });
+CjsSchema.meta.define("CjsDxbcFormat")(CjsDxbcFormat);

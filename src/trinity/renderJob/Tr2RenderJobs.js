@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.h
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.cpp
@@ -10,8 +11,8 @@ import { TriRenderJob } from "./TriRenderJob.js";
  * The four render-job schedules a frame draws from - recurring, one-off, chained
  * and update-recurring - and the order in which they are run.
  */
-@blue.define("Tr2RenderJobs")
-@blue.interface(IRoot)
+@be.define("Tr2RenderJobs")
+
 @blue.inherit(IRoot)
 export class Tr2RenderJobs
 {

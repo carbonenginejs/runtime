@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudGeometry.h + AudGeometry.cpp
 // Hand-owned browser/backend adaptation. Verify against audio/AudGeometry.json.
 import { meta, blue } from "#schema";
@@ -94,8 +95,8 @@ function MakeGeometryParams(geometryData, manager)
  * Maintains Carbon geometry-set reference counts and routes Wwise-shaped
  * geometry lifecycle values to an optional browser backend.
  */
-@blue.define("AudGeometry")
-@blue.interface(ITr2AudGeometry)
+@be.define("AudGeometry")
+@be.mapInterface(ITr2AudGeometry)
 export class AudGeometry extends ITr2AudGeometry
 {
 

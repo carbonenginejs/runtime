@@ -19,6 +19,4 @@ export class Vector4
     w = 0;
 }
 
-CjsSchema.blue.define(Vector4, {
-    className: "Vector4"
-});
+CjsSchema.meta.carbon("Vector4")(Vector4);

@@ -217,4 +217,4 @@ export class Tr2OcclusionQueryAL
 
 CjsSchema.decorateField(Tr2OcclusionQueryAL, "_query", type.unknown);
 CjsSchema.decorateMethod(Tr2OcclusionQueryAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2OcclusionQueryAL, { className: "Tr2OcclusionQueryAL" });
+CjsSchema.meta.carbon("Tr2OcclusionQueryAL")(Tr2OcclusionQueryAL);

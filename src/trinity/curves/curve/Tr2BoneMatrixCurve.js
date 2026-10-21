@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve.h
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve.cpp
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve_Blue.cpp
@@ -17,9 +18,11 @@ const SPHERICAL_LINEAR = 4;
  * authored transform composed with that bone's current matrix and the object's
  * world transform rather than sampling its own keys.
  */
-@blue.define("Tr2BoneMatrixCurve")
+@be.define("Tr2BoneMatrixCurve")
 @blue.inherit(IInitialize, ITriCurveLength)
-@blue.interface(ITriFunction, IInitialize, ITriCurveLength)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITriCurveLength)
 export class Tr2BoneMatrixCurve extends ITriFunction
 {
   /**

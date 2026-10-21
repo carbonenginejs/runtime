@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightQuad.h
 import { IsMatch } from "#blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
@@ -21,10 +22,13 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../child/packQuadInstanceData.js";
 
 /** A smart-light group member that places faction-colour-aware flare quads at each distribution placement and submits them to the quad renderer. */
-@blue.define("EveSmartLightQuad")
+@be.define("EveSmartLightQuad")
 @blue.inherit(EveSmartLightBaseGroup, IInitialize, INotify)
-@blue.interface(EveSmartLightBaseGroup, IInitialize, INotify, IListNotify)
-@blue.chainTo(EveSmartLightBaseGroup)
+@be.mapInterface(EveSmartLightBaseGroup)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.exposureChainTo(EveSmartLightBaseGroup)
 export class EveSmartLightQuad extends EveChildTransform
 {
 

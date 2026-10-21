@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
 /** Tests named depletion counters as a condition for a hull-extension placement. */
-@blue.define("EveSOFDataHullExtensionPlacementDistributionDepletionCounter")
-@blue.interface(IEveSOFDataHullExtensionPlacementDistribution)
+@be.define("EveSOFDataHullExtensionPlacementDistributionDepletionCounter")
+@be.mapInterface(IEveSOFDataHullExtensionPlacementDistribution)
 export class EveSOFDataHullExtensionPlacementDistributionDepletionCounter extends IEveSOFDataHullExtensionPlacementDistribution
 {
 

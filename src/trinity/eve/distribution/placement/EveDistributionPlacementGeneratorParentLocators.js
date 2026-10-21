@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorParentLocators.h
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
@@ -8,9 +9,10 @@ import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Builds distribution placements from a named locator set resolved on the parent space object. */
-@blue.define("EveDistributionPlacementGeneratorParentLocators")
+@be.define("EveDistributionPlacementGeneratorParentLocators")
 @blue.inherit(INotify)
-@blue.interface(IEveDistributionPlacementGenerators, INotify)
+@be.mapInterface(IEveDistributionPlacementGenerators)
+@be.mapInterface(INotify)
 export class EveDistributionPlacementGeneratorParentLocators extends IEveDistributionPlacementGenerators
 {
 

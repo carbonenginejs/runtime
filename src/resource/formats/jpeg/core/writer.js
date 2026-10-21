@@ -594,4 +594,4 @@ export function encodeJpeg(payload, options = {})
     return Uint8Array.from(writer.bytes);
 }
 
-CjsSchema.meta.define(BitWriter, { className: "BitWriter" });
+CjsSchema.meta.define("BitWriter")(BitWriter);

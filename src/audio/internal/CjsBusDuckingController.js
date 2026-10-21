@@ -621,4 +621,4 @@ function FiniteDb(value, label)
     return number;
 }
 
-CjsSchema.meta.define(CjsBusDuckingController, { className: "CjsBusDuckingController" });
+CjsSchema.meta.define("CjsBusDuckingController")(CjsBusDuckingController);

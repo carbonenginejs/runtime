@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CjsOverlay2D, CjsLibrary } from "../../../npm/dist/core/index.js";
-import { be } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 
 function fakeView()
 {
@@ -64,12 +64,12 @@ test("it draws on every Blue pump and stops when destroyed; the library creates 
   const view = new CjsLibrary().CreateOverlay2D({ canvas: target });
   let frames = 0;
   view.AddDrawer(() => frames++);
-  assert.equal(be.os.IsRegisteredForTicks(view), true);
-  be.os.PumpOS();
-  be.os.PumpOS();
+  assert.equal(blue.os.IsRegisteredForTicks(view), true);
+  blue.os.PumpOS();
+  blue.os.PumpOS();
   assert.equal(frames, 2);
   view.Destruct();
-  assert.equal(be.os.IsRegisteredForTicks(view), false);
-  be.os.PumpOS();
+  assert.equal(blue.os.IsRegisteredForTicks(view), false);
+  blue.os.PumpOS();
   assert.equal(frames, 2);
 });

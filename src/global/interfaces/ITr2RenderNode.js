@@ -15,4 +15,4 @@ export class ITr2RenderNode
 
 CjsSchema.decorateMethod(ITr2RenderNode, "Validate", blue.abstract);
 CjsSchema.decorateMethod(ITr2RenderNode, "Execute", blue.abstract);
-CjsSchema.blue.define(ITr2RenderNode, { className: "ITr2RenderNode" });
+CjsSchema.exposure.interface("ITr2RenderNode")(ITr2RenderNode);

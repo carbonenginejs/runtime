@@ -98,4 +98,4 @@ export class Tr2ConstantBufferFormats
   }
 }
 
-CjsSchema.meta.define(Tr2ConstantBufferFormats, {"className": "Tr2ConstantBufferFormats"});
+CjsSchema.meta.define("Tr2ConstantBufferFormats")(Tr2ConstantBufferFormats);

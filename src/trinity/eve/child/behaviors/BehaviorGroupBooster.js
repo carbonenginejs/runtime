@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.h
-import { IsMatch, INotify, be, CcpTime } from "#blue";
+import { IsMatch, INotify, blue as be, CcpTime } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.

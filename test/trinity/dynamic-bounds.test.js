@@ -11,7 +11,7 @@ import {CjsGr2Format} from "../../npm/dist/resource/formats/gr2/index.js";
 import {CjsCmfFormat} from "../../npm/dist/resource/formats/cmf/index.js";
 import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
 import {EveSOF} from "../../npm/dist/sof/index.js";
-import {be} from "../../npm/dist/global/blue/index.js";
+import {blue} from "../../npm/dist/global/blue/index.js";
 import "../../npm/dist/audio/index.js";
 import {StubResMan} from "../support/stubResMan.js";
 
@@ -89,7 +89,7 @@ test("real Svipul dynamic bounds survive stance animation and GR2/CMF rebinding"
   const files=new Map([["res:/dx9/model/spaceobjectfactory/generic.black",catalog.generic]]);
   for(const [kind,dir] of Object.entries({hull:"hulls",faction:"factions",race:"races",material:"materials",pattern:"patterns",layout:"layouts"}))
     for(const item of catalog[kind]??[])files.set(`res:/dx9/model/spaceobjectfactory/${dir}/${item.name}.black`,item);
-  const previous=be.resMan;be.resMan=new StubResMan();t.after(()=>{be.resMan=previous;});
+  const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
   const sof=(await new EveSOF().Register({lazyData:{source:async path=>{assert.ok(files.has(path),path);return files.get(path);}},resources:{exists:async path=>files.has(path)}}));
   const values=await sof.BuildValuesFromDNAAsync("mde3_t3:minmatarbase:minmatar");
   const ship=CjsSchema.from("EveShip2", values);assert.equal(ship.dynamicBoundingSphereEnabled,true);

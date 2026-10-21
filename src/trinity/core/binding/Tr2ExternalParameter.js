@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ExternalParameter.h
 // Source: trinity/trinity/Tr2ExternalParameter.cpp
 // Source: trinity/trinity/Tr2ExternalParameter_Blue.cpp
@@ -10,9 +11,10 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * A named handle onto one attribute - optionally one vector component - of
  * another object, exposing it for type-checked reads and writes.
  */
-@blue.define("Tr2ExternalParameter")
+@be.define("Tr2ExternalParameter")
 @blue.inherit(INotify)
-@blue.interface(IInitialize, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2ExternalParameter extends IInitialize
 {
 

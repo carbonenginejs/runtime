@@ -198,4 +198,4 @@ export class CjsAudioBackendSfxVoice
     }
 }
 
-CjsSchema.meta.define(CjsAudioBackendSfxVoice, { className: "CjsAudioBackendSfxVoice" });
+CjsSchema.meta.define("CjsAudioBackendSfxVoice")(CjsAudioBackendSfxVoice);

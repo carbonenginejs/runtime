@@ -31,7 +31,7 @@ const INITIAL_SIZE = 4;
 const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).buffer)[0];
 
 /** Allocates GPU slots for lens-flare occlusion and runs the buffer's per-frame compute. */
-@blue.define("Tr2OcclusionBuffer")
+@meta.carbon("Tr2OcclusionBuffer")
 export class Tr2OcclusionBuffer
 {
 

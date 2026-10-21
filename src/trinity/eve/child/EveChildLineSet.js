@@ -9,7 +9,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
-import { be, EnumRegistrationType, IInitialize, INotify, IsMatch } from "#blue";
+import { blue as be, EnumRegistrationType, IInitialize, INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";

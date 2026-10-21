@@ -404,4 +404,4 @@ CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSamplerHeapView", blue
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSampler", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "ClearResources", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "ComputeHash", blue.method);
-CjsSchema.blue.define(Tr2ResourceSetDescriptionAL, { className: "Tr2ResourceSetDescriptionAL" });
+CjsSchema.meta.carbon("Tr2ResourceSetDescriptionAL")(Tr2ResourceSetDescriptionAL);

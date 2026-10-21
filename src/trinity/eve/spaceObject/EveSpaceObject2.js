@@ -16,7 +16,7 @@ import { ITr2ImpostorSource } from "../../core/mesh/ITr2ImpostorSource/ITr2Impos
 import "#consts/graphics/trinityEnums";
 import "#consts/trinity";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";

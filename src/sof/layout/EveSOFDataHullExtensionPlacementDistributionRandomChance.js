@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
 /** Applies a probability threshold as a condition for a hull-extension placement. */
-@blue.define("EveSOFDataHullExtensionPlacementDistributionRandomChance")
-@blue.interface(IEveSOFDataHullExtensionPlacementDistribution)
+@be.define("EveSOFDataHullExtensionPlacementDistributionRandomChance")
+@be.mapInterface(IEveSOFDataHullExtensionPlacementDistribution)
 export class EveSOFDataHullExtensionPlacementDistributionRandomChance extends IEveSOFDataHullExtensionPlacementDistribution
 {
 

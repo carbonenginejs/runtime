@@ -13,4 +13,4 @@ export class IEveLightingOverride
 
 CjsSchema.decorateMethod(IEveLightingOverride, "GetOverrides", blue.abstract);
 CjsSchema.blue.inherit(IRoot)(IEveLightingOverride);
-CjsSchema.blue.define(IEveLightingOverride, { className: "IEveLightingOverride" });
+CjsSchema.exposure.interface("IEveLightingOverride")(IEveLightingOverride);

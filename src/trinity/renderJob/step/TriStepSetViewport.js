@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.h
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.cpp
 import { meta, type, blue } from "#schema";
@@ -9,9 +10,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that installs a viewport, or restores the full-screen viewport when none
  * is authored.
  */
-@blue.define("TriStepSetViewport")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetViewport")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetViewport extends TriRenderStep
 {
   @blue.readwrite

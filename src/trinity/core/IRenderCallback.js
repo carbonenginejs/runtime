@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/IRenderCallback.h
 import { blue } from "#schema";
 
@@ -6,7 +7,7 @@ import { blue } from "#schema";
  * Carbon IRenderCallback (IRenderCallback.h:9-13): a geometry source that
  * Tr2Effect.Render asks to submit its draw once per pass.
  */
-@blue.define("IRenderCallback")
+@meta.carbon("IRenderCallback")
 export class IRenderCallback
 {
 

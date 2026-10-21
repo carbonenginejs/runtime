@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dRenderJob.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dRenderJob.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dRenderJob_Blue.cpp
@@ -9,9 +10,9 @@ import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 /** A Sprite2D leaf that executes an authored render job. */
-@blue.define("Tr2Sprite2dRenderJob")
-@blue.interface(ITr2SpriteObject)
-@blue.chainTo(Tr2SpriteObjectBase)
+@be.define("Tr2Sprite2dRenderJob")
+@be.mapInterface(ITr2SpriteObject)
+@be.exposureChainTo(Tr2SpriteObjectBase)
 export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 {
 

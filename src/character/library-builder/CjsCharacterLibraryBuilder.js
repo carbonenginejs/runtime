@@ -674,4 +674,4 @@ function DefineValue(target, key, value)
     });
 }
 
-CjsSchema.meta.define(CjsCharacterLibraryBuilder, { className: "CjsCharacterLibraryBuilder" });
+CjsSchema.meta.define("CjsCharacterLibraryBuilder")(CjsCharacterLibraryBuilder);

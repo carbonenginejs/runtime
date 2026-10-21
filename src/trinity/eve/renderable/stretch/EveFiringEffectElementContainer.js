@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp
 import { mat4 } from "#math/mat4";
@@ -11,9 +12,10 @@ import { EveEntity } from "../../EveEntity.js";
  * A top-level wrapper that hosts one firing-effect element for editing, owning
  * the endpoint state that is pushed into that element every update.
  */
-@blue.define("EveFiringEffectElementContainer")
+@be.define("EveFiringEffectElementContainer")
 @blue.inherit(IEveSpaceObject2)
-@blue.interface(IEveSpaceObject2, EveEntity)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(EveEntity)
 export class EveFiringEffectElementContainer extends EveEntity
 {
   /**

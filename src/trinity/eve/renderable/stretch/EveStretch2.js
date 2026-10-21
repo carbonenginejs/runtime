@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
@@ -55,9 +56,14 @@ const STRETCH_VERTEX_DECL = [ { usage: Tr2VertexUsageCode.POSITION, usageIndex: 
  * quads with its own effect, end emitters, observers and point lights, instead
  * of hosting child objects.
  */
-@blue.define("EveStretch2")
+@be.define("EveStretch2")
 @blue.inherit(ITr2Renderable, IInitialize, INotify, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
-@blue.interface(ITr2Renderable, IEveFiringEffectElement, IInitialize, INotify, ITr2LightOwner, EveEntity)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IEveFiringEffectElement)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2LightOwner)
+@be.mapInterface(EveEntity)
 export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;

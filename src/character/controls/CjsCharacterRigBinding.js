@@ -296,4 +296,4 @@ function MatrixEquals(left, right)
     return true;
 }
 
-CjsSchema.meta.define(CjsCharacterRigBinding, { className: "CjsCharacterRigBinding" });
+CjsSchema.meta.define("CjsCharacterRigBinding")(CjsCharacterRigBinding);

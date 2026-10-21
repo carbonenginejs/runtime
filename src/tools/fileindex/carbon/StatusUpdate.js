@@ -14,9 +14,8 @@ export class StatusUpdate
     info = "";
 }
 
-CjsSchema.blue.define(StatusUpdate, { className: "StatusUpdate", fields: {
-        statusProgressType: [type.int32, type.enum(StatusProgressType)],
-        progress: [type.float32],
-        percentageSizeOfJob: [type.float32],
-        info: [type.string]
-    } });
+CjsSchema.decorateField(StatusUpdate, "statusProgressType", type.int32, type.enum(StatusProgressType));
+CjsSchema.decorateField(StatusUpdate, "progress", type.float32);
+CjsSchema.decorateField(StatusUpdate, "percentageSizeOfJob", type.float32);
+CjsSchema.decorateField(StatusUpdate, "info", type.string);
+CjsSchema.meta.carbon("StatusUpdate")(StatusUpdate);

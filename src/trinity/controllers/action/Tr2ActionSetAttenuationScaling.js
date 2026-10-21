@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling_Blue.cpp
@@ -9,8 +10,8 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
  * Controller action that sets an audio emitter's distance-attenuation scaling
  * factor on start, optionally multiplied by a named controller variable.
  */
-@blue.define("Tr2ActionSetAttenuationScaling")
-@blue.interface(ITr2ControllerAction)
+@be.define("Tr2ActionSetAttenuationScaling")
+@be.mapInterface(ITr2ControllerAction)
 export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
 {
   /** m_emitterName: narrow emitter lookup name. */

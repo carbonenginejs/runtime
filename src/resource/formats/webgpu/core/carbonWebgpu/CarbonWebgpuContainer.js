@@ -428,4 +428,4 @@ export class CarbonWebgpuContainer
 
 export default CarbonWebgpuContainer;
 
-CjsSchema.meta.define(CarbonWebgpuContainer, { className: "CarbonWebgpuContainer" });
+CjsSchema.meta.define("CarbonWebgpuContainer")(CarbonWebgpuContainer);

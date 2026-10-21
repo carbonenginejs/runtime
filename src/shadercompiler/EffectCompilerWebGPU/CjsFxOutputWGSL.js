@@ -1950,4 +1950,4 @@ function nodeName(node)
     return String(node.GetNodeType());
 }
 
-CjsSchema.meta.define(CjsFxOutputWGSL, { className: "CjsFxOutputWGSL" });
+CjsSchema.meta.define("CjsFxOutputWGSL")(CjsFxOutputWGSL);

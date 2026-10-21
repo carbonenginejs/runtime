@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const inputs = JSON.parse(await readFile(new URL("../../scripts/trinity/enum-registration-inputs.json", import.meta.url), "utf8"));
@@ -145,6 +145,6 @@ test("generated enum retains consumer alias: " + exported, async () =>
 {
   let value = await import("../../npm/dist/" + file);
   for (const member of exported.split(".")) value = value[member];
-  assert.equal(value, be.enums.Get(name));
-  assert.equal(be.enums.GetEnumName(value), name);
+  assert.equal(value, blue.enums.Get(name));
+  assert.equal(blue.enums.GetEnumName(value), name);
 });

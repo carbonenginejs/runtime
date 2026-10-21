@@ -498,4 +498,4 @@ export class CjsWebgpuRenderTarget
 }
 
 
-CjsSchema.meta.define(CjsWebgpuRenderTarget, { className: "CjsWebgpuRenderTarget" });
+CjsSchema.meta.define("CjsWebgpuRenderTarget")(CjsWebgpuRenderTarget);

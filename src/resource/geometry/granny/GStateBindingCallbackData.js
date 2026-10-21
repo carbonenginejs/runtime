@@ -11,9 +11,5 @@ export class GStateBindingCallbackData
 
 }
 
-CjsSchema.blue.define(GStateBindingCallbackData, {
-  className: "GStateBindingCallbackData",
-  fields: {
-    gsf_path: type.string
-  }
-});
+CjsSchema.decorateField(GStateBindingCallbackData, "gsf_path", type.string);
+CjsSchema.meta.carbon("GStateBindingCallbackData")(GStateBindingCallbackData);

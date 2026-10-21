@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Defines a named, seeded top-level layout with placements, counters, and randomization policy. */
-@blue.define("EveSOFDataLayout")
+@be.define("EveSOFDataLayout")
 @blue.inherit(IRoot)
 export class EveSOFDataLayout
 {

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightSpotLight.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightSpotLight.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightSpotLight_Blue.cpp
@@ -17,8 +18,8 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
 const TRI_2PI = Math.fround(6.283185307);
 
 /** A spot-light specialization with persisted cone angles. */
-@blue.define("EveSmartLightSpotLight")
-@blue.chainTo(EveSmartLightPointLight)
+@be.define("EveSmartLightSpotLight")
+@be.exposureChainTo(EveSmartLightPointLight)
 export class EveSmartLightSpotLight extends EveSmartLightPointLight
 {
 

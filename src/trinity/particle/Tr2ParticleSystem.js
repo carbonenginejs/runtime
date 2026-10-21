@@ -3,7 +3,7 @@ import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericParticleConstraint } from "./constraint/ITr2GenericParticleConstraint.js";
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
-import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, be, CcpTime } from "#blue";
+import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, blue as be, CcpTime } from "#blue";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";

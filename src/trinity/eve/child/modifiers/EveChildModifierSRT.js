@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierSRT.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierSRT.cpp
 import { mat4 } from "#math/mat4";
@@ -11,8 +12,8 @@ import { meta, type, blue } from "#schema";
  * Transform modifier that applies a fixed scale, rotation and translation ahead
  * of the child's own transform.
  */
-@blue.define("EveChildModifierSRT")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierSRT")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierSRT extends IEveChildTransformModifier
 {
   @blue.readwrite

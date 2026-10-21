@@ -745,7 +745,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
   static ThreadData = BlueCallbackManThreadData;
 }
 
-CjsSchema.blue.interface(IBlueCallbackMan)(BlueCallbackMan);
+CjsSchema.exposure.mapInterface(IBlueCallbackMan)(BlueCallbackMan);
 CjsSchema.blue.define(BlueCallbackMan, {
   className: "BlueCallbackMan",
   fields: {},

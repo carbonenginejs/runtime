@@ -24,4 +24,4 @@ export class IEveSpaceObjectAttachmentOwner
 CjsSchema.decorateMethod(IEveSpaceObjectAttachmentOwner, "AddAttachment", blue.abstract);
 CjsSchema.decorateMethod(IEveSpaceObjectAttachmentOwner, "ClearAttachments", blue.abstract);
 CjsSchema.blue.inherit(IRoot)(IEveSpaceObjectAttachmentOwner);
-CjsSchema.blue.define(IEveSpaceObjectAttachmentOwner, { className: "IEveSpaceObjectAttachmentOwner" });
+CjsSchema.exposure.interface("IEveSpaceObjectAttachmentOwner")(IEveSpaceObjectAttachmentOwner);

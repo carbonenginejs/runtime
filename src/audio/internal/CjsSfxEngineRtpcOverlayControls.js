@@ -135,4 +135,4 @@ export class CjsSfxEngineRtpcOverlayControls extends ICjsSfxControls
     }
 }
 
-CjsSchema.meta.define(CjsSfxEngineRtpcOverlayControls, { className: "CjsSfxEngineRtpcOverlayControls", fields: {} });
+CjsSchema.meta.define("CjsSfxEngineRtpcOverlayControls")(CjsSfxEngineRtpcOverlayControls);

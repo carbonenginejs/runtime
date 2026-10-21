@@ -1,8 +1,9 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { be, CjsBlueClasses } from "#blue";
+import { blue as be, CjsBlueClasses } from "#blue";
 import { meta, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -220,4 +221,4 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionOverlay_Blue.cpp:12-13,37).
-blue.interface(ITr2ControllerAction)(Tr2ActionOverlay);
+CjsSchema.exposure.mapInterface(ITr2ControllerAction)(Tr2ActionOverlay);

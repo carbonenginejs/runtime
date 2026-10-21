@@ -86,4 +86,4 @@ export class BeInfo
   buildno = 0;
 }
 
-CjsSchema.blue.define(BeInfo, { className: "BeInfo" });
+CjsSchema.meta.carbon("BeInfo")(BeInfo);

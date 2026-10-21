@@ -234,4 +234,4 @@ export class CjsConstantLayout
     }
 }
 
-CjsSchema.meta.define(CjsConstantLayout, {"className": "CjsConstantLayout"});
+CjsSchema.meta.define("CjsConstantLayout")(CjsConstantLayout);

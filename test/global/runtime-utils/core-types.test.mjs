@@ -1,6 +1,6 @@
 import "../../../src/global/blue/values.js";
 import { Copier } from "../../../src/global/blue/Copier.js";
-import { be } from "../../../src/global/blue/index.js";
+import { blue } from "../../../src/global/blue/index.js";
 
 // Preorder over be.EnumerateChildren, once per object.
 function preorder(root)
@@ -12,7 +12,7 @@ function preorder(root)
         seen.add(value);
         visited.push(value);
         const children = [];
-        be.EnumerateChildren(value, child => children.push(child));
+        blue.EnumerateChildren(value, child => children.push(child));
         for (const child of children) visit(child);
     };
     if (root) visit(root);

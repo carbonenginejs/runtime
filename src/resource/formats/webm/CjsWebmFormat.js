@@ -202,4 +202,4 @@ export class CjsWebmFormat extends CjsFormat
 
 export default CjsWebmFormat;
 
-CjsSchema.meta.define(CjsWebmFormat, { className: "CjsWebmFormat" });
+CjsSchema.meta.define("CjsWebmFormat")(CjsWebmFormat);

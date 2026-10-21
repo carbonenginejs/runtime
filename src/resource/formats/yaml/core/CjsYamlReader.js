@@ -554,4 +554,4 @@ export class CjsYamlReader extends CjsReader
 
 export default CjsYamlReader;
 
-CjsSchema.meta.define(CjsYamlReader, { className: "CjsYamlReader" });
+CjsSchema.meta.define("CjsYamlReader")(CjsYamlReader);

@@ -4,7 +4,7 @@
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { meta, type, blue } from "#schema";
-import { IsMatch, be, INotify, IInitialize, ICustomPersist, CcpTime } from "#blue";
+import { IsMatch, blue as be, INotify, IInitialize, ICustomPersist, CcpTime } from "#blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 

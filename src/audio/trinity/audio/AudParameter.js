@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudParameter.h
 // Source: audio/src/AudParameter.cpp
 // Source: audio/src/AudParameter_Blue.cpp
@@ -7,8 +8,8 @@ import { INotify } from "#blue/INotify";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Binds a real-time parameter value to its owning audio game object. */
-@blue.define("AudParameter")
-@blue.interface(INotify)
+@be.define("AudParameter")
+@be.mapInterface(INotify)
 export class AudParameter extends INotify
 {
   /** m_name: std::wstring, READWRITE without persistence. */

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleSpring.h
 // Source: trinity/trinity/Particle/Tr2ParticleSpring.cpp
 // Source: trinity/trinity/Particle/Tr2ParticleSpring_Blue.cpp
@@ -16,8 +17,8 @@ const DEBUG_TO = vec3.create();
  * Linear spring pulling particles toward a fixed position with a force
  * proportional to displacement.
  */
-@blue.interface(ITr2ParticleForce)
-@blue.define("Tr2ParticleSpring")
+@be.mapInterface(ITr2ParticleForce)
+@be.define("Tr2ParticleSpring")
 export class Tr2ParticleSpring extends ITr2ParticleForce
 {
   @blue.readwrite

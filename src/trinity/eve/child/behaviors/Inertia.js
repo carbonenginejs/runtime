@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -25,9 +26,9 @@ function ClampLength(value, maxLength)
 }
 
 /** A steering behaviour that smooths each agent's acceleration by rotating it toward the previous frame's direction at a limited angular speed and blending its magnitude toward the desired value. */
-@blue.define("Inertia")
+@be.define("Inertia")
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.mapInterface(IBehavior)
 export class Inertia
 {
 

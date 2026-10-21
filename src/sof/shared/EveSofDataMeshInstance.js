@@ -13,7 +13,7 @@ import { vec3 } from "#math/vec3";
  * Native 64-bit size 44; offsets and storage types: trinity/trinity/
  * Eve/SpaceObjectFactory/EveSOFData.h:112-120; Eve/SpaceObjectFactory/EveSOFData.cpp:123-129.
  */
-@blue.define("EveSofDataMeshInstance")
+@meta.carbon("EveSofDataMeshInstance")
 @meta.struct.define({ size: 44 })
 export class EveSofDataMeshInstance
 {

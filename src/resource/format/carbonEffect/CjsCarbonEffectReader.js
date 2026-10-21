@@ -492,6 +492,6 @@ export function looksLikeCarbonEffectContainer(bytes)
 
 export default CjsCarbonEffectReader;
 
-CjsSchema.meta.define(CjsCarbonEffectBodyReader, { className: "CjsCarbonEffectBodyReader" });
+CjsSchema.meta.define("CjsCarbonEffectBodyReader")(CjsCarbonEffectBodyReader);
 
 CjsSchema.meta.define(CjsCarbonEffectReader, { className: "CjsCarbonEffectReader", donors: [ "Tr2EffectRes" ] });

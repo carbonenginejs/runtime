@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/TriDevice.h
 // Source: trinity/trinity/TriDevice.cpp
 import { type, blue } from "#schema";
@@ -11,7 +12,7 @@ import "#consts/renderContext/upscaling";
  * value, not an IRoot class; registration supplies its record schema without
  * inventing a native query interface. Defaults match the device fallback record.
  */
-@blue.define("Tr2UpscalingTechniqueInfo")
+@meta.carbon("Tr2UpscalingTechniqueInfo")
 export class Tr2UpscalingTechniqueInfo
 {
   /**

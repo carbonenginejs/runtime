@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.h
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
-import { IsMatch, be, INotify, IInitialize, CjsBlueClasses } from "#blue";
+import { IsMatch, blue as be, INotify, IInitialize, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "./enums.js";

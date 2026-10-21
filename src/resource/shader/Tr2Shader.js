@@ -395,26 +395,20 @@ export class Tr2Shader
 // Statics belong in `methods`: the prototype is what carries instance fields.
 
 CjsSchema.blue.inherit(IRoot)(Tr2Shader);
-CjsSchema.blue.interface(Tr2Shader)(Tr2Shader);
-CjsSchema.blue.define(Tr2Shader, {
-  className: "Tr2Shader",
-  fields: {
-    sortValue: type.uint32,
-    effect: type.rawStruct("Tr2EffectDescription"),
-    hasVertexBufferAccessInRtShadow: type.boolean
-  },
-  methods: {
-    ApplyAllStateForPass: [ blue.method, meta.adapted ],
-    GetTechniqueIndex: [ blue.method, meta.adapted ],
-    GetPassCount: [ blue.method, meta.adapted ],
-    GetConstant: [ blue.method, meta.implemented ],
-    GetResource: [ blue.method, meta.implemented ],
-    GetParameterAnnotations: [ blue.method, meta.implemented ],
-    GetSortValue: [ blue.method, meta.implemented ],
-    GetEffectDescription: [ blue.method, meta.implemented ],
-    GetEffect: [ blue.method, meta.implemented ],
-    GetShaderTypeMask: [ blue.method, meta.adapted ],
-    ProcessEffect: [ blue.method, meta.adapted ],
-    HasVertexBufferAccessInRtShadow: [ blue.method, meta.implemented ]
-  }
-});
+
+CjsSchema.decorateField(Tr2Shader, "sortValue", type.uint32);
+CjsSchema.decorateField(Tr2Shader, "effect", type.rawStruct("Tr2EffectDescription"));
+CjsSchema.decorateField(Tr2Shader, "hasVertexBufferAccessInRtShadow", type.boolean);
+CjsSchema.decorateMethod(Tr2Shader, "ApplyAllStateForPass", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2Shader, "GetTechniqueIndex", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2Shader, "GetPassCount", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2Shader, "GetConstant", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetResource", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetParameterAnnotations", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetSortValue", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetEffectDescription", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetEffect", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "GetShaderTypeMask", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2Shader, "ProcessEffect", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2Shader, "HasVertexBufferAccessInRtShadow", blue.method, meta.implemented);
+CjsSchema.exposure.define("Tr2Shader")(Tr2Shader);

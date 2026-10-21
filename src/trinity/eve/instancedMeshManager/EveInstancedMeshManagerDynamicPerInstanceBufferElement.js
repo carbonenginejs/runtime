@@ -9,7 +9,7 @@ import { type, meta } from "#schema";
  * of its per-object data, and its picking indices. The manager's
  * UploadLodData writes these, byte for byte, into the instance buffer.
  */
-@meta.define({ className: "EveInstancedMeshManagerDynamicPerInstanceBufferElement", carbon: "EveInstancedMeshManager::DynamicPerInstanceBufferElement" })
+@meta.carbon("EveInstancedMeshManager::DynamicPerInstanceBufferElement")
 export class EveInstancedMeshManagerDynamicPerInstanceBufferElement
 {
 

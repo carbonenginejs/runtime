@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/IEveChildTransformModifier.h
 import { blue } from "#schema";
 
 
 /** Required child-transform modifier contract (IEveChildTransformModifier.h:8-13). */
-@blue.define("IEveChildTransformModifier")
+@be.interface("IEveChildTransformModifier")
 @blue.inherit(IRoot)
 export class IEveChildTransformModifier
 {

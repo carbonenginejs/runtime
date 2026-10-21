@@ -59,4 +59,4 @@ export class TnyStorage
     }
 }
 
-CjsSchema.meta.define(TnyStorage, { className: "TnyStorage" });
+CjsSchema.meta.define("TnyStorage")(TnyStorage);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager.h
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager.cpp
@@ -29,9 +30,9 @@ const IMPACT_SHIELD_DATA_MAP = "ImpactShieldDataMap";
 const VEC4_BYTES = 16;
 
 /** Packs shader-readable data blocks into the shared impact data texture. */
-@blue.define("Tr2DataTextureManager")
+@be.define("Tr2DataTextureManager")
 @blue.inherit(IInitialize)
-@blue.interface()
+
 export class Tr2DataTextureManager
 {
 

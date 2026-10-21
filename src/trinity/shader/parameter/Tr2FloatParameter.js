@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2FloatParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2FloatParameter.cpp
 import { IInitialize } from "#blue";
@@ -11,9 +12,11 @@ import { CjsParameter } from "./CjsParameter.js";
  * Single float value for a named shader constant, with optional rerouting into
  * an external scalar destination.
  */
-@blue.define("Tr2FloatParameter")
+@be.define("Tr2FloatParameter")
 @blue.inherit(ITriReroutable, IInitialize)
-@blue.interface(ITriEffectParameter, ITriReroutable, IInitialize)
+@be.mapInterface(ITriEffectParameter)
+@be.mapInterface(ITriReroutable)
+@be.mapInterface(IInitialize)
 export class Tr2FloatParameter extends CjsParameter
 {
   @blue.readwrite

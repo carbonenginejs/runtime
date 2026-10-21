@@ -25,6 +25,4 @@ export class Pass
     backendBlock = null;
 }
 
-CjsSchema.blue.define(Pass, {
-    className: "Pass"
-});
+CjsSchema.meta.carbon("Pass")(Pass);

@@ -772,4 +772,4 @@ function identityMatrix()
   ];
 }
 
-CjsSchema.meta.define(SofLayoutRandom, { className: "SofLayoutRandom" });
+CjsSchema.meta.define("SofLayoutRandom")(SofLayoutRandom);

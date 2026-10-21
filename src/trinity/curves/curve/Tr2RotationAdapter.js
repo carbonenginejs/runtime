@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2RotationAdapter.h
 // Source: trinity/trinity/Curves/Tr2RotationAdapter.cpp
@@ -12,7 +14,7 @@ import { CcpTime } from "#blue";
  * remapping, falling back to a fixed authored quaternion when no child curve is
  * attached.
  */
-@blue.define("Tr2RotationAdapter")
+@be.define("Tr2RotationAdapter")
 export class Tr2RotationAdapter extends ITriQuaternionFunction
 {
   /**
@@ -249,4 +251,4 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-blue.interface(ITriQuaternionFunction)(Tr2RotationAdapter);
+CjsSchema.exposure.mapInterface(ITriQuaternionFunction)(Tr2RotationAdapter);

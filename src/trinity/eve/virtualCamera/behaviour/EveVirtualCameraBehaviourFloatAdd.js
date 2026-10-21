@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { meta, type, blue } from "#schema";
@@ -11,9 +12,9 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that adds an authored constant, optionally shaped across the
  * timeline by a scale curve.
  */
-@blue.define("EveVirtualCameraBehaviourFloatAdd")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourFloatBase)
+@be.define("EveVirtualCameraBehaviourFloatAdd")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourFloatBase)
 export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviourFloatBase
 {
   @blue.readwrite

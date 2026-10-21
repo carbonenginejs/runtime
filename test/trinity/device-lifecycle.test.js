@@ -2,7 +2,7 @@ import { addChild, removeChild } from "../../npm/dist/global/blue/children.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import {
   gTriDev,
   Tr2RenderContext_GetMainThreadRenderContext,
@@ -35,7 +35,7 @@ function withDevice(body)
   }
   finally
   {
-    be.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
+    blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
     gTriDev.device = previousDevice;
   }
 }
@@ -55,7 +55,7 @@ test("CreateSimpleDevice brings a device up and starts it ticking", () =>
 
     // The last line of Carbon's CreateSimpleDevice, and the reason the path
     // matters: a device that was never created is never ticked.
-    assert.equal(be.os.IsRegisteredForTicks(device), true);
+    assert.equal(blue.os.IsRegisteredForTicks(device), true);
   });
 });
 
@@ -92,7 +92,7 @@ test("a fullscreen device is refused, naming what is missing", () =>
       () => device.CreateSimpleDevice({ canvas: true }, 800, 600, TriDevice.DeviceScreenType.FULLSCREEN),
       /display-mode enumeration/u
     );
-    assert.equal(be.os.IsRegisteredForTicks(device), false, "and nothing was registered");
+    assert.equal(blue.os.IsRegisteredForTicks(device), false, "and nothing was registered");
   });
 });
 
@@ -110,11 +110,11 @@ test("SetPresentation adopts parameters and registers; null tears down", () =>
     assert.equal(device.width, 1024);
     assert.equal(device.height, 768);
     assert.equal(device.adapter, 0);
-    assert.equal(be.os.IsRegisteredForTicks(device), true);
+    assert.equal(blue.os.IsRegisteredForTicks(device), true);
 
     // Carbon's null branch: the App saying it is done.
     assert.equal(device.SetPresentation(0, null), true);
-    assert.equal(be.os.IsRegisteredForTicks(device), false);
+    assert.equal(blue.os.IsRegisteredForTicks(device), false);
     assert.equal(device.width, 0);
     assert.equal(device.height, 0);
     assert.equal(device.GetOutputWindow(), null);
@@ -136,7 +136,7 @@ test("the pump runs the whole frame: update, present, then the frame body", () =
     device.AddPostUpdateCallback(() => order.push("postUpdate"));
 
     const before = Tr2Renderer.GetCurrentFrameCounter();
-    be.os.PumpOS();
+    blue.os.PumpOS();
 
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), before + 1, "one frame per pump");
 
@@ -155,12 +155,12 @@ test("a registered device stops being ticked once it is invalidated", () =>
     device.CreateSimpleDevice({ canvas: true }, 320, 240);
 
     const before = Tr2Renderer.GetCurrentFrameCounter();
-    be.os.PumpOS();
+    blue.os.PumpOS();
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), before + 1);
 
     device.InvalidateAndUnregisterForTicks();
 
-    be.os.PumpOS();
+    blue.os.PumpOS();
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), before + 1, "the clock stopped with it");
     assert.equal(device.DeviceExists(), false, "and the render context went with it");
   });

@@ -335,4 +335,4 @@ function normalizeSourceURL(value)
     return value.trim();
 }
 
-CjsSchema.meta.define(CjsFileIndex, { className: "CjsFileIndex" });
+CjsSchema.meta.define("CjsFileIndex")(CjsFileIndex);

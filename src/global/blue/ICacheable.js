@@ -28,7 +28,4 @@ export class ICacheable
 CjsSchema.decorateMethod(ICacheable, "IsMemoryUsageKnown", blue.abstract);
 CjsSchema.decorateMethod(ICacheable, "GetMemoryUsage", blue.abstract);
 
-CjsSchema.blue.define(ICacheable, {
-  className: "ICacheable",
-  fields: {}
-});
+CjsSchema.exposure.interface("ICacheable")(ICacheable);

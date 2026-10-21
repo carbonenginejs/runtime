@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { DictReader, be } from "../../npm/dist/global/blue/index.js";
+import { DictReader, blue } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
@@ -46,7 +46,7 @@ test("Tr2DynamicBinding resolves Carbon path forms and delay boundaries", t =>
 {
   // Link reads BeOS->GetCurrentFrameTime() and adds TimeFromMS(bindingDelay); Update compares
   // Be::Time ticks (Tr2DynamicBinding.cpp:221-251). 10 s is 100_000_000 ticks; 100 ms is 1_000_000.
-  t.mock.method(be.os, "GetCurrentFrameTime", () => 100_000_000);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => 100_000_000);
   const source = {
     children: [
       { name: "first", value: 2 },
@@ -113,7 +113,7 @@ test("Tr2DynamicBinding only relinks for Carbon NOTIFY fields", () =>
 test("Tr2DynamicBinding relinks from Blue's frame time at the relink", t =>
 {
   let frameTime = 200_000_000;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => frameTime);
   const source = { value: 2 };
   const destination = { value: 0 };
   const binding = new Tr2DynamicBinding();
@@ -423,7 +423,7 @@ test("EveStretch3 supplies dynamic parameter roots and binding ownership", () =>
   const context = new EveUpdateContext();
   // The binding is due from Blue's frame time at Link (Tr2DynamicBinding.cpp:248); the scene
   // update time of a real frame is that same clock.
-  context.SetTime(be.os.GetCurrentFrameTime());
+  context.SetTime(blue.os.GetCurrentFrameTime());
   stretch.UpdateSynchronous(context);
   closeArray(stretchObject.translation, [5, 2, 1]);
   assert.equal(stretch.GetParameterMap().SourceObject, sourceObject);
@@ -502,9 +502,9 @@ test("Tr2DynamicBinding registers for sim-time rebases from construction until D
 {
   // Carbon's constructor registers and its destructor unregisters (Tr2DynamicBinding.cpp:172-190);
   // a rebase moves the pending tick time (:206-209).
-  t.mock.method(be.os, "GetCurrentFrameTime", () => 100_000_000);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => 100_000_000);
   const binding = new Tr2DynamicBinding();
-  assert.equal(be.os._rebaseListeners.includes(binding), true, "registered by the constructor");
+  assert.equal(blue.os._rebaseListeners.includes(binding), true, "registered by the constructor");
   binding.sourceObjectPath = "Source";
   binding.sourceObjectAttribute = "value";
   binding.destinationObjectPath = "Destination";
@@ -513,7 +513,7 @@ test("Tr2DynamicBinding registers for sim-time rebases from construction until D
   const destination = { value: 0 };
   binding.SetOwner({ GetParameterMap: () => ({ Source: { value: 7 }, Destination: destination }) });
   assert.equal(binding.Link(), true);
-  for (const listener of be.os._rebaseListeners)
+  for (const listener of blue.os._rebaseListeners)
   {
     if (listener === binding) listener.OnSimClockRebase(100_000_000, 150_000_000);
   }
@@ -521,6 +521,6 @@ test("Tr2DynamicBinding registers for sim-time rebases from construction until D
   assert.equal(binding.Update(151_000_000), true);
   assert.equal(destination.value, 7);
   binding.Destruct();
-  assert.equal(be.os._rebaseListeners.includes(binding), false, "Destruct unregisters");
+  assert.equal(blue.os._rebaseListeners.includes(binding), false, "Destruct unregisters");
   assert.equal(binding.binding, null);
 });

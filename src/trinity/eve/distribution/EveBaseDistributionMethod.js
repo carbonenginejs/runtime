@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
@@ -12,9 +13,11 @@ import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
 import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 
 /** Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers. */
-@blue.define("EveBaseDistributionMethod")
+@be.define("EveBaseDistributionMethod")
 @blue.inherit(IInitialize, IListNotify)
-@blue.interface(IEveDistributionMethod, IInitialize, IListNotify)
+@be.mapInterface(IEveDistributionMethod)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IListNotify)
 export class EveBaseDistributionMethod extends IEveDistributionMethod
 {
 

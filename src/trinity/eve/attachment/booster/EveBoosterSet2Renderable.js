@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.cpp
 import { mat4 } from "#math/mat4";
@@ -21,9 +22,9 @@ import { EveBoosterSet2 } from "./EveBoosterSet2.js";
  * and rotation, derives the booster and trail intensities, and maintains the
  * five-point trail spline and its LOD flags.
  */
-@blue.define("EveBoosterSet2Renderable")
+@be.define("EveBoosterSet2Renderable")
 @blue.inherit(ITr2Renderable)
-@blue.interface(ITr2Renderable)
+@be.mapInterface(ITr2Renderable)
 export class EveBoosterSet2Renderable
 {
 

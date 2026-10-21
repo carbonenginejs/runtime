@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
 import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
-import { be, EnumRegistrationType } from "#blue";
+import { blue as be, EnumRegistrationType } from "#blue";
 
 
 // Secondary lighting: light from one primary source reflected off "secondary

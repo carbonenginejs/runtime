@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:460-483
@@ -10,9 +11,9 @@ import { vec4 } from "#math/vec4";
  * preserve native defaults; no initialization, update or resource lifecycle
  * is required, and the native destructor is empty.
  */
-@blue.define("EveSOFDataGenericHullDamage")
+@be.define("EveSOFDataGenericHullDamage")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataGenericHullDamage
 {
 

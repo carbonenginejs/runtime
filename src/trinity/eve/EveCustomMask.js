@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveCustomMask.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveCustomMask.cpp
@@ -13,9 +14,9 @@ import { meta, type, blue } from "#schema";
  * One oriented box projected onto a hull that replaces a source material with a
  * chosen blend of target materials inside it.
  */
-@blue.define("EveCustomMask")
+@be.define("EveCustomMask")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveCustomMask
 {
   static CUSTOM_MASK_COUNT = 2;

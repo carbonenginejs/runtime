@@ -42,6 +42,4 @@ export class StageInput extends StageData
     });
 }
 
-CjsSchema.blue.define(StageInput, {
-    className: "StageInput"
-});
+CjsSchema.meta.carbon("StageInput")(StageInput);

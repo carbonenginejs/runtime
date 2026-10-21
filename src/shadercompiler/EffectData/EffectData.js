@@ -30,6 +30,4 @@ export class EffectData
     annotations = new CjsFxStdMap();
 }
 
-CjsSchema.blue.define(EffectData, {
-    className: "EffectData"
-});
+CjsSchema.meta.carbon("EffectData")(EffectData);

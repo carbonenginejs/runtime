@@ -13,12 +13,11 @@ export class ResourceInfoParams
     prefix = "";
 }
 
-CjsSchema.blue.define(ResourceInfoParams, { className: "ResourceInfoParams", fields: {
-        relativePath: [type.string],
-        location: [type.string],
-        checksum: [type.string],
-        compressedSize: [type.uint64],
-        uncompressedSize: [type.uint64],
-        binaryOperation: [type.uint32],
-        prefix: [type.string]
-    } });
+CjsSchema.decorateField(ResourceInfoParams, "relativePath", type.string);
+CjsSchema.decorateField(ResourceInfoParams, "location", type.string);
+CjsSchema.decorateField(ResourceInfoParams, "checksum", type.string);
+CjsSchema.decorateField(ResourceInfoParams, "compressedSize", type.uint64);
+CjsSchema.decorateField(ResourceInfoParams, "uncompressedSize", type.uint64);
+CjsSchema.decorateField(ResourceInfoParams, "binaryOperation", type.uint32);
+CjsSchema.decorateField(ResourceInfoParams, "prefix", type.string);
+CjsSchema.meta.carbon("ResourceInfoParams")(ResourceInfoParams);

@@ -53,4 +53,4 @@ for (const method of Object.getOwnPropertyNames(ICjsAudioGlobalReaders.prototype
     if (method !== "constructor") CjsSchema.decorateMethod(ICjsAudioGlobalReaders, method, meta.abstract);
 }
 
-CjsSchema.meta.define(ICjsAudioGlobalReaders, { className: "ICjsAudioGlobalReaders", fields: {} });
+CjsSchema.meta.define("ICjsAudioGlobalReaders")(ICjsAudioGlobalReaders);

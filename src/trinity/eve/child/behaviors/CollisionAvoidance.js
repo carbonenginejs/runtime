@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.cpp
 import { IBehavior } from "./IBehavior.js";
@@ -13,9 +14,9 @@ const NO_FORCES = [];
  * Drone behavior that pushes agents away from the centre of every exclusion
  * volume they intersect, weighted by the volume's intensity at the agent.
  */
-@blue.define("CollisionAvoidance")
+@be.define("CollisionAvoidance")
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.mapInterface(IBehavior)
 export class CollisionAvoidance
 {
 

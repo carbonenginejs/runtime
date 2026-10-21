@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay.cpp
@@ -23,9 +24,9 @@ export const IMPACT_ARMOR_SIZE_MAX = 10;
  * Self-contained armour and hull damage state shared by a ship impact overlay
  * and by independently rendered child meshes.
  */
-@blue.define("EveDamageOverlay")
+@be.define("EveDamageOverlay")
 @blue.inherit(IInitialize)
-@blue.interface()
+
 export class EveDamageOverlay
 {
   @blue.read

@@ -293,4 +293,4 @@ export class CjsWemFormat extends CjsFormat
 
 export default CjsWemFormat;
 
-CjsSchema.meta.define(CjsWemFormat, { className: "CjsWemFormat" });
+CjsSchema.meta.define("CjsWemFormat")(CjsWemFormat);

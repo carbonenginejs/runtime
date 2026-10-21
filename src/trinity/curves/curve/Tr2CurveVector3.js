@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveVector3.h
 // Source: trinity/trinity/Curves/Tr2CurveVector3.cpp
 import { vec3 } from "#math/vec3";
@@ -12,9 +13,11 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * and z; its length is the longest of the three.
  * JavaScript combines native time overloads as seconds-first calls with output last.
  */
-@blue.define("Tr2CurveVector3")
+@be.define("Tr2CurveVector3")
 @blue.inherit(ITriCurveLength)
-@blue.interface(ITriFunction, ITriVectorFunction, ITriCurveLength)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriVectorFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2CurveVector3 extends ITriVectorFunction
 {
   /**

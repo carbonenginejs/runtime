@@ -125,12 +125,8 @@ export class CodeStream
     });
 }
 
-CjsSchema.blue.define(CodeStream, {
-    className: "CodeStream",
-    methods: {
-        Endl: blue.abstract,
-        ChangeLocation: blue.abstract,
-        Indent: blue.abstract,
-        Unindent: blue.abstract
-    }
-});
+CjsSchema.decorateMethod(CodeStream, "Endl", blue.abstract);
+CjsSchema.decorateMethod(CodeStream, "ChangeLocation", blue.abstract);
+CjsSchema.decorateMethod(CodeStream, "Indent", blue.abstract);
+CjsSchema.decorateMethod(CodeStream, "Unindent", blue.abstract);
+CjsSchema.meta.carbon("CodeStream")(CodeStream);

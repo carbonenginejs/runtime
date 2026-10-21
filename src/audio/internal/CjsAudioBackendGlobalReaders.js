@@ -47,4 +47,4 @@ export class CjsAudioBackendGlobalReaders extends ICjsAudioGlobalReaders
     }
 }
 
-CjsSchema.meta.define(CjsAudioBackendGlobalReaders, { className: "CjsAudioBackendGlobalReaders", fields: {} });
+CjsSchema.meta.define("CjsAudioBackendGlobalReaders")(CjsAudioBackendGlobalReaders);

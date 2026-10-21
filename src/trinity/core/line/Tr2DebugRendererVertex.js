@@ -12,7 +12,7 @@ import { type, meta } from "#schema";
  * leaves every member unset; the two value constructors are the `create__`
  * factories.
  */
-@meta.define({ className: "Tr2DebugRendererVertex", carbon: "Tr2DebugRenderer::Vertex" })
+@meta.carbon("Tr2DebugRenderer::Vertex")
 export class Tr2DebugRendererVertex
 {
 

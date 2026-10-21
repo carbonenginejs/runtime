@@ -12,7 +12,7 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
  * Native 64-bit size 20; offsets and storage types: trinity/trinity/
  * Curves/Tr2CurveScalar.h:54-70; Curves/Tr2CurveScalar.cpp:12-21.
  */
-@blue.define("Tr2CurveScalarKey")
+@meta.carbon("Tr2CurveScalarKey")
 @meta.struct.define({ size: 20 })
 export class Tr2CurveScalarKey
 {

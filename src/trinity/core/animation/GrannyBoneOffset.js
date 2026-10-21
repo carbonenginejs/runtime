@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/GrannyBoneOffset.h
 // Source: trinity/trinity/GrannyBoneOffset.cpp
 // Source: trinity/trinity/GrannyBoneOffset_Blue.cpp
@@ -12,8 +13,8 @@ import { meta, blue } from "#schema";
  * Per-bone rotation and translation offsets layered on top of an animated rig,
  * keyed by bone name until bound into the rig's joint order.
  */
-@blue.define("GrannyBoneOffset")
-@blue.interface(IInitialize)
+@be.define("GrannyBoneOffset")
+@be.mapInterface(IInitialize)
 export class GrannyBoneOffset extends IInitialize
 {
   /** Runtime name-to-offset storage; not exposed or persisted. */

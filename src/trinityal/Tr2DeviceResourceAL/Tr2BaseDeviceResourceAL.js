@@ -208,4 +208,4 @@ CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "EnumerateResources", blue.method);
 CjsSchema.decorateField(Tr2BaseDeviceResourceAL, "_registered", type.boolean);
-CjsSchema.blue.define(Tr2BaseDeviceResourceAL, { className: "Tr2BaseDeviceResourceAL" });
+CjsSchema.meta.carbon("Tr2BaseDeviceResourceAL")(Tr2BaseDeviceResourceAL);

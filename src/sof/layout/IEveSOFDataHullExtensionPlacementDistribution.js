@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 import { type, blue, meta } from "#schema";
 
 /** Common Carbon interface for hull-extension placement conditions. */
-@blue.define("IEveSOFDataHullExtensionPlacementDistribution")
+@be.interface("IEveSOFDataHullExtensionPlacementDistribution")
 @blue.inherit(IRoot)
 export class IEveSOFDataHullExtensionPlacementDistribution
 {

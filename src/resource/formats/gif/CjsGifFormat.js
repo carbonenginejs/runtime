@@ -217,4 +217,4 @@ export class CjsGifFormat extends CjsImageFormat
 
 export default CjsGifFormat;
 
-CjsSchema.meta.define(CjsGifFormat, { className: "CjsGifFormat" });
+CjsSchema.meta.define("CjsGifFormat")(CjsGifFormat);

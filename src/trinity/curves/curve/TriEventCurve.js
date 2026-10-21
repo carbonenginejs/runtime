@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/TriEventCurve.h
 // Source: trinity/trinity/Curves/TriEventCurve.cpp
 import { ITriFunction, IInitialize, ITriCurveLength, BlueList } from "#blue";
@@ -12,9 +13,11 @@ import "#consts/graphics/trinityEnums";
  * dispatching either a named event to a listener or a queued callable, and
  * restarting the key cursor when time rewinds or a cycle wraps.
  */
-@blue.define("TriEventCurve")
+@be.define("TriEventCurve")
 @blue.inherit(IInitialize, ITriCurveLength)
-@blue.interface(ITriFunction, IInitialize, ITriCurveLength)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITriCurveLength)
 export class TriEventCurve extends ITriFunction
 {
   /**

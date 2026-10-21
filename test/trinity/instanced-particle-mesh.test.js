@@ -5,7 +5,7 @@ import test from "node:test";
 import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import {createHash} from "node:crypto";
-import {be} from "../../npm/dist/global/blue/index.js";
+import {blue} from "../../npm/dist/global/blue/index.js";
 import {mat4} from "../../npm/dist/global/math/mat4.js";
 import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
@@ -25,10 +25,10 @@ function setup(t)
 {
   const registered=new Set(TriDevice.GetResourcesRegistered());
   t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2RuntimeInstanceData||resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destruct();});
-  const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=be.resMan;
-  const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();be.resMan=new StubResMan();
+  const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=blue.resMan;
+  const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();blue.resMan=new StubResMan();
   Tr2Renderer.SetViewTransform(mat4.create());
-  t.after(()=>{SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);be.resMan=manager;});
+  t.after(()=>{SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);blue.resMan=manager;});
   // Validate the state actually bound by SubmitGeometry, after ESM filtering,
   // with WebGPU's real conversion. Read every declared attribute so an unused
   // current shader input cannot hide an invalid authored layout.
@@ -112,8 +112,8 @@ const corpus=process.env.PARTICLE_BLACK_CORPUS_DIR;
 test("real green Crisis smoke on two hulls reaches a nonzero instanced stub draw",{skip:!corpus&&"set PARTICLE_BLACK_CORPUS_DIR for real Crisis/unitplane copies"},async t=>{
   const {context,draws,material}=setup(t);
   const unit=await readFile(join(corpus,"unitplane.gr2"));assert.equal(createHash("md5").update(unit).digest("hex"),"238fdf7d1f76dfc7812f22e5aea40135");
-  let ticks=100*1e7;const actual=be.os.GetActualTime,frame=be.os.GetCurrentFrameTime;
-  be.os.GetActualTime=()=>ticks;be.os.GetCurrentFrameTime=()=>ticks;t.after(()=>{be.os.GetActualTime=actual;be.os.GetCurrentFrameTime=frame;});
+  let ticks=100*1e7;const actual=blue.os.GetActualTime,frame=blue.os.GetCurrentFrameTime;
+  blue.os.GetActualTime=()=>ticks;blue.os.GetCurrentFrameTime=()=>ticks;t.after(()=>{blue.os.GetActualTime=actual;blue.os.GetCurrentFrameTime=frame;});
   for(const file of ["angbc1_t1_crisis_fx.black","angde1_t1_crisis_fx.black"]){
     const bytes=await readFile(join(corpus,file));
     assert.equal(createHash("md5").update(bytes).digest("hex"),file.startsWith("angbc")?"fb022a5d320c37fab634d4e080243f86":"007204e6136609a2969ddb38e7a57a8d");
@@ -195,11 +195,11 @@ test("every CPU particle declaration in the copied Crisis and VDS graphs fits it
 test("geometry instance providers preserve deferred, loaded and assigned Carbon transitions", t => {
   setup(t);
   const loaded=geometry(),assigned=geometry(),next=geometry();
-  be.resMan=new StubResMan(path=>path==="res:/next.gr2"?next:loaded);
+  blue.resMan=new StubResMan(path=>path==="res:/next.gr2"?next:loaded);
   const mesh=new Tr2InstancedMesh();
   mesh.instanceGeometryResource=assigned;mesh.instanceGeometryResPath="res:/loaded.gr2";
   mesh.deferGeometryLoad=true;mesh.Initialize();
-  assert.equal(be.resMan.requests.length,0);assert.equal(mesh.GetInstanceGeometryResource(),assigned);
+  assert.equal(blue.resMan.requests.length,0);assert.equal(mesh.GetInstanceGeometryResource(),assigned);
   mesh.deferGeometryLoad=false;mesh.OnModified("deferGeometryLoad");
   assert.equal(mesh.GetInstanceGeometryResource(),loaded);
   mesh.SetInstanceGeometryRes(assigned);
@@ -222,7 +222,7 @@ test("cold geometry providers bind aligned uploaded data for assigned and loaded
     assert.equal(provider.GetInstanceBufferVertexDeclaration(),Tr2EffectStateManager.Unknown);
     SharedGeometryBuffer(context).Allocate(12,3,new Uint8Array(36),context);
     if(loaded) {
-      be.resMan=new StubResMan(()=>provider);mesh.instanceGeometryResPath="res:/instances.gr2";mesh.Initialize();
+      blue.resMan=new StubResMan(()=>provider);mesh.instanceGeometryResPath="res:/instances.gr2";mesh.Initialize();
     } else mesh.SetInstanceGeometryRes(provider);
     mesh.SetGeometryRes(geometry());
     const batches=collect(mesh,[area]);assert.equal(batches.length,1);
@@ -269,7 +269,7 @@ test("real Mabebu traffic geometry hydrates and submits nonzero instances from w
     base.SetPayload(base.ReadGrannyFile(await readFile(join(mabebuCorpus,"unit_plane.gr2")))) ;
     provider.SetPayload(provider.ReadGrannyFile(await readFile(join(mabebuCorpus,"gfr1_mabebu_traffic.gr2"))));
     if(warm){base.MarkPrepared();provider.MarkPrepared();}
-    be.resMan=new StubResMan(path=>path.endsWith("gfr1_mabebu_traffic.gr2")?provider:base);
+    blue.resMan=new StubResMan(path=>path.endsWith("gfr1_mabebu_traffic.gr2")?provider:base);
     const root=CjsSchema.from("EveChildContainer", values),child=root.objects[0],mesh=child.mesh;
     assert.equal(child.name,"traffic");assert.equal(mesh.GetInstanceGeometryResource(),provider);
     assert.deepEqual(provider.GetMeshVertexElements(0).map(element=>element.elementCount),[4,4],"authored Position4 and TexCoord4 survive projection");
@@ -295,9 +295,9 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
     const resource=new TriGeometryRes();resource.SetPayload(resource.ReadGrannyFile(bytes));resource.MarkPrepared();geometries.set(file,resource);
   }
   let ticks=100*1e7;
-  const actual=be.os.GetActualTime,frame=be.os.GetCurrentFrameTime,random=Math.random;
-  be.os.GetActualTime=()=>ticks;be.os.GetCurrentFrameTime=()=>ticks;
-  t.after(()=>{be.os.GetActualTime=actual;be.os.GetCurrentFrameTime=frame;Math.random=random;});
+  const actual=blue.os.GetActualTime,frame=blue.os.GetCurrentFrameTime,random=Math.random;
+  blue.os.GetActualTime=()=>ticks;blue.os.GetCurrentFrameTime=()=>ticks;
+  t.after(()=>{blue.os.GetActualTime=actual;blue.os.GetCurrentFrameTime=frame;Math.random=random;});
   for(const [file,hash] of [["angde1_t1_crisis_fx.black","007204e6136609a2969ddb38e7a57a8d"],["angbc2_t1_crisis_fx.black","b9faa9e2ec82b3226a77fab72ba94bcf"]]) {
     const bytes=await readFile(join(electricityCorpus,file));
     assert.equal(createHash("md5").update(bytes).digest("hex"),hash);

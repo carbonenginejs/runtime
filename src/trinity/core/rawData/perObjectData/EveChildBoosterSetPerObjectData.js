@@ -20,7 +20,7 @@ import { meta, blue } from "#schema";
 /**
  * The child booster set's vertex and pixel blocks.
  */
-@blue.define("EveChildBoosterSetPerObjectData")
+@meta.carbon("EveChildBoosterSetPerObjectData")
 export class EveChildBoosterSetPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

@@ -119,4 +119,4 @@ export class CjsWebgpuMipGenerator
 }
 
 
-CjsSchema.meta.define(CjsWebgpuMipGenerator, { className: "CjsWebgpuMipGenerator" });
+CjsSchema.meta.define("CjsWebgpuMipGenerator")(CjsWebgpuMipGenerator);

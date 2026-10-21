@@ -212,4 +212,4 @@ export class Tr2GpuTimerAL
 
 CjsSchema.decorateField(Tr2GpuTimerAL, "_gpuTimer", type.unknown);
 CjsSchema.decorateMethod(Tr2GpuTimerAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2GpuTimerAL, { className: "Tr2GpuTimerAL" });
+CjsSchema.meta.carbon("Tr2GpuTimerAL")(Tr2GpuTimerAL);

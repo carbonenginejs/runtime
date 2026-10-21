@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriFloat.h
 // Source: trinity/trinity/TriFloat.cpp
@@ -9,8 +10,8 @@ import { type, blue } from "#schema";
  * Native TriFloat.h keeps a stretch length outside its owning stretch so a
  * curve-set binding can hold the scalar without retaining the stretch.
  */
-@blue.define("TriFloat")
-@blue.interface()
+@be.define("TriFloat")
+
 @blue.inherit(IRoot)
 export class TriFloat
 {

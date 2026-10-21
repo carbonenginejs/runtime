@@ -585,7 +585,7 @@ function normalizeShaderOptions(options)
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.blue.interface(Tr2EffectRes)(Tr2EffectRes);
+
 CjsSchema.blue.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
   methods: {
@@ -600,4 +600,4 @@ CjsSchema.blue.define(Tr2EffectRes, {
   }
 });
 blue.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
-blue.interface(ICacheable)(Tr2EffectRes);
+CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);

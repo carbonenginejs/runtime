@@ -59,7 +59,8 @@ CjsSchema.decorateField(Tr2ReadbackAL, "_readback", type.unknown);
 CjsSchema.decorateMethod(Tr2ReadbackAL, "IsReady", blue.method);
 CjsSchema.decorateMethod(Tr2ReadbackAL, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ReadbackAL, "Map", blue.method);
-CjsSchema.blue.define(Tr2ReadbackAL, {
-  className: "Tr2ReadbackAL",
-  methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted], Destruct: [meta.adapted] }
-});
+CjsSchema.decorateMethod(Tr2ReadbackAL, "IsReady", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackAL, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackAL, "Map", meta.adapted);
+CjsSchema.decorateMethod(Tr2ReadbackAL, "Destruct", meta.adapted);
+CjsSchema.meta.carbon("Tr2ReadbackAL")(Tr2ReadbackAL);

@@ -1,4 +1,4 @@
-import { be } from "#blue";
+import { blue as be } from "#blue";
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.h
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation_Blue.cpp

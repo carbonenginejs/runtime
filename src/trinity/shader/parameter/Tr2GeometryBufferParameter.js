@@ -4,7 +4,7 @@ import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";

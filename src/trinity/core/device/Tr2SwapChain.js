@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2SwapChain.h
 //   trinity/trinity/Tr2SwapChain.cpp
@@ -11,9 +12,9 @@ import { Succeeded } from "../../../trinityal/ALResult.js";
 import { Tr2SwapChainAL } from "../../../trinityal/Tr2SwapChainAL/index.js";
 
 /** Tr2SwapChain (trinityCore) - generated from schema shapeHash 955529ab.... */
-@blue.define("Tr2SwapChain")
+@be.define("Tr2SwapChain")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class Tr2SwapChain
 {
 

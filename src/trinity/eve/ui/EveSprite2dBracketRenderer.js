@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 import { TriDevice } from "../../core/device/TriDevice.js";
 import { vec4 } from "#math/vec4";
@@ -18,8 +19,8 @@ import { Tr2SpriteObject } from "../../sprite2d/Tr2SpriteObject.js";
  * Sprite2D scene: Carbon EveSprite2dBracketRenderer
  * (EveSprite2dBracketRenderer.h:15), a Tr2SpriteObject and a Tr2DeviceResource.
  */
-@blue.define("EveSprite2dBracketRenderer")
-@blue.chainTo(Tr2SpriteObject)
+@be.define("EveSprite2dBracketRenderer")
+@be.exposureChainTo(Tr2SpriteObject)
 @blue.inherit(Tr2DeviceResource)
 export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 {

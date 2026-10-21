@@ -522,4 +522,4 @@ function decodeSimpleEscape(byte)
 
 export default CjsPickleProtocol0Reader;
 
-CjsSchema.meta.define(CjsPickleProtocol0Reader, { className: "CjsPickleProtocol0Reader" });
+CjsSchema.meta.define("CjsPickleProtocol0Reader")(CjsPickleProtocol0Reader);

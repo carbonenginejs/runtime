@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Source: trinity/trinity/Eve/EveComponentRegistry.cpp
@@ -11,9 +12,9 @@ import { ITr2VolumetricRenderable } from "../../../core/ITr2VolumetricRenderable
 import { ITr2PostProcessOwner } from "../../../postProcess/ITr2PostProcessOwner.js";
 
 /** Indexes Eve entities and their component collections for scene processing. */
-@blue.define("EveComponentRegistry")
+@be.define("EveComponentRegistry")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveComponentRegistry
 {
 

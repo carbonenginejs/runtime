@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition_Blue.cpp
@@ -11,9 +12,9 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
  * One outgoing edge of a state machine state: evaluates a boolean condition
  * expression and, when it passes, names the destination state to switch to.
  */
-@blue.define("Tr2StateMachineTransition")
+@be.define("Tr2StateMachineTransition")
 @blue.inherit(INotify)
-@blue.interface(INotify)
+@be.mapInterface(INotify)
 export class Tr2StateMachineTransition
 {
   /**

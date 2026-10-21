@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { be, CjsBlueEnumRegistry, EnumRegistrationType } from "#blue";
+import { blue, CjsBlueEnumRegistry, EnumRegistrationType } from "#blue";
 import { CjsSchema, type } from "#schema";
 
 test("Blue enum names preserve Carbon chooser order, aliases and partial masks", () =>
@@ -100,8 +100,8 @@ test("Blue and schema share registration and resolve qualified fields after regi
         mode: [type.int32, type.enum("test.LateEnum"), CjsSchema.blue.persist]
     } });
     assert.throws(() => CjsSchema.getSchema(Host), ReferenceError);
-    const values = be.enums.RegisterEnum("test.LateEnum", { FIRST: 1, SECOND: 2 });
-    assert.equal(CjsSchema.getEnum(values), be.enums.GetEnumInfo("test.LateEnum"));
+    const values = blue.enums.RegisterEnum("test.LateEnum", { FIRST: 1, SECOND: 2 });
+    assert.equal(CjsSchema.getEnum(values), blue.enums.GetEnumInfo("test.LateEnum"));
     assert.equal(CjsSchema.getEnumName(values), "test.LateEnum");
     assert.equal(CjsSchema.getField(Host, "mode").enum.members, values);
     assert.equal(CjsSchema.getSchema(Host).fields[0].enum.identity, "test.LateEnum");
@@ -119,10 +119,10 @@ test("Blue and schema share registration and resolve qualified fields after regi
     assert.equal(CjsSchema.getSchema(LegacyChild).fields[0].enum.identity, "LegacyEnumHost.Choice");
     const facadeValues = { VALUE: 3 };
     CjsSchema.defineEnum(facadeValues, { name: "test.Facade" });
-    assert.equal(be.enums.GetEnum("test.Facade"), facadeValues);
+    assert.equal(blue.enums.GetEnum("test.Facade"), facadeValues);
     const wrapper = { Type: { VALUE: 4 } };
     CjsSchema.defineEnum(wrapper, { name: "test.Wrapped" });
-    assert.equal(CjsSchema.getEnum(wrapper), be.enums.GetEnumInfo("test.Wrapped"));
+    assert.equal(CjsSchema.getEnum(wrapper), blue.enums.GetEnumInfo("test.Wrapped"));
 });
 
 test("the SOF blink enum uses one native-owned object through Blue and its static", async () =>
@@ -404,7 +404,7 @@ test("definition-site Create names the enum in the registry and adds no property
     assert.equal(registry.GetValueName("test.Created", 1), "FIRST | ALIAS");
     assert.equal(registry.GetValueNameAsBitMask("test.Created", 3), "FIRST | ALIAS | SECOND");
     assert.equal(CjsSchema.getEnumName(values), null, "schema reads the one global registry");
-    assert.equal(be.enums.HasEnum("test.Created"), false, "local registry must not publish globally");
+    assert.equal(blue.enums.HasEnum("test.Created"), false, "local registry must not publish globally");
 });
 
 test("Create and Set reject conflicting registrations without freezing or naming rejected values", () =>

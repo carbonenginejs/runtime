@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { be, BlueList } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueList } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { Tr2Sprite2dTriangle } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dTriangle.js";
@@ -15,7 +15,7 @@ for(const [Class,fields,types,defaults]of [
  [Tr2Sprite2dTriangle,["index0","index1","index2"],["uint16","uint16","uint16"],[0,0,0]],
  [Tr2UpscalingTechniqueInfo,["technique","supportedSettings","framegeneration"],["uint32","uint32","boolean"],[0,0,false]]
 ])test(getRegisteredClassName(Class)+" factory exposes its record fields without model conveniences",()=>{
- const value=be.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Object.prototype);
+ const value=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Object.prototype);
  assert.deepEqual(Object.keys(value),fields);assert.deepEqual(fields.map(field=>value[field]),defaults);
  assert.deepEqual(fields.map(field=>CjsSchema.getField(Class,field).type.kind),types);
  for(const name of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(name in value,false);
@@ -31,13 +31,13 @@ test("triangle declared readers, persistent writer and copier preserve indices",
  const source={_type:"Tr2Sprite2dTriangle",index0:4,index1:5,index2:65535};const triangle=new DictReader({declarations:true}).CreateObject(source);
  assert.equal(triangle.constructor,Tr2Sprite2dTriangle);assert.deepEqual([triangle.index0,triangle.index1,triangle.index2],[4,5,65535]);
  const written=new DictWriter().WriteObject(triangle,{}, {persistOnly:true});assert.deepEqual([written.index0,written.index1,written.index2],[4,5,65535]);
- const target=new Tr2Sprite2dTriangle();assert.equal(be.classes.CopyTo(triangle,target),target);assert.deepEqual([target.index0,target.index1,target.index2],[4,5,65535]);
+ const target=new Tr2Sprite2dTriangle();assert.equal(blue.classes.CopyTo(triangle,target),target);assert.deepEqual([target.index0,target.index1,target.index2],[4,5,65535]);
 });
 
 test("upscaling struct uses dictionary values while native persistence copy skips its unflagged fields",()=>{
  const source={_type:"Tr2UpscalingTechniqueInfo",technique:2,supportedSettings:7,framegeneration:true};const value=new DictReader({declarations:true}).CreateObject(source);
  assert.equal(value.constructor,Tr2UpscalingTechniqueInfo);assert.deepEqual([value.technique,value.supportedSettings,value.framegeneration],[2,7,true]);
- const target=new Tr2UpscalingTechniqueInfo();be.classes.CopyTo(value,target);assert.deepEqual([target.technique,target.supportedSettings,target.framegeneration],[0,0,false]);
+ const target=new Tr2UpscalingTechniqueInfo();blue.classes.CopyTo(value,target);assert.deepEqual([target.technique,target.supportedSettings,target.framegeneration],[0,0,false]);
  const written=new DictWriter().WriteObject(value);assert.deepEqual([written.technique,written.supportedSettings,written.framegeneration],[2,7,true]);
  new DictReader({declarations:true}).ReadInto(target,written);assert.deepEqual([target.technique,target.supportedSettings,target.framegeneration],[2,7,true]);
  const persisted=new DictWriter().WriteObject(value,{}, {persistOnly:true});for(const field of ["technique","supportedSettings","framegeneration"])assert.equal(Object.hasOwn(persisted,field),false);

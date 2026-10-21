@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2Renderable } from "../ITr2Renderable.js";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 // Source: trinity/trinity/Tr2LineSet.h
@@ -20,10 +21,13 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 
 /** A set of coloured lines with an accompanying picking-triangle list, submitted as one buffer. */
-@blue.define("Tr2LineSet")
+@be.define("Tr2LineSet")
 @blue.inherit(IInitialize)
-@blue.interface(IInitialize, ITr2Renderable, Tr2PrimitiveSet, ITr2Pickable)
-@blue.chainTo(Tr2PrimitiveSet)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(Tr2PrimitiveSet)
+@be.mapInterface(ITr2Pickable)
+@be.exposureChainTo(Tr2PrimitiveSet)
 export class Tr2LineSet extends Tr2PrimitiveSet
 {
 

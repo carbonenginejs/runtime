@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerPlane.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -7,8 +8,8 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 import { quat } from "#math/quat";
 
 /** Triggers pooled placements in the order reached by a timed plane sweep. */
-@blue.define("EveDistributionSpawnerTriggerPlane")
-@blue.interface(IEveDistributionSpawner)
+@be.define("EveDistributionSpawnerTriggerPlane")
+@be.mapInterface(IEveDistributionSpawner)
 export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
 {
 

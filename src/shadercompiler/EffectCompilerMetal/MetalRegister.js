@@ -24,6 +24,4 @@ export class MetalRegister
     });
 }
 
-CjsSchema.blue.define(MetalRegister, {
-    className: "MetalRegister"
-});
+CjsSchema.meta.carbon("MetalRegister")(MetalRegister);

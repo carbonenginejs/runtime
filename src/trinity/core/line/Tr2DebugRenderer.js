@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2DebugRenderer.h
 // Source: trinity/trinity/Tr2DebugRenderer.cpp
 // Source: trinity/trinity/Tr2DebugRenderer_Blue.cpp
@@ -221,9 +222,9 @@ export function GetDebugRenderOptions(object)
 }
 
 /** Resolves which debug visualisations an object draws and draws them. */
-@blue.define("Tr2DebugRenderer")
+@be.define("Tr2DebugRenderer")
 @blue.inherit(ITr2DebugRenderer2)
-@blue.interface()
+
 export class Tr2DebugRenderer
 {
 

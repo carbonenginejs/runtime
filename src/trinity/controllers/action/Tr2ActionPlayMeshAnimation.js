@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp
@@ -14,9 +15,10 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * destination object's animation controller when it starts, and stops or
  * enqueues a stop when it ends.
  */
-@blue.define("Tr2ActionPlayMeshAnimation")
+@be.define("Tr2ActionPlayMeshAnimation")
 @blue.inherit(INotify)
-@blue.interface(ITr2ControllerAction, INotify)
+@be.mapInterface(ITr2ControllerAction)
+@be.mapInterface(INotify)
 export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 {
   /**

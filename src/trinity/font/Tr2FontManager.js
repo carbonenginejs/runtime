@@ -45,7 +45,7 @@ import { g_textureAtlasMan } from "../core/Tr2TextureAtlasMan.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { PixelFormat } from "#consts/render-context";
 import { TriStorageFlags } from "#consts/graphics";
-import { be, IBlueEvents } from "#blue";
+import { blue as be, IBlueEvents } from "#blue";
 import { meta, type, blue } from "#schema";
 
 /**

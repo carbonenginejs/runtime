@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties.cpp
@@ -59,8 +60,8 @@ const COLOR_PROPERTIES = Object.freeze([
  * named material slot (Primary, Hull, Booster, State0, ...) in a fixed order.
  */
 // Self-map: EveChildInheritProperties_Blue.cpp:13-14 (EXPOSURE_BEGIN / MAP_INTERFACE).
-@blue.interface()
-@blue.define("EveChildInheritProperties")
+
+@be.define("EveChildInheritProperties")
 @blue.inherit(IRoot)
 export class EveChildInheritProperties
 {

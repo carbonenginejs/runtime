@@ -209,4 +209,4 @@ export class Tr2ShaderProgramAL
 
 CjsSchema.decorateField(Tr2ShaderProgramAL, "_program", type.unknown);
 CjsSchema.decorateMethod(Tr2ShaderProgramAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2ShaderProgramAL, { className: "Tr2ShaderProgramAL" });
+CjsSchema.meta.carbon("Tr2ShaderProgramAL")(Tr2ShaderProgramAL);

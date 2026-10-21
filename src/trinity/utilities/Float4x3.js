@@ -12,7 +12,7 @@ import { mat4 } from "#math/mat4";
  * aggregate storage. The typed-array initializer fixes the runtime width at 12.
  * The conversions are mat4.getAffineCarbon / mat4.fromAffineCarbon.
  */
-@blue.define("Float4x3")
+@meta.carbon("Float4x3")
 export class Float4x3
 {
 

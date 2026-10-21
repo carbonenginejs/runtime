@@ -74,4 +74,4 @@ export class BinaryLoaderHelper
 
 export default BinaryLoaderHelper;
 
-CjsSchema.blue.define(BinaryLoaderHelper, { className: "BinaryLoaderHelper" });
+CjsSchema.meta.carbon("BinaryLoaderHelper")(BinaryLoaderHelper);

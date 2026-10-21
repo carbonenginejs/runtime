@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
@@ -10,8 +11,8 @@ import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.j
  * preserving defaults by copy for restoration. Carbon's Color is four floats;
  * the JavaScript runtime carries it as a vec4 like its other color values.
  */
-@blue.define("EveSocketParameterColor")
-@blue.interface(IEveSocketParameter)
+@be.define("EveSocketParameterColor")
+@be.mapInterface(IEveSocketParameter)
 export class EveSocketParameterColor extends EveSocketParameterBindingBase
 {
 

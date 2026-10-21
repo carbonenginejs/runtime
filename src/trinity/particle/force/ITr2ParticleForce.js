@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/ITr2ParticleForce.h
 import { meta, blue } from "#schema";
@@ -5,7 +6,7 @@ import { meta, blue } from "#schema";
 
 /** Required particle-force contract. */
 @blue.inherit(IRoot)
-@blue.define("ITr2ParticleForce")
+@be.interface("ITr2ParticleForce")
 export class ITr2ParticleForce
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2GrannyTransformTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTransformTrack.cpp
 import { quat } from "#math/quat";
@@ -12,8 +13,8 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
  * curves together, exposing them as a translation vector, rotation quaternion
  * and scale vector.
  */
-@blue.define("Tr2GrannyTransformTrack")
-@blue.chainTo(Tr2GrannyTrack)
+@be.define("Tr2GrannyTransformTrack")
+@be.exposureChainTo(Tr2GrannyTrack)
 export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 {
   @blue.readwrite

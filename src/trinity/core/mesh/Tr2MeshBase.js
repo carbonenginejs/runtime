@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2MeshBase.h
 // Source: trinity/trinity/Tr2MeshBase.cpp
 // Source: trinity/trinity/Tr2MeshBase_Blue.cpp
@@ -18,9 +19,9 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
  * Base mesh: owns one mesh-area list per batch type and turns the displayed
  * areas into GPU-free render batches and shadow area blocks.
  */
-@blue.define("Tr2MeshBase")
+@be.define("Tr2MeshBase")
 @blue.inherit(IListNotify)
-@blue.interface()
+
 export class Tr2MeshBase
 {
   @blue.readwrite

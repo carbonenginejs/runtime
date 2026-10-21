@@ -1,5 +1,5 @@
 import { IList } from "./IList.js";
-import { be } from "./blue.js";
+import { blue } from "./blue.js";
 import { CjsBlueClasses } from "./CjsBlueClasses.js";
 import { CjsSchema } from "../schema/index.js";
 import { DictReader, CreateAnchorTable } from "./DictReader.js";
@@ -39,7 +39,7 @@ export function addChild(target, property, child, options = {})
     assertChildCallback(options.onAdded, "onAdded");
 
     const index = collection.length;
-    const nativeList = be.classes.QueryThisInterface(collection, IList, collection.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
+    const nativeList = blue.classes.QueryThisInterface(collection, IList, collection.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
     if (nativeList)
     {
         if (!collection.Append(child)) throw new TypeError(`Child is not admitted by ${field.name}.`);
@@ -64,7 +64,7 @@ export function removeChild(target, property, child, options = {})
     if (index === -1) return false;
     assertChildCallback(options.onRemoved, "onRemoved");
 
-    const nativeList = be.classes.QueryThisInterface(collection, IList, collection.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
+    const nativeList = blue.classes.QueryThisInterface(collection, IList, collection.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
     if (nativeList) collection.Remove(index);
     else collection.splice(index, 1);
     recordChildMutation(target, field, options);
@@ -115,7 +115,7 @@ export function clearChildren(target, property, options = {})
     assertChildCallback(options.onCleared, "onCleared");
 
     recordChildMutation(target, field, options);
-    if (be.classes.QueryThisInterface(collection, IList, collection.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) collection.Remove(-1);
+    if (blue.classes.QueryThisInterface(collection, IList, collection.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) collection.Remove(-1);
     else
     {
         notifyListModified(target, BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, collection, options);

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Tr2FontManager, Tr2FontMeasurer, Tr2SBitWrapper, TR2_FONT_FALLBACK } from '../../npm/dist/trinity/index.js';
 import * as fontModule from '../../npm/dist/trinity/font/Tr2FontManager.js';
 import { gTriDev } from '../../npm/dist/trinity/core/device/gTriDev.js';
-import { be } from '../../npm/dist/global/blue/index.js';
+import { blue } from '../../npm/dist/global/blue/index.js';
 import { CjsSchema } from '../../npm/dist/global/schema/index.js';
 
 // Deterministic Canvas2D contract fixture, not evidence of browser pixel parity.
@@ -196,7 +196,7 @@ test('initialize registers for Blue ticks and OnTick trims by frame age (cpp:65-
 {
   browser(t);
   const manager = singleton(t);
-  assert.ok(be.os._tickers.some(entry => entry.cb === manager && entry.cookie === 'fontMan'));
+  assert.ok(blue.os._tickers.some(entry => entry.cb === manager && entry.cookie === 'fontMan'));
 
   const device = gTriDev.device, savedFrame = device.frameCounter;
   t.after(() => { device.frameCounter = savedFrame; });
@@ -228,7 +228,7 @@ test('initialize registers for Blue ticks and OnTick trims by frame age (cpp:65-
 
   // Shutdown unregisters (cpp:78-81).
   Tr2FontManager.shutdown();
-  assert.ok(!be.os._tickers.some(entry => entry.cb === manager));
+  assert.ok(!blue.os._tickers.some(entry => entry.cb === manager));
   Tr2FontManager.initialize();
 });
 

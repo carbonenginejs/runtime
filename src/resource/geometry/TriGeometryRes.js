@@ -1470,7 +1470,7 @@ export class TriGeometryRes extends CjsResource
 // Declared as data rather than with decorators, so the resource tree loads from
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
-CjsSchema.blue.interface(TriGeometryRes)(TriGeometryRes);
+
 CjsSchema.blue.define(TriGeometryRes, {
   className: "TriGeometryRes",
   fields: {
@@ -1524,4 +1524,4 @@ CjsSchema.blue.define(TriGeometryRes, {
   }
 });
 blue.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
-blue.interface(ICacheable)(TriGeometryRes);
+CjsSchema.exposure.mapInterface(ICacheable)(TriGeometryRes);

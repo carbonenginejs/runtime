@@ -7,7 +7,7 @@ import { vec3 } from "#math/vec3";
 /** EveChildInstanceTransform (eve/child) - generated from schema shapeHash 9e0ec0c7.... * Native 64-bit size 44; offsets and storage types: trinity/trinity/
  * Eve/SpaceObject/Children/EveChildInstanceContainer.h; Eve/SpaceObject/Children/EveChildInstanceContainer.cpp:13-19.
  */
-@blue.define("EveChildInstanceTransform")
+@meta.carbon("EveChildInstanceTransform")
 @meta.struct.define({ size: 44 })
 export class EveChildInstanceTransform
 {

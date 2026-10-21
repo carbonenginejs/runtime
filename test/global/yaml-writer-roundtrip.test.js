@@ -4,7 +4,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { YamlWriter, BeObjectMetadata, be } from "../../npm/dist/global/blue/index.js";
+import { YamlWriter, BeObjectMetadata, blue } from "../../npm/dist/global/blue/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "../../npm/dist/global/blue/dictionaryDeclarations.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
@@ -84,9 +84,9 @@ const build = process.env.YAML_WRITER_RESOURCE_BUILD;
 test("real ship and effect Black objects survive Red emission with measured precision loss", {
   skip: !service || !build ? "set YAML_WRITER_RESOURCE_SERVICE and YAML_WRITER_RESOURCE_BUILD" : false
 }, async t => {
-  const previous = be.resMan;
-  be.resMan = new StubResMan();
-  t.after(() => { be.resMan = previous; });
+  const previous = blue.resMan;
+  blue.resMan = new StubResMan();
+  t.after(() => { blue.resMan = previous; });
   const resources = [
     "dx9/model/ship/iconpreview/previewturretship.black",
     "dx9/model/ship/angel/battlecruiser/angbc1/effects/angbc1_t1_fx_01a.black",
@@ -128,8 +128,8 @@ test("optional private Red reference corpus is compared only in memory and repor
     syntaxFailures: 0, tagFailures: 0, otherParseFailures: 0,
     numberChangedFiles: 0, metadataChangedFiles: 0, memberSetChangedFiles: 0,
     nonNumericChangedFiles: 0, aliasTopologyChangedFiles: 0, formatOnlyFiles: 0 };
-  const previous = be.resMan;
-  be.resMan = new StubResMan();
+  const previous = blue.resMan;
+  blue.resMan = new StubResMan();
   // Runtime diagnostics may include authored strings. Never forward them.
   const saved = { log: console.log, warn: console.warn, error: console.error, info: console.info, debug: console.debug };
   for (const key of Object.keys(saved)) console[key] = () => {};
@@ -165,7 +165,7 @@ test("optional private Red reference corpus is compared only in memory and repor
   }
   finally
   {
-    be.resMan = previous;
+    blue.resMan = previous;
     Object.assign(console, saved);
   }
   if (summary.files === 0) { t.skip("no reference inputs available"); return; }

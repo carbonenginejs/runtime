@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
@@ -10,9 +11,9 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that applies a fixed, time-independent displacement, either
  * in world space or in the anchor's yaw frame.
  */
-@blue.define("EveVirtualCameraBehaviourVector3Offset")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@be.define("EveVirtualCameraBehaviourVector3Offset")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Offset extends EveVirtualCameraBehaviourVector3Base
 {
   @blue.readwrite

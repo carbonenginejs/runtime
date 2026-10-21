@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/TriCurveSet.h
 // Source: trinity/trinity/Curves/TriCurveSet.cpp
@@ -10,7 +11,7 @@ import { type, blue } from "#schema";
  * time and whether playback loops inside it.
  */
 @blue.inherit(IRoot)
-@blue.define("Tr2CurveSetRange")
+@be.define("Tr2CurveSetRange")
 export class Tr2CurveSetRange
 {
   /** Authored name used by TriCurveSet.PlayTimeRange. */
@@ -39,4 +40,4 @@ export class Tr2CurveSetRange
 }
 
 // EXPOSURE_END: this plain IRoot record exposes only its concrete identity.
-blue.interface()(Tr2CurveSetRange);
+

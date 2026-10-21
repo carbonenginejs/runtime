@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/TriRect.h
 // Source: trinity/trinity/TriRect.cpp
 // Source: trinity/trinity/TriRect_Blue.cpp
@@ -12,7 +13,7 @@ import { meta, type, blue } from "#schema";
  * is therefore empty, not a claim of complete native interface parity. Neither
  * the native concrete self query nor a model-service base is exposed.
  */
-@blue.define("TriRect")
+@be.define("TriRect")
 export class TriRect
 {
   /** Stored signed left edge. */
@@ -84,4 +85,4 @@ export class TriRect
 }
 
 // Native maps IPythonMethods only; that host-specific bridge is unavailable.
-blue.interface()(TriRect);
+

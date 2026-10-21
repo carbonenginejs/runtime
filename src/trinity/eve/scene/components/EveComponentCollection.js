@@ -4,7 +4,7 @@ import { meta, type, blue } from "#schema";
 import { IEveComponentCollection } from "./IEveComponentCollection.js";
 
 /** Stores entities belonging to one Eve component type. */
-@blue.define("EveComponentCollection")
+@meta.carbon("EveComponentCollection")
 @blue.inherit(IEveComponentCollection)
 export class EveComponentCollection
 {

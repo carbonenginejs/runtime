@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be, ITriFunction, ITriScalarFunction, ITriColorFunction, ITriVectorFunction, IInitialize } from "../../npm/dist/global/blue/index.js";
+import { blue, ITriFunction, ITriScalarFunction, ITriColorFunction, ITriVectorFunction, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
@@ -17,7 +17,7 @@ test("expression curves construct without inherited model APIs", () =>
 {
   for (const [Class, Base] of [[Scalar, ITriScalarFunction], [Vector, ITriColorFunction]])
   {
-    const curve = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+    const curve = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(curve.constructor, Class);
     assert.equal(Object.getPrototypeOf(Class.prototype), Base.prototype);
     for (const key of ["SetValues", "UpdateValues", "GetValues", "Clone", "OnEvent", "__state"]) assert.equal(key in curve, false);

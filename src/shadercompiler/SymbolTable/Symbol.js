@@ -87,6 +87,4 @@ export class Symbol
     });
 }
 
-CjsSchema.blue.define(Symbol, {
-    className: "Symbol"
-});
+CjsSchema.meta.carbon("Symbol")(Symbol);

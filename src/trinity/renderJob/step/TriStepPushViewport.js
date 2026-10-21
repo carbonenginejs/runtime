@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPushViewport.h
 // Source: trinity/trinity/RenderJob/TriStepPushViewport.cpp
 import { meta, blue } from "#schema";
@@ -8,9 +9,9 @@ import { TriRenderJob } from "../TriRenderJob.js";
 // viewport onto the render context's ESM stack.
 
 /** Step that saves the current viewport so a later pop can restore it. */
-@blue.define("TriStepPushViewport")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPushViewport")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPushViewport extends TriRenderStep
 {
   /**

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierHaloInverted.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -11,8 +12,8 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * face the camera - the inverse of a halo, and despite the name not a subclass
  * of one.
  */
-@blue.define("EveChildModifierHaloInverted")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierHaloInverted")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierHaloInverted extends IEveChildTransformModifier
 {
   static scratch = {

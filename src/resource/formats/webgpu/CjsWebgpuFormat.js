@@ -428,4 +428,4 @@ export class CjsWebgpuFormat extends CjsFormat
 
 export default CjsWebgpuFormat;
 
-CjsSchema.meta.define(CjsWebgpuFormat, { className: "CjsWebgpuFormat" });
+CjsSchema.meta.define("CjsWebgpuFormat")(CjsWebgpuFormat);

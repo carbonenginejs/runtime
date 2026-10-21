@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudManager.h + AudManager.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudManager.json.
@@ -26,9 +27,9 @@ function BankKey(name)
 }
 
 /** Coordinates audio lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion. */
-@blue.define("AudManager")
+@be.define("AudManager")
 @blue.inherit(IRoot, IBlueEvents)
-@blue.interface()
+
 export class AudManager
 {
 

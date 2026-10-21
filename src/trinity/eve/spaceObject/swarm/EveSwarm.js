@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
 import { EveEntity } from "../../EveEntity.js";
@@ -35,9 +36,13 @@ const FLT_MAX = 3.4028234663852886e38;
  * GetDebugOptions and RenderDebugInfo (our space objects have no debug renderer; the per-vehicle force record they
  * draw is still kept).
  */
-@blue.define("EveSwarm")
-@blue.interface(IEveSpaceObject2, IInitialize, INotify, EveEntity, IEveShadowCaster)
-@blue.chainTo(EveShip2)
+@be.define("EveSwarm")
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(EveEntity)
+@be.mapInterface(IEveShadowCaster)
+@be.exposureChainTo(EveShip2)
 export class EveSwarm extends EveShip2
 {
 

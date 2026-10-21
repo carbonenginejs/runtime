@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleVortexForce.h
 // Source: trinity/trinity/Particle/Tr2ParticleVortexForce.cpp
 // Source: trinity/trinity/Particle/Tr2ParticleVortexForce_Blue.cpp
@@ -23,8 +24,8 @@ const DEBUG_P1 = vec3.create();
  * Particle force of constant magnitude directed tangentially around an axis
  * through a fixed position, swirling particles about it.
  */
-@blue.interface(ITr2ParticleForce)
-@blue.define("Tr2ParticleVortexForce")
+@be.mapInterface(ITr2ParticleForce)
+@be.define("Tr2ParticleVortexForce")
 export class Tr2ParticleVortexForce extends ITr2ParticleForce
 {
   @blue.readwrite

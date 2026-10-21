@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:456-463
@@ -13,9 +14,9 @@ import { vec3 } from "#math/vec3";
  * constructor-owned vectors require no update or resource lifecycle.
  * GetTransform remains a JavaScript convenience; native stores these fields only.
  */
-@blue.define("EveSOFDataTransform")
+@be.define("EveSOFDataTransform")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataTransform
 {
   /**

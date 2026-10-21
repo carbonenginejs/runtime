@@ -37,7 +37,4 @@ for (const method of [ "GetDebugOptions", "RenderDebugInfo" ])
 }
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.
-CjsSchema.blue.define(ITr2DebugRenderable, {
-  className: "ITr2DebugRenderable",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITr2DebugRenderable")(ITr2DebugRenderable);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/EveParticleDragForce.h
 // Source: trinity/trinity/Eve/EveParticleDragForce_Blue.cpp
 import { blue } from "#schema";
@@ -8,8 +9,8 @@ import { Tr2ParticleDragForce } from "../../../particle/force/Tr2ParticleDragFor
  * Blue alias of Tr2ParticleDragForce - Carbon registers the Eve name with
  * zero attributes of its own and chains the whole exposure to the Tr2 class.
  */
-@blue.define("EveParticleDragForce")
-@blue.chainTo(Tr2ParticleDragForce)
+@be.define("EveParticleDragForce")
+@be.exposureChainTo(Tr2ParticleDragForce)
 export class EveParticleDragForce extends Tr2ParticleDragForce
 {
 }

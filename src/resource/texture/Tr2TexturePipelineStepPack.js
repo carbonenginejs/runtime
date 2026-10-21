@@ -254,20 +254,14 @@ export class Tr2TexturePipelineStepPack
 
 }
 
-CjsSchema.blue.interface(Tr2TexturePipelineStepPack)(Tr2TexturePipelineStepPack);
-CjsSchema.blue.define(Tr2TexturePipelineStepPack, {
-  className: "Tr2TexturePipelineStepPack",
-  fields: {
-    format: [ blue.readwrite, blue.persist, type.int32, type.enum("PixelFormat") ],
-    a: [ blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel") ],
-    b: [ blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel") ],
-    g: [ blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel") ],
-    r: [ blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel") ]
-  },
-  methods: {
-    GetResourceDependencies: [ blue.method, meta.implemented ],
-    Execute: [ blue.method, meta.adapted ],
-    swapRedBlue: [ blue.method, meta.implemented ],
-    pack: [ blue.method, meta.adapted ]
-  }
-});
+
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "format", blue.readwrite, blue.persist, type.int32, type.enum("PixelFormat"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "a", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "b", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "g", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "r", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
+CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "GetResourceDependencies", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "Execute", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "swapRedBlue", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "pack", blue.method, meta.adapted);
+CjsSchema.exposure.define("Tr2TexturePipelineStepPack")(Tr2TexturePipelineStepPack);

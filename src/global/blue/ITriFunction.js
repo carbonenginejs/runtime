@@ -31,7 +31,4 @@ export class ITriFunction
 
 CjsSchema.decorateMethod(ITriFunction, "UpdateValue", blue.abstract);
 CjsSchema.decorateMethod(ITriFunction, "Reset", blue.method, meta.noop);
-CjsSchema.blue.define(ITriFunction, {
-  className: "ITriFunction",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITriFunction")(ITriFunction);

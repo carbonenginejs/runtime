@@ -21,7 +21,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import "../../npm/dist/audio/index.js";
 import { ExecuteMainThreadActions, Tr2ControllerExpression } from "../../npm/dist/trinity/index.js";
@@ -50,26 +50,26 @@ async function load(t)
   assert.equal(data.length, SIZE, NAME);
   assert.equal(createHash("md5").update(data).digest("hex"), MD5, NAME);
 
-  const previous = be.resMan;
-  const getActualTime = be.os.GetActualTime;
-  const getFrameTime = be.os.GetCurrentFrameTime;
+  const previous = blue.resMan;
+  const getActualTime = blue.os.GetActualTime;
+  const getFrameTime = blue.os.GetCurrentFrameTime;
   const override = Tr2ControllerExpression.controllerFunctionOverrideEnabled;
   const overrideSpeed = Tr2ControllerExpression.controllerShipSpeed;
   const overrideMax = Tr2ControllerExpression.controllerShipMaxSpeed;
   t.after(() =>
   {
-    be.resMan = previous;
-    be.os.GetActualTime = getActualTime;
-    be.os.GetCurrentFrameTime = getFrameTime;
+    blue.resMan = previous;
+    blue.os.GetActualTime = getActualTime;
+    blue.os.GetCurrentFrameTime = getFrameTime;
     Tr2ControllerExpression.controllerFunctionOverrideEnabled = override;
     Tr2ControllerExpression.controllerShipSpeed = overrideSpeed;
     Tr2ControllerExpression.controllerShipMaxSpeed = overrideMax;
     ExecuteMainThreadActions();
   });
   const clock = { ticks: EPOCH };
-  be.os.GetActualTime = () => clock.ticks;
-  be.os.GetCurrentFrameTime = () => clock.ticks;
-  be.resMan = new StubResMan();
+  blue.os.GetActualTime = () => clock.ticks;
+  blue.os.GetCurrentFrameTime = () => clock.ticks;
+  blue.resMan = new StubResMan();
   const root = CjsSchema.from("EveChildContainer", CjsBlackFormat.readPayload(data).object);
   return { root, clock };
 }

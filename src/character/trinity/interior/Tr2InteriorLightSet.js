@@ -3,7 +3,7 @@ import { meta, blue } from "#schema";
 import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2InteriorPerObjectLightData.js";
 
 /** Transient collection of active interior light sources and packed records. */
-@blue.define("Tr2InteriorLightSet")
+@meta.carbon("Tr2InteriorLightSet")
 export class Tr2InteriorLightSet
 {
 

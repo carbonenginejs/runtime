@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.cpp
@@ -11,7 +12,7 @@ import { Quality } from "../generated/postProcess/enums.js";
  * with per-effect quality thresholds deciding which of them a frame is allowed
  * to use.
  */
-@blue.define("Tr2PostProcess2")
+@be.define("Tr2PostProcess2")
 @blue.inherit(IRoot)
 export class Tr2PostProcess2
 {

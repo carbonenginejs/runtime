@@ -88,4 +88,4 @@ export class BlueCallbackManWorker
   }
 }
 
-CjsSchema.meta.define(BlueCallbackManWorker, { className: "BlueCallbackManWorker" });
+CjsSchema.meta.define("BlueCallbackManWorker")(BlueCallbackManWorker);

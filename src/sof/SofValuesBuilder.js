@@ -303,4 +303,4 @@ function IsHandle(value)
   return Boolean(value && typeof value === "object" && Object.keys(value).length === 1 && Object.hasOwn(value, "$ref"));
 }
 
-CjsSchema.meta.define(SofValuesBuilder, { className: "SofValuesBuilder" });
+CjsSchema.meta.define("SofValuesBuilder")(SofValuesBuilder);

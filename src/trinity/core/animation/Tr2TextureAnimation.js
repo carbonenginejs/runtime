@@ -4,7 +4,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta, type, blue } from "#schema";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { BitmapDimensions } from "#imageio";
 import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
 import { CjsVtaFormat } from "../../../resource/formats/vta/CjsVtaFormat.js";

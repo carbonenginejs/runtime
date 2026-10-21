@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/Include/ITr2PoseModifier.h (created by 6b7e9e5c, 2026-09-01)
 import { blue } from "#schema";
 
@@ -9,7 +10,7 @@ import { blue } from "#schema";
  * character look-at/IK fixups implement THIS rather than inventing a
  * parallel hook.
  */
-@blue.define("ITr2PoseModifier")
+@meta.carbon("ITr2PoseModifier")
 export class ITr2PoseModifier
 {
 

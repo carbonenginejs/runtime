@@ -1,12 +1,13 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepToggleCubemap.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that turns a scene cubemap display on or off. */
-@blue.define("TriStepToggleCubemap")
-@blue.interface()
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepToggleCubemap")
+
+@be.exposureChainTo(TriRenderStep)
 export class TriStepToggleCubemap extends TriRenderStep
 {
 

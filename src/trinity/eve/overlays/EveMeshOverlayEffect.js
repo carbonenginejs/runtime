@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.h
@@ -17,9 +18,12 @@ import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
  * Named overlay pass attached to a mesh, holding one effect list per batch type
  * together with the curve set and controllers that animate them.
  */
-@blue.define("EveMeshOverlayEffect")
+@be.define("EveMeshOverlayEffect")
 @blue.inherit(IInitialize, IListNotify, ITr2ControllerOwner, ITr2CurveSetOwner)
-@blue.interface(IInitialize, IListNotify, ITr2ControllerOwner, ITr2CurveSetOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IListNotify)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(ITr2CurveSetOwner)
 export class EveMeshOverlayEffect
 {
   @blue.readwrite

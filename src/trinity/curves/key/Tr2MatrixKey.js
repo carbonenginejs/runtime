@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve.h
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve_Blue.cpp
@@ -15,7 +16,7 @@ import { type, blue } from "#schema";
  * (math/include/Matrix_inline.h:7-11).
  */
 @blue.inherit(IRoot)
-@blue.define("Tr2MatrixKey")
+@be.define("Tr2MatrixKey")
 export class Tr2MatrixKey
 {
   /** Key time in seconds. */
@@ -33,4 +34,4 @@ export class Tr2MatrixKey
 }
 
 // Native own query table; no inherited exposure chain.
-blue.interface()(Tr2MatrixKey);
+

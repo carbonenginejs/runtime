@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -5,7 +6,7 @@ import { type, blue } from "#schema";
 import { EveSOFDataArea } from "../shared/EveSOFDataArea.js";
 
 /** Carbon-authored hull mesh-area record. */
-@blue.define("EveSOFDataHullArea")
+@be.define("EveSOFDataHullArea")
 @blue.inherit(IRoot)
 export class EveSOFDataHullArea
 {

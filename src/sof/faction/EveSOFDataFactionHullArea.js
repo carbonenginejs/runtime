@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Stores named faction hull-area parameters and provides case-insensitive lookup. */
-@blue.define("EveSOFDataFactionHullArea")
-@blue.interface()
+@be.define("EveSOFDataFactionHullArea")
+
 @blue.inherit(IRoot)
 export class EveSOFDataFactionHullArea
 {

@@ -54,4 +54,4 @@ export class MusicInstance
     }
 }
 
-CjsSchema.meta.define(MusicInstance, { className: "MusicInstance" });
+CjsSchema.meta.define("MusicInstance")(MusicInstance);

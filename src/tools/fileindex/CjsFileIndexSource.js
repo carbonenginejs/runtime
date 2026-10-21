@@ -102,4 +102,4 @@ function normalizeHTTPURL(value)
     return url.href.replace(/\/$/u, "");
 }
 
-CjsSchema.meta.define(CjsFileIndexSource, { className: "CjsFileIndexSource" });
+CjsSchema.meta.define("CjsFileIndexSource")(CjsFileIndexSource);

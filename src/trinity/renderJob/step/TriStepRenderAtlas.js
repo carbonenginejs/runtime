@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderAtlas.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -6,9 +7,9 @@ import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
 /** A render step that draws a texture atlas for inspection, focused on one entry. */
-@blue.define("TriStepRenderAtlas")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRenderAtlas")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRenderAtlas extends TriRenderStep
 {
 

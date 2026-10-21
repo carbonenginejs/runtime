@@ -230,23 +230,19 @@ export class SymbolTable
     });
 }
 
-CjsSchema.blue.define(SymbolTable, {
-    className: "SymbolTable",
-    methods: {
-        Lookup: [blue.method],
-        LookupFunction: [blue.method],
-        LookupFunctionDeclaration: [blue.method],
-        LookupType: [blue.method],
-        LookupBuffer: [blue.method],
-        AddSymbol: [blue.method],
-        AddTypeSymbol: [blue.method],
-        AddSymbol__Symbol: [meta.renamed("AddSymbol")],
-        AddBufferSymbol: [blue.method],
-        EnterScope: [blue.method],
-        LeaveScope: [blue.method],
-        GetCurrentScope: [blue.method],
-        ResetUsedFlag: [blue.method],
-        LookupGlobal: [blue.method],
-        IsGlobal: [blue.method]
-    }
-});
+CjsSchema.decorateMethod(SymbolTable, "Lookup", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "LookupFunction", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "LookupFunctionDeclaration", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "LookupType", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "LookupBuffer", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "AddSymbol", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "AddTypeSymbol", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "AddSymbol__Symbol", meta.renamed("AddSymbol"));
+CjsSchema.decorateMethod(SymbolTable, "AddBufferSymbol", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "EnterScope", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "LeaveScope", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "GetCurrentScope", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "ResetUsedFlag", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "LookupGlobal", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "IsGlobal", blue.method);
+CjsSchema.meta.carbon("SymbolTable")(SymbolTable);

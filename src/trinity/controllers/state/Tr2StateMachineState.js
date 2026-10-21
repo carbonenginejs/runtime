@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
-import { IsMatch, BlueList, IListNotify, INotify, be, CjsBlueClasses } from "#blue";
+import { IsMatch, BlueList, IListNotify, INotify, blue as be, CjsBlueClasses } from "#blue";
 import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";

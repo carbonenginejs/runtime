@@ -126,7 +126,7 @@ export class ITr2Controller
 
 
 CjsSchema.blue.inherit(IRoot)(ITr2Controller);
-CjsSchema.blue.define(ITr2Controller, { className: "ITr2Controller" });
+CjsSchema.exposure.interface("ITr2Controller")(ITr2Controller);
 
 
 /**

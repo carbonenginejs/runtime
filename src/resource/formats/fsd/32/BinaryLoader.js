@@ -484,4 +484,4 @@ export function ReadComponents(data, offset, count, isDouble)
 
 export default BinaryLoader;
 
-CjsSchema.blue.define(BinaryLoader, { className: "BinaryLoader" });
+CjsSchema.meta.carbon("BinaryLoader")(BinaryLoader);

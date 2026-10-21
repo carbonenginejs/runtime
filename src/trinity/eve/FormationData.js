@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.h
 import { type, blue } from "#schema";
 
@@ -7,7 +8,7 @@ import { type, blue } from "#schema";
  * agent has been assigned, or -1 while it has none. The behaviour allocates one
  * record per agent and rewrites it on every behaviour update.
  */
-@blue.define("FormationData")
+@meta.carbon("FormationData")
 export class FormationData
 {
   @type.int32

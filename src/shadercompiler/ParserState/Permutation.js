@@ -24,6 +24,4 @@ export class Permutation
     location = new FileLocation();
 }
 
-CjsSchema.blue.define(Permutation, {
-    className: "Permutation"
-});
+CjsSchema.meta.carbon("Permutation")(Permutation);

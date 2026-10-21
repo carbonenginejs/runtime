@@ -87,4 +87,4 @@ CjsSchema.decorateField(Tr2RegisterMapAL, "srvs", type.array({ kind: "typedArray
 CjsSchema.decorateField(Tr2RegisterMapAL, "uavs", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
 CjsSchema.decorateField(Tr2RegisterMapAL, "samplers", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
 CjsSchema.decorateMethod(Tr2RegisterMapAL, "equals", blue.method, meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2RegisterMapAL, { className: "Tr2RegisterMapAL" });
+CjsSchema.meta.carbon("Tr2RegisterMapAL")(Tr2RegisterMapAL);

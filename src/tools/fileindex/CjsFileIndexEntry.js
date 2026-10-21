@@ -247,4 +247,4 @@ function normalizeOptionalInteger(value, label, lineNumber)
     return result;
 }
 
-CjsSchema.meta.define(CjsFileIndexEntry, { className: "CjsFileIndexEntry" });
+CjsSchema.meta.define("CjsFileIndexEntry")(CjsFileIndexEntry);

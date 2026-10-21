@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTranslateWithCamera.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTranslateWithCamera.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTranslateWithCamera_Blue.cpp
@@ -10,8 +11,8 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
  * Transform modifier that moves a child with the camera, either pinning its
  * translation to the view position or offsetting it by the view position.
  */
-@blue.define("EveChildModifierTranslateWithCamera")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierTranslateWithCamera")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierTranslateWithCamera extends IEveChildTransformModifier
 {
   @blue.readwrite

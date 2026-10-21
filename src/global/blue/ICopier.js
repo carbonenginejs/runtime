@@ -42,5 +42,5 @@ for (const method of [ "SetCopyOverrideCallback", "SetPostCopyCallback", "CopyTo
   CjsSchema.decorateMethod(ICopier, method, blue.abstract);
 }
 
-CjsSchema.blue.define(ICopier, { className: "ICopier", fields: {} });
+CjsSchema.exposure.interface("ICopier")(ICopier);
 

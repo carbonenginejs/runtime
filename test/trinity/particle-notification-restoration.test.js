@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2ParticleSystem } from "../../npm/dist/trinity/index.js";
-import { be, CjsBlueOS, NotifyModified } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueOS, NotifyModified } from "../../npm/dist/global/blue/index.js";
 
 test("particle batch handles sorting, clock rebasing and both emitter notifications", () =>
 {
-  const prior = be.os, os = new CjsBlueOS(), system = new Tr2ParticleSystem();
-  be.os = os;
+  const prior = blue.os, os = new CjsBlueOS(), system = new Tr2ParticleSystem();
+  blue.os = os;
   try
   {
     system.maxParticleCount = 5;
@@ -38,13 +38,13 @@ test("particle batch handles sorting, clock rebasing and both emitter notificati
     system.Destruct();
     assert.equal(os._rebaseListeners.includes(system), false);
   }
-  finally { system.Destruct(); be.os = prior; }
+  finally { system.Destruct(); blue.os = prior; }
 });
 
 test("particle initialization registers and flags emitters; destruction releases the original clock", () =>
 {
-  const prior = be.os, os = new CjsBlueOS(), replacement = new CjsBlueOS(), system = new Tr2ParticleSystem();
-  be.os = os;
+  const prior = blue.os, os = new CjsBlueOS(), replacement = new CjsBlueOS(), system = new Tr2ParticleSystem();
+  blue.os = os;
   try
   {
     const calls = [];
@@ -54,10 +54,10 @@ test("particle initialization registers and flags emitters; destruction releases
     assert.equal(system.Initialize(), true);
     assert.deepEqual(calls, ["death", "alive"]);
     assert.equal(os._rebaseListeners.filter(value => value === system).length, 1);
-    be.os = replacement;
+    blue.os = replacement;
     system.Destruct();
     assert.equal(os._rebaseListeners.includes(system), false);
     assert.equal(replacement._rebaseListeners.includes(system), false);
   }
-  finally { system.Destruct(); be.os = prior; }
+  finally { system.Destruct(); blue.os = prior; }
 });

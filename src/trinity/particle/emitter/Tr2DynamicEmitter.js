@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2DynamicEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -6,9 +7,11 @@ import { hasUnboundParticleElements } from "../element/particleElementBinding.js
 import { ITr2GenericEmitterUpdateArguments, ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** A continuous-rate particle emitter that binds attribute generators to a particle system and spawns particles over time from an accumulated emission rate. */
-@blue.define("Tr2DynamicEmitter")
+@be.define("Tr2DynamicEmitter")
 @blue.inherit(INotify, IInitialize)
-@blue.interface(ITr2GenericEmitter, INotify, IInitialize)
+@be.mapInterface(ITr2GenericEmitter)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class Tr2DynamicEmitter extends ITr2GenericEmitter
 {
 

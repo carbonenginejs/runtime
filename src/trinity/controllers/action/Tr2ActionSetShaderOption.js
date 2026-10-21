@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption_Blue.cpp
@@ -9,7 +11,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * Controller action that sets a named shader option on its owner when it starts,
  * changing which shader permutation the owner renders with.
  */
-@blue.define("Tr2ActionSetShaderOption")
+@be.define("Tr2ActionSetShaderOption")
 export class Tr2ActionSetShaderOption extends ITr2ControllerAction
 {
   /**
@@ -49,4 +51,4 @@ export class Tr2ActionSetShaderOption extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetShaderOption_Blue.cpp:14-15,18).
-blue.interface(ITr2ControllerAction)(Tr2ActionSetShaderOption);
+CjsSchema.exposure.mapInterface(ITr2ControllerAction)(Tr2ActionSetShaderOption);

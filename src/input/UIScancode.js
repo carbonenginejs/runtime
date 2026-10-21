@@ -175,11 +175,7 @@ export function GetUIScancode(value)
     return null;
 }
 
-CjsSchema.blue.define(UIScancode, {
-    className: "UIScancode",
-    fields: {
-        mDIK: [type.uint8],
-        mName: [type.string],
-        mDescription: [type.string]
-    }
-});
+CjsSchema.decorateField(UIScancode, "mDIK", type.uint8);
+CjsSchema.decorateField(UIScancode, "mName", type.string);
+CjsSchema.decorateField(UIScancode, "mDescription", type.string);
+CjsSchema.meta.carbon("UIScancode")(UIScancode);

@@ -12,7 +12,7 @@ import { meta, blue } from "#schema";
  * Native 64-bit size 16; offsets and storage types: trinity/trinity/
  * Shader/Tr2EffectDescription.h:272-276; Shader/Tr2Effect.cpp:110-114.
  */
-@blue.define("Tr2ShaderOption")
+@meta.carbon("Tr2ShaderOption")
 @meta.struct.define({ size: 16 })
 export class Tr2ShaderOption
 {

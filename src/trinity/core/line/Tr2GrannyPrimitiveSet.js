@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet_Blue.cpp
 // Hand-maintained after promotion from generated intake.
 import { meta, type, blue } from "#schema";
-import { be, IInitialize, IsMatch, ResourceRequirement } from "#blue";
+import { blue as be, IInitialize, IsMatch, ResourceRequirement } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage, Topology } from "#consts/render-context";
 import { decodeTangentFrame } from "#math/tangent";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";

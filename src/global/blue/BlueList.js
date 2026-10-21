@@ -1,7 +1,7 @@
 // Source: blueexposure/include/BlueListUtil.h:172-347,459-476,506-781
 import { CjsSchema, meta, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
-import { be } from "./blue.js";
+import { blue as be } from "./blue.js";
 import { CjsBlueClasses } from "./CjsBlueClasses.js";
 import { IList } from "./IList.js";
 import { IListNotify } from "./IListNotify.js";
@@ -370,7 +370,8 @@ function SameListType(source, dest)
 // Array methods create ordinary arrays, never pass a result length as ItemType.
 Object.defineProperty(BlueList, Symbol.species, { value: Array });
 blue.inherit(IList, ICopierCustomAssignment)(BlueList, { kind: "class" });
-blue.interface(IList, ICopierCustomAssignment)(BlueList);
+CjsSchema.exposure.mapInterface(IList)(BlueList);
+CjsSchema.exposure.mapInterface(ICopierCustomAssignment)(BlueList);
 for (const name of [ "GetSize", "Clear", "Replace" ]) CjsSchema.decorateMethod(BlueList, name, blue.method, meta.implemented);
 for (const name of [ "GetInfo", "Insert", "Append", "Remove", "GetAt", "FindKey", "Swap", "Move", "Sort", "SetNotify", "GetAllItems", "AssignFrom", "AssignTo" ])
 {

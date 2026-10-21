@@ -169,4 +169,4 @@ export class DxbcSignatureChunk
     }
 }
 
-CjsSchema.meta.define(DxbcSignatureChunk, { className: "DxbcSignatureChunk" });
+CjsSchema.meta.define("DxbcSignatureChunk")(DxbcSignatureChunk);

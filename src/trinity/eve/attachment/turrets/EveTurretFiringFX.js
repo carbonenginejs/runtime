@@ -15,7 +15,7 @@ import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
-import { be } from "../../../../global/blue/blue.js";
+import { blue as be } from "../../../../global/blue/blue.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { EveUpdateContext } from "../../EveUpdateContext.js";
 

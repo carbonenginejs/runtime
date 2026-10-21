@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriViewport.h
 // Source: trinity/trinity/TriViewport_Blue.cpp
@@ -9,7 +10,7 @@ import { meta, type, blue } from "#schema";
  * depth. Native IRoot contributes no JavaScript storage or lifecycle services;
  * the native query table exposes only this concrete class.
  */
-@blue.define("TriViewport")
+@be.define("TriViewport")
 @blue.inherit(IRoot)
 export class TriViewport
 {
@@ -88,4 +89,4 @@ export function Vec3TransformByViewport(vec, viewport)
   return vec;
 }
 
-blue.interface()(TriViewport);
+

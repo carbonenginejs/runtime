@@ -20,7 +20,7 @@ const NEVER = Infinity;
  * speed, clearWhenDone, held, stopAt? }`, `elapsed` counting unscaled layer
  * seconds since its start (negative while delayed).
  */
-@blue.define("Tr2GrannyAnimationLayer")
+@meta.carbon("Tr2GrannyAnimationLayer")
 export class Tr2GrannyAnimationLayer
 {
 

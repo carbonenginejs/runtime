@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.cpp
@@ -72,10 +73,17 @@ const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
  * GetBatches produces nothing, which is Carbon's own no-draw path for an
  * invalid offset (EveChildBoosterSet.cpp:478).
  */
-@blue.define("EveChildBoosterSet")
+@be.define("EveChildBoosterSet")
 @blue.inherit(ITr2Renderable)
 @blue.inherit(INotify, IInitialize, ITr2ControllerOwner, ITr2DebugRenderable)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, ITr2LightOwner, EveEntity, ITr2Renderable, ITr2ControllerOwner)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2LightOwner)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(ITr2ControllerOwner)
 export class EveChildBoosterSet extends EveSpaceObjectChild
 {
 

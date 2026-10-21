@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/EveCamera.h
 import { IsMatch, CcpTime } from "#blue";
@@ -111,9 +112,9 @@ const CAMERA_INVERSE_ROTATION = quat.create();
 const CAMERA_YAW_PITCH_ROLL = new Float64Array(3);
 
 /** Carbon's orbit camera and its CPU-side view/projection state. */
-@blue.define("EveCamera")
+@be.define("EveCamera")
 @blue.inherit(INotify)
-@blue.interface(INotify)
+@be.mapInterface(INotify)
 export class EveCamera
 {
 

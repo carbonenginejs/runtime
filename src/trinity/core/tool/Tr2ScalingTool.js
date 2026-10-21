@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ScalingTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -20,7 +21,7 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** An interactive scaling manipulator that turns pointer drags along a selected axis into a scale. */
-@blue.define("Tr2ScalingTool")
+@be.define("Tr2ScalingTool")
 export class Tr2ScalingTool extends Tr2ManipulationTool
 {
   _initialLength = 1;

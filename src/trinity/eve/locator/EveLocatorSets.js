@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.cpp
@@ -60,7 +61,7 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
  * Named group of locators that a space object publishes for turrets, effects and
  * distributions to attach to.
  */
-@blue.define("EveLocatorSets")
+@be.define("EveLocatorSets")
 @blue.inherit(IRoot)
 export class EveLocatorSets
 {

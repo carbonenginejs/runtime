@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Wod/WodPlaceableRes.h
 // Source: trinity/trinity/Wod/WodPlaceableRes.cpp
 // Source: trinity/trinity/Wod/WodPlaceableRes_Blue.cpp
@@ -6,8 +7,8 @@ import { IRoot } from "#blue";
 import { vec3 } from "#math/vec3";
 
 /** Authored placeable geometry, animations, fade distances and cached bounds. */
-@blue.define("WodPlaceableRes")
-@blue.interface()
+@be.define("WodPlaceableRes")
+
 @blue.inherit(IRoot)
 export class WodPlaceableRes
 {

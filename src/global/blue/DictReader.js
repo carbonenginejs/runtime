@@ -1587,8 +1587,8 @@ function IsPlainObject(value)
 }
 
 CjsSchema.blue.inherit(IRoot)(DictReader);
-CjsSchema.blue.interface()(DictReader);
-CjsSchema.blue.define(DictReader, { className: "DictReader" });
+
+CjsSchema.exposure.define("DictReader")(DictReader);
 CjsSchema.decorateMethod(DictReader, "CreateObject", blue.method, meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadList", blue.method, meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadStructureList", blue.method, meta.adapted);

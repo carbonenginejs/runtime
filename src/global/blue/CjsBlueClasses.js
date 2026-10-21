@@ -620,7 +620,7 @@ export class CjsBlueClasses extends IBlueClasses
 }
 
 
-CjsSchema.blue.interface(IBlueClasses)(CjsBlueClasses);
+CjsSchema.exposure.mapInterface(IBlueClasses)(CjsBlueClasses);
 CjsSchema.blue.define(CjsBlueClasses, {
   className: "CjsBlueClasses",
   donors: [ "BlueClasses" ],

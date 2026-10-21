@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EvePicking.h
 // Source: trinity/trinity/Eve/EvePicking.cpp
@@ -8,7 +9,7 @@ import { meta, type, blue } from "#schema";
  * Holds the outstanding picking readbacks and the most recent pick result -
  * screen coordinates, hit object and both extra-data words - for a scene.
  */
-@blue.define("EvePickingContext")
+@be.define("EvePickingContext")
 @blue.inherit(IRoot)
 export class EvePickingContext
 {

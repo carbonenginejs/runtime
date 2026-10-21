@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/EveTransform.h
@@ -39,9 +40,14 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  * particle systems and emitters, curve sets, observers and child transforms,
  * with its own frustum and LOD visibility pass.
  */
-@blue.define("EveTransform")
-@blue.interface(IEveTransform, IEveSpaceObject2, ITr2Pickable, IWorldPosition, IInitialize, ITr2BoundingBox)
-@blue.chainTo(Tr2Transform)
+@be.define("EveTransform")
+@be.mapInterface(IEveTransform)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(IWorldPosition)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2BoundingBox)
+@be.exposureChainTo(Tr2Transform)
 @blue.inherit(IEveTransform, IEveSpaceObject2, ITr2Pickable, IWorldPosition, IInitialize, ITr2CurveSetOwner, ITr2BoundingBox, ITr2DebugRenderable)
 export class EveTransform extends Tr2Transform
 {

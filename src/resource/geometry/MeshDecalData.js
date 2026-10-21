@@ -33,12 +33,8 @@ export class MeshDecalData
 
 }
 
-CjsSchema.blue.define(MeshDecalData, {
-  className: "MeshDecalData",
-  fields: {
-    inverseDecalMatrix: type.mat4,
-    indexBuffer: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
-    lodMask: type.uint32,
-    lods: type.list("MeshDecalLodData")
-  }
-});
+CjsSchema.decorateField(MeshDecalData, "inverseDecalMatrix", type.mat4);
+CjsSchema.decorateField(MeshDecalData, "indexBuffer", type.rawStruct("Tr2SuballocatedBuffer::Allocation"));
+CjsSchema.decorateField(MeshDecalData, "lodMask", type.uint32);
+CjsSchema.decorateField(MeshDecalData, "lods", type.list("MeshDecalLodData"));
+CjsSchema.meta.carbon("MeshDecalData")(MeshDecalData);

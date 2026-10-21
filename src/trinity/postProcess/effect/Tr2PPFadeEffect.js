@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPFadeEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPFadeEffect.json.).
 import { type, blue } from "#schema";
@@ -5,9 +6,9 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec4 } from "#math/vec4";
 
 /** Carries the color and intensity of a display-gated post-process fade. */
-@blue.define("Tr2PPFadeEffect")
-@blue.chainTo(Tr2PPEffect)
-@blue.interface(Tr2PPEffect)
+@be.define("Tr2PPFadeEffect")
+@be.exposureChainTo(Tr2PPEffect)
+@be.mapInterface(Tr2PPEffect)
 export class Tr2PPFadeEffect extends Tr2PPEffect
 {
 

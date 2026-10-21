@@ -329,4 +329,4 @@ export class CjsFbxFormat extends CjsGeometryFormat
 
 export default CjsFbxFormat;
 
-CjsSchema.meta.define(CjsFbxFormat, { className: "CjsFbxFormat" });
+CjsSchema.meta.define("CjsFbxFormat")(CjsFbxFormat);

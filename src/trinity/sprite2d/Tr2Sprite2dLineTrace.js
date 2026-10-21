@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 
@@ -38,10 +39,10 @@ const XM_EPSILON = 1.192092896e-7;
  * Stores editable Sprite2D line-strip vertices and builds the stroked, jointed line geometry Carbon renders.
  * Carbon declares a private `AddVertex` (Tr2Sprite2dLineTrace.h:74) but never defines or calls it, so it has no port.
  */
-@blue.define("Tr2Sprite2dLineTrace")
-@blue.chainTo(Tr2TexturedSpriteObject)
+@be.define("Tr2Sprite2dLineTrace")
+@be.exposureChainTo(Tr2TexturedSpriteObject)
 @blue.inherit(IListNotify)
-@blue.interface()
+
 export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 {
 

@@ -67,15 +67,11 @@ export class Tr2VideoDriver
 export default Tr2VideoDriver;
 
 blue.inherit(IRoot)(Tr2VideoDriver);
-blue.interface()(Tr2VideoDriver);
-CjsSchema.blue.define(Tr2VideoDriver, {
-    className: "Tr2VideoDriver",
-    fields: {
-        driverVersion: [blue.read],
-        driverVersionString: [blue.read],
-        driverVendor: [blue.read],
-        driverDate: [blue.read],
-        isOptimus: [blue.read],
-        isAmdDynamicSwitchable: [blue.read]
-    }
-});
+
+CjsSchema.decorateField(Tr2VideoDriver, "driverVersion", blue.read);
+CjsSchema.decorateField(Tr2VideoDriver, "driverVersionString", blue.read);
+CjsSchema.decorateField(Tr2VideoDriver, "driverVendor", blue.read);
+CjsSchema.decorateField(Tr2VideoDriver, "driverDate", blue.read);
+CjsSchema.decorateField(Tr2VideoDriver, "isOptimus", blue.read);
+CjsSchema.decorateField(Tr2VideoDriver, "isAmdDynamicSwitchable", blue.read);
+CjsSchema.exposure.define("Tr2VideoDriver")(Tr2VideoDriver);

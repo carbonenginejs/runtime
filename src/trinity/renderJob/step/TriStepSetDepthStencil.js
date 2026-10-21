@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepSetDepthStencil.cpp
 import { meta, type, blue } from "#schema";
@@ -9,9 +10,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that binds a depth-stencil directly, without touching the depth-stencil
  * stack.
  */
-@blue.define("TriStepSetDepthStencil")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetDepthStencil")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetDepthStencil extends TriRenderStep
 {
   @blue.readwrite

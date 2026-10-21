@@ -361,4 +361,4 @@ CjsSchema.decorateMethod(Tr2DrawUPHelper, "DrawPrimitiveUP", blue.method);
 CjsSchema.decorateMethod(Tr2DrawUPHelper, "DrawIndexedPrimitiveUP", blue.method);
 CjsSchema.decorateMethod(Tr2DrawUPHelper, "_FillVertices", blue.method, meta.renamed("FillUPVertexBuffer"));
 CjsSchema.decorateMethod(Tr2DrawUPHelper, "_FillIndices", blue.method, meta.renamed("FillUPIndexBuffer"));
-CjsSchema.blue.define(Tr2DrawUPHelper, { className: "Tr2DrawUPHelper" });
+CjsSchema.meta.carbon("Tr2DrawUPHelper")(Tr2DrawUPHelper);

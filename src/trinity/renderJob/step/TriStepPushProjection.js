@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPushProjection.h
 // Source: trinity/trinity/RenderJob/TriStepPushProjection.cpp
 import { meta, blue } from "#schema";
@@ -9,9 +10,9 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 // projection (Tr2Renderer::PushProjection).
 
 /** Step that saves the current projection so a later pop can restore it. */
-@blue.define("TriStepPushProjection")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPushProjection")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPushProjection extends TriRenderStep
 {
   /**

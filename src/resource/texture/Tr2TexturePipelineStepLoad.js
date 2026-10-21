@@ -58,14 +58,8 @@ export class Tr2TexturePipelineStepLoad
 
 }
 
-CjsSchema.blue.interface(Tr2TexturePipelineStepLoad)(Tr2TexturePipelineStepLoad);
-CjsSchema.blue.define(Tr2TexturePipelineStepLoad, {
-  className: "Tr2TexturePipelineStepLoad",
-  fields: {
-    path: [ blue.readwrite, blue.persist, type.wpath ]
-  },
-  methods: {
-    GetResourceDependencies: [ blue.method, meta.implemented ],
-    Execute: [ blue.method, meta.implemented ]
-  }
-});
+
+CjsSchema.decorateField(Tr2TexturePipelineStepLoad, "path", blue.readwrite, blue.persist, type.wpath);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLoad, "GetResourceDependencies", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLoad, "Execute", blue.method, meta.implemented);
+CjsSchema.exposure.define("Tr2TexturePipelineStepLoad")(Tr2TexturePipelineStepLoad);

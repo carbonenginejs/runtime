@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound_Blue.cpp
@@ -9,7 +11,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * Controller action that fires a one-shot audio event on a named emitter when
  * the action starts; it has no stop behaviour.
  */
-@blue.define("Tr2ActionPlaySound")
+@be.define("Tr2ActionPlaySound")
 export class Tr2ActionPlaySound extends ITr2ControllerAction
 {
   /** m_emitterName: narrow BlueSharedString emitter lookup name. */
@@ -100,4 +102,4 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlaySound_Blue.cpp:13-14,25).
-blue.interface(ITr2ControllerAction)(Tr2ActionPlaySound);
+CjsSchema.exposure.mapInterface(ITr2ControllerAction)(Tr2ActionPlaySound);

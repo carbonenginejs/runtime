@@ -2113,4 +2113,4 @@ function IsSupportedSfxStateValue(value, definitions)
         );
 }
 
-CjsSchema.meta.define(CjsAudioLibraryBuilderSfxNodeLoweringSession, { className: "CjsAudioLibraryBuilderSfxNodeLoweringSession" });
+CjsSchema.meta.define("CjsAudioLibraryBuilderSfxNodeLoweringSession")(CjsAudioLibraryBuilderSfxNodeLoweringSession);

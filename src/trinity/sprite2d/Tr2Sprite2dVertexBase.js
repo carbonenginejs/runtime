@@ -13,7 +13,7 @@ import { vec4 } from "#math/vec4";
  * existing authored-vertex adapter, inherited by the concrete polygon class;
  * the native plain base itself has no Blue exposure or persistence flags.
  */
-@blue.define("Tr2Sprite2dVertexBase")
+@meta.carbon("Tr2Sprite2dVertexBase")
 export class Tr2Sprite2dVertexBase
 {
 

@@ -208,4 +208,4 @@ export class FsdVector
 
 export default FsdVector;
 
-CjsSchema.blue.define(FsdVector, { className: "FsdVector" });
+CjsSchema.meta.carbon("FsdVector")(FsdVector);

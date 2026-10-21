@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
 import { meta, type, blue } from "#schema";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
 import { mat3 } from "#math/mat3";

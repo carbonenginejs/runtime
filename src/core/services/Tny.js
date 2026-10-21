@@ -52,4 +52,4 @@ export class Tny
     }
 }
 
-CjsSchema.meta.define(Tny, { className: "Tny" });
+CjsSchema.meta.define("Tny")(Tny);

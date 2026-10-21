@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSetItem.cpp
@@ -13,7 +14,7 @@ import { meta, type, blue } from "#schema";
  * One authored plane: its bone attachment, placement, colour, two independently
  * transformed and scrolling texture layers, mask atlas slot and blink data.
  */
-@blue.define("EvePlaneSetItem")
+@be.define("EvePlaneSetItem")
 @blue.inherit(IRoot)
 export class EvePlaneSetItem
 {

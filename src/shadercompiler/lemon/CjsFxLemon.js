@@ -631,4 +631,4 @@ export class CjsFxLemon
     static accept = -2;
 }
 
-CjsSchema.meta.define(CjsFxLemon, { className: "CjsFxLemon" });
+CjsSchema.meta.define("CjsFxLemon")(CjsFxLemon);

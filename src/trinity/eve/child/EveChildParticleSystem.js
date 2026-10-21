@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 import { IsMatch } from "#blue";
@@ -24,10 +25,15 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
-@blue.define("EveChildParticleSystem")
+@be.define("EveChildParticleSystem")
 @blue.inherit(ITr2Renderable)
 @blue.inherit(IInitialize, INotify)
-@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify)
+@be.mapInterface(EveEntity)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 @blue.inherit(ITr2DebugRenderable)
 export class EveChildParticleSystem extends EveChildTransform
 {

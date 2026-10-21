@@ -2,7 +2,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:301-324
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70-77, 1140-1147
 import { blue } from "#schema";
-import { be, EnumRegistrationType } from "#blue";
+import { blue as be, EnumRegistrationType } from "#blue";
 
 /**
  * `EveSOFDataBlinkType::BlinkType` (EveSOFData.h:312-319). Carbon sizes the

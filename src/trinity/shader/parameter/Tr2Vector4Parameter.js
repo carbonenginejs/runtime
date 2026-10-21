@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2Vector4Parameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2Vector4Parameter.cpp
 import { IInitialize } from "#blue";
@@ -13,9 +14,11 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
  * Four-component float value for a named shader constant, with sRGB gamma
  * handling and optional rerouting into an external destination.
  */
-@blue.define("Tr2Vector4Parameter")
+@be.define("Tr2Vector4Parameter")
 @blue.inherit(ITriReroutable, IInitialize)
-@blue.interface(ITriEffectParameter, ITriReroutable, IInitialize)
+@be.mapInterface(ITriEffectParameter)
+@be.mapInterface(ITriReroutable)
+@be.mapInterface(IInitialize)
 export class Tr2Vector4Parameter extends CjsVectorParameter
 {
   @blue.readwrite

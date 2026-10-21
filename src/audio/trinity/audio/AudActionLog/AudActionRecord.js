@@ -17,7 +17,5 @@ export class AudActionRecord
 
 }
 
-CjsSchema.blue.define(AudActionRecord, {
-    className: "AudActionRecord",
-    methods: { ToPyObject: [blue.method, meta.notImplemented] }
-});
+CjsSchema.decorateMethod(AudActionRecord, "ToPyObject", blue.method, meta.notImplemented);
+CjsSchema.meta.carbon("AudActionRecord")(AudActionRecord);

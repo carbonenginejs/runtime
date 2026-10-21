@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Lights/Tr2SpotLight.cpp
 // Source: trinity/trinity/Lights/Tr2SpotLight_Blue.cpp
 import { IInitialize, INotify } from "#blue";
@@ -31,8 +32,10 @@ const TRI_2PI = Math.fround(6.283185307);
  * accessors over the embedded record Tr2Light holds
  * (Tr2SpotLight_Blue.cpp:18-37).
  */
-@blue.define("Tr2SpotLight")
-@blue.interface(Tr2Light, IInitialize, INotify)
+@be.define("Tr2SpotLight")
+@be.mapInterface(Tr2Light)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2SpotLight extends Tr2Light
 {
   @blue.readwrite

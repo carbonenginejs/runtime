@@ -6,7 +6,7 @@
 // Contents are NOT verified against the index md5: that hash describes the
 // original file, and a served resfile need not match it. A test that depends on
 // exact bytes checks them itself.
-import { be, BlueResFileSystemRemote, RemoteFileCache } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueResFileSystemRemote, RemoteFileCache } from "../../npm/dist/global/blue/index.js";
 import { localFileSystem } from "./localFileSystem.js";
 
 const SERVER = process.env.CJS_TOOLS_SERVER ?? "http://127.0.0.1:5510";
@@ -65,7 +65,7 @@ async function compose()
   {
     effectIndexError = `resfileindex_windows.txt for ${TARGET} build ${build} failed (${error.message})`;
   }
-  be.paths.RegisterFileSystem(new BlueResFileSystemRemote(cache));
+  blue.paths.RegisterFileSystem(new BlueResFileSystemRemote(cache));
 
   return {
     build,

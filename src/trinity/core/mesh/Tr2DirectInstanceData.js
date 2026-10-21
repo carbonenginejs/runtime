@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2DirectInstanceData.h
 //   trinity/trinity/Tr2DirectInstanceData.cpp
 //   trinity/trinity/Tr2DirectInstanceData_Blue.cpp
@@ -19,7 +20,7 @@ import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
  * Owns a directly writable AL instance buffer, its declaration and bounds.
  * The selected AL supplies mapping storage; this provider keeps no CPU copy.
  */
-@blue.define("Tr2DirectInstanceData")
+@be.define("Tr2DirectInstanceData")
 @blue.inherit(ITr2InstanceData)
 export class Tr2DirectInstanceData
 {

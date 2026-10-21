@@ -753,4 +753,4 @@ function BinaryMembers(Constructor)
 
 export default CjsBlueReader;
 
-CjsSchema.meta.define(CjsBlueReader, { className: "CjsBlueReader" });
+CjsSchema.meta.define("CjsBlueReader")(CjsBlueReader);

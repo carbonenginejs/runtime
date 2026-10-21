@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode.h
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode.cpp
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode_Blue.cpp
@@ -10,9 +11,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Executes one render-graph node into a destination target, optionally clearing
  * the target when the node is absent or fails validation.
  */
-@blue.define("Tr2StepExecuteRenderNode")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("Tr2StepExecuteRenderNode")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class Tr2StepExecuteRenderNode extends TriRenderStep
 {
 

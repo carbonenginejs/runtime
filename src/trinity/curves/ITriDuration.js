@@ -92,7 +92,4 @@ for (const method of [ "Start", "SetStartTime", "Sort", "ScaleTime", "Reverse", 
   CjsSchema.decorateMethod(ITriDuration, method, blue.abstract);
 }
 CjsSchema.blue.inherit(IRoot)(ITriDuration);
-CjsSchema.blue.define(ITriDuration, {
-  className: "ITriDuration",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITriDuration")(ITriDuration);

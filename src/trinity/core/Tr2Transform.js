@@ -9,7 +9,7 @@ import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
-import { be, CcpTime } from "#blue";
+import { blue as be, CcpTime } from "#blue";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 
 

@@ -1,12 +1,14 @@
+import { exposure as be } from "#be";
 import { IInitialize } from "#blue/IInitialize";
 import { ITr2AnimationUpdater } from "./ITr2AnimationUpdater.js";
 // Source: trinity/trinity/Tr2GStateAnimation.h
 import { meta, type, blue } from "#schema";
 
 /** Character GState animation record for an external state-machine adapter. */
-@blue.define("Tr2GStateAnimation")
+@be.define("Tr2GStateAnimation")
 @blue.inherit(IInitialize, ITr2AnimationUpdater)
-@blue.interface(IInitialize, ITr2AnimationUpdater)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2AnimationUpdater)
 export class Tr2GStateAnimation
 {
 

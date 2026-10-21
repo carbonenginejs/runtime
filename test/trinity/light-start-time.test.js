@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { LightData, Tr2Light, Tr2PointLight } from "../../npm/dist/trinity/index.js";
 
 
 test("light construction captures frame ticks and retains its original start time", t =>
 {
   let frameTime = 300000001;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => frameTime);
   for (const Type of [LightData, Tr2Light, Tr2PointLight])
   {
     const first = new Type();

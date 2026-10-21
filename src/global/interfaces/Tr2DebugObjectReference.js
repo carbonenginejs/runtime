@@ -86,11 +86,7 @@ export class Tr2DebugObjectReference
 
 // Declared as a call, not a decorator: global/interfaces is imported straight
 // from source by tests, and raw Node cannot parse decorator syntax.
-CjsSchema.blue.define(Tr2DebugObjectReference, {
-  className: "Tr2DebugObjectReference",
-  methods: {
-    IsValid: [ meta.renamed("operator bool") ],
-    Equals: [ meta.renamed("operator==") ],
-    NotEquals: [ meta.renamed("operator!=") ]
-  }
-});
+CjsSchema.decorateMethod(Tr2DebugObjectReference, "IsValid", meta.renamed("operator bool"));
+CjsSchema.decorateMethod(Tr2DebugObjectReference, "Equals", meta.renamed("operator=="));
+CjsSchema.decorateMethod(Tr2DebugObjectReference, "NotEquals", meta.renamed("operator!="));
+CjsSchema.meta.carbon("Tr2DebugObjectReference")(Tr2DebugObjectReference);

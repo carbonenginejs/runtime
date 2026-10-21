@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2Matrix4Parameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2Matrix4Parameter.cpp
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
@@ -11,9 +12,10 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
  * 4x4 matrix value for a named shader constant, with optional rerouting into an
  * external 64-byte destination.
  */
-@blue.define("Tr2Matrix4Parameter")
+@be.define("Tr2Matrix4Parameter")
 @blue.inherit(ITriReroutable)
-@blue.interface(ITriEffectParameter, ITriReroutable)
+@be.mapInterface(ITriEffectParameter)
+@be.mapInterface(ITriReroutable)
 export class Tr2Matrix4Parameter extends CjsVectorParameter
 {
   @blue.readwrite

@@ -158,4 +158,4 @@ export class CjsAudioUpdateContext
     }
 }
 
-CjsSchema.meta.define(CjsAudioUpdateContext, { className: "CjsAudioUpdateContext" });
+CjsSchema.meta.define("CjsAudioUpdateContext")(CjsAudioUpdateContext);

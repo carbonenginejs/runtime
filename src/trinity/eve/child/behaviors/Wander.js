@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.cpp
 import { IBehavior } from "./IBehavior.js";
@@ -15,9 +16,9 @@ const NO_FORCES = [];
  * Drone behavior that adds a per-agent Perlin-noise wander force seeded from the
  * agent's lifetime and id, so each drone drifts on its own path.
  */
-@blue.define("Wander")
+@be.define("Wander")
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.mapInterface(IBehavior)
 export class Wander
 {
 

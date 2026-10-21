@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ElementBlendConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -6,8 +7,8 @@ import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A constraint that rescales and offsets a single bound particle element by a constant factor and value each frame. */
-@blue.interface(ITr2GenericParticleConstraint)
-@blue.define("Tr2ElementBlendConstraint")
+@be.mapInterface(ITr2GenericParticleConstraint)
+@be.define("Tr2ElementBlendConstraint")
 export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 {
 

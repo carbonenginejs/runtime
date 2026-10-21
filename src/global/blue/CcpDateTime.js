@@ -52,4 +52,4 @@ export class CcpDateTime
   milliseconds = 0;
 }
 
-CjsSchema.blue.define(CcpDateTime, { className: "CcpDateTime" });
+CjsSchema.meta.carbon("CcpDateTime")(CcpDateTime);

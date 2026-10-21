@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader, DictWriter, Copier, be } from "../../npm/dist/global/blue/index.js";
+import { DictReader, DictWriter, Copier, blue } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { EveSOFDataBlink } from "../../npm/dist/sof/shared/EveSOFDataBlink.js";
 import { EveSOFDataBlinkType } from "../../npm/dist/sof/shared/EveSOFDataBlinkType.js";
@@ -81,7 +81,7 @@ test("actual hull plane owner hydration and copy preserve the shared blink enum 
 {
   const nativeEnum = EveSOFDataBlinkType.BlinkType;
   assert.equal(EveSOFDataHullPlaneSetItem.BlinkType, nativeEnum);
-  assert.equal(be.enums.GetEnum("trinity.EveSOFDataBlinkType.BlinkType"), nativeEnum);
+  assert.equal(blue.enums.GetEnum("trinity.EveSOFDataBlinkType.BlinkType"), nativeEnum);
   assert.equal(CjsSchema.getField(EveSOFDataHullPlaneSetItem, "blinkMode").enum.members, nativeEnum);
   assert.equal(Object.isFrozen(nativeEnum), true);
   const hull = new DictReader({ declarations: true }).CreateObject({

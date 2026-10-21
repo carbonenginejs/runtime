@@ -12,7 +12,7 @@ import { vec4 } from "#math/vec4";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { EveTransform } from "./EveTransform.js";
-import { be, CjsBlueClasses } from "#blue";
+import { blue as be, CjsBlueClasses } from "#blue";
 import { Tr2GpuSharedEmitter } from "../../particle/emitter/Tr2GpuSharedEmitter.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.js";

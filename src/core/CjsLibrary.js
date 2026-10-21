@@ -1,4 +1,4 @@
-import { be, installBlueServices } from "../global/blue/blue.js";
+import { blue, installBlueServices } from "../global/blue/blue.js";
 import { CjsSchema, meta } from "#schema";
 import { TnyInputMan } from "#input";
 import { TnyOutlineHelper } from "./outline/TnyOutlineHelper.js";
@@ -107,7 +107,7 @@ export class CjsLibrary
   /** Acquires a DNA build or resource through the installed Blue services. */
   async Fetch(value, options)
   {
-    return be.Fetch(value, options);
+    return blue.Fetch(value, options);
   }
 }
 

@@ -78,4 +78,4 @@ export class CjsMusicEngineFade
     }
 }
 
-CjsSchema.meta.define(CjsMusicEngineFade, { className: "CjsMusicEngineFade" });
+CjsSchema.meta.define("CjsMusicEngineFade")(CjsMusicEngineFade);

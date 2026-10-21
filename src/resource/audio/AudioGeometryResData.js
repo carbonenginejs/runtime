@@ -27,14 +27,10 @@ export class AudioGeometryResData
 
 }
 
-CjsSchema.blue.define(AudioGeometryResData, {
-  className: "AudioGeometryResData",
-  fields: {
-    id: type.uint64,
-    vertices: type.list("Vector3"),
-    indices: type.list("uint32_t"),
-    minBounds: type.vec3,
-    maxBounds: type.vec3,
-    s_nextId: type.rawStruct("static std::atomic<uint64_t>")
-  }
-});
+CjsSchema.decorateField(AudioGeometryResData, "id", type.uint64);
+CjsSchema.decorateField(AudioGeometryResData, "vertices", type.list("Vector3"));
+CjsSchema.decorateField(AudioGeometryResData, "indices", type.list("uint32_t"));
+CjsSchema.decorateField(AudioGeometryResData, "minBounds", type.vec3);
+CjsSchema.decorateField(AudioGeometryResData, "maxBounds", type.vec3);
+CjsSchema.decorateField(AudioGeometryResData, "s_nextId", type.rawStruct("static std::atomic<uint64_t>"));
+CjsSchema.meta.carbon("AudioGeometryResData")(AudioGeometryResData);

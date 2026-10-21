@@ -852,4 +852,4 @@ export const CjsFormatReadMode = Object.freeze({
 
 export default CjsFormat;
 
-CjsSchema.meta.define(CjsFormat, { className: "CjsFormat" });
+CjsSchema.meta.define("CjsFormat")(CjsFormat);

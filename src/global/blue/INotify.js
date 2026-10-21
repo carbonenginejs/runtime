@@ -34,10 +34,7 @@ export class INotify
 
 CjsSchema.decorateMethod(INotify, "OnModified", blue.abstract);
 
-CjsSchema.blue.define(INotify, {
-  className: "INotify",
-  fields: {}
-});
+CjsSchema.exposure.interface("INotify")(INotify);
 
 
 /**

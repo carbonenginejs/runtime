@@ -6,7 +6,7 @@ import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable_Blue.cpp
 import { meta, type, blue } from "#schema";
-import { be, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
+import { blue as be, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { WodPlaceableRes } from "../../../resource/geometry/WodPlaceableRes.js";
 import { mat4 } from "#math/mat4";

@@ -37,4 +37,4 @@ export class IEveInheritPropertiesOwner
 
 CjsSchema.decorateMethod(IEveInheritPropertiesOwner, "SetInheritProperties", blue.method);
 CjsSchema.blue.inherit(IRoot)(IEveInheritPropertiesOwner);
-CjsSchema.blue.define(IEveInheritPropertiesOwner, { className: "IEveInheritPropertiesOwner" });
+CjsSchema.exposure.interface("IEveInheritPropertiesOwner")(IEveInheritPropertiesOwner);

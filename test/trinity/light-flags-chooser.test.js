@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, meta, type } from "../../npm/dist/global/schema/index.js";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import {
   Tr2LightManager,
   Tr2Light,
@@ -31,7 +31,7 @@ test("Tr2LightManager owns Carbon's light flag bits (Tr2LightManager.h:100-105)"
 
 test("trinity.Tr2LightFlags registers Carbon's chooser keys (Tr2Light_Blue.cpp:16-21)", () =>
 {
-  const info = be.enums.GetEnumInfo("trinity.Tr2LightFlags");
+  const info = blue.enums.GetEnumInfo("trinity.Tr2LightFlags");
   assert.equal(info.type, Tr2Light.Tr2LightFlags);
   assert.deepEqual({ ...info.type }, { AFFECTS_SURFACES: 1, AFFECTS_PARTICLES: 2 });
   assert.equal(info.exposedName, "Tr2LightFlags");
@@ -48,7 +48,7 @@ for (const Light of [ Tr2FactionLight, Tr2PointLight, Tr2SpotLight, Tr2TexturedP
 
   test(`${className}.flags reports Tr2LightFlagChooser with no ENUM or FLAGS bit`, () =>
   {
-    const [ , , members ] = be.classes.GetTypeInfo(new Light());
+    const [ , , members ] = blue.classes.GetTypeInfo(new Light());
     assert.equal(members.flags.editflags, 0x013, "READWRITE | PERSIST only");
     assert.equal(members.flags.editflags & EDIT_ENUM, 0);
     assert.equal(members.flags.editflags & EDIT_FLAGS, 0);
@@ -67,10 +67,10 @@ for (const Light of [ Tr2FactionLight, Tr2PointLight, Tr2SpotLight, Tr2TexturedP
 
 test("meta.chooser declares a chooser without the ENUM bit; a missing chooser throws on read", () =>
 {
-  be.enums.Create("test.ChooserProbeFlags", { ONE: 1, TWO: 2 }, {
+  blue.enums.Create("test.ChooserProbeFlags", { ONE: 1, TWO: 2 }, {
     chooser: [ { name: "One", value: 1, description: "first" } ]
   });
-  be.enums.Create("test.ChooserProbeNoChooser", { ONE: 1 });
+  blue.enums.Create("test.ChooserProbeNoChooser", { ONE: 1 });
 
   class ChooserProbe {}
   CjsSchema.define(ChooserProbe, {
@@ -79,7 +79,7 @@ test("meta.chooser declares a chooser without the ENUM bit; a missing chooser th
       bits: [ type.uint16, CjsSchema.meta.readwrite, meta.chooser("test.ChooserProbeFlags") ]
     }
   });
-  const [ , , members ] = be.classes.GetTypeInfo(new ChooserProbe());
+  const [ , , members ] = blue.classes.GetTypeInfo(new ChooserProbe());
   assert.equal(members.bits.editflags, 0x003);
   assert.deepEqual(members.bits.choosers, [ [ "One", 1, "first" ] ]);
   assert.equal(CjsSchema.getField(ChooserProbe, "bits").carbon, undefined, "meta.chooser is ours");

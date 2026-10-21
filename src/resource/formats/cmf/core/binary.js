@@ -311,4 +311,4 @@ export function crc32(bytes, start = 0, end = bytes.byteLength)
 
 
 
-CjsSchema.meta.define(BinaryReader, { className: "BinaryReader" });
+CjsSchema.meta.define("BinaryReader")(BinaryReader);

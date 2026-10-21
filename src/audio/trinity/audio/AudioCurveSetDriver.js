@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudioCurveSetDriver.h
 // Source: audio/src/AudioCurveSetDriver.cpp
 // Source: audio/src/AudioCurveSetDriver_Blue.cpp
@@ -12,9 +13,10 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
  * after configuration. The audio system adopts, retries initialization when enabled,
  * and disposes drivers. Construction alone installs no manager or audio backend.
  */
-@blue.define("AudioCurveSetDriver")
+@be.define("AudioCurveSetDriver")
 @blue.inherit(IInitialize)
-@blue.interface(ICurveSetDriver, IInitialize)
+@be.mapInterface(ICurveSetDriver)
+@be.mapInterface(IInitialize)
 export class AudioCurveSetDriver extends ICurveSetDriver
 {
   /** m_name: authored display name, stored as std::wstring. */

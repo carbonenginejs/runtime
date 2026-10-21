@@ -132,4 +132,4 @@ export class FsdUnsignedIntegerKeyMap
 
 export default FsdUnsignedIntegerKeyMap;
 
-CjsSchema.blue.define(FsdUnsignedIntegerKeyMap, { className: "FsdUnsignedIntegerKeyMap" });
+CjsSchema.meta.carbon("FsdUnsignedIntegerKeyMap")(FsdUnsignedIntegerKeyMap);

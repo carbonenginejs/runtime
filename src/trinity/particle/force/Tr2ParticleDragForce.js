@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleDragForce.h
 // Source: trinity/trinity/Particle/Tr2ParticleDragForce.cpp
 // Source: trinity/trinity/Particle/Tr2ParticleDragForce_Blue.cpp
@@ -7,8 +8,8 @@ import { meta, type, blue } from "#schema";
 
 
 /** Linear particle drag: a force proportional to velocity and opposing it. */
-@blue.interface(ITr2ParticleForce)
-@blue.define("Tr2ParticleDragForce")
+@be.mapInterface(ITr2ParticleForce)
+@be.define("Tr2ParticleDragForce")
 export class Tr2ParticleDragForce extends ITr2ParticleForce
 {
   @blue.readwrite

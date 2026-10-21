@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderTexture.h
 import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
 import { Tr2DepthStencil } from "../../core/device/Tr2DepthStencil.js";
@@ -7,9 +8,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 
 /** A render step that draws a provided texture into the current target. */
-@blue.define("TriStepRenderTexture")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRenderTexture")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRenderTexture extends TriRenderStep
 {
 

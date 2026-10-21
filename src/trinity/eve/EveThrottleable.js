@@ -2,7 +2,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
 import { meta, type, blue } from "#schema";
-import { be, CcpTime } from "#blue";
+import { blue as be, CcpTime } from "#blue";
 
 
 /**

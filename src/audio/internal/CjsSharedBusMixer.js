@@ -1113,4 +1113,4 @@ function IsDisabledHdr(value)
         && value?.enabled === false;
 }
 
-CjsSchema.meta.define(CjsSharedBusMixer, { className: "CjsSharedBusMixer" });
+CjsSchema.meta.define("CjsSharedBusMixer")(CjsSharedBusMixer);

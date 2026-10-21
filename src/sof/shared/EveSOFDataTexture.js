@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:752-760
@@ -8,9 +9,9 @@ import { type, blue } from "#schema";
  * Native IRoot-only data with a self-only Blue table. The authored path is a
  * string, not a held resource; empty constructor/destructor need no lifecycle.
  */
-@blue.define("EveSOFDataTexture")
+@be.define("EveSOFDataTexture")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataTexture
 {
 

@@ -110,8 +110,8 @@ export class CjsFormatWriteError extends Error
 
 export default CjsFormatReadError;
 
-CjsSchema.meta.define(CjsFormatReadError, { className: "CjsFormatReadError" });
+CjsSchema.meta.define("CjsFormatReadError")(CjsFormatReadError);
 
-CjsSchema.meta.define(CjsFormatRangeError, { className: "CjsFormatRangeError" });
+CjsSchema.meta.define("CjsFormatRangeError")(CjsFormatRangeError);
 
-CjsSchema.meta.define(CjsFormatWriteError, { className: "CjsFormatWriteError" });
+CjsSchema.meta.define("CjsFormatWriteError")(CjsFormatWriteError);

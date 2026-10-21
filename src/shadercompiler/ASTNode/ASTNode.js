@@ -474,35 +474,31 @@ export class ASTNode
     });
 }
 
-CjsSchema.blue.define(ASTNode, {
-    className: "ASTNode",
-    methods: {
-        Copy: [blue.method],
-        AddChild: [blue.method],
-        InsertChild: [blue.method],
-        ReplaceChild: [blue.method],
-        ReplaceChild__Node: [meta.renamed("ReplaceChild")],
-        RemoveChild: [blue.method],
-        RemoveChild__Node: [meta.renamed("RemoveChild")],
-        GetNodeType: [blue.method],
-        SetNodeType: [blue.method],
-        GetChildrenCount: [blue.method],
-        GetChild: [blue.method],
-        GetChildOrNull: [blue.method],
-        GetChildren: [blue.method],
-        MoveChildren: [blue.method],
-        SetToken: [blue.method],
-        GetToken: [blue.method],
-        ClearToken: [blue.method],
-        GetLocation: [blue.method],
-        SetLocation: [blue.method],
-        SetSymbol: [blue.method],
-        GetSymbol: [blue.method],
-        GetScope: [blue.method],
-        SetType: [blue.method],
-        GetType: [blue.method],
-        FindNode: [blue.method],
-        FindNodes: [blue.method],
-        Map: [blue.method]
-    }
-});
+CjsSchema.decorateMethod(ASTNode, "Copy", blue.method);
+CjsSchema.decorateMethod(ASTNode, "AddChild", blue.method);
+CjsSchema.decorateMethod(ASTNode, "InsertChild", blue.method);
+CjsSchema.decorateMethod(ASTNode, "ReplaceChild", blue.method);
+CjsSchema.decorateMethod(ASTNode, "ReplaceChild__Node", meta.renamed("ReplaceChild"));
+CjsSchema.decorateMethod(ASTNode, "RemoveChild", blue.method);
+CjsSchema.decorateMethod(ASTNode, "RemoveChild__Node", meta.renamed("RemoveChild"));
+CjsSchema.decorateMethod(ASTNode, "GetNodeType", blue.method);
+CjsSchema.decorateMethod(ASTNode, "SetNodeType", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetChildrenCount", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetChild", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetChildOrNull", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetChildren", blue.method);
+CjsSchema.decorateMethod(ASTNode, "MoveChildren", blue.method);
+CjsSchema.decorateMethod(ASTNode, "SetToken", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetToken", blue.method);
+CjsSchema.decorateMethod(ASTNode, "ClearToken", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetLocation", blue.method);
+CjsSchema.decorateMethod(ASTNode, "SetLocation", blue.method);
+CjsSchema.decorateMethod(ASTNode, "SetSymbol", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetSymbol", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetScope", blue.method);
+CjsSchema.decorateMethod(ASTNode, "SetType", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetType", blue.method);
+CjsSchema.decorateMethod(ASTNode, "FindNode", blue.method);
+CjsSchema.decorateMethod(ASTNode, "FindNodes", blue.method);
+CjsSchema.decorateMethod(ASTNode, "Map", blue.method);
+CjsSchema.meta.carbon("ASTNode")(ASTNode);

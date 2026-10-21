@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2FollowCurve.h
 // Source: trinity/trinity/Curves/Tr2FollowCurve.cpp
 // Source: trinity/trinity/Curves/Tr2FollowCurve_Blue.cpp
@@ -14,9 +15,10 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
  * supplying its own position, tangents and interpolation for the segment that
  * follows it.
  */
-@blue.define("Tr2FollowCurve")
+@be.define("Tr2FollowCurve")
 @blue.inherit(IListNotify)
-@blue.interface(ITriVectorFunction, ITriFunction)
+@be.mapInterface(ITriVectorFunction)
+@be.mapInterface(ITriFunction)
 export class Tr2FollowCurve extends ITriVectorFunction
 {
   /**

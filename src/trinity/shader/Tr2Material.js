@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -41,8 +42,8 @@ function SamplerDescriptionFromOverride(override)
 }
 
 /** Owns a resolved shader's per-technique pass and library bindings, resource invalidation, texture LOD forwarding, and draw-sort state. */
-@blue.define("Tr2Material")
-@blue.interface()
+@be.define("Tr2Material")
+
 @blue.inherit(IRoot)
 export class Tr2Material
 {

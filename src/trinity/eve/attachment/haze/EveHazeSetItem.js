@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem.cpp
@@ -13,7 +14,7 @@ import { meta, type, blue } from "#schema";
  * One authored haze volume: its bone attachment, placement, colour and the
  * four-component haze shaping data.
  */
-@blue.define("EveHazeSetItem")
+@be.define("EveHazeSetItem")
 @blue.inherit(IRoot)
 export class EveHazeSetItem
 {

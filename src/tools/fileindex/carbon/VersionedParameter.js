@@ -38,16 +38,10 @@ export class VersionedParameter
     }
 }
 
-CjsSchema.blue.define(VersionedParameter, {
-  className: "VersionedParameter",
-  fields: {
-        _tag: [type.string],
-        _context: [type.string],
-        _parameter: [type.int32, type.enum(Parameter)]
-    },
-  methods: {
-        IsParameterExpectedInDocumentVersion: [ blue.method, meta.implemented ],
-        GetTag: [ blue.method, meta.implemented ]
-    }
-});
+CjsSchema.decorateField(VersionedParameter, "_tag", type.string);
+CjsSchema.decorateField(VersionedParameter, "_context", type.string);
+CjsSchema.decorateField(VersionedParameter, "_parameter", type.int32, type.enum(Parameter));
+CjsSchema.decorateMethod(VersionedParameter, "IsParameterExpectedInDocumentVersion", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VersionedParameter, "GetTag", blue.method, meta.implemented);
+CjsSchema.meta.carbon("VersionedParameter")(VersionedParameter);
 

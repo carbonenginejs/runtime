@@ -14,4 +14,4 @@ export class ITr2VisualizationModeRenderer
   SetVisualizationMode(_visualizationMode) {}
 }
 
-CjsSchema.blue.define(ITr2VisualizationModeRenderer, { className: "ITr2VisualizationModeRenderer", fields: {} });
+CjsSchema.exposure.interface("ITr2VisualizationModeRenderer")(ITr2VisualizationModeRenderer);

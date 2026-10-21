@@ -1,12 +1,13 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepUpdate.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that ticks one updateable object with the frame times. */
-@blue.define("TriStepUpdate")
-@blue.interface()
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepUpdate")
+
+@be.exposureChainTo(TriRenderStep)
 export class TriStepUpdate extends TriRenderStep
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepResolve.h
 // Source: trinity/trinity/RenderJob/TriStepResolve.cpp
 import { meta, type, blue } from "#schema";
@@ -10,9 +11,9 @@ import { Failed } from "#trinityal";
  * Step that resolves one render target into another, optionally regenerating the
  * destination's mip chain afterwards.
  */
-@blue.define("TriStepResolve")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepResolve")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepResolve extends TriRenderStep
 {
   @blue.readwrite

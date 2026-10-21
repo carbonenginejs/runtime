@@ -67,9 +67,5 @@ export class RegisterSpecifier
     }
 }
 
-CjsSchema.blue.define(RegisterSpecifier, {
-    className: "RegisterSpecifier",
-    methods: {
-        register: [meta.renamed("Register")]
-    }
-});
+CjsSchema.decorateMethod(RegisterSpecifier, "register", meta.renamed("Register"));
+CjsSchema.meta.carbon("RegisterSpecifier")(RegisterSpecifier);

@@ -351,4 +351,4 @@ function getBlackProbeView(input)
 
 export default CjsBlackFormat;
 
-CjsSchema.meta.define(CjsBlackFormat, { className: "CjsBlackFormat" });
+CjsSchema.meta.define("CjsBlackFormat")(CjsBlackFormat);

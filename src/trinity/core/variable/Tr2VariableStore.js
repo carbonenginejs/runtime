@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2VariableStore.h
 // Source: trinity/trinity/Tr2VariableStore.cpp
@@ -18,7 +19,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
  * (RegisterVariableInternal / RegisterVariableType); raw AL textures go
  * through RegisterVariable__TextureAL, the native texture-reference overload.
  */
-@blue.define("Tr2VariableStore")
+@be.define("Tr2VariableStore")
 @blue.inherit(IRoot)
 export class Tr2VariableStore
 {
@@ -427,4 +428,4 @@ export class Tr2VariableStore
   }
 }
 
-blue.interface()(Tr2VariableStore);
+

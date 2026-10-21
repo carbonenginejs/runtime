@@ -29,4 +29,4 @@ export class Tr2DeviceResourceAL extends Tr2BaseDeviceResourceAL
 blue.inherit(Tr2BaseDeviceResourceAL)(Tr2DeviceResourceAL);
 CjsSchema.decorateMethod(Tr2DeviceResourceAL, "IsResourceValid", blue.method);
 CjsSchema.decorateMethod(Tr2DeviceResourceAL, "GetResourceMemoryClass", blue.method);
-CjsSchema.blue.define(Tr2DeviceResourceAL, { className: "Tr2DeviceResourceAL" });
+CjsSchema.meta.carbon("Tr2DeviceResourceAL")(Tr2DeviceResourceAL);

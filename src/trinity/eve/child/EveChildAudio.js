@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildAudio.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildAudio.cpp
 import { IsMatch } from "#blue";
@@ -17,9 +18,12 @@ import { ITr2DebugRenderable } from "#interfaces";
  * Space-object child that owns a positional audio emitter and keeps its position
  * and orientation tracking the child's world transform.
  */
-@blue.define("EveChildAudio")
+@be.define("EveChildAudio")
 @blue.inherit(IInitialize, INotify, ITr2DebugRenderable)
-@blue.interface(IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class EveChildAudio extends EveChildTransform
 {
   @blue.notify

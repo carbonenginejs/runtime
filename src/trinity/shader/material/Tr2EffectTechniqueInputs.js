@@ -1,9 +1,10 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Groups the pass and library parameter records prepared for one effect technique. */
-@blue.define("Tr2EffectTechniqueInputs")
+@meta.carbon("Tr2EffectTechniqueInputs")
 export class Tr2EffectTechniqueInputs
 {
 

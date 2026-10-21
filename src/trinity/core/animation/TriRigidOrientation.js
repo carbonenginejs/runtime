@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/TriRigidOrientation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -18,8 +19,9 @@ import { vec3 } from "#math/vec3";
  * has no native query mapping for BlueList admission. Number arithmetic,
  * Float32Array intermediates and module scratch retain the JS numeric path.
  */
-@blue.define("TriRigidOrientation")
-@blue.interface(ITriFunction, ITriQuaternionFunction)
+@be.define("TriRigidOrientation")
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriQuaternionFunction)
 export class TriRigidOrientation extends ITriQuaternionFunction
 {
 

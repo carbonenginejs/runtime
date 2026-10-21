@@ -39,4 +39,4 @@ CjsSchema.decorateMethod(ITr2LightOwner, "GetLights", blue.abstract);
 CjsSchema.decorateMethod(ITr2LightOwner, "AddLight", blue.method, meta.noop);
 CjsSchema.decorateMethod(ITr2LightOwner, "ClearLights", blue.method, meta.noop);
 CjsSchema.blue.inherit(IRoot)(ITr2LightOwner);
-CjsSchema.blue.define(ITr2LightOwner, { className: "ITr2LightOwner" });
+CjsSchema.exposure.interface("ITr2LightOwner")(ITr2LightOwner);

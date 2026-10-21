@@ -64,4 +64,4 @@ export class SlowBinarySearchOffsetLookup extends FsdDictOffsetLookup
 
 export default SlowBinarySearchOffsetLookup;
 
-CjsSchema.blue.define(SlowBinarySearchOffsetLookup, { className: "SlowBinarySearchOffsetLookup" });
+CjsSchema.meta.carbon("SlowBinarySearchOffsetLookup")(SlowBinarySearchOffsetLookup);

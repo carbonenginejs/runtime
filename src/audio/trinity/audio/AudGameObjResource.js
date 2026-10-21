@@ -1,5 +1,5 @@
 // Source: audio/src/AudGameObjResource.h + AudGameObjResource.cpp
-import { be, CjsBlueOS, IsMatch } from "#blue";
+import { blue as be, CjsBlueOS, IsMatch } from "#blue";
 import { CjsWwiseSoundEngineStub } from "../../../global/audio/CjsWwiseSoundEngineStub.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudGameObjResource.json.

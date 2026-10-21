@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { Tr2ActionChildEffect, EveChildContainer, EveChildBehaviorSystem, EveChildParticleSystem, Tr2ParticleSystem, Tr2InstancedMesh, TriDevice } from "../../npm/dist/trinity/index.js";
 
 /** A fresh loaded child with the same particle-to-mesh ownership as an ad. */
@@ -19,7 +19,7 @@ test("child-effect cycles return particle and mesh registrations and buffers to 
 {
   const baseline = TriDevice.GetResourcesRegistered().length;
   let live = 0;
-  t.mock.method(be.resMan, "LoadObject", async () => { live++; return particleChild(() => live--); });
+  t.mock.method(blue.resMan, "LoadObject", async () => { live++; return particleChild(() => live--); });
   const owner = new EveChildContainer(), action = new Tr2ActionChildEffect();
   const controller = { GetOwner: () => owner };
   action.path = "res:/synthetic-ad.black";
@@ -39,7 +39,7 @@ test("a child arriving after Stop releases the cancelled graph", async t =>
 {
   const baseline = TriDevice.GetResourcesRegistered().length;
   let resolveLoad, destroyed = 0;
-  t.mock.method(be.resMan, "LoadObject", () => new Promise(resolve => { resolveLoad = resolve; }));
+  t.mock.method(blue.resMan, "LoadObject", () => new Promise(resolve => { resolveLoad = resolve; }));
   const owner = new EveChildContainer(), action = new Tr2ActionChildEffect();
   const controller = { GetOwner: () => owner };
   action.path = "res:/synthetic-ad.black";
@@ -57,7 +57,7 @@ test("a retained sibling keeps its shared particle provider alive", async t =>
   let destroyed = 0;
   const child = particleChild(() => destroyed++), sibling = new EveChildParticleSystem();
   sibling.particleSystems.push(child.particleSystems[0]);
-  t.mock.method(be.resMan, "LoadObject", async () => child);
+  t.mock.method(blue.resMan, "LoadObject", async () => child);
   const owner = new EveChildContainer(), action = new Tr2ActionChildEffect();
   const controller = { GetOwner: () => owner };
   owner.objects.push(sibling);
@@ -75,7 +75,7 @@ test("100 recurring behavior ads release both instance buffers of both systems",
 {
   const baseline = TriDevice.GetResourcesRegistered().length;
   let live = 0;
-  t.mock.method(be.resMan, "LoadObject", async () =>
+  t.mock.method(blue.resMan, "LoadObject", async () =>
   {
     const child = new EveChildContainer();
     for (let i = 0; i < 2; i++)

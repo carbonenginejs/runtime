@@ -17,11 +17,7 @@ export class Tr2TextureLodUpdateRequest
 
 }
 
-CjsSchema.blue.define(Tr2TextureLodUpdateRequest, {
-  className: "Tr2TextureLodUpdateRequest",
-  fields: {
-    frameNumber: type.uint64,
-    mipChange: type.int32,
-    cachedInRam: type.boolean
-  }
-});
+CjsSchema.decorateField(Tr2TextureLodUpdateRequest, "frameNumber", type.uint64);
+CjsSchema.decorateField(Tr2TextureLodUpdateRequest, "mipChange", type.int32);
+CjsSchema.decorateField(Tr2TextureLodUpdateRequest, "cachedInRam", type.boolean);
+CjsSchema.meta.carbon("Tr2TextureLodUpdateRequest")(Tr2TextureLodUpdateRequest);

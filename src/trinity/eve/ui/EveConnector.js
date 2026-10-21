@@ -6,7 +6,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { be, EnumRegistrationType } from "#blue";
+import { blue as be, EnumRegistrationType } from "#blue";
 
 
 const Y_AXIS = vec3.fromValues(0, 1, 0);

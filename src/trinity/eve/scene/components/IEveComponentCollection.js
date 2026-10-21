@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 import { blue } from "#schema";
 
@@ -6,7 +7,7 @@ import { blue } from "#schema";
  * Carbon IEveComponentCollection (EveComponentRegistry.h:37-47): the
  * registry's type-erased view of one component type's entity collection.
  */
-@blue.define("IEveComponentCollection")
+@meta.carbon("IEveComponentCollection")
 export class IEveComponentCollection
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.h
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.cpp
@@ -11,9 +12,11 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
  * Quaternion curve built from three independently compiled expressions producing
  * yaw, pitch and roll in radians at time divided by timeScale.
  */
-@blue.define("Tr2CurveEulerRotationExpression")
+@be.define("Tr2CurveEulerRotationExpression")
 @blue.inherit(IInitialize)
-@blue.interface(ITriQuaternionFunction, ITriFunction, IInitialize)
+@be.mapInterface(ITriQuaternionFunction)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(IInitialize)
 export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 {
   /**

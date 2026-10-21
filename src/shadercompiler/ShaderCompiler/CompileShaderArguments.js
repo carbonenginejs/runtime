@@ -13,6 +13,4 @@ export class CompileShaderArguments
     defines = [];
 }
 
-CjsSchema.blue.define(CompileShaderArguments, {
-    className: "CompileShaderArguments"
-});
+CjsSchema.meta.carbon("CompileShaderArguments")(CompileShaderArguments);

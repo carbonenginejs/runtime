@@ -14,4 +14,4 @@ export class Metadata
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.blue.define(Metadata, { className: "Metadata" });
+CjsSchema.meta.carbon("Metadata")(Metadata);

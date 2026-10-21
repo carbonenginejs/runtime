@@ -2716,4 +2716,4 @@ function ContainerObjectID(node, gameObjID)
     return node.scope === "global" ? null : gameObjID;
 }
 
-CjsSchema.meta.define(CjsSfxEngine, { className: "CjsSfxEngine" });
+CjsSchema.meta.define("CjsSfxEngine")(CjsSfxEngine);

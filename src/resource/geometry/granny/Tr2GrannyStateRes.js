@@ -261,18 +261,13 @@ export class Tr2GrannyStateRes extends CjsResource
   static payload = ResourceRequirement.GRANNY_STATE;
 }
 
-CjsSchema.blue.interface(Tr2GrannyStateRes)(Tr2GrannyStateRes);
-CjsSchema.blue.define(Tr2GrannyStateRes, {
-  className: "Tr2GrannyStateRes",
-  methods: {
-    DoLoad: [ blue.method, meta.adapted ],
-    GetCharacterInfo: [ blue.method, meta.adapted ],
-    GetGStateAnimFileRefPaths: [ blue.method, meta.adapted ],
-    IsFullyLoaded: [ blue.method, meta.adapted ],
 
-    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
-    GetMemoryUsage: [ blue.method, meta.adapted ]
-  }
-});
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "DoLoad", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetCharacterInfo", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetGStateAnimFileRefPaths", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsFullyLoaded", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.exposure.define("Tr2GrannyStateRes")(Tr2GrannyStateRes);
 blue.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
-blue.interface(ICacheable)(Tr2GrannyStateRes);
+CjsSchema.exposure.mapInterface(ICacheable)(Tr2GrannyStateRes);

@@ -60,4 +60,4 @@ export class BlueFileUtil
   }
 }
 
-CjsSchema.meta.define(BlueFileUtil, { className: "BlueFileUtil" });
+CjsSchema.meta.define("BlueFileUtil")(BlueFileUtil);

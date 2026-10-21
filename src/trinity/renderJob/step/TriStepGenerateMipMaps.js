@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepGenerateMipMaps.h
 // Source: trinity/trinity/RenderJob/TriStepGenerateMipMaps.cpp
 import { meta, type, blue } from "#schema";
@@ -6,9 +7,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 
 /** Step that requests regeneration of a render target's mip chain. */
-@blue.define("TriStepGenerateMipMaps")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepGenerateMipMaps")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepGenerateMipMaps extends TriRenderStep
 {
   @blue.readwrite

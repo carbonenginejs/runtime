@@ -11,7 +11,7 @@ import { meta, blue } from "#schema";
  * Native 64-bit size 12; offsets and storage types: trinity/trinity/
  * Controllers/Tr2TimelineController.h:17-22; Controllers/Tr2TimelineController.cpp:24-28.
  */
-@blue.define("Tr2TimelineEntry")
+@meta.carbon("Tr2TimelineEntry")
 @meta.struct.define({ size: 12 })
 export class Tr2TimelineEntry
 {

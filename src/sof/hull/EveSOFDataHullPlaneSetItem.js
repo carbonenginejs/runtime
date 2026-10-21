@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -9,7 +10,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Defines a plane item's transform, colors, blink and UV scrolling, atlas selection, groups, intensity, and point-light contribution. */
-@blue.define("EveSOFDataHullPlaneSetItem")
+@be.define("EveSOFDataHullPlaneSetItem")
 @blue.inherit(IRoot)
 export class EveSOFDataHullPlaneSetItem
 {

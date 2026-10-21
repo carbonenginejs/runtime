@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/TriSequencer.h
 // Source: trinity/trinity/TriSequencer.cpp
 import { vec3 } from "#math/vec3";
@@ -13,8 +14,9 @@ import "#consts/graphics/trinityEnums";
  * zero. Sampling retains the existing instance child scratch; native sampling
  * uses local temporaries. Numeric tick overloads remain unimplemented.
  */
-@blue.define("TriVectorSequencer")
-@blue.interface(ITriFunction, ITriVectorFunction)
+@be.define("TriVectorSequencer")
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriVectorFunction)
 export class TriVectorSequencer extends ITriVectorFunction
 {
   /**

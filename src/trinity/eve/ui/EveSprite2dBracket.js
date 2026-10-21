@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/EveSprite2dBracket.h
 // Source: trinity/trinity/EveSprite2dBracket.cpp
@@ -10,9 +11,9 @@ import { meta, type, blue } from "#schema";
  * Screen-space bracket drawn from an atlas icon, carrying its own colour, 2D
  * translation and display flag.
  */
-@blue.define("EveSprite2dBracket")
+@be.define("EveSprite2dBracket")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSprite2dBracket
 {
   @blue.readwrite

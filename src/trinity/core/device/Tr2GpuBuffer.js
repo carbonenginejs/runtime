@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GpuBuffer.h
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
@@ -11,9 +12,11 @@ import "#consts/renderContext/formats";
 import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
-@blue.define("Tr2GpuBuffer")
+@be.define("Tr2GpuBuffer")
 @blue.inherit(ITr2GpuBuffer, INotify, IInitialize)
-@blue.interface(INotify, IInitialize, ITr2GpuBuffer)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2GpuBuffer)
 export class Tr2GpuBuffer
 {
 

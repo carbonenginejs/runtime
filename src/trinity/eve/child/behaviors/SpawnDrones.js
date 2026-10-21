@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.cpp
@@ -11,9 +12,9 @@ import { vec4 } from "#math/vec4";
 const NO_FORCES = [];
 
 /** A steering behaviour that populates and repopulates a drone group's agents, either regenerating a jittered spawn grid or spawning agents by count on a schedule or one-shot trigger. */
-@blue.define("SpawnDrones")
+@be.define("SpawnDrones")
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.mapInterface(IBehavior)
 export class SpawnDrones
 {
 

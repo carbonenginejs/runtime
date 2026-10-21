@@ -521,4 +521,4 @@ export class CjsCmfFormat extends CjsGeometryFormat
 
 export default CjsCmfFormat;
 
-CjsSchema.meta.define(CjsCmfFormat, { className: "CjsCmfFormat" });
+CjsSchema.meta.define("CjsCmfFormat")(CjsCmfFormat);

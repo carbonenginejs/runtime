@@ -283,4 +283,4 @@ export class CjsHlslFormat extends CjsFormat
 
 export default CjsHlslFormat;
 
-CjsSchema.meta.define(CjsHlslFormat, { className: "CjsHlslFormat" });
+CjsSchema.meta.define("CjsHlslFormat")(CjsHlslFormat);

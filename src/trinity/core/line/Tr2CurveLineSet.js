@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Tr2CurveLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -105,9 +106,11 @@ function sphericalToCartesian(value, center)
 }
 
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
-@blue.define("Tr2CurveLineSet")
+@be.define("Tr2CurveLineSet")
 @blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
-@blue.interface(ITr2Renderable, INotify, ITr2Pickable)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2Pickable)
 export class Tr2CurveLineSet
 {
 

@@ -561,4 +561,4 @@ function readStackGlobal(state, offset)
 
 export default CjsPickleProtocol4Reader;
 
-CjsSchema.meta.define(CjsPickleProtocol4Reader, { className: "CjsPickleProtocol4Reader" });
+CjsSchema.meta.define("CjsPickleProtocol4Reader")(CjsPickleProtocol4Reader);

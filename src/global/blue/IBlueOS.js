@@ -131,4 +131,4 @@ for (const method of [
   CjsSchema.decorateMethod(IBlueOS, method, blue.abstract);
 }
 
-CjsSchema.blue.define(IBlueOS, { className: "IBlueOS", fields: {} });
+CjsSchema.exposure.interface("IBlueOS")(IBlueOS);

@@ -35,7 +35,5 @@ export class AudActionRecordSetState extends AudActionRecord
 
 }
 
-CjsSchema.blue.define(AudActionRecordSetState, {
-    className: "AudActionRecordSetState",
-    methods: { ToPyObject: [blue.method, meta.adapted] }
-});
+CjsSchema.decorateMethod(AudActionRecordSetState, "ToPyObject", blue.method, meta.adapted);
+CjsSchema.meta.carbon("AudActionRecordSetState")(AudActionRecordSetState);

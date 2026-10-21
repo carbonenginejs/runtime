@@ -24,7 +24,7 @@ const TRI_PI = Math.PI;
  * without persistence flags or query interfaces. Zero-filled storage is a JS
  * construction adapter; native fills the aggregate in its calculator function.
  */
-@blue.define("GaussianData")
+@meta.carbon("GaussianData")
 export class GaussianData
 {
 

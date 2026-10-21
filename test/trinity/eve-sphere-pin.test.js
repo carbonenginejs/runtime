@@ -1,7 +1,7 @@
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {be,NotifyModified,IInitialize,INotify} from '../../npm/dist/global/blue/index.js';
+import {blue,NotifyModified,IInitialize,INotify} from '../../npm/dist/global/blue/index.js';
 import {CjsSchema} from '../../npm/dist/global/schema/index.js';
 import {mat4} from '../../npm/dist/global/math/mat4.js';
 import {TriBatchType} from '../../npm/dist/global/consts/graphics/index.js';
@@ -26,24 +26,24 @@ function geometry(points=triangle(0,0),faces=points.map((_,i)=>i)) {
 function tree(g){const result=new EveSpherePinIndexTree(g);assert.equal(result.Initialize(),1);return result;}
 function indices(index,p,r){const out={primitives:99,indices:[]};assert.equal(index.GetIndices(p,r,out),1);return out;}
 function setup(t) {
-  const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=be.resMan;
+  const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=blue.resMan;
   const before=new Set(TriDevice.GetResourcesRegistered()),al=new Tr2RenderContextALStub();
-  al.CreateDevice();al.BeginScene();context.SetRenderContextAL(al);Tr2Renderer.SetViewTransform(mat4.create());be.resMan=new StubResMan();
+  al.CreateDevice();al.BeginScene();context.SetRenderContextAL(al);Tr2Renderer.SetViewTransform(mat4.create());blue.resMan=new StubResMan();
   t.after(()=>{
     for(const resource of TriDevice.GetResourcesRegistered().filter(x=>!before.has(x))) {
       if(CjsSchema.cast(resource,EveSpherePin))resource.Destruct();
       else {resource.ReleaseResources();TriDevice.UnregisterResource(resource);}
     }
-    SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);be.resMan=manager;al.Destroy();
+    SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);blue.resMan=manager;al.Destroy();
   });
   const draws=[],draw=al.DrawIndexedInstanced.bind(al);
   al.DrawIndexedInstanced=(...args)=>{draws.push(args);return draw(...args);};
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const material={GetShaderStateInterface:()=>shader,IsGood:()=>true,ApplyMaterialDataForPass(){}};
-  return {context,al,draws,material,manager:be.resMan};
+  return {context,al,draws,material,manager:blue.resMan};
 }
 function pin(g=geometry()) {
-  be.resMan.resources.set('res:/sphere.gr2',g);
+  blue.resMan.resources.set('res:/sphere.gr2',g);
   const p=new EveSpherePin();p.geometryResPath='res:/sphere.gr2';p.centerNormal.set([1,0,0]);p.Initialize();p.UpdateSyncronous({});return p;
 }
 function collect(p,pod=null,type=TRANSPARENT){const batches=[];p.GetBatches({Commit:b=>batches.push(b)},type,pod);return batches;}

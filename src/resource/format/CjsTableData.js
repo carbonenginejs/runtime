@@ -256,4 +256,4 @@ function assertKey(key)
     throw new TypeError("Table keys must be strings, safe integers or bigints");
 }
 
-CjsSchema.meta.define(CjsTableData, { className: "CjsTableData" });
+CjsSchema.meta.define("CjsTableData")(CjsTableData);

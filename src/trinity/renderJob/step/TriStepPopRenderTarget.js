@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPopRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepPopRenderTarget.cpp
 import { meta, type, blue } from "#schema";
@@ -9,9 +10,9 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pops one slot off the render context's render-target stack, undoing an
  * earlier push.
  */
-@blue.define("TriStepPopRenderTarget")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPopRenderTarget")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPopRenderTarget extends TriRenderStep
 {
   @blue.readwrite

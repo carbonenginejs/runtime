@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSnake.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -6,8 +7,8 @@ import { meta, type, blue } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Triggers a timed chain of nearby free placements, walking forward from each previously reached destination. */
-@blue.define("EveDistributionSpawnerTriggerSnake")
-@blue.interface(IEveDistributionSpawner)
+@be.define("EveDistributionSpawnerTriggerSnake")
+@be.mapInterface(IEveDistributionSpawner)
 export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
 {
 

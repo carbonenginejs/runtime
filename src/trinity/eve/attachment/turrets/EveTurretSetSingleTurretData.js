@@ -11,7 +11,7 @@ import { Tr2ConstantBufferAL } from "#trinityal";
  * data - kept in m_singleTurrets. Carbon fills a new one in SetLocalTransform
  * (EveTurretSet.cpp:1713-1729) before it is placed.
  */
-@meta.define({ className: "EveTurretSetSingleTurretData", carbon: "EveTurretSet::SingleTurretData" })
+@meta.carbon("EveTurretSet::SingleTurretData")
 export class EveTurretSetSingleTurretData
 {
 

@@ -39,4 +39,4 @@ export class ITriEffectTextureParameter extends ITriEffectResourceParameter
 }
 
 
-CjsSchema.blue.define(ITriEffectTextureParameter, { className: "ITriEffectTextureParameter" });
+CjsSchema.exposure.interface("ITriEffectTextureParameter")(ITriEffectTextureParameter);

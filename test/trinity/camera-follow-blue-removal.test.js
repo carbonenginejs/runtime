@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be, INotify, IInitialize } from "../../npm/dist/global/blue/index.js";
+import { blue, INotify, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
@@ -22,7 +22,7 @@ function camera(_t)
 
 test("camera key constructs without model state and implements the native five-method interface", () =>
 {
-  const key = be.classes.CreateInstanceFromName("Tr2CameraFollowCurveKey");
+  const key = blue.classes.CreateInstanceFromName("Tr2CameraFollowCurveKey");
   assert.equal(key.constructor, Tr2CameraFollowCurveKey);
   assert.equal(Object.getPrototypeOf(Tr2CameraFollowCurveKey.prototype), ITr2FollowCurveKey.prototype);
   for (const name of ["SetValues", "GetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in key, false);

@@ -16,4 +16,4 @@ export class ITr2DynamicBindingOwner
 
 CjsSchema.decorateMethod(ITr2DynamicBindingOwner, "GetParameterMap", meta.abstract);
 CjsSchema.blue.inherit(IRoot)(ITr2DynamicBindingOwner);
-CjsSchema.blue.define(ITr2DynamicBindingOwner, { className: "ITr2DynamicBindingOwner" });
+CjsSchema.exposure.interface("ITr2DynamicBindingOwner")(ITr2DynamicBindingOwner);

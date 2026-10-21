@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp
-import { be, IsMatch, INotify } from "#blue";
+import { blue as be, IsMatch, INotify } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";

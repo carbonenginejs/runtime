@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Audio/Tr2AudioStretchBase.h
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchBase.json.
@@ -10,9 +11,11 @@ import { AudGameObjResource } from "../audio/AudGameObjResource.js";
 import { StretchAudio } from "../audio/StretchAudio.js";
 
 /** Creates and updates the three Carbon emitters used by a Trinity audio stretch. */
-@blue.define("Tr2AudioStretchBase")
+@be.define("Tr2AudioStretchBase")
 @blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
-@blue.interface(IInitialize, ITr2DebugRenderable, ITr2Audio)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2DebugRenderable)
+@be.mapInterface(ITr2Audio)
 export class Tr2AudioStretchBase
 {
 

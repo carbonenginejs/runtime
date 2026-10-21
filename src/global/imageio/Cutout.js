@@ -20,4 +20,4 @@ export class Cutout
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.blue.define(Cutout, { className: "Cutout" });
+CjsSchema.meta.carbon("Cutout")(Cutout);

@@ -23,4 +23,4 @@ export class FooterOffsetSize
 
 export default FooterOffsetSize;
 
-CjsSchema.blue.define(FooterOffsetSize, { className: "FooterOffsetSize" });
+CjsSchema.meta.carbon("FooterOffsetSize")(FooterOffsetSize);

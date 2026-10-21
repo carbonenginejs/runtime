@@ -788,4 +788,4 @@ function RequireExtractedInt(value, dictKey)
 
 export default FsdSchemaAttributes;
 
-CjsSchema.blue.define(FsdSchemaAttributes, { className: "FsdSchemaAttributes" });
+CjsSchema.meta.carbon("FsdSchemaAttributes")(FsdSchemaAttributes);

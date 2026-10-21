@@ -577,4 +577,4 @@ CjsSchema.decorateMethod(Tr2RenderBatch, "SetRenderingMode", blue.method);
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData", blue.method);
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData__MeshArea", blue.method, meta.renamed("SetPickingData"));
 CjsSchema.decorateMethod(Tr2RenderBatch, "IsValid", blue.method);
-CjsSchema.blue.define(Tr2RenderBatch, { className: "Tr2RenderBatch" });
+CjsSchema.meta.carbon("Tr2RenderBatch")(Tr2RenderBatch);

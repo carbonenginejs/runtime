@@ -10,7 +10,7 @@ import { LightData } from "../../lights/LightData.js";
  * The spot light one spotlight item contributes, carrying its booster-gain
  * influence flag, light profile and the bone matrix resolved for it each frame.
  */
-@blue.define("EveSpotlightLight")
+@meta.carbon("EveSpotlightLight")
 export class EveSpotlightLight
 {
   @meta.owned

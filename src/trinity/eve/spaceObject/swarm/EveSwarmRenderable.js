@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
 import { ITr2Pickable } from "../../../core/ITr2Pickable.js";
@@ -19,9 +20,11 @@ import { EveSpaceObjectDecal } from "../../attachment/decal/EveSpaceObjectDecal.
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** Carbon's EveSwarmRenderable (EveSwarm.h:20-95): one fighter of an EveSwarm, drawing the squad's shared mesh at its own world transform. */
-@blue.define("EveSwarmRenderable")
+@be.define("EveSwarmRenderable")
 @blue.inherit(ITr2Renderable, ITr2Pickable, IShaderConfigurer, IEveShadowCaster)
-@blue.interface(ITr2Pickable, EveEntity, IEveShadowCaster)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(EveEntity)
+@be.mapInterface(IEveShadowCaster)
 export class EveSwarmRenderable extends EveEntity
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/TriVariableParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IsMatch, IInitialize } from "#blue";
@@ -8,9 +9,11 @@ import { CjsParameter } from "./CjsParameter.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Forwards a named variable-store entry into a named effect constant or resource. */
-@blue.define("TriVariableParameter")
+@be.define("TriVariableParameter")
 @blue.inherit(INotify, IInitialize)
-@blue.interface(ITriEffectParameter, INotify, IInitialize)
+@be.mapInterface(ITriEffectParameter)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class TriVariableParameter extends CjsParameter
 {
 

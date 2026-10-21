@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/EvePlanet.h
 // Source: trinity/trinity/Eve/EvePlanet.cpp
 import { ITr2BoundingBox } from "../../../../global/interfaces/ITr2BoundingBox.js";
@@ -20,9 +21,16 @@ import { vec4 } from "#math/vec4";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** A celestial effect root with scaled surface rendering and an ordinary-world depth proxy. */
-@blue.define("EvePlanet")
-@blue.interface(IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox)
-@blue.chainTo(EveEffectRoot2)
+@be.define("EvePlanet")
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2SecondaryLightSource)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(IEveEffectChildrenOwner)
+@be.mapInterface(IShaderConfigurer)
+@be.mapInterface(ITr2SoundEmitterOwner)
+@be.mapInterface(IWorldPosition)
+@be.mapInterface(ITr2BoundingBox)
+@be.exposureChainTo(EveEffectRoot2)
 export class EvePlanet extends EveEffectRoot2
 {
   /**

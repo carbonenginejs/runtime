@@ -96,4 +96,4 @@ export class TnyServiceAPI extends TnyServiceDatabase
     }
 }
 
-CjsSchema.meta.define(TnyServiceAPI, { className: "TnyServiceAPI" });
+CjsSchema.meta.define("TnyServiceAPI")(TnyServiceAPI);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPFogEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPFogEffect.json.).
 import { type, blue } from "#schema";
@@ -7,9 +8,9 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Carries the distance bands, color, nebula, brightness, and blending settings for post-process fog. */
-@blue.define("Tr2PPFogEffect")
-@blue.chainTo(Tr2PPEffect)
-@blue.interface(Tr2PPEffect)
+@be.define("Tr2PPFogEffect")
+@be.exposureChainTo(Tr2PPEffect)
+@be.mapInterface(Tr2PPEffect)
 export class Tr2PPFogEffect extends Tr2PPEffect
 {
 

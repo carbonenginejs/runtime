@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -7,8 +8,8 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** A time-evolving four-dimensional Perlin turbulence force applied to particle motion. */
-@blue.interface(ITr2ParticleForce)
-@blue.define("Tr2ParticleTurbulenceForce")
+@be.mapInterface(ITr2ParticleForce)
+@be.define("Tr2ParticleTurbulenceForce")
 export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 {
 

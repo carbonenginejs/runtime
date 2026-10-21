@@ -520,39 +520,33 @@ export class RemoteFileCache
 }
 
 CjsSchema.blue.inherit(IRoot)(RemoteFileCache);
-CjsSchema.blue.define(RemoteFileCache, {
-  className: "RemoteFileCache",
-  fields: {
-    server: [ blue.readwrite, type.string ],
-    backupServer: [ blue.readwrite, type.string ],
-    prefix: [ blue.readwrite, type.string ],
-    cacheFolder: [ blue.readwrite, type.wstring ],
-    registerDownloadErrors: [ blue.readwrite, type.boolean ],
-    primaryServerFailThreshold: [ blue.readwrite, type.int32 ],
-    bytesDownloaded: [ blue.read, type.uint64 ],
-    filesDownloaded: [ blue.read, type.uint32 ],
-    bytesCached: [ blue.read, type.uint64 ],
-    filesCached: [ blue.read, type.uint32 ],
-    filesUsedFromCache: [ blue.read, type.uint32 ],
-    fullHeaderLogging: [ blue.readwrite, type.boolean ],
-    verifyContentsOnSave: [ blue.readwrite, type.boolean ],
-    verifyContentsOnLoad: [ blue.readwrite, type.boolean ]
-  },
-  methods: {
-    DownloadFileIndex: [ blue.method, meta.adapted ],
-    AddFileIndex: [ blue.method, meta.implemented ],
-    SetCacheFolder: [ blue.method, meta.implemented ],
-    SetServer: [ blue.method, meta.implemented ],
-    SetPrefix: [ blue.method, meta.implemented ],
-    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ],
-    FileExists: [ blue.method, meta.implemented ],
-    IsCachedLocally: [ blue.method, meta.adapted ],
-    GetLocallyCachedName: [ blue.method, meta.implemented ],
-    IsDirectory: [ blue.method, meta.implemented ],
-    ListDir: [ blue.method, meta.adapted ],
-    RegisterOnServerFailedCallback: [ blue.method, meta.implemented ]
-  }
-});
+CjsSchema.decorateField(RemoteFileCache, "server", blue.readwrite, type.string);
+CjsSchema.decorateField(RemoteFileCache, "backupServer", blue.readwrite, type.string);
+CjsSchema.decorateField(RemoteFileCache, "prefix", blue.readwrite, type.string);
+CjsSchema.decorateField(RemoteFileCache, "cacheFolder", blue.readwrite, type.wstring);
+CjsSchema.decorateField(RemoteFileCache, "registerDownloadErrors", blue.readwrite, type.boolean);
+CjsSchema.decorateField(RemoteFileCache, "primaryServerFailThreshold", blue.readwrite, type.int32);
+CjsSchema.decorateField(RemoteFileCache, "bytesDownloaded", blue.read, type.uint64);
+CjsSchema.decorateField(RemoteFileCache, "filesDownloaded", blue.read, type.uint32);
+CjsSchema.decorateField(RemoteFileCache, "bytesCached", blue.read, type.uint64);
+CjsSchema.decorateField(RemoteFileCache, "filesCached", blue.read, type.uint32);
+CjsSchema.decorateField(RemoteFileCache, "filesUsedFromCache", blue.read, type.uint32);
+CjsSchema.decorateField(RemoteFileCache, "fullHeaderLogging", blue.readwrite, type.boolean);
+CjsSchema.decorateField(RemoteFileCache, "verifyContentsOnSave", blue.readwrite, type.boolean);
+CjsSchema.decorateField(RemoteFileCache, "verifyContentsOnLoad", blue.readwrite, type.boolean);
+CjsSchema.decorateMethod(RemoteFileCache, "DownloadFileIndex", blue.method, meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "AddFileIndex", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "SetCacheFolder", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "SetServer", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "SetPrefix", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "FileExists", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "IsCachedLocally", blue.method, meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "GetLocallyCachedName", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "IsDirectory", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "ListDir", blue.method, meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "RegisterOnServerFailedCallback", blue.method, meta.implemented);
+CjsSchema.exposure.define("RemoteFileCache")(RemoteFileCache);
 
 CjsSchema.decorateMethod(RemoteFileCache, "_CreateFileStreamForCachedFile", blue.method, meta.renamed("CreateFileStreamForCachedFile"), meta.adapted);
 CjsSchema.decorateMethod(RemoteFileCache, "_GetFileInfo", blue.method, meta.renamed("GetFileInfo"), meta.adapted);

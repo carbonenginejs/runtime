@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h
@@ -13,7 +14,7 @@ import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTra
  * Owns the registered virtual cameras plus the externally driven camera, and
  * runs the transition that hands control from one to another.
  */
-@blue.define("EveVirtualCameraSystem")
+@be.define("EveVirtualCameraSystem")
 @blue.inherit(IInitialize, ITr2DebugRenderable)
 export class EveVirtualCameraSystem
 {

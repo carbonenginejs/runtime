@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Defaults: trinity/trinity/Eve/SpaceObject/EveSwarm.h:137-164
@@ -10,9 +11,9 @@ import { type, blue } from "#schema";
  * is required, and the native destructor is empty.
  * Native behavior members retain the existing flat authored-field representation.
  */
-@blue.define("EveSOFDataGenericSwarm")
+@be.define("EveSOFDataGenericSwarm")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataGenericSwarm
 {
 

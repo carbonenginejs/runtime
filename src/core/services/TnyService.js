@@ -12,4 +12,4 @@ export class TnyService
     async Close() {}
 }
 
-CjsSchema.meta.define(TnyService, { className: "TnyService" });
+CjsSchema.meta.define("TnyService")(TnyService);

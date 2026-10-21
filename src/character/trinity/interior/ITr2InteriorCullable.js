@@ -9,9 +9,6 @@ export class ITr2InteriorCullable
   IsInFrustum(_frustum, _objectToWorld) {}
 }
 CjsSchema.decorateMethod(ITr2InteriorCullable, "IsInFrustum", blue.abstract);
-CjsSchema.blue.define(ITr2InteriorCullable, {
-  className: "ITr2InteriorCullable",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITr2InteriorCullable")(ITr2InteriorCullable);
 
 blue.inherit(IRoot)(ITr2InteriorCullable);

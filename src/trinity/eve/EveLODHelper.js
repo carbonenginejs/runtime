@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 import { blue } from "#schema";
 // Source: trinity/trinity/Eve/EveLODHelper.h
 // Source: trinity/trinity/Eve/EveLODHelper.cpp
@@ -7,7 +8,7 @@ import { Tr2Lod } from "#consts/trinity";
 export { Tr2Lod };
 
 /** Carbon's stateless LOD decision helper. */
-@blue.define("EveLODHelper")
+@meta.carbon("EveLODHelper")
 export class EveLODHelper
 {
   static lowUpdateRate = 1;

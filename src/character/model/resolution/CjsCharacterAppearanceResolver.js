@@ -1243,4 +1243,4 @@ function AddDiagnostic(plan, code, message, severity, origin = null)
 
 export default CjsCharacterAppearanceResolver;
 
-CjsSchema.meta.define(CjsCharacterAppearanceResolver, { className: "CjsCharacterAppearanceResolver" });
+CjsSchema.meta.define("CjsCharacterAppearanceResolver")(CjsCharacterAppearanceResolver);

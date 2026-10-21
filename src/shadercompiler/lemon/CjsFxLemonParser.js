@@ -214,4 +214,4 @@ export class CjsFxLemonParser
     }
 }
 
-CjsSchema.meta.define(CjsFxLemonParser, { className: "CjsFxLemonParser" });
+CjsSchema.meta.define("CjsFxLemonParser")(CjsFxLemonParser);

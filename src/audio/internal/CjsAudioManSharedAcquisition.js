@@ -157,4 +157,4 @@ function AbortReason(signal)
         : new DOMException("Audio media load aborted", "AbortError");
 }
 
-CjsSchema.meta.define(CjsAudioManSharedAcquisition, { className: "CjsAudioManSharedAcquisition" });
+CjsSchema.meta.define("CjsAudioManSharedAcquisition")(CjsAudioManSharedAcquisition);

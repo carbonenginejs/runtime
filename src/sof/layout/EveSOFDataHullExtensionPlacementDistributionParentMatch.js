@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -5,8 +6,8 @@ import { EveSOFDNADescriptor } from "../shared/EveSOFDNADescriptor.js";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
 /** Matches a parent DNA descriptor as a condition for a hull-extension placement. */
-@blue.define("EveSOFDataHullExtensionPlacementDistributionParentMatch")
-@blue.interface(IEveSOFDataHullExtensionPlacementDistribution)
+@be.define("EveSOFDataHullExtensionPlacementDistributionParentMatch")
+@be.mapInterface(IEveSOFDataHullExtensionPlacementDistribution)
 export class EveSOFDataHullExtensionPlacementDistributionParentMatch extends IEveSOFDataHullExtensionPlacementDistribution
 {
 

@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2LineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** A rolling sample history with named markers and running statistics, drawn as a line graph. */
-@blue.define("Tr2LineGraph")
-@blue.interface()
+@be.define("Tr2LineGraph")
+
 export class Tr2LineGraph
 {
 

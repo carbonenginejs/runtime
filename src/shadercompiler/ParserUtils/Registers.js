@@ -27,6 +27,4 @@ export class Registers
     spaces = new Set();
 }
 
-CjsSchema.blue.define(Registers, {
-    className: "Registers"
-});
+CjsSchema.meta.carbon("Registers")(Registers);

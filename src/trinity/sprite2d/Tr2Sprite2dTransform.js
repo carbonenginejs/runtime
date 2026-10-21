@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform_Blue.cpp
@@ -12,8 +13,8 @@ import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
  * Applies authored Sprite2D rotation and scaling around configurable centers.
  * Traverses and picks children using Carbon's distinct bounds and content transforms.
  */
-@blue.define("Tr2Sprite2dTransform")
-@blue.chainTo(Tr2Sprite2dContainerBase)
+@be.define("Tr2Sprite2dTransform")
+@be.exposureChainTo(Tr2Sprite2dContainerBase)
 export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 {
 

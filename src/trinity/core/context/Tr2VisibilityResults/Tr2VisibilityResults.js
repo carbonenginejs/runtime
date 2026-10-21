@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2VisibilityResults.h
 //   trinity/trinity/Tr2VisibilityResults.cpp
 //   trinity/trinity/Tr2VisibilityResults_Blue.cpp
@@ -8,7 +9,7 @@ import { meta, blue } from "#schema";
  * Collects the visibility events a visibility executor emits, for the interior
  * and portal consumers to read back.
  */
-@blue.define("Tr2VisibilityResults")
+@be.define("Tr2VisibilityResults")
 export class Tr2VisibilityResults
 {
 

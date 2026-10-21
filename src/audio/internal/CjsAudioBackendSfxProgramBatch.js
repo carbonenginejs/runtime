@@ -50,4 +50,4 @@ export class CjsAudioBackendSfxProgramBatch
     }
 }
 
-CjsSchema.meta.define(CjsAudioBackendSfxProgramBatch, { className: "CjsAudioBackendSfxProgramBatch" });
+CjsSchema.meta.define("CjsAudioBackendSfxProgramBatch")(CjsAudioBackendSfxProgramBatch);

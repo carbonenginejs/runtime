@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.h
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
-import { be, CjsBlueClasses, IList, INotify } from "#blue";
+import { blue as be, CjsBlueClasses, IList, INotify } from "#blue";
 import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor, type, blue } from "#schema";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "../../../global/blue/dictionaryDeclarations.js";
 
@@ -24,7 +24,7 @@ const STRING_KINDS = new Set([ CARBON_TYPE.STRING, CARBON_TYPE.PATH, CARBON_TYPE
  * it, and writes or reads it. A plain native helper embedded in the value
  * actions; it has no Blue exposure of its own.
  */
-@blue.define("Tr2BindingPoint")
+@meta.carbon("Tr2BindingPoint")
 export class Tr2BindingPoint
 {
   // Every embedding owner exposes these READWRITE|PERSIST|NOTIFY

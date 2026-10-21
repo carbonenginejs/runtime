@@ -453,4 +453,4 @@ export function decompressBitKnit2(bytes, expandedSize)
     return out;
 }
 
-CjsSchema.meta.define(FrequencyModel, { className: "FrequencyModel" });
+CjsSchema.meta.define("FrequencyModel")(FrequencyModel);

@@ -19,7 +19,7 @@ import { meta, blue } from "#schema";
 /**
  * The world, previous-world and inverse-world matrices every plain transform uploads.
  */
-@blue.define("EveBasicPerObjectData")
+@meta.carbon("EveBasicPerObjectData")
 export class EveBasicPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

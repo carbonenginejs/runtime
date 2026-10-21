@@ -963,4 +963,4 @@ export class CjsAudioLibraryBuilderUtils
     }
 }
 
-CjsSchema.meta.define(CjsAudioLibraryBuilderUtils, { className: "CjsAudioLibraryBuilderUtils" });
+CjsSchema.meta.define("CjsAudioLibraryBuilderUtils")(CjsAudioLibraryBuilderUtils);

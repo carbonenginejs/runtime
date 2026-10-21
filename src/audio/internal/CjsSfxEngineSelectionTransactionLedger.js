@@ -433,4 +433,4 @@ function DeleteKeysWithPrefix(map, prefix)
     }
 }
 
-CjsSchema.meta.define(CjsSfxEngineSelectionTransactionLedger, { className: "CjsSfxEngineSelectionTransactionLedger" });
+CjsSchema.meta.define("CjsSfxEngineSelectionTransactionLedger")(CjsSfxEngineSelectionTransactionLedger);

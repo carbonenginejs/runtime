@@ -38,4 +38,4 @@ export class DictSchemaAttributes
 
 export default DictSchemaAttributes;
 
-CjsSchema.blue.define(DictSchemaAttributes, { className: "DictSchemaAttributes" });
+CjsSchema.meta.carbon("DictSchemaAttributes")(DictSchemaAttributes);

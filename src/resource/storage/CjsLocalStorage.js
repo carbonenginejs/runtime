@@ -255,4 +255,4 @@ function assertJson(value, seen = new Set())
     }
 }
 
-CjsSchema.meta.define(CjsLocalStorage, { className: "CjsLocalStorage" });
+CjsSchema.meta.define("CjsLocalStorage")(CjsLocalStorage);

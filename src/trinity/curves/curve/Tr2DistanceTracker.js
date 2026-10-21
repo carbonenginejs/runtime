@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.cpp
 // Source: trinity/trinity/Curves/Tr2DistanceTracker_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { be, ITriFunction, INotify, CcpTime } from "#blue";
+import { blue as be, ITriFunction, INotify, CcpTime } from "#blue";
 import { meta, type, blue } from "#schema";
 
 

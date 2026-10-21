@@ -17,6 +17,5 @@ export class ResourceGroupExportToFileParams
     write = null;
 }
 
-CjsSchema.blue.define(ResourceGroupExportToFileParams, { className: "ResourceGroupExportToFileParams", fields: {
-        filename: [type.string]
-    } });
+CjsSchema.decorateField(ResourceGroupExportToFileParams, "filename", type.string);
+CjsSchema.meta.carbon("ResourceGroupExportToFileParams")(ResourceGroupExportToFileParams);

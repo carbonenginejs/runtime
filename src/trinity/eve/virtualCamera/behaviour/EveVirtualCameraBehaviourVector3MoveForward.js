@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
@@ -10,9 +11,9 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that displaces the camera along its own forward axis by a
  * curve-shaped distance, and the base for the sideways and vertical variants.
  */
-@blue.define("EveVirtualCameraBehaviourVector3MoveForward")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@be.define("EveVirtualCameraBehaviourVector3MoveForward")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCameraBehaviourVector3Base
 {
   @blue.readwrite

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2RandomIntegerAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -8,8 +9,8 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates a per-particle attribute by sampling each component to a rounded integer within a minimum and maximum range. */
-@blue.interface(ITr2AttributeGenerator)
-@blue.define("Tr2RandomIntegerAttributeGenerator")
+@be.mapInterface(ITr2AttributeGenerator)
+@be.define("Tr2RandomIntegerAttributeGenerator")
 export class Tr2RandomIntegerAttributeGenerator extends ITr2AttributeGenerator
 {
 

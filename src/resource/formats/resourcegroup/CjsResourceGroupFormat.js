@@ -200,4 +200,4 @@ export class CjsResourceGroupFormat extends CjsFormat
     static inputs = CjsFormat.defineInputs({ json: { default: true } });
 }
 
-CjsSchema.meta.define(CjsResourceGroupFormat, { className: "CjsResourceGroupFormat" });
+CjsSchema.meta.define("CjsResourceGroupFormat")(CjsResourceGroupFormat);

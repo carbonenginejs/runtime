@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveVector3Lerp.h
 // Source: trinity/trinity/Curves/Tr2CurveVector3Lerp.cpp
 import { vec3 } from "#math/vec3";
@@ -11,7 +13,7 @@ import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
  * blending over the interval ending at curveStartTime with the configured start
  * interpolation.
  */
-@blue.define("Tr2CurveVector3Lerp")
+@be.define("Tr2CurveVector3Lerp")
 export class Tr2CurveVector3Lerp extends ITriVectorFunction
 {
   /**
@@ -216,4 +218,5 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 }
 
 // Exact native exposure table; no inherited or implicit entries.
-blue.interface(ITriFunction, ITriVectorFunction)(Tr2CurveVector3Lerp);
+CjsSchema.exposure.mapInterface(ITriFunction)(Tr2CurveVector3Lerp);
+CjsSchema.exposure.mapInterface(ITriVectorFunction)(Tr2CurveVector3Lerp);

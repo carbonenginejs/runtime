@@ -1,17 +1,17 @@
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { EveChildSocket, EveChildPlug, EveChildContainer } from "../../npm/dist/trinity/index.js";
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 function loader(t)
 {
-  const previous = be.resMan.LoadObject;
+  const previous = blue.resMan.LoadObject;
   const requests = [];
-  be.resMan.LoadObject = path => new Promise((resolve, reject) => requests.push({path,resolve,reject}));
-  t.after(() => { be.resMan.LoadObject = previous; });
+  blue.resMan.LoadObject = path => new Promise((resolve, reject) => requests.push({path,resolve,reject}));
+  t.after(() => { blue.resMan.LoadObject = previous; });
   return requests;
 }
 
@@ -92,7 +92,7 @@ test("socket initialization remains true on failed or wrong-type loads and prese
   await tick();
   assert.equal(socket.plug,null);
   assert.equal(messages.filter(message => message === "Red file res:/invalid.red is invalid or not an Eve Child type.").length,2);
-  be.resMan.LoadObject = () => { throw new Error("synchronous source failure"); };
+  blue.resMan.LoadObject = () => { throw new Error("synchronous source failure"); };
   assert.equal(socket.Initialize(),true);
   await tick();
   assert.equal(socket.plug,null);

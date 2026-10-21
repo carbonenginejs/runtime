@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec2 } from "#math/vec2";
@@ -6,8 +7,8 @@ import { meta, type, blue } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named two-component vector socket value to external parameters, preserving defaults by copy for restoration. */
-@blue.define("EveSocketParameterVector2")
-@blue.interface(IEveSocketParameter)
+@be.define("EveSocketParameterVector2")
+@be.mapInterface(IEveSocketParameter)
 export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
 {
 

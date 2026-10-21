@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBooster.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -11,8 +12,8 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * constant apparent size as camera distance changes, then re-centres it so its
  * near edge stays put.
  */
-@blue.define("EveChildModifierBooster")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierBooster")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierBooster extends IEveChildTransformModifier
 {
   static scratch = {

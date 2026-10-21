@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2VectorFunctionModifier.h
 // Source: trinity/trinity/Tr2VectorFunctionModifier.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -11,8 +12,8 @@ const OFFSET_SCRATCH = vec3.create();
 const DIRECTION_SCRATCH = vec4.create();
 
 /** Wraps a position source, offsetting and scaling what it reports, optionally in view space. */
-@blue.define("Tr2VectorFunctionModifier")
-@blue.interface(ITriVectorFunction)
+@be.define("Tr2VectorFunctionModifier")
+@be.mapInterface(ITriVectorFunction)
 export class Tr2VectorFunctionModifier extends ITriVectorFunction
 {
 

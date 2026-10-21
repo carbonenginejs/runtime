@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierColor.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -7,9 +8,9 @@ import { color } from "#math/color";
 import { resolveFactionColor } from "../../resolveFactionColor.js";
 
 /** EveSmartLightAttributeModifierColor (eve/smartLights/attributeModifiers) - generated from schema shapeHash 1d22dfd5.... */
-@blue.define("EveSmartLightAttributeModifierColor")
-@blue.interface(IEveSmartLightGroupAttributeModifier)
-@blue.chainTo(EveSmartLightBaseAttributeModifier)
+@be.define("EveSmartLightAttributeModifierColor")
+@be.mapInterface(IEveSmartLightGroupAttributeModifier)
+@be.exposureChainTo(EveSmartLightBaseAttributeModifier)
 export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttributeModifier
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderDebug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -6,9 +7,9 @@ import { TriLineSet } from "../../core/line/TriLineSet.js";
 import { vec3 } from "#math/vec3";
 
 /** A render step that accumulates debug lines, boxes and 2D/3D text for one frame and hands them to the render context to draw. */
-@blue.define("TriStepRenderDebug")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRenderDebug")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRenderDebug extends TriRenderStep
 {
 

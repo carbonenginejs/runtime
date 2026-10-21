@@ -48,9 +48,5 @@ export class GlobalInputElement
     }
 }
 
-CjsSchema.blue.define(GlobalInputElement, {
-    className: "GlobalInputElement",
-    methods: {
-        Equals: [meta.renamed("operator==")]
-    }
-});
+CjsSchema.decorateMethod(GlobalInputElement, "Equals", meta.renamed("operator=="));
+CjsSchema.meta.carbon("GlobalInputElement")(GlobalInputElement);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.h
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.cpp
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation_Blue.cpp
@@ -10,9 +11,9 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
  * State finalizer that holds a state machine in its current state until the
  * animation layer named by `mask` has finished playing.
  */
-@blue.define("Tr2SyncToAnimation")
+@be.define("Tr2SyncToAnimation")
 @blue.inherit(ITr2StateMachineStateFinalizer)
-@blue.interface(ITr2StateMachineStateFinalizer)
+@be.mapInterface(ITr2StateMachineStateFinalizer)
 export class Tr2SyncToAnimation
 {
   /**

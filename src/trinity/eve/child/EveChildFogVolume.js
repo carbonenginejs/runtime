@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.cpp
@@ -58,9 +59,13 @@ function createFroxelFogSettings()
  * override, its strength driven by how deeply the camera sits inside the volumes
  * it owns.
  */
-@blue.define("EveChildFogVolume")
+@be.define("EveChildFogVolume")
 @blue.inherit(IInitialize)
-@blue.interface(ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
+@be.mapInterface(ITr2FroxelFogSettings)
+@be.mapInterface(EveEntity)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(IInitialize)
 @blue.inherit(ITr2DebugRenderable)
 export class EveChildFogVolume extends ITr2FroxelFogSettings
 {

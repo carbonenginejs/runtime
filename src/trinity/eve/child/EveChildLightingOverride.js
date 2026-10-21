@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.cpp
 import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
@@ -24,10 +25,15 @@ const DEBUG_TRANSFORM = mat4.create();
  * lighting, its blend strength driven by how deeply the camera sits inside the
  * volumes it owns.
  */
-@blue.define("EveChildLightingOverride")
+@be.define("EveChildLightingOverride")
 @blue.inherit(IEveLightingOverride)
 @blue.inherit(IInitialize)
-@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IEveLightingOverride, IInitialize, ITr2DebugRenderable)
+@be.mapInterface(EveEntity)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(IEveLightingOverride)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2DebugRenderable)
 @blue.inherit(ITr2DebugRenderable)
 export class EveChildLightingOverride extends EveChildTransform
 {

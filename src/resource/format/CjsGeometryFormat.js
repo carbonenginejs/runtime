@@ -115,4 +115,4 @@ export class CjsGeometryFormat extends CjsFormat
 
 }
 
-CjsSchema.meta.define(CjsGeometryFormat, { className: "CjsGeometryFormat" });
+CjsSchema.meta.define("CjsGeometryFormat")(CjsGeometryFormat);

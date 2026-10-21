@@ -889,4 +889,4 @@ function SchemaError(message)
 
 export default CjsFsd64SchemaDecoder;
 
-CjsSchema.meta.define(CjsFsd64SchemaDecoder, { className: "CjsFsd64SchemaDecoder" });
+CjsSchema.meta.define("CjsFsd64SchemaDecoder")(CjsFsd64SchemaDecoder);

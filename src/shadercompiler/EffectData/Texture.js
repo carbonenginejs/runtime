@@ -65,9 +65,5 @@ export class Texture
     });
 }
 
-CjsSchema.blue.define(Texture, {
-    className: "Texture",
-    methods: {
-        Equals: [meta.renamed("operator==")]
-    }
-});
+CjsSchema.decorateMethod(Texture, "Equals", meta.renamed("operator=="));
+CjsSchema.meta.carbon("Texture")(Texture);

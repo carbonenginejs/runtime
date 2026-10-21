@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
@@ -13,7 +14,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * back to the object center or onto a locator chosen from a named set or from
  * the last damage-locator hit.
  */
-@blue.define("Tr2ActionResetClipSphereCenter")
+@be.define("Tr2ActionResetClipSphereCenter")
 export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 {
   /** Named locator set the CUSTOM mode reads.
@@ -108,4 +109,4 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionResetClipSphereCenter_Blue.cpp:21-22,26).
-blue.interface(ITr2ControllerAction)(Tr2ActionResetClipSphereCenter);
+CjsSchema.exposure.mapInterface(ITr2ControllerAction)(Tr2ActionResetClipSphereCenter);

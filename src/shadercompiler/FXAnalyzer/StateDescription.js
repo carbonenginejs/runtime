@@ -38,6 +38,4 @@ export class StateDescription
     });
 }
 
-CjsSchema.blue.define(StateDescription, {
-    className: "StateDescription"
-});
+CjsSchema.meta.carbon("StateDescription")(StateDescription);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable_Blue.cpp
@@ -11,9 +12,10 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * controller variable on a different object, named by destinationOwner among the
  * owner's binding roots.
  */
-@blue.define("Tr2ActionSetExternalControllerVariable")
+@be.define("Tr2ActionSetExternalControllerVariable")
 @blue.inherit(INotify)
-@blue.interface(ITr2ControllerAction, INotify)
+@be.mapInterface(ITr2ControllerAction)
+@be.mapInterface(INotify)
 export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 {
   /**

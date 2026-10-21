@@ -1173,4 +1173,4 @@ function decodeD3I1K8uC8u(c)
   return decodeD3I1u(c);
 }
 
-CjsSchema.meta.define(CjsGrannyCurves, { className: "CjsGrannyCurves" });
+CjsSchema.meta.define("CjsGrannyCurves")(CjsGrannyCurves);

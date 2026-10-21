@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetVisualizationMode.cpp
 import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
@@ -8,9 +9,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that switches a renderer object into a debug visualization mode for the
  * remainder of the frame.
  */
-@blue.define("TriStepSetVisualizationMode")
-@blue.interface()
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetVisualizationMode")
+
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetVisualizationMode extends TriRenderStep
 {
   @blue.readwrite

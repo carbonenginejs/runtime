@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/TriSequencer.h
 // Source: trinity/trinity/TriSequencer.cpp
@@ -14,7 +16,7 @@ import { carbonPerlin1D } from "#math/noise";
  * [offset, offset + scale] and advancing at `speed` from a per-instance random
  * phase.
  */
-@blue.define("TriPerlinCurve")
+@be.define("TriPerlinCurve")
 export class TriPerlinCurve extends ITriScalarFunction
 {
   /**
@@ -205,4 +207,5 @@ export class TriPerlinCurve extends ITriScalarFunction
 }
 
 // Source: TriSequencer_Blue.cpp:110-112,178. No ancestor exposure chain.
-blue.interface(ITriFunction, ITriScalarFunction)(TriPerlinCurve);
+CjsSchema.exposure.mapInterface(ITriFunction)(TriPerlinCurve);
+CjsSchema.exposure.mapInterface(ITriScalarFunction)(TriPerlinCurve);

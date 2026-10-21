@@ -2,7 +2,7 @@
 import { meta, blue } from "#schema";
 
 /** Native weak-owner multicast event. JavaScript passes template method arguments explicitly. */
-@blue.define("Tr2Event")
+@meta.carbon("Tr2Event")
 export class Tr2Event
 {
   listeners = [];

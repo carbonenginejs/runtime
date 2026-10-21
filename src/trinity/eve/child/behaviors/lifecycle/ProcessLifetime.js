@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
 import { INotify } from "../../../../../global/blue/INotify.js";
@@ -27,10 +28,12 @@ const FORCE_OFFSET = vec3.create();
 const SPAWN_POSITION = vec3.create();
 
 /** ProcessLifetime (eve/child/behaviors) - generated from schema shapeHash 1fd3ebfa.... */
-@blue.define("ProcessLifetime")
+@be.define("ProcessLifetime")
 @blue.inherit(IInitialize)
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior, INotify, IInitialize)
+@be.mapInterface(IBehavior)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class ProcessLifetime
 {
   static ProcessPriority = ProcessPriority;

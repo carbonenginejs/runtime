@@ -1427,35 +1427,31 @@ export class HostBitmap extends BitmapDimensions
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.blue.define(HostBitmap, {
-  className: "HostBitmap",
-  methods: {
-    Create: [ blue.method ],
-    Create2DArray: [ blue.method ],
-    CreateCube: [ blue.method ],
-    CreateVolume: [ blue.method ],
-    CreateFromBitmapDimensions: [ blue.method ],
-    IsValid: [ blue.method ],
-    Destroy: [ blue.method ],
-    ChangeFormat: [ blue.method ],
-    ConvertFormat: [ blue.method ],
-    GetMipRawData: [ blue.method, meta.adapted ],
-    GetPitch: [ blue.method ],
-    GetRawData: [ blue.method, meta.adapted ],
-    GetRawDataSize: [ blue.method ],
-    GetArrayElementSize: [ blue.method ],
-    PopulateMargin: [ blue.method ],
-    CopyChannel: [ blue.method ],
-    Downsample2x2: [ blue.method ],
-    Crop: [ blue.method ],
-    RotateFaceClockwise: [ blue.method ],
-    ConvertCrossmapToCubemap: [ blue.method ],
-    ConvertToVolume: [ blue.method ],
-    GenerateMipMaps: [ blue.method ],
-    DropMipMaps: [ blue.method ],
-    GetAverageColor: [ blue.method, meta.adapted ],
-    GetPixel: [ blue.method, meta.adapted ],
-    _CheckForMatch: [ blue.method, meta.renamed("CheckForMatch"), meta.adapted ],
-    _GenerateMipLevel: [ blue.method, meta.renamed("GenerateMipLevel") ]
-  }
-});
+CjsSchema.decorateMethod(HostBitmap, "Create", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "Create2DArray", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "CreateCube", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "CreateVolume", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "CreateFromBitmapDimensions", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "IsValid", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "Destroy", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "ChangeFormat", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "ConvertFormat", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "GetMipRawData", blue.method, meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "GetPitch", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "GetRawData", blue.method, meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "GetRawDataSize", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "GetArrayElementSize", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "PopulateMargin", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "CopyChannel", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "Downsample2x2", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "Crop", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "RotateFaceClockwise", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "ConvertCrossmapToCubemap", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "ConvertToVolume", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "GenerateMipMaps", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "DropMipMaps", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "GetAverageColor", blue.method, meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "GetPixel", blue.method, meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "_CheckForMatch", blue.method, meta.renamed("CheckForMatch"), meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "_GenerateMipLevel", blue.method, meta.renamed("GenerateMipLevel"));
+CjsSchema.meta.carbon("HostBitmap")(HostBitmap);

@@ -76,7 +76,7 @@ const s_buffers = {
  * A named procedural vertex or index allocation shared by every holder of the
  * same name, made once a device exists.
  */
-@blue.define("Tr2ProceduralBuffer")
+@meta.carbon("Tr2ProceduralBuffer")
 export class Tr2ProceduralBuffer
 {
   /** m_resource (h:19): the registry entry every same-named buffer shares. */

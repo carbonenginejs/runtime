@@ -14,10 +14,6 @@ export class Tr2TexturePipelineParams
 
 }
 
-CjsSchema.blue.define(Tr2TexturePipelineParams, {
-  className: "Tr2TexturePipelineParams",
-  fields: {
-    maxWidth: type.uint32,
-    maxHeight: type.uint32
-  }
-});
+CjsSchema.decorateField(Tr2TexturePipelineParams, "maxWidth", type.uint32);
+CjsSchema.decorateField(Tr2TexturePipelineParams, "maxHeight", type.uint32);
+CjsSchema.meta.carbon("Tr2TexturePipelineParams")(Tr2TexturePipelineParams);

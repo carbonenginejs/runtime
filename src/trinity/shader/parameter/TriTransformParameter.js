@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/TriTransformParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
@@ -10,8 +11,8 @@ import { TRITRANSFORMBASE } from "#consts/graphics";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** Composes authored translation, rotation, scale, and transform-base state into the matrix uploaded to a shader constant. */
-@blue.define("TriTransformParameter")
-@blue.interface(ITriEffectParameter)
+@be.define("TriTransformParameter")
+@be.mapInterface(ITriEffectParameter)
 export class TriTransformParameter extends CjsParameter
 {
 

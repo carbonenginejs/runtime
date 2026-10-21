@@ -792,4 +792,4 @@ export function hintCffGlyph(cff, glyph, scales, bluesCache)
     return { path: out, advanceWidth };
 }
 
-CjsSchema.meta.define(HintMap, { className: "HintMap" });
+CjsSchema.meta.define("HintMap")(HintMap);

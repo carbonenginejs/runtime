@@ -5,7 +5,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { IList } from "#blue/IList";
 import { INotify } from "#blue/INotify";
 import { ISimTimeRebaseNotify } from "#blue/ISimTimeRebaseNotify";
-import { be, CcpTime } from "#blue";
+import { blue as be, CcpTime } from "#blue";
 import { TriValueBinding } from "./TriValueBinding.js";
 
 

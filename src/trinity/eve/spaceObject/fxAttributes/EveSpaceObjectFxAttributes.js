@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.cpp
 import { meta, type, blue } from "#schema";
@@ -70,8 +71,8 @@ function RotationQuaternion(out, matrix)
  * active turret and kill counts - refreshed each child update for effect
  * bindings to read.
  */
-@blue.define("EveSpaceObjectFxAttributes")
-@blue.interface(IEveFxAttribute)
+@be.define("EveSpaceObjectFxAttributes")
+@be.mapInterface(IEveFxAttribute)
 export class EveSpaceObjectFxAttributes extends IEveFxAttribute
 {
 

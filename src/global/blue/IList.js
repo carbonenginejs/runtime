@@ -100,4 +100,4 @@ for (const name of [ "GetSize", "GetInfo", "Insert", "Remove", "Append", "GetAt"
 {
   CjsSchema.decorateMethod(IList, name, blue.abstract);
 }
-CjsSchema.blue.define(IList, { className: "IList", fields: {} });
+CjsSchema.exposure.interface("IList")(IList);

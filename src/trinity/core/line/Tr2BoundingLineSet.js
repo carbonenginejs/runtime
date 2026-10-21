@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2BoundingLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta, type, blue } from "#schema";
@@ -6,8 +7,8 @@ import { Tr2LineSet } from "./Tr2LineSet.js";
 import { vec3 } from "#math/vec3";
 
 /** A line set that draws an axis-aligned bounding box and its picking volume. */
-@blue.define("Tr2BoundingLineSet")
-@blue.chainTo(Tr2LineSet)
+@be.define("Tr2BoundingLineSet")
+@be.exposureChainTo(Tr2LineSet)
 export class Tr2BoundingLineSet extends Tr2LineSet
 {
 

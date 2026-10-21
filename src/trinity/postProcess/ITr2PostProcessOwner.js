@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/ITr2PostProcessOwner.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPostProcessVolume_Blue.cpp:9 (BLUE_DEFINE_INTERFACE)
 //
@@ -12,7 +13,7 @@ import { blue } from "#schema";
  * Carbon ITr2PostProcessOwner (ITr2PostProcessOwner.h:8-13): an object that
  * supplies post-process attributes for the scene to blend.
  */
-@blue.define("ITr2PostProcessOwner")
+@be.interface("ITr2PostProcessOwner")
 @blue.inherit(IRoot)
 export class ITr2PostProcessOwner
 {

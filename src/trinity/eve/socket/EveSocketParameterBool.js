@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
@@ -5,8 +6,8 @@ import { meta, type, blue } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named boolean socket value to external parameters, capturing and restoring each binding's previous value. */
-@blue.define("EveSocketParameterBool")
-@blue.interface(IEveSocketParameter)
+@be.define("EveSocketParameterBool")
+@be.mapInterface(IEveSocketParameter)
 export class EveSocketParameterBool extends EveSocketParameterBindingBase
 {
 

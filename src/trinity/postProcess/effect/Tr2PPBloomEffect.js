@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPBloomEffect.h
 import { vec4 } from "#math/vec4";
 import { type, blue } from "#schema";
@@ -9,9 +10,9 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
  * size scale, luminance thresholding, and the grime texture overlaid on the
  * result.
  */
-@blue.define("Tr2PPBloomEffect")
-@blue.chainTo(Tr2PPEffect)
-@blue.interface(Tr2PPEffect)
+@be.define("Tr2PPBloomEffect")
+@be.exposureChainTo(Tr2PPEffect)
+@be.mapInterface(Tr2PPEffect)
 export class Tr2PPBloomEffect extends Tr2PPEffect
 {
   @blue.readwrite

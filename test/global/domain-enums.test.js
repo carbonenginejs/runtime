@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 
 // Existing public definitions and class-static aliases must acquire the name
 // used by schema without copying values or adding any member: the registry
@@ -264,8 +264,8 @@ test("definition-site enum identity: " + name, async () =>
   let values = module;
   for (const member of exported.split(".")) values = values[member];
   assert.equal(typeof values, "object");
-  assert.equal(be.enums.Get(name), values);
-  assert.equal(be.enums.GetEnumName(values), name);
+  assert.equal(blue.enums.Get(name), values);
+  assert.equal(blue.enums.GetEnumName(values), name);
   assert.deepEqual(Reflect.ownKeys(values), Object.keys(values));
   assert.equal(Object.isFrozen(values), true);
   const persisted = JSON.parse(JSON.stringify(values));

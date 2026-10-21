@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.h
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp
@@ -13,9 +14,11 @@ import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
  * expressions re-evaluated on every sample, with optional cycling and reversed
  * playback over the key range.
  */
-@blue.define("Tr2ScalarExprKeyCurve")
+@be.define("Tr2ScalarExprKeyCurve")
 @blue.inherit(IInitialize, ITriCurveLength)
-@blue.interface(ITriFunction, IInitialize, ITriCurveLength)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITriCurveLength)
 export class Tr2ScalarExprKeyCurve extends ITriFunction
 {
   /**

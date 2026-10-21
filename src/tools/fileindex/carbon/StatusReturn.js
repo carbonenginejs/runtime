@@ -19,7 +19,6 @@ export class StatusReturn
     }
 }
 
-CjsSchema.blue.define(StatusReturn, { className: "StatusReturn", fields: {
-        progress: [type.float32],
-        scale: [type.float32]
-    } });
+CjsSchema.decorateField(StatusReturn, "progress", type.float32);
+CjsSchema.decorateField(StatusReturn, "scale", type.float32);
+CjsSchema.meta.carbon("StatusReturn")(StatusReturn);

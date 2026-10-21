@@ -15,7 +15,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 import { CreateLodAllocations } from "./TriGeometryResAllocations.js";
-import { IsMatch, be, EnumRegistrationType } from "#blue";
+import { IsMatch, blue as be, EnumRegistrationType } from "#blue";
 
 
 /**

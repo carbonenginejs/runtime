@@ -3,7 +3,7 @@ import test from "node:test";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { YamlWriter, BeObjectMetadata, be } from "../../npm/dist/global/blue/index.js";
+import { YamlWriter, BeObjectMetadata, blue } from "../../npm/dist/global/blue/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "../../npm/dist/global/blue/dictionaryDeclarations.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
@@ -82,9 +82,9 @@ const build = process.env.YAML_WRITER_RESOURCE_BUILD;
 test("native YamlReader round trip on the writer's real resources", {
   skip: !service || !build ? "set YAML_WRITER_RESOURCE_SERVICE and YAML_WRITER_RESOURCE_BUILD" : false
 }, async t => {
-  const previous = be.resMan;
-  be.resMan = new StubResMan();
-  t.after(() => { be.resMan = previous; });
+  const previous = blue.resMan;
+  blue.resMan = new StubResMan();
+  t.after(() => { blue.resMan = previous; });
   for (const path of [
     "dx9/model/ship/iconpreview/previewturretship.black",
     "dx9/model/ship/angel/battlecruiser/angbc1/effects/angbc1_t1_fx_01a.black",
@@ -120,8 +120,8 @@ test("native reader private references are processed in place and reported only 
   const summary = { files: 0, read: 0, written: 0, reread: 0, readFailures: 0, writeFailures: 0,
     rereadFailures: 0, memberMismatchFiles: 0, numericChangeFiles: 0,
     typedAssignmentFailures: 0, eventFailures: 0, unsupportedStorageFailures: 0, otherReadFailures: 0 };
-  const previous = be.resMan;
-  be.resMan = new StubResMan();
+  const previous = blue.resMan;
+  blue.resMan = new StubResMan();
   const saved = { log: console.log, warn: console.warn, error: console.error, info: console.info, debug: console.debug };
   for (const key of Object.keys(saved)) console[key] = () => {};
   try
@@ -152,7 +152,7 @@ test("native reader private references are processed in place and reported only 
       if (result.numericChanges) ++summary.numericChangeFiles;
     }
   }
-  finally { be.resMan = previous; Object.assign(console, saved); }
+  finally { blue.resMan = previous; Object.assign(console, saved); }
   t.diagnostic(JSON.stringify(summary));
   assert.ok(summary.files > 0, "private input inventory must not silently be empty");
   assert.equal(summary.readFailures + summary.writeFailures + summary.rereadFailures + summary.memberMismatchFiles, 0,

@@ -45,4 +45,4 @@ export class AudioMetadata
   }
 }
 
-CjsSchema.blue.define(AudioMetadata, { className: "AudioMetadata" });
+CjsSchema.meta.carbon("AudioMetadata")(AudioMetadata);

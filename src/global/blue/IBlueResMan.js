@@ -162,4 +162,4 @@ for (const method of [
   CjsSchema.decorateMethod(IBlueResMan, method, blue.abstract);
 }
 
-CjsSchema.blue.define(IBlueResMan, { className: "IBlueResMan", fields: {} });
+CjsSchema.exposure.interface("IBlueResMan")(IBlueResMan);

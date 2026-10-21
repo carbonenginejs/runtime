@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveModularObjectModifier.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveModularObjectModifier.cpp
@@ -15,7 +16,7 @@ import { Tr2QuadRenderer } from "../core/Tr2QuadRenderer/Tr2QuadRenderer.js";
 
 
 /** Transient edit session for one modular EveSpaceObject2. */
-@blue.define("EveModularObjectModifier")
+@be.define("EveModularObjectModifier")
 @blue.inherit(IRoot)
 export class EveModularObjectModifier
 {

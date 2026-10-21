@@ -115,4 +115,4 @@ export class CjsGraphFormat extends CjsFormat
 }
 import { CjsFormat } from "../../format/CjsFormat.js";
 
-CjsSchema.meta.define(CjsGraphFormat, { className: "CjsGraphFormat" });
+CjsSchema.meta.define("CjsGraphFormat")(CjsGraphFormat);

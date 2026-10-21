@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget.cpp
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget_Blue.cpp
@@ -13,9 +14,9 @@ import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
  * Step describing a copy out of one render target into another render target or
  * into a texture resource, including the source and destination sub-rectangles.
  */
-@blue.define("TriStepCopyRenderTarget")
-@blue.interface()
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepCopyRenderTarget")
+
+@be.exposureChainTo(TriRenderStep)
 export class TriStepCopyRenderTarget extends TriRenderStep
 {
   @blue.readwrite

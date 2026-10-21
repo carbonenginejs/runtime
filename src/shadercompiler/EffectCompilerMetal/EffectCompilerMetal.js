@@ -4940,10 +4940,6 @@ export function CjsFxWithMessages(messages, body)
     }
 }
 
-CjsSchema.blue.define(EffectCompilerMetal, {
-    className: "EffectCompilerMetal",
-    methods: {
-        Create: [blue.method, meta.adapted],
-        CompileEffect: [blue.method, meta.adapted]
-    }
-});
+CjsSchema.decorateMethod(EffectCompilerMetal, "Create", blue.method, meta.adapted);
+CjsSchema.decorateMethod(EffectCompilerMetal, "CompileEffect", blue.method, meta.adapted);
+CjsSchema.meta.carbon("EffectCompilerMetal")(EffectCompilerMetal);

@@ -33,7 +33,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
  * transforms, and the rules by which a child's world transform is derived from
  * its parent's each frame.
  */
-@blue.define("EveChildTransform")
+@meta.carbon("EveChildTransform")
 export class EveChildTransform extends EveSpaceObjectChild
 {
   @type.vec3

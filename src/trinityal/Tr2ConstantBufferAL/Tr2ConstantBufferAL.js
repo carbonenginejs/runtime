@@ -255,4 +255,4 @@ export class Tr2ConstantBufferAL
 
 CjsSchema.decorateField(Tr2ConstantBufferAL, "_buffer", type.unknown);
 CjsSchema.decorateMethod(Tr2ConstantBufferAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2ConstantBufferAL, { className: "Tr2ConstantBufferAL" });
+CjsSchema.meta.carbon("Tr2ConstantBufferAL")(Tr2ConstantBufferAL);

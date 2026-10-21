@@ -26,7 +26,6 @@ export class ParameterContext
     }
 }
 
-CjsSchema.blue.define(ParameterContext, { className: "ParameterContext", fields: {
-        context: [type.string]
-    } });
+CjsSchema.decorateField(ParameterContext, "context", type.string);
+CjsSchema.meta.carbon("ParameterContext")(ParameterContext);
 

@@ -41,4 +41,4 @@ export class VideoFrame
   }
 }
 
-CjsSchema.blue.define(VideoFrame, { className: "VideoFrame" });
+CjsSchema.meta.carbon("VideoFrame")(VideoFrame);

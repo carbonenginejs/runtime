@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclarationName.json).
 import { type, blue, meta } from "#schema";
-import { be, EnumRegistrationType } from "#blue";
+import { blue as be, EnumRegistrationType } from "#blue";
 
 /** Tr2ParticleElementDeclarationName (particle) - generated from schema shapeHash 115c80e5.... */
-@blue.define("Tr2ParticleElementDeclarationName")
+@meta.carbon("Tr2ParticleElementDeclarationName")
 export class Tr2ParticleElementDeclarationName
 {
 

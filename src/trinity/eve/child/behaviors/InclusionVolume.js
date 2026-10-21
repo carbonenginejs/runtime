@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.cpp
 import { IBehavior } from "./IBehavior.js";
@@ -15,9 +16,9 @@ const NO_FORCES = [];
  * Drone behavior that pulls agents back toward the inclusion volumes once they
  * drift into the falloff shell; agents fully inside feel no force.
  */
-@blue.define("InclusionVolume")
+@be.define("InclusionVolume")
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.mapInterface(IBehavior)
 export class InclusionVolume
 {
 

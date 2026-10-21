@@ -3,7 +3,7 @@ import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwn
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
+import { blue, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
@@ -55,7 +55,7 @@ test("PlayCurveSet retains nominal updateability without adding a native query e
 test("PlayCurveSet unregisters before stopping and retains frame-clock transition windows", t =>
 {
   let ticks = 100000000;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => ticks);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => ticks);
   const calls = [], updates = new Set();
   const action = new Tr2ActionPlayCurveSet();
   action.curveSetName = "warp";

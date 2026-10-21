@@ -19,4 +19,4 @@ for (const method of ["GetObserver", "SetObserver"])
 {
   CjsSchema.decorateMethod(ITriObserverLocal, method, blue.abstract);
 }
-CjsSchema.blue.define(ITriObserverLocal, { className: "ITriObserverLocal", fields: {} });
+CjsSchema.exposure.interface("ITriObserverLocal")(ITriObserverLocal);

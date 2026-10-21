@@ -53,4 +53,4 @@ for (const method of [
   CjsSchema.decorateMethod(IEveSmartLightGroup, method, blue.method, meta.noop);
 }
 CjsSchema.blue.inherit(IRoot)(IEveSmartLightGroup);
-CjsSchema.blue.define(IEveSmartLightGroup, { className: "IEveSmartLightGroup" });
+CjsSchema.exposure.interface("IEveSmartLightGroup")(IEveSmartLightGroup);

@@ -101,9 +101,5 @@ export class MetalSystemSemanticsType
     });
 }
 
-CjsSchema.blue.define(MetalSystemSemanticsType, {
-    className: "MetalSystemSemanticsType",
-    methods: {
-        getString: [meta.renamed("GetString")]
-    }
-});
+CjsSchema.decorateMethod(MetalSystemSemanticsType, "getString", meta.renamed("GetString"));
+CjsSchema.meta.carbon("MetalSystemSemanticsType")(MetalSystemSemanticsType);

@@ -268,4 +268,4 @@ export class CjsFsd64Format extends CjsFormat
 
 export default CjsFsd64Format;
 
-CjsSchema.meta.define(CjsFsd64Format, { className: "CjsFsd64Format" });
+CjsSchema.meta.define("CjsFsd64Format")(CjsFsd64Format);

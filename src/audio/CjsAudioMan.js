@@ -2194,4 +2194,4 @@ function DecodeAudioData(context, bytes)
     });
 }
 
-CjsSchema.meta.define(CjsAudioMan, { className: "CjsAudioMan" });
+CjsSchema.meta.define("CjsAudioMan")(CjsAudioMan);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2SolidSet.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -18,10 +19,11 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 
 /** A set of coloured triangles with a running centre of mass, submitted as one buffer. */
-@blue.define("Tr2SolidSet")
+@be.define("Tr2SolidSet")
 @blue.inherit(IInitialize)
-@blue.interface(IInitialize, Tr2PrimitiveSet)
-@blue.chainTo(Tr2PrimitiveSet)
+@be.mapInterface(IInitialize)
+@be.mapInterface(Tr2PrimitiveSet)
+@be.exposureChainTo(Tr2PrimitiveSet)
 export class Tr2SolidSet extends Tr2PrimitiveSet
 {
 

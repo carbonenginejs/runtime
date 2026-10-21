@@ -792,7 +792,7 @@ function getPayloadMemoryUsage(payload)
 // Declared as data rather than with decorators, so the resource tree loads from
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
-CjsSchema.blue.interface(TriTextureRes)(TriTextureRes);
+
 CjsSchema.blue.define(TriTextureRes, {
   className: "TriTextureRes",
   fields: {
@@ -863,4 +863,4 @@ CjsSchema.blue.define(TriTextureRes, {
   }
 });
 blue.inherit(ICacheable)(TriTextureRes, { kind: "class" });
-blue.interface(ICacheable)(TriTextureRes);
+CjsSchema.exposure.mapInterface(ICacheable)(TriTextureRes);

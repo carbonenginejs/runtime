@@ -809,26 +809,22 @@ function byteAddressLoad(method, returnType)
     return true;
 }
 
-CjsSchema.blue.define(Type, {
-    className: "Type",
-    methods: {
-        Equals: [meta.renamed("operator==")],
-        FromToken: [blue.method],
-        FromTokenType: [blue.method],
-        FromSymbol: [blue.method],
-        IsScalar: [blue.method],
-        IsVector: [blue.method],
-        IsMatrix: [blue.method],
-        IsStruct: [blue.method],
-        IsBindlessHandle: [blue.method],
-        IsScalarOrVector: [blue.method],
-        IsTexture: [blue.method],
-        IsTextureArray: [blue.method],
-        IsSampler: [blue.method],
-        IsBuffer: [blue.method],
-        GetMethodType: [blue.method],
-        ToString: [blue.method],
-        CanImplicitCast: [blue.method],
-        GetIndexedType: [blue.method]
-    }
-});
+CjsSchema.decorateMethod(Type, "Equals", meta.renamed("operator=="));
+CjsSchema.decorateMethod(Type, "FromToken", blue.method);
+CjsSchema.decorateMethod(Type, "FromTokenType", blue.method);
+CjsSchema.decorateMethod(Type, "FromSymbol", blue.method);
+CjsSchema.decorateMethod(Type, "IsScalar", blue.method);
+CjsSchema.decorateMethod(Type, "IsVector", blue.method);
+CjsSchema.decorateMethod(Type, "IsMatrix", blue.method);
+CjsSchema.decorateMethod(Type, "IsStruct", blue.method);
+CjsSchema.decorateMethod(Type, "IsBindlessHandle", blue.method);
+CjsSchema.decorateMethod(Type, "IsScalarOrVector", blue.method);
+CjsSchema.decorateMethod(Type, "IsTexture", blue.method);
+CjsSchema.decorateMethod(Type, "IsTextureArray", blue.method);
+CjsSchema.decorateMethod(Type, "IsSampler", blue.method);
+CjsSchema.decorateMethod(Type, "IsBuffer", blue.method);
+CjsSchema.decorateMethod(Type, "GetMethodType", blue.method);
+CjsSchema.decorateMethod(Type, "ToString", blue.method);
+CjsSchema.decorateMethod(Type, "CanImplicitCast", blue.method);
+CjsSchema.decorateMethod(Type, "GetIndexedType", blue.method);
+CjsSchema.meta.carbon("Type")(Type);

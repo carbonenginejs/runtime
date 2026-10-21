@@ -5264,7 +5264,7 @@ function createExtensionTargetError(resource, message, cause = null)
 // The Cjs prefix identifies browser adaptations (workers, fetch and routes);
 // carbon metadata identifies the native service whose responsibility it carries.
 CjsSchema.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
-CjsSchema.blue.interface(IBlueResMan)(CjsBlueResMan);
+CjsSchema.exposure.mapInterface(IBlueResMan)(CjsBlueResMan);
 /**
  * The paths service resMan reads through: Carbon's global `BePaths`.
  *

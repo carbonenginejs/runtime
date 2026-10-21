@@ -10,7 +10,7 @@ import { LightData } from "../../lights/LightData.js";
  * The light one banner contributes, carrying its saturation, light profile and
  * the bone matrix resolved for it each frame.
  */
-@blue.define("EveBannerLight")
+@meta.carbon("EveBannerLight")
 export class EveBannerLight
 {
   @meta.owned

@@ -34,4 +34,4 @@ export class ErrSOFPatternMaterialPrefixNotFound extends Error
   }
 }
 
-CjsSchema.meta.define(ErrSOFPatternMaterialPrefixNotFound, { className: "ErrSOFPatternMaterialPrefixNotFound" });
+CjsSchema.meta.define("ErrSOFPatternMaterialPrefixNotFound")(ErrSOFPatternMaterialPrefixNotFound);

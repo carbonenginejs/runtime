@@ -287,4 +287,4 @@ function Normalize(input) {
 
 export default CjsSchemaBoundFormat;
 
-CjsSchema.meta.define(CjsSchemaBoundFormat, { className: "CjsSchemaBoundFormat" });
+CjsSchema.meta.define("CjsSchemaBoundFormat")(CjsSchemaBoundFormat);

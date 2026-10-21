@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2GrannyVectorTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyVectorTrack.cpp
 import { meta, type, blue } from "#schema";
@@ -9,8 +10,8 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
  * Granny track that samples a named one-dimensional vector track and exposes it
  * as a scalar value.
  */
-@blue.define("Tr2GrannyVectorTrack")
-@blue.chainTo(Tr2GrannyTrack)
+@be.define("Tr2GrannyVectorTrack")
+@be.exposureChainTo(Tr2GrannyTrack)
 export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 {
   @blue.read

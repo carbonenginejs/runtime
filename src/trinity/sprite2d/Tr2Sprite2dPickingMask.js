@@ -7,7 +7,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // 2026-09-06.
 import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */

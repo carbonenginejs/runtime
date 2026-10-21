@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Shader/Tr2ShaderBuffer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -10,9 +11,9 @@ const EMPTY_DATA = new Uint8Array(0); // alloc: shared empty byte payload, never
 
 
 /** Owns a detached byte payload and binds it at the selected stage's per-object register. */
-@blue.define("Tr2ShaderBuffer")
+@be.define("Tr2ShaderBuffer")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class Tr2ShaderBuffer
 {
 

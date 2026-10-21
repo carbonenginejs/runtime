@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriLineSet.h
 // Source: trinity/trinity/TriLineSet.cpp
@@ -19,9 +20,9 @@ const MAX_VERTICES = 100000;
 
 
 /** A debug line set that builds boxes, spheres, cylinders and cones out of coloured line segments. */
-@blue.define("TriLineSet")
+@be.define("TriLineSet")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class TriLineSet
 {
 

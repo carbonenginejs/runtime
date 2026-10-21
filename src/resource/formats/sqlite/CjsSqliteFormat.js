@@ -311,4 +311,4 @@ function Normalize(input) {
 
 export default CjsSqliteFormat;
 
-CjsSchema.meta.define(CjsSqliteFormat, { className: "CjsSqliteFormat" });
+CjsSchema.meta.define("CjsSqliteFormat")(CjsSqliteFormat);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.h
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp
@@ -22,9 +23,10 @@ import { Type } from "../enums.js";
  * marks changes; it does not evaluate expressions or clear consumed dirty bits.
  * The destination storage remains caller-owned.
  */
-@blue.define("Tr2ControllerFloatVariable")
+@be.define("Tr2ControllerFloatVariable")
 @blue.inherit(INotify)
-@blue.interface(IInitialize, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2ControllerFloatVariable extends IInitialize
 {
   /** Authored variable name. */

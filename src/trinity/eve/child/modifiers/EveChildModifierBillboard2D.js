@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard2D.cpp
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { meta, blue } from "#schema";
@@ -8,8 +9,8 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * Transform modifier that aligns a child to the screen plane, leaving it facing
  * the viewer whatever the camera does.
  */
-@blue.define("EveChildModifierBillboard2D")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierBillboard2D")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierBillboard2D extends IEveChildTransformModifier
 {
   /**

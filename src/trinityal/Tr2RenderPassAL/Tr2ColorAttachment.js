@@ -37,4 +37,4 @@ export class Tr2ColorAttachment
 CjsSchema.decorateField(Tr2ColorAttachment, "load", type.int32);
 CjsSchema.decorateField(Tr2ColorAttachment, "store", type.int32);
 CjsSchema.decorateField(Tr2ColorAttachment, "clearColor", type.uint32);
-CjsSchema.blue.define(Tr2ColorAttachment, { className: "Tr2ColorAttachment" });
+CjsSchema.meta.carbon("Tr2ColorAttachment")(Tr2ColorAttachment);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: blue/src/YamlReader.h
 // Source: blue/src/YamlReader.cpp
 // Source: blue/src/YamlReader_Blue.cpp
@@ -27,8 +28,10 @@ import * as CcpLog from "../logging/ccpLog.js";
  * Object values are exported separately by the Blue values service.
  */
 @blue.inherit(IRootReaderBase)
-@blue.interface(IRootReader, IBlueObjectBuilder, ICacheable)
-@blue.define("YamlReader")
+@be.mapInterface(IRootReader)
+@be.mapInterface(IBlueObjectBuilder)
+@be.mapInterface(ICacheable)
+@be.define("YamlReader")
 export class YamlReader extends IRootReaderBase
 {
   _event = null;

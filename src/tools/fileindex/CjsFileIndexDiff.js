@@ -155,4 +155,4 @@ export class CjsFileIndexDiff
 
 }
 
-CjsSchema.meta.define(CjsFileIndexDiff, { className: "CjsFileIndexDiff" });
+CjsSchema.meta.define("CjsFileIndexDiff")(CjsFileIndexDiff);

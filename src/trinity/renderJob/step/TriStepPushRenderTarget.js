@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPushRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepPushRenderTarget.cpp
 import { meta, type, blue } from "#schema";
@@ -6,9 +7,9 @@ import { TriRenderJob } from "../TriRenderJob.js";
 
 
 /** Step that pushes a render target onto the render context's stack for a given slot. */
-@blue.define("TriStepPushRenderTarget")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPushRenderTarget")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPushRenderTarget extends TriRenderStep
 {
   @blue.readwrite

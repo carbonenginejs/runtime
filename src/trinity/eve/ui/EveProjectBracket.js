@@ -4,7 +4,7 @@ import { ITriFunction } from "../../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { meta, type, blue } from "#schema";
-import { be, CjsScriptCallback } from "#blue";
+import { blue as be, CjsScriptCallback } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";

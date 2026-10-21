@@ -202,11 +202,7 @@ function canonicalize(path)
     return head + parts.join("/");
 }
 
-CjsSchema.blue.define(CachingIncludeHandler, {
-    className: "CachingIncludeHandler",
-    methods: {
-        Open: [blue.method],
-        AddPrefix: [blue.method],
-        SetRootPath: [blue.method]
-    }
-});
+CjsSchema.decorateMethod(CachingIncludeHandler, "Open", blue.method);
+CjsSchema.decorateMethod(CachingIncludeHandler, "AddPrefix", blue.method);
+CjsSchema.decorateMethod(CachingIncludeHandler, "SetRootPath", blue.method);
+CjsSchema.meta.carbon("CachingIncludeHandler")(CachingIncludeHandler);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2TextureReference.h
 // Source: trinity/trinity/Tr2TextureReference.cpp
 // Source: trinity/trinity/Tr2TextureReference_Blue.cpp
@@ -14,8 +15,8 @@ import { Tr2TextureAL } from "../../trinityal/Tr2TextureAL/index.js";
  * Holds one engine texture so it can be published through a variable store
  * and observed for replacement.
  */
-@blue.define("Tr2TextureReference")
-@blue.interface(ITr2TextureProvider)
+@be.define("Tr2TextureReference")
+@be.mapInterface(ITr2TextureProvider)
 export class Tr2TextureReference extends ITr2TextureProvider
 {
 

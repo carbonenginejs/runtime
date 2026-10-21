@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepSetRenderTarget.cpp
 import { meta, type, blue } from "#schema";
@@ -9,9 +10,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that binds a render target to slot 0 directly, without touching the
  * render-target stack.
  */
-@blue.define("TriStepSetRenderTarget")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetRenderTarget")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetRenderTarget extends TriRenderStep
 {
   @blue.readwrite

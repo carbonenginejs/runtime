@@ -4,7 +4,7 @@ import { type, blue, meta } from "#schema";
 import { vec3 } from "#math/vec3";
 
 /** SplineTunnelPoint (eve/child/behaviors) - generated from schema shapeHash da3b5246.... */
-@blue.define("SplineTunnelPoint")
+@meta.carbon("SplineTunnelPoint")
 export class SplineTunnelPoint
 {
 

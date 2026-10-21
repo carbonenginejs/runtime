@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
@@ -14,9 +15,10 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
  * A named texture slot fed by a runtime-supplied texture provider rather than an
  * authored res path.
  */
-@blue.define("Tr2RuntimeTextureParameter")
+@be.define("Tr2RuntimeTextureParameter")
 @blue.inherit(ITriEffectResourceParameter, INotify)
-@blue.interface(ITriEffectResourceParameter, INotify)
+@be.mapInterface(ITriEffectResourceParameter)
+@be.mapInterface(INotify)
 export class Tr2RuntimeTextureParameter extends CjsParameter
 {
   @blue.notify

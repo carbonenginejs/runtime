@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMapParameter.h
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
@@ -6,9 +7,10 @@ import { meta, type, blue } from "#schema";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodAttributeMapParameter (eve/child/procedural/selection) - generated from schema shapeHash 5880f54c.... */
-@blue.define("EveProceduralMethodAttributeMapParameter")
+@be.define("EveProceduralMethodAttributeMapParameter")
 @blue.inherit(INotify, IInitialize)
-@blue.interface(INotify, IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class EveProceduralMethodAttributeMapParameter
 {
 

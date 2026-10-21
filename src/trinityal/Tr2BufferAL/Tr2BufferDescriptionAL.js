@@ -92,4 +92,4 @@ CjsSchema.decorateField(Tr2BufferDescriptionAL, "stride", type.uint32);
 CjsSchema.decorateField(Tr2BufferDescriptionAL, "count", type.uint32);
 CjsSchema.decorateField(Tr2BufferDescriptionAL, "gpuUsage", type.int32);
 CjsSchema.decorateField(Tr2BufferDescriptionAL, "cpuUsage", type.int32);
-CjsSchema.blue.define(Tr2BufferDescriptionAL, { className: "Tr2BufferDescriptionAL" });
+CjsSchema.meta.carbon("Tr2BufferDescriptionAL")(Tr2BufferDescriptionAL);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/EveEffectRoot2.h
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
@@ -39,8 +40,21 @@ import { BLUELISTEVENT } from "#consts/blue";
  * lights, controllers, curve sets and observers that make up an effect not
  * attached to a hull.
  */
-@blue.define("EveEffectRoot2")
-@blue.interface(IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2ControllerOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2LightOwner, ITr2BoundingBox, IWorldPosition, EveEntity)
+@be.define("EveEffectRoot2")
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2SecondaryLightSource)
+@be.mapInterface(ITriTargetable)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(IEveEffectChildrenOwner)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(IShaderConfigurer)
+@be.mapInterface(ITr2SoundEmitterOwner)
+@be.mapInterface(ITr2LightOwner)
+@be.mapInterface(ITr2BoundingBox)
+@be.mapInterface(IWorldPosition)
+@be.mapInterface(EveEntity)
 @blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2SecondaryLightSource, ITriTargetable, ITr2DebugRenderable, ITr2CurveSetOwner, INotify, IListNotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, ITr2LightOwner, ITr2BoundingBox)
 export class EveEffectRoot2 extends EveEntity
 {

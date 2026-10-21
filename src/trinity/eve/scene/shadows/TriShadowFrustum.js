@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 import { blue } from "#schema";
 // Source: trinity/trinity/Eve/IEveShadowCaster.h
 // Methods implemented from IEveShadowCaster.h:107-135 (TriShadowFrustum, the
@@ -9,7 +10,7 @@ import { TriFrustum } from "../../../core/view/TriFrustum.js";
 import { IEveShadowFrustum } from "./IEveShadowFrustum.js";
 
 /** Carbon's native perspective-shadow frustum adapter. */
-@blue.define("TriShadowFrustum")
+@meta.carbon("TriShadowFrustum")
 @blue.inherit(IEveShadowFrustum)
 export class TriShadowFrustum
 {

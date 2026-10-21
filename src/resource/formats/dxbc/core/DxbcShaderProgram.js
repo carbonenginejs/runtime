@@ -137,4 +137,4 @@ export class DxbcShaderProgram
     }
 }
 
-CjsSchema.meta.define(DxbcShaderProgram, { className: "DxbcShaderProgram" });
+CjsSchema.meta.define("DxbcShaderProgram")(DxbcShaderProgram);

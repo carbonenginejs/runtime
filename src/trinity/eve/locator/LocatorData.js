@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -5,7 +6,7 @@ import { type, blue } from "#schema";
 
 
 /** Position and orientation pair handed to seek-target child behaviours. */
-@blue.define("LocatorData")
+@meta.carbon("LocatorData")
 export class LocatorData
 {
   @type.vec3

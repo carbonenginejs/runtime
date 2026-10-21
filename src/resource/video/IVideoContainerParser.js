@@ -79,4 +79,4 @@ export class IVideoContainerParser
   }
 }
 
-CjsSchema.blue.define(IVideoContainerParser, { className: "IVideoContainerParser" });
+CjsSchema.meta.carbon("IVideoContainerParser")(IVideoContainerParser);

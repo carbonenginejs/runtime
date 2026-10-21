@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2DirectInstanceData, Tr2InstancedMesh, Tr2EffectStateManager, Tr2VertexDefinition,
@@ -18,13 +18,13 @@ const client = await clientResources();
 function setup(t)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext();
-  const previous = context.GetRenderContextAL(), manager = be.resMan;
+  const previous = context.GetRenderContextAL(), manager = blue.resMan;
   const registered = new Set(TriDevice.GetResourcesRegistered());
   const al = new Tr2RenderContextALStub();
   al.CreateDevice();
   al.BeginScene();
   context.SetRenderContextAL(al);
-  be.resMan = new StubResMan();
+  blue.resMan = new StubResMan();
   t.after(() =>
   {
     for (const resource of TriDevice.GetResourcesRegistered())
@@ -34,7 +34,7 @@ function setup(t)
       TriDevice.UnregisterResource(resource);
     }
     context.SetRenderContextAL(previous);
-    be.resMan = manager;
+    blue.resMan = manager;
     al.Destroy();
   });
   return { context, al };

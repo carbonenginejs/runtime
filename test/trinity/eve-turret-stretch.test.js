@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
@@ -273,7 +273,7 @@ test("EveTurretTarget bounds the miss queue and switches projectile destination 
   target.SetBehaviour(false, true, 0, EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR);
   // SetShotMissed stamps TimeAsDouble( BeOS->GetActualTime() ) (EveTurretTarget.cpp:407).
   let actual = 0;
-  t.mock.method(be.os, "GetActualTime", () => actual);
+  t.mock.method(blue.os, "GetActualTime", () => actual);
   for (let index = 0; index < 6; index++) { actual = index * 10_000_000; target.SetShotMissed(index % 2 === 0); }
   assert.equal(target.MissQueueSize(), 4);
   assert.equal(target.GetLastShotTime(), 5);

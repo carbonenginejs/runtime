@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
@@ -51,9 +52,12 @@ function colorByte(value)
  * A hull's authored blinking sprites, owning their static and per-bone bounds
  * and the point lights the sprites emit.
  */
-@blue.define("EveSpriteSet")
+@be.define("EveSpriteSet")
 @blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IEveSpaceObjectAttachment)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2LightOwner)
 export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
 

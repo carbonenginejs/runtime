@@ -14,7 +14,7 @@ import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
  * and `isDynamic` are not among them. KeyHasher hashes all of them (see
  * EveInstancedMeshManagerKeyHasher).
  */
-@meta.define({ className: "EveInstancedMeshManagerMeshKey", carbon: "EveInstancedMeshManager::MeshKey" })
+@meta.carbon("EveInstancedMeshManager::MeshKey")
 export class EveInstancedMeshManagerMeshKey
 {
 

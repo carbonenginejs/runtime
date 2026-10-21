@@ -942,4 +942,4 @@ function SetAudioParam(param, value, context)
     }
 }
 
-CjsSchema.meta.define(CjsJukebox, { className: "CjsJukebox" });
+CjsSchema.meta.define("CjsJukebox")(CjsJukebox);

@@ -196,4 +196,4 @@ export class CjsMp3Format extends CjsFormat
 
 export default CjsMp3Format;
 
-CjsSchema.meta.define(CjsMp3Format, { className: "CjsMp3Format" });
+CjsSchema.meta.define("CjsMp3Format")(CjsMp3Format);

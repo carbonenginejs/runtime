@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.h
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
@@ -44,9 +45,10 @@ const LINE_VERTEX_BYTES = TRAIL_VERTEX_DEFINITION.nextOffset[0];
  * Carbon's EveTacticalTrails: fading trails behind registered objects (destiny balls), sampled each frame as control
  * points relative to the ego ball and drawn as a strip of quads with connectors, transparent under RM_ALPHA.
  */
-@blue.define("EveTacticalTrails")
+@be.define("EveTacticalTrails")
 @blue.inherit(IEveSpaceObject2, ITr2Renderable, Tr2DeviceResource)
-@blue.interface(IEveSpaceObject2, ITr2Renderable)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2Renderable)
 export class EveTacticalTrails
 {
   /** m_vertexDeclHandle, interned on first need. */

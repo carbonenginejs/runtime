@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2QuadRenderer.h
 //   trinity/trinity/Tr2QuadRenderer.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -32,7 +33,7 @@ function Lcm(a, b)
 }
 
 /** Collects quads from every registered effect into one merged instance buffer and emits them as batches. */
-@blue.define("Tr2QuadRenderer")
+@be.define("Tr2QuadRenderer")
 export class Tr2QuadRenderer
 {
 

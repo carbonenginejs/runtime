@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Interior/Tr2InteriorConstantBufferFormats.h
 import { type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
@@ -8,7 +9,7 @@ import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2Inter
  * Per-light interior pixel-stage data holding light, mirror, shadow, bounds,
  * and auxiliary parameters.
  */
-@blue.define("Tr2InteriorPerLightPSData")
+@meta.carbon("Tr2InteriorPerLightPSData")
 export class Tr2InteriorPerLightPSData
 {
 

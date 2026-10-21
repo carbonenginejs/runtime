@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
 import { meta, type, blue } from "#schema";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 
 
 const TermType = {
@@ -137,4 +137,4 @@ export class Tr2ExpressionTermInfo
 be.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType);
 
 // Native IRoot record: concrete query identity with no exposure chain.
-blue.interface()(Tr2ExpressionTermInfo);
+

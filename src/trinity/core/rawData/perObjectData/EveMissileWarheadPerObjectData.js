@@ -19,7 +19,7 @@ import { meta, blue } from "#schema";
 /**
  * A warhead's transform block.
  */
-@blue.define("EveMissileWarheadPerObjectData")
+@meta.carbon("EveMissileWarheadPerObjectData")
 export class EveMissileWarheadPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

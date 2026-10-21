@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GStateParameter.h
 import { meta, type, blue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 
 /** Named, node-scoped scalar value for a character GState animation. */
-@blue.define("Tr2GStateParameter")
-@blue.interface(IInitialize)
+@be.define("Tr2GStateParameter")
+@be.mapInterface(IInitialize)
 export class Tr2GStateParameter extends IInitialize
 {
 

@@ -113,7 +113,7 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
   }
 }
 
-CjsSchema.blue.interface(IBlueResFileSystem)(BlueResFileSystemRemote);
+CjsSchema.exposure.mapInterface(IBlueResFileSystem)(BlueResFileSystemRemote);
 CjsSchema.blue.define(BlueResFileSystemRemote, {
   className: "BlueResFileSystemRemote",
   fields: {},

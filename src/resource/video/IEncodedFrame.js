@@ -57,4 +57,4 @@ export class IEncodedFrame
   }
 }
 
-CjsSchema.blue.define(IEncodedFrame, { className: "IEncodedFrame" });
+CjsSchema.meta.carbon("IEncodedFrame")(IEncodedFrame);

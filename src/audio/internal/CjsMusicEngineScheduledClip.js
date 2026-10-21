@@ -384,4 +384,4 @@ export class CjsMusicEngineScheduledClip
     }
 }
 
-CjsSchema.meta.define(CjsMusicEngineScheduledClip, { className: "CjsMusicEngineScheduledClip" });
+CjsSchema.meta.define("CjsMusicEngineScheduledClip")(CjsMusicEngineScheduledClip);

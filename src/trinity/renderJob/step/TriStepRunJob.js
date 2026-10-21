@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRunJob.h
 // Source: trinity/trinity/RenderJob/TriStepRunJob.cpp
 import { meta, type, blue } from "#schema";
@@ -6,9 +7,9 @@ import { TriRenderJob } from "../TriRenderJob.js";
 
 
 /** Step that runs a nested render job in place, letting job graphs compose. */
-@blue.define("TriStepRunJob")
-@blue.interface()
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRunJob")
+
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRunJob extends TriRenderStep
 {
   @blue.readwrite

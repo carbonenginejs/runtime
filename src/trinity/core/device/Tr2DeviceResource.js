@@ -18,7 +18,7 @@ import { TriDevice } from "./TriDevice.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 
 /** Carbon Tr2DeviceResource (Tr2DeviceResource.h:22-62). */
-@blue.define("Tr2DeviceResource")
+@meta.carbon("Tr2DeviceResource")
 export class Tr2DeviceResource
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.h
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.cpp
@@ -36,9 +37,10 @@ const RAY_DIR = vec3.create();
  * Oriented ellipsoid of influence with a hollow inner ellipsoid, weighting
  * points by falloff and seeding random points between the two shells.
  */
-@blue.define("EveEllipsoidVolume")
+@be.define("EveEllipsoidVolume")
 @blue.inherit(INotify, IInitialize)
-@blue.interface(IEveVolume, INotify)
+@be.mapInterface(IEveVolume)
+@be.mapInterface(INotify)
 export class EveEllipsoidVolume extends IEveVolume
 {
   @blue.readwrite

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITriFunction } from "../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Tr2ProjectBoundingBoxBracket.h
 // Source: trinity/trinity/Tr2ProjectBoundingBoxBracket.cpp
@@ -208,9 +209,9 @@ function clampProjectedSize(size, minSize, maxSize)
 
 
 /** Projects an owned world-space bounding box into a Sprite2D bracket. */
-@blue.define("Tr2ProjectBoundingBoxBracket")
+@be.define("Tr2ProjectBoundingBoxBracket")
 @blue.inherit(ITriFunction)
-@blue.interface(ITriFunction)
+@be.mapInterface(ITriFunction)
 export class Tr2ProjectBoundingBoxBracket
 {
   /**

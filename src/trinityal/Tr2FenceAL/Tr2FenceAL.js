@@ -204,4 +204,4 @@ export class Tr2FenceAL
 
 CjsSchema.decorateField(Tr2FenceAL, "_fence", type.unknown);
 CjsSchema.decorateMethod(Tr2FenceAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2FenceAL, { className: "Tr2FenceAL" });
+CjsSchema.meta.carbon("Tr2FenceAL")(Tr2FenceAL);

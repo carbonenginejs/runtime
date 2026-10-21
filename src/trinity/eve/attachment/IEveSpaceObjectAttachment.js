@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/IEveSpaceObjectAttachment.h
 import { meta, blue } from "#schema";
@@ -6,7 +7,7 @@ import { EveEntity } from "../EveEntity.js";
 
 
 /** Carbon space-object attachment contract with its interface defaults. */
-@blue.define("IEveSpaceObjectAttachment")
+@be.interface("IEveSpaceObjectAttachment")
 @blue.inherit(IRoot)
 export class IEveSpaceObjectAttachment extends EveEntity
 {

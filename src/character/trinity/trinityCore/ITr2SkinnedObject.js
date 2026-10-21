@@ -27,9 +27,6 @@ export class ITr2SkinnedObject
   GetPosition() {}
 }
 
-CjsSchema.blue.define(ITr2SkinnedObject, {
-  className: "ITr2SkinnedObject",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITr2SkinnedObject")(ITr2SkinnedObject);
 
 blue.inherit(IRoot)(ITr2SkinnedObject);

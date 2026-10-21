@@ -73,4 +73,4 @@ CjsSchema.decorateField(Tr2PresentParametersAL, "windowed", type.boolean);
 CjsSchema.decorateField(Tr2PresentParametersAL, "software", type.boolean);
 CjsSchema.decorateField(Tr2PresentParametersAL, "presentInterval", type.int32);
 CjsSchema.decorateField(Tr2PresentParametersAL, "variableRefreshRateSupported", type.boolean);
-CjsSchema.blue.define(Tr2PresentParametersAL, { className: "Tr2PresentParametersAL" });
+CjsSchema.meta.carbon("Tr2PresentParametersAL")(Tr2PresentParametersAL);

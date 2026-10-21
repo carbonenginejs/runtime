@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ManipulationTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -8,7 +9,7 @@ import { quat } from "#math/quat";
 import { CjsScriptCallback } from "#blue";
 
 /** The interactive manipulator base: axis selection, drag handling and the callback a move reports through. */
-@blue.define("Tr2ManipulationTool")
+@be.define("Tr2ManipulationTool")
 export class Tr2ManipulationTool
 {
   _moved = false;

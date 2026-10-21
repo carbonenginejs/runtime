@@ -89,10 +89,6 @@ export class Sampler
     }
 }
 
-CjsSchema.blue.define(Sampler, {
-    className: "Sampler",
-    methods: {
-        Equals: [meta.renamed("operator==")],
-        Less: [meta.renamed("operator<")]
-    }
-});
+CjsSchema.decorateMethod(Sampler, "Equals", meta.renamed("operator=="));
+CjsSchema.decorateMethod(Sampler, "Less", meta.renamed("operator<"));
+CjsSchema.meta.carbon("Sampler")(Sampler);

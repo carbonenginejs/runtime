@@ -4,7 +4,7 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { be, BlueList, IListNotify, CjsBlueClasses } from "#blue";
+import { blue as be, BlueList, IListNotify, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";

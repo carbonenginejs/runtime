@@ -1975,4 +1975,4 @@ export class HLSLParser
     }
 }
 
-CjsSchema.meta.define(HLSLParser, { className: "HLSLParser" });
+CjsSchema.meta.define("HLSLParser")(HLSLParser);

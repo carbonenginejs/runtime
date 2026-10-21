@@ -35,7 +35,7 @@ const POINT_SIGNS = [
  * Zero-filled vectors adapt native uninitialized storage. Number arithmetic and
  * Float32Array intermediates retain the existing JS precision behavior.
  */
-@blue.define("Obb")
+@meta.carbon("Obb")
 export class Obb
 {
 

@@ -436,4 +436,4 @@ export class Tr2TextureAL
 CjsSchema.decorateField(Tr2TextureAL, "_texture", type.unknown);
 CjsSchema.decorateMethod(Tr2TextureAL, "Equals", meta.renamed("operator=="));
 CjsSchema.decorateMethod(Tr2TextureAL, "CreateReadback", blue.method);
-CjsSchema.blue.define(Tr2TextureAL, { className: "Tr2TextureAL" });
+CjsSchema.meta.carbon("Tr2TextureAL")(Tr2TextureAL);

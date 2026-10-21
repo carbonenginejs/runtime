@@ -96,4 +96,4 @@ export class PY_SCHEMA_CONSTANTS
 
 export default PY_SCHEMA_CONSTANTS;
 
-CjsSchema.blue.define(PY_SCHEMA_CONSTANTS, { className: "PY_SCHEMA_CONSTANTS" });
+CjsSchema.meta.carbon("PY_SCHEMA_CONSTANTS")(PY_SCHEMA_CONSTANTS);

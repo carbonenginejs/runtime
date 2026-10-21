@@ -23,7 +23,7 @@ import { meta, type } from "#schema";
  * and the mesh and instance indices its picking hits decode to.
  * The name stays because it is the SOF-persisted `_type` (EveSOF.js:1504, 2664), and SOF's layout is the sanctioned divergence.
  */
-@meta.define({ className: "EveChildInstancedMeshInstance", carbon: "EveInstancedMeshManager::StaticPerInstanceData" })
+@meta.carbon("EveInstancedMeshManager::StaticPerInstanceData")
 export class EveChildInstancedMeshInstance
 {
 

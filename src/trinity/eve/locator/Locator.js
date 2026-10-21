@@ -10,7 +10,7 @@ import { meta, type, blue } from "#schema";
  * Native 64-bit size 48; offsets and storage types: trinity/trinity/
  * Eve/SpaceObject/Utils/EveLocatorSets.h:10-17; Eve/SpaceObject/Utils/EveLocatorSets.cpp:32-39.
  */
-@blue.define("Locator")
+@meta.carbon("Locator")
 @meta.struct.define({ size: 48 })
 export class Locator
 {

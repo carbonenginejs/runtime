@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { EveDecalPerObjectData } from "../../../core/rawData/perObjectData/EveDecalPerObjectData.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.cpp
@@ -32,9 +33,12 @@ import "#consts/graphics/trinityEnums";
  * optional bone attachment, per-LOD triangle index lists and screen-size
  * visibility ramp.
  */
-@blue.define("EveSpaceObjectDecal")
+@be.define("EveSpaceObjectDecal")
 @blue.inherit(IInitialize, INotify, ITr2Pickable, ITr2Renderable, Tr2DeviceResource)
-@blue.interface(IInitialize, INotify, ITr2Renderable, ITr2Pickable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(ITr2Pickable)
 export class EveSpaceObjectDecal
 {
   /**

@@ -69,4 +69,4 @@ export class CjsWwiseFilteredControl
     }
 }
 
-CjsSchema.meta.define(CjsWwiseFilteredControl, { className: "CjsWwiseFilteredControl" });
+CjsSchema.meta.define("CjsWwiseFilteredControl")(CjsWwiseFilteredControl);

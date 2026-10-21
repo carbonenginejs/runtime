@@ -508,26 +508,17 @@ export class Tr2EffectStageInput
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.blue.define(Tr2EffectStageInput, {
-  className: "Tr2EffectStageInput",
-  fields: {
-    stageType: [ meta.adapted, type.int32 ],
-    exists: type.boolean,
-    resources: type.map("Tr2EffectResource"),
-    uavs: type.map("Tr2EffectResource"),
-    samplers: type.map("Tr2SamplerSetup"),
-    shader: type.uint32,
-    constants: type.list("Tr2EffectConstant"),
-    constantValueSize: type.uint32,
-    constantValues: type.typedArray("Uint8Array"),
-    /**
-     * Adapted: A zero-size blob's offset word is passed through rather than interned, and the
-     * shipped corpus does not always set it to the null sentinel; the graph retains it so a
-     * body re-emits as the file that produced it.
-     */
-    constantValuesUnsetOffset: [ type.uint32 ],
-    signature: type.rawStruct("Tr2ShaderSignatureAL"),
-    annotation: type.list("Tr2EffectParameterAnnotation"),
-    sourceProgram: [ meta.adapted, type.rawStruct("CjsEffectSourceProgram") ]
-  }
-});
+CjsSchema.decorateField(Tr2EffectStageInput, "stageType", meta.adapted, type.int32);
+CjsSchema.decorateField(Tr2EffectStageInput, "exists", type.boolean);
+CjsSchema.decorateField(Tr2EffectStageInput, "resources", type.map("Tr2EffectResource"));
+CjsSchema.decorateField(Tr2EffectStageInput, "uavs", type.map("Tr2EffectResource"));
+CjsSchema.decorateField(Tr2EffectStageInput, "samplers", type.map("Tr2SamplerSetup"));
+CjsSchema.decorateField(Tr2EffectStageInput, "shader", type.uint32);
+CjsSchema.decorateField(Tr2EffectStageInput, "constants", type.list("Tr2EffectConstant"));
+CjsSchema.decorateField(Tr2EffectStageInput, "constantValueSize", type.uint32);
+CjsSchema.decorateField(Tr2EffectStageInput, "constantValues", type.typedArray("Uint8Array"));
+CjsSchema.decorateField(Tr2EffectStageInput, "constantValuesUnsetOffset", type.uint32);
+CjsSchema.decorateField(Tr2EffectStageInput, "signature", type.rawStruct("Tr2ShaderSignatureAL"));
+CjsSchema.decorateField(Tr2EffectStageInput, "annotation", type.list("Tr2EffectParameterAnnotation"));
+CjsSchema.decorateField(Tr2EffectStageInput, "sourceProgram", meta.adapted, type.rawStruct("CjsEffectSourceProgram"));
+CjsSchema.meta.carbon("Tr2EffectStageInput")(Tr2EffectStageInput);

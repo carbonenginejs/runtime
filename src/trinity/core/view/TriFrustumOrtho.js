@@ -222,4 +222,4 @@ CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleIgnoreFarPlane", blue.
 CjsSchema.decorateMethod(TriFrustumOrtho, "SphereTestIgnoreFarPlane", blue.method);
 CjsSchema.decorateMethod(TriFrustumOrtho, "GetPixelSize", blue.method);
 CjsSchema.decorateMethod(TriFrustumOrtho, "GetEyePos", blue.method);
-CjsSchema.blue.define(TriFrustumOrtho, { className: "TriFrustumOrtho" });
+CjsSchema.meta.carbon("TriFrustumOrtho")(TriFrustumOrtho);

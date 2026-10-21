@@ -218,4 +218,4 @@ function DefaultGroup(value)
 
 export default CjsCharacterModifierOrder;
 
-CjsSchema.meta.define(CjsCharacterModifierOrder, { className: "CjsCharacterModifierOrder" });
+CjsSchema.meta.define("CjsCharacterModifierOrder")(CjsCharacterModifierOrder);

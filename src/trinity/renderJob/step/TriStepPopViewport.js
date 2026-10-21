@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPopViewport.h
 // Source: trinity/trinity/RenderJob/TriStepPopViewport.cpp
 import { meta, blue } from "#schema";
@@ -11,9 +12,9 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pops the render context's viewport stack, restoring the viewport saved by
  * an earlier push.
  */
-@blue.define("TriStepPopViewport")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPopViewport")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPopViewport extends TriRenderStep
 {
   /** Restores the viewport saved by the matching push step. */

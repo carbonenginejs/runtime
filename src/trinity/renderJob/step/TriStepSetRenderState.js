@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetRenderState.cpp
 // Source: trinity/trinity/RenderJob/TriStepSetRenderState_Blue.cpp
 import { meta, type, blue } from "#schema";
@@ -10,9 +11,9 @@ import { RenderState } from "#consts/render-context";
  * Step that sets a single render state to a single value for the steps that
  * follow.
  */
-@blue.define("TriStepSetRenderState")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetRenderState")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetRenderState extends TriRenderStep
 {
   @blue.readwrite

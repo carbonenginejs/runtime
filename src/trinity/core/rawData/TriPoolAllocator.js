@@ -525,4 +525,4 @@ export class TriPoolAllocator
 CjsSchema.decorateMethod(TriPoolAllocator, "Allocate", blue.method);
 CjsSchema.decorateMethod(TriPoolAllocator, "Clear", blue.method);
 CjsSchema.decorateMethod(TriPoolAllocator, "#GetMoreSystemMemory", blue.method, meta.renamed("GetMoreSystemMemory"));
-CjsSchema.blue.define(TriPoolAllocator, { className: "TriPoolAllocator" });
+CjsSchema.meta.carbon("TriPoolAllocator")(TriPoolAllocator);

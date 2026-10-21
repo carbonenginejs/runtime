@@ -1,4 +1,4 @@
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
 import assert from "node:assert/strict";
@@ -10,7 +10,7 @@ import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 
 ImageIO.registerImageHandler(CjsVtaFormat);
-be.resMan.RegisterFormat(CjsVtaFormat);
+blue.resMan.RegisterFormat(CjsVtaFormat);
 
 /** A 2x1 BGRA DDS, the legacy (non-DX10) header Carbon's reader accepts. */
 function legacyDds(width, height, pixels)

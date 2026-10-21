@@ -8,7 +8,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { UpdateContext, FixedFrustum } from "../support/eveUpdateContext.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
 import {
   EveEffectRoot2,
@@ -982,12 +982,12 @@ test("EveSpaceObject2 publishes its qualified native locator enum", () =>
   const values = EveSpaceObject2.LocatorType;
   assert.deepEqual(values, { ELT_TRANSFORM: 0, ELT_JOINT: 1, ELT_COUNT: 2 });
   assert.equal(Object.isFrozen(values), true);
-  assert.equal(be.enums.GetEnum("trinity.EveSpaceObject2.LocatorType"), values);
-  const info = be.enums.GetEnumInfo("trinity.EveSpaceObject2.LocatorType");
+  assert.equal(blue.enums.GetEnum("trinity.EveSpaceObject2.LocatorType"), values);
+  const info = blue.enums.GetEnumInfo("trinity.EveSpaceObject2.LocatorType");
   assert.equal(Object.hasOwn(info, "source"), false, "the header is cited in source, not registered");
   assert.equal(info.exposedName, undefined, "the native header enum has no invented Blue module alias");
-  assert.equal(be.enums.HasEnum("EveSpaceObject2.LocatorType"), false);
-  assert.equal(be.enums.HasEnum("LocatorType"), false);
+  assert.equal(blue.enums.HasEnum("EveSpaceObject2.LocatorType"), false);
+  assert.equal(blue.enums.HasEnum("LocatorType"), false);
 });
 
 test("EveSpaceObject2 counts authored locator prefixes and preserves exact first-match lookup", t =>

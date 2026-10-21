@@ -95,4 +95,4 @@ export class CjsAudioBackendSfxProgramSlot
     }
 }
 
-CjsSchema.meta.define(CjsAudioBackendSfxProgramSlot, { className: "CjsAudioBackendSfxProgramSlot" });
+CjsSchema.meta.define("CjsAudioBackendSfxProgramSlot")(CjsAudioBackendSfxProgramSlot);

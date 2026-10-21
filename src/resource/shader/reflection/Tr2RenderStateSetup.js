@@ -728,4 +728,4 @@ export class Tr2RenderStateSetup
 
 }
 
-CjsSchema.meta.define(Tr2RenderStateSetup, { className: "Tr2RenderStateSetup" });
+CjsSchema.meta.define("Tr2RenderStateSetup")(Tr2RenderStateSetup);

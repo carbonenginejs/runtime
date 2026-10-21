@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { meta, type, blue } from "#schema";
@@ -9,9 +10,9 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that lags a scalar camera value behind the value the other
  * behaviours produced, smoothing sudden changes.
  */
-@blue.define("EveVirtualCameraBehaviourFloatDamping")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourFloatBase)
+@be.define("EveVirtualCameraBehaviourFloatDamping")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourFloatBase)
 export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehaviourFloatBase
 {
   @blue.readwrite

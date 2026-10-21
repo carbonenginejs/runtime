@@ -81,4 +81,4 @@ export function getLifecycleState(target)
     return lifecycle;
 }
 
-CjsSchema.meta.define(CjsLifecycleState, { className: "CjsLifecycleState" });
+CjsSchema.meta.define("CjsLifecycleState")(CjsLifecycleState);

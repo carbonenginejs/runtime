@@ -18,11 +18,7 @@ export class TriJointBinding
 
 }
 
-CjsSchema.blue.define(TriJointBinding, {
-  className: "TriJointBinding",
-  fields: {
-    name: type.string,
-    obbMin: type.vec3,
-    obbMax: type.vec3
-  }
-});
+CjsSchema.decorateField(TriJointBinding, "name", type.string);
+CjsSchema.decorateField(TriJointBinding, "obbMin", type.vec3);
+CjsSchema.decorateField(TriJointBinding, "obbMax", type.vec3);
+CjsSchema.meta.carbon("TriJointBinding")(TriJointBinding);

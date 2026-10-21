@@ -29,13 +29,7 @@ export class TriGeometryResSkeletonData
 
 }
 
-CjsSchema.blue.define(TriGeometryResSkeletonData, {
-  className: "TriGeometryResSkeletonData",
-  fields: {
-    name: type.string,
-    joints: type.list("TriGeometryResJointData")
-  },
-  methods: {
-    FindJoint: [ blue.method, meta.adapted ]
-  }
-});
+CjsSchema.decorateField(TriGeometryResSkeletonData, "name", type.string);
+CjsSchema.decorateField(TriGeometryResSkeletonData, "joints", type.list("TriGeometryResJointData"));
+CjsSchema.decorateMethod(TriGeometryResSkeletonData, "FindJoint", blue.method, meta.adapted);
+CjsSchema.meta.carbon("TriGeometryResSkeletonData")(TriGeometryResSkeletonData);

@@ -20,7 +20,7 @@ import { meta, blue } from "#schema";
 /**
  * A turret set's vertex and pixel blocks.
  */
-@blue.define("EveTurretSetPerObjectData")
+@meta.carbon("EveTurretSetPerObjectData")
 export class EveTurretSetPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

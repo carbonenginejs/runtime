@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2SkinnedModel.h
 // Source: trinity/trinity/Tr2SkinnedModel.cpp
-import { be, IsMatch, IInitialize, INotify, IListNotify, ResourceRequirement } from "#blue";
+import { blue as be, IsMatch, IInitialize, INotify, IListNotify, ResourceRequirement } from "#blue";
 import { meta, type, blue } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";

@@ -179,13 +179,9 @@ export class Tr2MouseCursor
 export default Tr2MouseCursor;
 
 blue.inherit(IRoot)(Tr2MouseCursor);
-blue.interface()(Tr2MouseCursor);
-CjsSchema.blue.define(Tr2MouseCursor, {
-    className: "Tr2MouseCursor",
-    methods: {
-        __init__: [meta.renamed("py__init__"), meta.adapted],
-        Create: [blue.method, meta.adapted],
-        IsValid: [blue.method, meta.adapted],
-        Apply: [blue.method, meta.adapted]
-    }
-});
+
+CjsSchema.decorateMethod(Tr2MouseCursor, "__init__", meta.renamed("py__init__"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MouseCursor, "Create", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MouseCursor, "IsValid", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MouseCursor, "Apply", blue.method, meta.adapted);
+CjsSchema.exposure.define("Tr2MouseCursor")(Tr2MouseCursor);

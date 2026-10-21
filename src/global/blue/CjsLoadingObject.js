@@ -21,4 +21,4 @@ export class CjsLoadingObject extends CjsResource
 
 export default CjsLoadingObject;
 
-CjsSchema.meta.define(CjsLoadingObject, { className: "CjsLoadingObject" });
+CjsSchema.meta.define("CjsLoadingObject")(CjsLoadingObject);

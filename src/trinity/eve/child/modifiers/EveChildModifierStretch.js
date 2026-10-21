@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**

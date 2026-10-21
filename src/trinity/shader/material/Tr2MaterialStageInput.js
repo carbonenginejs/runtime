@@ -1,10 +1,11 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
 
 /** Organizes one shader stage's constants, parameters, textures, UAVs, and CPU-side constant mirror. */
-@blue.define("Tr2MaterialStageInput")
+@meta.carbon("Tr2MaterialStageInput")
 export class Tr2MaterialStageInput
 {
 

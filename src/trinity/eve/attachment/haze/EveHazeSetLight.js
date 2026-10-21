@@ -10,7 +10,7 @@ import { LightData } from "../../lights/LightData.js";
  * The light one haze item contributes, carrying its booster-gain influence flag,
  * light profile and the bone matrix resolved for it each frame.
  */
-@blue.define("EveHazeSetLight")
+@meta.carbon("EveHazeSetLight")
 export class EveHazeSetLight
 {
   @meta.owned

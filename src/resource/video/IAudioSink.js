@@ -56,4 +56,4 @@ export class IAudioSink
   }
 }
 
-CjsSchema.blue.define(IAudioSink, { className: "IAudioSink" });
+CjsSchema.meta.carbon("IAudioSink")(IAudioSink);

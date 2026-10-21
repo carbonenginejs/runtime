@@ -34,4 +34,4 @@ for (const method of [ "RegisterSecondaryLightSource", "UnregisterSecondaryLight
   CjsSchema.decorateMethod(ITr2SecondaryLightSource, method, blue.abstract);
 }
 blue.inherit(IRoot)(ITr2SecondaryLightSource);
-CjsSchema.blue.define(ITr2SecondaryLightSource, { className: "ITr2SecondaryLightSource", fields: {} });
+CjsSchema.exposure.interface("ITr2SecondaryLightSource")(ITr2SecondaryLightSource);

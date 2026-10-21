@@ -213,4 +213,4 @@ export class Preprocessor
     }
 }
 
-CjsSchema.meta.define(Preprocessor, { className: "Preprocessor" });
+CjsSchema.meta.define("Preprocessor")(Preprocessor);

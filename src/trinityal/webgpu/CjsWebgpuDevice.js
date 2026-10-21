@@ -385,4 +385,4 @@ export class CjsWebgpuDevice
 }
 
 
-CjsSchema.meta.define(CjsWebgpuDevice, { className: "CjsWebgpuDevice" });
+CjsSchema.meta.define("CjsWebgpuDevice")(CjsWebgpuDevice);

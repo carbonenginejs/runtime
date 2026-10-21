@@ -12,7 +12,7 @@ import { meta, type } from "#schema";
  * registered under.
  * The name stays because it is the SOF-persisted `_type` (EveSOF.js:2884), and SOF's layout is the sanctioned divergence.
  */
-@meta.define({ className: "EveChildInstancedMeshArea", carbon: "EveChildInstancedMeshes::MeshArea" })
+@meta.carbon("EveChildInstancedMeshes::MeshArea")
 export class EveChildInstancedMeshArea
 {
 

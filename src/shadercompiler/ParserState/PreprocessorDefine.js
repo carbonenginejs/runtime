@@ -23,6 +23,4 @@ export class PreprocessorDefine
     value = new InlineString();
 }
 
-CjsSchema.blue.define(PreprocessorDefine, {
-    className: "PreprocessorDefine"
-});
+CjsSchema.meta.carbon("PreprocessorDefine")(PreprocessorDefine);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { BlueList, IListNotify, IInitialize } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -12,9 +13,9 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A collision constraint that keeps particles outside or inside a sphere, reflecting velocity and triggering generators and emitters on contact. */
-@blue.define("Tr2SphereConstraint")
+@be.define("Tr2SphereConstraint")
 @blue.inherit(IInitialize, IListNotify)
-@blue.interface(ITr2GenericParticleConstraint)
+@be.mapInterface(ITr2GenericParticleConstraint)
 export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 {
 

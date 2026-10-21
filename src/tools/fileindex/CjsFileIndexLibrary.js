@@ -516,4 +516,4 @@ function joinURL(baseURL, relativePath)
     return `${String(baseURL).replace(/\/+$/u, "")}/${String(relativePath).replace(/^\/+/, "")}`;
 }
 
-CjsSchema.meta.define(CjsFileIndexLibrary, { className: "CjsFileIndexLibrary" });
+CjsSchema.meta.define("CjsFileIndexLibrary")(CjsFileIndexLibrary);

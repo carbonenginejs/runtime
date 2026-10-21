@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern.
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
@@ -10,8 +11,8 @@ import { EveSocketParameterString } from "./EveSocketParameterString.js";
  * EveSocketParameterString without adding members; only the editor widget
  * differs.
  */
-@blue.define("EveSocketParameterFilePath")
-@blue.interface(IEveSocketParameter)
+@be.define("EveSocketParameterFilePath")
+@be.mapInterface(IEveSocketParameter)
 export class EveSocketParameterFilePath extends EveSocketParameterString
 {
 }

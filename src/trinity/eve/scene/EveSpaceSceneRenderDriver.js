@@ -55,7 +55,7 @@ import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { EveSpaceScene } from "./EveSpaceScene.js";
 import { EveSpaceSceneRenderDriverSettings } from "./EveSpaceSceneRenderDriverSettings.js";
 import { EveSpaceSceneRenderDriverTimers } from "./EveSpaceSceneRenderDriverTimers.js";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import "../../postProcess/effect/Tr2PPEffect.js";
 import "#consts/renderContext/formats";

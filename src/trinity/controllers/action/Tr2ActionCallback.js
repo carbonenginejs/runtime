@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback_Blue.cpp
@@ -9,7 +11,7 @@ import { meta, type, blue } from "#schema";
  * Controller action that fires a named callback on its controller when the
  * action starts, letting host code hook a point in a state machine or timeline.
  */
-@blue.define("Tr2ActionCallback")
+@be.define("Tr2ActionCallback")
 export class Tr2ActionCallback extends ITr2ControllerAction
 {
   /**
@@ -36,4 +38,4 @@ export class Tr2ActionCallback extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionCallback_Blue.cpp:12-13,20).
-blue.interface(ITr2ControllerAction)(Tr2ActionCallback);
+CjsSchema.exposure.mapInterface(ITr2ControllerAction)(Tr2ActionCallback);

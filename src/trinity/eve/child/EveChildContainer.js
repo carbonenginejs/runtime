@@ -42,7 +42,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2ActionController } from "../../controllers/ITr2Controller/ITr2ActionController.js";
-import { IsMatch, be, EnumRegistrationType } from "#blue";
+import { IsMatch, blue as be, EnumRegistrationType } from "#blue";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 import { IEveSpaceObjectAttachmentOwner } from "../attachment/IEveSpaceObjectAttachmentOwner.js";
 

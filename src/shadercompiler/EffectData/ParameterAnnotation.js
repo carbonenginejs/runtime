@@ -14,6 +14,4 @@ export class ParameterAnnotation
     annotations = new CjsFxStdMap();
 }
 
-CjsSchema.blue.define(ParameterAnnotation, {
-    className: "ParameterAnnotation"
-});
+CjsSchema.meta.carbon("ParameterAnnotation")(ParameterAnnotation);

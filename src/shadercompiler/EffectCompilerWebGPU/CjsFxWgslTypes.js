@@ -199,4 +199,4 @@ export class CjsFxWgslTypes
     }
 }
 
-CjsSchema.meta.define(CjsFxWgslTypes, { className: "CjsFxWgslTypes" });
+CjsSchema.meta.define("CjsFxWgslTypes")(CjsFxWgslTypes);

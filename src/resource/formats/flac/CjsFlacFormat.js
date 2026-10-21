@@ -175,4 +175,4 @@ export class CjsFlacFormat extends CjsFormat
 
 export default CjsFlacFormat;
 
-CjsSchema.meta.define(CjsFlacFormat, { className: "CjsFlacFormat" });
+CjsSchema.meta.define("CjsFlacFormat")(CjsFlacFormat);

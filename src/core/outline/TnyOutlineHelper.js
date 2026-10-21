@@ -1,5 +1,5 @@
 import { CjsSchema, blue, meta } from "#schema";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { vec4 } from "#math/vec4";
 import { PixelFormat, TextureType } from "#consts/render-context";

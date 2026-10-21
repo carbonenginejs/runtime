@@ -4,7 +4,7 @@
 import { IsMatch, IInitialize, INotify } from "#blue";
 import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { color } from "#math/color";
 import { Tr2Light } from "./Tr2Light.js";
 import { Tr2PointLight } from "./Tr2PointLight.js";

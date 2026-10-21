@@ -256,4 +256,4 @@ const isWorkerScope = typeof WorkerGlobalScope !== "undefined"
   && globalThis instanceof WorkerGlobalScope;
 if (isWorkerScope) CjsResManWorker.install(globalThis);
 
-CjsSchema.meta.define(CjsResManWorker, { className: "CjsResManWorker" });
+CjsSchema.meta.define("CjsResManWorker")(CjsResManWorker);

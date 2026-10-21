@@ -169,24 +169,18 @@ export class VersionInternal
 }
 
 
-CjsSchema.blue.define(VersionInternal, {
-  className: "VersionInternal",
-  fields: {
-        _major: [type.uint32],
-        _minor: [type.uint32],
-        _patch: [type.uint32]
-    },
-  methods: {
-        GreaterThan: [ meta.renamed("operator>"), meta.adapted ],
-        LessThan: [ meta.renamed("operator<"), meta.adapted ],
-        GreaterThanOrEqual: [ meta.renamed("operator>="), meta.adapted ],
-        LessThanOrEqual: [ meta.renamed("operator<="), meta.adapted ],
-        Equals: [ meta.renamed("operator=="), meta.adapted ],
-        ToString: [ blue.method, meta.implemented ],
-        FromString: [ blue.method, meta.implemented ],
-        getMajor: [ blue.method, meta.implemented ],
-        getMinor: [ blue.method, meta.implemented ],
-        getPatch: [ blue.method, meta.implemented ],
-        isVersionValid: [ blue.method, meta.implemented ]
-    }
-});
+CjsSchema.decorateField(VersionInternal, "_major", type.uint32);
+CjsSchema.decorateField(VersionInternal, "_minor", type.uint32);
+CjsSchema.decorateField(VersionInternal, "_patch", type.uint32);
+CjsSchema.decorateMethod(VersionInternal, "GreaterThan", meta.renamed("operator>"), meta.adapted);
+CjsSchema.decorateMethod(VersionInternal, "LessThan", meta.renamed("operator<"), meta.adapted);
+CjsSchema.decorateMethod(VersionInternal, "GreaterThanOrEqual", meta.renamed("operator>="), meta.adapted);
+CjsSchema.decorateMethod(VersionInternal, "LessThanOrEqual", meta.renamed("operator<="), meta.adapted);
+CjsSchema.decorateMethod(VersionInternal, "Equals", meta.renamed("operator=="), meta.adapted);
+CjsSchema.decorateMethod(VersionInternal, "ToString", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "FromString", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "getMajor", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "getMinor", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "getPatch", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "isVersionValid", blue.method, meta.implemented);
+CjsSchema.meta.carbon("VersionInternal")(VersionInternal);

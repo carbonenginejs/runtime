@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
-import { be } from "../../npm/dist/global/blue/blue.js";
+import { blue as be } from "../../npm/dist/global/blue/blue.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";

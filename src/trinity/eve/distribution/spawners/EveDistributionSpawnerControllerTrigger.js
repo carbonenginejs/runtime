@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerControllerTrigger.h
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
@@ -6,9 +7,10 @@ import { meta, type, blue } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Gates a nested set of distribution spawners from a named controller variable. */
-@blue.define("EveDistributionSpawnerControllerTrigger")
+@be.define("EveDistributionSpawnerControllerTrigger")
 @blue.inherit(INotify)
-@blue.interface(IEveDistributionSpawner, INotify)
+@be.mapInterface(IEveDistributionSpawner)
+@be.mapInterface(INotify)
 export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpawner
 {
 

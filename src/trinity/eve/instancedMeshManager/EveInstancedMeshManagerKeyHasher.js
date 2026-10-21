@@ -32,7 +32,7 @@ import { identityOf } from "#utils/hash";
  * hash/equality contract; ours keys on all nine fields and nothing else, so
  * equal keys always share an entry and keys differing in any field never do.
  */
-@meta.define({ className: "EveInstancedMeshManagerKeyHasher", carbon: "EveInstancedMeshManager::KeyHasher" })
+@meta.carbon("EveInstancedMeshManager::KeyHasher")
 export class EveInstancedMeshManagerKeyHasher
 {
 

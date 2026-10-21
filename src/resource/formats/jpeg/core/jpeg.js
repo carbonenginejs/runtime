@@ -665,6 +665,6 @@ function clampByte(value)
     return Math.max(0, Math.min(255, Math.round(value)));
 }
 
-CjsSchema.meta.define(BaselineJpegDecoder, { className: "BaselineJpegDecoder" });
+CjsSchema.meta.define("BaselineJpegDecoder")(BaselineJpegDecoder);
 
-CjsSchema.meta.define(EntropyReader, { className: "EntropyReader" });
+CjsSchema.meta.define("EntropyReader")(EntropyReader);

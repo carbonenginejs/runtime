@@ -42,14 +42,7 @@ export class Tr2TexturePipelineStepGenerateMips
 
 }
 
-CjsSchema.blue.interface(Tr2TexturePipelineStepGenerateMips)(Tr2TexturePipelineStepGenerateMips);
-CjsSchema.blue.define(Tr2TexturePipelineStepGenerateMips, {
-  className: "Tr2TexturePipelineStepGenerateMips",
-  fields: {
 
-  },
-  methods: {
-    GetResourceDependencies: [ blue.method, meta.implemented ],
-    Execute: [ blue.method, meta.implemented ]
-  }
-});
+CjsSchema.decorateMethod(Tr2TexturePipelineStepGenerateMips, "GetResourceDependencies", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepGenerateMips, "Execute", blue.method, meta.implemented);
+CjsSchema.exposure.define("Tr2TexturePipelineStepGenerateMips")(Tr2TexturePipelineStepGenerateMips);

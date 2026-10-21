@@ -357,16 +357,12 @@ function matchParameter(parameter, argument, casts)
     return argumentType.CanImplicitCast(parameter.GetType(), casts);
 }
 
-CjsSchema.blue.define(ScopeSymbolTable, {
-    className: "ScopeSymbolTable",
-    methods: {
-        Lookup: [blue.method],
-        LookupFunctionDeclaration: [blue.method],
-        LookupFunction: [blue.method],
-        AddSymbol: [blue.method],
-        AddSymbol__Symbol: [meta.renamed("AddSymbol")],
-        AddScope: [blue.method],
-        GetParent: [blue.method],
-        ResetUsedFlag: [blue.method]
-    }
-});
+CjsSchema.decorateMethod(ScopeSymbolTable, "Lookup", blue.method);
+CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunctionDeclaration", blue.method);
+CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunction", blue.method);
+CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol", blue.method);
+CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol__Symbol", meta.renamed("AddSymbol"));
+CjsSchema.decorateMethod(ScopeSymbolTable, "AddScope", blue.method);
+CjsSchema.decorateMethod(ScopeSymbolTable, "GetParent", blue.method);
+CjsSchema.decorateMethod(ScopeSymbolTable, "ResetUsedFlag", blue.method);
+CjsSchema.meta.carbon("ScopeSymbolTable")(ScopeSymbolTable);

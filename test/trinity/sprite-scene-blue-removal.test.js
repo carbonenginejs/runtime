@@ -1,7 +1,7 @@
 import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { be, INotify, IListNotify, BlueList } from "../../npm/dist/global/blue/index.js";
+import { blue, INotify, IListNotify, BlueList } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
@@ -29,9 +29,9 @@ const context={GetViewTransform:()=>mat4.create()};
 
 // Destruct is now an explicit scene resource cleanup method, not an inherited model helper.
 test("Scene uses its native primary and exact query while removing model helpers",()=>{
- const scene=be.classes.CreateInstanceFromName("Tr2Sprite2dScene");assert.equal(scene.constructor,Tr2Sprite2dScene);assert.equal(Object.getPrototypeOf(Tr2Sprite2dScene.prototype),ITr2Scene.prototype);assert.equal(Object.getPrototypeOf(ITr2Scene.prototype),ITr2Updateable.prototype);
+ const scene=blue.classes.CreateInstanceFromName("Tr2Sprite2dScene");assert.equal(scene.constructor,Tr2Sprite2dScene);assert.equal(Object.getPrototypeOf(Tr2Sprite2dScene.prototype),ITr2Scene.prototype);assert.equal(Object.getPrototypeOf(ITr2Scene.prototype),ITr2Updateable.prototype);
  assert.deepEqual([...mappedInterfaces(Tr2Sprite2dScene)],[ExposureRoot, Tr2Sprite2dScene, ITr2Scene, ITr2Updateable, INotify]);for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in scene,false);
- assert.equal("from" in Tr2Sprite2dScene,false);assert.equal(be.classes.CreateInstanceFromName("ITr2Scene"),null);assert.throws(()=>new ITr2Scene().Render(context),/must be implemented/);
+ assert.equal("from" in Tr2Sprite2dScene,false);assert.equal(blue.classes.CreateInstanceFromName("ITr2Scene"),null);assert.throws(()=>new ITr2Scene().Render(context),/must be implemented/);
  const list=new BlueList(ITr2Scene);assert.equal(list.Append(scene),true);assert.equal(list.Append({Update(){},Render(){}}),false);
 });
 
@@ -117,7 +117,7 @@ test("canonical Scene declarations drive Copier and traversal without legacy fie
   scene.background.Append(background);
   scene.curveSets.Append(set);
   const visited = [];
-  visited.push(scene, ...be.FindAllReferences(scene).keys());
+  visited.push(scene, ...blue.FindAllReferences(scene).keys());
   // The two ubershader effects the constructor creates (Tr2Sprite2dScene.cpp:130-134) are referenced too.
   assert.equal(visited.length, 6);
   assert.ok(visited.includes(scene.ubershader2d) && visited.includes(scene.ubershader3d));

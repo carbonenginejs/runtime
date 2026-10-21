@@ -21,4 +21,4 @@ export class IVariableTicker
 
 CjsSchema.decorateMethod(IVariableTicker, "OnTick", blue.abstract);
 
-CjsSchema.blue.define(IVariableTicker, { className: "IVariableTicker", fields: {} });
+CjsSchema.meta.carbon("IVariableTicker")(IVariableTicker);

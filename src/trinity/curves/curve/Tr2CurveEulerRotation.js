@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation.h
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation.cpp
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation_Blue.cpp
@@ -12,9 +13,11 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * Quaternion curve built from three scalar curves supplying yaw, pitch and roll
  * in radians.
  */
-@blue.define("Tr2CurveEulerRotation")
+@be.define("Tr2CurveEulerRotation")
 @blue.inherit(ITriCurveLength)
-@blue.interface(ITriQuaternionFunction, ITriFunction, ITriCurveLength)
+@be.mapInterface(ITriQuaternionFunction)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */

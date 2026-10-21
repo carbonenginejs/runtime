@@ -85,4 +85,4 @@ export class ShaderCompilerSession
     }
 }
 
-CjsSchema.meta.define(ShaderCompilerSession, { className: "ShaderCompilerSession" });
+CjsSchema.meta.define("ShaderCompilerSession")(ShaderCompilerSession);

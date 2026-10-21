@@ -211,7 +211,7 @@ function GetLodSlotDraw(geometry, meshIndex, areaIndex, areaCount, areaReversed,
  * in every container, so the handle of the element moved into the freed slot
  * is patched, and so is every mesh group that referenced the moved slot.
  */
-@blue.define("EveInstancedMeshManager")
+@meta.carbon("EveInstancedMeshManager")
 export class EveInstancedMeshManager
 {
 

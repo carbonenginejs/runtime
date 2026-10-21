@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
@@ -14,9 +15,11 @@ import { Tr2KelvinColor } from "../../../trinity/core/lighting/Tr2KelvinColor.js
  * Authored interior light definition with position, color, falloff, cone, and
  * animation settings.
  */
-@blue.define("Tr2InteriorLightSource")
+@be.define("Tr2InteriorLightSource")
 @blue.inherit(IInitialize, INotify, ITr2InteriorLight, ITr2DebugRenderable)
-@blue.interface(IInitialize, INotify, ITr2InteriorLight)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2InteriorLight)
 export class Tr2InteriorLightSource
 {
   /** PopulateLightData's AsRGB result. */

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:101-111
 import { meta, type, blue } from "#schema";
@@ -9,8 +10,8 @@ import { ICustomPersist } from "#blue";
  * this class decodes them through its ICustomPersist methods.
  * Empty native constructor/destructor require no additional lifecycle.
  */
-@blue.define("EveSOFDataDecalIndexBuffer")
-@blue.interface(ICustomPersist)
+@be.define("EveSOFDataDecalIndexBuffer")
+@be.mapInterface(ICustomPersist)
 export class EveSOFDataDecalIndexBuffer extends ICustomPersist
 {
 

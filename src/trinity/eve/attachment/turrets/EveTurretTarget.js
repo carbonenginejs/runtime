@@ -5,7 +5,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
-import { be, CcpTime } from "#blue";
+import { blue as be, CcpTime } from "#blue";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { IWorldPosition } from "../../../core/IWorldPosition.js";

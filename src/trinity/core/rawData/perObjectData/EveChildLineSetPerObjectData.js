@@ -3,7 +3,7 @@ import { meta, blue } from "#schema";
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
 
 /** Borrows the line-set owner's persistent vertex and pixel constant records. */
-@blue.define("EveChildLineSetPerObjectData")
+@meta.carbon("EveChildLineSetPerObjectData")
 export class EveChildLineSetPerObjectData extends Tr2PerObjectData
 {
   vsData = null;

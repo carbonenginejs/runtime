@@ -17,7 +17,7 @@ import { vec4 } from "#math/vec4";
 
 
 /** The per-frame parent state a space object hands to its attachments. */
-@meta.define({ className: "IEveSpaceObject2ParentData", carbon: "IEveSpaceObject2::ParentData" })
+@meta.carbon("IEveSpaceObject2::ParentData")
 export class IEveSpaceObject2ParentData
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRunComputeShader.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -5,9 +6,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A render step that dispatches a compute shader over its configured group dimensions. */
-@blue.define("TriStepRunComputeShader")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRunComputeShader")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRunComputeShader extends TriRenderStep
 {
 

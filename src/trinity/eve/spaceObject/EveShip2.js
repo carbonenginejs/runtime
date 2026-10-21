@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveShip2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveShip2.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -13,10 +14,12 @@ import { EveEntity } from "../EveEntity.js";
 import { TriFloat } from "../../core/variable/TriFloat.js";
 
 /** A ship space object: booster drive, speed state, and ship shader data. */
-@blue.define("EveShip2")
+@be.define("EveShip2")
 @blue.inherit(IListNotify, IInitialize)
-@blue.interface(IEveSpaceObject2, ITr2Renderable, IListNotify)
-@blue.chainTo(EveMobile)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IListNotify)
+@be.exposureChainTo(EveMobile)
 export class EveShip2 extends EveMobile
 {
 

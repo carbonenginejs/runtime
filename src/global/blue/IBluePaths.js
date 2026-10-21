@@ -91,4 +91,4 @@ CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", blue.method, meta.renamed(
 CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", blue.method, meta.renamed("GetSearchPathW"));
 CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"));
 
-CjsSchema.blue.define(IBluePaths, { className: "IBluePaths", fields: {} });
+CjsSchema.exposure.interface("IBluePaths")(IBluePaths);

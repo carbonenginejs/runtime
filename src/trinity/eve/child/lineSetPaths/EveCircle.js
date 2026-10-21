@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/EveCircle_Blue.cpp
@@ -24,9 +25,10 @@ const DEBUG_SPHERE = vec4.create();
  * Line-set path shaped as a ring: samples a circle of circleRadius, optionally
  * distorted per quadrant, and emits the resulting chain as line segments.
  */
-@blue.define("EveCircle")
+@be.define("EveCircle")
 @blue.inherit(INotify, IInitialize)
-@blue.interface(IEveLineSetPath, INotify)
+@be.mapInterface(IEveLineSetPath)
+@be.mapInterface(INotify)
 export class EveCircle extends IEveLineSetPath
 {
   @blue.readwrite

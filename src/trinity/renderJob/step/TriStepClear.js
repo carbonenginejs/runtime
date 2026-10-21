@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepClear.h
 // Source: trinity/trinity/RenderJob/TriStepClear.cpp
 // Source: trinity/trinity/RenderJob/TriStepClear_Blue.cpp
@@ -11,9 +12,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that clears the bound colour, depth and stencil attachments, each
  * independently enabled with its own clear value.
  */
-@blue.define("TriStepClear")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepClear")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepClear extends TriRenderStep
 {
   @blue.readwrite

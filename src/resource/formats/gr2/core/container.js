@@ -791,4 +791,4 @@ export const container = {
     writeGr2Container
 };
 
-CjsSchema.meta.define(SectionSerializer, { className: "SectionSerializer" });
+CjsSchema.meta.define("SectionSerializer")(SectionSerializer);

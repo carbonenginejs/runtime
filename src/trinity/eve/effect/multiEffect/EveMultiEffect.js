@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/EveMultiEffect.h
 // Source: trinity/trinity/Eve/EveMultiEffect.cpp
 // Source: trinity/trinity/Eve/EveMultiEffect_Blue.cpp
@@ -17,9 +18,13 @@ import { BLUELISTEVENT } from "#consts/blue";
  * other space objects through typed parameter slots, without owning any geometry
  * itself.
  */
-@blue.define("EveMultiEffect")
+@be.define("EveMultiEffect")
 @blue.inherit(IListNotify, IInitialize, IEveSpaceObject2, ITr2DynamicBindingOwner, ITr2ControllerOwner, ITr2CurveSetOwner)
-@blue.interface(IEveSpaceObject2, ITr2ControllerOwner, IInitialize, ITr2DynamicBindingOwner, ITr2CurveSetOwner)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2DynamicBindingOwner)
+@be.mapInterface(ITr2CurveSetOwner)
 export class EveMultiEffect
 {
 

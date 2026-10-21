@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCamera.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCamera.cpp
@@ -16,7 +17,7 @@ const SCRUB_MAX_ITERATIONS = 20;
  * and a roll, each rebuilt every update from its own list of behaviours over a
  * local timeline.
  */
-@blue.define("EveVirtualCamera")
+@be.define("EveVirtualCamera")
 @blue.inherit(ITr2DebugRenderable)
 export class EveVirtualCamera
 {

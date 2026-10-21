@@ -4,7 +4,7 @@
 // The packed-set blink/fade intensity helpers. Each reads the renderer's
 // animation clock itself, Tr2Renderer::GetAnimationTime(), as Carbon does.
 import { meta } from "#schema";
-import { be } from "#blue";
+import { blue } from "#blue";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** Static attachment helpers matching Carbon's namespace. */
@@ -125,4 +125,4 @@ export class EveSpaceObjectAttachmentUtils
 export const FadeType = EveSpaceObjectAttachmentUtils.FadeType;
 
 // Carbon neither registers this nor gives it a chooser.
-be.enums.Create("trinity.FadeType", FadeType);
+blue.enums.Create("trinity.FadeType", FadeType);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.h
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.cpp
@@ -38,9 +39,11 @@ const INNER_TO_OUTER_BOX = mat4.create();
  * Oriented box of influence with a hollow inner box, weighting points by falloff
  * and seeding random points across its shell.
  */
-@blue.define("EveBoxVolume")
+@be.define("EveBoxVolume")
 @blue.inherit(IInitialize, INotify)
-@blue.interface(IEveVolume, INotify, IInitialize)
+@be.mapInterface(IEveVolume)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class EveBoxVolume extends IEveVolume
 {
   @blue.notify

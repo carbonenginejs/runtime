@@ -408,6 +408,6 @@ function pinRouteOutput(route, output)
 export { CjsFormatRoute };
 export default CjsFormatStore;
 
-CjsSchema.meta.define(CjsFormatStore, { className: "CjsFormatStore" });
+CjsSchema.meta.define("CjsFormatStore")(CjsFormatStore);
 
-CjsSchema.meta.define(CjsFormatRoute, { className: "CjsFormatRoute" });
+CjsSchema.meta.define("CjsFormatRoute")(CjsFormatRoute);

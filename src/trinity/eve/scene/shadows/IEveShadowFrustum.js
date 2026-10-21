@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Eve/IEveShadowCaster.h
 import { blue } from "#schema";
 
@@ -6,7 +7,7 @@ import { blue } from "#schema";
  * Carbon IEveShadowFrustum (IEveShadowCaster.h:15-26): the cull view of one
  * shadow pass, implemented by TriShadowOrthoFrustum and TriShadowFrustum.
  */
-@blue.define("IEveShadowFrustum")
+@meta.carbon("IEveShadowFrustum")
 export class IEveShadowFrustum
 {
 

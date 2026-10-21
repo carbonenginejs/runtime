@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PrimitiveScene.h
 // Source: trinity/trinity/Tr2PrimitiveScene.cpp
 // Source: trinity/trinity/Tr2PrimitiveScene_Blue.cpp
@@ -21,9 +22,9 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Native primitive scene and tool handles. Text rendering is a separate port. */
-@blue.define("Tr2PrimitiveScene")
+@be.define("Tr2PrimitiveScene")
 @blue.inherit(ITr2Scene)
-@blue.interface(ITr2Scene)
+@be.mapInterface(ITr2Scene)
 export class Tr2PrimitiveScene extends ITr2PickableScene
 {
   @blue.read

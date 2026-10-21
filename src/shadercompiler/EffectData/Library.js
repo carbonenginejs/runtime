@@ -27,6 +27,4 @@ export class Library
     source = "";
 }
 
-CjsSchema.blue.define(Library, {
-    className: "Library"
-});
+CjsSchema.meta.carbon("Library")(Library);

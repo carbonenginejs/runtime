@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
@@ -10,9 +11,9 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that sweeps the camera value from one authored endpoint to
  * another across the animation timeline.
  */
-@blue.define("EveVirtualCameraBehaviourVector3MoveBetween")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@be.define("EveVirtualCameraBehaviourVector3MoveBetween")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCameraBehaviourVector3Base
 {
   @blue.readwrite

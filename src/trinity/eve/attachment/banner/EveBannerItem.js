@@ -18,7 +18,7 @@ import { meta, type, blue } from "#schema";
  * Native 64-bit size 56; offsets and storage types: trinity/trinity/
  * Eve/SpaceObject/Attachments/Sets/EveBannerSet.h:16-28; Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp:22-30 (reference storage is not exposed).
  */
-@blue.define("EveBannerItem")
+@meta.carbon("EveBannerItem")
 @meta.struct.define({ size: 56 })
 export class EveBannerItem
 {

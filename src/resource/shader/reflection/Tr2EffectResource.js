@@ -131,15 +131,11 @@ export class Tr2EffectResource
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.blue.define(Tr2EffectResource, {
-  className: "Tr2EffectResource",
-  fields: {
-    isSRGB: type.boolean,
-    isAutoregister: type.boolean,
-    name: type.string,
-    type: [ type.int32, type.enum("Type") ],
-    arrayElements: type.uint32,
-    arrayLayers: [ type.list("string") ],
-    packed: [ type.boolean ]
-  }
-});
+CjsSchema.decorateField(Tr2EffectResource, "isSRGB", type.boolean);
+CjsSchema.decorateField(Tr2EffectResource, "isAutoregister", type.boolean);
+CjsSchema.decorateField(Tr2EffectResource, "name", type.string);
+CjsSchema.decorateField(Tr2EffectResource, "type", type.int32, type.enum("Type"));
+CjsSchema.decorateField(Tr2EffectResource, "arrayElements", type.uint32);
+CjsSchema.decorateField(Tr2EffectResource, "arrayLayers", type.list("string"));
+CjsSchema.decorateField(Tr2EffectResource, "packed", type.boolean);
+CjsSchema.meta.carbon("Tr2EffectResource")(Tr2EffectResource);

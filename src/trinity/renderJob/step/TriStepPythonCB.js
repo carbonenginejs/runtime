@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPythonCB.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -5,9 +6,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { CjsScriptCallback } from "#blue";
 
 /** A render step that invokes a host-supplied callback at its point in the job order. */
-@blue.define("TriStepPythonCB")
-@blue.interface()
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPythonCB")
+
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPythonCB extends TriRenderStep
 {
 

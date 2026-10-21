@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.h
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.cpp
 import { meta, type, blue } from "#schema";
@@ -12,9 +13,9 @@ import "#consts/graphics/trinityEnums";
  * opaque, decal, alpha, additive, depth-only, picking and so on - instead of
  * setting states individually.
  */
-@blue.define("TriStepSetStdRndStates")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetStdRndStates")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetStdRndStates extends TriRenderStep
 {
   static RenderingMode = RenderingMode;

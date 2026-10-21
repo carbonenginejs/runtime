@@ -317,7 +317,7 @@ export class CjsBluePaths extends IBluePaths
   }
 }
 
-CjsSchema.blue.interface(IBluePaths)(CjsBluePaths);
+CjsSchema.exposure.mapInterface(IBluePaths)(CjsBluePaths);
 CjsSchema.blue.define(CjsBluePaths, {
   className: "CjsBluePaths",
   donors: [ "BluePaths" ],

@@ -159,15 +159,11 @@ CjsSchema.decorateField(Tr2VirtualAllocator, "_blockSize", type.uint64);
 CjsSchema.decorateField(Tr2VirtualAllocator, "_maxSize", type.uint64);
 CjsSchema.decorateField(Tr2VirtualAllocator, "_currentSize", type.uint64);
 CjsSchema.decorateField(Tr2VirtualAllocator, "_allocatedMemory", type.uint64);
-CjsSchema.blue.define(Tr2VirtualAllocator, {
-  className: "Tr2VirtualAllocator",
-  methods: {
-    Expand: [ blue.method, meta.implemented ],
-    Allocate: [ blue.method, meta.adapted ],
-    Free: [ blue.method, meta.adapted ],
-    GetBlockSize: [ blue.method, meta.implemented ],
-    GetMaxSize: [ blue.method, meta.implemented ],
-    GetCurrentSize: [ blue.method, meta.implemented ],
-    GetAllocatedMemory: [ blue.method, meta.implemented ]
-  }
-});
+CjsSchema.decorateMethod(Tr2VirtualAllocator, "Expand", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2VirtualAllocator, "Allocate", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VirtualAllocator, "Free", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VirtualAllocator, "GetBlockSize", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2VirtualAllocator, "GetMaxSize", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2VirtualAllocator, "GetCurrentSize", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2VirtualAllocator, "GetAllocatedMemory", blue.method, meta.implemented);
+CjsSchema.meta.carbon("Tr2VirtualAllocator")(Tr2VirtualAllocator);

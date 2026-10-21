@@ -120,7 +120,5 @@ export class Tr2DebugColor
 
 // Declared as a call, not a decorator: global/interfaces is imported straight
 // from source by tests, and raw Node cannot parse decorator syntax.
-CjsSchema.blue.define(Tr2DebugColor, {
-  className: "Tr2DebugColor",
-  methods: { GetAutoSelectedColor: [ blue.method ] }
-});
+CjsSchema.decorateMethod(Tr2DebugColor, "GetAutoSelectedColor", blue.method);
+CjsSchema.meta.carbon("Tr2DebugColor")(Tr2DebugColor);

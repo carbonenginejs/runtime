@@ -14,14 +14,14 @@ import { buildVta } from "../support/vtaFixture.js";
 import { ImageIO, HostBitmap, LoadParameters, ImageIOResult, Metadata } from "../../npm/dist/resource/imageio/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
-import { be, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 
 // The composing application registers formats once with each table that maps an
 // extension: ImageIO for the codec, its resource manager for the resource class.
 for (const Format of [ CjsBmpFormat, CjsDdsFormat, CjsGifFormat, CjsJpegFormat, CjsPngFormat, CjsPsdFormat, CjsTgaFormat, CjsVtaFormat ])
 {
   ImageIO.registerImageHandler(Format);
-  be.resMan.RegisterFormat(Format);
+  blue.resMan.RegisterFormat(Format);
 }
 
 /** A legacy (non-DX10) uncompressed DDS: 32-bit masks, no mips unless mipCount > 1. */
@@ -126,7 +126,7 @@ test("mip skipping drops the top level and reads the rest (DoReadHeader, Tr2DdsH
 
 test("HostBitmap is reachable by name through blue.classes", () =>
 {
-  assert.equal(be.classes.CreateInstanceFromName("HostBitmap").constructor, HostBitmap);
+  assert.equal(blue.classes.CreateInstanceFromName("HostBitmap").constructor, HostBitmap);
 });
 
 test("the DDS format exposes Carbon's legacy clean-ups to direct readers", () =>
@@ -288,15 +288,15 @@ test("ImageIO serves only formats registered with it, says so when none is, and 
 {
   // A format under an extension of its own, so the shared table is not disturbed.
   class LateImage extends CjsPsdFormat { static extensions = [ ".late" ]; }
-  const previous = be.resMan;
-  t.after(() => { be.resMan = previous; });
-  be.resMan = new CjsBlueResMan();
+  const previous = blue.resMan;
+  t.after(() => { blue.resMan = previous; });
+  blue.resMan = new CjsBlueResMan();
   const parameters = new LoadParameters("x/picture.LATE");
   const bytes = CjsPsdFormat.write(imagePayload);
   const bitmap = new HostBitmap();
 
   // Registering with ResMan alone does not reach ImageIO: the two tables are separate.
-  be.resMan.RegisterFormat(LateImage);
+  blue.resMan.RegisterFormat(LateImage);
   const missing = ImageIO.readImage(bytes, parameters, bitmap);
   assert.equal(missing.code, ImageIOResult.Code.UNRECOGNIZED_IMAGE_TYPE);
   assert.match(missing.GetErrorMessage(), /no image handler is registered for "\.LATE"/u, "an unregistered codec says so");
@@ -315,7 +315,7 @@ test("ImageIO serves only formats registered with it, says so when none is, and 
   assert.equal(ImageIO._imageHandlers.length, before);
 
   // Replacing the active ResMan changes nothing for ImageIO.
-  be.resMan = new CjsBlueResMan();
+  blue.resMan = new CjsBlueResMan();
   assert.equal(ImageIO.getImageHandler("late"), LateImage);
 });
 

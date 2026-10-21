@@ -36,6 +36,4 @@ export class ExpressionValueElement
     }
 }
 
-CjsSchema.blue.define(ExpressionValueElement, {
-    className: "ExpressionValueElement"
-});
+CjsSchema.meta.carbon("ExpressionValueElement")(ExpressionValueElement);

@@ -15,7 +15,4 @@ for (const method of [ "PopulateLightData", "Update" ])
 {
   CjsSchema.decorateMethod(ITr2InteriorLight, method, blue.abstract);
 }
-CjsSchema.blue.define(ITr2InteriorLight, {
-  className: "ITr2InteriorLight",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITr2InteriorLight")(ITr2InteriorLight);

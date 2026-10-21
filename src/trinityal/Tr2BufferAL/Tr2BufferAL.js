@@ -168,4 +168,4 @@ export class Tr2BufferAL
 CjsSchema.decorateField(Tr2BufferAL, "_buffer", type.unknown);
 CjsSchema.decorateMethod(Tr2BufferAL, "Equals", meta.renamed("operator=="));
 CjsSchema.decorateMethod(Tr2BufferAL, "MapForReading__OffsetSize", blue.method);
-CjsSchema.blue.define(Tr2BufferAL, { className: "Tr2BufferAL" });
+CjsSchema.meta.carbon("Tr2BufferAL")(Tr2BufferAL);

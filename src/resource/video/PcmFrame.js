@@ -34,4 +34,4 @@ export class PcmFrame
   }
 }
 
-CjsSchema.blue.define(PcmFrame, { className: "PcmFrame" });
+CjsSchema.meta.carbon("PcmFrame")(PcmFrame);

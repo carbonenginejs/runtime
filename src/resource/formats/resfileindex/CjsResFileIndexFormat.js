@@ -171,4 +171,4 @@ export class CjsResFileIndexFormat extends CjsFormat
 }
 
 
-CjsSchema.meta.define(CjsResFileIndexFormat, { className: "CjsResFileIndexFormat" });
+CjsSchema.meta.define("CjsResFileIndexFormat")(CjsResFileIndexFormat);

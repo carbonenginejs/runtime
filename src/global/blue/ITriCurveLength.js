@@ -19,7 +19,4 @@ export class ITriCurveLength
 }
 
 CjsSchema.decorateMethod(ITriCurveLength, "Length", blue.abstract);
-CjsSchema.blue.define(ITriCurveLength, {
-  className: "ITriCurveLength",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITriCurveLength")(ITriCurveLength);

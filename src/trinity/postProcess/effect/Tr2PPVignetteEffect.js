@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPVignetteEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPVignetteEffect.json.).
 import { type, blue } from "#schema";
@@ -6,9 +7,9 @@ import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
 /** Carries the shape, detail textures, scrolling, color, opacity, and oscillation settings for a post-process vignette. */
-@blue.define("Tr2PPVignetteEffect")
-@blue.chainTo(Tr2PPEffect)
-@blue.interface(Tr2PPEffect)
+@be.define("Tr2PPVignetteEffect")
+@be.exposureChainTo(Tr2PPEffect)
+@be.mapInterface(Tr2PPEffect)
 export class Tr2PPVignetteEffect extends Tr2PPEffect
 {
 

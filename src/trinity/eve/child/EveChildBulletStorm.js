@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp
@@ -30,10 +31,13 @@ const CORNER_STRIDE = 4;
 const INSTANCE_STRIDE = 40;
 
 /** Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine. */
-@blue.define("EveChildBulletStorm")
+@be.define("EveChildBulletStorm")
 @blue.inherit(ITr2Renderable)
 @blue.inherit(IInitialize)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, INotify)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(INotify)
 export class EveChildBulletStorm extends EveSpaceObjectChild
 {
 

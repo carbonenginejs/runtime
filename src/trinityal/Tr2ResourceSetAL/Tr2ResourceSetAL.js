@@ -108,4 +108,4 @@ CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Pipeline", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "SetName", blue.method);
-CjsSchema.blue.define(Tr2ResourceSetAL, { className: "Tr2ResourceSetAL" });
+CjsSchema.meta.carbon("Tr2ResourceSetAL")(Tr2ResourceSetAL);

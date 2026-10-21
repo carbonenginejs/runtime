@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.h
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
@@ -15,9 +16,10 @@ import { Tr2CurveInterpolation } from "../enums.js";
  * produced by an expression over the key's inputs, its random constant and the
  * previous key.
  */
-@blue.define("Tr2ScalarExprKey")
+@be.define("Tr2ScalarExprKey")
 @blue.inherit(INotify)
-@blue.interface(IInitialize, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2ScalarExprKey extends IInitialize
 {
   /** Key time in seconds. */

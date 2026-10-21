@@ -120,4 +120,4 @@ export class Tr2PerObjectDataPSBuffer extends Tr2PerObjectData
   }
 }
 
-CjsSchema.blue.define(Tr2PerObjectDataPSBuffer, { className: "Tr2PerObjectDataPSBuffer" });
+CjsSchema.meta.carbon("Tr2PerObjectDataPSBuffer")(Tr2PerObjectDataPSBuffer);

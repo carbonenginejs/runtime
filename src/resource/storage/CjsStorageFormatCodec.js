@@ -110,4 +110,4 @@ async function transform(bytes, stream)
     return asUint8Array(await response.arrayBuffer());
 }
 
-CjsSchema.meta.define(CjsStorageFormatCodec, { className: "CjsStorageFormatCodec" });
+CjsSchema.meta.define("CjsStorageFormatCodec")(CjsStorageFormatCodec);

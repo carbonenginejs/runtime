@@ -38,4 +38,4 @@ export class VideoMetadata
   }
 }
 
-CjsSchema.blue.define(VideoMetadata, { className: "VideoMetadata" });
+CjsSchema.meta.carbon("VideoMetadata")(VideoMetadata);

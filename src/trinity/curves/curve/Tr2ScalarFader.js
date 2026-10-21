@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.h
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.cpp
 import { num } from "#math/num";
@@ -11,7 +12,7 @@ const TRI_PI = Math.PI;
  * length, and also exposes a separate non-linear kick-in pulse that runs once
  * per fade-in.
  */
-@blue.define("Tr2ScalarFader")
+@be.define("Tr2ScalarFader")
 export class Tr2ScalarFader
 {
   /**
@@ -149,4 +150,4 @@ export class Tr2ScalarFader
 }
 
 // Exact native exposure table; no inherited or implicit entries.
-blue.interface()(Tr2ScalarFader);
+

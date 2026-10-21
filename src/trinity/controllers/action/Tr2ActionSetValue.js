@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue_Blue.cpp
@@ -16,9 +17,10 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * Controller action that evaluates a value expression once on start and writes
  * the result into a bound destination property.
  */
-@blue.define("Tr2ActionSetValue")
+@be.define("Tr2ActionSetValue")
 @blue.inherit(INotify)
-@blue.interface(ITr2ControllerAction, INotify)
+@be.mapInterface(ITr2ControllerAction)
+@be.mapInterface(INotify)
 export class Tr2ActionSetValue extends ITr2ControllerAction
 {
   /** Flattened adapter storage for m_destination.m_path. */

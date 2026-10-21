@@ -2,7 +2,7 @@ import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRend
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp
-import { IsMatch, be, CjsBlueClasses } from "#blue";
+import { IsMatch, blue as be, CjsBlueClasses } from "#blue";
 
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";

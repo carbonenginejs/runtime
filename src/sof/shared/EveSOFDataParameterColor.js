@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 //   SOF_PARAM_DECLARE( EveSOFDataParameterColor, ... ) - Carbon declares the six typed
 //   parameters through one macro beside their base.
@@ -8,8 +9,8 @@ import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Color shader parameter: passes the four components through unchanged. */
-@blue.define("EveSOFDataParameterColor")
-@blue.interface(EveSOFDataParameter)
+@be.define("EveSOFDataParameterColor")
+@be.mapInterface(EveSOFDataParameter)
 export class EveSOFDataParameterColor extends EveSOFDataParameter
 {
   /**

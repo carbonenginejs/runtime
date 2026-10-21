@@ -68,28 +68,24 @@ export class TriGeometryResLodData
 
 }
 
-CjsSchema.blue.define(TriGeometryResLodData, {
-  className: "TriGeometryResLodData",
-  fields: {
-    mesh: type.rawStruct("TriGeometryResMeshData"),
-    grannyMeshIndex: type.int32,
-    name: type.string,
-    originalLodIndex: type.int32,
-    maxScreenSize: type.float32,
-    vertexCount: type.uint32,
-    primitiveCount: type.uint32,
-    uvDensities: type.list("float"),
-    areas: type.list("TriGeometryResAreaData"),
-    allocationsValid: type.boolean,
-    vertexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
-    indexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
-    morphTargetAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
-    morphTargetNames: type.list("std::string"),
-    morphTargetDeformationAmounts: type.list("float"),
-    isBakedMorphTarget: type.list("bool"),
-    morphVertexDeclaration: type.uint32,
-    bytesPerMorphTargetVertex: type.uint32,
-    reversedIndicesValid: type.boolean,
-    reversedIndexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation")
-  }
-});
+CjsSchema.decorateField(TriGeometryResLodData, "mesh", type.rawStruct("TriGeometryResMeshData"));
+CjsSchema.decorateField(TriGeometryResLodData, "grannyMeshIndex", type.int32);
+CjsSchema.decorateField(TriGeometryResLodData, "name", type.string);
+CjsSchema.decorateField(TriGeometryResLodData, "originalLodIndex", type.int32);
+CjsSchema.decorateField(TriGeometryResLodData, "maxScreenSize", type.float32);
+CjsSchema.decorateField(TriGeometryResLodData, "vertexCount", type.uint32);
+CjsSchema.decorateField(TriGeometryResLodData, "primitiveCount", type.uint32);
+CjsSchema.decorateField(TriGeometryResLodData, "uvDensities", type.list("float"));
+CjsSchema.decorateField(TriGeometryResLodData, "areas", type.list("TriGeometryResAreaData"));
+CjsSchema.decorateField(TriGeometryResLodData, "allocationsValid", type.boolean);
+CjsSchema.decorateField(TriGeometryResLodData, "vertexAllocation", type.rawStruct("Tr2SuballocatedBuffer::Allocation"));
+CjsSchema.decorateField(TriGeometryResLodData, "indexAllocation", type.rawStruct("Tr2SuballocatedBuffer::Allocation"));
+CjsSchema.decorateField(TriGeometryResLodData, "morphTargetAllocation", type.rawStruct("Tr2SuballocatedBuffer::Allocation"));
+CjsSchema.decorateField(TriGeometryResLodData, "morphTargetNames", type.list("std::string"));
+CjsSchema.decorateField(TriGeometryResLodData, "morphTargetDeformationAmounts", type.list("float"));
+CjsSchema.decorateField(TriGeometryResLodData, "isBakedMorphTarget", type.list("bool"));
+CjsSchema.decorateField(TriGeometryResLodData, "morphVertexDeclaration", type.uint32);
+CjsSchema.decorateField(TriGeometryResLodData, "bytesPerMorphTargetVertex", type.uint32);
+CjsSchema.decorateField(TriGeometryResLodData, "reversedIndicesValid", type.boolean);
+CjsSchema.decorateField(TriGeometryResLodData, "reversedIndexAllocation", type.rawStruct("Tr2SuballocatedBuffer::Allocation"));
+CjsSchema.meta.carbon("TriGeometryResLodData")(TriGeometryResLodData);

@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:45-64
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { IsMatch, INotify, IInitialize, be, CjsBlueClasses } from "#blue";
+import { IsMatch, INotify, IInitialize, blue as be, CjsBlueClasses } from "#blue";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";

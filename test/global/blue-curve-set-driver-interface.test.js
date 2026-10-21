@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { ICurveSetDriver, be } from "@carbonenginejs/runtime/blue";
+import { ICurveSetDriver, blue as be } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue } from "@carbonenginejs/runtime/schema";
 import { ICurveSetDriver as DirectDriver } from "../../src/global/blue/ICurveSetDriver.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";

@@ -215,4 +215,4 @@ export class Tr2SwapChainAL
 
 CjsSchema.decorateField(Tr2SwapChainAL, "_swapChain", type.unknown);
 CjsSchema.decorateMethod(Tr2SwapChainAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2SwapChainAL, { className: "Tr2SwapChainAL" });
+CjsSchema.meta.carbon("Tr2SwapChainAL")(Tr2SwapChainAL);

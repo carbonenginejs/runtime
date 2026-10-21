@@ -15,7 +15,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { noise } from "../../npm/dist/global/math/noise.js";
 import { CcpTime } from "../../npm/dist/global/blue/CcpTime.js";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import {
   LightData,
   EveSpaceObjectAttachmentUtils,
@@ -182,14 +182,14 @@ test("AsPerPointLightData flickers brightness with Carbon's fixed-seed Perlin no
 {
   const steady = MakeLightData();
   const flicker = MakeLightData({ noiseAmplitude: 0.5, noiseFrequency: 3, noiseOctaves: 2 });
-  flicker.startTime = be.os.GetCurrentFrameTime() - 25_000_000;
+  flicker.startTime = blue.os.GetCurrentFrameTime() - 25_000_000;
   const features = { parentBrightness: 1, parentScale: 1 };
 
   const base = steady.AsPerPointLightData(mat4.create(), features, 0);
   const lit = flicker.AsPerPointLightData(mat4.create(), features, 0);
 
   // PerlinNoise1D( TimeAsDouble( now - start ) * frequency, 2, 2, octaves ).
-  const value = Math.fround(noise.carbonPerlin1D(CcpTime.timeAsDouble(be.os.GetCurrentFrameTime() - flicker.startTime) * 3, 2, 2, 2));
+  const value = Math.fround(noise.carbonPerlin1D(CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime() - flicker.startTime) * 3, 2, 2, 2));
   const scale = Math.fround(Math.fround((value + 1) / 2) * 0.5);
   assertClose(lit.color[0], base.color[0] * scale, "red follows the flicker");
   assertClose(lit.color[2], base.color[2] * scale, "blue follows the flicker");

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.h
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.cpp
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:63-85
@@ -21,9 +22,11 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
  * is empty. Cached camera values and scratch buffers own no resources.
  * Existing ambient-context and gl-matrix framing adaptations are unchanged.
  */
-@blue.define("Tr2CameraFollowCurveKey")
+@be.define("Tr2CameraFollowCurveKey")
 @blue.inherit(INotify, IInitialize)
-@blue.interface(ITr2FollowCurveKey, INotify, IInitialize)
+@be.mapInterface(ITr2FollowCurveKey)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
 {
   /** Authored shared-string key name. */

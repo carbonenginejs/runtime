@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -7,8 +8,8 @@ import { EveSOFDataHullExtensionPlacementDistributionPlacement } from "./EveSOFD
 import { vec3 } from "#math/vec3";
 
 /** Defines a concrete hull extension by DNA, locator, offset, distribution, conditions, and build flags. */
-@blue.define("EveSOFDataHullExtensionPlacement")
-@blue.interface(IEveSOFDataHullExtensionPlacement)
+@be.define("EveSOFDataHullExtensionPlacement")
+@be.mapInterface(IEveSOFDataHullExtensionPlacement)
 export class EveSOFDataHullExtensionPlacement extends IEveSOFDataHullExtensionPlacement
 {
 

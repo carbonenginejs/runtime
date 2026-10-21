@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetVariableStore.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta, type, blue } from "#schema";
@@ -10,9 +11,9 @@ import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
 import { TriTextureRes } from "#resource/texture";
 
 /** A render step that writes one named value into the variable store shaders read. */
-@blue.define("TriStepSetVariableStore")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetVariableStore")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetVariableStore extends TriRenderStep
 {
 

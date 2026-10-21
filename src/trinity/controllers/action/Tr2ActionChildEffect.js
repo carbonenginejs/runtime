@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { be, CjsBlueClasses } from "#blue";
+import { blue as be, CjsBlueClasses } from "#blue";
 import { meta, CjsSchema, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -314,4 +314,4 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionChildEffect_Blue.cpp:12-13,26).
-blue.interface(ITr2ControllerAction)(Tr2ActionChildEffect);
+CjsSchema.exposure.mapInterface(ITr2ControllerAction)(Tr2ActionChildEffect);

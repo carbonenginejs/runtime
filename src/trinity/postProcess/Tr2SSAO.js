@@ -12,7 +12,7 @@ import { SSAOQuality } from "../generated/trinityCore/enums.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { PER_OBJECT_VS, Tr2Renderer } from "../core/Tr2Renderer.js";
 import { GpuResourceHandle } from "../core/Tr2GpuResourcePool/GpuResourceHandle.js";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 
 /** CORTAO's effects and lookup table (`Tr2SSAO.cpp:99, 102, 108`). */
 const CORTAO_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/System/CORTAO/CORTAO.fx";

@@ -408,4 +408,4 @@ CjsSchema.decorateMethod(Tr2TextureSubresource, "IsSubresourceFull", blue.method
 CjsSchema.decorateMethod(Tr2TextureSubresource, "IsValidForBitmap", blue.method);
 CjsSchema.decorateMethod(Tr2TextureSubresource, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2TextureSubresource, "Equals", blue.method, meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2TextureSubresource, { className: "Tr2TextureSubresource" });
+CjsSchema.meta.carbon("Tr2TextureSubresource")(Tr2TextureSubresource);

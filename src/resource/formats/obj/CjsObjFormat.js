@@ -214,4 +214,4 @@ export class CjsObjFormat extends CjsGeometryFormat
 
 export default CjsObjFormat;
 
-CjsSchema.meta.define(CjsObjFormat, { className: "CjsObjFormat" });
+CjsSchema.meta.define("CjsObjFormat")(CjsObjFormat);

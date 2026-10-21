@@ -31,4 +31,4 @@ export class ErrSOFDecalShaderNotFound extends Error
   }
 }
 
-CjsSchema.meta.define(ErrSOFDecalShaderNotFound, { className: "ErrSOFDecalShaderNotFound" });
+CjsSchema.meta.define("ErrSOFDecalShaderNotFound")(ErrSOFDecalShaderNotFound);

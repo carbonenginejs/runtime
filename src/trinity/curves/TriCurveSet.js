@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Curves/TriCurveSet_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta, type, blue } from "#schema";
-import { CjsScriptCallback, IInitialize, ISimTimeRebaseNotify, be, BlueList, CcpTime } from "#blue";
+import { CjsScriptCallback, IInitialize, ISimTimeRebaseNotify, blue as be, BlueList, CcpTime } from "#blue";
 import { ITriFunction } from "../../global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../global/blue/ITriCurveLength.js";
 import { ITr2Updateable } from "../core/ITr2Updateable.js";

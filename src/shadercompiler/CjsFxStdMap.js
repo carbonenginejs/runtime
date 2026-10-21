@@ -101,4 +101,4 @@ export class CjsFxStdMap extends Map
     }
 }
 
-CjsSchema.meta.define(CjsFxStdMap, { className: "CjsFxStdMap" });
+CjsSchema.meta.define("CjsFxStdMap")(CjsFxStdMap);

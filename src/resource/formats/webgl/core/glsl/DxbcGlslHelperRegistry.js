@@ -94,4 +94,4 @@ export class DxbcGlslHelperRegistry
     }
 }
 
-CjsSchema.meta.define(DxbcGlslHelperRegistry, { className: "DxbcGlslHelperRegistry" });
+CjsSchema.meta.define("DxbcGlslHelperRegistry")(DxbcGlslHelperRegistry);

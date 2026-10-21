@@ -3,7 +3,7 @@ import { getRegisteredClassName } from "../../npm/dist/global/compose/className.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be, DictReader, DictWriter, Copier, INotify, IInitialize, ICustomPersist } from "../../npm/dist/global/blue/index.js";
+import { blue, DictReader, DictWriter, Copier, INotify, IInitialize, ICustomPersist } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
@@ -54,7 +54,7 @@ test("ChildEffect retains native declaration order and forwards prefetch with a 
 test("ChildEffect discards an older load and releases its cache without removing a retained child", async t =>
 {
   const pending = [], events = [], owner = new EveChildContainer();
-  t.mock.method(be.resMan, "LoadObject", () => new Promise(resolve => pending.push(resolve)));
+  t.mock.method(blue.resMan, "LoadObject", () => new Promise(resolve => pending.push(resolve)));
   const action = new Tr2ActionChildEffect(), controller = { GetOwner: () => owner };
   action.path = "res:/child.red";
   action.childName = "spark";
@@ -112,8 +112,8 @@ test("Python retains queued host capture across notification and requires contro
     OnStop: () => events.push(`${className}:stop`),
     OnUpdate: (_owner, _controller, real, sim) => events.push([className, real, sim])
   }));
-  t.mock.method(be.os, "GetActualTime", () => 10000000);
-  t.mock.method(be.os, "GetCurrentFrameTime", () => 20000000);
+  t.mock.method(blue.os, "GetActualTime", () => 10000000);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => 20000000);
   const controller = Object.assign(new Tr2Controller(), { GetOwner: () => null, RegisterUpdateable: x => updates.add(x), UnRegisterUpdateable: x => updates.delete(x) });
   const action = new Tr2ActionPython();
   action.module = "m";

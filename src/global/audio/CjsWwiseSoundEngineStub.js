@@ -306,7 +306,7 @@ export class CjsWwiseSoundEngineStub extends ICjsWwiseSoundEngine
     }
 }
 
-CjsSchema.meta.define(CjsWwiseSoundEngineStub, { className: "CjsWwiseSoundEngineStub", fields: {} });
+CjsSchema.meta.define("CjsWwiseSoundEngineStub")(CjsWwiseSoundEngineStub);
 for (const method of [ "InitSpatialAudioGeometry", "SetGeometry", "SetGeometryInstance", "RemoveGeometry", "RemoveGeometryInstance" ])
 {
     CjsSchema.decorateMethod(CjsWwiseSoundEngineStub, method, meta.notImplemented);

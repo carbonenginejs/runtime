@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
@@ -77,9 +78,12 @@ const DEBUG_BOX_MAX = vec3.fromValues(0.5, 0.5, 0.5);
  * A hull's authored haze volumes, owning their per-bone bounds and the point
  * lights the haze emits.
  */
-@blue.define("EveHazeSet")
+@be.define("EveHazeSet")
 @blue.inherit(IInitialize, Tr2DeviceResource, ITr2LightOwner, EveEntity)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IEveSpaceObjectAttachment)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2LightOwner)
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
 

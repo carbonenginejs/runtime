@@ -118,16 +118,10 @@ export class Tr2TexturePipelineStepLimitSize
 
 }
 
-CjsSchema.blue.interface(Tr2TexturePipelineStepLimitSize)(Tr2TexturePipelineStepLimitSize);
-CjsSchema.blue.define(Tr2TexturePipelineStepLimitSize, {
-  className: "Tr2TexturePipelineStepLimitSize",
-  fields: {
-    maxHeight: [ blue.readwrite, blue.persist, type.uint32 ],
-    maxWidth: [ blue.readwrite, blue.persist, type.uint32 ]
-  },
-  methods: {
-    GetResourceDependencies: [ blue.method, meta.implemented ],
-    Execute: [ blue.method, meta.implemented ],
-    limitSize: [ blue.method, meta.adapted ]
-  }
-});
+
+CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxHeight", blue.readwrite, blue.persist, type.uint32);
+CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxWidth", blue.readwrite, blue.persist, type.uint32);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "GetResourceDependencies", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "Execute", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "limitSize", blue.method, meta.adapted);
+CjsSchema.exposure.define("Tr2TexturePipelineStepLimitSize")(Tr2TexturePipelineStepLimitSize);

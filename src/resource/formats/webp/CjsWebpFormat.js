@@ -222,4 +222,4 @@ export class CjsWebpFormat extends CjsFormat
 
 export default CjsWebpFormat;
 
-CjsSchema.meta.define(CjsWebpFormat, { className: "CjsWebpFormat" });
+CjsSchema.meta.define("CjsWebpFormat")(CjsWebpFormat);

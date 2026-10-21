@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierScaleBySpaceObjectParent.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -6,8 +7,8 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 
 /** Multiplies a distributed placement's additional scale from its parent space object's bounding radius or an authored scale curve. */
-@blue.define("EveDistributionModifierScaleBySpaceObjectParent")
-@blue.interface(IEveDistributionModifier)
+@be.define("EveDistributionModifierScaleBySpaceObjectParent")
+@be.mapInterface(IEveDistributionModifier)
 export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistributionModifier
 {
 

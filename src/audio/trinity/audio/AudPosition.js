@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudPosition.h + AudPosition.cpp
 // Hand-owned behavior port. Verify against audio/AudPosition.json.
 import { meta, blue } from "#schema";
@@ -8,8 +9,8 @@ import { vec3 } from "#math/vec3";
  * Stores browser-safe front, top, and position vectors for Carbon
  * placement-observer updates.
  */
-@blue.define("AudPosition")
-@blue.interface(IBluePlacementObserver)
+@be.define("AudPosition")
+@be.mapInterface(IBluePlacementObserver)
 export class AudPosition extends IBluePlacementObserver
 {
 

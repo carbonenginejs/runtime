@@ -34,6 +34,4 @@ export class FileLocation
     }
 }
 
-CjsSchema.blue.define(FileLocation, {
-    className: "FileLocation"
-});
+CjsSchema.meta.carbon("FileLocation")(FileLocation);

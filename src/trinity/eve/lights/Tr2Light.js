@@ -5,7 +5,7 @@ import { vec3 } from "#math/vec3";
 import { color } from "#math/color";
 import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, be, IInitialize, INotify } from "#blue";
+import { IsMatch, blue as be, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { LightData } from "./LightData.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";

@@ -643,4 +643,4 @@ export class CjsDdsFormat extends CjsImageFormat
 
 export default CjsDdsFormat;
 
-CjsSchema.meta.define(CjsDdsFormat, { className: "CjsDdsFormat" });
+CjsSchema.meta.define("CjsDdsFormat")(CjsDdsFormat);

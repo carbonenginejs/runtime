@@ -94,16 +94,12 @@ export class Tr2DisplayMode
 export default Tr2DisplayMode;
 
 blue.inherit(IRoot)(Tr2DisplayMode);
-blue.interface()(Tr2DisplayMode);
-CjsSchema.blue.define(Tr2DisplayMode, {
-    className: "Tr2DisplayMode",
-    fields: {
-        width: [blue.read],
-        height: [blue.read],
-        refreshRateNumerator: [blue.read],
-        refreshRateDenominator: [blue.read],
-        format: [blue.read],
-        scanlineOrdering: [blue.read],
-        scaling: [blue.read]
-    }
-});
+
+CjsSchema.decorateField(Tr2DisplayMode, "width", blue.read);
+CjsSchema.decorateField(Tr2DisplayMode, "height", blue.read);
+CjsSchema.decorateField(Tr2DisplayMode, "refreshRateNumerator", blue.read);
+CjsSchema.decorateField(Tr2DisplayMode, "refreshRateDenominator", blue.read);
+CjsSchema.decorateField(Tr2DisplayMode, "format", blue.read);
+CjsSchema.decorateField(Tr2DisplayMode, "scanlineOrdering", blue.read);
+CjsSchema.decorateField(Tr2DisplayMode, "scaling", blue.read);
+CjsSchema.exposure.define("Tr2DisplayMode")(Tr2DisplayMode);

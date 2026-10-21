@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { quat } from "#math/quat";
@@ -11,9 +12,9 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that places the camera on a horizontal circle about the
  * anchor, sweeping from a start to an end angle over the timeline.
  */
-@blue.define("EveVirtualCameraBehaviourVector3Orbit")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@be.define("EveVirtualCameraBehaviourVector3Orbit")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehaviourVector3Base
 {
   @blue.readwrite

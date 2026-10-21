@@ -38,12 +38,7 @@ export class DocumentParameter extends VersionedParameter
     }
 }
 
-CjsSchema.blue.define(DocumentParameter, {
-  className: "DocumentParameter",
-  fields: {},
-  methods: {
-        GetValue: [ blue.method, meta.implemented ],
-        HasValue: [ blue.method, meta.implemented ],
-        Reset: [ blue.method, meta.implemented ]
-    }
-});
+CjsSchema.decorateMethod(DocumentParameter, "GetValue", blue.method, meta.implemented);
+CjsSchema.decorateMethod(DocumentParameter, "HasValue", blue.method, meta.implemented);
+CjsSchema.decorateMethod(DocumentParameter, "Reset", blue.method, meta.implemented);
+CjsSchema.meta.carbon("DocumentParameter")(DocumentParameter);

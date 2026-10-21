@@ -1460,4 +1460,4 @@ function IsRetainedMusicSfxAction(action)
             && !action.exceptions?.length);
 }
 
-CjsSchema.meta.define(CjsAudioLibraryBuilderSfxEventLoweringSession, { className: "CjsAudioLibraryBuilderSfxEventLoweringSession" });
+CjsSchema.meta.define("CjsAudioLibraryBuilderSfxEventLoweringSession")(CjsAudioLibraryBuilderSfxEventLoweringSession);

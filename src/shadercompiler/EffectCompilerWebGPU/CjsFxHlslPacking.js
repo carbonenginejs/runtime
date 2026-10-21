@@ -230,4 +230,4 @@ export class CjsFxHlslPacking
     static registerBytes = 16;
 }
 
-CjsSchema.meta.define(CjsFxHlslPacking, { className: "CjsFxHlslPacking" });
+CjsSchema.meta.define("CjsFxHlslPacking")(CjsFxHlslPacking);

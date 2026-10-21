@@ -271,4 +271,4 @@ function PrepareLibrary(value)
 
 export default CjsCharacterLibraryManager;
 
-CjsSchema.meta.define(CjsCharacterLibraryManager, { className: "CjsCharacterLibraryManager" });
+CjsSchema.meta.define("CjsCharacterLibraryManager")(CjsCharacterLibraryManager);

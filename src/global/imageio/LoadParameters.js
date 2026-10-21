@@ -88,9 +88,5 @@ export class LoadParameters
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.blue.define(LoadParameters, {
-  className: "LoadParameters",
-  methods: {
-    GetMipLevelRange: [ blue.method, meta.adapted ]
-  }
-});
+CjsSchema.decorateMethod(LoadParameters, "GetMipLevelRange", blue.method, meta.adapted);
+CjsSchema.meta.carbon("LoadParameters")(LoadParameters);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -5,8 +6,8 @@ import { Tr2ExternalParameter } from "../../core/binding/Tr2ExternalParameter.js
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Binds a named string socket value to external parameters while capturing defaults for restoration. */
-@blue.define("EveSocketParameterString")
-@blue.interface(IEveSocketParameter)
+@be.define("EveSocketParameterString")
+@be.mapInterface(IEveSocketParameter)
 export class EveSocketParameterString extends IEveSocketParameter
 {
 

@@ -1,4 +1,4 @@
-import { be } from "#blue";
+import { blue } from "#blue";
 
 /**
  * Creates the byte reader for a library build: an injected `source` when one
@@ -29,7 +29,7 @@ export function createCharacterResourceReader(options = {})
     }
 
     return async (path, context = {}) => normalizeResourceBytes(
-        await be.resMan.ReadResource(path, context.signal ? { signal: context.signal } : {}),
+        await blue.resMan.ReadResource(path, context.signal ? { signal: context.signal } : {}),
         path
     );
 }

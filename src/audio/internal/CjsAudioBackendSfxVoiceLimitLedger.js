@@ -129,4 +129,4 @@ export class CjsAudioBackendSfxVoiceLimitLedger
     }
 }
 
-CjsSchema.meta.define(CjsAudioBackendSfxVoiceLimitLedger, { className: "CjsAudioBackendSfxVoiceLimitLedger" });
+CjsSchema.meta.define("CjsAudioBackendSfxVoiceLimitLedger")(CjsAudioBackendSfxVoiceLimitLedger);

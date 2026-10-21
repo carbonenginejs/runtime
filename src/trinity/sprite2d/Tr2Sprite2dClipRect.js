@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dClipRect.json.).
 import { type, blue } from "#schema";
@@ -8,7 +9,7 @@ import { type, blue } from "#schema";
  * no-argument constructor (ITr2Sprite2dRenderer.h:64-66) has an empty body, so
  * all four bounds start at their neutral value.
  */
-@blue.define("Tr2Sprite2dClipRect")
+@meta.carbon("Tr2Sprite2dClipRect")
 export class Tr2Sprite2dClipRect
 {
 

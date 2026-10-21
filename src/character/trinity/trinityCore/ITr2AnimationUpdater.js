@@ -40,9 +40,6 @@ export class ITr2AnimationUpdater
   GetAnimationBoneList() {}
 }
 
-CjsSchema.blue.define(ITr2AnimationUpdater, {
-  className: "ITr2AnimationUpdater",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITr2AnimationUpdater")(ITr2AnimationUpdater);
 
 blue.inherit(IRoot)(ITr2AnimationUpdater);

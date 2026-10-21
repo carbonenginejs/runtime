@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Lights/Tr2Light.h:27-58
 // Source: trinity/trinity/Lights/Tr2Light.cpp:9-80
-import { be } from "#blue";
+import { blue } from "#blue";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -33,7 +33,7 @@ const TRI_2PI = Math.fround(6.283185307);
  * structs, e.g. EveBannerSet.h:34) and map their Blue attributes into its
  * members.
  */
-@meta.define({ className: "LightData", carbon: "LightData" })
+@meta.carbon("LightData")
 export class LightData
 {
 
@@ -112,7 +112,7 @@ export class LightData
    */
   constructor()
   {
-    this.startTime = be.os.GetCurrentFrameTime();
+    this.startTime = blue.os.GetCurrentFrameTime();
   }
 
   /**
@@ -183,7 +183,7 @@ export class LightData
     let composedBrightness = Math.fround(this.brightness * features.parentBrightness);
     if (this.noiseAmplitude !== 0)
     {
-      const elapsed = CcpTime.timeAsDouble(be.os.GetCurrentFrameTime() - this.startTime);
+      const elapsed = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime() - this.startTime);
       const flicker = Math.fround(noise.carbonPerlin1D(elapsed * this.noiseFrequency, 2, 2, this.noiseOctaves));
       composedBrightness = Math.fround(composedBrightness * Math.fround(Math.fround((flicker + 1) / 2) * this.noiseAmplitude));
     }

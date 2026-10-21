@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
 import { meta, blue } from "#schema";
@@ -8,8 +9,8 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
  * Transition that hands control to the target camera on the frame it starts,
  * with no blend.
  */
-@blue.define("EveVirtualCameraTransitionCut")
-@blue.chainTo(EveVirtualCameraTransitionBase)
+@be.define("EveVirtualCameraTransitionCut")
+@be.exposureChainTo(EveVirtualCameraTransitionBase)
 export class EveVirtualCameraTransitionCut extends EveVirtualCameraTransitionBase
 {
   /** Always reports complete, which is what makes the hand-over a cut. */

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightBaseAttributeModifier.h
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -7,9 +8,10 @@ import { INotify } from "#blue";
 import { LifeTimeFormulas } from "./enums.js";
 
 /** Owns common smart-light activation state and a nominal modifier contract whose optional colour and controller hooks default to no-ops while required update and attribute-processing methods throw until a concrete modifier implements them. */
-@blue.define("EveSmartLightBaseAttributeModifier")
+@be.define("EveSmartLightBaseAttributeModifier")
 @blue.inherit(IInitialize, INotify)
-@blue.interface(IInitialize, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class EveSmartLightBaseAttributeModifier
 {
 

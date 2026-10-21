@@ -19,7 +19,7 @@ import { meta, blue } from "#schema";
 /**
  * The static-particle field's per-draw block.
  */
-@blue.define("EveSceneStaticParticlesPerObjectData")
+@meta.carbon("EveSceneStaticParticlesPerObjectData")
 export class EveSceneStaticParticlesPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

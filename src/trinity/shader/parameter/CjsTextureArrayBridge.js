@@ -10,7 +10,7 @@ import { CjsSchema } from "#schema";
 // and binds the one texture made from them.
 import { Tr2ColorSpace } from "#consts/render-context";
 import { ResourceRequirement, TextureArrayPrefix, TexturePackPrefix } from "#resource";
-import { be } from "#blue";
+import { blue } from "#blue";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 
@@ -79,7 +79,7 @@ export class CjsTextureArrayBridge
     if (path !== this._path)
     {
       this._path = path;
-      this._resource = path ? be.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE }) : null;
+      this._resource = path ? blue.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE }) : null;
       // Told once when it finishes; the resource then releases the target.
       if (this._resource && !this._resource.HasCompleted()) this._resource.AddNotifyTarget(this._completionTarget);
     }
@@ -112,4 +112,4 @@ export class CjsTextureArrayBridge
   }
 }
 
-CjsSchema.meta.define(CjsTextureArrayBridge, { className: "CjsTextureArrayBridge" });
+CjsSchema.meta.define("CjsTextureArrayBridge")(CjsTextureArrayBridge);

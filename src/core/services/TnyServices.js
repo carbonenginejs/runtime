@@ -86,4 +86,4 @@ export class TnyServices
     }
 }
 
-CjsSchema.meta.define(TnyServices, { className: "TnyServices" });
+CjsSchema.meta.define("TnyServices")(TnyServices);

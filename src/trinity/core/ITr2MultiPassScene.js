@@ -18,4 +18,4 @@ export class ITr2MultiPassScene
   static RenderPassResult = RenderPassResult;
 }
 
-CjsSchema.blue.define(ITr2MultiPassScene, { className: "ITr2MultiPassScene", fields: {} });
+CjsSchema.exposure.interface("ITr2MultiPassScene")(ITr2MultiPassScene);

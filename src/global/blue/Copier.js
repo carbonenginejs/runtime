@@ -503,15 +503,10 @@ export class Copier extends ICopier
   }
 }
 
-CjsSchema.blue.interface(ICopier)(Copier);
-CjsSchema.blue.define(Copier, {
-  className: "Copier",
-  fields: {},
-  methods: {
-    SetCopyOverrideCallback: [ blue.method, meta.adapted ],
-    SetPostCopyCallback: [ blue.method, meta.implemented ],
-    CopyTo: [ blue.method, meta.adapted ],
-    CloneTo: [ blue.method, meta.adapted ],
-    _CopyToInternal: [ blue.method, meta.renamed("CopyToInternal"), meta.adapted ]
-  }
-});
+CjsSchema.exposure.mapInterface(ICopier)(Copier);
+CjsSchema.decorateMethod(Copier, "SetCopyOverrideCallback", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Copier, "SetPostCopyCallback", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Copier, "CopyTo", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Copier, "CloneTo", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Copier, "_CopyToInternal", blue.method, meta.renamed("CopyToInternal"), meta.adapted);
+CjsSchema.exposure.define("Copier")(Copier);

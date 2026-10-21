@@ -528,4 +528,4 @@ export class CjsStorage
     }
 }
 
-CjsSchema.meta.define(CjsStorage, { className: "CjsStorage" });
+CjsSchema.meta.define("CjsStorage")(CjsStorage);

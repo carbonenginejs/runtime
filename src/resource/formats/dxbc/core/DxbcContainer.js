@@ -195,4 +195,4 @@ export class DxbcContainer
     }
 }
 
-CjsSchema.meta.define(DxbcContainer, { className: "DxbcContainer" });
+CjsSchema.meta.define("DxbcContainer")(DxbcContainer);

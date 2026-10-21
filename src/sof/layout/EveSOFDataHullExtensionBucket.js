@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -9,8 +10,8 @@ import { EveSOFDataHullExtensionPlacement } from "./EveSOFDataHullExtensionPlace
 // and placements (EveSOFData_Blue2.cpp:292-299): the base placement surface
 // is not exposed for this type. The JavaScript inheritance stays real; the
 // inherited fields are hidden from this class's schema surface only.
-@blue.define("EveSOFDataHullExtensionBucket")
-@blue.interface()
+@be.define("EveSOFDataHullExtensionBucket")
+
 @meta.hideInherited([
   "distributionConditions",
   "extendsBoundingSphere",

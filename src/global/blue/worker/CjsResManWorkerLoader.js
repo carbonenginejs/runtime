@@ -511,4 +511,4 @@ function normalizeWorkerError(value) {
   return error;
 }
 
-CjsSchema.meta.define(CjsResManWorkerLoader, { className: "CjsResManWorkerLoader" });
+CjsSchema.meta.define("CjsResManWorkerLoader")(CjsResManWorkerLoader);

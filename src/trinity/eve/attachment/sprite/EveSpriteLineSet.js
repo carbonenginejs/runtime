@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSet.cpp
@@ -40,9 +41,12 @@ const DEBUG_MISSING_BONE_ZFAIL_COLOR = vec4.fromValues(0.9, 0.2, 0.2, 0.1);
  * A hull's authored sprite runs - lines and circles of evenly spaced sprites -
  * owning their static and per-bone bounds and the point lights they emit.
  */
-@blue.define("EveSpriteLineSet")
+@be.define("EveSpriteLineSet")
 @blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IEveSpaceObjectAttachment)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2LightOwner)
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
 

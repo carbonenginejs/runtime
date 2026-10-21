@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { be, Copier, DictReader, IInitialize, INotify, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
+import { blue, Copier, DictReader, IInitialize, INotify, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
 import { TriValueBinding, Tr2DynamicBinding, Tr2FloatParameter } from "../../npm/dist/trinity/index.js";
 import { ITr2ValueBinding, TriCurveSet, Tr2CurveSetRange } from "../../npm/dist/trinity/curves/index.js";
 
@@ -98,7 +98,7 @@ test("callback-only value binding keeps native invalidity while copying through 
 test("dynamic copies retain authored paths but omit owner and weak runtime endpoints", t =>
 {
   // Be::Time ticks throughout (Tr2DynamicBinding.cpp:206-251): 10 s, 100 ms delay, a 10 s rebase.
-  t.mock.method(be.os, "GetCurrentFrameTime", () => 100_000_000);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => 100_000_000);
   const dynamic = new Tr2DynamicBinding(), source = new Tr2CurveSetRange(), destination = new Tr2CurveSetRange();
   source.startTime = 5;
   dynamic.sourceObjectPath = "Source";
@@ -113,7 +113,7 @@ test("dynamic copies retain authored paths but omit owner and weak runtime endpo
   assert.equal(dynamic.Update(201_000_000), true);
   assert.equal(destination.startTime, 5);
   const seen = [];
-  seen.push(dynamic, ...be.FindAllReferences(dynamic).keys());
+  seen.push(dynamic, ...blue.FindAllReferences(dynamic).keys());
   assert.equal(seen.includes(source), false, "weak runtime endpoint is not an owned graph edge");
   const copy = new Copier().CopyTo(dynamic);
   assert.equal(copy.sourceObjectPath, "Source");

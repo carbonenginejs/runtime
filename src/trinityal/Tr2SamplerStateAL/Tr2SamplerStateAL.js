@@ -179,4 +179,4 @@ export class Tr2SamplerStateAL
 
 CjsSchema.decorateField(Tr2SamplerStateAL, "_sampler", type.unknown);
 CjsSchema.decorateMethod(Tr2SamplerStateAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2SamplerStateAL, { className: "Tr2SamplerStateAL" });
+CjsSchema.meta.carbon("Tr2SamplerStateAL")(Tr2SamplerStateAL);

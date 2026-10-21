@@ -212,4 +212,4 @@ export class CjsPsdFormat extends CjsImageFormat
 
 export default CjsPsdFormat;
 
-CjsSchema.meta.define(CjsPsdFormat, { className: "CjsPsdFormat" });
+CjsSchema.meta.define("CjsPsdFormat")(CjsPsdFormat);

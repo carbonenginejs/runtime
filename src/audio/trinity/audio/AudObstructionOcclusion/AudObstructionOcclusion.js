@@ -24,7 +24,7 @@ function NowSeconds()
  * the Carbon-facing AudManager methods; the installed ICjsWwiseSoundEngine
  * backend realizes the values through SetObjectObstructionAndOcclusion.
  */
-@blue.define("AudObstructionOcclusion")
+@meta.carbon("AudObstructionOcclusion")
 export class AudObstructionOcclusion
 {
   _audioManager;

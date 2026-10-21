@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -6,9 +7,9 @@ import { vec2 } from "#math/vec2";
 import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
 
 /** A render step that draws a full-screen effect with an optional shader buffer. */
-@blue.define("TriStepRenderEffect")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRenderEffect")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRenderEffect extends TriRenderStep
 {
 

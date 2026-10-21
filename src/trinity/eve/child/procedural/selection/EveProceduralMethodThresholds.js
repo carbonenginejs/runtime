@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholds.h
 import { IsMatch, INotify, IListNotify } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
@@ -11,9 +12,12 @@ import { EveProceduralMethodThresholdParameter } from "./EveProceduralMethodThre
 const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
-@blue.define("EveProceduralMethodThresholds")
+@be.define("EveProceduralMethodThresholds")
 @blue.inherit(INotify, IListNotify, IInitialize)
-@blue.interface(IEveProceduralSelectionMethod, INotify, IListNotify, IInitialize)
+@be.mapInterface(IEveProceduralSelectionMethod)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(IInitialize)
 export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 {
 

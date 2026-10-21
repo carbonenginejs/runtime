@@ -7,7 +7,7 @@ import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
-import { be, CjsBlueClasses } from "#blue";
+import { blue as be, CjsBlueClasses } from "#blue";
 import { IListNotify } from "#blue/IListNotify";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";

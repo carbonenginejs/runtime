@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudEventCurve.h + AudEventCurve.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEventCurve.json.
@@ -12,9 +13,11 @@ import { AudEventKey } from "../../generated/audio/AudEventKey.js";
 import "#consts/graphics/trinityEnums";
 
 /** Fires authored audio events as playback time crosses ordered event keys on a timeline curve. */
-@blue.define("AudEventCurve")
+@be.define("AudEventCurve")
 @blue.inherit(IInitialize, ITriFunction, ITriCurveLength)
-@blue.interface(ITriFunction, IInitialize, ITriCurveLength)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITriCurveLength)
 export class AudEventCurve
 {
 

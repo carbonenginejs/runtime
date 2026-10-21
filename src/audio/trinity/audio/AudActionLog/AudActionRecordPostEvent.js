@@ -43,7 +43,5 @@ export class AudActionRecordPostEvent extends AudActionRecord
 
 }
 
-CjsSchema.blue.define(AudActionRecordPostEvent, {
-    className: "AudActionRecordPostEvent",
-    methods: { ToPyObject: [blue.method, meta.adapted] }
-});
+CjsSchema.decorateMethod(AudActionRecordPostEvent, "ToPyObject", blue.method, meta.adapted);
+CjsSchema.meta.carbon("AudActionRecordPostEvent")(AudActionRecordPostEvent);

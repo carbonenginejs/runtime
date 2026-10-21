@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
@@ -36,9 +37,12 @@ const EVE_LINE_DATA_SIZE = EVE_LINE_DATA_FLOATS * 4;
  * uploads. Each line is two vertices of a position and a colour, drawn as a line list, additive unless
  * renderTransparent.
  */
-@blue.define("EveLineSet")
+@be.define("EveLineSet")
 @blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, Tr2DeviceResource)
-@blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IEveTransform)
+@be.mapInterface(IEveSpaceObject2)
 export class EveLineSet
 {
 

@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { be, ITriFunction, ITriVectorFunction, ITriQuaternionFunction, ITriCurveLength } from "../../npm/dist/global/blue/index.js";
+import { blue, ITriFunction, ITriVectorFunction, ITriQuaternionFunction, ITriCurveLength } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { CjsBlue } from "../../npm/dist/global/blue/index.js";
@@ -23,7 +23,7 @@ for (const [name, Class, Base, table] of [
 {
     test(`${name} has its native base and exact query table without model helpers`, () =>
     {
-        const instance = be.classes.CreateInstanceFromName(name);
+        const instance = blue.classes.CreateInstanceFromName(name);
         assert.equal(instance.constructor, Class);
         assert.equal(Object.getPrototypeOf(Class.prototype), Base.prototype);
         assert.deepEqual([...mappedInterfaces(Class)], table.length ? [ExposureRoot, ...table] : []);
@@ -79,7 +79,7 @@ test("SOF hydration and shared graph operations retain live lerp child reference
         CjsBlue.enumerateChildren(curve, item => children.push(item));
         assert.ok(children.length > 0);
         for (const item of children) assert.equal(item, child);
-        const copy = be.classes.CopyTo(curve, new Class());
+        const copy = blue.classes.CopyTo(curve, new Class());
         for (const key of keys)
         {
             assert.notEqual(copy[key], child);
@@ -201,7 +201,7 @@ test("fader dictionary reads exposed state while Copier and persistence omit tra
     destination.fading = -0.1;
     destination.fadeTime = 0.5;
     destination.kickInLength = 5;
-    const copy = be.classes.CopyTo(fader, destination);
+    const copy = blue.classes.CopyTo(fader, destination);
     assert.equal(copy, destination);
     assert.equal(copy.value, 0.6);
     assert.equal(copy.fading, -0.1);

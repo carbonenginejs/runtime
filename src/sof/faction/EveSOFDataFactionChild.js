@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Names a faction child and records its group and visibility settings. */
-@blue.define("EveSOFDataFactionChild")
-@blue.interface()
+@be.define("EveSOFDataFactionChild")
+
 @blue.inherit(IRoot)
 export class EveSOFDataFactionChild
 {

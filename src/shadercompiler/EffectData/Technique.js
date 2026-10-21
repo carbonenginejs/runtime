@@ -15,6 +15,4 @@ export class Technique
     libraries = [];
 }
 
-CjsSchema.blue.define(Technique, {
-    className: "Technique"
-});
+CjsSchema.meta.carbon("Technique")(Technique);

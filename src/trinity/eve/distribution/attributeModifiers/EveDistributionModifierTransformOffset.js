@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierTransformOffset.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -6,8 +7,8 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Accumulates authored or lifetime-sampled translation, rotation, and scale onto a distributed placement. */
-@blue.define("EveDistributionModifierTransformOffset")
-@blue.interface(IEveDistributionModifier)
+@be.define("EveDistributionModifierTransformOffset")
+@be.mapInterface(IEveDistributionModifier)
 export class EveDistributionModifierTransformOffset extends IEveDistributionModifier
 {
 

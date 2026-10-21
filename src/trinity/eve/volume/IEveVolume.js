@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/Volume/IEveVolume.h
 import { blue } from "#schema";
 
 
 /** Required EVE volume contract (IEveVolume.h:10-20). */
-@blue.define("IEveVolume")
+@be.interface("IEveVolume")
 @blue.inherit(IRoot)
 export class IEveVolume
 {

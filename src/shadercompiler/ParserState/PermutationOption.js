@@ -12,6 +12,4 @@ export class PermutationOption
     value = 0;
 }
 
-CjsSchema.blue.define(PermutationOption, {
-    className: "PermutationOption"
-});
+CjsSchema.meta.carbon("PermutationOption")(PermutationOption);

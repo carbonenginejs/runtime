@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPopDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepPopDepthStencil.cpp
 import { meta, blue } from "#schema";
@@ -6,9 +7,9 @@ import { TriRenderJob } from "../TriRenderJob.js";
 
 
 /** Step that pops the render context's depth-stencil stack, undoing an earlier push. */
-@blue.define("TriStepPopDepthStencil")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepPopDepthStencil")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepPopDepthStencil extends TriRenderStep
 {
   /**

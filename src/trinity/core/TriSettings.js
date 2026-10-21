@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/TriSettings.h
 //   trinity/trinity/TriSettings_Blue.cpp
 import { meta, blue } from "#schema";
@@ -14,7 +15,7 @@ import { meta, blue } from "#schema";
  * `RegisterSetting(name, value)` keeps its own value, for settings that have
  * no engine global (ccpwgl registers its switches this way).
  */
-@blue.define("TriSettings")
+@be.define("TriSettings")
 export class TriSettings
 {
   /** m_map: name -> { valueType, owner, key }; the value is owner[key]. */

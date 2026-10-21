@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveVector3Lerp.h
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.h
-import { be, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 
 export const Tr2CurveInterpolation = {
   CONSTANT: 0,
@@ -38,7 +38,7 @@ export const Tr2ObjectFollowCurveKeyRotationSetting = RotationSetting;
 
 // Registered as Carbon registers them (Tr2CurveScalar_Blue.cpp:55-57,
 // Tr2CurveVector3Lerp_Blue.cpp:17, Tr2FollowCurveKey_Blue.cpp:38-39).
-be.enums.Create("trinity.Tr2CurveExtrapolation", Tr2CurveExtrapolation, {
+blue.enums.Create("trinity.Tr2CurveExtrapolation", Tr2CurveExtrapolation, {
   exposedName: "Tr2CurveExtrapolation", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "CLAMP", value: Tr2CurveExtrapolation.CLAMP, description: "Use start/end values" },
@@ -48,7 +48,7 @@ be.enums.Create("trinity.Tr2CurveExtrapolation", Tr2CurveExtrapolation, {
   ]
 });
 
-be.enums.Create("trinity.Tr2CurveInterpolation", Tr2CurveInterpolation, {
+blue.enums.Create("trinity.Tr2CurveInterpolation", Tr2CurveInterpolation, {
   exposedName: "Tr2CurveInterpolation", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "CONSTANT", value: Tr2CurveInterpolation.CONSTANT, description: "Performs a constant interpolation" },
@@ -57,7 +57,7 @@ be.enums.Create("trinity.Tr2CurveInterpolation", Tr2CurveInterpolation, {
   ]
 });
 
-be.enums.Create("trinity.Tr2CurveTangentType", Tr2CurveTangentType, {
+blue.enums.Create("trinity.Tr2CurveTangentType", Tr2CurveTangentType, {
   exposedName: "Tr2CurveTangentType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "AUTO_CLAMP", value: Tr2CurveTangentType.AUTO_CLAMP, description: "Automatically adjust tangents clamping overshoots" },
@@ -67,7 +67,7 @@ be.enums.Create("trinity.Tr2CurveTangentType", Tr2CurveTangentType, {
   ]
 });
 
-be.enums.Create("trinity.Tr2CurveVector3LerpKeyInterpolation", Tr2CurveVector3LerpKeyInterpolation, {
+blue.enums.Create("trinity.Tr2CurveVector3LerpKeyInterpolation", Tr2CurveVector3LerpKeyInterpolation, {
   exposedName: "Tr2CurveVector3LerpKeyInterpolation", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "LINEAR", value: Tr2CurveVector3LerpKeyInterpolation.LINEAR, description: "Performs a linear interpolation" },
@@ -75,7 +75,7 @@ be.enums.Create("trinity.Tr2CurveVector3LerpKeyInterpolation", Tr2CurveVector3Le
   ]
 });
 
-be.enums.Create("trinity.Tr2FollowCurveKeyInterpolation", Tr2FollowCurveKeyInterpolation, {
+blue.enums.Create("trinity.Tr2FollowCurveKeyInterpolation", Tr2FollowCurveKeyInterpolation, {
   exposedName: "Tr2FollowCurveKeyInterpolation", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "CONSTANT", value: Tr2FollowCurveKeyInterpolation.CONSTANT, description: "Performs a constant interpolation" },
@@ -85,7 +85,7 @@ be.enums.Create("trinity.Tr2FollowCurveKeyInterpolation", Tr2FollowCurveKeyInter
 });
 
 // Carbon's chooser lists LOCATOR_ROTATION before MODEL_ROTATION.
-be.enums.Create("trinity.Tr2ObjectFollowCurveKey.RotationSetting", RotationSetting, {
+blue.enums.Create("trinity.Tr2ObjectFollowCurveKey.RotationSetting", RotationSetting, {
   exposedName: "Tr2ObjectFollowCurveKeyRotationSetting", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "NO_ROTATION", value: RotationSetting.NO_ROTATION, description: "No Rotation" },

@@ -71,9 +71,5 @@ export class PipelineInputDescription
     });
 }
 
-CjsSchema.blue.define(PipelineInputDescription, {
-    className: "PipelineInputDescription",
-    methods: {
-        Equals: [meta.renamed("operator==")]
-    }
-});
+CjsSchema.decorateMethod(PipelineInputDescription, "Equals", meta.renamed("operator=="));
+CjsSchema.meta.carbon("PipelineInputDescription")(PipelineInputDescription);

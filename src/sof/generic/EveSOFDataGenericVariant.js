@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:546-555
@@ -9,9 +10,9 @@ import { type, blue } from "#schema";
  * is required, and the native destructor is empty.
  * The hull area is an authored object reference, not a held resource.
  */
-@blue.define("EveSOFDataGenericVariant")
+@be.define("EveSOFDataGenericVariant")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataGenericVariant
 {
 

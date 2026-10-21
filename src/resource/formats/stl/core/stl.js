@@ -852,4 +852,4 @@ export function inspectTriangles(triangles, values, source = {})
 }
 
 
-CjsSchema.meta.define(DisjointSet, { className: "DisjointSet" });
+CjsSchema.meta.define("DisjointSet")(DisjointSet);

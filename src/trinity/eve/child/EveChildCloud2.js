@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
@@ -97,9 +98,17 @@ function TransformNormal(out, v, m)
 }
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
-@blue.define("EveChildCloud2")
+@be.define("EveChildCloud2")
 @blue.inherit(ITr2VolumetricRenderable, ITr2Renderable, INotify, IListNotify, IInitialize, ITr2DebugRenderable, ITr2LightOwner, Tr2DeviceResource)
-@blue.interface(ITr2VolumetricRenderable, IInitialize, INotify, IListNotify, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, ITr2LightOwner, EveEntity)
+@be.mapInterface(ITr2VolumetricRenderable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(ITr2LightOwner)
+@be.mapInterface(EveEntity)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 

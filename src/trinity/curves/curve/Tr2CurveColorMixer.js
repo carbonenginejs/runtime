@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveColorMixer.h
 // Source: trinity/trinity/Curves/Tr2CurveColorMixer.cpp
 import { color } from "#math/color";
@@ -12,9 +13,11 @@ import { meta, type, blue } from "#schema";
  * applies saturation and brightness, exposing both the mixed color and its
  * linear-space conversion.
  */
-@blue.define("Tr2CurveColorMixer")
+@be.define("Tr2CurveColorMixer")
 @blue.inherit(ITriCurveLength)
-@blue.interface(ITriColorFunction, ITriFunction, ITriCurveLength)
+@be.mapInterface(ITriColorFunction)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2CurveColorMixer extends ITriColorFunction
 {
   /**

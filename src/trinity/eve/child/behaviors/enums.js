@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h:11-27
 // Shared behavior enums declared by Carbon's IBehavior contracts.
-import { be, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 
 export const LocatorType = {
   LOCAL_LOCATORS: 0,
@@ -29,7 +29,7 @@ export const TunnelGroupType = {
 };
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:17).
-be.enums.Create("trinity.IBehavior.ProcessPriority", ProcessPriority, {
+blue.enums.Create("trinity.IBehavior.ProcessPriority", ProcessPriority, {
   exposedName: "BehaviorPriority", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "LEAST_PRIORITY", value: ProcessPriority.LEAST_PRIORITY, description: "Has the lowest priority" },
@@ -41,7 +41,7 @@ be.enums.Create("trinity.IBehavior.ProcessPriority", ProcessPriority, {
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline_Blue.cpp:14).
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
-be.enums.Create("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroupType, {
+blue.enums.Create("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroupType, {
   exposedName: "setTunnelType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Exit_Tunnels", value: TunnelGroupType.EXIT_TUNNELS, description: "Tunnels Drones flock to when set to exit the scene" },
@@ -52,11 +52,11 @@ be.enums.Create("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroupType, {
 
 // Carbon neither registers this nor gives it a chooser.
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h
-be.enums.Create("trinity.EveKDdroneManagementTree.PlaneType", PlaneType);
+blue.enums.Create("trinity.EveKDdroneManagementTree.PlaneType", PlaneType);
 
 // Carbon BackAndForth_Blue.cpp:16; shared vocabulary registers where defined.
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
-be.enums.Create("trinity.BackAndForth.LocatorType", LocatorType, {
+blue.enums.Create("trinity.BackAndForth.LocatorType", LocatorType, {
   exposedName: "LocatorType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "localLocators", value: LocatorType.LOCAL_LOCATORS, description: "Place locators manually, this is for back and forth locators." },

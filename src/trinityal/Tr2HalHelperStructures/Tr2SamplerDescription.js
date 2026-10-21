@@ -252,4 +252,4 @@ CjsSchema.decorateField(Tr2SamplerDescription, "comparisonFunc", type.uint32);
 CjsSchema.decorateField(Tr2SamplerDescription, "borderColor", type.float32Array);
 CjsSchema.decorateField(Tr2SamplerDescription, "minLOD", type.float32);
 CjsSchema.decorateField(Tr2SamplerDescription, "maxLOD", type.float32);
-CjsSchema.blue.define(Tr2SamplerDescription, { className: "Tr2SamplerDescription" });
+CjsSchema.meta.carbon("Tr2SamplerDescription")(Tr2SamplerDescription);

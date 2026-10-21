@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSphere.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -6,8 +7,8 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 import { vec3 } from "#math/vec3";
 
 /** Triggers pooled placements in the order reached by a timed sphere expansion. */
-@blue.define("EveDistributionSpawnerTriggerSphere")
-@blue.interface(IEveDistributionSpawner)
+@be.define("EveDistributionSpawnerTriggerSphere")
+@be.mapInterface(IEveDistributionSpawner)
 export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
 {
 

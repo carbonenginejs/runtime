@@ -31,6 +31,4 @@ export class AtomicFn
     }
 }
 
-CjsSchema.blue.define(AtomicFn, {
-    className: "AtomicFn"
-});
+CjsSchema.meta.carbon("AtomicFn")(AtomicFn);

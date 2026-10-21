@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/EveLensflare.h
 // Source: trinity/trinity/Eve/EveLensflare.cpp
 // Hand-maintained after promotion from generated schema intake.
@@ -24,9 +25,11 @@ const prepareScratch = vec3.create();
 const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).buffer)[0];
 
 /** Represents a lens-flare graph with CPU-side visibility and controller state. */
-@blue.define("EveLensflare")
+@be.define("EveLensflare")
 @blue.inherit(ITr2Renderable, ITr2CurveSetOwner, ITr2ControllerOwner, IInitialize, IListNotify)
-@blue.interface(ITr2ControllerOwner, ITr2CurveSetOwner, IInitialize)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(IInitialize)
 export class EveLensflare
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriProjection.h
 // Source: trinity/trinity/TriProjection.cpp
@@ -14,7 +15,7 @@ const VIEWPORT_ADJUSTMENT = mat4.create();
  * The camera projection: the selected projection mode with its parameters, plus
  * the 4x4 matrix built from them.
  */
-@blue.define("TriProjection")
+@be.define("TriProjection")
 @blue.inherit(IRoot)
 export class TriProjection
 {
@@ -302,4 +303,4 @@ export class TriProjection
   }
 }
 
-blue.interface(IRoot)(TriProjection);
+

@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/IEveFiringEffectElement.h
 import { meta, blue } from "#schema";
 import { EveEntity } from "./EveEntity.js";
 
 
 /** Required EVE firing-effect element contract. */
-@blue.define("IEveFiringEffectElement")
+@be.interface("IEveFiringEffectElement")
 export class IEveFiringEffectElement extends EveEntity
 {
 

@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
-import { be } from "../../src/global/blue/index.js";
+import { blue as be } from "../../src/global/blue/index.js";
 import { DictReader } from "../../src/global/blue/DictReader.js";
 import { INotify } from "../../src/global/blue/INotify.js";
 import { DictWriter } from "../../src/global/blue/DictWriter.js";

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -8,8 +9,8 @@ import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 // 1410-1417) and re-maps the base surface WITHOUT lightColor, adding
 // texturePath (EveSOFData_Blue.cpp:1076-1094): a textured point light takes
 // its color from the texture, not the faction color set.
-@blue.define("EveSOFDataHullLightSetTexturedPointLight")
-@blue.interface(EveSOFDataHullLightSetItem)
+@be.define("EveSOFDataHullLightSetTexturedPointLight")
+@be.mapInterface(EveSOFDataHullLightSetItem)
 @meta.hideInherited(["lightColor"])
 export class EveSOFDataHullLightSetTexturedPointLight extends EveSOFDataHullLightSetItem
 {

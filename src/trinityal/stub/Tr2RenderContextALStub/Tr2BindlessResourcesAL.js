@@ -72,4 +72,4 @@ CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__TextureAL", blue.method, 
 CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__BufferAL", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__BindlessResourcesAL", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Clear", blue.method);
-CjsSchema.blue.define(Tr2BindlessResourcesAL, { className: "Tr2BindlessResourcesAL" });
+CjsSchema.meta.carbon("Tr2BindlessResourcesAL")(Tr2BindlessResourcesAL);

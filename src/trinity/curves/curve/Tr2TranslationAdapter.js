@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2TranslationAdapter.h
 // Source: trinity/trinity/Curves/Tr2TranslationAdapter.cpp
@@ -13,7 +15,7 @@ import { CcpTime } from "#blue";
  * and rotating the sampled offset by a fixed rotation, falling back to a fixed
  * authored vector when no child curve is attached.
  */
-@blue.define("Tr2TranslationAdapter")
+@be.define("Tr2TranslationAdapter")
 export class Tr2TranslationAdapter extends ITriVectorFunction
 {
   /**
@@ -317,4 +319,4 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-blue.interface(ITriVectorFunction)(Tr2TranslationAdapter);
+CjsSchema.exposure.mapInterface(ITriVectorFunction)(Tr2TranslationAdapter);

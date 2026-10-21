@@ -214,4 +214,4 @@ function Normalize(input)
   throw error;
 }
 
-CjsSchema.meta.define(CjsStaticFormat, { className: "CjsStaticFormat" });
+CjsSchema.meta.define("CjsStaticFormat")(CjsStaticFormat);

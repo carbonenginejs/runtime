@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
@@ -10,9 +11,9 @@ import { meta, type, blue } from "#schema";
  * its position and velocity and carrying the radius and flags the overlay
  * presents it with.
  */
-@blue.define("EveTacticalOverlayTrackObject")
+@be.define("EveTacticalOverlayTrackObject")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveTacticalOverlayTrackObject
 {
   @blue.readwrite

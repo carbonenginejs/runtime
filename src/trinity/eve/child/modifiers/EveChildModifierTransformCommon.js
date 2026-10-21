@@ -161,4 +161,4 @@ export class EveChildModifierTransformCommon
   }
 }
 
-CjsSchema.meta.define(EveChildModifierTransformCommon, { className: "EveChildModifierTransformCommon" });
+CjsSchema.meta.define("EveChildModifierTransformCommon")(EveChildModifierTransformCommon);

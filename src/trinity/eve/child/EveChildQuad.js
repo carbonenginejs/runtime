@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildQuad.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
@@ -18,10 +19,12 @@ import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A billboard quad child that renders through the shared quad renderer's additive instance batch rather than the normal render-batch path. */
-@blue.define("EveChildQuad")
+@be.define("EveChildQuad")
 @blue.inherit(ITr2Renderable)
 @blue.inherit(IInitialize)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(IInitialize)
 export class EveChildQuad extends EveChildTransform
 {
 

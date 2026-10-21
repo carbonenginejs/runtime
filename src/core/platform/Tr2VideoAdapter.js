@@ -126,23 +126,17 @@ export class Tr2VideoAdapter
 export default Tr2VideoAdapter;
 
 blue.inherit(IRoot)(Tr2VideoAdapter);
-blue.interface()(Tr2VideoAdapter);
-CjsSchema.blue.define(Tr2VideoAdapter, {
-    className: "Tr2VideoAdapter",
-    fields: {
-        index: [blue.read],
-        driver: [blue.read],
-        description: [blue.read],
-        deviceName: [blue.read],
-        driverVersion: [blue.read],
-        vendorID: [blue.read],
-        deviceID: [blue.read],
-        subSystemID: [blue.read],
-        revision: [blue.read],
-        deviceIdentifier: [blue.read]
-    },
-    methods: {
-        GetDeviceIdentifierString: [blue.method, meta.adapted],
-        GetDriverInfo: [blue.method, meta.adapted]
-    }
-});
+
+CjsSchema.decorateField(Tr2VideoAdapter, "index", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "driver", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "description", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "deviceName", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "driverVersion", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "vendorID", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "deviceID", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "subSystemID", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "revision", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "deviceIdentifier", blue.read);
+CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDeviceIdentifierString", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDriverInfo", blue.method, meta.adapted);
+CjsSchema.exposure.define("Tr2VideoAdapter")(Tr2VideoAdapter);

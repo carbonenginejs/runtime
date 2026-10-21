@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import "../../npm/dist/trinity/index.js";
@@ -21,7 +21,7 @@ const HANGAR = "mdeha01:deathless:deathless:layout%3Fdeathless_hangar";
 /** Distinct objects reachable through declared members, and how many are reached more than once. */
 function census(root)
 {
-  const references = be.FindAllReferences(root);
+  const references = blue.FindAllReferences(root);
   let shared = 0;
   for (const list of references.values()) if (list.length > 1) shared++;
   return { distinct: references.size + 1, shared, objects: new Set([ root, ...references.keys() ]) };

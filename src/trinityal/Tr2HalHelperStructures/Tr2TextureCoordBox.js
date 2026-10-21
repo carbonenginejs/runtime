@@ -112,4 +112,4 @@ CjsSchema.decorateMethod(Tr2TextureCoordBox, "GetWidth", blue.method);
 CjsSchema.decorateMethod(Tr2TextureCoordBox, "GetHeight", blue.method);
 CjsSchema.decorateMethod(Tr2TextureCoordBox, "GetDepth", blue.method);
 CjsSchema.decorateMethod(Tr2TextureCoordBox, "Equals", blue.method, meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2TextureCoordBox, { className: "Tr2TextureCoordBox" });
+CjsSchema.meta.carbon("Tr2TextureCoordBox")(Tr2TextureCoordBox);

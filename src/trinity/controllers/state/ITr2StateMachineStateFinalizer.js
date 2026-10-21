@@ -48,4 +48,4 @@ export class ITr2StateMachineStateFinalizer
 
 
 CjsSchema.blue.inherit(IRoot)(ITr2StateMachineStateFinalizer);
-CjsSchema.blue.define(ITr2StateMachineStateFinalizer, { className: "ITr2StateMachineStateFinalizer" });
+CjsSchema.exposure.interface("ITr2StateMachineStateFinalizer")(ITr2StateMachineStateFinalizer);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 import { IsMatch, BlueList } from "#blue";
@@ -61,9 +62,13 @@ function ClampLength(value, maxLength)
 }
 
 /** Owns a group of drone agents, running its priority-ordered behaviours each frame to integrate their acceleration, velocity, orientation and position, and managing their count, visibility, lighting and rendering. */
-@blue.define("BehaviorGroup")
+@be.define("BehaviorGroup")
 @blue.inherit(IInitialize, INotify, IListNotify, ITr2LightOwner)
-@blue.interface(IInitialize, INotify, IListNotify, EveEntity, ITr2LightOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2LightOwner)
 export class BehaviorGroup extends EveEntity
 {
 

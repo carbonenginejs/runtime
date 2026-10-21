@@ -55,9 +55,5 @@ export class StaticSampler
     }
 }
 
-CjsSchema.blue.define(StaticSampler, {
-    className: "StaticSampler",
-    methods: {
-        Equals: [meta.renamed("operator==")]
-    }
-});
+CjsSchema.decorateMethod(StaticSampler, "Equals", meta.renamed("operator=="));
+CjsSchema.meta.carbon("StaticSampler")(StaticSampler);

@@ -146,4 +146,4 @@ export class FsdDict
 
 export default FsdDict;
 
-CjsSchema.blue.define(FsdDict, { className: "FsdDict" });
+CjsSchema.meta.carbon("FsdDict")(FsdDict);

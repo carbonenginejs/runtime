@@ -240,4 +240,4 @@ export class CjsGltfFormat extends CjsGeometryFormat
 
 export default CjsGltfFormat;
 
-CjsSchema.meta.define(CjsGltfFormat, { className: "CjsGltfFormat" });
+CjsSchema.meta.define("CjsGltfFormat")(CjsGltfFormat);

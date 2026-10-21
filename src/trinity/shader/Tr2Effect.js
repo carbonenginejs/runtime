@@ -13,7 +13,7 @@ import { Tr2EffectParam } from "./material/Tr2EffectParam.js";
 import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
 import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";
 import { ResourceRequirement } from "#resource";
-import { be, BlueList, IInitialize, INotify, IListNotify } from "#blue";
+import { blue as be, BlueList, IInitialize, INotify, IListNotify } from "#blue";
 import { ITriEffectParameter } from "./parameter/ITriEffectParameter.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";

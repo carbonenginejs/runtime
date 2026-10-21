@@ -13,7 +13,7 @@ import { Tr2TexturePipelineStepPack, Tr2TexturePackChannel } from "../../npm/dis
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 
 /**
  * The three-method-tier wave-2 ports, each pinned to the donor body re-read
@@ -138,7 +138,7 @@ test("EveChildExplosion shares, aliases and rebases as Carbon's copier flow does
   const local = new EveChildExplosion();
   const ownChild = new EveChildExplosion();
   local.objects.push(sharedThing, ownChild);
-  const copy = be.classes.CopyTo__Callbacks(local, null, from => explosion.CopyElement(from), null);
+  const copy = blue.classes.CopyTo__Callbacks(local, null, from => explosion.CopyElement(from), null);
   assert.notEqual(copy, local);
   assert.equal(copy.objects[0], sharedThing, "shared node aliased");
   assert.notEqual(copy.objects[1], ownChild, "own node copied");

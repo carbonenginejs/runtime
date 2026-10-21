@@ -171,4 +171,4 @@ export class CjsPerObjectLayouts
 
 }
 
-CjsSchema.meta.define(CjsPerObjectLayouts, {"className": "CjsPerObjectLayouts"});
+CjsSchema.meta.define("CjsPerObjectLayouts")(CjsPerObjectLayouts);

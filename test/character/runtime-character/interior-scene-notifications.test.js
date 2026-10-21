@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {be,INotify,IInitialize,NotifyModified} from '../../../npm/dist/global/blue/index.js';
+import {blue,INotify,IInitialize,NotifyModified} from '../../../npm/dist/global/blue/index.js';
 import {CjsSchema} from '../../../npm/dist/global/schema/index.js';
 import {Tr2InteriorScene} from '../../../npm/dist/character/index.js';
 import {Tr2RenderContext,Tr2RenderContext_GetMainThreadRenderContext} from '../../../npm/dist/trinity/index.js';
@@ -10,10 +10,10 @@ import {ResourceRequirement} from '../../../npm/dist/resource/index.js';
 import {StubResMan} from '../../support/stubResMan.js';
 
 function setup(t) {
-  const context=Tr2RenderContext_GetMainThreadRenderContext(),oldAL=context.GetRenderContextAL(),oldManager=be.resMan;
-  const al=new Tr2RenderContextALStub();al.CreateDevice();context.SetRenderContextAL(al);be.resMan=new StubResMan();
-  const scenes=[];t.after(()=>{for(const scene of scenes)scene.Destruct();context.SetRenderContextAL(oldAL);be.resMan=oldManager;al.Destroy();});
-  return {context,al,manager:be.resMan,scene:()=>{const scene=new Tr2InteriorScene();scenes.push(scene);return scene;}};
+  const context=Tr2RenderContext_GetMainThreadRenderContext(),oldAL=context.GetRenderContextAL(),oldManager=blue.resMan;
+  const al=new Tr2RenderContextALStub();al.CreateDevice();context.SetRenderContextAL(al);blue.resMan=new StubResMan();
+  const scenes=[];t.after(()=>{for(const scene of scenes)scene.Destruct();context.SetRenderContextAL(oldAL);blue.resMan=oldManager;al.Destroy();});
+  return {context,al,manager:blue.resMan,scene:()=>{const scene=new Tr2InteriorScene();scenes.push(scene);return scene;}};
 }
 
 test('interior scene initialization acquires only its cubemap and preserves the assigned effect',t=>{

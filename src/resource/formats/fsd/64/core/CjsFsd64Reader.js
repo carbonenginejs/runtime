@@ -208,4 +208,4 @@ function NormalizeBytes(input)
 
 export default CjsFsd64Reader;
 
-CjsSchema.meta.define(CjsFsd64Reader, { className: "CjsFsd64Reader" });
+CjsSchema.meta.define("CjsFsd64Reader")(CjsFsd64Reader);

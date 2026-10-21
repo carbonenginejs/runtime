@@ -871,4 +871,4 @@ function SetParam(parameter, value)
     if (parameter) parameter.value = value;
 }
 
-CjsSchema.meta.define(WwiseRoomVerbReader, { className: "WwiseRoomVerbReader" });
+CjsSchema.meta.define("WwiseRoomVerbReader")(WwiseRoomVerbReader);

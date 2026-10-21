@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.cpp
 import { meta, type, blue } from "#schema";
@@ -17,8 +18,8 @@ const IDENTITY_TRANSFORM = mat4.create();
  * object, and object, child and camera forward directions - refreshed each child
  * update for effect bindings to read.
  */
-@blue.define("EveCameraFxAttributes")
-@blue.interface(IEveFxAttribute)
+@be.define("EveCameraFxAttributes")
+@be.mapInterface(IEveFxAttribute)
 export class EveCameraFxAttributes extends IEveFxAttribute
 {
 

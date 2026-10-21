@@ -25,7 +25,7 @@ import {
 } from "../../../npm/dist/character/index.js";
 import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/library-builder/index.js";
 import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
-import { be } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 import {
     CjsFsd64SchemaDecoder,
     CjsFsd64SchemaReader,
@@ -65,15 +65,15 @@ function CreateTestCharacterReaders()
 /** Runs `run` with blue's ResMan reading through `Read`, then restores its source. */
 async function WithResManSource(Read, run)
 {
-    const previous = be.resMan.source;
-    be.resMan.SetSource({ Read });
+    const previous = blue.resMan.source;
+    blue.resMan.SetSource({ Read });
     try
     {
         return await run();
     }
     finally
     {
-        be.resMan.SetSource(previous);
+        blue.resMan.SetSource(previous);
     }
 }
 

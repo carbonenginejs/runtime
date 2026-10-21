@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleDirectForce.h
 // Source: trinity/trinity/Particle/Tr2ParticleDirectForce.cpp
 // Source: trinity/trinity/Particle/Tr2ParticleDirectForce_Blue.cpp
@@ -13,8 +14,8 @@ const DEBUG_P1 = vec3.create();
 
 
 /** Constant particle force vector, applied identically to every particle. */
-@blue.interface(ITr2ParticleForce)
-@blue.define("Tr2ParticleDirectForce")
+@be.mapInterface(ITr2ParticleForce)
+@be.define("Tr2ParticleDirectForce")
 export class Tr2ParticleDirectForce extends ITr2ParticleForce
 {
   @blue.readwrite

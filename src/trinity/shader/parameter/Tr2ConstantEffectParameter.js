@@ -16,7 +16,7 @@ import { vec4 } from "#math/vec4";
  * Native 64-bit size 24; offsets and storage types: trinity/trinity/
  * Shader/Tr2Effect.h:41-45; Shader/Tr2Effect.cpp:33-37.
  */
-@blue.define("Tr2ConstantEffectParameter")
+@meta.carbon("Tr2ConstantEffectParameter")
 @meta.struct.define({ size: 24 })
 export class Tr2ConstantEffectParameter
 {

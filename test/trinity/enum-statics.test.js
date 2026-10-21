@@ -4,7 +4,7 @@
 // growing that list is a regression, shrinking it should update the list.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
 
@@ -38,7 +38,7 @@ test("every @type.enum field resolves a registered or class-static member map", 
       const enumType = field?.enum?.enumType;
       if (!enumType) continue;
       enumFields++;
-      const members = enumType.includes(".") ? be.enums.GetEnum(enumType) : Ctor[enumType];
+      const members = enumType.includes(".") ? blue.enums.GetEnum(enumType) : Ctor[enumType];
       assert.equal(field.enum.members, members, `${name}.${field.name} resolved enum identity`);
       if (!members || typeof members !== "object")
       {

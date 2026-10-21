@@ -131,10 +131,6 @@ export class Tr2EffectDescription
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.blue.define(Tr2EffectDescription, {
-  className: "Tr2EffectDescription",
-  fields: {
-    techniques: type.list("Tr2EffectTechnique"),
-    annotations: type.map("Tr2EffectParameterAnnotationMap")
-  }
-});
+CjsSchema.decorateField(Tr2EffectDescription, "techniques", type.list("Tr2EffectTechnique"));
+CjsSchema.decorateField(Tr2EffectDescription, "annotations", type.map("Tr2EffectParameterAnnotationMap"));
+CjsSchema.meta.carbon("Tr2EffectDescription")(Tr2EffectDescription);

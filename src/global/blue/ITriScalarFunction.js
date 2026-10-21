@@ -74,7 +74,4 @@ for (const method of [ "Update", "GetValueAt", "ScaleTime" ])
 }
 CjsSchema.decorateMethod(ITriScalarFunction, "Update__Ticks", blue.method, meta.adapted);
 CjsSchema.decorateMethod(ITriScalarFunction, "GetValueAt__Ticks", blue.method, meta.adapted);
-CjsSchema.blue.define(ITriScalarFunction, {
-  className: "ITriScalarFunction",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITriScalarFunction")(ITriScalarFunction);

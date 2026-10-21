@@ -281,4 +281,4 @@ export class Tr2PipelineStatsQueryAL
 
 CjsSchema.decorateField(Tr2PipelineStatsQueryAL, "_query", type.unknown);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2PipelineStatsQueryAL, { className: "Tr2PipelineStatsQueryAL" });
+CjsSchema.meta.carbon("Tr2PipelineStatsQueryAL")(Tr2PipelineStatsQueryAL);

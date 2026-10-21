@@ -11,6 +11,5 @@ export class CallbackSettings
     verbosityLevel = -1;
 }
 
-CjsSchema.blue.define(CallbackSettings, { className: "CallbackSettings", fields: {
-        verbosityLevel: [type.int32]
-    } });
+CjsSchema.decorateField(CallbackSettings, "verbosityLevel", type.int32);
+CjsSchema.meta.carbon("CallbackSettings")(CallbackSettings);

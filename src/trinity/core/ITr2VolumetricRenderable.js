@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/ITr2VolumetricRenderable.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2_Blue.cpp:7 (BLUE_DEFINE_INTERFACE)
 //
@@ -16,7 +17,7 @@ import { blue } from "#schema";
  * Carbon ITr2VolumetricRenderable (ITr2VolumetricRenderable.h:22-53): an
  * object the volumetrics renderer sorts, batches, lights and shadows.
  */
-@blue.define("ITr2VolumetricRenderable")
+@be.interface("ITr2VolumetricRenderable")
 @blue.inherit(IRoot)
 export class ITr2VolumetricRenderable
 {

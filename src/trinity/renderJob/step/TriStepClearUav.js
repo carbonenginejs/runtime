@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepClearUav.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -5,9 +6,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { vec4 } from "#math/vec4";
 
 /** A render step that clears an unordered-access buffer to a fixed value. */
-@blue.define("TriStepClearUav")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepClearUav")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepClearUav extends TriRenderStep
 {
 

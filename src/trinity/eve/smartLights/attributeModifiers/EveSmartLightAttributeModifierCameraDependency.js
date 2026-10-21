@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierCameraDependency.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -7,8 +8,9 @@ import { vec3 } from "#math/vec3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** EveSmartLightAttributeModifierCameraDependency (eve/smartLights/attributeModifiers) - generated from schema shapeHash 5e9c1bd9.... */
-@blue.define("EveSmartLightAttributeModifierCameraDependency")
-@blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier)
+@be.define("EveSmartLightAttributeModifierCameraDependency")
+@be.mapInterface(EveSmartLightAttributeModifierBucket)
+@be.mapInterface(IEveSmartLightGroupAttributeModifier)
 export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLightAttributeModifierBucket
 {
 

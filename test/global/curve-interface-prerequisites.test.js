@@ -5,7 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   ITriFunction, ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction,
-  ITriColorFunction, ITriCurveLength, be
+  ITriColorFunction, ITriCurveLength, blue as be
 } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, blue } from "@carbonenginejs/runtime/schema";
 import { ITriFunction as DirectFunction } from "../../src/global/blue/ITriFunction.js";

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
 import { INotify } from "../../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.cpp
@@ -16,9 +17,9 @@ const DEBUG_START = vec3.create();
 const DEBUG_END = vec3.create();
 
 /** SplineTunnelGroup (eve/child/behaviors) - generated from schema shapeHash da595535.... */
-@blue.define("SplineTunnelGroup")
+@be.define("SplineTunnelGroup")
 @blue.inherit(INotify)
-@blue.interface(INotify)
+@be.mapInterface(INotify)
 export class SplineTunnelGroup
 {
   static TunnelGroupType = TunnelGroupType;

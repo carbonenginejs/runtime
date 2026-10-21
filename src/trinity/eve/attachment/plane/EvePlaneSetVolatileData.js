@@ -9,7 +9,7 @@ import { type, meta } from "#schema";
  * (EvePlaneSet.cpp:302-303) for AddToQuadRenderer. Carbon gives it no
  * initializers.
  */
-@meta.define({ className: "EvePlaneSetVolatileData", carbon: "EvePlaneSet::VolatileData" })
+@meta.carbon("EvePlaneSet::VolatileData")
 export class EvePlaneSetVolatileData
 {
 

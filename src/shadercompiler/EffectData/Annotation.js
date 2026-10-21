@@ -61,6 +61,4 @@ export class Annotation
     });
 }
 
-CjsSchema.blue.define(Annotation, {
-    className: "Annotation"
-});
+CjsSchema.meta.carbon("Annotation")(Annotation);

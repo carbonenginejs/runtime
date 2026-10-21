@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
 import { vec3 } from "#math/vec3";
@@ -10,8 +11,8 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
  * Transition that blends position, point of interest, field of view and roll
  * from the source camera to the target camera over a fixed duration.
  */
-@blue.define("EveVirtualCameraTransitionLerp")
-@blue.chainTo(EveVirtualCameraTransitionBase)
+@be.define("EveVirtualCameraTransitionLerp")
+@be.exposureChainTo(EveVirtualCameraTransitionBase)
 export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBase
 {
   @blue.readwrite

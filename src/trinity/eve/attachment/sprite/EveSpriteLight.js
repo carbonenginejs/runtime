@@ -11,7 +11,7 @@ import { LightData } from "../../lights/LightData.js";
  * range that modulate its radius, plus its light profile and the bone matrix
  * resolved for it each frame.
  */
-@blue.define("EveSpriteLight")
+@meta.carbon("EveSpriteLight")
 export class EveSpriteLight
 {
   @meta.owned

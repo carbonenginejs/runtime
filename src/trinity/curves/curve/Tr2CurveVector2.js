@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveVector2.h
 // Source: trinity/trinity/Curves/Tr2CurveVector2.cpp
 import { vec2 } from "#math/vec2";
@@ -12,9 +13,10 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * its length is the longer of the two.
  * JavaScript writes native returned vectors into caller-owned output buffers.
  */
-@blue.define("Tr2CurveVector2")
+@be.define("Tr2CurveVector2")
 @blue.inherit(ITriCurveLength)
-@blue.interface(ITriFunction, ITriCurveLength)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2CurveVector2 extends ITriFunction
 {
   /**

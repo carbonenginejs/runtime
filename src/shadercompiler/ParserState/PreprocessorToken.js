@@ -32,6 +32,4 @@ export class PreprocessorToken
     }
 }
 
-CjsSchema.blue.define(PreprocessorToken, {
-    className: "PreprocessorToken"
-});
+CjsSchema.meta.carbon("PreprocessorToken")(PreprocessorToken);

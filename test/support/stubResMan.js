@@ -1,4 +1,4 @@
-import { be, IBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import {
   CjsAudioRes, CjsResource, ResourceRequirement, Tr2EffectRes,
   Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriTextureRes
@@ -96,9 +96,9 @@ export class StubResMan extends IBlueResMan
  */
 export function composeStubResMan(resolve = null)
 {
-  const previous = be.resMan;
+  const previous = blue.resMan;
   const stub = new StubResMan(resolve);
-  be.resMan = stub;
-  stub.restore = () => { be.resMan = previous; };
+  blue.resMan = stub;
+  stub.restore = () => { blue.resMan = previous; };
   return stub;
 }

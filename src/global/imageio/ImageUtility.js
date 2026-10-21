@@ -224,4 +224,4 @@ export class ImageUtility
 
 }
 
-CjsSchema.meta.define(ImageUtility, { className: "ImageUtility" });
+CjsSchema.meta.define("ImageUtility")(ImageUtility);

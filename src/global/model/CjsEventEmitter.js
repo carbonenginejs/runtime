@@ -19,4 +19,4 @@ export class CjsEventEmitter
 
 installNotify(CjsEventEmitter);
 
-CjsSchema.meta.define(CjsEventEmitter, { className: "CjsEventEmitter" });
+CjsSchema.meta.define("CjsEventEmitter")(CjsEventEmitter);

@@ -32,4 +32,4 @@ export class CjsReader
 
 export default CjsReader;
 
-CjsSchema.meta.define(CjsReader, { className: "CjsReader" });
+CjsSchema.meta.define("CjsReader")(CjsReader);

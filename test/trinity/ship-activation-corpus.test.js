@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { num } from "../../npm/dist/global/math/num.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
@@ -36,7 +36,7 @@ async function loadCatalog()
 async function builder(t)
 {
   const files=await loadCatalog();
-  const previous=be.resMan;be.resMan=new StubResMan();t.after(()=>{be.resMan=previous;});
+  const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
   return (await new EveSOF().Register({
     lazyData:{source:async path=>{assert.ok(files.has(path),path);return files.get(path);}},
     resources:{exists:async path=>files.has(path)}

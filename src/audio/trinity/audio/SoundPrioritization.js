@@ -31,7 +31,7 @@ function DefaultSettings()
 }
 
 /** Ranks audio game objects by weight and keeps the configured highest-priority set awake. */
-@blue.define("SoundPrioritization")
+@meta.carbon("SoundPrioritization")
 export class SoundPrioritization
 {
 

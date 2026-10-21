@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -5,7 +6,7 @@ import { Tr2ResourceSetAL, Tr2ResourceSetDescriptionAL } from "../../../trinitya
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
 /** Collects one effect library's local and global stage inputs, rerouted parameters, and resource-set state. */
-@blue.define("Tr2EffectLibraryParameters")
+@meta.carbon("Tr2EffectLibraryParameters")
 export class Tr2EffectLibraryParameters
 {
 

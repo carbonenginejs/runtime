@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Utilities/Range.h
 // Source: trinity/trinity/Utilities/Range.cpp
@@ -14,7 +15,7 @@ import { meta, type, blue } from "#schema";
  * direct dictionary writes do not invoke those setters. This cache and Number
  * arithmetic (rather than native float intermediates) are retained adapters.
  */
-@blue.define("Range")
+@be.define("Range")
 @blue.inherit(IRoot)
 export class Range
 {
@@ -248,4 +249,4 @@ export class Range
   }
 }
 
-blue.interface()(Range);
+

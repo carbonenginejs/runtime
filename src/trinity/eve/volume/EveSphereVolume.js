@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.h
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.cpp
@@ -30,9 +31,10 @@ const DEBUG_TRANSLATION = mat4.create();
  * Sphere of influence with a solid inner radius and a falloff out to the outer
  * radius, weighting points and seeding random ones inside it.
  */
-@blue.define("EveSphereVolume")
+@be.define("EveSphereVolume")
 @blue.inherit(INotify)
-@blue.interface(IEveVolume, INotify)
+@be.mapInterface(IEveVolume)
+@be.mapInterface(INotify)
 export class EveSphereVolume extends IEveVolume
 {
   @blue.notify

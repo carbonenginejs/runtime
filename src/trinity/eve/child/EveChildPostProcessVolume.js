@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPostProcessVolume.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -17,9 +18,13 @@ import { ITr2PostProcessOwner } from "../../postProcess/ITr2PostProcessOwner.js"
 import { EveComponentType } from "../EntityComponents.js";
 
 /** A child that unions a set of inclusion and exclusion volumes into a bounding sphere and drives a post-process effect's intensity from the camera's position relative to them. */
-@blue.define("EveChildPostProcessVolume")
+@be.define("EveChildPostProcessVolume")
 @blue.inherit(IInitialize, ITr2DebugRenderable, ITr2PostProcessOwner)
-@blue.interface(ITr2PostProcessOwner, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
+@be.mapInterface(ITr2PostProcessOwner)
+@be.mapInterface(EveEntity)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(IInitialize)
 export class EveChildPostProcessVolume extends EveChildTransform
 {
 

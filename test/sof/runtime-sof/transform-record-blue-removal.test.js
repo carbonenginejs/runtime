@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { be, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
+import { blue, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
 import { EveSOFDataTransform as Transform } from "../../../npm/dist/sof/shared/EveSOFDataTransform.js";
 import { EveSofDataMeshInstance as Instance } from "../../../npm/dist/sof/shared/EveSofDataMeshInstance.js";
@@ -58,7 +58,7 @@ test("SOF transform exposes its native self table while the packed instance rema
 {
   for (const Class of [Transform, Instance])
   {
-    const record = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+    const record = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor, Class);
     assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
     assert.deepEqual([...mappedInterfaces(Class)], Class === Transform ? [ExposureRoot, Transform] : []);

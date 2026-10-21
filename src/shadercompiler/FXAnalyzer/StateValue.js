@@ -14,6 +14,4 @@ export class StateValue
     value = 0;
 }
 
-CjsSchema.blue.define(StateValue, {
-    className: "StateValue"
-});
+CjsSchema.meta.carbon("StateValue")(StateValue);

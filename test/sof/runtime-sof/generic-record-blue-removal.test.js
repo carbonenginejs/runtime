@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { be, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
+import { blue, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
 import { ReflectionMode } from "../../../npm/dist/global/consts/graphics/index.js";
 import { EveSOFDataVisibilityGroup as Visibility } from "../../../npm/dist/sof/generic/EveSOFDataVisibilityGroup.js";
@@ -36,7 +36,7 @@ test("generic SOF records construct without model APIs and expose self-only nati
 {
   for (const Class of [Visibility, Category, Damage])
   {
-    const record = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+    const record = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor, Class);
     assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
     for (const name of ["GetValues", "SetValues", "Copy", "Clone", "OnEvent", "__state"]) assert.equal(name in record, false);

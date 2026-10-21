@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/DroneAvoidance.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -21,9 +22,9 @@ const DEBUG_FAR_COLOR = color.fromARGB(color.create(), 0xff1111ff);
 const DEBUG_COLOR = color.create();
 
 /** A steering behaviour that pushes each drone away from its nearby neighbours, blended with its current velocity direction, to keep agents from clustering or overlapping. */
-@blue.define("DroneAvoidance")
+@be.define("DroneAvoidance")
 @blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.mapInterface(IBehavior)
 export class DroneAvoidance
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.h
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.cpp
@@ -18,9 +19,11 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
  * is claimed. Sampling retains the seconds overloads and returns numbers;
  * Be::Time overloads remain unimplemented. Programs are local state, not resources.
  */
-@blue.define("Tr2CurveScalarExpression")
+@be.define("Tr2CurveScalarExpression")
 @blue.inherit(IInitialize)
-@blue.interface(ITriFunction, ITriScalarFunction, IInitialize)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriScalarFunction)
+@be.mapInterface(IInitialize)
 export class Tr2CurveScalarExpression extends ITriScalarFunction
 {
   /** Authored narrow-string name. */

@@ -119,4 +119,4 @@ export function RegisterTextureArray(resourceManager)
   return resourceManager;
 }
 
-CjsSchema.meta.define(CjsTextureArrayConstructor, { className: "CjsTextureArrayConstructor" });
+CjsSchema.meta.define("CjsTextureArrayConstructor")(CjsTextureArrayConstructor);

@@ -32,4 +32,4 @@ export class TnyStore
     async List() { return this._owner._GetStorage().List(this._name); }
 }
 
-CjsSchema.meta.define(TnyStore, { className: "TnyStore" });
+CjsSchema.meta.define("TnyStore")(TnyStore);

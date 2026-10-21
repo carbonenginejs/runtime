@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/TriEventKey.h
 // Source: trinity/trinity/Curves/TriEventKey.cpp
@@ -10,7 +11,7 @@ import { type, blue } from "#schema";
  * or a callable and its arguments to invoke when the playhead crosses it.
  */
 @blue.inherit(IRoot)
-@blue.define("TriEventKey")
+@be.define("TriEventKey")
 export class TriEventKey
 {
   /** Event time in seconds. */
@@ -37,4 +38,4 @@ export class TriEventKey
 }
 
 // Native own query table; no inherited exposure chain.
-blue.interface()(TriEventKey);
+

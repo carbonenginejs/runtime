@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { BlueList, IListNotify } from "#blue";
 
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h
@@ -26,10 +27,10 @@ const VERTEX_BASE_STRIDE = 44;
 const INVALID_INDEX = 0xffff;
 
 /** Stores editable Sprite2D polygon vertices and triangles and validates wrapped append input. */
-@blue.define("Tr2Sprite2dPolygon")
-@blue.chainTo(Tr2TexturedSpriteObject)
+@be.define("Tr2Sprite2dPolygon")
+@be.exposureChainTo(Tr2TexturedSpriteObject)
 @blue.inherit(IListNotify)
-@blue.interface()
+
 export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 {
 

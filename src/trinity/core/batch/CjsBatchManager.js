@@ -271,4 +271,4 @@ export class CjsBatchManager
 
 }
 
-CjsSchema.meta.define(CjsBatchManager, { className: "CjsBatchManager" });
+CjsSchema.meta.define("CjsBatchManager")(CjsBatchManager);

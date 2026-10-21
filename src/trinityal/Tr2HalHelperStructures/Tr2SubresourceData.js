@@ -53,4 +53,4 @@ export class Tr2SubresourceData
 CjsSchema.decorateField(Tr2SubresourceData, "sysMem", type.unknown);
 CjsSchema.decorateField(Tr2SubresourceData, "sysMemPitch", type.uint32);
 CjsSchema.decorateField(Tr2SubresourceData, "sysMemSlicePitch", type.uint32);
-CjsSchema.blue.define(Tr2SubresourceData, { className: "Tr2SubresourceData" });
+CjsSchema.meta.carbon("Tr2SubresourceData")(Tr2SubresourceData);

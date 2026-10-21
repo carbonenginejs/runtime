@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.cpp
@@ -30,9 +31,9 @@ const BUILD_CLASSES = Object.freeze([
 ]);
 
 /** Resolves a SOF DNA string against an EveSOFDataMgr. */
-@blue.define("EveSOFDNA")
+@be.define("EveSOFDNA")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDNA
 {
 

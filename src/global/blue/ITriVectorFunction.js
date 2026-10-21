@@ -136,7 +136,4 @@ CjsSchema.decorateMethod(ITriVectorFunction, "Update__Ticks", blue.method, meta.
 CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt__Ticks", blue.method, meta.adapted);
 CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAt__Ticks", blue.method, meta.adapted);
 CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAt__Ticks", blue.method, meta.adapted);
-CjsSchema.blue.define(ITriVectorFunction, {
-  className: "ITriVectorFunction",
-  fields: {}
-});
+CjsSchema.exposure.interface("ITriVectorFunction")(ITriVectorFunction);

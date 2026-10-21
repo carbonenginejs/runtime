@@ -540,4 +540,4 @@ function NormalizeGameParameterID(value)
     return number >>> 0;
 }
 
-CjsSchema.meta.define(CjsAudioLibraryBuilderSfxNameCatalogAccumulator, { className: "CjsAudioLibraryBuilderSfxNameCatalogAccumulator" });
+CjsSchema.meta.define("CjsAudioLibraryBuilderSfxNameCatalogAccumulator")(CjsAudioLibraryBuilderSfxNameCatalogAccumulator);

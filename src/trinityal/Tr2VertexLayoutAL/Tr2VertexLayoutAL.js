@@ -166,4 +166,4 @@ export class Tr2VertexLayoutAL
 
 CjsSchema.decorateField(Tr2VertexLayoutAL, "_layout", type.unknown);
 CjsSchema.decorateMethod(Tr2VertexLayoutAL, "Equals", meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2VertexLayoutAL, { className: "Tr2VertexLayoutAL" });
+CjsSchema.meta.carbon("Tr2VertexLayoutAL")(Tr2VertexLayoutAL);

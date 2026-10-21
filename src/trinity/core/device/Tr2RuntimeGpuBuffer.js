@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.h
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.cpp
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/index.js";
@@ -9,9 +10,9 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
  * An ITr2GpuBuffer over one runtime AL buffer: what `Tr2Effect::SetParameter`
  * wraps a `Tr2BufferAL` in so a buffer parameter can hold it.
  */
-@blue.define("Tr2RuntimeGpuBuffer")
+@be.define("Tr2RuntimeGpuBuffer")
 @blue.inherit(ITr2GpuBuffer)
-@blue.interface(ITr2GpuBuffer)
+@be.mapInterface(ITr2GpuBuffer)
 export class Tr2RuntimeGpuBuffer
 {
   /** m_buffer: the AL buffer, or null for Carbon's default-constructed one. */

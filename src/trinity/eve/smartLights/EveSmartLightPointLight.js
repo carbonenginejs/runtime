@@ -6,7 +6,7 @@ import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, be } from "#blue";
+import { IsMatch, blue as be } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { num } from "#math/num";

@@ -4,7 +4,7 @@ import { OrderOf } from "./Tr2RenderBatch.js";
 import { meta, blue } from "#schema";
 
 /** Carbon's EffectKeyGenerator batch sorting policy. */
-@blue.define("EffectKeyGenerator")
+@meta.carbon("EffectKeyGenerator")
 export class EffectKeyGenerator
 {
   /**

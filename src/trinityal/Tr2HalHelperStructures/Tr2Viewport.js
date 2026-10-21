@@ -67,4 +67,4 @@ CjsSchema.decorateField(Tr2Viewport, "width", type.float32);
 CjsSchema.decorateField(Tr2Viewport, "height", type.float32);
 CjsSchema.decorateField(Tr2Viewport, "minZ", type.float32);
 CjsSchema.decorateField(Tr2Viewport, "maxZ", type.float32);
-CjsSchema.blue.define(Tr2Viewport, { className: "Tr2Viewport" });
+CjsSchema.meta.carbon("Tr2Viewport")(Tr2Viewport);

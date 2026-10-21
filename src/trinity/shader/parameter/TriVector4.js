@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.cpp
@@ -6,9 +7,9 @@ import { type, blue } from "#schema";
 
 
 /** One vec4 row of a TriFloatArrayParameter's value list. */
-@blue.define("TriVector4")
+@be.define("TriVector4")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class TriVector4
 {
   @blue.readwrite

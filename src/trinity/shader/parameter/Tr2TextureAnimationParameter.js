@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IsMatch, INotify } from "#blue";
@@ -8,9 +9,10 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 
 /** Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes. */
-@blue.define("Tr2TextureAnimationParameter")
+@be.define("Tr2TextureAnimationParameter")
 @blue.inherit(ITriEffectResourceParameter, INotify)
-@blue.interface(ITriEffectResourceParameter, INotify)
+@be.mapInterface(ITriEffectResourceParameter)
+@be.mapInterface(INotify)
 export class Tr2TextureAnimationParameter extends CjsParameter
 {
 

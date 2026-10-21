@@ -241,4 +241,4 @@ export class CcpTime
   }
 }
 
-CjsSchema.meta.define(CcpTime, { className: "CcpTime" });
+CjsSchema.meta.define("CcpTime")(CcpTime);

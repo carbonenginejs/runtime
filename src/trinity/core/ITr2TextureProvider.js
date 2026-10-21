@@ -20,4 +20,4 @@ export class ITr2TextureProvider
   OnTextureChange() {}
 }
 
-CjsSchema.blue.define(ITr2TextureProvider, { className: "ITr2TextureProvider", fields: {} });
+CjsSchema.exposure.interface("ITr2TextureProvider")(ITr2TextureProvider);

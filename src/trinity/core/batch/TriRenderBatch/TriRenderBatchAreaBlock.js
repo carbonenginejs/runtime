@@ -77,4 +77,4 @@ export class TriRenderBatchAreaBlock
 CjsSchema.decorateField(TriRenderBatchAreaBlock, "startIndex", type.uint32);
 CjsSchema.decorateField(TriRenderBatchAreaBlock, "count", type.uint32);
 CjsSchema.decorateMethod(TriRenderBatchAreaBlock, "Optimize", blue.method);
-CjsSchema.blue.define(TriRenderBatchAreaBlock, { className: "TriRenderBatchAreaBlock" });
+CjsSchema.meta.carbon("TriRenderBatchAreaBlock")(TriRenderBatchAreaBlock);

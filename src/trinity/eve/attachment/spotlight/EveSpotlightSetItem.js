@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSetItem.cpp
@@ -13,7 +14,7 @@ import { meta, type, blue } from "#schema";
  * cone, flare and sprite colours drawn for it, and whether booster gain
  * modulates it.
  */
-@blue.define("EveSpotlightSetItem")
+@be.define("EveSpotlightSetItem")
 @blue.inherit(IRoot)
 export class EveSpotlightSetItem
 {

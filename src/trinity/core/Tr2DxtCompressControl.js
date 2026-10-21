@@ -38,7 +38,8 @@ export class Tr2DxtCompressControl
     }
 }
 
-CjsSchema.blue.define(Tr2DxtCompressControl, {
-  className: "Tr2DxtCompressControl",
-  methods: { Cancel: [meta.adapted], IsDone: [meta.implemented], IsCanceling: [meta.implemented], Done: [meta.implemented] }
-});
+CjsSchema.decorateMethod(Tr2DxtCompressControl, "Cancel", meta.adapted);
+CjsSchema.decorateMethod(Tr2DxtCompressControl, "IsDone", meta.implemented);
+CjsSchema.decorateMethod(Tr2DxtCompressControl, "IsCanceling", meta.implemented);
+CjsSchema.decorateMethod(Tr2DxtCompressControl, "Done", meta.implemented);
+CjsSchema.meta.carbon("Tr2DxtCompressControl")(Tr2DxtCompressControl);

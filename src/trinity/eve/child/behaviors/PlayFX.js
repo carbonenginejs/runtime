@@ -6,7 +6,7 @@ import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { vec3 } from "#math/vec3";
 

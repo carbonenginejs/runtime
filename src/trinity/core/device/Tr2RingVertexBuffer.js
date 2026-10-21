@@ -9,7 +9,7 @@ import { Tr2DynamicRingBuffer } from "./Tr2DynamicRingBuffer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** Carbon `Tr2RingVertexBuffer`: the ring as a vertex buffer. */
-@blue.define("Tr2RingVertexBuffer")
+@meta.carbon("Tr2RingVertexBuffer")
 export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
 {
   /** Carbon Create (cpp:395-400). */

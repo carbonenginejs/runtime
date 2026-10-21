@@ -204,4 +204,4 @@ export class CjsOpenTypeFormat extends CjsFormat
 
 export default CjsOpenTypeFormat;
 
-CjsSchema.meta.define(CjsOpenTypeFormat, { className: "CjsOpenTypeFormat" });
+CjsSchema.meta.define("CjsOpenTypeFormat")(CjsOpenTypeFormat);

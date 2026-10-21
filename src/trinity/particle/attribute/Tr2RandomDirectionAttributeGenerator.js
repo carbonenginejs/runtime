@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2RandomDirectionAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -7,8 +8,8 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates a per-particle attribute as a random unit vector spanning the bound element's dimension. */
-@blue.interface(ITr2AttributeGenerator)
-@blue.define("Tr2RandomDirectionAttributeGenerator")
+@be.mapInterface(ITr2AttributeGenerator)
+@be.define("Tr2RandomDirectionAttributeGenerator")
 export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 {
 

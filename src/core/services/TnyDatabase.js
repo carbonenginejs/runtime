@@ -98,4 +98,4 @@ export class TnyDatabase
     }
 }
 
-CjsSchema.meta.define(TnyDatabase, { className: "TnyDatabase" });
+CjsSchema.meta.define("TnyDatabase")(TnyDatabase);

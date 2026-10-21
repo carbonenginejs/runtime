@@ -34,4 +34,4 @@ export class WebglReadError extends Error
     }
 }
 
-CjsSchema.meta.define(WebglReadError, { className: "WebglReadError" });
+CjsSchema.meta.define("WebglReadError")(WebglReadError);

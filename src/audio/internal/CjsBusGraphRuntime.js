@@ -144,4 +144,4 @@ function CanonicalPositiveId(value, label)
     return text;
 }
 
-CjsSchema.meta.define(CjsBusGraphRuntime, { className: "CjsBusGraphRuntime" });
+CjsSchema.meta.define("CjsBusGraphRuntime")(CjsBusGraphRuntime);

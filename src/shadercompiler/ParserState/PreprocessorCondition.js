@@ -20,6 +20,4 @@ export class PreprocessorCondition
     seenElse = false;
 }
 
-CjsSchema.blue.define(PreprocessorCondition, {
-    className: "PreprocessorCondition"
-});
+CjsSchema.meta.carbon("PreprocessorCondition")(PreprocessorCondition);

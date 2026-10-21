@@ -30,8 +30,7 @@ export class Version
     }
 }
 
-CjsSchema.blue.define(Version, { className: "Version", fields: {
-        major: [type.uint32],
-        minor: [type.uint32],
-        patch: [type.uint32]
-    } });
+CjsSchema.decorateField(Version, "major", type.uint32);
+CjsSchema.decorateField(Version, "minor", type.uint32);
+CjsSchema.decorateField(Version, "patch", type.uint32);
+CjsSchema.meta.carbon("Version")(Version);

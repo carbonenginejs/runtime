@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLink.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { CjsSchema, meta, type, blue } from "#schema";
@@ -13,9 +14,9 @@ import { vec4 } from "#math/vec4";
  * A stretched link between a shield hull and an arc target: it orients itself
  * along the arc, keeps its own final world placement, and inherits the hull per-object values.
  */
-@blue.define("EveChildLink")
-@blue.interface(EveChildMesh)
-@blue.chainTo(EveChildMesh)
+@be.define("EveChildLink")
+@be.mapInterface(EveChildMesh)
+@be.exposureChainTo(EveChildMesh)
 export class EveChildLink extends EveChildMesh
 {
 

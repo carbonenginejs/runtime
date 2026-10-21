@@ -125,4 +125,4 @@ export class CjsGraphBinaryFormat extends CjsFormat
 }
 import { CjsFormat } from "../../format/CjsFormat.js";
 
-CjsSchema.meta.define(CjsGraphBinaryFormat, { className: "CjsGraphBinaryFormat" });
+CjsSchema.meta.define("CjsGraphBinaryFormat")(CjsGraphBinaryFormat);

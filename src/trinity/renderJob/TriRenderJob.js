@@ -5,7 +5,7 @@ import { meta, type, blue } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
 import { TriRenderJobStatus } from "../generated/renderJob/enums.js";
-import { be } from "#blue";
+import { blue as be } from "#blue";
 
 
 /**

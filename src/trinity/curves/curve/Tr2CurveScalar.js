@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
 import { ITriScalarFunction, ITriCurveLength, ITriFunction } from "#blue";
@@ -12,9 +13,11 @@ import { Tr2CurveScalarKey } from "../key/Tr2CurveScalarKey.js";
  * Hermite interpolation and independent clamp, linear, cycle or mirror
  * extrapolation before the first and after the last key.
  */
-@blue.define("Tr2CurveScalar")
+@be.define("Tr2CurveScalar")
 @blue.inherit(ITriCurveLength)
-@blue.interface(ITriScalarFunction, ITriFunction, ITriCurveLength)
+@be.mapInterface(ITriScalarFunction)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2CurveScalar extends ITriScalarFunction
 {
   /**

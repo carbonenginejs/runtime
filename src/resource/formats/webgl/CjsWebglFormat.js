@@ -232,4 +232,4 @@ export class CjsWebglFormat extends CjsFormat
 
 export default CjsWebglFormat;
 
-CjsSchema.meta.define(CjsWebglFormat, { className: "CjsWebglFormat" });
+CjsSchema.meta.define("CjsWebglFormat")(CjsWebglFormat);

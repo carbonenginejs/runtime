@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
@@ -89,9 +90,13 @@ const DEBUG_PLANE_ZFAIL_COLOR = vec4.fromValues(0.0, 0.7, 0.9, 0.1);
  * A hull's authored textured planes, owning their static and per-bone bounds,
  * the four shared texture parameters and the plane lights.
  */
-@blue.define("EvePlaneSet")
+@be.define("EvePlaneSet")
 @blue.inherit(IInitialize, INotify, ITr2LightOwner, EveEntity)
-@blue.interface(IInitialize, INotify, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IEveSpaceObjectAttachment)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2LightOwner)
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
   /**

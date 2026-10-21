@@ -42,18 +42,14 @@ export class Tr2GrannyIntersectionResult
 }
 
 CjsSchema.blue.inherit(IRoot)(Tr2GrannyIntersectionResult);
-CjsSchema.blue.define(Tr2GrannyIntersectionResult, {
-  className: "Tr2GrannyIntersectionResult",
-  fields: {
-    position: [ blue.readwrite, type.vec3 ],
-    hasPosition: [ blue.readwrite, type.boolean ],
-    normal: [ blue.readwrite, type.vec3 ],
-    hasNormal: [ blue.readwrite, type.boolean ],
-    uv: [ blue.readwrite, type.vec2 ],
-    hasUv: [ blue.readwrite, type.boolean ],
-    boneIndex: [ blue.readwrite, type.int32 ],
-    hasBoneIndex: [ blue.readwrite, type.boolean ],
-    meshIndex: [ blue.readwrite, type.int32 ],
-    areaIndex: [ blue.readwrite, type.int32 ]
-  }
-});
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "position", blue.readwrite, type.vec3);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasPosition", blue.readwrite, type.boolean);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "normal", blue.readwrite, type.vec3);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasNormal", blue.readwrite, type.boolean);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "uv", blue.readwrite, type.vec2);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasUv", blue.readwrite, type.boolean);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "boneIndex", blue.readwrite, type.int32);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasBoneIndex", blue.readwrite, type.boolean);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "meshIndex", blue.readwrite, type.int32);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "areaIndex", blue.readwrite, type.int32);
+CjsSchema.exposure.define("Tr2GrannyIntersectionResult")(Tr2GrannyIntersectionResult);

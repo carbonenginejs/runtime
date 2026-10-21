@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PyValueBinding.h
 // Source: trinity/trinity/Tr2PyValueBinding.cpp
 // Source: trinity/trinity/Tr2PyValueBinding_Blue.cpp
@@ -6,9 +7,10 @@ import { INotify } from "#blue/INotify";
 import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 
 /** Copies named JavaScript attributes through the portable Python-value adapter. */
-@blue.define("Tr2PyValueBinding")
+@be.define("Tr2PyValueBinding")
 @blue.inherit(ITr2ValueBinding)
-@blue.interface(ITr2ValueBinding, INotify)
+@be.mapInterface(ITr2ValueBinding)
+@be.mapInterface(INotify)
 export class Tr2PyValueBinding extends INotify
 {
 

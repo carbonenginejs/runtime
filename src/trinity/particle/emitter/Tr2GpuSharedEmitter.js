@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2GpuSharedEmitter.h
 // Source: trinity/trinity/Particle/Tr2GpuSharedEmitter.cpp
 // Source: trinity/trinity/Particle/Tr2GpuSharedEmitter_Blue.cpp
@@ -18,9 +19,11 @@ const MAXIMUM_FRAME_TIME = Math.fround(1 / 15);
  * particle lifetime and speed range, size and colour ramp, and the drag,
  * turbulence and gravity terms the simulation applies.
  */
-@blue.define("Tr2GpuSharedEmitter")
+@be.define("Tr2GpuSharedEmitter")
 @blue.inherit(IInitialize, INotify, ITr2GenericEmitter)
-@blue.interface(IInitialize, INotify, ITr2GenericEmitter)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2GenericEmitter)
 export class Tr2GpuSharedEmitter
 {
   @blue.readwrite

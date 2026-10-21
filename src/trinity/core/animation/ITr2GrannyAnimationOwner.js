@@ -18,4 +18,4 @@ export class ITr2GrannyAnimationOwner
 
 CjsSchema.decorateMethod(ITr2GrannyAnimationOwner, "GetAnimationController", blue.abstract);
 CjsSchema.blue.inherit(IRoot)(ITr2GrannyAnimationOwner);
-CjsSchema.blue.define(ITr2GrannyAnimationOwner, { className: "ITr2GrannyAnimationOwner" });
+CjsSchema.exposure.interface("ITr2GrannyAnimationOwner")(ITr2GrannyAnimationOwner);

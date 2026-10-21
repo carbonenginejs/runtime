@@ -36,6 +36,4 @@ export class StageData
     annotations = new ParameterAnnotation();
 }
 
-CjsSchema.blue.define(StageData, {
-    className: "StageData"
-});
+CjsSchema.meta.carbon("StageData")(StageData);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IBluePlacementObserver } from "#blue/IBluePlacementObserver";
 import { ITr2Interior } from "./ITr2Interior.js";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
@@ -12,10 +13,16 @@ import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
  * Interior skinned-object specialization carrying bounds, depth, and
  * variable-store metadata.
  */
-@blue.define("Tr2IntSkinnedObject")
+@be.define("Tr2IntSkinnedObject")
 @blue.inherit(IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox, IBluePlacementObserver)
-@blue.interface(IInitialize, INotify, ITr2Interior, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox, IBluePlacementObserver)
-@blue.chainTo(Tr2SkinnedObject)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2Interior)
+@be.mapInterface(ITr2InteriorDynamic)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(ITr2BoundingBox)
+@be.mapInterface(IBluePlacementObserver)
+@be.exposureChainTo(Tr2SkinnedObject)
 export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 {
 

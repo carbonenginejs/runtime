@@ -6,7 +6,7 @@ import { meta, blue } from "#schema";
  * Retains Carbon spatial-audio initialization defaults and getter/setter
  * semantics for manager and injected-backend use.
  */
-@blue.define("SpatialAudioSettings")
+@meta.carbon("SpatialAudioSettings")
 export class SpatialAudioSettings
 {
 

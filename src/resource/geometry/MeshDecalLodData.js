@@ -14,10 +14,6 @@ export class MeshDecalLodData
 
 }
 
-CjsSchema.blue.define(MeshDecalLodData, {
-  className: "MeshDecalLodData",
-  fields: {
-    startIndex: type.uint32,
-    primitiveCount: type.uint32
-  }
-});
+CjsSchema.decorateField(MeshDecalLodData, "startIndex", type.uint32);
+CjsSchema.decorateField(MeshDecalLodData, "primitiveCount", type.uint32);
+CjsSchema.meta.carbon("MeshDecalLodData")(MeshDecalLodData);

@@ -306,4 +306,4 @@ export class CjsByteWriter
 
 export default CjsByteWriter;
 
-CjsSchema.meta.define(CjsByteWriter, { className: "CjsByteWriter" });
+CjsSchema.meta.define("CjsByteWriter")(CjsByteWriter);

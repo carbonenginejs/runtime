@@ -116,4 +116,4 @@ export class CjsAudioBufferRes extends CjsResource
 
 }
 
-CjsSchema.meta.define(CjsAudioBufferRes, { className: "CjsAudioBufferRes" });
+CjsSchema.meta.define("CjsAudioBufferRes")(CjsAudioBufferRes);

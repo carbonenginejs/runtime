@@ -23,7 +23,4 @@ export class IBlueEventListener
 CjsSchema.decorateMethod(IBlueEventListener, "HandleEvent", blue.abstract);
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.
-CjsSchema.blue.define(IBlueEventListener, {
-  className: "IBlueEventListener",
-  fields: {}
-});
+CjsSchema.exposure.interface("IBlueEventListener")(IBlueEventListener);

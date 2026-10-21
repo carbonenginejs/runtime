@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
+import { blue, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
@@ -84,7 +84,7 @@ test("PlaySound preserves target adapters while requiring SendEvent on a returne
 
 test("BindRTPC retains expressions and cached targets, with Blue notification and balanced registration", t =>
 {
-  t.mock.method(be.os, "GetCurrentFrameTime", () => 100000000);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => 100000000);
   const action = new Tr2ActionBindRTPC(), writes = [], updates = new Set();
   let emitter = { SetRTPC: (...args) => writes.push(args) };
   const owner = SoundOwner(null);

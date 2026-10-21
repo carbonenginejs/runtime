@@ -27,11 +27,7 @@ export class Tr2MaterialRes
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
 CjsSchema.blue.inherit(IRoot)(Tr2MaterialRes);
-CjsSchema.blue.interface(IRoot, Tr2MaterialRes)(Tr2MaterialRes);
-CjsSchema.blue.define(Tr2MaterialRes, {
-  className: "Tr2MaterialRes",
-  fields: {
-    meshes: [ blue.read, blue.persist, type.rootRef("Tr2MaterialMeshDict") ],
-    name: [ blue.readwrite, blue.persist, type.string ]
-  }
-});
+
+CjsSchema.decorateField(Tr2MaterialRes, "meshes", blue.read, blue.persist, type.rootRef("Tr2MaterialMeshDict"));
+CjsSchema.decorateField(Tr2MaterialRes, "name", blue.readwrite, blue.persist, type.string);
+CjsSchema.exposure.define("Tr2MaterialRes")(Tr2MaterialRes);

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
 import { meta, type, blue } from "#schema";
-import { IsMatch, be, IInitialize, INotify, CjsBlueClasses } from "#blue";
+import { IsMatch, blue as be, IInitialize, INotify, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /** Local shader parameter overrides with an optional resource-loaded parent store. */

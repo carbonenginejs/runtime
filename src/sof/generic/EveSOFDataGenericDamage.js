@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:428-457
@@ -11,9 +12,9 @@ import { vec4 } from "#math/vec4";
  * is required, and the native destructor is empty.
  * Shader and geometry paths are authored strings, not held resources.
  */
-@blue.define("EveSOFDataGenericDamage")
+@be.define("EveSOFDataGenericDamage")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataGenericDamage
 {
 

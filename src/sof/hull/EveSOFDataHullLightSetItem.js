@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -6,7 +7,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
 import { vec3 } from "#math/vec3";
 
 /** Provides the common faction, flag, bone, position, radius, brightness, and noise fields shared by point, textured-point, and spot lights. */
-@blue.define("EveSOFDataHullLightSetItem")
+@be.define("EveSOFDataHullLightSetItem")
 @blue.inherit(IRoot)
 export class EveSOFDataHullLightSetItem
 {

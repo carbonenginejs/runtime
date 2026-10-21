@@ -8364,6 +8364,6 @@ function readF64LE(bytes, offset)
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 8).getFloat64(0, true);
 }
 
-CjsSchema.meta.define(DeflateBitReader, { className: "DeflateBitReader" });
+CjsSchema.meta.define("DeflateBitReader")(DeflateBitReader);
 
-CjsSchema.meta.define(DeflateHuffmanTable, { className: "DeflateHuffmanTable" });
+CjsSchema.meta.define("DeflateHuffmanTable")(DeflateHuffmanTable);

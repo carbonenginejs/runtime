@@ -48,4 +48,4 @@ export class Tr2MsaaDesc
 CjsSchema.decorateField(Tr2MsaaDesc, "samples", type.uint32);
 CjsSchema.decorateField(Tr2MsaaDesc, "quality", type.uint32);
 CjsSchema.decorateMethod(Tr2MsaaDesc, "Equals", blue.method, meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2MsaaDesc, { className: "Tr2MsaaDesc" });
+CjsSchema.meta.carbon("Tr2MsaaDesc")(Tr2MsaaDesc);

@@ -25,6 +25,4 @@ export class ShaderExport
     });
 }
 
-CjsSchema.blue.define(ShaderExport, {
-    className: "ShaderExport"
-});
+CjsSchema.meta.carbon("ShaderExport")(ShaderExport);

@@ -455,4 +455,4 @@ export class CjsControllerExpressionParser
   }
 }
 
-CjsSchema.meta.define(CjsControllerExpressionParser, { className: "CjsControllerExpressionParser" });
+CjsSchema.meta.define("CjsControllerExpressionParser")(CjsControllerExpressionParser);

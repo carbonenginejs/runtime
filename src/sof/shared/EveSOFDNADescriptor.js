@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Stores the hull, faction, race, pattern, and layout selections encoded by one parsed SOF DNA value. */
-@blue.define("EveSOFDNADescriptor")
-@blue.interface()
+@be.define("EveSOFDNADescriptor")
+
 @blue.inherit(IRoot)
 export class EveSOFDNADescriptor
 {

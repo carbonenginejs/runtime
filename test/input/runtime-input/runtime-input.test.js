@@ -9,7 +9,7 @@ import {
     UIScancode
 } from "../../../npm/dist/input/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { be } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 
 class FakeTarget
 {
@@ -83,7 +83,7 @@ test("Tr2MainWindowState exposes Carbon's eight attributes with Blue-registered 
     assert.equal(byName.presentInterval.enum.members, Tr2MainWindowState.PresentInterval);
     assert.deepEqual(byName.windowMode.enum.chooser.map(entry => entry.name), [ "FULL_SCREEN", "WINDOWED", "FIXED_WINDOW" ],
         "the chooser omits _COUNT");
-    assert.deepEqual(be.enums.GetEnumInfo("trinity.Tr2RenderContextEnum.PresentInterval").exposedName, "PRESENT_INTERVAL");
+    assert.deepEqual(blue.enums.GetEnumInfo("trinity.Tr2RenderContextEnum.PresentInterval").exposedName, "PRESENT_INTERVAL");
 });
 
 test("Tr2MouseCursor realizes browser CSS cursor state without native handles", () =>

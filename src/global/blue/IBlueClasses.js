@@ -162,4 +162,4 @@ for (const method of [
   CjsSchema.decorateMethod(IBlueClasses, method, blue.abstract);
 }
 
-CjsSchema.blue.define(IBlueClasses, { className: "IBlueClasses", fields: {} });
+CjsSchema.exposure.interface("IBlueClasses")(IBlueClasses);

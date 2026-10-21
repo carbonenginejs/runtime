@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.cpp
@@ -9,7 +10,7 @@ import { meta, type, blue } from "#schema";
  * Named attachment point on a space object, carrying a full transform matrix
  * rather than decomposed components.
  */
-@blue.define("EveLocator2")
+@be.define("EveLocator2")
 @blue.inherit(IRoot)
 export class EveLocator2
 {

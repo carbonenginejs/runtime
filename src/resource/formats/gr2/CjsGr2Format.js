@@ -422,4 +422,4 @@ export class CjsGr2Format extends CjsGeometryFormat
 
 export default CjsGr2Format;
 
-CjsSchema.meta.define(CjsGr2Format, { className: "CjsGr2Format" });
+CjsSchema.meta.define("CjsGr2Format")(CjsGr2Format);

@@ -113,4 +113,4 @@ export class CjsFileIndexOverlay
 
 }
 
-CjsSchema.meta.define(CjsFileIndexOverlay, { className: "CjsFileIndexOverlay" });
+CjsSchema.meta.define("CjsFileIndexOverlay")(CjsFileIndexOverlay);

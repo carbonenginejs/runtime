@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2GrannyEventTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyEventTrack.cpp
 import { meta, type, blue } from "#schema";
@@ -9,8 +10,8 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
  * Granny track that replays a text track's timed entries as engine events,
  * firing each entry once as the playhead crosses it.
  */
-@blue.define("Tr2GrannyEventTrack")
-@blue.chainTo(Tr2GrannyTrack)
+@be.define("Tr2GrannyEventTrack")
+@be.exposureChainTo(Tr2GrannyTrack)
 export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 {
   @blue.readwrite

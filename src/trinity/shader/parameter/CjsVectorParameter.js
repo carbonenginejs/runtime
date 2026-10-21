@@ -55,4 +55,4 @@ export class CjsVectorParameter extends CjsParameter
 
 }
 
-CjsSchema.meta.define(CjsVectorParameter, { className: "CjsVectorParameter" });
+CjsSchema.meta.define("CjsVectorParameter")(CjsVectorParameter);

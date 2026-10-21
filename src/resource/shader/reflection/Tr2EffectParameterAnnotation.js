@@ -128,15 +128,11 @@ export class Tr2EffectParameterAnnotation
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.blue.define(Tr2EffectParameterAnnotation, {
-  className: "Tr2EffectParameterAnnotation",
-  fields: {
-    name: type.string,
-    type: [ type.int32, type.enum("Type") ],
-    boolValue: type.boolean,
-    rawValue: [ meta.adapted, type.uint32 ],
-    intValue: type.int32,
-    floatValue: type.float32,
-    stringValue: type.string
-  }
-});
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "name", type.string);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "type", type.int32, type.enum("Type"));
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "boolValue", type.boolean);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "rawValue", meta.adapted, type.uint32);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "intValue", type.int32);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "floatValue", type.float32);
+CjsSchema.decorateField(Tr2EffectParameterAnnotation, "stringValue", type.string);
+CjsSchema.meta.carbon("Tr2EffectParameterAnnotation")(Tr2EffectParameterAnnotation);

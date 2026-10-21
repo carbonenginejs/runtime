@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierHalo.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -10,8 +11,8 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
  * Transform modifier that screen-aligns a child and shrinks it by the squared
  * facing of its local Z axis toward the camera, so a halo fades out edge-on.
  */
-@blue.define("EveChildModifierHalo")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierHalo")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierHalo extends IEveChildTransformModifier
 {
   static scratch = {

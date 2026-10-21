@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2GpuUniqueEmitter.h
 // Source: trinity/trinity/Particle/Tr2GpuUniqueEmitter.cpp
 // Source: trinity/trinity/Particle/Tr2GpuUniqueEmitter_Blue.cpp
@@ -20,8 +21,8 @@ const SCALED_PARAMS = Tr2GpuSharedEmitter._createParams();
  * GPU emitter owned by a single instance, adding parent scaling and a
  * per-instance attractor on top of the shared emitter parameters.
  */
-@blue.define("Tr2GpuUniqueEmitter")
-@blue.chainTo(Tr2GpuSharedEmitter)
+@be.define("Tr2GpuUniqueEmitter")
+@be.exposureChainTo(Tr2GpuSharedEmitter)
 export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 {
   @blue.readwrite

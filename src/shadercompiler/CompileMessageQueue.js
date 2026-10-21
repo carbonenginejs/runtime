@@ -161,13 +161,9 @@ function isSpace(code)
     return code === 32 || (code >= 9 && code <= 13);
 }
 
-CjsSchema.blue.define(CompileMessageQueue, {
-    className: "CompileMessageQueue",
-    methods: {
-        AddMessage: [blue.method],
-        Flush: [blue.method],
-        SetEntryFileName: [blue.method],
-        GetEntryFileName: [blue.method],
-        _OutputMessages: [meta.renamed("OutputMessages")]
-    }
-});
+CjsSchema.decorateMethod(CompileMessageQueue, "AddMessage", blue.method);
+CjsSchema.decorateMethod(CompileMessageQueue, "Flush", blue.method);
+CjsSchema.decorateMethod(CompileMessageQueue, "SetEntryFileName", blue.method);
+CjsSchema.decorateMethod(CompileMessageQueue, "GetEntryFileName", blue.method);
+CjsSchema.decorateMethod(CompileMessageQueue, "_OutputMessages", meta.renamed("OutputMessages"));
+CjsSchema.meta.carbon("CompileMessageQueue")(CompileMessageQueue);

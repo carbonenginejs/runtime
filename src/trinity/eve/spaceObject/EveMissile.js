@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMissile.cpp
 
@@ -20,10 +21,11 @@ import { EveMissileWarhead } from "./EveMissileWarhead.js";
  * A missile in flight: the curve-driven ball path plus the warheads that ride
  * it, own the targeting state and supply the missile bounds.
  */
-@blue.define("EveMissile")
+@be.define("EveMissile")
 @blue.inherit(IInitialize)
-@blue.interface(IEveSpaceObject2, ITr2Renderable)
-@blue.chainTo(EveSpaceObject2)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2Renderable)
+@be.exposureChainTo(EveSpaceObject2)
 export class EveMissile extends EveSpaceObject2
 {
   @blue.read

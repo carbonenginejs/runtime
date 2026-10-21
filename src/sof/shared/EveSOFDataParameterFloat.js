@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 //   SOF_PARAM_DECLARE( EveSOFDataParameterFloat, ... ) - Carbon declares the six typed
 //   parameters through one macro beside their base.
@@ -8,8 +9,8 @@ import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Float shader parameter: broadcasts the value to all four components. */
-@blue.define("EveSOFDataParameterFloat")
-@blue.interface(EveSOFDataParameter)
+@be.define("EveSOFDataParameterFloat")
+@be.mapInterface(EveSOFDataParameter)
 export class EveSOFDataParameterFloat extends EveSOFDataParameter
 {
   /**

@@ -6,7 +6,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { IsMatch, be } from "#blue";
+import { IsMatch, blue as be } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { EveEntity } from "../EveEntity.js";

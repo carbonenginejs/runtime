@@ -52,4 +52,4 @@ CjsSchema.decorateField(Tr2DisplayModeInfo, "refreshRateDenominator", type.uint3
 CjsSchema.decorateField(Tr2DisplayModeInfo, "format", type.uint32);
 CjsSchema.decorateField(Tr2DisplayModeInfo, "scanlineOrdering", type.int32);
 CjsSchema.decorateField(Tr2DisplayModeInfo, "scaling", type.int32);
-CjsSchema.blue.define(Tr2DisplayModeInfo, { className: "Tr2DisplayModeInfo" });
+CjsSchema.meta.carbon("Tr2DisplayModeInfo")(Tr2DisplayModeInfo);

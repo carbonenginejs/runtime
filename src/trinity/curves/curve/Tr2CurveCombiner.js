@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.h
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.cpp
 import { vec3 } from "#math/vec3";
-import { ITriFunction, ITriVectorFunction, ITriCurveLength, BlueList, be, CjsBlueClasses } from "#blue";
+import { ITriFunction, ITriVectorFunction, ITriCurveLength, BlueList, blue as be, CjsBlueClasses } from "#blue";
 import { meta, type, blue } from "#schema";
 
 

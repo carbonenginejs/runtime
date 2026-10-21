@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/TriObserverLocal.h
 // Source: trinity/trinity/TriObserverLocal.cpp
 // Source: trinity/trinity/TriObserverLocal_Blue.cpp
@@ -12,8 +13,8 @@ import { ITr2DebugRenderable } from "#interfaces";
  * inside an object, and republishes it in world space as the object moves.
  * Native interface queries expose only ITriObserverLocal, not self or INotify.
  */
-@blue.define("TriObserverLocal")
-@blue.interface(ITriObserverLocal)
+@be.define("TriObserverLocal")
+@be.mapInterface(ITriObserverLocal)
 export class TriObserverLocal extends ITriObserverLocal
 {
   /**

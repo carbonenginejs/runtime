@@ -35,4 +35,4 @@ export class ObjectSchemaAttributes
 
 export default ObjectSchemaAttributes;
 
-CjsSchema.blue.define(ObjectSchemaAttributes, { className: "ObjectSchemaAttributes" });
+CjsSchema.meta.carbon("ObjectSchemaAttributes")(ObjectSchemaAttributes);

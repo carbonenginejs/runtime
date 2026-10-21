@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
 import { blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -11,7 +12,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
  * EveChildTransform so registry composition can validate the owned identity
  * once and hot paths can call it directly.
  */
-@blue.define("ITr2FroxelFogSettings")
+@be.interface("ITr2FroxelFogSettings")
 export class ITr2FroxelFogSettings extends EveChildTransform
 {
 

@@ -793,4 +793,4 @@ export class CjsBlackSchemaRegistry
     }
 }
 
-CjsSchema.meta.define(CjsBlackSchemaRegistry, { className: "CjsBlackSchemaRegistry" });
+CjsSchema.meta.define("CjsBlackSchemaRegistry")(CjsBlackSchemaRegistry);

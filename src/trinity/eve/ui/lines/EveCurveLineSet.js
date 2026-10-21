@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/UI/EveCurveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveCurveLineSet.cpp
 import { mat4 } from "#math/mat4";
@@ -17,10 +18,11 @@ const WORLD_SPHERE = vec4.create();
 
 
 /** An Eve-owned, transformed and visibility-culled Carbon curve-line set. */
-@blue.define("EveCurveLineSet")
+@be.define("EveCurveLineSet")
 @blue.inherit(IEveTransform, IEveSpaceObject2)
-@blue.interface(IEveTransform, IEveSpaceObject2)
-@blue.chainTo(Tr2CurveLineSet)
+@be.mapInterface(IEveTransform)
+@be.mapInterface(IEveSpaceObject2)
+@be.exposureChainTo(Tr2CurveLineSet)
 export class EveCurveLineSet extends Tr2CurveLineSet
 {
 

@@ -86,7 +86,7 @@ export class CjsRedFormat extends CjsFormat
 
 export default CjsRedFormat;
 
-CjsSchema.meta.define(CjsRedFormat, { className: "CjsRedFormat" });
+CjsSchema.meta.define("CjsRedFormat")(CjsRedFormat);
 
 /**
  * Decode only the byte range supplied by the resource loader.

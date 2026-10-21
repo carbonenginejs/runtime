@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/EveDistanceField.h
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
@@ -19,9 +20,10 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
  * Tracks a set of moving points, estimates the volume covering them, and drives
  * a curve set from the eased camera distance to that volume.
  */
-@blue.define("EveDistanceField")
+@be.define("EveDistanceField")
 @blue.inherit(IListNotify, INotify, ITr2DebugRenderable)
-@blue.interface(IListNotify, INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(INotify)
 export class EveDistanceField
 {
   @blue.read

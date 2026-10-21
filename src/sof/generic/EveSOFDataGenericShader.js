@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:517-529
@@ -9,9 +10,9 @@ import { type, blue } from "#schema";
  * construction needs no additional lifecycle, and the destructor is empty.
  * Existing JavaScript configuration helpers remain custom conveniences.
  */
-@blue.define("EveSOFDataGenericShader")
+@be.define("EveSOFDataGenericShader")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataGenericShader
 {
 

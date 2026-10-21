@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 import { IsMatch, BlueList, IListNotify, INotify } from "#blue";
@@ -25,9 +26,11 @@ const DEBUG_P0 = vec3.create();
 const DEBUG_P1 = vec3.create();
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
-@blue.define("Tr2PlaneConstraint")
+@be.define("Tr2PlaneConstraint")
 @blue.inherit(INotify, IInitialize, IListNotify)
-@blue.interface(ITr2GenericParticleConstraint, INotify, IInitialize)
+@be.mapInterface(ITr2GenericParticleConstraint)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 {
 

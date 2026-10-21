@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveSpaceObjectChild.h
 import { blue } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -10,7 +11,7 @@ import { EveEntity } from "../EveEntity.js";
  *
  * @deprecated Use EveSpaceObjectChild.
  */
-@blue.define("IEveSpaceObjectChild")
+@be.interface("IEveSpaceObjectChild")
 export class IEveSpaceObjectChild extends EveEntity
 {
   static Origin = Origin;

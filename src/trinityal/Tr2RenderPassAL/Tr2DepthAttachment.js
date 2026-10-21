@@ -37,4 +37,4 @@ export class Tr2DepthAttachment
 CjsSchema.decorateField(Tr2DepthAttachment, "load", type.int32);
 CjsSchema.decorateField(Tr2DepthAttachment, "store", type.int32);
 CjsSchema.decorateField(Tr2DepthAttachment, "clearValue", type.float32);
-CjsSchema.blue.define(Tr2DepthAttachment, { className: "Tr2DepthAttachment" });
+CjsSchema.meta.carbon("Tr2DepthAttachment")(Tr2DepthAttachment);

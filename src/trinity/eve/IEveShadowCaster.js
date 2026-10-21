@@ -89,4 +89,4 @@ CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowBatches", meta.abstract);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowPerObjectData", meta.abstract);
 for (const name of [ "PushRtGeometry", "MarkRtDirty", "IsShadowCastingDirty" ]) CjsSchema.decorateMethod(IEveShadowCaster, name, meta.implemented);
 CjsSchema.blue.inherit(IRoot)(IEveShadowCaster);
-CjsSchema.blue.define(IEveShadowCaster, { className: "IEveShadowCaster" });
+CjsSchema.exposure.interface("IEveShadowCaster")(IEveShadowCaster);

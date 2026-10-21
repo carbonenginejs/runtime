@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch_Blue.cpp
@@ -10,7 +11,7 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
  * Controller action that sets a Wwise switch group to a given state on a named
  * audio emitter when it starts.
  */
-@blue.define("Tr2ActionSetAudioSwitch")
+@be.define("Tr2ActionSetAudioSwitch")
 export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
 {
   /**
@@ -66,4 +67,4 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetAudioSwitch_Blue.cpp:14-15,25).
-blue.interface(ITr2ControllerAction)(Tr2ActionSetAudioSwitch);
+CjsSchema.exposure.mapInterface(ITr2ControllerAction)(Tr2ActionSetAudioSwitch);

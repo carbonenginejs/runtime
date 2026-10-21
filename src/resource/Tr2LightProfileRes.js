@@ -146,14 +146,10 @@ export class Tr2LightProfileRes extends CjsResource
   static payload = ResourceRequirement.LIGHT_PROFILE;
 }
 
-CjsSchema.blue.interface(Tr2LightProfileRes)(Tr2LightProfileRes);
-CjsSchema.blue.define(Tr2LightProfileRes, {
-  className: "Tr2LightProfileRes",
-  methods: {
-    GetTextureIndex: [ blue.method, meta.adapted ],
-    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
-    GetMemoryUsage: [ blue.method, meta.adapted ]
-  }
-});
+
+CjsSchema.decorateMethod(Tr2LightProfileRes, "GetTextureIndex", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2LightProfileRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2LightProfileRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.exposure.define("Tr2LightProfileRes")(Tr2LightProfileRes);
 blue.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
-blue.interface(ICacheable)(Tr2LightProfileRes);
+CjsSchema.exposure.mapInterface(ICacheable)(Tr2LightProfileRes);

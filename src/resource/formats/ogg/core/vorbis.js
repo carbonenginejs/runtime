@@ -1328,6 +1328,6 @@ export function decodeVorbis(bytes)
     };
 }
 
-CjsSchema.meta.define(PacketReader, { className: "PacketReader" });
+CjsSchema.meta.define("PacketReader")(PacketReader);
 
-CjsSchema.meta.define(Codebook, { className: "Codebook" });
+CjsSchema.meta.define("Codebook")(Codebook);

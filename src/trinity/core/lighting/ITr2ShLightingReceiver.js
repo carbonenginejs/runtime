@@ -30,4 +30,4 @@ for (const method of [ "UpdateShLighting", "ClearShLighting" ])
   CjsSchema.decorateMethod(ITr2ShLightingReceiver, method, blue.abstract);
 }
 blue.inherit(IRoot)(ITr2ShLightingReceiver);
-CjsSchema.blue.define(ITr2ShLightingReceiver, { className: "ITr2ShLightingReceiver", fields: {} });
+CjsSchema.exposure.interface("ITr2ShLightingReceiver")(ITr2ShLightingReceiver);

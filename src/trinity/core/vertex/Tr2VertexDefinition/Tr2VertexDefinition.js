@@ -292,4 +292,4 @@ CjsSchema.decorateMethod(Tr2VertexDefinition, "Find__UsageIndex", blue.method, m
 CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInMembers", blue.method, meta.renamed("GetDataTypeSizeInMembers"));
 CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInBytes", blue.method, meta.renamed("GetDataTypeSizeInBytes"));
 CjsSchema.decorateMethod(Tr2VertexDefinition, "isSameDefinition", blue.method, meta.renamed("operator=="));
-CjsSchema.blue.define(Tr2VertexDefinition, { className: "Tr2VertexDefinition" });
+CjsSchema.meta.carbon("Tr2VertexDefinition")(Tr2VertexDefinition);

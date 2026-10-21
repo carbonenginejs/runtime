@@ -4,7 +4,7 @@ import test from "node:test";
 import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import {createHash} from "node:crypto";
-import {be} from "../../npm/dist/global/blue/index.js";
+import {blue} from "../../npm/dist/global/blue/index.js";
 import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
 import {Tr2ParticleSystem,Tr2ParticleElementDeclaration,Tr2GpuSharedEmitter,Tr2GpuUniqueEmitter,
   ITr2GenericEmitterUpdateArguments,EveChildContainer,Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/index.js";
@@ -14,9 +14,9 @@ import "../../npm/dist/audio/index.js";
 
 function setup(t)
 {
-  const context=Tr2RenderContext_GetMainThreadRenderContext(),previous=context.GetRenderContextAL(),manager=be.resMan;
-  const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();be.resMan=new StubResMan();
-  t.after(()=>{context.SetRenderContextAL(previous);be.resMan=manager;});
+  const context=Tr2RenderContext_GetMainThreadRenderContext(),previous=context.GetRenderContextAL(),manager=blue.resMan;
+  const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();blue.resMan=new StubResMan();
+  t.after(()=>{context.SetRenderContextAL(previous);blue.resMan=manager;});
 }
 function system(t)
 {

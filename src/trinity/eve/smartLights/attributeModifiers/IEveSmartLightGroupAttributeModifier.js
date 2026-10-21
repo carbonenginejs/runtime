@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/IEveSmartLightGroupAttributeModifier.h
 import { meta, blue } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 
 
 /** Required smart-light group attribute-modifier contract. */
-@blue.define("IEveSmartLightGroupAttributeModifier")
+@be.interface("IEveSmartLightGroupAttributeModifier")
 export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttributeModifier
 {
 

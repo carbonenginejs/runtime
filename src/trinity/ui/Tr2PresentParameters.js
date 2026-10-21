@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2PresentParameters.h
 // Source: trinity/trinity/UI/Tr2PresentParameters.cpp
@@ -11,8 +12,8 @@ import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.j
  * adapt Blue's nested member offsets to the existing JavaScript property path.
  * Its exposure table advertises no concrete or secondary query interfaces.
  */
-@blue.define("Tr2PresentParameters")
-@blue.interface()
+@be.define("Tr2PresentParameters")
+
 @blue.inherit(IRoot)
 export class Tr2PresentParameters extends Tr2PresentParametersAL
 {

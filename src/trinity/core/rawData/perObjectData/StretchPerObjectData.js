@@ -24,7 +24,7 @@ import { meta, blue } from "#schema";
 /**
  * A stretch's endpoint and effect block, bound to both registers.
  */
-@blue.define("StretchPerObjectData")
+@meta.carbon("StretchPerObjectData")
 export class StretchPerObjectData extends Tr2PerObjectData
 {
   /** The payload, bound to both per-object registers. */

@@ -34,7 +34,4 @@ export class IBlueDynamicResourceConstructor
 }
 
 CjsSchema.decorateMethod(IBlueDynamicResourceConstructor, "GetResource", blue.abstract);
-CjsSchema.blue.define(IBlueDynamicResourceConstructor, {
-  className: "IBlueDynamicResourceConstructor",
-  fields: {}
-});
+CjsSchema.meta.carbon("IBlueDynamicResourceConstructor")(IBlueDynamicResourceConstructor);

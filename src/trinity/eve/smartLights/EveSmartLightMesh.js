@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
@@ -27,13 +28,18 @@ import { BLUELISTEVENT } from "#consts/blue";
  * Carbon's EveSmartLightBaseGroup secondary base is flattened because
  * JavaScript has single inheritance.
  */
-@blue.define("EveSmartLightMesh")
+@be.define("EveSmartLightMesh")
 @meta.hideInherited([
   "partTag",
   "distribution"
 ])
 @blue.inherit(EveSmartLightBaseGroup)
-@blue.interface(EveChildInstanceMeshRenderer, IEveSmartLightGroup, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
+@be.mapInterface(EveChildInstanceMeshRenderer)
+@be.mapInterface(IEveSmartLightGroup)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IEveShadowCaster)
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
   @blue.readwrite

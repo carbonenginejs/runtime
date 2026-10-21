@@ -59,9 +59,5 @@ export class PackOffset
     }
 }
 
-CjsSchema.blue.define(PackOffset, {
-    className: "PackOffset",
-    methods: {
-        Create: [blue.method]
-    }
-});
+CjsSchema.decorateMethod(PackOffset, "Create", blue.method);
+CjsSchema.meta.carbon("PackOffset")(PackOffset);

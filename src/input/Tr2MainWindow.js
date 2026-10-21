@@ -614,48 +614,42 @@ function sanitizeDimension(value, maximum, minimum)
 export default Tr2MainWindow;
 
 blue.inherit(IRoot, IBlueEvents)(Tr2MainWindow);
-blue.interface()(Tr2MainWindow);
-CjsSchema.blue.define(Tr2MainWindow, {
-    className: "Tr2MainWindow",
-    fields: {
-        onKeyDown: [blue.readwrite],
-        onKeyUp: [blue.readwrite],
-        onChar: [blue.readwrite],
-        onMouseDown: [blue.readwrite],
-        onMouseUp: [blue.readwrite],
-        onMouseMove: [blue.readwrite],
-        onMouseWheel: [blue.readwrite],
-        onClose: [blue.readwrite],
-        onFocusChange: [blue.readwrite],
-        onWindowStateChange: [blue.readwrite],
-        imeState_MacOS: [blue.readwrite]
-    },
-    methods: {
-        SetWindowState: [meta.renamed("SetStateScript"), meta.adapted],
-        GetWindowState: [meta.renamed("GetStateScript"), meta.adapted],
-        SanitizeState: [meta.renamed("SanitizeStateScript"), meta.adapted],
-        IsActive: [meta.renamed("HasFocus"), meta.adapted],
-        IsHidden: [meta.renamed("IsMinimized"), meta.adapted],
-        Key: [meta.renamed("IsKeyPressed"), meta.adapted],
-        GetKeyNameText: [meta.renamed("GetKeyName"), meta.adapted],
-        GetHwndAsLong: [meta.renamed("GetHwnd"), meta.adapted],
-        HasFocus: [blue.method, meta.adapted],
-        SetMinimumSize: [blue.method, meta.adapted],
-        GetDefaultState: [blue.method, meta.adapted],
-        StoreStateSettings: [blue.method, meta.adapted],
-        GetWindowSizeOptions: [blue.method, meta.adapted],
-        SetWindowTitle: [blue.method, meta.adapted],
-        GetWindowTitle: [blue.method, meta.adapted],
-        SetMouseCursor: [blue.method, meta.adapted],
-        GetMouseCursor: [blue.method, meta.adapted],
-        ClipCursor: [blue.method, meta.adapted],
-        UnclipCursor: [blue.method, meta.adapted],
-        GetCursorPos: [blue.method, meta.adapted],
-        SetCursorPos: [blue.method, meta.adapted],
-        IsKeyToggled: [blue.method, meta.adapted],
-        GetBackBufferFormat: [blue.method, meta.adapted],
-        SetWindowsMessageFilter: [blue.method, meta.adapted],
-        GetWindowsMessageFilter: [blue.method, meta.adapted],
-        ProcessMessages: [blue.method, meta.adapted]
-    }
-});
+
+CjsSchema.decorateField(Tr2MainWindow, "onKeyDown", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onKeyUp", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onChar", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onMouseDown", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onMouseUp", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onMouseMove", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onMouseWheel", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onClose", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onFocusChange", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onWindowStateChange", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "imeState_MacOS", blue.readwrite);
+CjsSchema.decorateMethod(Tr2MainWindow, "SetWindowState", meta.renamed("SetStateScript"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowState", meta.renamed("GetStateScript"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "SanitizeState", meta.renamed("SanitizeStateScript"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "IsActive", meta.renamed("HasFocus"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "IsHidden", meta.renamed("IsMinimized"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "Key", meta.renamed("IsKeyPressed"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetKeyNameText", meta.renamed("GetKeyName"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetHwndAsLong", meta.renamed("GetHwnd"), meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "HasFocus", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "SetMinimumSize", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetDefaultState", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "StoreStateSettings", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowSizeOptions", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "SetWindowTitle", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowTitle", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "SetMouseCursor", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetMouseCursor", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "ClipCursor", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "UnclipCursor", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetCursorPos", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "SetCursorPos", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "IsKeyToggled", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetBackBufferFormat", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "SetWindowsMessageFilter", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowsMessageFilter", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "ProcessMessages", blue.method, meta.adapted);
+CjsSchema.exposure.define("Tr2MainWindow")(Tr2MainWindow);

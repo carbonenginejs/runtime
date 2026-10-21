@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 import { blue } from "#schema";
 // Source: trinity/trinity/Eve/IEveShadowCaster.h
 // Methods implemented from IEveShadowCaster.h:28-105 (TriShadowOrthoFrustum,
@@ -13,7 +14,7 @@ import { TriFrustumTestResult } from "../../../generated/trinityCore/enums.js";
 import { IEveShadowFrustum } from "./IEveShadowFrustum.js";
 
 /** Carbon's native orthographic-shadow frustum adapter. */
-@blue.define("TriShadowOrthoFrustum")
+@meta.carbon("TriShadowOrthoFrustum")
 @blue.inherit(IEveShadowFrustum)
 export class TriShadowOrthoFrustum
 {

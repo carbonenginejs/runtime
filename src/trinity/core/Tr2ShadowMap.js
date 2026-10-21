@@ -11,7 +11,7 @@ import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Denoiser } from "./Tr2Denoiser.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { TriFrustumOrtho } from "./view/TriFrustumOrtho.js";
-import { be, EnumRegistrationType } from "#blue";
+import { blue as be, EnumRegistrationType } from "#blue";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 const SHADOW_FRUSTUM_COUNT = 16;

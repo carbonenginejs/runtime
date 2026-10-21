@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Lights/Tr2PointLight.cpp
 // Source: trinity/trinity/Lights/Tr2PointLight_Blue.cpp
 import { IInitialize, INotify } from "#blue";
@@ -23,8 +24,10 @@ const DEBUG_SELECTED_OFFSET = color.fromValues(0, 0, 0, 0.2);
  * Omnidirectional light. Its LightData attributes are accessors over the
  * embedded record Tr2Light holds (Tr2PointLight_Blue.cpp:18-34).
  */
-@blue.define("Tr2PointLight")
-@blue.interface(Tr2Light, IInitialize, INotify)
+@be.define("Tr2PointLight")
+@be.mapInterface(Tr2Light)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2PointLight extends Tr2Light
 {
   @blue.readwrite

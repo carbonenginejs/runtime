@@ -14,4 +14,4 @@ export class ITr2GpuBuffer
   GetGpuBuffer(_index) {}
 }
 
-CjsSchema.blue.define(ITr2GpuBuffer, { className: "ITr2GpuBuffer", fields: {} });
+CjsSchema.exposure.interface("ITr2GpuBuffer")(ITr2GpuBuffer);

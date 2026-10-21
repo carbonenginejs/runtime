@@ -3,7 +3,7 @@ import { meta, blue } from "#schema";
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
 
 /** Legacy cloud constants, uploaded to the non-pixel shader stages. */
-@blue.define("EveChildCloudPerObjectData")
+@meta.carbon("EveChildCloudPerObjectData")
 export class EveChildCloudPerObjectData extends Tr2PerObjectData
 {
   data = null;

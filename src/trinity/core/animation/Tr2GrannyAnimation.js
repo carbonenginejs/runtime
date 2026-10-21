@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2AnimationUpdater } from "../../../character/trinity/trinityCore/ITr2AnimationUpdater.js";
 // Source: trinity/trinity/Tr2GrannyAnimation.h
 // Source: trinity/trinity/Tr2GrannyAnimation.cpp
@@ -106,9 +107,10 @@ function sampleCmfChannel(out, curves, channel, time)
 
 
 /** Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a. */
-@blue.define("Tr2GrannyAnimation")
+@be.define("Tr2GrannyAnimation")
 @blue.inherit(IInitialize, ITr2AnimationUpdater)
-@blue.interface(IInitialize, ITr2AnimationUpdater)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2AnimationUpdater)
 export class Tr2GrannyAnimation
 {
 

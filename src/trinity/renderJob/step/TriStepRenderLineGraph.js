@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderLineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -5,9 +6,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { CjsScriptCallback } from "#blue";
 
 /** A render step that draws a set of line graphs with a shared scale and legend. */
-@blue.define("TriStepRenderLineGraph")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRenderLineGraph")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRenderLineGraph extends TriRenderStep
 {
 

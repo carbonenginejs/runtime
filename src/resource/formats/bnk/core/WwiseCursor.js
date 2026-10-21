@@ -344,4 +344,4 @@ export class WwiseCursor
     }
 }
 
-CjsSchema.meta.define(WwiseCursor, { className: "WwiseCursor" });
+CjsSchema.meta.define("WwiseCursor")(WwiseCursor);

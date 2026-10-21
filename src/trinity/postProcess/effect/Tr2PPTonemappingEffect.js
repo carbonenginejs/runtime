@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTonemappingEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTonemappingEffect.cpp
 import { meta, type, blue } from "#schema";
@@ -8,9 +9,9 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
  * Tonemapping curve selection - Uncharted2, ACES or AgX - together with the toe,
  * shoulder and clipping parameters that shape it.
  */
-@blue.define("Tr2PPTonemappingEffect")
-@blue.chainTo(Tr2PPEffect)
-@blue.interface(Tr2PPEffect)
+@be.define("Tr2PPTonemappingEffect")
+@be.exposureChainTo(Tr2PPEffect)
+@be.mapInterface(Tr2PPEffect)
 export class Tr2PPTonemappingEffect extends Tr2PPEffect
 {
 

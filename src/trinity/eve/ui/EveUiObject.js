@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/UI/EveUiObject.h
 // Source: trinity/trinity/Eve/UI/EveUiObject.cpp
@@ -17,9 +18,9 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
  * scaled by its camera distance so it keeps a constant on-screen size. Its
  * mesh areas can be shown, hidden, and identified from picking ids.
  */
-@blue.define("EveUiObject")
-@blue.interface(IEveSpaceObject2)
-@blue.chainTo(EveSpaceObject2)
+@be.define("EveUiObject")
+@be.mapInterface(IEveSpaceObject2)
+@be.exposureChainTo(EveSpaceObject2)
 export class EveUiObject extends EveSpaceObject2
 {
 

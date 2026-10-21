@@ -144,4 +144,4 @@ function normalizeCapability(input)
 
 export default CjsResourceProbe;
 
-CjsSchema.meta.define(CjsResourceProbe, { className: "CjsResourceProbe" });
+CjsSchema.meta.define("CjsResourceProbe")(CjsResourceProbe);

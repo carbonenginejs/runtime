@@ -127,4 +127,4 @@ export class FastLoadingHashedOffsetLookup extends FsdDictOffsetLookup
 
 export default FastLoadingHashedOffsetLookup;
 
-CjsSchema.blue.define(FastLoadingHashedOffsetLookup, { className: "FastLoadingHashedOffsetLookup" });
+CjsSchema.meta.carbon("FastLoadingHashedOffsetLookup")(FastLoadingHashedOffsetLookup);

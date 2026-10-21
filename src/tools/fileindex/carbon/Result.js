@@ -21,7 +21,6 @@ export class Result
     }
 }
 
-CjsSchema.blue.define(Result, { className: "Result", fields: {
-        type: [type.int32, type.enum(ResultType)],
-        info: [type.string]
-    } });
+CjsSchema.decorateField(Result, "type", type.int32, type.enum(ResultType));
+CjsSchema.decorateField(Result, "info", type.string);
+CjsSchema.meta.carbon("Result")(Result);

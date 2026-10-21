@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
 import { IWorldPosition } from "../core/IWorldPosition.js";
 // Source: trinity/trinity/Eve/EveTriggerVolume.h
@@ -35,9 +36,12 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
  * callback on threshold crossings. No renderables, no async work - the whole
  * evaluation runs in UpdateSyncronous.
  */
-@blue.define("EveTriggerVolume")
+@be.define("EveTriggerVolume")
 @blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2DebugRenderable)
-@blue.interface(IEveSpaceObject2, IInitialize, IWorldPosition, ITr2DebugRenderable)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IWorldPosition)
+@be.mapInterface(ITr2DebugRenderable)
 export class EveTriggerVolume
 {
 

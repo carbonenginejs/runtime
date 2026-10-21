@@ -9,7 +9,7 @@ import { Tr2DynamicRingBuffer } from "./Tr2DynamicRingBuffer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** Carbon `Tr2RingIndexBuffer`: the ring as an index buffer. */
-@blue.define("Tr2RingIndexBuffer")
+@meta.carbon("Tr2RingIndexBuffer")
 export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
 {
   /** _indexSize */

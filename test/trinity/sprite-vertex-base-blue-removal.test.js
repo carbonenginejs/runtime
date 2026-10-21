@@ -1,7 +1,7 @@
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { be } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
@@ -13,7 +13,7 @@ import { Tr2Sprite2dPolygon } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dP
 import { Tr2Sprite2dClipRect } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dClipRect.js";
 
 for(const Class of [Tr2Sprite2dVertexBase,Tr2Sprite2dVertex,Tr2Sprite2dD3DVertex])test(getRegisteredClassName(Class)+" loses inherited model helpers while retaining independent typed vertex storage",()=>{
- const a=be.classes.CreateInstanceFromName(getRegisteredClassName(Class)),b=new Class();assert.equal(a.constructor,Class);assert.equal(Object.getPrototypeOf(Tr2Sprite2dVertexBase.prototype),Object.prototype);
+ const a=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class)),b=new Class();assert.equal(a.constructor,Class);assert.equal(Object.getPrototypeOf(Tr2Sprite2dVertexBase.prototype),Object.prototype);
  for(const key of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(key in a,false);assert.equal("from" in Class,false);
  assert.deepEqual([...a.position],[0,0,0]);assert.deepEqual([...a.color],[1,1,1,1]);assert.deepEqual(a.texCoord.map(value=>[...value]),[[0,0],[0,0]]);
  for(const key of ["position","color"])assert.notEqual(a[key],b[key]);assert.notEqual(a.texCoord,b.texCoord);assert.notEqual(a.texCoord[0],a.texCoord[1]);assert.notEqual(a.texCoord[0],b.texCoord[0]);
@@ -29,7 +29,7 @@ test("D3D derived vertex dictionary transport retains base and derived typed val
  const vertex=new Tr2Sprite2dD3DVertex(),position=vertex.position,color=vertex.color;new DictReader({declarations:true}).ReadInto(vertex,{position:[1,2,3],color:[0,0.5,1,1],glowBrightness:2,transformIndex:3,outlineColor:[1,0,0,1]});assert.equal(vertex.position,position);assert.equal(vertex.color,color);assert.deepEqual([...vertex.position],[1,2,3]);assert.deepEqual([...vertex.color],[0,0.5,1,1]);assert.equal(vertex.glowBrightness,2);assert.equal(vertex.transformIndex,3);
  vertex.texCoord[0].set([0.25,0.5]);vertex.texCoord[1].set([0.75,1]);vertex.clipRect=Tr2Sprite2dClipRect.create__AllFields(1,2,30,40);
  const written=new DictWriter().WriteObject(vertex);assert.deepEqual(written.position,[1,2,3]);assert.deepEqual(written.texCoord,[[0.25,0.5],[0.75,1]]);assert.equal(written.clipRect.right,30);assert.deepEqual(written.outlineColor,[1,0,0,1]);
- const copy=new Tr2Sprite2dD3DVertex();be.classes.CopyTo(vertex,copy);assert.deepEqual([...copy.position],[1,2,3]);assert.notEqual(copy.position,vertex.position);assert.deepEqual([...copy.color],[1,1,1,1],"existing unflagged base color is not persisted");
+ const copy=new Tr2Sprite2dD3DVertex();blue.classes.CopyTo(vertex,copy);assert.deepEqual([...copy.position],[1,2,3]);assert.notEqual(copy.position,vertex.position);assert.deepEqual([...copy.color],[1,1,1,1],"existing unflagged base color is not persisted");
 });
 
 test("actual polygon consumer retains authored vertices and texture-coordinate methods",()=>{

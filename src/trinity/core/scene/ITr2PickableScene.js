@@ -198,7 +198,7 @@ export class ITr2PickableScene
   GetPickBuffer() {}
 }
 
-CjsSchema.blue.define(ITr2PickableScene, { className: "ITr2PickableScene" });
+CjsSchema.meta.carbon("ITr2PickableScene")(ITr2PickableScene);
 
 CjsSchema.decorateMethod(ITr2PickableScene, "PickObject", blue.method);
 CjsSchema.decorateMethod(ITr2PickableScene, "SetupTransformsForPicking", blue.method);

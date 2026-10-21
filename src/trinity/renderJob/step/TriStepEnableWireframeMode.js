@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepEnableWireframeMode.cpp
 import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
@@ -5,9 +6,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 
 /** Step that turns wireframe rasterization on or off for the steps that follow. */
-@blue.define("TriStepEnableWireframeMode")
-@blue.interface()
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepEnableWireframeMode")
+
+@be.exposureChainTo(TriRenderStep)
 export class TriStepEnableWireframeMode extends TriRenderStep
 {
   @blue.readwrite

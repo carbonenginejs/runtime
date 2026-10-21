@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Defines a four-slot target mask for overriding pattern materials. */
-@blue.define("EveSOFDataPatternMaterialOverride")
-@blue.interface()
+@be.define("EveSOFDataPatternMaterialOverride")
+
 @blue.inherit(IRoot)
 export class EveSOFDataPatternMaterialOverride
 {

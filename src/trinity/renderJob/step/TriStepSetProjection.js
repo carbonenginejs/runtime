@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.h
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.cpp
 import { meta, type, blue } from "#schema";
@@ -6,9 +7,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 
 /** Step that installs an authored projection for the steps that follow. */
-@blue.define("TriStepSetProjection")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepSetProjection")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepSetProjection extends TriRenderStep
 {
   @blue.readwrite

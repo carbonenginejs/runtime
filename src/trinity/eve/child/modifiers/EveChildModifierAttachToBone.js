@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone_Blue.cpp
@@ -9,8 +10,8 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
  * Transform modifier that rigidly attaches a child to one bone of the parent's
  * animation bone palette.
  */
-@blue.define("EveChildModifierAttachToBone")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierAttachToBone")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierAttachToBone extends IEveChildTransformModifier
 {
   @blue.readwrite

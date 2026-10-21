@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/UI/EveEllipseSet.h
@@ -53,9 +54,14 @@ const TRI_PI = Math.fround(3.141592654);
  * Geometry is rebuilt in UpdateSyncronous whenever a definition, the list or
  * a notifying member changed.
  */
-@blue.define("EveEllipseSet")
+@be.define("EveEllipseSet")
 @blue.inherit(ITr2Renderable, IListNotify, INotify, ITr2Pickable, Tr2DeviceResource)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, ITr2Pickable, IListNotify, INotify)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(IListNotify)
+@be.mapInterface(INotify)
 export class EveEllipseSet extends EveChildTransform
 {
 

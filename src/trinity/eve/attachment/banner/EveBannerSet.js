@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.h
@@ -58,9 +59,12 @@ import { LightData } from "../../lights/LightData.js";
  * A hull's authored banner quads, owning their static and per-bone bounds, the
  * largest single banner radius its LOD is measured on, and the banner lights.
  */
-@blue.define("EveBannerSet")
+@be.define("EveBannerSet")
 @blue.inherit(IInitialize, ITr2LightOwner, EveEntity, Tr2DeviceResource)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IEveSpaceObjectAttachment)
+@be.mapInterface(EveEntity)
+@be.mapInterface(ITr2LightOwner)
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
 

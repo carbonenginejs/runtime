@@ -27,4 +27,4 @@ export class WebgpuReadError extends Error
     }
 }
 
-CjsSchema.meta.define(WebgpuReadError, { className: "WebgpuReadError" });
+CjsSchema.meta.define("WebgpuReadError")(WebgpuReadError);

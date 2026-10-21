@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderObject.h
 //   trinity/trinity/RenderJob/TriStepRenderObject.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -23,9 +24,9 @@ const RENDERING_MODES = [
 ];
 
 /** A render step that renders a single renderable, optionally overriding its material. */
-@blue.define("TriStepRenderObject")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRenderObject")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRenderObject extends TriRenderStep
 {
 

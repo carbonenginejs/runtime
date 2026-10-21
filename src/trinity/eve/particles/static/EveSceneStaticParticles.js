@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
@@ -29,9 +30,9 @@ const OFFSET_SCRATCH = vec3.create();
  * around a double-precision aggregate origin and drawn through a single
  * instanced mesh.
  */
-@blue.define("EveSceneStaticParticles")
+@be.define("EveSceneStaticParticles")
 @blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Renderable)
-@blue.interface(IInitialize)
+@be.mapInterface(IInitialize)
 export class EveSceneStaticParticles
 {
 

@@ -263,4 +263,4 @@ function compactBankInspection(value, source, bank)
     };
 }
 
-CjsSchema.meta.define(CjsAudioLibraryBuilderBankInspectionSession, { className: "CjsAudioLibraryBuilderBankInspectionSession" });
+CjsSchema.meta.define("CjsAudioLibraryBuilderBankInspectionSession")(CjsAudioLibraryBuilderBankInspectionSession);

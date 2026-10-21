@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 import { blue } from "#schema";
 // Source: trinity/trinity/Eve/Turret/EveTurretAiming.h
 // Source: trinity/trinity/Eve/Turret/EveTurretAiming.cpp
@@ -45,7 +46,7 @@ const SYSTEM_BONE_SKELETON_NAMES = Object.freeze([
  * gl-matrix `quat.multiply(out, delta, rotation)` - the aiming delta goes in
  * the FIRST operand. The matrix operand-swap rule does NOT apply here.
  */
-@blue.define("EveTurretAiming")
+@meta.carbon("EveTurretAiming")
 export class EveTurretAiming
 {
 

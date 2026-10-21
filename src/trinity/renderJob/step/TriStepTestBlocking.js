@@ -1,12 +1,13 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepTestBlocking.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A test step that reports itself in progress until its flag is cleared, so a job's resume path can be exercised. */
-@blue.define("TriStepTestBlocking")
-@blue.interface()
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepTestBlocking")
+
+@be.exposureChainTo(TriRenderStep)
 export class TriStepTestBlocking extends TriRenderStep
 {
 

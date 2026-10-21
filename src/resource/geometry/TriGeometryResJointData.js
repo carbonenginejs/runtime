@@ -18,11 +18,7 @@ export class TriGeometryResJointData
 
 }
 
-CjsSchema.blue.define(TriGeometryResJointData, {
-  className: "TriGeometryResJointData",
-  fields: {
-    name: type.string,
-    parentJoint: type.uint32,
-    inverseWorldTransform: type.mat4
-  }
-});
+CjsSchema.decorateField(TriGeometryResJointData, "name", type.string);
+CjsSchema.decorateField(TriGeometryResJointData, "parentJoint", type.uint32);
+CjsSchema.decorateField(TriGeometryResJointData, "inverseWorldTransform", type.mat4);
+CjsSchema.meta.carbon("TriGeometryResJointData")(TriGeometryResJointData);

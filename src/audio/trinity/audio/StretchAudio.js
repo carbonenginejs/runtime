@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: audio/src/Components/StretchAudio.h + StretchAudio.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -10,9 +11,11 @@ import { AudEmitter } from "./AudEmitter.js";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Positions source, destination, and stretch emitters along one beam segment, with the listener projected onto that segment. */
-@blue.define("StretchAudio")
+@be.define("StretchAudio")
 @blue.inherit(IInitialize, ITr2DebugRenderable)
-@blue.interface(IInitialize, ITr2DebugRenderable, IStretchAudio)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2DebugRenderable)
+@be.mapInterface(IStretchAudio)
 export class StretchAudio extends IStretchAudio
 {
 

@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/BlurContext.json.).
 import { type, blue } from "#schema";
@@ -5,7 +6,7 @@ import { BlurChannel, BlurFinalize, BlurProcess, BlurType } from "../generated/p
 
 
 /** Describes one post-process blur variant and produces its stable cache key from type, channel, processing, and finalization modes. */
-@blue.define("BlurContext")
+@meta.carbon("BlurContext")
 export class BlurContext
 {
 

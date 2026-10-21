@@ -29,4 +29,4 @@ export class ListSchemaAttributes
 
 export default ListSchemaAttributes;
 
-CjsSchema.blue.define(ListSchemaAttributes, { className: "ListSchemaAttributes" });
+CjsSchema.meta.carbon("ListSchemaAttributes")(ListSchemaAttributes);

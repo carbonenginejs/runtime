@@ -35,4 +35,4 @@ for (const method of [ "ReadFromStream", "ReadForCachingFromStream", "SetFileNam
 }
 
 CjsSchema.blue.inherit(IRoot)(IRootReader);
-CjsSchema.blue.define(IRootReader, { className: "IRootReader", fields: {} });
+CjsSchema.exposure.interface("IRootReader")(IRootReader);

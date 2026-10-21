@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
-import { be } from "../../src/global/blue/index.js";
+import { blue } from "../../src/global/blue/index.js";
 import { mappedInterfaces, exposureChainTo } from "../../src/global/compose/interface.js";
 
 /**
@@ -76,13 +76,13 @@ test("meta.define with carbon records provenance and nothing else", () =>
 
   // Registration is class access for both, with the same flags; neither is exposed.
   assert.strictEqual(CjsSchema.getConstructor("DefineCarbonPorted"), Ported);
-  assert.equal(be.classes.GetClassRegistration("DefineCarbonPorted").flags, be.classes.GetClassRegistration("DefineCarbonPlain").flags);
+  assert.equal(blue.classes.GetClassRegistration("DefineCarbonPorted").flags, blue.classes.GetClassRegistration("DefineCarbonPlain").flags);
   assert.equal(mappedInterfaces(Ported).size, 0);
   assert.equal(exposureChainTo(Ported), null);
 
   // GetTypeInfo differs only in the class name.
-  const [ portedClass, ...portedRest ] = be.classes.GetTypeInfo(new Ported());
-  const [ plainClass, ...plainRest ] = be.classes.GetTypeInfo(new Plain());
+  const [ portedClass, ...portedRest ] = blue.classes.GetTypeInfo(new Ported());
+  const [ plainClass, ...plainRest ] = blue.classes.GetTypeInfo(new Plain());
   assert.deepEqual({ ...portedClass, classname: null }, { ...plainClass, classname: null });
   assert.deepEqual(portedRest, plainRest);
   assert.deepEqual(portedRest[2], {}, "no method is reported as Carbon's");

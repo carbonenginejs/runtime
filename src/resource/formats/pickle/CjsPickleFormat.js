@@ -284,4 +284,4 @@ export class CjsPickleFormat extends CjsFormat
 
 export default CjsPickleFormat;
 
-CjsSchema.meta.define(CjsPickleFormat, { className: "CjsPickleFormat" });
+CjsSchema.meta.define("CjsPickleFormat")(CjsPickleFormat);

@@ -4,7 +4,7 @@ import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import { AudioGameObject, BackAndForthData, LightData, EveBannerItem, EveBannerLight, EveBannerSet, EveBezierCurve, EveBoxVolume, EveChildAudio, EveChildFogVolume, EveChildLightingOverride, EveChildModifierSRT, EveChildTransform, EveChildUpdateParams, EveCircle, EveCustomMask, EveDistanceField, EveEllipseDefinition, EveEllipseSet, EveEllipsoidVolume, EveHazeSet, EveHazeSetLight, EveImpactOverlay, EveLODHelper, EveLineData, EveLocator2, EveLocatorSets, EvePlaneLight, EvePlaneSet, EvePlaneSetItem, EveRemotePositionCurve, EveSpaceObjectDecal, EveSphereVolume, EveSpotlightLight, EveSpotlightSet, EveSpotlightSetItem, EveSpriteLight, EveSpriteLineSet, EveSpriteLineSetItem, EveSpriteSet, EveSpriteSetItem, EveThrottleable, EveVirtualCamera, EveVirtualCameraBehaviourFloatAdd, EveVirtualCameraBehaviourFloatBase, EveVirtualCameraBehaviourFloatDamping, EveVirtualCameraBehaviourFloatNoise, EveVirtualCameraBehaviourFloatSet, EveVirtualCameraBehaviourVector3Base, EveVirtualCameraBehaviourVector3Damping, EveVirtualCameraBehaviourVector3Inertia, EveVirtualCameraBehaviourVector3MoveBetween, EveVirtualCameraBehaviourVector3MoveForward, EveVirtualCameraBehaviourVector3MoveRight, EveVirtualCameraBehaviourVector3MoveUp, EveVirtualCameraBehaviourVector3Offset, EveVirtualCameraBehaviourVector3Orbit, EveVirtualCameraBehaviourVector3Shake, EveVirtualCameraSystem, EveVirtualCameraTransitionCut, EveVirtualCameraTransitionLerp, FollowASplineData, FormationData, InertiaData, Locator, LocatorData, PlacementDataWithIdentifier, PlayFXData, ProcessLifetimeData, SeekTargetData, Tr2CurveExtrapolation, Tr2Light, Tr2Lod, Tr2PointLight, Tr2ScalarFader, Tr2SpotLight, Tr2TexturedPointLight, TriPerlinCurve } from "../../npm/dist/trinity/index.js";
 import { EveUpdateContext, TriView } from "../../npm/dist/trinity/index.js";
-import { ITriVectorFunction, be } from "../../npm/dist/global/blue/index.js";
+import { ITriVectorFunction, blue } from "../../npm/dist/global/blue/index.js";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
 import { box3 } from "../../npm/dist/global/math/box3.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -838,7 +838,7 @@ test("EveThrottleable mirrors Carbon update skipping against Blue actual time", 
   // ShouldSkipUpdate reads BeOS->GetActualTime() itself, in Blue 100ns ticks
   // (EveThrottleable.cpp:19); 100 seconds is 1e9 ticks.
   let clock = 1_000_000_000;
-  t.mock.method(be.os, "GetActualTime", () => clock);
+  t.mock.method(blue.os, "GetActualTime", () => clock);
   const throttle = new EveThrottleable();
   assertEquals(throttle.currentUpdateFrequency, 10);
   assertEquals(throttle.minUpdateFrequency, 2);

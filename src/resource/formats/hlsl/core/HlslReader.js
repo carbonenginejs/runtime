@@ -18,4 +18,4 @@ export class HlslReader extends CjsByteReader
 
 export default HlslReader;
 
-CjsSchema.meta.define(HlslReader, { className: "HlslReader" });
+CjsSchema.meta.define("HlslReader")(HlslReader);

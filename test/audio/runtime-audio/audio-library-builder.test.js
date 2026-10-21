@@ -6,7 +6,7 @@ import {
     CjsAudioLibraryBuilder,
 } from "../../../npm/dist/audio/library-builder/index.js";
 import { CjsAudioLibrary } from "../../../npm/dist/audio/library/index.js";
-import { be } from "../../../npm/dist/global/blue/index.js";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 import {
     CjsFsd64SchemaDecoder,
     CjsFsd64SchemaReader,
@@ -42,15 +42,15 @@ class TestAudioMetadataReader extends CjsFsd64SchemaReader
 /** Runs `run` with blue's ResMan reading through `Read`, then restores its source. */
 async function WithResManSource(Read, run)
 {
-    const previous = be.resMan.source;
-    be.resMan.SetSource({ Read });
+    const previous = blue.resMan.source;
+    blue.resMan.SetSource({ Read });
     try
     {
         return await run();
     }
     finally
     {
-        be.resMan.SetSource(previous);
+        blue.resMan.SetSource(previous);
     }
 }
 

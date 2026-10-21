@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/IEveDistributionMethod.h
 import { meta, blue } from "#schema";
 
 
 /** Required distribution placement contract. */
-@blue.define("IEveDistributionMethod")
+@be.interface("IEveDistributionMethod")
 @blue.inherit(IRoot)
 export class IEveDistributionMethod
 {

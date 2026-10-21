@@ -29,4 +29,4 @@ export class ITr2GenericEmitter
   static UpdateArguments = ITr2GenericEmitterUpdateArguments;
 }
 
-CjsSchema.blue.define(ITr2GenericEmitter, { className: "ITr2GenericEmitter" });
+CjsSchema.exposure.interface("ITr2GenericEmitter")(ITr2GenericEmitter);

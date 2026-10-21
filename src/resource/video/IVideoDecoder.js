@@ -38,4 +38,4 @@ export class IVideoDecoder
   }
 }
 
-CjsSchema.blue.define(IVideoDecoder, { className: "IVideoDecoder" });
+CjsSchema.meta.carbon("IVideoDecoder")(IVideoDecoder);

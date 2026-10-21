@@ -2,7 +2,7 @@ import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { be } from "../../npm/dist/global/blue/blue.js";
+import { blue } from "../../npm/dist/global/blue/blue.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
@@ -34,7 +34,7 @@ test("five curve classes construct through Blue without model state or convenien
     {
         const base=Class===Tr2CurveConstant||Class===Tr2CurveScalar?ITriScalarFunction:Class===Tr2CurveQuaternion?ITriQuaternionFunction:null;
         assert.equal(Object.getPrototypeOf(Class.prototype),base?.prototype??Object.prototype);
-        const value = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+        const value = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
         assert.equal(value.constructor,Class);
         for (const name of ["SetValues","GetValues","OnEvent","Clone","Copy","__state"])
             assert.equal(name in value,false,`${Class.name}.${name}`);
@@ -85,7 +85,7 @@ test("Blue dictionary and Copier transport scalar key records without a model ba
     assert.equal(curve.keys[0].value,2);
     const key = new Tr2CurveScalarKey();
     new DictReader().ReadInto(key,{time:3,value:5,id:21});
-    const keyCopy=be.classes.CloneTo(key, null);
+    const keyCopy=blue.classes.CloneTo(key, null);
     assert.equal(keyCopy.constructor,Tr2CurveScalarKey);
     assert.deepEqual([keyCopy.time,keyCopy.value,keyCopy.id],[3,5,21]);
 });
@@ -94,20 +94,20 @@ test("quaternion and constant copying retains authored buffers without aliasing 
 {
     const curve=new Tr2CurveQuaternion();
     curve.AddKey(0,[0,0,0,1]); curve.AddKey(2,[0,0,1,0]);
-    const copy=be.classes.CloneTo(curve, null);
+    const copy=blue.classes.CloneTo(curve, null);
     const out=new Float32Array(4);
     copy.Update(1,out);
     assert.ok(Math.abs(out[2]-Math.SQRT1_2)<1e-6);
     assert.notEqual(copy.keys[0].value,curve.keys[0].value);
     const key=new Tr2CurveQuaternionKey();
     new DictReader().ReadInto(key,{time:2,value:[0,0,1,0]});
-    const keyCopy=be.classes.CloneTo(key, null);
+    const keyCopy=blue.classes.CloneTo(key, null);
     assert.equal(keyCopy.constructor,Tr2CurveQuaternionKey);
     assert.notEqual(keyCopy.value,key.value);
     assert.deepEqual(Array.from(keyCopy.value),[0,0,1,0]);
     const constant=new Tr2CurveConstant();
     new DictReader().ReadInto(constant,{name:"fixed",value:[2,3,4,5]});
-    const constantCopy=be.classes.CloneTo(constant, null);
+    const constantCopy=blue.classes.CloneTo(constant, null);
     assert.equal(constantCopy.currentValue,constantCopy.value);
     assert.notEqual(constantCopy.value,constant.value);
     assert.equal(constantCopy.Update(8),2);

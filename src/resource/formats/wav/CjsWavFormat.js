@@ -203,4 +203,4 @@ export class CjsWavFormat extends CjsFormat
 
 export default CjsWavFormat;
 
-CjsSchema.meta.define(CjsWavFormat, { className: "CjsWavFormat" });
+CjsSchema.meta.define("CjsWavFormat")(CjsWavFormat);

@@ -142,4 +142,4 @@ export class FsdList
 
 export default FsdList;
 
-CjsSchema.blue.define(FsdList, { className: "FsdList" });
+CjsSchema.meta.carbon("FsdList")(FsdList);

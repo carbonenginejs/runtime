@@ -103,4 +103,4 @@ CjsSchema.decorateMethod(IBehavior, "GetBehaviorSearchRadius", blue.method);
 CjsSchema.decorateMethod(IBehavior, "UpdateState", blue.method);
 
 CjsSchema.blue.inherit(IRoot)(IBehavior);
-CjsSchema.blue.define(IBehavior, { className: "IBehavior", fields: {} });
+CjsSchema.exposure.interface("IBehavior")(IBehavior);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
 // Source: trinity/trinity/Wod/WodBakingScene.h
 // Source: trinity/trinity/Wod/WodBakingScene.cpp
@@ -11,9 +12,9 @@ import { meta, type, blue } from "#schema";
  * skinned-object batches; CarbonEngineJS keeps the scene contract here and
  * leaves render-target realization to an engine adapter.
  */
-@blue.define("WodBakingScene")
+@be.define("WodBakingScene")
 @blue.inherit(ITr2Scene)
-@blue.interface(ITr2Scene)
+@be.mapInterface(ITr2Scene)
 export class WodBakingScene
 {
 

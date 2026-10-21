@@ -120,7 +120,4 @@ for (const method of [
   CjsSchema.decorateMethod(IBlueCallbackMan, method, blue.abstract);
 }
 
-CjsSchema.blue.define(IBlueCallbackMan, {
-  className: "IBlueCallbackMan",
-  fields: {}
-});
+CjsSchema.exposure.interface("IBlueCallbackMan")(IBlueCallbackMan);

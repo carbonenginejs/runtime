@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -8,7 +9,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Places a RED child resource with build and LOD policy plus scale, rotation, and translation, deriving its name from the resource path. */
-@blue.define("EveSOFDataHullChildSetItem")
+@be.define("EveSOFDataHullChildSetItem")
 @blue.inherit(IRoot)
 export class EveSOFDataHullChildSetItem
 {

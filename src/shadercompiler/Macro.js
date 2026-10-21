@@ -46,6 +46,4 @@ export class Macro
     }
 }
 
-CjsSchema.blue.define(Macro, {
-    className: "Macro"
-});
+CjsSchema.meta.carbon("Macro")(Macro);

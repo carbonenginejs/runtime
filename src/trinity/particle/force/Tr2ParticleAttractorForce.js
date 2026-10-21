@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleAttractorForce.h
 // Source: trinity/trinity/Particle/Tr2ParticleAttractorForce.cpp
 // Source: trinity/trinity/Particle/Tr2ParticleAttractorForce_Blue.cpp
@@ -16,8 +17,8 @@ const DEBUG_TO = vec3.create();
  * Particle force of constant magnitude pointing at a fixed position, regardless
  * of distance.
  */
-@blue.interface(ITr2ParticleForce)
-@blue.define("Tr2ParticleAttractorForce")
+@be.mapInterface(ITr2ParticleForce)
+@be.define("Tr2ParticleAttractorForce")
 export class Tr2ParticleAttractorForce extends ITr2ParticleForce
 {
   @blue.readwrite

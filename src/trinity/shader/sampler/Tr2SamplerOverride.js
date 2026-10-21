@@ -11,7 +11,7 @@ import { TextureAddressMode, TextureFilter } from "#consts/render-context";
  * Native 64-bit size 56; offsets and storage types: trinity/trinity/
  * Shader/Tr2Effect.h:23-37; Shader/Tr2Effect.cpp:84-95 (including sampler storage at 40..55).
  */
-@blue.define("Tr2SamplerOverride")
+@meta.carbon("Tr2SamplerOverride")
 @meta.struct.define({ size: 56 })
 export class Tr2SamplerOverride
 {

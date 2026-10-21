@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2QuaternionLerpCurve.h
 // Source: trinity/trinity/Curves/Tr2QuaternionLerpCurve.cpp
 import { num } from "#math/num";
@@ -12,9 +13,11 @@ import { CcpTime } from "#blue";
  * curves, ramping the blend from 0 to 1 over `length` seconds starting at
  * `start` (a Blue time) and clamping outside that window.
  */
-@blue.define("Tr2QuaternionLerpCurve")
+@be.define("Tr2QuaternionLerpCurve")
 @blue.inherit(ITriCurveLength)
-@blue.interface(ITriFunction, ITriQuaternionFunction, ITriCurveLength)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriQuaternionFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 {
   /**

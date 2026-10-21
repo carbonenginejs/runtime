@@ -1089,4 +1089,4 @@ export class DxbcInstructionDecoder
     }
 }
 
-CjsSchema.meta.define(DxbcInstructionDecoder, { className: "DxbcInstructionDecoder" });
+CjsSchema.meta.define("DxbcInstructionDecoder")(DxbcInstructionDecoder);

@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { be, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLength } from "../../npm/dist/global/blue/index.js";
+import { blue, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLength } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
@@ -24,7 +24,7 @@ for(const [Class,components,Base,interfaces] of cases)
     const name=getRegisteredClassName(Class);
     test(`${name} is a model-free native function with independent scalar storage`,()=>
     {
-        const curve=be.classes.CreateInstanceFromName(name);
+        const curve=blue.classes.CreateInstanceFromName(name);
         assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
         assert.deepEqual([...mappedInterfaces(Class)],[ExposureRoot, Class, ...interfaces]);
         for(const Interface of interfaces) assert.equal(CjsSchema.cast(curve,Interface),curve);
@@ -37,7 +37,7 @@ for(const [Class,components,Base,interfaces] of cases)
         assert.equal(new Set(components.map(key=>curve[key])).size,components.length);
         for(const key of components) assert.equal(curve[key].constructor,Tr2CurveScalar);
         const children=[];
-        be.EnumerateChildren(curve,child=>children.push(child));
+        blue.EnumerateChildren(curve,child=>children.push(child));
         assert.deepEqual(children,components.map(key=>curve[key]));
         components.forEach((key,index)=>assert.equal(children[index],curve[key]));
         assert.deepEqual(GetResources(curve),[]);
@@ -59,7 +59,7 @@ for(const [Class,components,Base,interfaces] of cases)
         }
         const copy=new Class();
         const destinations=components.map(key=>copy[key]);
-        assert.equal(be.classes.CopyTo(curve,copy),copy);
+        assert.equal(blue.classes.CopyTo(curve,copy),copy);
         assert.equal(copy.constructor,Class);
         components.forEach((key,index)=>
         {

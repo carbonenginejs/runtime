@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { BlueList, Copier, DictReader, IInitialize, INotify, IListNotify, be } from "../../npm/dist/global/blue/index.js";
+import { BlueList, Copier, DictReader, IInitialize, INotify, IListNotify, blue as be } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { Tr2ControllerReference } from "../../npm/dist/trinity/controllers/Tr2ControllerReference.js";

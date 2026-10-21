@@ -87,7 +87,7 @@ export class Tr2TextureLodManager
 }
 
 CjsSchema.blue.inherit(IRoot, IBlueEvents)(Tr2TextureLodManager);
-CjsSchema.blue.interface(Tr2TextureLodManager)(Tr2TextureLodManager);
+
 CjsSchema.blue.define(Tr2TextureLodManager, {
   className: "Tr2TextureLodManager",
   abstract: true,

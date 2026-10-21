@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriVariable.h
 // Source: trinity/trinity/TriVariable.cpp
@@ -16,7 +17,7 @@ import { float32FromBits } from "#utils/bytes";
  * Carbon uses BLUE_DEFINE_NONEXPOSED; the existing JavaScript catalog keeps
  * construction available to the variable store and direct consumers.
  */
-@blue.define("TriVariable")
+@be.define("TriVariable")
 export class TriVariable extends ITr2EffectValue
 {
   /** Existing JavaScript name inspection declaration; not a native Blue member. */
@@ -494,4 +495,4 @@ export class TriVariable extends ITr2EffectValue
 }
 
 // Native nonexposed table has only concrete/IRoot identity; ITr2EffectValue is nominal only.
-blue.interface(IRoot)(TriVariable);
+

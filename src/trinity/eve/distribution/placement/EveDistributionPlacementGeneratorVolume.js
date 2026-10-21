@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorVolume.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -10,9 +11,11 @@ import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change. */
-@blue.define("EveDistributionPlacementGeneratorVolume")
+@be.define("EveDistributionPlacementGeneratorVolume")
 @blue.inherit(IInitialize, INotify)
-@blue.interface(IEveDistributionPlacementGenerators, IInitialize, INotify)
+@be.mapInterface(IEveDistributionPlacementGenerators)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPlacementGenerators
 {
 

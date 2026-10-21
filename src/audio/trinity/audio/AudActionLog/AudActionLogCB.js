@@ -3,7 +3,7 @@
 // AudActionRecord*.json schema documents.
 
 import { meta, blue } from "#schema";
-import { be, CjsScriptCallback } from "#blue";
+import { blue as be, CjsScriptCallback } from "#blue";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
 import { AudActionRecordExecuteActionOnPlayingID } from "./AudActionRecordExecuteActionOnPlayingID.js";

@@ -3,7 +3,7 @@
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { IsMatch, be, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
+import { IsMatch, blue as be, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
 

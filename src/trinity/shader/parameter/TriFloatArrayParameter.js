@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.cpp
 import { IInitialize } from "#blue";
@@ -8,9 +9,11 @@ import { CjsParameter } from "./CjsParameter.js";
 
 
 /** An ordered list of vec4 rows uploaded into one named shader constant array. */
-@blue.define("TriFloatArrayParameter")
+@be.define("TriFloatArrayParameter")
 @blue.inherit(INotify, IInitialize)
-@blue.interface(ITriEffectParameter, INotify, IInitialize)
+@be.mapInterface(ITriEffectParameter)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class TriFloatArrayParameter extends CjsParameter
 {
   @blue.notify

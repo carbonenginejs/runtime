@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ParticleFluidDragForce.h
 // Source: trinity/trinity/Particle/Tr2ParticleFluidDragForce.cpp
 // Source: trinity/trinity/Particle/Tr2ParticleFluidDragForce_Blue.cpp
@@ -10,8 +11,8 @@ import { meta, type, blue } from "#schema";
  * Quadratic fluid drag on particles, clamped so a single integration step can
  * never push a particle's velocity past zero into a reversal.
  */
-@blue.interface(ITr2ParticleForce)
-@blue.define("Tr2ParticleFluidDragForce")
+@be.mapInterface(ITr2ParticleForce)
+@be.define("Tr2ParticleFluidDragForce")
 export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
 {
   @blue.readwrite

@@ -19,12 +19,8 @@ export class Tr2TexturePackChannel
 }
 
 CjsSchema.blue.inherit(IRoot)(Tr2TexturePackChannel);
-CjsSchema.blue.interface(Tr2TexturePackChannel)(Tr2TexturePackChannel);
-CjsSchema.blue.define(Tr2TexturePackChannel, {
-  className: "Tr2TexturePackChannel",
-  fields: {
-    channel: [ blue.readwrite, blue.persist, type.uint8 ],
-    fill: [ blue.readwrite, blue.persist, type.uint8 ],
-    path: [ blue.readwrite, blue.persist, type.wpath ]
-  }
-});
+
+CjsSchema.decorateField(Tr2TexturePackChannel, "channel", blue.readwrite, blue.persist, type.uint8);
+CjsSchema.decorateField(Tr2TexturePackChannel, "fill", blue.readwrite, blue.persist, type.uint8);
+CjsSchema.decorateField(Tr2TexturePackChannel, "path", blue.readwrite, blue.persist, type.wpath);
+CjsSchema.exposure.define("Tr2TexturePackChannel")(Tr2TexturePackChannel);

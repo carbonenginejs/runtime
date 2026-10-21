@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.h
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.cpp
 import { meta, blue } from "#schema";
@@ -8,9 +9,9 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step for Carbon's Windows-only cross-process render synchronization, which has
  * no browser equivalent and therefore always fails.
  */
-@blue.define("TriStepRemoteSync")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRemoteSync")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRemoteSync extends TriRenderStep
 {
   #id = -1;

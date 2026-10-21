@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: audio/src/AudActionLog.h
 import { blue } from "#schema";
 
 /** Required logging contract consumed by AudManager. */
-@blue.define("IAudActionLog")
+@be.interface("IAudActionLog")
 @blue.inherit(IRoot)
 export class IAudActionLog
 {

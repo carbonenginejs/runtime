@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2CapsuleShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -9,8 +10,8 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates particle position and velocity offsets sampled within a capsule volume interpolated between a start and end transform. */
-@blue.interface(ITr2AttributeGenerator)
-@blue.define("Tr2CapsuleShapeAttributeGenerator")
+@be.mapInterface(ITr2AttributeGenerator)
+@be.define("Tr2CapsuleShapeAttributeGenerator")
 export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp (GetValue rules)
@@ -17,9 +18,9 @@ import { vec4 } from "#math/vec4";
  * Native IRoot-only data with a self-only Blue table. Defaults retain native
  * construction; the empty destructor needs no resource or update lifecycle.
  */
-@blue.define("EveSOFDataParameter")
+@be.define("EveSOFDataParameter")
 @blue.inherit(IRoot)
-@blue.interface()
+
 export class EveSOFDataParameter
 {
 

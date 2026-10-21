@@ -10,7 +10,7 @@ function ClampUnit(value)
 }
 
 /** One obstruction or occlusion value fading towards an authored target. */
-@meta.define({ className: "FadingValue", carbon: "AudObstructionOcclusion::FadingValue" })
+@meta.carbon("AudObstructionOcclusion::FadingValue")
 export class FadingValue
 {
   currentValue = 0;

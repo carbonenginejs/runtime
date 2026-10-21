@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ForceSphereVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -6,8 +7,8 @@ import { vec3 } from "#math/vec3";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 /** Aggregates child forces within a spherical region, scaling their combined contribution by a falloff toward the sphere's edge. */
-@blue.interface(ITr2ParticleForce)
-@blue.define("Tr2ForceSphereVolume")
+@be.mapInterface(ITr2ParticleForce)
+@be.define("Tr2ForceSphereVolume")
 export class Tr2ForceSphereVolume extends ITr2ParticleForce
 {
 
