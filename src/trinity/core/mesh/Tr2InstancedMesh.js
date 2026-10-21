@@ -62,10 +62,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @type.vec3
   minBounds = vec3.create();
 
-  @legacyBlue.readwrite
-  @legacyBlue.persistOnly
+  /** m_instanceGeometryResource [PERSISTONLY]: the assigned provider; GetInstanceGeometryResource prefers the loaded one. */
+  @be.mapAttribute(be.PERSISTONLY, "instanceGeometryResource")
+  @meta.implemented
   @type.object.ref("ITr2InstanceData")
-  instanceGeometryResource = null;
+  _instanceGeometryResource = null;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
@@ -93,7 +94,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   {
     this.SetGeometryRes(null);
     this.SetLowResGeometryRes(null);
-    this.instanceGeometryResource = null;
+    this._instanceGeometryResource = null;
     this._loadedGeometryResource = null;
     this.ReleaseResources();
     TriDevice.UnregisterResource(this);
@@ -153,7 +154,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @meta.implemented
   GetInstanceGeometryResource()
   {
-    return this._loadedGeometryResource ?? this.instanceGeometryResource;
+    return this._loadedGeometryResource ?? this._instanceGeometryResource;
   }
 
   /** Binds the instance provider and rebuilds declarations (cpp:198-208). */
@@ -161,10 +162,27 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @meta.implemented
   SetInstanceGeometryRes(resource)
   {
-    if (this.instanceGeometryResource === resource) return;
-    this.instanceGeometryResource = resource;
+    if (this._instanceGeometryResource === resource) return;
+    this._instanceGeometryResource = resource;
     this._loadedGeometryResource = null;
     this.CreateVertexDeclaration();
+  }
+
+  /**
+   * instanceGeometryResource (MAP_PROPERTY): Carbon's property over GetInstanceGeometryResource/SetInstanceGeometryRes, which the macro calls.
+   * Carbon: MAP_PROPERTY (trinity/trinity/Tr2InstancedMesh_Blue.cpp:29).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get instanceGeometryResource()
+  {
+    return this.GetInstanceGeometryResource();
+  }
+
+  @meta.implemented
+  set instanceGeometryResource(value)
+  {
+    this.SetInstanceGeometryRes(value);
   }
 
   /** Invalidates both cached declarations (Tr2InstancedMesh.cpp:78-82). */
@@ -542,7 +560,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
         const parentBounds = this.GetBounds();
         if (parentBounds)
         {
-          if (this.instanceGeometryResource)
+          if (this._instanceGeometryResource)
           {
             const viewPosition = Tr2Renderer.GetViewPosition();
 

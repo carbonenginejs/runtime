@@ -32,20 +32,19 @@ export class Range extends IRoot
   /**
    * Cached lower display point: the lesser of the internal lower point and
    * the slider minimum. Range setters refresh this value in the caller's units.
+   * Carbon computes it in GetMinRangePoint; this cache is ours and `minRangePoint` is the property over that getter.
    * @type {number}
    */
-  @blue.read
-  @type.float32
-  minRangePoint = 0;
+  @meta.adapted
+  _minRangePoint = 0;
 
   /**
    * Cached upper display point: the lesser of the internal upper point and
    * the slider maximum. Range setters refresh this value in the caller's units.
    * @type {number}
    */
-  @blue.read
-  @type.float32
-  maxRangePoint = 0;
+  @meta.adapted
+  _maxRangePoint = 0;
 
   /**
    * Symmetry mode used by range setters to mirror endpoint edits around
@@ -129,7 +128,18 @@ export class Range extends IRoot
   @meta.adapted
   GetMinRangePoint()
   {
-    return this.minRangePoint;
+    return this._minRangePoint;
+  }
+
+  /**
+   * minRangePoint (MAP_PROPERTY_READONLY): Carbon's property over GetMinRangePoint, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Utilities/Range_Blue.cpp:16).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.adapted
+  get minRangePoint()
+  {
+    return this.GetMinRangePoint();
   }
 
   /**
@@ -140,7 +150,18 @@ export class Range extends IRoot
   @meta.adapted
   GetMaxRangePoint()
   {
-    return this.maxRangePoint;
+    return this._maxRangePoint;
+  }
+
+  /**
+   * maxRangePoint (MAP_PROPERTY_READONLY): Carbon's property over GetMaxRangePoint, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Utilities/Range_Blue.cpp:17).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.adapted
+  get maxRangePoint()
+  {
+    return this.GetMaxRangePoint();
   }
 
   /**
@@ -246,7 +267,7 @@ export class Range extends IRoot
    */
   _syncRangePoints()
   {
-    this.minRangePoint = Math.min(this._minRange, this._sliderRangeMin);
-    this.maxRangePoint = Math.min(this._maxRange, this._sliderRangeMax);
+    this._minRangePoint = Math.min(this._minRange, this._sliderRangeMin);
+    this._maxRangePoint = Math.min(this._maxRange, this._sliderRangeMax);
   }
 }

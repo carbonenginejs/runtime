@@ -22,12 +22,10 @@ test(`${Type.name} has only supported native queries and no model services`, () 
 
 test("Range exposes native readonly property order without persisting runtime caches", () =>
 {
-  const fields = CjsSchema.getSchema(Range).members;
-  assert.deepEqual(fields.map(f => [f.name, f.type.kind]), [
-    ["centerPoint", "float32"], ["minRangePoint", "float32"],
-    ["maxRangePoint", "float32"], ["isUniform", "boolean"]
-  ]);
-  for (const field of fields)
+  const schema = CjsSchema.getSchema(Range);
+  assert.deepEqual(schema.members.map(f => [f.name, f.type.kind]), [ ["centerPoint", "float32"], ["isUniform", "boolean"] ]);
+  assert.deepEqual(schema.properties.map(p => p.name), ["minRangePoint", "maxRangePoint"]);
+  for (const field of [...schema.members, ...schema.properties])
   {
     assert.equal(field.edit.read, true);
     for (const flag of ["write", "persist", "notify"]) assert.notEqual(field.edit[flag], true);
@@ -40,7 +38,8 @@ test("Range exposes native readonly property order without persisting runtime ca
   value.SetIsUniform(true);
   assert.deepEqual([value.centerPoint, value.minRangePoint, value.maxRangePoint], [10, 5, 13]);
   const bag = new DictWriter().WriteObject(value, {}, { persistOnly: false });
-  assert.deepEqual([bag.centerPoint, bag.minRangePoint, bag.maxRangePoint, bag.isUniform], [10, 5, 13, true]);
+  // The two range points are properties over Carbon's getters, which a values bag does not carry.
+  assert.deepEqual([bag.centerPoint, bag.minRangePoint, bag.maxRangePoint, bag.isUniform], [10, undefined, undefined, true]);
   const copy = new Copier().CloneTo(value);
   assert.deepEqual([copy.centerPoint, copy.minRangePoint, copy.maxRangePoint, copy.isUniform], [0, 0, 0, true]);
   const persisted = new DictWriter().WriteObject(value, {}, { persistOnly: true });
