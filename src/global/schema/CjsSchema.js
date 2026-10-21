@@ -3807,7 +3807,8 @@ function exposureEditFlags(flags)
 /** Our complete attribute row carries explicit flags without claiming Carbon origin. */
 function ownAttributeDecorator(flags, name)
 {
-    const definition = { edit: exposureEditFlags(flags), exposure: { macro: "MAP_ATTRIBUTE", flags } };
+    // Ours: the row records its flags and says so. It carries no Carbon macro, so nothing reads it as Carbon's exposure.
+    const definition = { edit: exposureEditFlags(flags), exposure: { origin: "ours", flags } };
     if (name !== undefined) definition.declaration = { name: exposureName(name) };
     return combinedFieldDecorator(definition);
 }

@@ -577,6 +577,8 @@ export class CjsBlueClasses extends IBlueClasses
     for (const member of [ ...schema.members, ...schema.properties.filter(property => property.property || property.edit) ])
     {
       if (completeExposureNames.has(member.name)) continue;
+      // PyGetTypeInfo lists what Carbon's EXPOSURE table holds (TypeInfo.cpp:118-148, the mMemberTable walk); our own rows are not in it.
+      if (member.exposure?.origin === "ours") continue;
       if (member.exposure) completeExposureNames.add(member.name);
       const type = member.type;
       const reference = type && (type.kind === "rootRef" || type.kind === "rootWeak") ? type.className : null;

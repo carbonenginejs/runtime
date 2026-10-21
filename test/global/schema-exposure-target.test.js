@@ -281,7 +281,10 @@ test("own complete attributes keep explicit flags and aliases without Carbon ori
     assert.deepEqual(member.edit, {read:true});
     assert.equal(member.carbon, undefined);
     assert.equal(member.exposure.flags, meta.READ);
-    assert.equal(new CjsBlueClasses().GetTypeInfo(new Child())[2].alias.editflags, 1);
+    // Ours: the row says so, records no Carbon macro, and is not part of the Carbon-style type info (TypeInfo.cpp:118-148).
+    assert.equal(member.exposure.origin, "ours");
+    assert.equal(member.exposure.macro, undefined);
+    assert.equal(new CjsBlueClasses().GetTypeInfo(new Child())[2].alias, undefined);
     assert.equal(CjsSchema.getSchema(Parent).members[0].exposure.flags, 19);
     for (const invalid of [-1, 1.5, NaN, Infinity, 0x100000000]) assert.throws(() => meta.attribute(invalid), /flags/);
     assert.throws(() => meta.attribute(meta.READ, ""), /non-empty/);
