@@ -3,6 +3,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
+import "./enums.js";
 
 /** Names a controller resource path and its build filter, deriving the controller name from the path. */
 @be.define("EveSOFDataHullController")
@@ -10,9 +11,11 @@ import { meta, type, blue } from "#schema";
 export class EveSOFDataHullController extends IRoot
 {
 
-  /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_buildFilter (uint32_t) [READWRITE, PERSIST]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:910); chooser EveSOFDataHullBuildFilterChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:104).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST, "trinity.EveSOFDataHullBuildFilter")
   @type.uint32
   buildFilter = 0xffffffff;
 

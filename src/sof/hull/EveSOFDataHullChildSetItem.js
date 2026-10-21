@@ -7,6 +7,7 @@ import { meta, type, blue } from "#schema";
 import { Tr2Lod } from "#consts/trinity";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
+import "./enums.js";
 
 /** Places a RED child resource with build and LOD policy plus scale, rotation, and translation, deriving its name from the resource path. */
 @be.define("EveSOFDataHullChildSetItem")
@@ -16,9 +17,11 @@ export class EveSOFDataHullChildSetItem extends IRoot
   static Tr2Lod = Tr2Lod;
 
 
-  /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_buildFilter (uint32_t) [READWRITE, PERSIST]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:849); chooser EveSOFDataHullBuildFilterChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:104).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST, "trinity.EveSOFDataHullBuildFilter")
   @type.uint32
   buildFilter = 0xffffffff;
 

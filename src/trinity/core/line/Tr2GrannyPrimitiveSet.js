@@ -25,10 +25,11 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 @be.exposureChainTo(Tr2PrimitiveSet)
 export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 {
-  /** Native resource path (Blue READWRITE | PERSIST | NOTIFY). */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * Native resource path (Blue READWRITE | PERSIST | NOTIFY).
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2GrannyPrimitiveSet_Blue.cpp:15); chooser TriGR2Chooser (trinity/trinity/TriConstants.cpp:87).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriGR2Chooser")
   @type.path("TriGeometryRes")
   grannyResPath = "";
 

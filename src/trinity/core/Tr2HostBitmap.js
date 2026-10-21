@@ -311,11 +311,11 @@ export class Tr2HostBitmap extends HostBitmap
 CjsSchema.blue.define(Tr2HostBitmap, {
   className: "Tr2HostBitmap",
   members: [
-    { name: "format", key: "_format", type: { kind: "int32" }, enum: { enumType: "PixelFormat" }, edit: { read: true } },
+    { name: "format", key: "_format", type: { kind: "int32" }, enum: { enumType: "trinity.ImageIO.PixelFormat" }, edit: { read: true } },
     { name: "width", key: "_width", type: { kind: "uint32" }, edit: { read: true } },
     { name: "height", key: "_height", type: { kind: "uint32" }, edit: { read: true } },
     { name: "mipCount", key: "_mipCount", type: { kind: "uint32" }, edit: { read: true } },
-    { name: "imageType", key: "_type", type: { kind: "int32" }, enum: { enumType: "TextureType" }, edit: { read: true } },
+    { name: "imageType", key: "_type", type: { kind: "int32" }, enum: { enumType: "trinity.ImageIO.TextureType" }, edit: { read: true } },
     { name: "name", key: "_name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
   ]
 });

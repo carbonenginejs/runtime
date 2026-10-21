@@ -1,6 +1,8 @@
+import { exposure as be } from "#be";
 import { CjsSchema, blue } from "#schema";
 import { IRoot } from "../../global/blue/IRoot.js";
 import { finiteNumber } from "./browserHelpers.js";
+import "#consts/render-context";
 
 /**
  * Current browser Screen snapshot of Carbon's Tr2DisplayMode
@@ -99,7 +101,7 @@ CjsSchema.decorateField(Tr2DisplayMode, "width", blue.read);
 CjsSchema.decorateField(Tr2DisplayMode, "height", blue.read);
 CjsSchema.decorateField(Tr2DisplayMode, "refreshRateNumerator", blue.read);
 CjsSchema.decorateField(Tr2DisplayMode, "refreshRateDenominator", blue.read);
-CjsSchema.decorateField(Tr2DisplayMode, "format", blue.read);
-CjsSchema.decorateField(Tr2DisplayMode, "scanlineOrdering", blue.read);
-CjsSchema.decorateField(Tr2DisplayMode, "scaling", blue.read);
+CjsSchema.decorateField(Tr2DisplayMode, "format", be.mapAttributeWithChooser(be.READ | be.ENUM, "trinity.ImageIO.PixelFormat"));
+CjsSchema.decorateField(Tr2DisplayMode, "scanlineOrdering", be.mapAttributeWithChooser(be.READ, "trinity.Tr2RenderContextEnum_ScanlineOrdering_Chooser"));
+CjsSchema.decorateField(Tr2DisplayMode, "scaling", be.mapAttributeWithChooser(be.READ, "trinity.Tr2RenderContextEnum_DisplayScaling_Chooser"));
 CjsSchema.exposure.define("Tr2DisplayMode")(Tr2DisplayMode);

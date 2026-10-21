@@ -89,10 +89,11 @@ export class Tr2InteriorScene
   }
 
 
-  /** m_backgroundCubeMapPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_backgroundCubeMapPath (std::string) [READWRITE, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp:347); chooser TriTextureChooser (trinity/trinity/TriConstants.cpp:79).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriTextureChooser")
   @type.path("TriTextureRes")
   backgroundCubemapPath = "";
 

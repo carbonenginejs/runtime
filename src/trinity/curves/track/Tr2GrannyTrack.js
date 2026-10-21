@@ -19,9 +19,8 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 @blue.interface(ITriFunction, IInitialize, INotify)
 export class Tr2GrannyTrack extends IRoot
 {
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2GrannyTrack_Blue.cpp:16); chooser TriGR2Chooser (trinity/trinity/TriConstants.cpp:87). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriGR2Chooser")
   @type.path
   grannyResPath = "";
 

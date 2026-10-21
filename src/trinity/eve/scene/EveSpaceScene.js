@@ -268,45 +268,51 @@ export class EveSpaceScene
     type: VisualizerType.PIXEL_SHADER_REPLACEMENT
   }));
 
-  /** m_envMap1ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_envMap1ResPath (std::string) [READWRITE, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:194); chooser TriTextureChooser (trinity/trinity/TriConstants.cpp:79).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriTextureChooser")
   @type.path("TriTextureRes")
   envMap1ResPath = "";
 
-  /** m_envMap2ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_envMap2ResPath (std::string) [READWRITE, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:221); chooser TriTextureChooser (trinity/trinity/TriConstants.cpp:79).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriTextureChooser")
   @type.path("TriTextureRes")
   envMap2ResPath = "";
 
-  /** m_envMap3ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_envMap3ResPath (std::string) [READWRITE, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:234); chooser TriTextureChooser (trinity/trinity/TriConstants.cpp:79).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriTextureChooser")
   @type.path("TriTextureRes")
   envMap3ResPath = "";
 
-  /** m_lowQualityNebulaResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_lowQualityNebulaResPath (std::string) [READWRITE, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:201); chooser TriTextureChooser (trinity/trinity/TriConstants.cpp:79).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriTextureChooser")
   @type.path("TriTextureRes")
   lowQualityNebulaResPath = "";
 
-  /** m_lowQualityNebulaMixResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_lowQualityNebulaMixResPath (std::string) [READWRITE, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:208); chooser TriTextureChooser (trinity/trinity/TriConstants.cpp:79).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriTextureChooser")
   @type.path("TriTextureRes")
   lowQualityNebulaMixResPath = "";
 
-  /** m_envMapResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_envMapResPath (std::string) [READWRITE, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:187); chooser TriTextureChooser (trinity/trinity/TriConstants.cpp:79).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "blue.TriTextureChooser")
   @type.path("TriTextureRes")
   envMapResPath = "";
 

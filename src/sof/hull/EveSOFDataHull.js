@@ -6,6 +6,7 @@ import { type, blue as legacyBlue } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { EveSOFDataHullBuildFilter } from "./enums.js";
 
 /** Carbon-authored hull record. */
 @be.define("EveSOFDataHull")
@@ -28,12 +29,7 @@ export class EveSOFDataHull extends IRoot
     IMPACTEFFECT_HULL: 2
   };
 
-  static BuildFilter = Object.freeze({
-    STANDALONE: 1,
-    NON_INSTANCED_PLACEMENT: 2,
-    INSTANCED_PLACEMENT: 4,
-    DEFAULT_FILTER: 0xffffffff
-  });
+  static BuildFilter = EveSOFDataHullBuildFilter;
 
   /**
    * m_buildClass (BuildClass - enum BuildClass) [READWRITE, PERSIST, ENUM]

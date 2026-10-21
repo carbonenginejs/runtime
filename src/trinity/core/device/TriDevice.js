@@ -23,6 +23,23 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { ExecuteMainThreadActions } from "../continueOnMainThread.js";
 import "#consts/renderContext/presentation";
 import "#consts/renderContext/upscaling";
+import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
+
+/** TriDevice reasons for throttling; Carbon's chooser lists the first two and does not register the enum. */
+const ThrottlingReason = Object.freeze({
+  WINDOW_OUT_OF_FOCUS: 1,
+  WINDOW_HIDDEN: 2,
+  THERMAL_STATE: 4
+});
+
+// Source: trinity/trinity/TriDevice_Blue.cpp:158
+blueEnums.Create("trinity.TriDeviceThrottlingReasonChooser", ThrottlingReason, {
+  chooser: [
+    { name: "WINDOW_OUT_OF_FOCUS", value: ThrottlingReason.WINDOW_OUT_OF_FOCUS, description: "" },
+    { name: "WINDOW_HIDDEN", value: ThrottlingReason.WINDOW_HIDDEN, description: "" }
+  ]
+});
+
 
 /**
  * TriDevice (trinityCore) - generated from schema shapeHash 1db3a492....
@@ -51,11 +68,7 @@ import "#consts/renderContext/upscaling";
 export class TriDevice extends IRoot
 {
 
-  static ThrottlingReason = Object.freeze({
-    WINDOW_OUT_OF_FOCUS: 1,
-    WINDOW_HIDDEN: 2,
-    THERMAL_STATE: 4
-  });
+  static ThrottlingReason = ThrottlingReason;
 
   static DeviceScreenType = Object.freeze({ WINDOWED: 0, FULLSCREEN: 1, NO_ADAPTER: 2 });
 
@@ -81,8 +94,11 @@ export class TriDevice extends IRoot
   @type.enum("trinity.Tr2RenderContextEnum.SwapEffect")
   swapEffect = 0;
 
-  /** m_throttlingState (uint32_t) [READ] */
-  @legacyBlue.read
+  /**
+   * m_throttlingState (uint32_t) [READ]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/TriDevice_Blue.cpp:234); chooser TriDeviceThrottlingReasonChooser (trinity/trinity/TriDevice_Blue.cpp:158).
+   */
+  @be.mapAttributeWithChooser(be.READ, "trinity.TriDeviceThrottlingReasonChooser")
   @type.uint32
   throttlingState = 0;
 

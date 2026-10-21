@@ -11,6 +11,21 @@ import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 import "#consts/renderContext/formats";
 import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
+import { blueEnums, EnumRegistrationType } from "#blue/enums/CjsBlueEnumRegistry";
+
+/** Tr2GpuBuffer::CreationFlag bits of m_creationFlags. */
+const CreationFlags = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2, DRAW_INDIRECT: 4 });
+
+// Source: trinity/trinity/Tr2GpuBuffer_Blue.cpp:9
+blueEnums.Create("trinity.Tr2GpuBufferFlags", CreationFlags, {
+  exposedName: "Tr2GpuBufferFlags", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooser: [
+    { name: "CPU_WRITABLE", value: CreationFlags.CPU_WRITABLE, description: "Can the buffer be locked with write-only access" },
+    { name: "GPU_WRITABLE", value: CreationFlags.GPU_WRITABLE, description: "Is the buffer used for GPU write access" },
+    { name: "DRAW_INDIRECT", value: CreationFlags.DRAW_INDIRECT, description: "Is the buffer used for indirect draw calls" }
+  ]
+});
+
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
 @be.define("Tr2GpuBuffer")
@@ -40,12 +55,13 @@ export class Tr2GpuBuffer extends IRoot
   }
 
 
-  static CreationFlags = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2, DRAW_INDIRECT: 4 });
+  static CreationFlags = CreationFlags;
 
-  /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2GpuBuffer_Blue.cpp:98); chooser Tr2GpuBufferCreationFlagChooser (trinity/trinity/Tr2GpuBuffer_Blue.cpp:9).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "trinity.Tr2GpuBufferFlags")
   @type.uint32
   creationFlags = 0;
 

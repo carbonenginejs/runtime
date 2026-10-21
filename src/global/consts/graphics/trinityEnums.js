@@ -243,6 +243,30 @@ blueEnums.Create("blue.TRITRANSFORMBASE", TRITRANSFORMBASE, {
   ]
 });
 
+/** Blue's texture-path chooser (TriConstants.cpp:79): one entry whose description is the file-dialog filter. */
+export const TriTextureChooser = Object.freeze({
+    SELECT_TEXTURE: 0
+});
+
+/** Blue's Granny/CMF model-path chooser (TriConstants.cpp:87): one entry whose description is the file-dialog filter. */
+export const TriGR2Chooser = Object.freeze({
+    SELECT_GR2MODEL: 0
+});
+
+// Source: trinity/trinity/TriConstants.cpp:79
+blueEnums.Create("blue.TriTextureChooser", TriTextureChooser, {
+  chooser: [
+    { name: "SELECT_TEXTURE", value: TriTextureChooser.SELECT_TEXTURE, description: "Texture (.dds, .tga, .bmp)|*.dds;*.tga;*.bmp;|All Files (*.*)|*.*" }
+  ]
+});
+
+// Source: trinity/trinity/TriConstants.cpp:87
+blueEnums.Create("blue.TriGR2Chooser", TriGR2Chooser, {
+  chooser: [
+    { name: "SELECT_GR2MODEL", value: TriGR2Chooser.SELECT_GR2MODEL, description: "Granny/CMF file(.gr2, .cmf)|*.GR2;*.CMF|All Files (*.*)|*.*" }
+  ]
+});
+
 // Source: blue/include/ITriConstants.h
 blueEnums.Create("blue.TRIOPERATOR", TRIOPERATOR, {
   chooser: [

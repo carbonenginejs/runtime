@@ -38,6 +38,20 @@ import { CjsTextureArrayBridge } from "./parameter/CjsTextureArrayBridge.js";
 import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 import { float32FromBits } from "#utils/bytes";
+import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
+
+/** Tr2Effect_Blue.cpp:93: a one-entry chooser whose description is the effect file-dialog filter. */
+const EffectFileChooser = Object.freeze({
+  SELECT_EFFECT: 0
+});
+
+// Source: trinity/trinity/Shader/Tr2Effect_Blue.cpp:93
+blueEnums.Create("trinity.EffectFileChooser", EffectFileChooser, {
+  chooser: [
+    { name: "SELECT_EFFECT", value: EffectFileChooser.SELECT_EFFECT, description: "Effect source (.fx)|*.fx|All Files (*.*)|*.*" }
+  ]
+});
+
 
 // The authored scalar API retains its legacy signed address/filter coercion;
 // the record declarations and native Black structure use unsigned slots.
@@ -90,10 +104,9 @@ export class Tr2Effect extends Tr2Material
    * m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY]
    * Authored shader effect path used to resolve the effect resource.
    * @type {string}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Shader/Tr2Effect_Blue.cpp:120); chooser EffectFileChooser (trinity/trinity/Shader/Tr2Effect_Blue.cpp:93).
    */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY, "trinity.EffectFileChooser")
 
   @type.path("Tr2EffectRes")
   effectFilePath = "";

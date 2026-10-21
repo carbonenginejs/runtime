@@ -22,9 +22,8 @@ export class Tr2Mesh extends Tr2MeshBase
 {
   _morphAnimations = new Map();
 
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2Mesh_Blue.cpp:64); chooser TriGR2Chooser (trinity/trinity/TriConstants.cpp:87). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.PERSIST, "blue.TriGR2Chooser")
   @type.path("TriGeometryRes")
   geometryResPath = "";
 

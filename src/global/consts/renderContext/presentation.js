@@ -143,3 +143,38 @@ blueEnums.Create("trinity.Tr2RenderContextEnum.SwapEffect", SwapEffect, {
     { name: "SEQUENTIAL", value: SwapEffect.SWAP_EFFECT_SEQUENTIAL, description: "" }
   ]
 });
+
+/** Tr2RenderContextEnum scanline ordering of a display mode. */
+export const ScanlineOrdering = Object.freeze({
+    SCANLINE_ORDER_UNSPECIFIED: 0,
+    SCANLINE_ORDER_PROGRESSIVE: 1,
+    SCANLINE_ORDER_UPPER_FIELD_FIRST: 2,
+    SCANLINE_ORDER_LOWER_FIELD_FIRST: 3
+});
+
+/** Tr2RenderContextEnum display scaling of a display mode. */
+export const DisplayScaling = Object.freeze({
+    DISPLAY_SCALING_UNSPECIFIED: 0,
+    DISPLAY_SCALING_CENTERED: 1,
+    DISPLAY_SCALING_STRETCHED: 2
+});
+
+// Carbon registers neither enum; its choosers are Tr2RenderContext_Blue.cpp:250 and :258.
+// Source: trinity/trinity/Tr2RenderContext_Blue.cpp:250
+blueEnums.Create("trinity.Tr2RenderContextEnum_ScanlineOrdering_Chooser", ScanlineOrdering, {
+  chooser: [
+    { name: "UNSPECIFIED", value: ScanlineOrdering.SCANLINE_ORDER_UNSPECIFIED, description: "" },
+    { name: "PROGRESSIVE", value: ScanlineOrdering.SCANLINE_ORDER_PROGRESSIVE, description: "" },
+    { name: "UPPER_FIELD_FIRST", value: ScanlineOrdering.SCANLINE_ORDER_UPPER_FIELD_FIRST, description: "" },
+    { name: "LOWER_FIELD_FIRST", value: ScanlineOrdering.SCANLINE_ORDER_LOWER_FIELD_FIRST, description: "" }
+  ]
+});
+
+// Source: trinity/trinity/Tr2RenderContext_Blue.cpp:258
+blueEnums.Create("trinity.Tr2RenderContextEnum_DisplayScaling_Chooser", DisplayScaling, {
+  chooser: [
+    { name: "UNSPECIFIED", value: DisplayScaling.DISPLAY_SCALING_UNSPECIFIED, description: "" },
+    { name: "CENTERED", value: DisplayScaling.DISPLAY_SCALING_CENTERED, description: "" },
+    { name: "STRETCHED", value: DisplayScaling.DISPLAY_SCALING_STRETCHED, description: "" }
+  ]
+});

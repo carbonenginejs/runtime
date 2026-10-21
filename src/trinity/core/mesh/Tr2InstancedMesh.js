@@ -42,9 +42,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @type.enum("trinity.Tr2InstancedMesh.BoundsMethod")
   boundsMethod = 0;
 
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2InstancedMesh_Blue.cpp:31); chooser TriGR2Chooser (trinity/trinity/TriConstants.cpp:87). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.PERSIST, "blue.TriGR2Chooser")
   @type.path("TriGeometryRes")
   instanceGeometryResPath = "";
 

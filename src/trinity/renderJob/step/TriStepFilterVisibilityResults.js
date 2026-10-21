@@ -1,10 +1,11 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { FilterType } from "../../generated/renderJob/enums.js";
 import { blue } from "#blue";
+import "../../core/context/Tr2VisibilityResults/Tr2VisibilityEvent.js";
 
 /** A render step that filters one visibility-result set into another by event and object filter. */
 @be.define("TriStepFilterVisibilityResults")
@@ -13,9 +14,11 @@ import { blue } from "#blue";
 export class TriStepFilterVisibilityResults extends TriRenderStep
 {
 
-  /** m_eventFilter (uint32_t) [READWRITE, PERSIST] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_eventFilter (uint32_t) [READWRITE, PERSIST]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:62); chooser TriVisibilityEventTypeChooser (trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:7).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST, "trinity.TRIVISIBILITY_EVENT_TYPE")
   @type.uint32
   eventFilter = 0xffffffff;
 
