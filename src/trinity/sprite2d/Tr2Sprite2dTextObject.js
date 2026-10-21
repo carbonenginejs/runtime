@@ -14,11 +14,13 @@ import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sp
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 {
 
-  /** m_shadowSpriteEffect (Tr2SpriteObjectEffect - enum Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  /**
+   * m_shadowSpriteEffect (Tr2SpriteObjectEffect - enum Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2Sprite2dTextObject_Blue.cpp:49); chooser Tr2SpriteObjectEffectChooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:32).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.Tr2SpriteObjectEffect")
   @type.int32
-  @type.enum("Tr2SpriteObjectEffect")
+  @type.enum("trinity.Tr2SpriteObjectEffect")
   shadowSpriteEffect = 43;
 
   /** m_hasAuxiliaryTooltip (bool) [READWRITE] */

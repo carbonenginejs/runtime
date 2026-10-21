@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/TriTextureRes.h
 // Source: trinity/trinity/Resources/TriTextureRes.cpp
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
@@ -796,8 +797,9 @@ function getPayloadMemoryUsage(payload)
 CjsSchema.blue.define(TriTextureRes, {
   className: "TriTextureRes",
   fields: {
-    format: [ type.int32, type.enum("PixelFormat"), blue.read ],
-    type: [ type.int32, type.enum("TextureType"), blue.read, blue.persist ],
+    // Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Resources/TriTextureRes_Blue.cpp:157); chooser Tr2RenderContextEnum_PixelFormat_Chooser (trinity/trinity/Tr2RenderContext_Blue.cpp:141).
+    format: [ type.int32, type.enum("trinity.ImageIO.PixelFormat"), be.mapAttributeWithChooser(be.READ | be.ENUM, "trinity.ImageIO.PixelFormat") ],
+    type: [ type.int32, type.enum("trinity.ImageIO.TextureType"), blue.read, blue.persist ],
     averageColor: [ type.color, blue.read ],
     depth: [ type.uint32, blue.read ],
     cutoutHeight: [ type.float32, blue.readwrite ],

@@ -259,10 +259,13 @@ function CopyToTexture(bitmap, texture, x, y, margin, renderContext)
 export class Tr2TextureAtlas extends ITr2TextureProvider
 {
 
-  /** m_format (Tr2RenderContextEnum::PixelFormat) [READ, ENUM] */
-  @blue.read
+  /**
+   * m_format (Tr2RenderContextEnum::PixelFormat) [READ, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2TextureAtlas_Blue.cpp:16); chooser Tr2RenderContextEnum_PixelFormat_Chooser (trinity/trinity/Tr2RenderContext_Blue.cpp:141).
+   */
+  @be.mapAttributeWithChooser(be.READ | be.ENUM, "trinity.ImageIO.PixelFormat")
   @type.int32
-  @type.enum("PixelFormat")
+  @type.enum("trinity.ImageIO.PixelFormat")
   format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
 
   /** m_width (unsigned int) [READ] */

@@ -99,11 +99,11 @@ export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
   /**
    * m_dpiScaleBehavior (Tr2StretchScaleBehavior) [READWRITE, PERSIST, ENUM]. Carbon stores and
    * exposes it but no Tr2Sprite2dStretch code reads it.
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp:73); chooser Tr2Sprite2dStretchDpiScaleBehaviorChooser (trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp:8).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2StretchScaleBehavior")
   @type.int32
-  @type.enum("Tr2StretchScaleBehavior")
+  @type.enum("trinity.Tr2StretchScaleBehavior")
   dpiScaleBehavior = Tr2StretchScaleBehavior.S2D_SSC_ALIGN_BOTTOMRIGHT;
 
   /** Carbon m_resPath: declared but never read or exposed by Tr2Sprite2dStretch.cpp. @type {string} */

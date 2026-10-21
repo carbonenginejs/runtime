@@ -17,26 +17,32 @@ import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from
 export class Tr2SpriteObject extends Tr2SpriteObjectBase
 {
 
-  /** m_blendMode (Tr2SpriteObjectBlendMode - enum Tr2SpriteObjectBlendMode) [READWRITE, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  /**
+   * m_blendMode (Tr2SpriteObjectBlendMode - enum Tr2SpriteObjectBlendMode) [READWRITE, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:146); chooser Tr2SpriteObjectBlendModeChooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:17).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.Tr2SpriteObjectBlendMode")
   @type.int32
-  @type.enum("Tr2SpriteObjectBlendMode")
+  @type.enum("trinity.Tr2SpriteObjectBlendMode")
   blendMode = 0;
 
-  /** m_spriteEffect (Tr2SpriteObjectEffect - enum Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  /**
+   * m_spriteEffect (Tr2SpriteObjectEffect - enum Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:166); chooser Tr2SpriteObjectEffectChooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:32).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.Tr2SpriteObjectEffect")
   @type.int32
-  @type.enum("Tr2SpriteObjectEffect")
+  @type.enum("trinity.Tr2SpriteObjectEffect")
   // Carbon TR2_SFX_COPY aliases ONE_TEXTURE.
   spriteEffect = Tr2SpriteObjectEffect.TR2_SFX_ONE_TEXTURE;
 
-  /** m_target (Tr2SpriteTarget - enum Tr2SpriteTarget) [READWRITE, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  /**
+   * m_target (Tr2SpriteTarget - enum Tr2SpriteTarget) [READWRITE, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:153); chooser Tr2SpriteTargetChooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:25).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.Tr2SpriteTarget")
   @type.int32
-  @type.enum("Tr2SpriteTarget")
+  @type.enum("trinity.Tr2SpriteTarget")
   spriteTarget = 1;
 
   /** m_color (Color) [READWRITE, NOTIFY] */

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h
 //   trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
@@ -18,7 +19,10 @@ const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline"
 export class Tr2TexturePipelineStepPack extends IRoot
 {
 
-  /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, PERSIST, ENUM] */
+  /**
+   * m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack_Blue.cpp:48); chooser Tr2RenderContextEnum_PixelFormat_Chooser (trinity/trinity/Tr2RenderContext_Blue.cpp:141).
+   */
   format = 87;
 
   /** m_a (PTr2TexturePackChannel) [READ, PERSIST] */
@@ -256,7 +260,7 @@ export class Tr2TexturePipelineStepPack extends IRoot
 }
 
 
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "format", blue.readwrite, blue.persist, type.int32, type.enum("PixelFormat"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "format", be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ImageIO.PixelFormat"), type.int32, type.enum("trinity.ImageIO.PixelFormat"));
 CjsSchema.decorateField(Tr2TexturePipelineStepPack, "a", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
 CjsSchema.decorateField(Tr2TexturePipelineStepPack, "b", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
 CjsSchema.decorateField(Tr2TexturePipelineStepPack, "g", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));

@@ -70,18 +70,22 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   @type.boolean
   clearBackground = true;
 
-  /** m_blendMode (Tr2SpriteObjectBlendMode) [READWRITE, ENUM, NOTIFY]: how the layer blends with the background. */
-  @blue.notify
-  @blue.readwrite
+  /**
+   * m_blendMode (Tr2SpriteObjectBlendMode) [READWRITE, ENUM, NOTIFY]: how the layer blends with the background.
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2Sprite2dLayer_Blue.cpp:31); chooser Tr2SpriteObjectBlendModeChooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:17).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.Tr2SpriteObjectBlendMode")
   @type.int32
-  @type.enum("Tr2SpriteObjectBlendMode")
+  @type.enum("trinity.Tr2SpriteObjectBlendMode")
   blendMode = Tr2SpriteObjectBlendMode.TR2_SBM_NONE;
 
-  /** m_spriteEffect (Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY]: Carbon's constructor sets TR2_SFX_COPY (Tr2Sprite2dLayer.cpp:16). */
-  @blue.notify
-  @blue.readwrite
+  /**
+   * m_spriteEffect (Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY]: Carbon's constructor sets TR2_SFX_COPY (Tr2Sprite2dLayer.cpp:16).
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2Sprite2dLayer_Blue.cpp:38); chooser Tr2SpriteObjectEffectChooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:32).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.Tr2SpriteObjectEffect")
   @type.int32
-  @type.enum("Tr2SpriteObjectEffect")
+  @type.enum("trinity.Tr2SpriteObjectEffect")
   spriteEffect = Tr2SpriteObjectEffect.TR2_SFX_COPY;
 
   /** textureSecondary (MAP_PROPERTY GetTextureSecondary/SetTextureSecondary): secondary texture for the layer sprite. */
