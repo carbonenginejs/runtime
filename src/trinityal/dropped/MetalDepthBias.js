@@ -25,7 +25,7 @@
 //
 // WebGL has no equivalent projection yet. When it needs one it comes from the
 // same Tr2RenderStateSetup and the same consts, not from this struct.
-import { meta } from "#schema";
+import { meta, type } from "#schema";
 
 /** Carbon's Metal depth-bias triple; dropped because the authored render states already carry these values through Tr2RenderStateSetup into the pipeline. */
 @meta.define({ className: "MetalDepthBias", carbon: "MetalDepthBias", family: "trinityal" })
@@ -33,15 +33,15 @@ export class MetalDepthBias
 {
 
   /** depthBias (float) -> RS_DEPTHBIAS -> GPUDepthStencilState.depthBias */
-  @meta.type.float32
+  @type.float32
   depthBias = 0;
 
   /** slopeScale (float) -> RS_SLOPESCALEDEPTHBIAS -> depthBiasSlopeScale */
-  @meta.type.float32
+  @type.float32
   slopeScale = 0;
 
   /** clamp (float) - Metal API only; Carbon has no render state for it. */
-  @meta.type.float32
+  @type.float32
   clamp = 0;
 
 }

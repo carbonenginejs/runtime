@@ -8,7 +8,7 @@
 //
 // Its hashValue member has a live counterpart too: the pipeline cache keys on
 // the whole PSO description rather than on blend state alone.
-import { meta } from "#schema";
+import { meta, type } from "#schema";
 
 /** Carbon's hashable Metal blend record; dropped because WebGPU folds blending into the render pipeline. */
 @meta.define({ className: "MetalBlendState", carbon: "MetalBlendState", family: "trinityal" })
@@ -16,47 +16,47 @@ export class MetalBlendState
 {
 
   /** blendType (MetalBlendType) */
-  @meta.type.unknown
+  @type.unknown
   blendType = null;
 
   /** alphaCoverageEnable (bool) */
-  @meta.type.boolean
+  @type.boolean
   alphaCoverageEnable = false;
 
   /** rgbBlendOp (MTLBlendOperation) */
-  @meta.type.unknown
+  @type.unknown
   rgbBlendOp = null;
 
   /** alphaBlendOp (MTLBlendOperation) */
-  @meta.type.unknown
+  @type.unknown
   alphaBlendOp = null;
 
   /** srcColorFactor (MTLBlendFactor) */
-  @meta.type.unknown
+  @type.unknown
   srcColorFactor = null;
 
   /** destColorFactor (MTLBlendFactor) */
-  @meta.type.unknown
+  @type.unknown
   destColorFactor = null;
 
   /** srcAlphaFactor (MTLBlendFactor) */
-  @meta.type.unknown
+  @type.unknown
   srcAlphaFactor = null;
 
   /** destAlphaFactor (MTLBlendFactor) */
-  @meta.type.unknown
+  @type.unknown
   destAlphaFactor = null;
 
   /** blendColor (MetalColor) */
-  @meta.type.unknown
+  @type.unknown
   blendColor = null;
 
   /** writeMask (MTLColorWriteMask) */
-  @meta.type.unknown
+  @type.unknown
   writeMask = null;
 
   /** hashValue (size_t) */
-  @meta.type.unknown
+  @type.unknown
   hashValue = 0;
 
 }

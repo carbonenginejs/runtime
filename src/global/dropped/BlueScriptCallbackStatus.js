@@ -17,7 +17,7 @@
 // This remains a non-exported, non-instantiable disposition record. Reconsider a
 // live status object only if a consumer needs a deferred transferable call outcome
 // rather than local try/catch; ordinary synchronous reporting does not require it.
-import { meta } from "#schema";
+import { meta, type } from "#schema";
 
 /** Carbon's private `Status` enum; the whole state the class discriminates on. */
 export const BLUE_SCRIPT_CALLBACK_STATUS = Object.freeze({
@@ -32,27 +32,27 @@ export class BlueScriptCallbackStatus
 {
 
     /** m_hasException (Status) - the OK / CALL_ERROR / EXCEPTION discriminator. */
-    @meta.type.uint32
+    @type.uint32
     hasException = BLUE_SCRIPT_CALLBACK_STATUS.OK;
 
     /** m_muteException (bool) - set by MuteException(); suppresses the report. */
-    @meta.type.boolean
+    @type.boolean
     muteException = false;
 
     /** m_exceptionReported (bool) - guards double reporting from the destructor. */
-    @meta.type.boolean
+    @type.boolean
     exceptionReported = false;
 
     /** m_type (PyObject*) - captured exception type, BLUE_WITH_PYTHON only. */
-    @meta.type.unknown
+    @type.unknown
     type = null;
 
     /** m_value (PyObject*) - captured exception value, BLUE_WITH_PYTHON only. */
-    @meta.type.unknown
+    @type.unknown
     value = null;
 
     /** m_traceback (PyObject*) - captured traceback, BLUE_WITH_PYTHON only. */
-    @meta.type.unknown
+    @type.unknown
     traceback = null;
 
 }

@@ -7,7 +7,7 @@
 //
 // Nothing of the behaviour survives elsewhere, unlike a flattened record: there
 // is no JavaScript place where "release or delete" has to be chosen.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** Carbon's unique_ptr frame deleter; dropped with FrameOwner, because GC reclaims frames. */
 export class FrameDeleter
@@ -21,6 +21,6 @@ export class FrameDeleter
 CjsSchema.define(FrameDeleter, {
   className: "FrameDeleter", carbon: "FrameDeleter", family: "videoPlayer",
   fields: {
-    owner: meta.type.rootRef("FrameOwner")
+    owner: type.rootRef("FrameOwner")
   }
 });
