@@ -2230,7 +2230,7 @@ function getCanonicalDeclarations(Constructor, role)
 function resolveInheritedDeclaration(Owner, record)
 {
     const { entry } = record;
-    if (!record.legacy || entry.exposure) return entry;
+    if (!record.legacy || (entry.exposure && !entry.mapsInherited)) return entry;
     for (const Parent of getSchemaLineage(Object.getPrototypeOf(Owner)).reverse())
     {
         const inherited = CLASS_SCHEMA.get(Parent).declarations.find(({ entry: candidate }) =>
@@ -2707,8 +2707,9 @@ function getSchemaLineage(Constructor)
 
 function mergeMemberMetadata(target, source)
 {
-    // New macro rows are complete declarations; legacy decorators still merge.
-    if (source.exposure) for (const key of Object.keys(target)) if (key !== "name") delete target[key];
+    // New macro rows are complete declarations; legacy decorators still merge. A row above a class (be.map* naming an inherited member) only
+    // adds the subclass's exposure to what the member already is, so it keeps the inherited type, state and flags.
+    if (source.exposure && !source.mapsInherited) for (const key of Object.keys(target)) if (key !== "name") delete target[key];
     for (const [namespace, value] of Object.entries(source))
     {
         if (namespace === "name") continue;
@@ -3800,7 +3801,7 @@ function inheritedAware(macroName, role, name, build)
             const key = entry.trim();
             if (role !== "member" && !(key in target.prototype))
                 throw new TypeError(`be.${macroName} above ${target.name || "a class"} names "${key}", which the class does not have or inherit.`);
-            const parts = getDecoratorMetadata(build(key)).parts;
+            const parts = [ { namespace: "mapsInherited", value: { inherited: true } }, ...getDecoratorMetadata(build(key)).parts ];
             for (const part of parts)
             {
                 if (role === "method") defineMethodMetadata(target, key, part.namespace, part.value);

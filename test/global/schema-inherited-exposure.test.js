@@ -32,6 +32,7 @@ test("a method mapped above a subclass lands in the subclass's own table, not th
     const row = CjsSchema.getMethod(Sub, "Rebuild");
     assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP");
     assert.equal(row.carbon.method, true);
+    assert.equal(row.impl.status, "implemented", "the inherited state is kept");
     assert.equal(CjsSchema.getMethod(Base, "Rebuild").exposure, undefined);
     assert.equal(CjsSchema.getMethod(Other, "Rebuild").exposure, undefined);
     assert.equal(new Sub().Rebuild(), 1, "no override is written");
@@ -87,15 +88,19 @@ test("an inherited field is mapped as an attribute, with a chooser, or as a fiel
 {
     const { Sub, Base } = await load(`
       @meta.carbon("InhAttrBase")
-      export class Base { plain = 0; chosen = 0; owner = null; }
+      export class Base { @type.int32 plain = 0; @type.int32 chosen = 0; @type.uint32 owner = 0; }
       @be.define("InhAttrSub")
       @be.mapPropertyReadOnly__Field("owner")
       @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, null, "chosen")
       @be.mapAttribute(be.READ, "plain")
       export class Sub extends Base {}`);
-    const members = Object.fromEntries(CjsSchema.getSchema(Sub).members.map(m => [ m.name, m.exposure?.macro ]));
+    // The schema lists inherited declarations beside the class's own, as it does for any redeclared member; the subclass's row is the one it declares.
+    const own = name => CjsSchema.getSchema(Sub).members.find(m => m.name === name && m.declaringClass === Sub);
+    const members = Object.fromEntries([ "plain", "chosen", "owner" ].map(name => [ name, own(name)?.exposure?.macro ]));
     assert.deepEqual(members, { plain: "MAP_ATTRIBUTE", chosen: "MAP_ATTRIBUTE_WITH_CHOOSER", owner: "MAP_PROPERTY_READONLY" });
-    assert.equal(CjsSchema.getSchema(Sub).members.find(m => m.name === "plain").exposure.flags, be.READ);
+    assert.equal(own("plain").exposure.flags, be.READ);
+    assert.equal(own("plain").type.kind, "int32", "the inherited type is kept");
+    assert.equal(own("owner").type.kind, "uint32");
     assert.equal(CjsSchema.getSchema(Base).members.some(m => m.exposure), false);
 });
 
