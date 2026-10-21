@@ -139,13 +139,15 @@
     "global/interfaces": {
       "mayImport": [
         "global/schema",
-        "global/math"
+        "global/math",
+        "global/blue"
       ],
       "why": [
         "Interface roots use schema implementation metadata so required",
         "methods carry @impl.abstract as well as their throwing body.",
         "Tr2DebugColor, declared in the same Carbon header as ITr2DebugRenderer2,",
-        "converts Carbon Colors to packed words through global/math/color."
+        "converts Carbon Colors to packed words through global/math/color.",
+        "Carbon interfaces derive from IRoot (BLUE_INTERFACE( X ) : IRoot), so they import global/blue/IRoot."
       ]
     },
     "global/blue/classes": {
