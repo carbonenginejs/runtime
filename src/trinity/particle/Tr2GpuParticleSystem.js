@@ -977,12 +977,34 @@ export class Tr2GpuParticleSystem
     throw new Error("Tr2GpuParticleSystem.GetEmitTime is not implemented: Tr2ProfileTimer is not ported.");
   }
 
+  /**
+   * emitTime (MAP_PROPERTY_READONLY): Carbon's property over GetEmitTime, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp:89).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.notImplemented
+  get emitTime()
+  {
+    return this.GetEmitTime();
+  }
+
   /** Carbon GetUpdateTime (cpp:737-740); see GetEmitTime. Waiting: its "updateTime" property. */
 
   @meta.notImplemented
   GetUpdateTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetUpdateTime is not implemented: Tr2ProfileTimer is not ported.");
+  }
+
+  /**
+   * updateTime (MAP_PROPERTY_READONLY): Carbon's property over GetUpdateTime, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp:93).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.notImplemented
+  get updateTime()
+  {
+    return this.GetUpdateTime();
   }
 
   /** Carbon GetSortTime (cpp:742-745); see GetEmitTime. Waiting: its "sortTime" property. */
@@ -993,12 +1015,34 @@ export class Tr2GpuParticleSystem
     throw new Error("Tr2GpuParticleSystem.GetSortTime is not implemented: Tr2ProfileTimer is not ported.");
   }
 
+  /**
+   * sortTime (MAP_PROPERTY_READONLY): Carbon's property over GetSortTime, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp:97).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.notImplemented
+  get sortTime()
+  {
+    return this.GetSortTime();
+  }
+
   /** Carbon GetRenderTime (cpp:747-750); see GetEmitTime. Waiting: its "renderTime" property. */
 
   @meta.notImplemented
   GetRenderTime()
   {
     throw new Error("Tr2GpuParticleSystem.GetRenderTime is not implemented: Tr2ProfileTimer is not ported.");
+  }
+
+  /**
+   * renderTime (MAP_PROPERTY_READONLY): Carbon's property over GetRenderTime, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp:101).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.notImplemented
+  get renderTime()
+  {
+    return this.GetRenderTime();
   }
 
   /**

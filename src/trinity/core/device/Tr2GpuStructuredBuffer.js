@@ -167,6 +167,17 @@ export class Tr2GpuStructuredBuffer extends IRoot
     return this._buffer !== null;
   }
 
+  /**
+   * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2GpuStructuredBuffer_Blue.cpp:82).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get isValid()
+  {
+    return this.IsValid();
+  }
+
   /** Carbon GetCount (cpp:173-175): the created buffer's element count, 0 without one. */
   @blue.method
   @meta.implemented

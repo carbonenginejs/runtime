@@ -298,6 +298,15 @@ export class Tr2MainWindow
         return !this.#closed && (typeof this.#document?.hasFocus === "function" ? this.#document.hasFocus() : true);
     }
 
+    /**
+     * active (MAP_PROPERTY_READONLY): Carbon's property over HasFocus, which the macro calls.
+     * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/UI/Tr2MainWindow_Blue.cpp:166).
+     */
+    get active()
+    {
+        return this.HasFocus();
+    }
+
     /** Reports whether the adapted document or window state is hidden. */
     IsHidden()
     {
@@ -647,6 +656,7 @@ CjsSchema.decorateMethod(Tr2MainWindow, "Key", meta.renamed("IsKeyPressed"), met
 CjsSchema.decorateMethod(Tr2MainWindow, "GetKeyNameText", meta.renamed("GetKeyName"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetHwndAsLong", meta.renamed("GetHwnd"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "HasFocus", be.mapMethodAndWrap("IsActive"), meta.adapted);
+CjsSchema.decorateField(Tr2MainWindow, "active", be.mapPropertyReadOnly(), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "SetMinimumSize", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetDefaultState", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "StoreStateSettings", blue.method, meta.adapted);

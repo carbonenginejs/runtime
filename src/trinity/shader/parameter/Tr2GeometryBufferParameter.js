@@ -186,6 +186,17 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   }
 
   /**
+   * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter_Blue.cpp:32).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get isValid()
+  {
+    return this.IsValid();
+  }
+
+  /**
    * Attaches a buffer object directly and clears the authored resource path, so
    * the path can no longer override it.
    */

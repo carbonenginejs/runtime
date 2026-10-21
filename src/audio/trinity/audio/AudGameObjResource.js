@@ -942,6 +942,17 @@ export class AudGameObjResource
   }
 
   /**
+   * maxAttenuationRadius (MAP_PROPERTY_READONLY): Carbon's property over GetMaxAttenuationRadius, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (audio/src/AudGameObjResource_Blue.cpp:36).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get maxAttenuationRadius()
+  {
+    return this.GetMaxAttenuationRadius();
+  }
+
+  /**
    * Carbon method UpdateEventSoundPrioritizationAttributes (cpp:896-939):
    * recomputes the 2D and vital flags from playing and queued events. The max
    * attenuation radius only GROWS here (through UpdateMaxAttenuationRadiusForEvent)

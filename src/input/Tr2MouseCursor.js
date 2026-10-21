@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { CjsSchema, blue, meta } from "#schema";
 import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2MouseCursor.h
@@ -118,6 +119,15 @@ export class Tr2MouseCursor
         return typeof this.cssCursor === "string" && this.cssCursor.length > 0;
     }
 
+    /**
+     * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
+     * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/UI/Tr2MouseCursor_Blue.cpp:40).
+     */
+    get isValid()
+    {
+        return this.IsValid();
+    }
+
     /** Applies this cursor to a style-bearing browser target. */
     Apply(target = globalThis.document?.documentElement)
     {
@@ -183,5 +193,6 @@ blue.inherit(IRoot)(Tr2MouseCursor);
 CjsSchema.decorateMethod(Tr2MouseCursor, "__init__", meta.renamed("py__init__"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MouseCursor, "Create", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2MouseCursor, "IsValid", blue.method, meta.adapted);
+CjsSchema.decorateField(Tr2MouseCursor, "isValid", be.mapPropertyReadOnly(), meta.adapted);
 CjsSchema.decorateMethod(Tr2MouseCursor, "Apply", blue.method, meta.adapted);
 CjsSchema.exposure.define("Tr2MouseCursor")(Tr2MouseCursor);

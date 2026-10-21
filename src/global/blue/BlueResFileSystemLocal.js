@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: blue/src/BlueResFileSystemLocal.h, blue/src/BlueResFileSystemLocal.cpp,
 //   blue/src/BlueResFileSystemLocal_Blue.cpp
 //
@@ -116,6 +117,15 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   /** `GetInitialWorkingDirectory` - the working directory when the file system was initialized. */
   GetInitialWorkingDirectory() { return noDisk("GetInitialWorkingDirectory"); }
 
+  /**
+   * initialWorkingDirectory (MAP_PROPERTY_READONLY): Carbon's property over GetInitialWorkingDirectory, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (blue/src/BlueResFileSystemLocal_Blue.cpp:14).
+   */
+  get initialWorkingDirectory()
+  {
+    return this.GetInitialWorkingDirectory();
+  }
+
   /** `GetAllSearchPaths` - every protocol's search path as set. */
   GetAllSearchPaths() { return noDisk("GetAllSearchPaths"); }
 
@@ -153,6 +163,7 @@ CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths", blue.
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths__Key", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "LogPaths", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetInitialWorkingDirectory", blue.method, meta.notImplemented);
+CjsSchema.decorateField(BlueResFileSystemLocal, "initialWorkingDirectory", be.mapPropertyReadOnly(), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetAllSearchPaths", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPathsAsDict", blue.method, meta.implemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ListDirFromScript", blue.method, meta.notImplemented);

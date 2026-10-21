@@ -142,6 +142,17 @@ export class Tr2StreamingBitmapSaver extends IRoot
     return this.#rowsPerBatch !== 0;
   }
 
+  /**
+   * hasStartedBatch (MAP_PROPERTY_READONLY): Carbon's property over HasStartedBatch, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2StreamingBitmapSaver_Blue.cpp:43).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get hasStartedBatch()
+  {
+    return this.HasStartedBatch();
+  }
+
   /** Carbon method CopyFromRenderTargetRegion (MAP_METHOD_AND_WRAP). */
   @be.mapMethodAndWrap()
   @meta.notImplemented

@@ -338,12 +338,34 @@ export class Tr2QuadRenderer
     return this._vertexBuffer.GetBufferSize();
   }
 
+  /**
+   * instanceBufferSize (MAP_PROPERTY_READONLY): Carbon's property over GetInstanceBufferSize, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2QuadRenderer_Blue.cpp:14).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get instanceBufferSize()
+  {
+    return this.GetInstanceBufferSize();
+  }
+
   /** Carbon GetInstanceDataSize (cpp:333-336). */
 
   @meta.implemented
   GetInstanceDataSize()
   {
     return this.lastInstanceDataSize;
+  }
+
+  /**
+   * instanceDataSize (MAP_PROPERTY_READONLY): Carbon's property over GetInstanceDataSize, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2QuadRenderer_Blue.cpp:19).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get instanceDataSize()
+  {
+    return this.GetInstanceDataSize();
   }
 
   /** The registered effect records, for tests and diagnostics. */

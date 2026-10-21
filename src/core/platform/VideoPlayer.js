@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 import { INotify } from "../../global/blue/INotify.js";
 import { IBlueEvents } from "../../global/blue/IBlueEvents.js";
@@ -342,11 +343,29 @@ export class VideoPlayer
 
   /** Carbon pause query, independent of buffering and autoplay policy. */
   IsPaused() { return this._paused; }
+
+  /**
+   * is_paused (MAP_PROPERTY_READONLY): Carbon's property over IsPaused, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (videoplayer/VideoPlayer_Blue.cpp:53).
+   */
+  get is_paused()
+  {
+    return this.IsPaused();
+  }
   /**
    * Media playback time in nanoseconds, as Carbon's uint64_t `media_time` (VideoPlayer_Blue.cpp:88-91).
    * Adapted: read from the browser's seconds clock and truncated to whole nanoseconds.
    */
   GetMediaTime() { return this.video ? VideoPlayer._secondsToNanoseconds(this.video.currentTime) : 0; }
+
+  /**
+   * media_time (MAP_PROPERTY_READONLY): Carbon's property over GetMediaTime, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (videoplayer/VideoPlayer_Blue.cpp:88).
+   */
+  get media_time()
+  {
+    return this.GetMediaTime();
+  }
   /**
    * Total media duration in nanoseconds (VideoPlayer_Blue.cpp:92-95).
    * Adapted: read from the browser's duration in seconds; 0 while it is unknown.
@@ -360,6 +379,15 @@ export class VideoPlayer
   Seek(time) { if (this.video) this.video.currentTime = time / VideoPlayer.NANOSECONDS_PER_SECOND; }
   /** Carbon state; autoplayBlocked and Validate distinguish browser policy from decode failure. */
   GetState() { return this._state; }
+
+  /**
+   * state (MAP_PROPERTY_READONLY): Carbon's property over GetState, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (videoplayer/VideoPlayer_Blue.cpp:49).
+   */
+  get state()
+  {
+    return this.GetState();
+  }
   /**
    * Media time downloaded from the input stream, in nanoseconds (VideoPlayer_Blue.cpp:96-99).
    * Adapted: the end of the browser's last buffered range, in seconds, truncated to whole nanoseconds.
@@ -368,6 +396,15 @@ export class VideoPlayer
   {
     const ranges = this.video ? this.video.buffered : null;
     return ranges && ranges.length ? VideoPlayer._secondsToNanoseconds(ranges.end(ranges.length - 1)) : 0;
+  }
+
+  /**
+   * downloaded_media_time (MAP_PROPERTY_READONLY): Carbon's property over GetDownloadedMediaTime, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (videoplayer/VideoPlayer_Blue.cpp:96).
+   */
+  get downloaded_media_time()
+  {
+    return this.GetDownloadedMediaTime();
   }
 
   /** Nanoseconds per second: Carbon's media clock unit (VideoPlayer_Blue.cpp:69,91). */
@@ -506,9 +543,12 @@ CjsSchema.decorateMethod(VideoPlayer, "Update", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "Pause", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "Resume", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "IsPaused", blue.method, meta.adapted);
+CjsSchema.decorateField(VideoPlayer, "is_paused", be.mapPropertyReadOnly(), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetMediaTime", blue.method, meta.adapted);
+CjsSchema.decorateField(VideoPlayer, "media_time", be.mapPropertyReadOnly(), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetDuration", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetDownloadedMediaTime", blue.method, meta.adapted);
+CjsSchema.decorateField(VideoPlayer, "downloaded_media_time", be.mapPropertyReadOnly(), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetVideoInfo", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "ClearTextures", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "OnModified", blue.method, meta.adapted);
@@ -517,6 +557,7 @@ CjsSchema.decorateMethod(VideoPlayer, "SetBgraTexture", blue.method, meta.adapte
 CjsSchema.decorateMethod(VideoPlayer, "GetBgraTexture", blue.method, meta.implemented);
 CjsSchema.decorateMethod(VideoPlayer, "Seek", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetState", blue.method, meta.adapted);
+CjsSchema.decorateField(VideoPlayer, "state", be.mapPropertyReadOnly(), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "Validate", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "Destruct", meta.adapted);
 CjsSchema.exposure.define("VideoPlayer")(VideoPlayer);

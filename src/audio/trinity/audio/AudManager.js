@@ -478,6 +478,24 @@ export class AudManager extends IRoot
     this._obstructionOcclusion.SetEnabled(value);
   }
 
+  /**
+   * obstructionOcclusionEnabled (MAP_PROPERTY): Carbon's property over GetObstructionOcclusionEnabled/SetObstructionOcclusionEnabled, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:54).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get obstructionOcclusionEnabled()
+  {
+    return this.GetObstructionOcclusionEnabled();
+  }
+
+  @meta.implemented
+
+  set obstructionOcclusionEnabled(value)
+  {
+    this.SetObstructionOcclusionEnabled(value);
+  }
+
   /** Carbon Blue property getter for the obstruction/occlusion fade rate. */
 
   @meta.implemented
@@ -492,6 +510,24 @@ export class AudManager extends IRoot
   SetObstructionOcclusionFadeRate(value)
   {
     this._obstructionOcclusion.SetFadeRate(value);
+  }
+
+  /**
+   * obstructionOcclusionFadeRate (MAP_PROPERTY): Carbon's property over GetObstructionOcclusionFadeRate/SetObstructionOcclusionFadeRate, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:55).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get obstructionOcclusionFadeRate()
+  {
+    return this.GetObstructionOcclusionFadeRate();
+  }
+
+  @meta.implemented
+
+  set obstructionOcclusionFadeRate(value)
+  {
+    this.SetObstructionOcclusionFadeRate(value);
   }
 
   /**
@@ -570,6 +606,24 @@ export class AudManager extends IRoot
     this._spatialAudioSettings.SetMovementThreshold(value);
   }
 
+  /**
+   * movementThreshold (MAP_PROPERTY): Carbon's property over GetMovementThreshold/SetMovementThreshold, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:38).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get movementThreshold()
+  {
+    return this.GetMovementThreshold();
+  }
+
+  @meta.implemented
+
+  set movementThreshold(value)
+  {
+    this.SetMovementThreshold(value);
+  }
+
   /** Returns the maximum number of primary spatial-audio rays. */
   @blue.method
   @meta.implemented
@@ -584,6 +638,24 @@ export class AudManager extends IRoot
   SetNumberOfPrimaryRays(value)
   {
     this._spatialAudioSettings.SetNumberOfPrimaryRays(value);
+  }
+
+  /**
+   * numberOfPrimaryRays (MAP_PROPERTY): Carbon's property over GetNumberOfPrimaryRays/SetNumberOfPrimaryRays, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:39).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get numberOfPrimaryRays()
+  {
+    return this.GetNumberOfPrimaryRays();
+  }
+
+  @meta.implemented
+
+  set numberOfPrimaryRays(value)
+  {
+    this.SetNumberOfPrimaryRays(value);
   }
 
   /** Returns the maximum reflection order. */
@@ -602,6 +674,24 @@ export class AudManager extends IRoot
     this._spatialAudioSettings.SetMaxReflectionOrder(value);
   }
 
+  /**
+   * maxReflectionOrder (MAP_PROPERTY): Carbon's property over GetMaxReflectionOrder/SetMaxReflectionOrder, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:40).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get maxReflectionOrder()
+  {
+    return this.GetMaxReflectionOrder();
+  }
+
+  @meta.implemented
+
+  set maxReflectionOrder(value)
+  {
+    this.SetMaxReflectionOrder(value);
+  }
+
   /** Returns the maximum diffraction order. */
   @blue.method
   @meta.implemented
@@ -616,6 +706,24 @@ export class AudManager extends IRoot
   SetMaxDiffractionOrder(value)
   {
     this._spatialAudioSettings.SetMaxDiffractionOrder(value);
+  }
+
+  /**
+   * maxDiffractionOrder (MAP_PROPERTY): Carbon's property over GetMaxDiffractionOrder/SetMaxDiffractionOrder, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:41).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get maxDiffractionOrder()
+  {
+    return this.GetMaxDiffractionOrder();
+  }
+
+  @meta.implemented
+
+  set maxDiffractionOrder(value)
+  {
+    this.SetMaxDiffractionOrder(value);
   }
 
   /** Returns the maximum number of emitter room auxiliary sends. */
@@ -634,6 +742,24 @@ export class AudManager extends IRoot
     this._spatialAudioSettings.SetMaxEmitterRoomAuxSends(value);
   }
 
+  /**
+   * maxEmitterRoomAuxSends (MAP_PROPERTY): Carbon's property over GetMaxEmitterRoomAuxSends/SetMaxEmitterRoomAuxSends, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:42).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get maxEmitterRoomAuxSends()
+  {
+    return this.GetMaxEmitterRoomAuxSends();
+  }
+
+  @meta.implemented
+
+  set maxEmitterRoomAuxSends(value)
+  {
+    this.SetMaxEmitterRoomAuxSends(value);
+  }
+
   /** Returns the diffraction order applied at reflection endpoints. */
   @blue.method
   @meta.implemented
@@ -648,6 +774,24 @@ export class AudManager extends IRoot
   SetDiffractionOnReflectionsOrder(value)
   {
     this._spatialAudioSettings.SetDiffractionOnReflectionsOrder(value);
+  }
+
+  /**
+   * diffractionOnReflectionsOrder (MAP_PROPERTY): Carbon's property over GetDiffractionOnReflectionsOrder/SetDiffractionOnReflectionsOrder, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:43).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get diffractionOnReflectionsOrder()
+  {
+    return this.GetDiffractionOnReflectionsOrder();
+  }
+
+  @meta.implemented
+
+  set diffractionOnReflectionsOrder(value)
+  {
+    this.SetDiffractionOnReflectionsOrder(value);
   }
 
   /** Returns the maximum spatial-audio path length. */
@@ -666,6 +810,24 @@ export class AudManager extends IRoot
     this._spatialAudioSettings.SetMaxPathLength(value);
   }
 
+  /**
+   * maxPathLength (MAP_PROPERTY): Carbon's property over GetMaxPathLength/SetMaxPathLength, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:44).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get maxPathLength()
+  {
+    return this.GetMaxPathLength();
+  }
+
+  @meta.implemented
+
+  set maxPathLength(value)
+  {
+    this.SetMaxPathLength(value);
+  }
+
   /** Returns the targeted spatial-audio CPU percentage. */
   @blue.method
   @meta.implemented
@@ -680,6 +842,24 @@ export class AudManager extends IRoot
   SetCPULimitPercentage(value)
   {
     this._spatialAudioSettings.SetCPULimitPercentage(value);
+  }
+
+  /**
+   * cpuLimitPercentage (MAP_PROPERTY): Carbon's property over GetCPULimitPercentage/SetCPULimitPercentage, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:45).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get cpuLimitPercentage()
+  {
+    return this.GetCPULimitPercentage();
+  }
+
+  @meta.implemented
+
+  set cpuLimitPercentage(value)
+  {
+    this.SetCPULimitPercentage(value);
   }
 
   /** Returns the spatial-audio load-balancing spread. */
@@ -698,6 +878,24 @@ export class AudManager extends IRoot
     this._spatialAudioSettings.SetLoadBalancingSpread(value);
   }
 
+  /**
+   * loadBalancingSpread (MAP_PROPERTY): Carbon's property over GetLoadBalancingSpread/SetLoadBalancingSpread, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:46).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get loadBalancingSpread()
+  {
+    return this.GetLoadBalancingSpread();
+  }
+
+  @meta.implemented
+
+  set loadBalancingSpread(value)
+  {
+    this.SetLoadBalancingSpread(value);
+  }
+
   /** Returns whether geometric diffraction and transmission are enabled. */
   @blue.method
   @meta.implemented
@@ -712,6 +910,24 @@ export class AudManager extends IRoot
   SetEnableDiffractionAndTransmission(value)
   {
     this._spatialAudioSettings.SetEnableDiffractionAndTransmission(value);
+  }
+
+  /**
+   * enableDiffractionAndTransmission (MAP_PROPERTY): Carbon's property over GetEnableDiffractionAndTransmission/SetEnableDiffractionAndTransmission, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:47).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get enableDiffractionAndTransmission()
+  {
+    return this.GetEnableDiffractionAndTransmission();
+  }
+
+  @meta.implemented
+
+  set enableDiffractionAndTransmission(value)
+  {
+    this.SetEnableDiffractionAndTransmission(value);
   }
 
   /** Returns whether Wwise calculates emitter virtual positions. */
@@ -730,6 +946,24 @@ export class AudManager extends IRoot
     this._spatialAudioSettings.SetCalcEmitterVirtualPosition(value);
   }
 
+  /**
+   * calcEmitterVirtualPosition (MAP_PROPERTY): Carbon's property over GetCalcEmitterVirtualPosition/SetCalcEmitterVirtualPosition, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:48).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get calcEmitterVirtualPosition()
+  {
+    return this.GetCalcEmitterVirtualPosition();
+  }
+
+  @meta.implemented
+
+  set calcEmitterVirtualPosition(value)
+  {
+    this.SetCalcEmitterVirtualPosition(value);
+  }
+
   /** Returns the geometry surface transmission loss. */
   @blue.method
   @meta.implemented
@@ -744,6 +978,24 @@ export class AudManager extends IRoot
   SetTransmissionLoss(value)
   {
     this._spatialAudioSettings.SetTransmissionLoss(value);
+  }
+
+  /**
+   * transmissionLoss (MAP_PROPERTY): Carbon's property over GetTransmissionLoss/SetTransmissionLoss, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:49).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get transmissionLoss()
+  {
+    return this.GetTransmissionLoss();
+  }
+
+  @meta.implemented
+
+  set transmissionLoss(value)
+  {
+    this.SetTransmissionLoss(value);
   }
 
   /** Returns whether geometry diffraction is enabled. */
@@ -762,6 +1014,24 @@ export class AudManager extends IRoot
     this._spatialAudioSettings.SetEnableDiffraction(value);
   }
 
+  /**
+   * enableDiffraction (MAP_PROPERTY): Carbon's property over GetEnableDiffraction/SetEnableDiffraction, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:50).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get enableDiffraction()
+  {
+    return this.GetEnableDiffraction();
+  }
+
+  @meta.implemented
+
+  set enableDiffraction(value)
+  {
+    this.SetEnableDiffraction(value);
+  }
+
   /** Returns whether geometry boundary-edge diffraction is enabled. */
   @blue.method
   @meta.implemented
@@ -776,6 +1046,24 @@ export class AudManager extends IRoot
   SetEnableDiffractionOnBoundaryEdges(value)
   {
     this._spatialAudioSettings.SetEnableDiffractionOnBoundaryEdges(value);
+  }
+
+  /**
+   * enableDiffractionOnBoundaryEdges (MAP_PROPERTY): Carbon's property over GetEnableDiffractionOnBoundaryEdges/SetEnableDiffractionOnBoundaryEdges, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:51).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get enableDiffractionOnBoundaryEdges()
+  {
+    return this.GetEnableDiffractionOnBoundaryEdges();
+  }
+
+  @meta.implemented
+
+  set enableDiffractionOnBoundaryEdges(value)
+  {
+    this.SetEnableDiffractionOnBoundaryEdges(value);
   }
 
   /** Returns the one-shot opportunity window in milliseconds. */
@@ -794,6 +1082,24 @@ export class AudManager extends IRoot
     this.soundPrioritization.SetOneShotWindow(value);
   }
 
+  /**
+   * oneShotWindow (MAP_PROPERTY): Carbon's property over GetOneShotWindow/SetOneShotWindow, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:28).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get oneShotWindow()
+  {
+    return this.GetOneShotWindow();
+  }
+
+  @meta.implemented
+
+  set oneShotWindow(value)
+  {
+    this.SetOneShotWindow(value);
+  }
+
   /** Returns the weighted playing-2D contribution. */
   @blue.method
   @meta.implemented
@@ -810,6 +1116,24 @@ export class AudManager extends IRoot
     this.soundPrioritization.SetPlaying2DWeight(value);
   }
 
+  /**
+   * playing2DWeight (MAP_PROPERTY): Carbon's property over GetPlaying2DWeight/SetPlaying2DWeight, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:34).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get playing2DWeight()
+  {
+    return this.GetPlaying2DWeight();
+  }
+
+  @meta.implemented
+
+  set playing2DWeight(value)
+  {
+    this.SetPlaying2DWeight(value);
+  }
+
   /** Returns the weighted playing-events contribution. */
   @blue.method
   @meta.implemented
@@ -824,6 +1148,24 @@ export class AudManager extends IRoot
   SetPlayingEventsWeight(value)
   {
     this.soundPrioritization.SetPlayingEventsWeight(value);
+  }
+
+  /**
+   * activeSoundsWeight (MAP_PROPERTY): Carbon's property over GetPlayingEventsWeight/SetPlayingEventsWeight, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:29).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get activeSoundsWeight()
+  {
+    return this.GetPlayingEventsWeight();
+  }
+
+  @meta.implemented
+
+  set activeSoundsWeight(value)
+  {
+    this.SetPlayingEventsWeight(value);
   }
 
   /** Returns the weighted vital-sound contribution. */
@@ -858,6 +1200,24 @@ export class AudManager extends IRoot
     this.soundPrioritization.SetRangeWeight(value);
   }
 
+  /**
+   * rangeWeight (MAP_PROPERTY): Carbon's property over GetRangeWeight/SetRangeWeight, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:30).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get rangeWeight()
+  {
+    return this.GetRangeWeight();
+  }
+
+  @meta.implemented
+
+  set rangeWeight(value)
+  {
+    this.SetRangeWeight(value);
+  }
+
   /** Returns the weighted used-emitter contribution. */
   @blue.method
   @meta.implemented
@@ -872,6 +1232,24 @@ export class AudManager extends IRoot
   SetUsedEmitterWeight(value)
   {
     this.soundPrioritization.SetUsedEmitterWeight(value);
+  }
+
+  /**
+   * usedEmitterWeight (MAP_PROPERTY): Carbon's property over GetUsedEmitterWeight/SetUsedEmitterWeight, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:31).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get usedEmitterWeight()
+  {
+    return this.GetUsedEmitterWeight();
+  }
+
+  @meta.implemented
+
+  set usedEmitterWeight(value)
+  {
+    this.SetUsedEmitterWeight(value);
   }
 
   /** Returns the weighted visibility contribution. */
@@ -890,6 +1268,24 @@ export class AudManager extends IRoot
     this.soundPrioritization.SetVisibleWeight(value);
   }
 
+  /**
+   * visibleWeight (MAP_PROPERTY): Carbon's property over GetVisibleWeight/SetVisibleWeight, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:33).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get visibleWeight()
+  {
+    return this.GetVisibleWeight();
+  }
+
+  @meta.implemented
+
+  set visibleWeight(value)
+  {
+    this.SetVisibleWeight(value);
+  }
+
   /** Returns the weighted waiting-one-shot contribution. */
   @blue.method
   @meta.implemented
@@ -904,6 +1300,24 @@ export class AudManager extends IRoot
   SetWaitingOneShotWeight(value)
   {
     this.soundPrioritization.SetWaitingOneShotWeight(value);
+  }
+
+  /**
+   * waitingOneShotWeight (MAP_PROPERTY): Carbon's property over GetWaitingOneShotWeight/SetWaitingOneShotWeight, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:32).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get waitingOneShotWeight()
+  {
+    return this.GetWaitingOneShotWeight();
+  }
+
+  @meta.implemented
+
+  set waitingOneShotWeight(value)
+  {
+    this.SetWaitingOneShotWeight(value);
   }
 
   /** Returns the global prioritization weight multiplier. */
@@ -922,6 +1336,24 @@ export class AudManager extends IRoot
     this.soundPrioritization.SetWeightMultiplier(value);
   }
 
+  /**
+   * weightMultiplier (MAP_PROPERTY): Carbon's property over GetWeightMultiplier/SetWeightMultiplier, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:26).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get weightMultiplier()
+  {
+    return this.GetWeightMultiplier();
+  }
+
+  @meta.implemented
+
+  set weightMultiplier(value)
+  {
+    this.SetWeightMultiplier(value);
+  }
+
   /** Returns the maximum number of awake audio objects. */
   @blue.method
   @meta.implemented
@@ -936,6 +1368,24 @@ export class AudManager extends IRoot
   SetMaxAwakeGameObjects(value)
   {
     this.soundPrioritization.SetMaxAwakeGameObjects(value);
+  }
+
+  /**
+   * maxAwakeGameObjects (MAP_PROPERTY): Carbon's property over GetMaxAwakeGameObjects/SetMaxAwakeGameObjects, which the macro calls.
+   * Carbon: MAP_PROPERTY (audio/src/AudManager_Blue.cpp:25).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get maxAwakeGameObjects()
+  {
+    return this.GetMaxAwakeGameObjects();
+  }
+
+  @meta.implemented
+
+  set maxAwakeGameObjects(value)
+  {
+    this.SetMaxAwakeGameObjects(value);
   }
 
   /** Returns the non-reserved awake emitters. Source: AudManager.cpp:1247-1258 (commit c9b986d). */

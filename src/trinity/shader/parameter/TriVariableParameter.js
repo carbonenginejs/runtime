@@ -202,6 +202,17 @@ export class TriVariableParameter extends CjsParameter
     return this.variable ? this.variable.GetType() : "invalid";
   }
 
+  /**
+   * variableType (MAP_PROPERTY_READONLY): Carbon's property over GetVariableType, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Shader/Parameter/TriVariableParameter_Blue.cpp:29).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get variableType()
+  {
+    return this.GetVariableType();
+  }
+
 }
 
 // Exact identities from TriVariableParameter_Blue.cpp; no exposure chain.
