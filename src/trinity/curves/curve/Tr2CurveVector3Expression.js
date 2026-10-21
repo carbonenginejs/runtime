@@ -34,8 +34,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   name = "";
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
-  @blue.attribute("expressionX")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "expressionX")
   @type.expression
   _expressionX = "";
 
@@ -56,8 +55,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
-  @blue.attribute("expressionY")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "expressionY")
   @type.expression
   _expressionY = "";
 
@@ -78,8 +76,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
-  @blue.attribute("expressionZ")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "expressionZ")
   @type.expression
   _expressionZ = "";
 

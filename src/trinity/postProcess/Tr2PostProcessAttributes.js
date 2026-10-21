@@ -62,8 +62,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Strength sent to the signal-loss distortion effect; native authoring range is zero to one, without a clamp here.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   signalLossIntensity = 0;
 
@@ -80,8 +79,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Multiplier controlling the bloom contribution added to the image.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomBrightness = 0;
 
@@ -98,8 +96,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Brightness cutoff sent to the bloom high-pass filter to select bright image regions.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomLuminanceThreshold = 0;
 
@@ -116,8 +113,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Scale sent to the bloom high-pass filter for luminance above its threshold.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomLuminanceScale = 0;
 
@@ -134,8 +130,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Global bloom-radius factor; radius is mip maximum dimension times this factor times the step size times 0.01.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomSizeScale = 4;
 
@@ -152,8 +147,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Bloom shape control: negative selects a horizontal flare, positive a cross, and zero no directional shape.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomDirectionalWeight = 0;
 
@@ -170,8 +164,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Radius factor for bloom stage 1; multiplied by bloomSizeScale and the current mip maximum dimension times 0.01.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomStepSize1 = 0.3;
 
@@ -188,8 +181,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Radius factor for bloom stage 2; multiplied by bloomSizeScale and the current mip maximum dimension times 0.01.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomStepSize2 = 1;
 
@@ -206,8 +198,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Radius factor for bloom stage 3; multiplied by bloomSizeScale and the current mip maximum dimension times 0.01.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomStepSize3 = 2;
 
@@ -224,8 +215,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Radius factor for bloom stage 4; multiplied by bloomSizeScale and the current mip maximum dimension times 0.01.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomStepSize4 = 10;
 
@@ -242,8 +232,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Radius factor for bloom stage 5; multiplied by bloomSizeScale and the current mip maximum dimension times 0.01.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomStepSize5 = 30;
 
@@ -260,8 +249,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Radius factor for bloom stage 6; multiplied by bloomSizeScale and the current mip maximum dimension times 0.01.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   bloomStepSize6 = 64;
 
@@ -278,8 +266,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Four-component color weight for bloom stage 1; its RGB channels tint that stage's Gaussian blur contribution.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.color
   bloomStepTint1 = vec4.fromValues(0.3465, 0.3465, 0.3465, 0.3465);
 
@@ -296,8 +283,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Four-component color weight for bloom stage 2; its RGB channels tint that stage's Gaussian blur contribution.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.color
   bloomStepTint2 = vec4.fromValues(0.138, 0.138, 0.138, 0.138);
 
@@ -314,8 +300,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Four-component color weight for bloom stage 3; its RGB channels tint that stage's Gaussian blur contribution.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.color
   bloomStepTint3 = vec4.fromValues(0.1176, 0.1176, 0.1176, 0.1176);
 
@@ -332,8 +317,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Four-component color weight for bloom stage 4; its RGB channels tint that stage's Gaussian blur contribution.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.color
   bloomStepTint4 = vec4.fromValues(0.066, 0.066, 0.066, 0.066);
 
@@ -350,8 +334,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Four-component color weight for bloom stage 5; its RGB channels tint that stage's Gaussian blur contribution.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.color
   bloomStepTint5 = vec4.fromValues(0.066, 0.066, 0.066, 0.066);
 
@@ -368,8 +351,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Four-component color weight for bloom stage 6; its RGB channels tint that stage's Gaussian blur contribution.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.color
   bloomStepTint6 = vec4.fromValues(0.061, 0.061, 0.061, 0.061);
 
@@ -386,8 +368,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Weight of the lens-grime texture in the bloom effect.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   grimeIntensity = 0;
 
@@ -404,8 +385,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Lens-grime texture resource path, selected from the strongest weighted contributor rather than interpolated.
    * @type {string}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.path("TriTextureRes")
   grimePath = "";
 
@@ -422,8 +402,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Manual exposure compensation in stops; the renderer converts it to a power-of-two multiplier.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   exposureAdjustment = 0;
 
@@ -440,8 +419,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Blend strength of the film-grain effect in the output image.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   filmGrainIntensity = 0;
 
@@ -458,8 +436,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Grain size in pixels, sent as GrainSize; also affects the reciprocal grain-edge parameter.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   filmGrainSize = 0;
 
@@ -476,8 +453,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Noise coverage control; the renderer sends one minus this value as GrainThreshold.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   filmGrainDensity = 0;
 
@@ -494,8 +470,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Grain-edge contrast control; the renderer sends 1 / (contrast * grain size) as GrainEdge.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   filmGrainContrast = 0;
 
@@ -512,8 +487,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Controls grain in bright pixels: negative reduces noise intensity and positive increases it.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   filmGrainBrightnessModifier = 0;
 
@@ -530,8 +504,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Selects colored rather than monochrome grain; blending chooses the strongest weighted contributor.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   filmGrainColored = false;
 
@@ -548,8 +521,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Amount of color variation supplied to the colored-grain shader.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   filmGrainColorAmount = 0;
 
@@ -566,8 +538,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Signed adjustment for the separate desaturation effect: negative desaturates and positive increases saturation.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   saturation = 0;
 
@@ -584,8 +555,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Blend amount for fading the image toward fadeColor.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   fadeIntensity = 0;
 
@@ -602,8 +572,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * RGBA target color supplied to the fade effect.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.color
   fadeColor = vec4.fromValues(0, 0, 0, 1);
 
@@ -620,8 +589,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Influence of color grading through the blended lookup tables.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   lutIntensity = 0;
 
@@ -638,8 +606,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Color lookup-table resource path; accumulation retains and weights up to four paths rather than interpolating strings.
    * @type {string}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.path("TriTextureRes")
   lutPath = "";
 
@@ -656,8 +623,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Additive vignette intensity, supplied separately from opacity to the shader.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   vignetteIntensity = 0;
 
@@ -674,8 +640,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Opacity component sent with intensity to the vignette shader.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   vignetteOpacity = 0;
 
@@ -692,8 +657,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * RGBA tint supplied to the vignette shader.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.color
   vignetteColor = vec4.fromValues(1, 1, 1, 1);
 
@@ -710,8 +674,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Two-component size of the first vignette detail layer in pixels, passed directly to the shader.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.vec2
   vignetteDetail1Size = vec2.fromValues(16, 16);
 
@@ -728,8 +691,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Two-component scrolling control for the first vignette detail layer; shader-domain values with no physical units specified here.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.vec2
   vignetteDetail1Scroll = vec2.create();
 
@@ -746,8 +708,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Two-component size of the second vignette detail layer in pixels, passed directly to the shader.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.vec2
   vignetteDetail2Size = vec2.fromValues(16, 16);
 
@@ -764,8 +725,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Two-component scrolling control for the second vignette detail layer; shader-domain values with no physical units specified here.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.vec2
   vignetteDetail2Scroll = vec2.create();
 
@@ -782,8 +742,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Vignette shape texture resource path, chosen by greatest contribution weight rather than interpolation.
    * @type {string}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.path("TriTextureRes")
   vignetteShapePath = "";
 
@@ -800,8 +759,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Vignette detail texture resource path, chosen by greatest contribution weight rather than interpolation.
    * @type {string}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.path("TriTextureRes")
   vignetteDetailPath = "";
 
@@ -818,8 +776,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Frequency control for vignette sine modulation, sent directly to the shader; no hertz conversion is specified here.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   vignetteSineFrequency = 0;
 
@@ -836,8 +793,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Lower sine-modulation range endpoint, mapped to sineMinimum despite this field name; not a second frequency.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   vignetteMinSineFrequency = 0;
 
@@ -854,8 +810,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Upper sine-modulation range endpoint, mapped to sineMaximum despite this field name; not a second frequency.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   vignetteMaxSineFrequency = 0;
 
@@ -872,8 +827,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Blur-strength scale supplied with focal distance and focal length to the circle-of-confusion pass.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   depthOfFieldScale = 0;
 
@@ -890,8 +844,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Distance of the focus plane supplied to the circle-of-confusion shader; uses its scene-depth convention, with no unit conversion here.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   depthOfFieldFocalDistance = 0;
 
@@ -908,8 +861,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Distance from the focal plane at which an object becomes fully out of focus; scene-distance units are not specified here.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   depthOfFieldFocalLength = 0;
 
@@ -945,8 +897,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * White-balance color temperature in kelvin for the color-correction effect.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   whiteTemperature = 6500;
 
@@ -963,8 +914,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * White-balance tint adjustment paired with temperature; native authoring range is -1 to 1.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   whiteTint = 0;
 
@@ -981,8 +931,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Color-grading saturation multiplier, distinct from the separate signed desaturation adjustment.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   colorSaturation = 1;
 
@@ -999,8 +948,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Color-grading contrast control passed to the correction effect; one is the neutral default.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   colorContrast = 1;
 
@@ -1017,8 +965,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Color-grading gamma control passed to the correction effect; one is the neutral default.
    * @type {number}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   colorGamma = 1;
 
@@ -1035,8 +982,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Three-channel RGB gain for color grading, with a neutral value of one per channel.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.vec3
   colorGain = vec3.fromValues(1, 1, 1);
 
@@ -1053,8 +999,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Three-channel RGB offset for color grading, with a neutral value of zero per channel.
    * @type {Float32Array}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.vec3
   colorOffset = vec3.create();
 

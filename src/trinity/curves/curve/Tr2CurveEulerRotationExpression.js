@@ -32,8 +32,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Persisted yaw source text backing the live expressionYaw property.
    * @type {string}
    */
-  @blue.attribute("expressionYaw")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "expressionYaw")
   @type.expression
   _expressionYaw = "";
 
@@ -57,8 +56,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Persisted pitch source text backing the live expressionPitch property.
    * @type {string}
    */
-  @blue.attribute("expressionPitch")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "expressionPitch")
   @type.expression
   _expressionPitch = "";
 
@@ -82,8 +80,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Persisted roll source text backing the live expressionRoll property.
    * @type {string}
    */
-  @blue.attribute("expressionRoll")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "expressionRoll")
   @type.expression
   _expressionRoll = "";
 

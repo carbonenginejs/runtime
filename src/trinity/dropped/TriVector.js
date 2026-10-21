@@ -9,17 +9,17 @@ export class TriVector
 {
 
   /** x (unknown) [READWRITE, PERSIST] */
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @type.unknown
   x = null;
 
   /** y (unknown) [READWRITE, PERSIST] */
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @type.unknown
   y = null;
 
   /** z (unknown) [READWRITE, PERSIST] */
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @type.unknown
   z = null;
 
