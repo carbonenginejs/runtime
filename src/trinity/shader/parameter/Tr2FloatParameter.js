@@ -6,7 +6,6 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { meta, type, blue } from "#schema";
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
-import { isScalarDestination, readScalarDestination, writeScalarDestination } from "./parameterDestination.js";
 
 
 /**
@@ -20,11 +19,25 @@ import { isScalarDestination, readScalarDestination, writeScalarDestination } fr
 @be.mapInterface(IInitialize)
 export class Tr2FloatParameter extends ITriEffectParameter
 {
-  /** m_value [PERSISTONLY]: Carbon's backing member; `value` is the property over GetValue / SetValue. */
+  /** m_value: Carbon's float. A one-element typed array so GetDestination can hand out its address (&m_value). */
+  #value = new Float32Array([ 1 ]);
+
+  /**
+   * m_value [PERSISTONLY]: the persisted row reads and writes the scalar in `#value`; `value` is the property over GetValue / SetValue.
+   */
   @be.mapAttribute(be.PERSISTONLY, "value")
   @meta.implemented
   @type.float32
-  _value = 1;
+  get _value()
+  {
+    return this.#value[0];
+  }
+
+  @meta.implemented
+  set _value(value)
+  {
+    this.#value[0] = Number(value);
+  }
 
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
@@ -38,7 +51,6 @@ export class Tr2FloatParameter extends ITriEffectParameter
 
   #bindings = [];
   #reroutedValue = null;
-  #valueRef = {  value: this._value };
 
   /** The shader constant name this value binds to; empty until authored. */
 
@@ -53,7 +65,7 @@ export class Tr2FloatParameter extends ITriEffectParameter
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return hashFnv1String(this.name, hashFnv1Floats([this._value], startingHash));
+    return hashFnv1String(this.name, hashFnv1Floats(this.#value, startingHash));
   }
 
   /**
@@ -66,25 +78,22 @@ export class Tr2FloatParameter extends ITriEffectParameter
   {
     if (this.#reroutedValue)
     {
-      this._value = readScalarDestination(this.#reroutedValue, this._value);
-      this.#valueRef.value = this._value;
+      this.#value[0] = this.#reroutedValue[0];
     }
-    return this._value;
+    return this.#value[0];
   }
 
   /**
-   * Coerces to a number, refreshes the boxed reference GetDestination hands out,
-   * and writes through to the reroute destination when one is set.
+   * Coerces to a number and writes through to the reroute destination when one is set.
    */
 
   @meta.implemented
   SetValue(value)
   {
-    this._value = Number(value);
-    this.#valueRef.value = this._value;
+    this.#value[0] = Number(value);
     if (this.#reroutedValue)
     {
-      writeScalarDestination(this.#reroutedValue, this._value);
+      this.#reroutedValue[0] = this.#value[0];
     }
   }
 
@@ -114,17 +123,17 @@ export class Tr2FloatParameter extends ITriEffectParameter
   }
 
   /**
-   * Points the parameter at an external scalar destination and seeds it with the current value; a target under 4 bytes or of an unusable shape clears the reroute instead. Bindings are notified of the effective destination either way.
+   * Points the parameter at an external float view and seeds it with the current value; a target under 4 bytes clears the reroute instead. Bindings are notified of the effective destination either way.
    * @param size destination capacity in bytes
    */
 
   @meta.adapted
   SetDestination(dest, size = 4)
   {
-    if (size >= 4 && isScalarDestination(dest))
+    if (size >= 4)
     {
       this.#reroutedValue = dest;
-      writeScalarDestination(dest, this._value);
+      this.#reroutedValue[0] = this.#value[0];
     }
     else
     {
@@ -138,16 +147,15 @@ export class Tr2FloatParameter extends ITriEffectParameter
   }
 
   /**
-   * The scalar an upload should read - the reroute target, or the parameter's
-   * own boxed `{ value }` holder - with its 4-byte size. The boxed holder is a
-   * stable object that survives SetValue calls.
+   * The float view an upload should read - the reroute target, or the parameter's
+   * own storage (Carbon's &m_value) - with its 4-byte size.
    */
 
   @meta.adapted
   GetDestination()
   {
     return {
-      dest: this.#reroutedValue ?? this.#valueRef,
+      dest: this.#reroutedValue ?? this.#value,
       size: 4
     };
   }
@@ -195,30 +203,28 @@ export class Tr2FloatParameter extends ITriEffectParameter
   }
 
   /**
-   * Syncs the boxed reference and any reroute destination with the current
-   * value; always returns true.
+   * Syncs any reroute destination with the current value; always returns true.
    */
 
   @meta.implemented
   Initialize()
   {
-    this.#valueRef.value = this._value;
     if (this.#reroutedValue)
     {
-      writeScalarDestination(this.#reroutedValue, this._value);
+      this.#reroutedValue[0] = this.#value[0];
     }
     return true;
   }
 
   /**
-   * Writes the current value - read back through the reroute first when one is
-   * active - into the caller's destination.
+   * Writes the reroute destination's value, or the parameter's own, into the caller's float view
+   * (Tr2FloatParameter.cpp:35-46).
    * Carbon declaration: Tr2FloatParameter::CopyValueToEffect (trinity/trinity/Shader/Parameter/Tr2FloatParameter.h:31).
    */
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
-    writeScalarDestination(out, this.GetValue());
+    out[0] = (this.#reroutedValue ?? this.#value)[0];
   }
 
   /** JS convenience: raw values this parameter class claims for map-form inference. */

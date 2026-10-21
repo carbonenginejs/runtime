@@ -285,7 +285,7 @@ test("TriValueBinding follows real vector and scalar shader reroutes", () =>
   scalarBinding.SetSource("value", scalarSource);
   scalarBinding.SetDestination("value", scalarParameter);
   scalarBinding.CopyValue();
-  assert.equal(scalarParameter.GetDestination().dest.value, 7);
+  assert.equal(scalarParameter.GetDestination().dest[0], 7);
   assert.equal(scalarParameter.GetValue(), 7);
 
   const scalarStorage = new Float32Array(1);

@@ -293,20 +293,6 @@ export class TriValueBinding extends INotify
       this.scale,
       this.offset
     );
-    const reroutable = this._GetReroutableDestination();
-    if (
-      changed &&
-      this._reroutedDestination !== null &&
-      reroutable &&
-      !reroutable.IsRerouted() &&
-      this._reroutedDestination !== logicalDestination &&
-      this._reroutedDestination &&
-      typeof this._reroutedDestination === "object" &&
-      "value" in this._reroutedDestination
-    )
-    {
-      destinationObject[this._destination.name] = this._reroutedDestination.value;
-    }
     if (changed && this._notifyDestination)
     {
       TriValueBinding._notify(destinationObject, this._destination.name);
