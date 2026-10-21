@@ -120,10 +120,11 @@ export class EveChildEffectPropagator extends EveChildContainer
    * its exposed name by MAP_ATTRIBUTE "effect" PERSISTONLY | NOTIFY
    * (EveChildEffectPropagator_Blue.cpp:37). Readers write it directly,
    * bypassing the setter, and OnModified then locks its edit mode.
+   * Carbon: EveChildEffectPropagator::m_effect (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h:100); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:37).
    */
-  @legacyBlue.attribute("effect")
-  @legacyBlue.notify
-  @legacyBlue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY | be.NOTIFY, "effect")
+
+
   @type.rootRef("EveChildInstanceContainer")
   _effect = null;
 

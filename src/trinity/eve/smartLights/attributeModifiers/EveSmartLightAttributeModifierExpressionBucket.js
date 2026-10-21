@@ -27,9 +27,10 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * name by MAP_ATTRIBUTE "expression" PERSISTONLY
    * (EveSmartLightAttributeModifierExpressionBucket_Blue.cpp:20). Readers
    * write it directly, bypassing the setter; Initialize compiles it.
+   * Carbon: EveSmartLightAttributeModifierExpressionBucket::m_expression (trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h:41); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket_Blue.cpp:20).
    */
-  @blue.attribute("expression")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "expression")
+
   @type.expression
   _expression = "";
 

@@ -105,9 +105,11 @@ export class EveStretch3 extends IEveFiringEffectElement
 
  @type.boolean
   update = true;
-  /** Hidden persisted destObject storage, distinct from the live setter. */
-  @legacyBlue.attribute("destObject")
-  @legacyBlue.persistOnly
+  /** Hidden persisted destObject storage, distinct from the live setter.
+   * Carbon: EveStretch3::m_destObject (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:173); MAP_ATTRIBUTE (trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp:98).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "destObject")
+
   @type.rootRef("EveSpaceObjectChild")
   _destObject = null;
 
@@ -126,9 +128,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     this.SetDestObject(value);
   }
-  /** Hidden persisted sourceObject storage, distinct from the live setter. */
-  @legacyBlue.attribute("sourceObject")
-  @legacyBlue.persistOnly
+  /** Hidden persisted sourceObject storage, distinct from the live setter.
+   * Carbon: EveStretch3::m_sourceObject (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:172); MAP_ATTRIBUTE (trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp:86).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "sourceObject")
+
   @type.rootRef("EveSpaceObjectChild")
   _sourceObject = null;
 
@@ -147,9 +151,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     this.SetSourceObject(value);
   }
-  /** Hidden persisted stretchObject storage, distinct from the live setter. */
-  @legacyBlue.attribute("stretchObject")
-  @legacyBlue.persistOnly
+  /** Hidden persisted stretchObject storage, distinct from the live setter.
+   * Carbon: EveStretch3::m_stretchObject (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:174); MAP_ATTRIBUTE (trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp:110).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "stretchObject")
+
   @type.rootRef("EveSpaceObjectChild")
   _stretchObject = null;
 
@@ -176,9 +182,11 @@ export class EveStretch3 extends IEveFiringEffectElement
 
  @type.object.ref("ITr2Audio")
   audio = null;
-  /** Hidden persisted moveObject storage, distinct from the live setter. */
-  @legacyBlue.attribute("moveObject")
-  @legacyBlue.persistOnly
+  /** Hidden persisted moveObject storage, distinct from the live setter.
+   * Carbon: EveStretch3::m_moveObject (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:175); MAP_ATTRIBUTE (trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp:122).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "moveObject")
+
   @type.rootRef("EveSpaceObjectChild")
   _moveObject = null;
 

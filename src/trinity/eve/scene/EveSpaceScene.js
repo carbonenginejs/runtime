@@ -331,9 +331,10 @@ export class EveSpaceScene
    * (EveSpaceScene_Blue.cpp:175-179). Readers write it directly, bypassing
    * the setter; Initialize replays it through SetShLightingManager
    * (cpp:3252-3257).
+   * Carbon: EveSpaceScene::m_shLightingManager (trinity/trinity/Eve/EveSpaceScene.h:625); MAP_ATTRIBUTE (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:175).
    */
-  @legacyBlue.attribute("shLightingManager")
-  @legacyBlue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "shLightingManager")
+
   @type.rootRef("Tr2ShLightingManager")
   _shLightingManager = null;
 

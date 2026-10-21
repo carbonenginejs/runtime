@@ -83,9 +83,11 @@ export class EveTurretSet extends EveEntity
   @type.enum("trinity.ImpactBehaviour")
   impactBehaviour = 0;
 
-  /** Hidden native backing member; not persisted (EveTurretSet_Blue.cpp:103). */
-  @legacyBlue.attribute("firingEffect")
-  @legacyBlue.hidden
+  /** Hidden native backing member; not persisted (EveTurretSet_Blue.cpp:103).
+   * Carbon: EveTurretSet::m_firingEffect (trinity/trinity/Eve/Turret/EveTurretSet.h:439); MAP_ATTRIBUTE (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:103).
+   */
+  @be.mapAttribute(be.HIDDEN, "firingEffect")
+
   @type.rootRef("EveTurretFiringFX")
   _firingEffect = null;
 
@@ -109,9 +111,11 @@ export class EveTurretSet extends EveEntity
     this.SetFiringEffect(value);
   }
 
-  /** Persisted ambient backing member (EveTurretSet_Blue.cpp:121). */
-  @legacyBlue.attribute("ambientEffect")
-  @legacyBlue.persistOnly
+  /** Persisted ambient backing member (EveTurretSet_Blue.cpp:121).
+   * Carbon: EveTurretSet::m_ambientEffect (trinity/trinity/Eve/Turret/EveTurretSet.h:451); MAP_ATTRIBUTE (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:121).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "ambientEffect")
+
   @type.rootRef("EveSpaceObjectChild")
   _ambientEffect = null;
 

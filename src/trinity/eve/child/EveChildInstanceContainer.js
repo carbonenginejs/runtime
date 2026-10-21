@@ -139,9 +139,10 @@ export class EveChildInstanceContainer extends EveChildTransform
    * exposed name by MAP_ATTRIBUTE "source" PERSISTONLY
    * (EveChildInstanceContainer_Blue.cpp:58). Readers write it directly,
    * bypassing the setter; OnModified then requests recreation.
+   * Carbon: EveChildInstanceContainer::m_source (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h:154); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer_Blue.cpp:58).
    */
-  @legacyBlue.attribute("source")
-  @legacyBlue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "source")
+
   @type.rootRef("IEveSpaceObjectChild")
   _source = null;
 

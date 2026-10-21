@@ -51,9 +51,10 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * by MAP_ATTRIBUTE "volume" PERSISTONLY
    * (EveDistributionPlacementGeneratorVolume_Blue.cpp:18). Readers write it
    * directly, bypassing the setter; Initialize then subscribes to it.
+   * Carbon: EveDistributionPlacementGeneratorVolume::m_volume (trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorVolume.h:39); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorVolume_Blue.cpp:18).
    */
-  @blue.attribute("volume")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "volume")
+
   @type.rootRef("IEveVolume")
   _volume = null;
 

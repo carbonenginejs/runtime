@@ -141,9 +141,10 @@ export class EveSpaceSceneRenderDriver
    * (EveSpaceSceneRenderDriver_Blue.cpp:84), which Carbon maps "purely for
    * blue.Find methods to work". Script reads and writes go through the
    * same-name property below.
+   * Carbon: EveSpaceSceneRenderDriver::m_scene (trinity/trinity/Eve/EveSpaceSceneRenderDriver.h:115); MAP_ATTRIBUTE (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:84).
    */
-  @legacyBlue.attribute("scene")
-  @legacyBlue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "scene")
+
   @type.rootRef("EveSpaceScene")
   _scene = null;
 

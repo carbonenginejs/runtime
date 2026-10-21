@@ -23,9 +23,10 @@ export class EveFiringEffectElementContainer extends EveEntity
    * exposed name by MAP_ATTRIBUTE "element" PERSISTONLY
    * (EveFiringEffectElementContainer_Blue.cpp:21-25). Readers write it
    * directly, bypassing the setter.
+   * Carbon: EveFiringEffectElementContainer::m_element (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.h:58); MAP_ATTRIBUTE (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer_Blue.cpp:21).
    */
-  @blue.attribute("element")
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "element")
+
   @type.rootRef("IEveFiringEffectElement")
   _element = null;
 

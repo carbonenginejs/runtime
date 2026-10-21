@@ -142,9 +142,11 @@ export class EveChildTurret extends EveChildMesh
   @type.uint32
   currentCyclingFiresPos = 0;
 
-  /** Hidden native backing member m_firingEffect (protected, h:135); not persisted (EveChildTurret_Blue.cpp:42). */
-  @legacyBlue.attribute("firingEffect")
-  @legacyBlue.hidden
+  /** Hidden native backing member m_firingEffect (protected, h:135); not persisted (EveChildTurret_Blue.cpp:42).
+   * Carbon: EveChildTurret::m_firingEffect (trinity/trinity/Eve/SpaceObject/Children/EveChildTurret.h:135); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObject/Children/EveChildTurret_Blue.cpp:42).
+   */
+  @be.mapAttribute(be.HIDDEN, "firingEffect")
+
   @type.rootRef("EveTurretFiringFX")
   _firingEffect = null;
 

@@ -33,9 +33,11 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   @type.float32
   period = 1;
 
-  /** Native PERSISTONLY seed storage; readers bypass the live setter. */
-  @legacyBlue.attribute("seed")
-  @legacyBlue.persistOnly
+  /** Native PERSISTONLY seed storage; readers bypass the live setter.
+   * Carbon: Tr2CurveRandomAxisRotation::m_seed (trinity/trinity/Curves/Tr2CurveRandomAxisRotation.h:42); MAP_ATTRIBUTE (trinity/trinity/Curves/Tr2CurveRandomAxisRotation_Blue.cpp:27).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "seed")
+
   @type.uint32
   _seed = 0;
 

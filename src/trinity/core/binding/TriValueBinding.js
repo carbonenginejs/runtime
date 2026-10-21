@@ -47,9 +47,11 @@ export class TriValueBinding extends INotify
   @type.boolean
   isEnabled = true;
 
-  /** Native persisted endpoint storage; readers bypass the live setter. */
-  @blue.attribute("sourceObject")
-  @blue.persistOnly
+  /** Native persisted endpoint storage; readers bypass the live setter.
+   * Carbon: TriValueBinding::m_sourceObject (trinity/trinity/TriValueBinding.h:61); MAP_ATTRIBUTE (trinity/trinity/TriValueBinding_Blue.cpp:40).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "sourceObject")
+
   @type.rootRef("IRoot")
   _sourceObject = null;
 
@@ -85,9 +87,11 @@ export class TriValueBinding extends INotify
   @type.string
   sourceAttribute = "";
 
-  /** Native persisted endpoint storage; readers bypass the live setter. */
-  @blue.attribute("destinationObject")
-  @blue.persistOnly
+  /** Native persisted endpoint storage; readers bypass the live setter.
+   * Carbon: TriValueBinding::m_destinationObject (trinity/trinity/TriValueBinding.h:63); MAP_ATTRIBUTE (trinity/trinity/TriValueBinding_Blue.cpp:56).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "destinationObject")
+
   @type.rootRef("IRoot")
   _destinationObject = null;
 

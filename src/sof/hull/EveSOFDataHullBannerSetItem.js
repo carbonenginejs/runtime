@@ -59,9 +59,10 @@ export class EveSOFDataHullBannerSetItem extends IRoot
    * m_scaling (Vector3), persisted under its exposed name by
    * MAP_ATTRIBUTE "scaling" PERSISTONLY (EveSOFData_Blue.cpp:706).
    * Readers write it directly, bypassing the aspect-ratio correction.
+   * Carbon: EveSOFDataHullBannerSetItem::m_scaling (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:954); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:706).
    */
-  @legacyBlue.attribute("scaling")
-  @legacyBlue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "scaling")
+
   @type.vec3
   _scaling = vec3.fromValues(1, 1, 1);
 
@@ -89,9 +90,10 @@ export class EveSOFDataHullBannerSetItem extends IRoot
    * m_angleX (float), persisted under its exposed name by
    * MAP_ATTRIBUTE "angleX" PERSISTONLY (EveSOFData_Blue.cpp:709).
    * Readers write it directly, bypassing the aspect-ratio correction.
+   * Carbon: EveSOFDataHullBannerSetItem::m_angleX (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:958); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:709).
    */
-  @legacyBlue.attribute("angleX")
-  @legacyBlue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "angleX")
+
   @type.float32
   _angleX = 0;
 
@@ -119,9 +121,10 @@ export class EveSOFDataHullBannerSetItem extends IRoot
    * m_angleY (float), persisted under its exposed name by
    * MAP_ATTRIBUTE "angleY" PERSISTONLY (EveSOFData_Blue.cpp:711).
    * Readers write it directly, bypassing the aspect-ratio correction.
+   * Carbon: EveSOFDataHullBannerSetItem::m_angleY (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:959); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:711).
    */
-  @legacyBlue.attribute("angleY")
-  @legacyBlue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "angleY")
+
   @type.float32
   _angleY = 0;
 

@@ -240,9 +240,10 @@ export class Tr2ParticleSystem
    * name by MAP_ATTRIBUTE "maxParticleCount" PERSISTONLY
    * (Tr2ParticleSystem_Blue.cpp:97-101). Readers write it directly, bypassing
    * the setter; the declaration rebuild then sizes the buffers from it.
+   * Carbon: Tr2ParticleSystem::m_maxParticleCount (trinity/trinity/Particle/Tr2ParticleSystem.h:215); MAP_ATTRIBUTE (trinity/trinity/Particle/Tr2ParticleSystem_Blue.cpp:97).
    */
-  @legacyBlue.attribute("maxParticleCount")
-  @legacyBlue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY, "maxParticleCount")
+
   @type.uint32
   _maxParticleCount = 0;
 

@@ -25,9 +25,11 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   @type.wstring
   name = "";
 
-  /** m_audioParameterName: persistence bypasses the live registration setter. */
-  @blue.attribute("audioParameterName")
-  @blue.persistOnly
+  /** m_audioParameterName: persistence bypasses the live registration setter.
+   * Carbon: AudioCurveSetDriver::m_audioParameterName (audio/src/AudioCurveSetDriver.h:32); MAP_ATTRIBUTE (audio/src/AudioCurveSetDriver_Blue.cpp:23).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "audioParameterName")
+
   @type.wstring
   _audioParameterName = "";
 

@@ -32,9 +32,11 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   @type.string
   name = "";
 
-  /** Native PERSISTONLY expression storage; readers bypass the live setter. */
-  @blue.attribute("expression")
-  @blue.persistOnly
+  /** Native PERSISTONLY expression storage; readers bypass the live setter.
+   * Carbon: Tr2CurveScalarExpression::m_expression (trinity/trinity/Curves/Tr2CurveScalarExpression.h:45); MAP_ATTRIBUTE (trinity/trinity/Curves/Tr2CurveScalarExpression_Blue.cpp:22).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "expression")
+
   @type.expression
   _expression = "";
 

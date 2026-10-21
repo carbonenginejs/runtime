@@ -23,9 +23,11 @@ import { TriFloat } from "../../core/variable/TriFloat.js";
 export class EveShip2 extends EveMobile
 {
 
-  /** Hidden persisted m_boosters storage (EveShip2_Blue.cpp:21), separate from its live property. */
-  @blue.attribute("boosters")
-  @blue.persistOnly
+  /** Hidden persisted m_boosters storage (EveShip2_Blue.cpp:21), separate from its live property.
+   * Carbon: EveShip2::m_boosters (trinity/trinity/Eve/SpaceObject/EveShip2.h:69); MAP_ATTRIBUTE (trinity/trinity/Eve/SpaceObject/EveShip2_Blue.cpp:21).
+   */
+  @be.mapAttribute(be.PERSISTONLY, "boosters")
+
   @type.rootRef("EveBoosterSet2")
   _boosters = null;
 
