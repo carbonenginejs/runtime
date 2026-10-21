@@ -636,16 +636,16 @@ export default Tr2MainWindow;
 
 blue.inherit(IRoot, IBlueEvents)(Tr2MainWindow);
 
-CjsSchema.decorateField(Tr2MainWindow, "onKeyDown", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onKeyUp", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onChar", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onMouseDown", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onMouseUp", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onMouseMove", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onMouseWheel", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onClose", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onFocusChange", blue.readwrite);
-CjsSchema.decorateField(Tr2MainWindow, "onWindowStateChange", blue.readwrite);
+CjsSchema.decorateField(Tr2MainWindow, "onKeyDown", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onKeyUp", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onChar", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onMouseDown", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onMouseUp", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onMouseMove", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onMouseWheel", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onClose", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onFocusChange", be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(Tr2MainWindow, "onWindowStateChange", be.mapAttribute(be.READWRITE));
 CjsSchema.decorateField(Tr2MainWindow, "imeState_MacOS", be.mapAttribute(be.READWRITE), meta.notSupported);
 CjsSchema.decorateMethod(Tr2MainWindow, "SetWindowState", meta.renamed("SetStateScript"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowState", meta.renamed("GetStateScript"), meta.adapted);

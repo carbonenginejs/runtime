@@ -168,14 +168,14 @@ blue.inherit(IRoot)(Tr2MainWindowState);
 
 CjsSchema.decorateMethod(Tr2MainWindowState, "ToString", be.mapMethodAndWrap("__str__"));
 CjsSchema.decorateMethod(Tr2MainWindowState, "__str__", meta.renamed("ToString"));
-CjsSchema.decorateField(Tr2MainWindowState, "windowMode", type.int32, type.enum("trinity.Tr2WindowMode"), blue.readwrite, blue.persist);
-CjsSchema.decorateField(Tr2MainWindowState, "adapter", type.uint32, blue.readwrite, blue.persist);
-CjsSchema.decorateField(Tr2MainWindowState, "width", type.uint32, blue.readwrite, blue.persist);
-CjsSchema.decorateField(Tr2MainWindowState, "height", type.uint32, blue.readwrite, blue.persist);
-CjsSchema.decorateField(Tr2MainWindowState, "presentInterval", type.int32, type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), blue.readwrite, blue.persist);
-CjsSchema.decorateField(Tr2MainWindowState, "left", type.int32, blue.readwrite, blue.persist);
-CjsSchema.decorateField(Tr2MainWindowState, "top", type.int32, blue.readwrite, blue.persist);
-CjsSchema.decorateField(Tr2MainWindowState, "showState", type.int32, type.enum("trinity.Tr2WindowShowState"), blue.readwrite, blue.persist);
+CjsSchema.decorateField(Tr2MainWindowState, "windowMode", type.int32, type.enum("trinity.Tr2WindowMode"), be.mapAttribute(be.READWRITE | be.PERSIST));
+CjsSchema.decorateField(Tr2MainWindowState, "adapter", type.uint32, be.mapAttribute(be.READWRITE | be.PERSIST));
+CjsSchema.decorateField(Tr2MainWindowState, "width", type.uint32, be.mapAttribute(be.READWRITE | be.PERSIST));
+CjsSchema.decorateField(Tr2MainWindowState, "height", type.uint32, be.mapAttribute(be.READWRITE | be.PERSIST));
+CjsSchema.decorateField(Tr2MainWindowState, "presentInterval", type.int32, type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), be.mapAttribute(be.READWRITE | be.PERSIST));
+CjsSchema.decorateField(Tr2MainWindowState, "left", type.int32, be.mapAttribute(be.READWRITE | be.PERSIST));
+CjsSchema.decorateField(Tr2MainWindowState, "top", type.int32, be.mapAttribute(be.READWRITE | be.PERSIST));
+CjsSchema.decorateField(Tr2MainWindowState, "showState", type.int32, type.enum("trinity.Tr2WindowShowState"), be.mapAttribute(be.READWRITE | be.PERSIST));
 CjsSchema.exposure.define("Tr2MainWindowState")(Tr2MainWindowState);
 
 export default Tr2MainWindowState;
