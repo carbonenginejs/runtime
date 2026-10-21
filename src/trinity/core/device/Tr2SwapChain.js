@@ -29,33 +29,6 @@ export class Tr2SwapChain extends IRoot
   backBuffer = null;
 
   /**
-   * MAP_PROPERTY_READONLY "width" -> GetWidth (`Tr2SwapChain_Blue.cpp:19`).
-   * Carbon has no `m_width`; the Blue property IS the getter. The field stays
-   * because every class whose readable properties come from getters renders
-   * them this way here (`Tr2RenderTarget`, `Tr2DepthStencil`), and changing one
-   * class alone would make its schema shape disagree with the emitter. It is a
-   * MIRROR of the AL, refreshed when the AL is created or released.
-   *
-   * Adapted: Carbon exposes width as MAP_PROPERTY_READONLY over GetWidth with no backing
-   * member; the field mirrors the AL to keep the emitted schema shape.
-   */
-  @blue.read
-  @type.int32
-  @meta.adapted
-  width = 0;
-
-  /**
-   * MAP_PROPERTY_READONLY "height" -> GetHeight; see `width`.
-   *
-   * Adapted: Carbon exposes height as MAP_PROPERTY_READONLY over GetHeight with no backing
-   * member; the field mirrors the AL to keep the emitted schema shape.
-   */
-  @blue.read
-  @type.int32
-  @meta.adapted
-  height = 0;
-
-  /**
    * m_swapChain: Carbon's by-value `Tr2SwapChainAL` (`Tr2SwapChain.h`), invalid
    * until `OnPrepareResources` creates it against the context, whose backend
    * supplies the implementation.
@@ -118,9 +91,6 @@ export class Tr2SwapChain extends IRoot
   {
     if (!Succeeded(this.#swapChain.Create(this.#windowHandle, renderContext))) return false;
 
-    this.width = this.#swapChain.GetWidth();
-    this.height = this.#swapChain.GetHeight();
-
     return true;
   }
 
@@ -167,6 +137,28 @@ export class Tr2SwapChain extends IRoot
   }
 
   /**
+   * width (MAP_PROPERTY_READONLY): Carbon's property over GetWidth, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2SwapChain_Blue.cpp:18).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get width()
+  {
+    return this.GetWidth();
+  }
+
+  /**
+   * height (MAP_PROPERTY_READONLY): Carbon's property over GetHeight, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2SwapChain_Blue.cpp:19).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get height()
+  {
+    return this.GetHeight();
+  }
+
+  /**
    * Drops the AL chain, as Carbon's `m_swapChain = Tr2SwapChainAL()` does
    * (`Tr2SwapChain.cpp:24-27`): the value returns to the null implementation,
    * so the member is still callable afterwards.
@@ -179,8 +171,6 @@ export class Tr2SwapChain extends IRoot
   ReleaseResources(_storage)
   {
     this.#swapChain.Destroy();
-    this.width = 0;
-    this.height = 0;
   }
 
   /**
@@ -195,8 +185,6 @@ export class Tr2SwapChain extends IRoot
   SetSwapChainAL(al = null)
   {
     this.#swapChain = al ?? new Tr2SwapChainAL();
-    this.width = this.#swapChain.GetWidth();
-    this.height = this.#swapChain.GetHeight();
 
     return this.#swapChain;
   }

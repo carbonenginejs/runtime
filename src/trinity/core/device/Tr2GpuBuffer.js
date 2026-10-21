@@ -81,10 +81,6 @@ export class Tr2GpuBuffer extends IRoot
   @type.uint32
   count = 0;
 
-  @blue.read
-  @type.boolean
-  isValid = false;
-
   /** m_name - debug label; not Blue-exposed. */
   @type.string
   #name = "";
@@ -148,7 +144,6 @@ export class Tr2GpuBuffer extends IRoot
   {
     if (this.#buffer) this.#buffer.Destroy();
     this.#buffer = null;
-    this.isValid = false;
 
     if (!this.count || this.format === PixelFormat.PIXEL_FORMAT_UNKNOWN) return ALResult.E_INVALIDARG;
 
@@ -166,7 +161,6 @@ export class Tr2GpuBuffer extends IRoot
 
     if (this.#name) buffer.SetName(this.#name);
     this.#buffer = buffer;
-    this.isValid = true;
     return ALResult.S_OK;
   }
 
@@ -183,7 +177,6 @@ export class Tr2GpuBuffer extends IRoot
   {
     if (this.#buffer) this.#buffer.Destroy();
     this.#buffer = null;
-    this.isValid = false;
   }
 
   /**
@@ -207,6 +200,17 @@ export class Tr2GpuBuffer extends IRoot
   IsValid()
   {
     return this.#buffer !== null;
+  }
+
+  /**
+   * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2GpuBuffer_Blue.cpp:104).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get isValid()
+  {
+    return this.IsValid();
   }
 
   /** Carbon GetCount (cpp:190-193): the created buffer's element count. */

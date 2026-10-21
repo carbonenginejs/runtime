@@ -302,7 +302,7 @@ test("device graph descriptions keep Carbon defaults without realizing a backend
   assertEquals(CjsSchema.getField(TriDevice, "adapterWidth")?.type.kind, "uint32");
 
   const target = new Tr2RenderTarget();
-  assertEquals(target.type, 6);
+  assertEquals(target.type, Tr2RenderTarget.TextureType.TEX_TYPE_INVALID);
   assertEquals(target.isValid, false);
   assertEquals(new Tr2DepthStencil().format, 7);
 

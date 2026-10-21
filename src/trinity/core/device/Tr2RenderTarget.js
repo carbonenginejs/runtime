@@ -59,52 +59,10 @@ export class Tr2RenderTarget extends IRoot
 {
 
   /** m_name (std::string) [PERSISTONLY] */
-  @be.mapAttribute(be.PERSISTONLY)
-
+  @be.mapAttribute(be.PERSISTONLY, "name")
+  @meta.implemented
   @type.string
-  name = "";
-
-  @blue.read
-  @type.uint32
-  width = 0;
-
-  @blue.read
-  @type.uint32
-  height = 0;
-
-  @blue.read
-  @type.uint32
-  arraySize = 0;
-
-  @blue.read
-  @type.uint32
-  mipCount = 0;
-
-  @blue.read
-  @type.uint32
-  multiSampleType = 0;
-
-  @blue.read
-  @type.uint32
-  multiSampleQuality = 0;
-
-  @blue.read
-  @type.int32
-  @type.enum("trinity.ImageIO.PixelFormat")
-  format = 0;
-
-  @blue.read
-  @type.int32
-  @type.enum("trinity.ImageIO.TextureType")
-  type = 6;
-
-  @blue.read
-  @type.boolean
-  isValid = false;
-
-  @blue.read
-  @type.boolean
-  isReadable = false;
+  _name = "";
 
   /** m_renderTarget (Tr2TextureAL), owned. */
   _renderTarget = null;
@@ -210,8 +168,7 @@ export class Tr2RenderTarget extends IRoot
     if (this._renderTarget) this._renderTarget.Destroy();
     this._renderTarget = texture;
     this._created = { dimensions, msaa, gpuUsage, cpuUsage };
-    texture.SetName(this.name);
-    this._Refresh();
+    texture.SetName(this._name);
     if (raiseChange) this._Changed();
     return ALResult.S_OK;
   }
@@ -255,7 +212,6 @@ export class Tr2RenderTarget extends IRoot
     if (this._attachedRenderTarget) this._attachedRenderTarget.Destroy();
     this._attachedRenderTarget = next;
     this._attachedOwner = owner ?? null;
-    this._Refresh();
     this._Changed();
   }
 
@@ -267,7 +223,6 @@ export class Tr2RenderTarget extends IRoot
     if (this._attachedOwner)
     {
       this._attachedOwner = null;
-      this._Refresh();
       this._Changed();
     }
     this._attachedOwner = null;
@@ -312,7 +267,6 @@ export class Tr2RenderTarget extends IRoot
     if (this._renderTarget) this._renderTarget.Destroy();
     this._renderTarget = null;
     this._created = null;
-    this._Refresh();
 
     if (wasValid) this._Changed();
   }
@@ -328,7 +282,6 @@ export class Tr2RenderTarget extends IRoot
     if (this._attachedRenderTarget) this._attachedRenderTarget.Destroy();
     this._attachedRenderTarget = null;
     this._attachedOwner = null;
-    this._Refresh();
   }
 
   /** Carbon `IsReadable` (`cpp:354-357`). */
@@ -451,8 +404,8 @@ export class Tr2RenderTarget extends IRoot
   @meta.implemented
   SetName(name)
   {
-    this.name = name ?? "";
-    this._renderTarget?.SetName(this.name);
+    this._name = name ?? "";
+    this._renderTarget?.SetName(this._name);
   }
 
   /** Carbon `GetName` (`cpp:50-53`). */
@@ -460,7 +413,134 @@ export class Tr2RenderTarget extends IRoot
   @meta.implemented
   GetName()
   {
-    return this.name;
+    return this._name;
+  }
+
+  /**
+   * name (MAP_PROPERTY): Carbon's property over GetName/SetName, which the macro calls.
+   * Carbon: MAP_PROPERTY (trinity/trinity/Tr2RenderTarget_Blue.cpp:75).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
+
+  @meta.implemented
+  set name(value)
+  {
+    this.SetName(value);
+  }
+
+  /**
+   * width (MAP_PROPERTY_READONLY): Carbon's property over GetWidth, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:77).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get width()
+  {
+    return this.GetWidth();
+  }
+
+  /**
+   * height (MAP_PROPERTY_READONLY): Carbon's property over GetHeight, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:78).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get height()
+  {
+    return this.GetHeight();
+  }
+
+  /**
+   * mipCount (MAP_PROPERTY_READONLY): Carbon's property over GetMipCount, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:79).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get mipCount()
+  {
+    return this.GetMipCount();
+  }
+
+  /**
+   * multiSampleType (MAP_PROPERTY_READONLY): Carbon's property over GetMsaaType, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:80).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get multiSampleType()
+  {
+    return this.GetMsaaType();
+  }
+
+  /**
+   * multiSampleQuality (MAP_PROPERTY_READONLY): Carbon's property over GetMsaaQuality, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:81).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get multiSampleQuality()
+  {
+    return this.GetMsaaQuality();
+  }
+
+  /**
+   * arraySize (MAP_PROPERTY_READONLY): Carbon's property over GetArraySize, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:82).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get arraySize()
+  {
+    return this.GetArraySize();
+  }
+
+  /**
+   * format (MAP_PROPERTY_READONLY): Carbon's property over GetFormat, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:84).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get format()
+  {
+    return this.GetFormat();
+  }
+
+  /**
+   * type (MAP_PROPERTY_READONLY): Carbon's property over GetType, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:85).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get type()
+  {
+    return this.GetType();
+  }
+
+  /**
+   * isValid (MAP_PROPERTY_READONLY): Carbon's property over IsValid, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:87).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get isValid()
+  {
+    return this.IsValid();
+  }
+
+  /**
+   * isReadable (MAP_PROPERTY_READONLY): Carbon's property over IsReadable, which the macro calls.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RenderTarget_Blue.cpp:88).
+   */
+  @be.mapPropertyReadOnly()
+  @meta.implemented
+  get isReadable()
+  {
+    return this.IsReadable();
   }
 
   /**
@@ -475,7 +555,6 @@ export class Tr2RenderTarget extends IRoot
     {
       if (this._renderTarget) this._renderTarget.Destroy();
     this._renderTarget = null;
-      this._Refresh();
       this._Changed();
     }
   }
@@ -492,25 +571,9 @@ export class Tr2RenderTarget extends IRoot
     {
       const { dimensions, msaa, gpuUsage, cpuUsage } = this._created;
       this._renderTarget = renderContext.CreateTexture(dimensions, { gpuUsage, cpuUsage, msaa });
-      this._Refresh();
       this._Changed();
     }
     return true;
-  }
-
-  /** Republishes the Blue READ projection from the live texture. */
-  _Refresh()
-  {
-    this.width = this.GetWidth();
-    this.height = this.GetHeight();
-    this.arraySize = this.GetArraySize();
-    this.mipCount = this.GetMipCount();
-    this.multiSampleType = this.GetMsaaType();
-    this.multiSampleQuality = this.GetMsaaQuality();
-    this.format = this.GetFormat();
-    this.type = this.GetType();
-    this.isValid = this.IsValid();
-    this.isReadable = this.IsReadable();
   }
 
   /** Carbon's `m_onTextureChange()`. */
