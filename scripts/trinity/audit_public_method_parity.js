@@ -351,6 +351,12 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
           methods.set(original.value, existing ? { ...existing, hasCarbon: existing.hasCarbon || metadata.hasCarbon } : metadata);
         }
       }
+      // A `be.mapMethod*("Name")` above the class maps a method the class inherits (decorator-upgrade.md § 00); that is its exposure of the method.
+      for (const inheritedName of ReadClassLevelMethodRows(declaration))
+      {
+        const existing = methods.get(inheritedName);
+        methods.set(inheritedName, existing ? { ...existing, hasCarbon: true } : { hasCarbon: true, isStatic: false });
+      }
       const localBase = GetSuperClassName(declaration.superClass);
       const baseClass = localBase ? imports.get(localBase) ?? localBase : null;
       // Carbon declares several bases; JavaScript spends its one `extends` slot
@@ -659,6 +665,26 @@ function OverloadDonor(name)
   const split = name.indexOf("__", 1);
   if (split < 0) return null;
   return name.slice(name.startsWith("_") ? 1 : 0, split);
+}
+
+/**
+ * Names a class-level `be.mapMethod*` decorator maps: one string or an array of strings.
+ * @param {object} declaration The class declaration.
+ * @returns {string[]} The inherited method names.
+ */
+function ReadClassLevelMethodRows(declaration)
+{
+  const names = [];
+  for (const decorator of declaration.decorators ?? [])
+  {
+    const call = decorator.expression;
+    if (call?.type !== "CallExpression" || call.callee?.type !== "MemberExpression" || call.callee.computed) continue;
+    if (!["be", "exposure"].includes(call.callee.object?.name) || !String(call.callee.property?.name).startsWith("mapMethod")) continue;
+    const argument = call.arguments[0];
+    for (const element of argument?.type === "ArrayExpression" ? argument.elements : [ argument ])
+      if (element?.type === "StringLiteral") names.push(element.value);
+  }
+  return names;
 }
 
 /** @param {object} member @param {string} name */

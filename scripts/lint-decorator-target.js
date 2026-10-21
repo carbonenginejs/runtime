@@ -95,6 +95,25 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
             if(!present.size)add("required-state",c,m,"Missing explicit target state; never inferred as implemented.");
             if(present.size>1)add("conflicting-state",c,m,[...present].join(", "));
             if(ds.some(d=>d.name==="meta.noop"))add("retired-noop",c,m,"Convert to adapted with rationale.");
+            // A be.map* decorator above a class names a member the class inherits (decorator-upgrade.md § 00): the row is checked against the class's own block.
+            if(m.kind==="class")
+            {
+                for(const d of ds.filter(d=>d.name.startsWith("exposure.")&&maps[d.name.split(".")[1]]))
+                {
+                    const key=d.name.split(".")[1], category=key.startsWith("mapMethod")?"methods":key.startsWith("mapProperty")?"properties":"attributes";
+                    const names=[key==="mapAttribute"?d.args[1]:key==="mapAttributeWithChooser"?d.args[2]:d.args[0]].flat();
+                    for(const name of names)
+                    {
+                        const rows=nativeRows.flatMap(n=>n[category]).filter(row=>row.name===name);
+                        const at={name:String(name),line:d.line};
+                        if(!rows.length){add("exposure-absent",c,at,"No own Carbon macro row for this inherited member.");continue;}
+                        if(!rows.some(r=>r.macro===maps[key]))add("exposure-macro",c,at,"Macro kind differs.",rows.map(r=>r.macro));
+                        if(rows.some(r=>r.condition?.length&&!r.condition.every(x=>ruledOn.has(x))))add("conditional-exposure",c,at,"Select target preprocessor conditions before migration.");
+                        if(category==="attributes"&&!rows.some(r=>flagMask(r.flagsAsWritten)===flagMask(d.args[0])))add("exposure-flags",c,at,"Flag bits differ or cannot be statically resolved.",rows.map(r=>r.flagsAsWritten));
+                    }
+                }
+                continue;
+            }
             if(id.native.length && m.kind==="method" && !ds.some(d=>d.name==="meta.cjs"))
             {
                 const name=m.name.replace(/^[_#]/,"").split("__")[0];
@@ -168,6 +187,8 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
                 const names=[row.name,row.function].filter(Boolean);
                 const found=c.members.find(m=>names.includes(m.name)||m.decorators.some(d=>
                     (["blue.attribute","blue.property"].includes(d.name)||d.name.startsWith("exposure.map"))&&d.args.some(a=>names.includes(a))));
+                const classLevel=c.decorators.some(d=>d.name.startsWith("exposure.map")&&[d.args[0],d.args[1],d.args[2]].flat().some(a=>names.includes(a)));
+                if(!found&&classLevel)continue;
                 if(!found)add("exposure-member-unresolved",c,{name:row.name},"No own declaration resolved; inherited exposure needs review.",{source:row.source,line:row.line});
                 else if(!found.decorators.some(d=>d.name.startsWith("exposure.map") || d.name.startsWith("blue.") && (["method","attribute","property","chooser"].includes(d.name.slice(5)) || Object.hasOwn(oldBits,d.name.slice(5)))))
                     add("exposure-declaration-missing",c,found,"Native macro has no exposure decorator on the resolved member.",{source:row.source,line:row.line});
