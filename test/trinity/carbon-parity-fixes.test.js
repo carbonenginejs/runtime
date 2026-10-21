@@ -259,7 +259,7 @@ test("vector parameters expose Blue component accessors and sRGB mirrors", () =>
   parameter.SetValue([0.5, 0.25]);
   assert.equal(parameter.x, 0.5);
   parameter.y = 0.75;
-  assert.equal(parameter.GetValue()[1], 0.75);
+  assert.equal(parameter.GetValue(new Float32Array(2))[1], 0.75);
   assert.equal(parameter.v2, 0.75, "v2 aliases y");
 
   parameter.isSrgb = true;

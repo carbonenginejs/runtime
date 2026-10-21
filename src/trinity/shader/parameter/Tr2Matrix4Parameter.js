@@ -6,7 +6,6 @@ import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { mat4 } from "#math/mat4";
 import { meta, type, blue } from "#schema";
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
-import { copyNumberArray, isNumberArrayValue, isVectorDestination, readVectorDestination, writeVectorDestination } from "./parameterDestination.js";
 
 
 /**
@@ -64,13 +63,20 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    */
 
   @meta.implemented
-  GetValue(out = mat4.create())
+  GetValue(out)
   {
     if (this.#reroutedValue)
     {
-      readVectorDestination(this.#reroutedValue, this.value, 16);
+      for (let i = 0; i < 16; i++)
+      {
+        this.value[i] = this.#reroutedValue[i];
+      }
     }
-    return copyNumberArray(out, this.value, 16);
+    for (let i = 0; i < 16; i++)
+    {
+      out[i] = this.value[i];
+    }
+    return out;
   }
 
   /**
@@ -81,10 +87,16 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   @meta.implemented
   SetValue(value)
   {
-    copyNumberArray(this.value, value, 16);
+    for (let i = 0; i < 16; i++)
+    {
+      this.value[i] = value[i];
+    }
     if (this.#reroutedValue)
     {
-      writeVectorDestination(this.#reroutedValue, this.value, 16);
+      for (let i = 0; i < 16; i++)
+      {
+        this.#reroutedValue[i] = this.value[i];
+      }
     }
   }
 
@@ -104,10 +116,13 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   @meta.adapted
   SetDestination(dest, size = 64)
   {
-    if (size >= 64 && isVectorDestination(dest, 16))
+    if (size >= 64)
     {
       this.#reroutedValue = dest;
-      writeVectorDestination(dest, this.value, 16);
+      for (let i = 0; i < 16; i++)
+      {
+        dest[i] = this.value[i];
+      }
     }
     else
     {
@@ -189,7 +204,10 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   {
     if (this.#reroutedValue)
     {
-      writeVectorDestination(this.#reroutedValue, this.value, 16);
+      for (let i = 0; i < 16; i++)
+      {
+        this.#reroutedValue[i] = this.value[i];
+      }
     }
     return true;
   }
@@ -203,13 +221,17 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
-    writeVectorDestination(out, this.GetValue(), 16);
+    const source = this.GetValue();
+    for (let i = 0; i < 16; i++)
+    {
+      out[i] = source[i];
+    }
   }
 
   /** JS convenience: raw values this parameter class claims for map-form inference. */
   static isValue(value)
   {
-    return isNumberArrayValue(value, 16);
+    return (Array.isArray(value) || ArrayBuffer.isView(value)) && value.length === 16 && Array.prototype.every.call(value, component => typeof component === "number");
   }
 
 }

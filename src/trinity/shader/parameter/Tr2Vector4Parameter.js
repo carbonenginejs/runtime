@@ -8,7 +8,6 @@ import { num } from "#math/num";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
-import { copyNumberArray, isNumberArrayValue, isVectorDestination, readVectorDestination, writeVectorDestination } from "./parameterDestination.js";
 
 
 /**
@@ -211,10 +210,14 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
    */
 
   @meta.adapted
-  GetValue(out = vec4.create())
+  GetValue(out)
   {
     this.#RefreshFromReroute();
-    return copyNumberArray(out, this.value, 4);
+    for (let i = 0; i < 4; i++)
+    {
+      out[i] = this.value[i];
+    }
+    return out;
   }
 
   /** Pulls the reroute destination into the stored value, without copying it out. */
@@ -222,7 +225,10 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   {
     if (this.#reroutedValue)
     {
-      readVectorDestination(this.#reroutedValue, this.value, 4);
+      for (let i = 0; i < 4; i++)
+      {
+        this.value[i] = this.#reroutedValue[i];
+      }
     }
     return this.value;
   }
@@ -235,11 +241,17 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   @meta.implemented
   SetValue(value)
   {
-    copyNumberArray(this.value, value, 4);
+    for (let i = 0; i < 4; i++)
+    {
+      this.value[i] = value[i];
+    }
     this.#updateLinearValue();
     if (this.#reroutedValue)
     {
-      writeVectorDestination(this.#reroutedValue, this.value, 4);
+      for (let i = 0; i < 4; i++)
+      {
+        this.#reroutedValue[i] = this.value[i];
+      }
     }
   }
 
@@ -263,10 +275,13 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   @meta.adapted
   SetDestination(dest, size = 16)
   {
-    if (size >= 16 && !this.isSrgb && isVectorDestination(dest, 4))
+    if (size >= 16 && !this.isSrgb)
     {
       this.#reroutedValue = dest;
-      writeVectorDestination(dest, this.value, 4);
+      for (let i = 0; i < 4; i++)
+      {
+        dest[i] = this.value[i];
+      }
     }
     else
     {
@@ -357,7 +372,10 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   {
     if (this.#reroutedValue)
     {
-      writeVectorDestination(this.#reroutedValue, this.value, 4);
+      for (let i = 0; i < 4; i++)
+      {
+        this.#reroutedValue[i] = this.value[i];
+      }
     }
     this.#updateLinearValue();
     return true;
@@ -373,7 +391,10 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   CopyValueToEffect(_inputType, out)
   {
     const source = this.#reroutedValue ?? (this.isSrgb ? this.linearValue : this.value);
-    writeVectorDestination(out, source, 4);
+    for (let i = 0; i < 4; i++)
+    {
+      out[i] = source[i];
+    }
   }
 
   /**
@@ -385,7 +406,10 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   {
     if (!this.isSrgb)
     {
-      copyNumberArray(this.linearValue, this.value, 4);
+      for (let i = 0; i < 4; i++)
+      {
+        this.linearValue[i] = this.value[i];
+      }
       return;
     }
     this.linearValue[0] = num.gammaToLinear(this.value[0]);
@@ -407,7 +431,7 @@ export class Tr2Vector4Parameter extends ITriEffectParameter
   /** JS convenience: raw values this parameter class claims for map-form inference. */
   static isValue(value)
   {
-    return isNumberArrayValue(value, 4);
+    return (Array.isArray(value) || ArrayBuffer.isView(value)) && value.length === 4 && Array.prototype.every.call(value, component => typeof component === "number");
   }
 
 }

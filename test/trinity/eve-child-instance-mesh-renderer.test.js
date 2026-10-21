@@ -560,7 +560,7 @@ test("smart mesh uses the real effect Vector4 facade and preserves Carbon wrong-
   assert.equal(smart.SetMeshColorParameter(lightColor), true);
   const vector = effect.FindParameterByName("LightColor");
   assert.ok(vector instanceof Tr2Vector4Parameter);
-  assertArrayClose(vector.GetValue(), [0.2, 0.3, 0.4, 0.5]);
+  assertArrayClose(vector.GetValue(new Float32Array(4)), [0.2, 0.3, 0.4, 0.5]);
   assert.equal(smart.SetMeshColorParameter(lightColor), false);
 
   const wrong = new Tr2FloatParameter();
@@ -570,7 +570,7 @@ test("smart mesh uses the real effect Vector4 facade and preserves Carbon wrong-
   assert.equal(effect.parameters[0] instanceof Tr2Vector4Parameter, true);
   assert.equal(effect.parameters.includes(wrong), true);
   assert.equal(effect.parameters.at(-1) instanceof Tr2Vector4Parameter, true);
-  assertArrayClose(effect.parameters.at(-1).GetValue(), [0.5, 0.6, 0.7, 0.8]);
+  assertArrayClose(effect.parameters.at(-1).GetValue(new Float32Array(4)), [0.5, 0.6, 0.7, 0.8]);
 
   const invalidGeometry = new TestGeometry();
   invalidGeometry.meshCount = 0;

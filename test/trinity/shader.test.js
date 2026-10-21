@@ -990,7 +990,7 @@ test("vector parameters never hand out their own value array", () =>
   for (const [ctor, length] of [[Tr2Vector2Parameter, 2], [Tr2Vector3Parameter, 3], [Tr2Vector4Parameter, 4], [Tr2Matrix4Parameter, 16]])
   {
     const parameter = new ctor();
-    const returned = parameter.GetValue();
+    const returned = parameter.GetValue(new Float32Array(length));
 
     assertEquals(returned === parameter.value, false, `${ctor.name}.GetValue returned its own value array`);
     assertEquals(returned.length, length);
@@ -1006,14 +1006,14 @@ test("vector parameters never hand out their own value array", () =>
 test("a vector parameter still refreshes from its reroute destination on read", () =>
 {
   const parameter = new Tr2Vector4Parameter();
-  const destination = [ 0, 0, 0, 0 ];
+  const destination = new Float32Array(4);
 
   // SetDestination seeds the destination FROM the parameter; afterwards the
   // destination is the live value and reads pull it back.
   parameter.SetDestination(destination);
   destination[1] = 42;
 
-  assertEquals(parameter.GetValue()[1], 42, "GetValue refreshes from the reroute");
+  assertEquals(parameter.GetValue(new Float32Array(4))[1], 42, "GetValue refreshes from the reroute");
   assertEquals(parameter.y, 42, "and so does a component getter");
 });
 

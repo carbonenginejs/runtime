@@ -270,14 +270,14 @@ test("TriValueBinding follows real vector and scalar shader reroutes", () =>
   vectorBinding.SetSource("value", vectorSource);
   vectorBinding.SetDestination("value", vectorParameter);
   vectorBinding.CopyValue();
-  closeArray(vectorParameter.GetValue(), [1, 2, 3]);
+  closeArray(vectorParameter.GetValue(new Float32Array(3)), [1, 2, 3]);
 
   const vectorStorage = new Float32Array(3);
   vectorParameter.SetDestination(vectorStorage, 12);
   vectorSource.value.set([4, 5, 6]);
   vectorBinding.CopyValue();
   closeArray(vectorStorage, [4, 5, 6]);
-  closeArray(vectorParameter.GetValue(), [4, 5, 6]);
+  closeArray(vectorParameter.GetValue(new Float32Array(3)), [4, 5, 6]);
 
   const scalarSource = { value: 7 };
   const scalarParameter = new Tr2FloatParameter();

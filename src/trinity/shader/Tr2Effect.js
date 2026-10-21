@@ -34,7 +34,6 @@ import { TriTextureParameter } from "./parameter/TriTextureParameter.js";
 import { TriVariableParameter } from "./parameter/TriVariableParameter.js";
 import { TriVector4 } from "./parameter/TriVector4.js";
 import { hashFnv1Floats, hashFnv1String } from "#utils/hash";
-import { isNumberArrayValue } from "./parameter/parameterDestination.js";
 import { CjsTextureArrayBridge } from "./parameter/CjsTextureArrayBridge.js";
 import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
@@ -94,16 +93,10 @@ function getNamedValue(value)
   return value?.name ?? "";
 }
 
-/** The name of a collection entry that may be a bare string, a named model, or a `{ key }` pair. */
-function getArrayItemName(value)
-{
-  return typeof value === "string" ? value : value?.name ?? value?.key ?? "";
-}
-
-/** First array entry whose item name or parameter name matches; null for a non-array. */
+/** First entry whose name matches, or null; Carbon compares GetParameterName() only (Tr2Effect.cpp:1552-1565). */
 function findByName(values, name)
 {
-  return Array.isArray(values) ? values.find(value => getArrayItemName(value) === name || getNamedValue(value) === name) ?? null : null;
+  return values.find(value => getNamedValue(value) === name) ?? null;
 }
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
@@ -1930,7 +1923,7 @@ export class Tr2Effect extends Tr2Material
     {
       return vec4.fromValues(value, value, value, value);
     }
-    if (isNumberArrayValue(value, 4))
+    if (Tr2Vector4Parameter.isValue(value))
     {
       return vec4.clone(value);
     }
