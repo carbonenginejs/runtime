@@ -51,7 +51,8 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   @type.string
   name = "";
 
-  @blue.read
+  /** Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild_Blue.cpp:14); getter GetPartTag only reads m_partTag. */
+  @be.mapPropertyReadOnly__Field()
   @type.uint32
   partTag = 0;
 

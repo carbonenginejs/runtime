@@ -23,8 +23,9 @@ export class Range extends IRoot
    * Reference point from which both range distances are measured, in the
    * caller's range units. SetCenterPoint moves the endpoints with it.
    * @type {number}
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Utilities/Range_Blue.cpp:15); getter GetCenterPoint only reads m_centerPoint.
    */
-  @blue.read
+  @be.mapPropertyReadOnly__Field()
   @type.float32
   centerPoint = 0;
 
@@ -50,8 +51,9 @@ export class Range extends IRoot
    * Symmetry mode used by range setters to mirror endpoint edits around
    * centerPoint. Assigning this field directly does not rebalance the endpoints.
    * @type {boolean}
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Utilities/Range_Blue.cpp:18); getter GetIsUniform only reads m_isUniform.
    */
-  @blue.read
+  @be.mapPropertyReadOnly__Field()
   @type.boolean
   isUniform = true;
 

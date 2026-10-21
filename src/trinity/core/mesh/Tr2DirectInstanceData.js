@@ -35,8 +35,11 @@ export class Tr2DirectInstanceData
   @type.vec3
   aabbMin = vec3.create();
 
-  /** GetCount (MAP_PROPERTY_READONLY "count") - number of instances. */
-  @blue.read
+  /**
+   * GetCount (MAP_PROPERTY_READONLY "count") - number of instances.
+   * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DirectInstanceData_Blue.cpp:15); getter GetCount only reads m_count.
+   */
+  @be.mapPropertyReadOnly__Field()
   @type.uint32
   count = 0;
 

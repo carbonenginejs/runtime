@@ -64,7 +64,8 @@ export class Tr2DepthStencil extends IRoot
   @type.uint32
   mipCount = 0;
 
-  @blue.read
+  /** Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2DepthStencil_Blue.cpp:47); getter GetFormat only reads m_format. */
+  @be.mapPropertyReadOnly__Field()
   @type.int32
   @type.enum("trinity.Tr2RenderContextEnum.DepthStencilFormat")
   format = 7;

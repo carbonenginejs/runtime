@@ -83,7 +83,8 @@ export class Tr2RuntimeInstanceData
   @type.boolean
   explicitBoundingBox = false;
 
-  @blue.read
+  /** Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp:419); getter GetCount only reads m_count. */
+  @be.mapPropertyReadOnly__Field()
   @type.uint32
   count = 0;
 

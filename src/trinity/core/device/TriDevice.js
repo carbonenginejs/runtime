@@ -231,18 +231,27 @@ export class TriDevice extends IRoot
   @type.boolean
   frameGeneration = false;
 
-  /** Get/SetGeometryLoadDisabled (MAP_PROPERTY) - disables external geometry loads for batch processing. */
-  @legacyBlue.readwrite
+  /**
+   * Get/SetGeometryLoadDisabled (MAP_PROPERTY) - disables external geometry loads for batch processing.
+   * Carbon: MAP_PROPERTY (trinity/trinity/TriDevice_Blue.cpp:237); getter GetGeometryLoadDisabled, setter SetGeometryLoadDisabled only reads and write Tr2Renderer::m_disableGeometryLoad.
+   */
+  @be.mapProperty__Field()
   @type.boolean
   disableGeometryLoad = false;
 
-  /** Get/SetTextureLoadDisabled (MAP_PROPERTY) - disables external texture loads for batch processing. */
-  @legacyBlue.readwrite
+  /**
+   * Get/SetTextureLoadDisabled (MAP_PROPERTY) - disables external texture loads for batch processing.
+   * Carbon: MAP_PROPERTY (trinity/trinity/TriDevice_Blue.cpp:242); getter GetTextureLoadDisabled, setter SetTextureLoadDisabled only reads and write Tr2Renderer::m_disableTextureLoad.
+   */
+  @be.mapProperty__Field()
   @type.boolean
   disableTextureLoad = false;
 
-  /** Get/SetAsyncLoadDisabled (MAP_PROPERTY) - makes resource loads synchronous. */
-  @legacyBlue.readwrite
+  /**
+   * Get/SetAsyncLoadDisabled (MAP_PROPERTY) - makes resource loads synchronous.
+   * Carbon: MAP_PROPERTY (trinity/trinity/TriDevice_Blue.cpp:247); getter GetAsyncLoadDisabled, setter SetAsyncLoadDisabled only reads and write Tr2Renderer::m_disableAsyncLoad.
+   */
+  @be.mapProperty__Field()
   @type.boolean
   disableAsyncLoad = false;
 

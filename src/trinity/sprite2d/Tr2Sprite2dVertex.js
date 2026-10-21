@@ -21,13 +21,14 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 
   /**
    * Blue `color` property: Carbon `MAP_PROPERTY( "color", GetColor, SetColor )`, READWRITE and not persisted
-   * (Tr2Sprite2dPolygon_Blue.cpp:521). GetColor/SetColor only read and write the inherited `color` storage.
+   * (Tr2Sprite2dPolygon_Blue.cpp:521). GetColor/SetColor only reads and write the inherited `color` storage.
    * Adapted: the base declares `color` as an instance field, which would shadow a prototype accessor of the same
    * name, so the field is redeclared here to carry the exposure; reads and writes reach the same storage the
    * Carbon property methods do.
    * @type {Float32Array}
+   * Carbon: MAP_PROPERTY (trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp:521); getter GetColor, setter SetColor only reads and write color.
    */
-  @blue.readwrite
+  @be.mapProperty__Field()
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
