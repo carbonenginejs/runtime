@@ -97,10 +97,10 @@ export default Tr2DisplayMode;
 
 blue.inherit(IRoot)(Tr2DisplayMode);
 
-CjsSchema.decorateField(Tr2DisplayMode, "width", blue.read);
-CjsSchema.decorateField(Tr2DisplayMode, "height", blue.read);
-CjsSchema.decorateField(Tr2DisplayMode, "refreshRateNumerator", blue.read);
-CjsSchema.decorateField(Tr2DisplayMode, "refreshRateDenominator", blue.read);
+CjsSchema.decorateField(Tr2DisplayMode, "width", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2DisplayMode, "height", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2DisplayMode, "refreshRateNumerator", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2DisplayMode, "refreshRateDenominator", be.mapAttribute(be.READ));
 CjsSchema.decorateField(Tr2DisplayMode, "format", be.mapAttributeWithChooser(be.READ | be.ENUM, "trinity.ImageIO.PixelFormat"));
 CjsSchema.decorateField(Tr2DisplayMode, "scanlineOrdering", be.mapAttributeWithChooser(be.READ, "trinity.Tr2RenderContextEnum_ScanlineOrdering_Chooser"));
 CjsSchema.decorateField(Tr2DisplayMode, "scaling", be.mapAttributeWithChooser(be.READ, "trinity.Tr2RenderContextEnum_DisplayScaling_Chooser"));

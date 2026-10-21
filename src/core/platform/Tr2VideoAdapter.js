@@ -128,15 +128,15 @@ export default Tr2VideoAdapter;
 
 blue.inherit(IRoot)(Tr2VideoAdapter);
 
-CjsSchema.decorateField(Tr2VideoAdapter, "index", blue.read);
-CjsSchema.decorateField(Tr2VideoAdapter, "driver", blue.read);
-CjsSchema.decorateField(Tr2VideoAdapter, "description", blue.read);
-CjsSchema.decorateField(Tr2VideoAdapter, "deviceName", blue.read);
-CjsSchema.decorateField(Tr2VideoAdapter, "driverVersion", blue.read);
-CjsSchema.decorateField(Tr2VideoAdapter, "vendorID", blue.read);
-CjsSchema.decorateField(Tr2VideoAdapter, "deviceID", blue.read);
-CjsSchema.decorateField(Tr2VideoAdapter, "subSystemID", blue.read);
-CjsSchema.decorateField(Tr2VideoAdapter, "revision", blue.read);
+CjsSchema.decorateField(Tr2VideoAdapter, "index", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2VideoAdapter, "driver", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2VideoAdapter, "description", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2VideoAdapter, "deviceName", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2VideoAdapter, "driverVersion", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2VideoAdapter, "vendorID", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2VideoAdapter, "deviceID", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2VideoAdapter, "subSystemID", be.mapAttribute(be.READ));
+CjsSchema.decorateField(Tr2VideoAdapter, "revision", be.mapAttribute(be.READ));
 CjsSchema.decorateField(Tr2VideoAdapter, "deviceIdentifier", blue.read);
 CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDeviceIdentifierString", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDriverInfo", be.mapMethodAndWrap(), meta.adapted);
