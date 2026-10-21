@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { inventoryRuntime } from "./lib/decorator-target-inventory.js";
+import { checkAccessorBodies } from "./lib/carbon-accessor-bodies.js";
 
 // Build conditions the plan has ruled (decorator-upgrade.md § 00, "Build conditionals in exposure files"): each guard below is
 // on for us, so its rows are exposed like any other (with a notSupported/notUsed state where the platform cannot). Any other
@@ -133,6 +134,17 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
             if(!rows.length)
             {
                 add("exposure-absent",c,m,"No own Carbon macro row for this declaration.");continue;
+            }
+            // A property on a plain field is faithful only where Carbon's getter and setter just read and write one member.
+            if(category==="properties"&&mapped.some(d=>d.name.includes("mapProperty"))&&m.kind!=="get"&&m.kind!=="method"&&fs.existsSync(process.env.CARBON_ROOT??"E:/carbonengine"))
+            {
+                const row=rows.find(r=>r.name===exposed&&r.getter);
+                if(row)
+                {
+                    const readOnly=mapped.some(d=>d.name.endsWith("mapPropertyReadOnly"));
+                    const check=checkAccessorBodies(c.name,row.getter,readOnly?null:row.setter);
+                    if(!check.ok)add("property-field-body",c,m,"Carbon's accessors do more than read and write one member, so the property cannot sit on a plain field.",check.reasons);
+                }
             }
             if(rows.some(r=>r.condition?.length&&!r.condition.every(c=>ruledOn.has(c))))add("conditional-exposure",c,m,"Select target preprocessor conditions before migration.",rows.map(r=>({source:r.source,line:r.line,condition:r.condition})));
             if(mapped.length&&!rows.some(r=>r.name===exposed))add("exposure-name",c,m,"Exposed name differs from the native macro.",rows.map(r=>r.name));

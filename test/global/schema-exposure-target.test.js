@@ -430,6 +430,32 @@ test("a function exposed under two names keeps the second MAP_METHOD line as an 
     unregisterClass("TwoNamesStage3");
 });
 
+test("mapProperty* on a plain field carries the macro's flags and no accessor pair", async () =>
+{
+    const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
+    const targetUrl = new URL("../../src/global/schema/be.js", import.meta.url).href;
+    const source = `import { type } from ${JSON.stringify(schemaUrl)};
+        import { exposure } from ${JSON.stringify(targetUrl)};
+        @exposure.define("PropertyOnFieldStage3")
+        export class Sample {
+            @exposure.mapPropertyReadOnly() @type.uint32 width = 3;
+            @exposure.mapProperty("depth") @type.float32 depthValue = 1;
+            @exposure.mapPropertyPersisted() @type.string title = "";
+        }`;
+    const code = transformSync(source, { configFile: false, babelrc: false,
+        plugins: [[decoratorsPlugin, { version: "2023-11" }]] }).code;
+    const { Sample } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    const fields = new Map(CjsSchema.getSchema(Sample).members.map(m => [m.name, m]));
+    assert.deepEqual(fields.get("width").exposure, { macro: "MAP_PROPERTY_READONLY", flags: 1 });
+    assert.deepEqual(fields.get("width").edit, { read: true });
+    assert.equal(fields.get("depth").exposure.macro, "MAP_PROPERTY");
+    assert.deepEqual(fields.get("depth").edit, { read: true, write: true });
+    assert.deepEqual(fields.get("title").edit, { read: true, write: true, persist: true });
+    assert.equal(CjsSchema.getSchema(Sample).properties.length, 0);
+    assert.equal(new Sample().width, 3);
+    unregisterClass("PropertyOnFieldStage3");
+});
+
 test("standalone Stage-3 native identity still registers before its module is consumed", async () =>
 {
     const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;

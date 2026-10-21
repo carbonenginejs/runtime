@@ -3829,10 +3829,24 @@ function exposurePropertyDecorator(macro, name)
     const definition = Object.fromEntries(getDecoratorMetadata(legacy).parts.map(part => [ part.namespace, part.value ]));
     definition.exposure = { macro, flags: macro === "MAP_PROPERTY_READONLY" ? 1 : macro === "MAP_PROPERTY_PERSISTED" ? 19 : 3 };
     const combined = combinedFieldDecorator(definition);
+    // Where our class stores the value in a plain field under the exposed name, the line sits on the field: the member then carries the
+    // macro's own flags and no accessor pair (the lint checks Carbon's getter and setter only read and write that one member).
+    const fieldDefinition = { edit: exposureEditFlags(definition.exposure.flags), carbon: { member: true }, exposure: definition.exposure };
+    if (name !== undefined) fieldDefinition.declaration = { name: exposureName(name) };
+    const fieldCombined = combinedFieldDecorator(fieldDefinition);
     const decorator = (target, context) =>
     {
-        if (context && typeof context === "object" && context.kind !== "getter")
-            throw new TypeError("Property maps decorate a getter.");
+        if (context && typeof context === "object")
+        {
+            if (context.kind === "field") return fieldCombined(target, context);
+            if (context.kind !== "getter") throw new TypeError("Property maps decorate a getter or a plain field.");
+        }
+        else if (typeof context === "string" || typeof context === "symbol")
+        {
+            // decorateField(Class, "key", ...): the prototype shows whether the key is an accessor.
+            const descriptor = target && Object.getOwnPropertyDescriptor(target, context);
+            if (!descriptor || (!descriptor.get && !descriptor.set)) return fieldCombined(target, context);
+        }
         if (context && typeof context === "object" && hasStage3Namespace(context, "edit")) RejectPropertyFlags(context.name);
         return combined(target, context);
     };
