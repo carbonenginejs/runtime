@@ -14,7 +14,7 @@ import { EveInstancedMeshManagerInstanceFlags } from "./EveInstancedMeshManagerI
  *
  * A sphere is the `{ center, radius }` record TriFrustum's sphere tests read.
  */
-@meta.carbon("EveInstancedMeshManager::SphereGroup")
+@meta.define({"className":"EveInstancedMeshManagerSphereGroup","carbon":"EveInstancedMeshManager::SphereGroup"})
 export class EveInstancedMeshManagerSphereGroup
 {
 

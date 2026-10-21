@@ -337,3 +337,30 @@ test("Stage-3 own attributes and all object aliases register before construction
     assert.deepEqual(members.filter(m=>m.name!=="alias").map(m=>m.type.kind),["root","rootRef","rootWeak"]);
     assert.equal(new Sample().value,2);
 });
+
+test("separate Stage-3 interface maps preserve native row order while imperative maps append", async () =>
+{
+    const exposureUrl = new URL("../../src/global/schema/be.js", import.meta.url).href;
+    const source = `import { exposure } from ${JSON.stringify(exposureUrl)};
+      export class First {} export class Second {}
+      @exposure.define("Goal4bOrderedStage")
+      @exposure.mapInterface(First)
+      @exposure.mapInterface(Second)
+      export class Sample {}`;
+    const code = transformSync(source, { configFile: false, babelrc: false,
+        plugins: [[decoratorsPlugin, {version: "2023-11"}]] }).code;
+    const { Sample, First, Second } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    assert.deepEqual([...mappedInterfaces(Sample)], [IRoot, Sample, First, Second]);
+
+    class Imperative {}
+    exposure.define("Goal4bOrderedImperative")(Imperative);
+    exposure.mapInterface(First)(Imperative);
+    exposure.mapInterface(Second)(Imperative);
+    assert.deepEqual([...mappedInterfaces(Imperative)], [IRoot, Imperative, First, Second]);
+
+    class Legacy {}
+    blue.interface(First, Second)(Legacy);
+    meta.define("Goal4bOrderedLegacy")(Legacy);
+    assert.deepEqual([...mappedInterfaces(Legacy)], [IRoot, Legacy, First, Second]);
+    for (const Constructor of [Sample, Imperative, Legacy]) unregisterClass(CjsSchema.getClassName(Constructor));
+});

@@ -8,7 +8,7 @@ import { type, meta } from "#schema";
  * finished - its byte offset and length, and the recording frame that wrote
  * it. TrimRegions drops regions once their frame has rendered.
  */
-@meta.carbon("EveInstancedMeshManager::InstanceBuffer::Region")
+@meta.define({"className":"EveInstancedMeshManagerInstanceBufferRegion","carbon":"EveInstancedMeshManager::InstanceBuffer::Region"})
 export class EveInstancedMeshManagerInstanceBufferRegion
 {
 

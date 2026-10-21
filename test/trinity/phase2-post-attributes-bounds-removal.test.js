@@ -15,7 +15,7 @@ for (const [Type, interfaces] of [[Tr2PostProcessAttributes, [Tr2PostProcessAttr
 test(`${Type.name} has supported native queries and no model services`, () =>
 {
   const value = new Type();
-  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Type.prototype), Type === Tr2PostProcessAttributes ? ExposureRoot.prototype : Object.prototype);
   assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], interfaces.length ? [ExposureRoot, ...interfaces] : []);
   assert.equal(Type.from, undefined);

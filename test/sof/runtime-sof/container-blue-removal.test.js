@@ -42,7 +42,7 @@ test("SOF material and area containers expose native self-only tables without mo
   for (const Class of [Material, Area])
   {
     const record = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
-    assert.equal(record.constructor, Class); assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
+    assert.equal(record.constructor, Class); assert.equal(Object.getPrototypeOf(Class.prototype), ExposureRoot.prototype);
     assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]); assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in record, false);

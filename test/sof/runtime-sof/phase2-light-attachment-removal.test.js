@@ -25,7 +25,7 @@ test("light attachments retain self-only queries without model or lifecycle beha
   for (const Type of classes)
   {
     const value = new Type();
-    assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+    assert.equal(Object.getPrototypeOf(Type.prototype), ExposureRoot.prototype);
     assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type]);
     assert.equal(CjsSchema.cast(value, Type), value);
     assert.equal(CjsSchema.cast(value, IInitialize), null);

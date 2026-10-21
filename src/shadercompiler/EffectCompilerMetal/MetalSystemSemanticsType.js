@@ -101,5 +101,5 @@ export class MetalSystemSemanticsType
     });
 }
 
-CjsSchema.decorateMethod(MetalSystemSemanticsType, "getString", meta.renamed("GetString"));
+meta.renamed("GetString")(MetalSystemSemanticsType, "getString");
 CjsSchema.meta.carbon("MetalSystemSemanticsType")(MetalSystemSemanticsType);

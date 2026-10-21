@@ -20,7 +20,7 @@ const stub = composeStubResMan(() => image);
 test("PickingMask is an independent native IRoot record with only its own query", () => {
  const mask=blue.classes.CreateInstanceFromName("Tr2Sprite2dPickingMask");
  assert.equal(mask.constructor,Tr2Sprite2dPickingMask);
- assert.equal(Object.getPrototypeOf(Tr2Sprite2dPickingMask.prototype),Object.prototype);
+ assert.equal(Object.getPrototypeOf(Tr2Sprite2dPickingMask.prototype),ExposureRoot.prototype);
  for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in mask,false);
  assert.equal("from" in Tr2Sprite2dPickingMask,false);
  assert.deepEqual([...mappedInterfaces(Tr2Sprite2dPickingMask)],[ExposureRoot, Tr2Sprite2dPickingMask]);

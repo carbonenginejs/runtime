@@ -57,7 +57,7 @@ test("observer dictionary hydration and copying preserve value storage without s
 });
 
 test("morph record retains exact native identity and persistent-only declarations",()=>{
- const value=blue.classes.CreateInstanceFromName("Tr2SerializedMorphAnimation");assert.equal(Object.getPrototypeOf(Tr2SerializedMorphAnimation.prototype),Object.prototype);assert.deepEqual([...mappedInterfaces(Tr2SerializedMorphAnimation)],[ExposureRoot, Tr2SerializedMorphAnimation]);assert.deepEqual([value.name,value.weight],["",0]);
+ const value=blue.classes.CreateInstanceFromName("Tr2SerializedMorphAnimation");assert.equal(Object.getPrototypeOf(Tr2SerializedMorphAnimation.prototype),ExposureRoot.prototype);assert.deepEqual([...mappedInterfaces(Tr2SerializedMorphAnimation)],[ExposureRoot, Tr2SerializedMorphAnimation]);assert.deepEqual([value.name,value.weight],["",0]);
  assert.deepEqual(CjsSchema.getSchema(Tr2SerializedMorphAnimation).fields.map(field=>field.name),["name","weight"]);
  for(const key of ["name","weight"])assert.equal(CjsSchema.getField(Tr2SerializedMorphAnimation,key).edit.persistOnly,true);
  for(const name of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(name in value,false);

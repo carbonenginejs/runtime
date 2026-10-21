@@ -487,9 +487,10 @@ function OwnInterfaceTable(Constructor, decoratorName)
  * `be.classes.QueryThisInterface`, so the two casts can never be confused.
  *
  * @param {Function[]} Interfaces The mapped interfaces, in `_Blue.cpp` order.
+ * @param {boolean} [sourceOrder=false] Preserve source order for separate Stage-3 map decorators.
  * @returns {Function} A Stage-3 or imperative class decorator.
  */
-export function carbonInterfaceDecorator(Interfaces)
+export function carbonInterfaceDecorator(Interfaces, sourceOrder = false)
 {
     const mapped = Array.isArray(Interfaces) ? Interfaces : [ Interfaces ];
     for (const Interface of mapped)
@@ -502,7 +503,23 @@ export function carbonInterfaceDecorator(Interfaces)
         if (context && typeof context === "object" && context.kind !== "class")
             throw new TypeError("carbon.interface only supports classes.");
         const table = OwnInterfaceTable(value, "interface");
-        for (const Interface of mapped) table.interfaces.add(Interface);
+        if (sourceOrder && context)
+        {
+            // Stage-3 applies class decorators bottom-up. Insert each source row
+            // after the implicit self entry so the native query order stays top-down.
+            const entries = [ ...table.interfaces ];
+            let index = entries.indexOf(value) + 1;
+            for (const Interface of mapped)
+            {
+                if (!entries.includes(Interface)) entries.splice(index++, 0, Interface);
+            }
+            table.interfaces.clear();
+            for (const Interface of entries) table.interfaces.add(Interface);
+        }
+        else
+        {
+            for (const Interface of mapped) table.interfaces.add(Interface);
+        }
     };
 }
 

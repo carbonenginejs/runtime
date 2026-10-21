@@ -80,7 +80,7 @@ test("Sync is model-free with nominal finalizer composition, native empty defaul
   assert.equal(CjsSchema.cast(finalizer, Type), finalizer);
   assert.equal(CjsSchema.cast(finalizer, ITr2StateMachineStateFinalizer), finalizer);
   assert.equal("GetValues" in finalizer, false);
-  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Type.prototype), ExposureRoot.prototype);
   assert.equal(Type.from, undefined);
   assert.equal(finalizer.GetValues, undefined);
   assert.equal(finalizer.SetValues, undefined);
@@ -112,7 +112,7 @@ test("Sync retains exact exposure and composition in a fresh process", () =>
       const { Tr2SyncToAnimation } = await import(${JSON.stringify(moduleURL("trinity/controllers/Tr2SyncToAnimation.js"))});
       assert.deepEqual([...mappedInterfaces(Tr2SyncToAnimation)], [IRoot, Tr2SyncToAnimation, ITr2StateMachineStateFinalizer]);
       const finalizer = new Tr2SyncToAnimation();
-      assert.equal(Object.getPrototypeOf(Tr2SyncToAnimation.prototype), Object.prototype);
+      assert.equal(Object.getPrototypeOf(Tr2SyncToAnimation.prototype), IRoot.prototype);
       assert.equal("GetValues" in finalizer, false);
       assert.equal(CjsSchema.cast(finalizer, ITr2StateMachineStateFinalizer), finalizer);
     `

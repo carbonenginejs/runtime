@@ -9,7 +9,7 @@ import { type, meta } from "#schema";
  * data in the structured buffer, and its picking indices. The manager's
  * UploadLodData writes these, byte for byte, into the instance buffer.
  */
-@meta.carbon("EveInstancedMeshManager::StaticPerInstanceBufferElement")
+@meta.define({"className":"EveInstancedMeshManagerStaticPerInstanceBufferElement","carbon":"EveInstancedMeshManager::StaticPerInstanceBufferElement"})
 export class EveInstancedMeshManagerStaticPerInstanceBufferElement
 {
 

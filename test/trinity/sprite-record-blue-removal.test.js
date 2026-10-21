@@ -16,7 +16,7 @@ for(const [Class,fields,types,table]of [
  [Tr2Sprite2dClipRect,["left","top","right","bottom"],["float32","float32","float32","float32"],[]],
  [Tr2Sprite2dLineTraceVertex,["name","position","color"],["string","vec2","color"],[Tr2Sprite2dLineTraceVertex]]
 ])test(getRegisteredClassName(Class)+" native declaration and exposure shape",()=>{
- const value=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Object.prototype);assert.deepEqual(Object.keys(value),fields);
+ const value=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Class === Tr2Sprite2dLineTraceVertex ? ExposureRoot.prototype : Object.prototype);assert.deepEqual(Object.keys(value),fields);
  assert.deepEqual(fields.map(key=>CjsSchema.getField(Class,key).type.kind),types);assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
  for(const key of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(key in value,false);assert.equal("from" in Class,false);
 });

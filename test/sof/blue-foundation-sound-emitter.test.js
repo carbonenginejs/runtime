@@ -1,3 +1,4 @@
+import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
@@ -21,7 +22,7 @@ test("the production sound emitter has only native stored members and constructo
   assert.deepEqual(schema.members.map(member => member.type.kind), [ "string", "wstring", "vec3", "quat", "float32" ]);
   assert.ok(schema.members.every(member => member.edit.read && member.edit.write && member.edit.persist));
   assert.deepEqual(schema.properties, []);
-  assert.equal(mappedInterfaces(EveSOFDataHullSoundEmitter).size, 0);
+  assert.deepEqual([...mappedInterfaces(EveSOFDataHullSoundEmitter)], [ExposureRoot, EveSOFDataHullSoundEmitter]);
   assert.equal(emitter.name, "");
   assert.equal(emitter.prefix, "");
   assert.deepEqual(Array.from(emitter.position), [ 0, 0, 0 ]);
@@ -80,7 +81,7 @@ test("Blue copies the production sound emitter into fresh and existing native-sh
 function assertPlainEmitter(emitter)
 {
   assert.deepEqual(Object.keys(emitter), members);
-  assert.equal(Object.getPrototypeOf(EveSOFDataHullSoundEmitter.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(EveSOFDataHullSoundEmitter.prototype), ExposureRoot.prototype);
   assert.equal("from" in EveSOFDataHullSoundEmitter, false);
   for (const name of [ "__state", "SetValues", "GetValues", "UpdateValues", "Initialize", "OnModified" ])
   {

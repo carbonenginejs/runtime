@@ -124,5 +124,6 @@ CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxHeight", blue.readw
 CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxWidth", blue.readwrite, blue.persist, type.uint32);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "GetResourceDependencies", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "Execute", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "limitSize", blue.method, meta.adapted);
+blue.method(Tr2TexturePipelineStepLimitSize, "limitSize");
+meta.adapted(Tr2TexturePipelineStepLimitSize, "limitSize");
 CjsSchema.exposure.define("Tr2TexturePipelineStepLimitSize")(Tr2TexturePipelineStepLimitSize);

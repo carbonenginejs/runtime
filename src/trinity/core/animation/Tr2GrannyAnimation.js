@@ -1027,7 +1027,7 @@ export class Tr2GrannyAnimation extends IRoot
    * cpp:1611-1651, private): replaces the first matching bone's local rotation
    * with the aiming correction.
    *
-   * Uses the decoded runtime skeleton and gl-matrix world transforms.
+   * Adapted: uses the decoded runtime skeleton and gl-matrix world transforms.
    * Native quirk (Tr2GrannyAnimation.cpp:1639): parent transpose is used even
    * under non-uniform scale. Do not substitute a true inverse.
    *
@@ -1035,6 +1035,7 @@ export class Tr2GrannyAnimation extends IRoot
    * @returns {void}
    */
 
+  @meta.adapted
   _UpdateAimingBone(skeleton)
   {
     if (!this._aimingBone || !this._runtimeModel)

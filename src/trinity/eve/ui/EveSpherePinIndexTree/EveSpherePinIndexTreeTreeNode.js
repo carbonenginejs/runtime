@@ -1,7 +1,7 @@
 import { meta } from "#schema";
 // Source: trinity/trinity/Eve/UI/EveSpherePinIndexTree.cpp
 /** Native TreeNode storage; plain JS links replace allocated C++ child pointers. */
-@meta.carbon("EveSpherePinIndexTree::TreeNode")
+@meta.define({"className":"EveSpherePinIndexTreeTreeNode","carbon":"EveSpherePinIndexTree::TreeNode"})
 export class EveSpherePinIndexTreeTreeNode
 {
   thetaMin = 0;

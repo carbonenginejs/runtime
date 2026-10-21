@@ -20,5 +20,5 @@ export * from "./carbonEffect/index.js";
 export * from "./CjsFormat.js";
 export * from "./CjsImageFormat.js";
 export * from "./CjsGeometryFormat.js";
-export { CjsFormatRoute, CjsFormatStore } from "#blue";
+export { CjsFormatRoute, CjsFormatStore } from "../../global/blue/CjsFormatStore.js";
 export * from "./CjsTableData.js";

@@ -52,7 +52,7 @@ test("curve-set and range have native bases and exact exposure without model con
 {
   const set = new TriCurveSet(), range = new Tr2CurveSetRange();
   assert.equal(Object.getPrototypeOf(TriCurveSet.prototype), IInitialize.prototype);
-  assert.equal(Object.getPrototypeOf(Tr2CurveSetRange.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Tr2CurveSetRange.prototype), ExposureRoot.prototype);
   assert.deepEqual([...mappedInterfaces(TriCurveSet)], [ExposureRoot, TriCurveSet, IInitialize, ITr2Updateable]);
   assert.deepEqual([...mappedInterfaces(Tr2CurveSetRange)], [ExposureRoot, Tr2CurveSetRange]);
   assert.equal(CjsSchema.cast(set, ISimTimeRebaseNotify), set);

@@ -263,6 +263,8 @@ CjsSchema.decorateField(Tr2TexturePipelineStepPack, "g", blue.read, blue.persist
 CjsSchema.decorateField(Tr2TexturePipelineStepPack, "r", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
 CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "GetResourceDependencies", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "Execute", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "swapRedBlue", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "pack", blue.method, meta.adapted);
+blue.method(Tr2TexturePipelineStepPack, "swapRedBlue");
+meta.implemented(Tr2TexturePipelineStepPack, "swapRedBlue");
+blue.method(Tr2TexturePipelineStepPack, "pack");
+meta.adapted(Tr2TexturePipelineStepPack, "pack");
 CjsSchema.exposure.define("Tr2TexturePipelineStepPack")(Tr2TexturePipelineStepPack);

@@ -117,3 +117,17 @@ test("application package roots are excluded before source or oracle access", ()
     }
     finally { fs.rmSync(root,{recursive:true}); }
 });
+
+
+test("direct static and prototype metadata retain state and factory rename arguments", () =>
+{
+    const findings = inspect(`import {meta} from '#schema';
+        class Example { static Call() {} Call() {} static renamed() {} }
+        meta.carbon('Native')(Example);
+        meta.implemented(Example, 'Call');
+        meta.adapted(Example.prototype, 'Call');
+        meta.implemented(Example, 'renamed');
+        meta.renamed('Call')(Example, 'renamed');`);
+    assert.ok(!findings.some(f => ['Call', 'renamed'].includes(f.member)
+        && ['required-state', 'carbon-origin-name'].includes(f.rule)));
+});

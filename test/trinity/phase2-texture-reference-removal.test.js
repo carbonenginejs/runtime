@@ -37,7 +37,7 @@ test("texture reference has exact nominal provider and native self-provider quer
 test("provider prerequisite declares only its two native abstract methods", () =>
 {
   assert.deepEqual(Object.getOwnPropertyNames(ITr2TextureProvider.prototype), ["constructor", "GetTexture", "OnTextureChange"]);
-  assert.deepEqual([...mappedInterfaces(ITr2TextureProvider)], []);
+  assert.deepEqual([...mappedInterfaces(ITr2TextureProvider)], [ExposureRoot]);
   assert.throws(() => new ITr2TextureProvider().GetTexture(), /must be implemented/);
   assert.throws(() => new ITr2TextureProvider().OnTextureChange(() => {}), /must be implemented/);
 });

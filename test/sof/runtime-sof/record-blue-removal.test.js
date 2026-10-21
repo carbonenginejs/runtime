@@ -16,7 +16,7 @@ import { EveSOFDataHullDecalSetItem } from "../../../npm/dist/sof/hull/EveSOFDat
 
 test("SOF records construct without model APIs and expose only their native query tables", () =>
 {
-  for(const [Class,Base,table] of [[StringRecord,Object,[StringRecord]],[Texture,Object,[Texture]],[Indices,ICustomPersist,[Indices,ICustomPersist]]])
+  for(const [Class,Base,table] of [[StringRecord,ExposureRoot,[StringRecord]],[Texture,ExposureRoot,[Texture]],[Indices,ICustomPersist,[Indices,ICustomPersist]]])
   {
     const record=blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor,Class);

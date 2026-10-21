@@ -96,8 +96,8 @@ export class Tr2RuntimeInstanceData
    * @type {vec3}
    */
   @meta.adapted
-  @be.mapAttribute(be.READ)
-
+  @blue.read
+  @blue.persist
   @type.vec3
   aabbMin = vec3.create();
 
@@ -110,8 +110,8 @@ export class Tr2RuntimeInstanceData
    * @type {vec3}
    */
   @meta.adapted
-  @be.mapAttribute(be.READ)
-
+  @blue.read
+  @blue.persist
   @type.vec3
   aabbMax = vec3.create();
 

@@ -3796,7 +3796,7 @@ function createExposureNamespace(legacy)
         ...exposureConstants(),
         define: name => exposureClassDecorator(name, false),
         interface: name => exposureClassDecorator(name, true),
-        mapInterface: Interface => carbonInterfaceDecorator([ Interface ]),
+        mapInterface: Interface => carbonInterfaceDecorator([ Interface ], true),
         exposureChainTo: Parent => carbonChainToDecorator(Parent),
         inherit: (...Bases) => CjsSchema.blue.inherit(...Bases),
         abstract: legacy.abstract,

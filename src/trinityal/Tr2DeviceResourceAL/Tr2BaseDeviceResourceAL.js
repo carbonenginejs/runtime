@@ -206,6 +206,6 @@ CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "IsResourceValid", blue.method
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "GetResourceMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Describe", blue.method);
-CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "EnumerateResources", blue.method);
+blue.method(Tr2BaseDeviceResourceAL, "EnumerateResources");
 CjsSchema.decorateField(Tr2BaseDeviceResourceAL, "_registered", type.boolean);
 CjsSchema.meta.carbon("Tr2BaseDeviceResourceAL")(Tr2BaseDeviceResourceAL);

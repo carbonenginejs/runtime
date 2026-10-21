@@ -13,7 +13,7 @@ for (const Type of [EveSOFDataLogo, EveSOFDataLogoSet])
 test(`${Type.name} retains only native self queries without model helpers`, () =>
 {
   const value = new Type();
-  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Type.prototype), ExposureRoot.prototype);
   assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type]);
   assert.equal(Type.from, undefined);

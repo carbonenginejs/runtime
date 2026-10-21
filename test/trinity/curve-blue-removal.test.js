@@ -22,7 +22,8 @@ test("native private methods and JavaScript curve helpers have explicit provenan
     for(const [Class,name] of [[Tr2CurveScalar,"GetLocalTime"],[Tr2CurveQuaternion,"GetLocalTime"],[Tr2CurveQuaternion,"GetSegmentValue"]])
     {
         const method=CjsSchema.getMethod(Class,name);
-        assert.equal(method.carbon.method,true);
+        assert.equal(CjsSchema.getSchema(Class).blue,true);
+        assert.equal(method.carbon?.cjs,undefined);
         assert.equal(method.impl.status,"adapted");
     }
     for(const [Class,name] of [[Tr2CurveScalar,"FindSegment"],[Tr2CurveQuaternion,"Evaluate"],[Tr2CurveQuaternion,"SetName"],[Tr2CurveConstant,"_copyValue"]])

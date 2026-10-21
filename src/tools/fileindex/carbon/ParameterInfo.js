@@ -178,7 +178,7 @@ const PARAMETERS = new Map([
 CjsSchema.decorateField(ParameterInfo, "id", type.int32, type.enum(Parameter));
 CjsSchema.decorateField(ParameterInfo, "tag", type.string);
 CjsSchema.decorateField(ParameterInfo, "isOptional", type.boolean);
-CjsSchema.decorateMethod(ParameterInfo, "getParameterInfo", meta.adapted);
-CjsSchema.decorateMethod(ParameterInfo, "isParameterExpected", meta.adapted);
-CjsSchema.decorateMethod(ParameterInfo, "isParameterRequired", meta.adapted);
+meta.adapted(ParameterInfo, "getParameterInfo");
+meta.adapted(ParameterInfo, "isParameterExpected");
+meta.adapted(ParameterInfo, "isParameterRequired");
 CjsSchema.meta.carbon("ParameterInfo")(ParameterInfo);

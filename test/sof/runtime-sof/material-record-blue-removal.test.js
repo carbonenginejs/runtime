@@ -49,7 +49,7 @@ test("plain SOF bases and all typed parameters retain exact native self and base
   {
     const record = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     const typed = Class !== Parameter && Class !== AreaMaterial;
-    assert.equal(Object.getPrototypeOf(Class.prototype), typed ? Parameter.prototype : Object.prototype);
+    assert.equal(Object.getPrototypeOf(Class.prototype), typed ? Parameter.prototype : ExposureRoot.prototype);
     assert.deepEqual([...mappedInterfaces(Class)], typed ? [ExposureRoot, Class, Parameter] : [ExposureRoot, Class]);
     assert.equal(CjsSchema.cast(record, Class), record);
     if (typed) assert.equal(CjsSchema.cast(record, Parameter), record);

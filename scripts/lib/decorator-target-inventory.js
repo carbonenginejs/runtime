@@ -145,6 +145,24 @@ for (const file of files(path.join(root,"src"), [".js"])) {
                 const c = target(src(n.arguments[0]));
                 if (c) c.decorators.push({name,args:[],line:n.loc.start.line});
             }
+            // Direct member decorators receive a constructor for a static member,
+            // or its prototype for an instance member. Preserve that explicit target.
+            const memberDecorator = n.callee.type === "CallExpression"
+                ? normalize(dotted(n.callee.callee)) : name;
+            if (["meta.implemented","meta.adapted","meta.notImplemented","meta.notSupported",
+                "meta.notUsed","meta.abstract","meta.cjs","meta.renamed","blue.method"].includes(memberDecorator)
+                && n.arguments.length === 2)
+            {
+                const targetNode = n.arguments[0], instance = targetNode.type === "MemberExpression"
+                    && !targetNode.computed && targetNode.property.name === "prototype";
+                const classNode = instance ? targetNode.object : targetNode;
+                const k = val(n.arguments[1], env);
+                if (classNode.type === "Identifier" && typeof k === "string")
+                {
+                    const c = target(classNode.name);
+                    if (c) member(c, k, !instance).decorators.push(deco(n.callee, env));
+                }
+            }
             if((["blue.define","meta.define"].includes(name) || dotted(n.callee)==="CjsSchema.define") && n.arguments.length>=2) {
                 const c=target(src(n.arguments[0]));
                 if(c) definition(c,n.arguments[1],name.split(".")[0],n,env);

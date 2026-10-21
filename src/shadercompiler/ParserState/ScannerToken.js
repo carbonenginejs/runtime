@@ -75,6 +75,6 @@ export class ScannerToken
     }
 }
 
-CjsSchema.decorateMethod(ScannerToken, "id", meta.renamed("ID"));
-CjsSchema.decorateMethod(ScannerToken, "fromTokenType", meta.renamed("FromTokenType"));
+meta.renamed("ID")(ScannerToken, "id");
+meta.renamed("FromTokenType")(ScannerToken, "fromTokenType");
 CjsSchema.meta.carbon("ScannerToken")(ScannerToken);

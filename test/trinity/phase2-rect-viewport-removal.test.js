@@ -14,7 +14,7 @@ for (const [Type, className, values, query] of [
 ]) test(`${Type.name} uses declared storage and supported queries without model services`, () =>
 {
   const instance = new Type();
-  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Type.prototype), ExposureRoot.prototype);
   assert.equal("GetValues" in instance, false);
   assert.deepEqual([...mappedInterfaces(Type)], query.length ? [ExposureRoot, ...query] : []);
   assert.equal(Type.from, undefined);

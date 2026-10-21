@@ -13,7 +13,7 @@ import { meta, type } from "#schema";
  * Carbon declares this as EveChildPartData::PartData. The JavaScript class is
  * exported under a legal identifier while retaining that nested schema name.
  */
-@meta.carbon("EveChildPartData::PartData")
+@meta.define({"className":"EveChildPartData.PartData","carbon":"EveChildPartData::PartData"})
 export class EveChildPartDataPartData
 {
   @meta.attribute(meta.PERSIST)

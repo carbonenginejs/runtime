@@ -7,7 +7,7 @@ import { type, meta } from "#schema";
  * colour, the layout of GetVertexPosColorDecl (16 bytes). Carbon gives it no
  * initializers.
  */
-@meta.carbon("TriDebugResourceHelper::VertexPosColor")
+@meta.define({"className":"TriDebugResourceHelperVertexPosColor","carbon":"TriDebugResourceHelper::VertexPosColor"})
 export class TriDebugResourceHelperVertexPosColor
 {
 

@@ -38,7 +38,7 @@ test("generic SOF records construct without model APIs and expose self-only nati
   {
     const record = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor, Class);
-    assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
+    assert.equal(Object.getPrototypeOf(Class.prototype), ExposureRoot.prototype);
     for (const name of ["GetValues", "SetValues", "Copy", "Clone", "OnEvent", "__state"]) assert.equal(name in record, false);
     assert.equal("from" in Class, false);
     assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]);

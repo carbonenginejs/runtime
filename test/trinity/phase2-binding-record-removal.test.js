@@ -10,7 +10,7 @@ import { TriCurveSet, ITr2ValueBinding } from "../../npm/dist/trinity/curves/ind
 
 test("binding records expose exact native nominal bases and query order", () =>
 {
-  assert.equal(Object.getPrototypeOf(Tr2BindingVector3.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Tr2BindingVector3.prototype), ExposureRoot.prototype);
   assert.equal(Object.getPrototypeOf(Tr2PyValueBinding.prototype), INotify.prototype);
   assert.equal(Object.getPrototypeOf(Tr2ExternalParameter.prototype), IInitialize.prototype);
   assert.deepEqual([...mappedInterfaces(Tr2BindingVector3)], [ExposureRoot, Tr2BindingVector3]);

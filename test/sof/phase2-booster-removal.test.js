@@ -13,7 +13,7 @@ for (const Type of [EveSOFDataBooster, EveSOFDataBoosterShape])
 test(`${Type.name} retains native self-only queries and no model services`, () =>
 {
   const value = new Type();
-  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Type.prototype), ExposureRoot.prototype);
   assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type]);
   assert.equal(Type.from, undefined);

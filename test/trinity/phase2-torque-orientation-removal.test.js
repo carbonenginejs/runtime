@@ -10,7 +10,7 @@ import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 for (const [Type, Base, interfaces] of [
-  [TriTorque, Object, [TriTorque]],
+  [TriTorque, ExposureRoot, [TriTorque]],
   [TriRigidOrientation, ITriQuaternionFunction, [TriRigidOrientation, ITriFunction, ITriQuaternionFunction]]
 ]) test(`${Type.name} retains native base and exact query table without model helpers`, () =>
 {

@@ -67,5 +67,5 @@ export class RegisterSpecifier
     }
 }
 
-CjsSchema.decorateMethod(RegisterSpecifier, "register", meta.renamed("Register"));
+meta.renamed("Register")(RegisterSpecifier, "register");
 CjsSchema.meta.carbon("RegisterSpecifier")(RegisterSpecifier);

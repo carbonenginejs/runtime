@@ -71,7 +71,7 @@ test("model-free Transition retains its exact query contract and native stored-m
   assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type, INotify]);
   assert.equal(CjsSchema.cast(transition, INotify), transition);
   assert.equal("GetValues" in transition, false);
-  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Type.prototype), ExposureRoot.prototype);
   for (const name of ["GetValues", "SetValues", "UpdateValues"]) assert.equal(transition[name], undefined);
   assert.equal(Type.from, undefined);
   const members = schema.members.filter(field => field.declaringClass === Type);

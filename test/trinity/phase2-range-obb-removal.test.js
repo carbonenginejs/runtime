@@ -12,7 +12,7 @@ for (const [Type, interfaces] of [[Range, [Range]], [Obb, []]])
 test(`${Type.name} has only supported native queries and no model services`, () =>
 {
   const value = new Type();
-  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Type.prototype), Type === Range ? ExposureRoot.prototype : Object.prototype);
   assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], interfaces.length ? [ExposureRoot, ...interfaces] : []);
   assert.equal(Type.from, undefined);

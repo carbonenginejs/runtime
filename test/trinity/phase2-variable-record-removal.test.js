@@ -11,7 +11,7 @@ import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinity
 test("variable records remove model behavior and retain exact native base/query distinctions", () =>
 {
   for (const Type of [Tr2ExpressionTermInfo, TriFloat])
-    assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+    assert.equal(Object.getPrototypeOf(Type.prototype), IRoot.prototype);
   assert.equal(Object.getPrototypeOf(TriVariable.prototype), ITr2EffectValue.prototype);
   for (const Type of [Tr2ExpressionTermInfo, TriFloat, TriVariable])
   {

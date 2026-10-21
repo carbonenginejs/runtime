@@ -60,7 +60,7 @@ test("SOF transform exposes its native self table while the packed instance rema
   {
     const record = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor, Class);
-    assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
+    assert.equal(Object.getPrototypeOf(Class.prototype), Class === Transform ? ExposureRoot.prototype : Object.prototype);
     assert.deepEqual([...mappedInterfaces(Class)], Class === Transform ? [ExposureRoot, Transform] : []);
     assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);

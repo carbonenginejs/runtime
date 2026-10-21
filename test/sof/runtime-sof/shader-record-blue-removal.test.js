@@ -38,7 +38,7 @@ test("shader records retain exact native tables, exposure order, flags and indep
   ])
   {
     const a = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class)), b = new Class();
-    assert.equal(a.constructor, Class); assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
+    assert.equal(a.constructor, Class); assert.equal(Object.getPrototypeOf(Class.prototype), ExposureRoot.prototype);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in a, false);
     assert.equal("from" in Class, false); assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]);
     assert.equal(CjsSchema.cast(a, Class), a); assert.equal(CjsSchema.cast(a, IInitialize), null); assert.equal(CjsSchema.cast(a, INotify), null);

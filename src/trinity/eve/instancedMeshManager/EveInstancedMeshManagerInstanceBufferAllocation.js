@@ -11,7 +11,7 @@ import { type, meta } from "#schema";
  * `uint8_t*` into the mapping: JavaScript has no pointer arithmetic, and a
  * subarray is the byte-for-byte equivalent of `mappedData + offset`.
  */
-@meta.carbon("EveInstancedMeshManager::InstanceBuffer::Allocation")
+@meta.define({"className":"EveInstancedMeshManagerInstanceBufferAllocation","carbon":"EveInstancedMeshManager::InstanceBuffer::Allocation"})
 export class EveInstancedMeshManagerInstanceBufferAllocation
 {
 

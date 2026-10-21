@@ -137,4 +137,5 @@ export class Tr2ExpressionTermInfo extends IRoot
 be.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType);
 
 // Native IRoot record: concrete query identity with no exposure chain.
+blue.interface()(Tr2ExpressionTermInfo);
 

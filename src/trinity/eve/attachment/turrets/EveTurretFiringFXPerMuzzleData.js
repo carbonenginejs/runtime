@@ -9,7 +9,7 @@ import { type, meta } from "#schema";
  * the EveTurretFiringFX constructor (EveTurretFiringFX.cpp:50-58) writes every
  * member except elapsedTime.
  */
-@meta.carbon("EveTurretFiringFX::PerMuzzleData")
+@meta.define({"className":"EveTurretFiringFXPerMuzzleData","carbon":"EveTurretFiringFX::PerMuzzleData"})
 export class EveTurretFiringFXPerMuzzleData
 {
 

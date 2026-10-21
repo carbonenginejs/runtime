@@ -119,7 +119,9 @@ test("promoted controller families expose source-backed Carbon metadata", () =>
 function assertCarbonMethod(ctor, methodName, status)
 {
   const method = CjsSchema.getMethod(ctor, methodName);
-  assertEquals(method?.carbon?.method, true, `${ctor.name}.${methodName} should be decorated as a Carbon method`);
+  const schema = CjsSchema.getSchema(ctor);
+  assertEquals(Boolean(schema.blue || schema.carbon), true, `${ctor.name} must declare its Carbon origin`);
+  assertEquals(method?.carbon?.cjs, undefined, `${ctor.name}.${methodName} must remain a native method`);
   assertEquals(method?.impl?.status, status, `${ctor.name}.${methodName} should be marked ${status}`);
 }
 test("Tr2ControllerFloatVariable writes destinations and dirty masks", () =>

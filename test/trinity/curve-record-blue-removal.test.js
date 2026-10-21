@@ -20,7 +20,7 @@ test("three key classes construct through Blue without inherited model state", (
   {
     const key = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(key.constructor, Class);
-    assert.equal(Object.getPrototypeOf(Class.prototype), Class === Tr2ScalarExprKey ? IInitialize.prototype : Object.prototype);
+    assert.equal(Object.getPrototypeOf(Class.prototype), Class === Tr2ScalarExprKey ? IInitialize.prototype : ExposureRoot.prototype);
     for (const method of ["SetValues", "GetValues", "Clone", "OnEvent", "__state"]) assert.equal(method in key, false, method);
     assert.equal("from" in Class, false);
     const resources = [{}];

@@ -7,8 +7,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
 const FSD_ROOT = path.join(PACKAGE_ROOT, "npm", "dist", "resource", "formats", "fsd");
 // Table headers reuse Carbon's existing type vocabulary and its pure helpers.
-// Keep this explicit so importing engine, Blue, or bootstrap modules still fails.
+// FsdObject inherits Carbon's IRoot; admit its query/logging leaves, not Blue services or bootstrap.
 const SHARED_FORMAT_MODULES = new Set([
+    "global/blue/IRoot.js",
+    "global/compose/interface.js",
+    "global/consts/ccpLog.js",
+    "global/logging/CcpLogChannel_t.js",
+    "global/logging/ccpLog.js",
     "resource/format/CjsFormat.js",
     "resource/format/CjsTableData.js",
     "global/schema/types/carbonTypes.js",

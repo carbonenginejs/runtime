@@ -10,7 +10,7 @@ import { EveInstancedMeshManagerInstanceBufferAllocation } from "./EveInstancedM
  * thresholds (filled on first registration), and the per-frame culling and
  * binning results the draw side fills.
  */
-@meta.carbon("EveInstancedMeshManager::MeshData")
+@meta.define({"className":"EveInstancedMeshManagerMeshData","carbon":"EveInstancedMeshManager::MeshData"})
 export class EveInstancedMeshManagerMeshData
 {
 

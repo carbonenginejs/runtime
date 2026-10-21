@@ -7,7 +7,7 @@ import { type, meta } from "#schema";
  * (EveTurretSet.cpp:2483-2490), replayed once it is prepared
  * (cpp:1057-1064). Carbon gives it no initializers.
  */
-@meta.carbon("EveTurretSet::AnimationRequest")
+@meta.define({"className":"EveTurretSetAnimationRequest","carbon":"EveTurretSet::AnimationRequest"})
 export class EveTurretSetAnimationRequest
 {
 

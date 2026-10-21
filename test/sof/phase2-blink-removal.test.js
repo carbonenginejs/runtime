@@ -14,7 +14,7 @@ for (const Type of [EveSOFDataBlink, EveSOFDataBlinkType])
 test(`${Type.name} is an IRoot-shaped record with only its native self query`, () =>
 {
   const value = new Type();
-  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Type.prototype), ExposureRoot.prototype);
   assert.equal("GetValues" in value, false);
   assert.deepEqual([...mappedInterfaces(Type)], [ExposureRoot, Type]);
   assert.equal(Type.from, undefined);

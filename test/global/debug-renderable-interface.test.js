@@ -28,8 +28,8 @@ test("ITr2DebugRenderable has one registered identity and its two native abstrac
   assert.deepEqual(Object.getOwnPropertyNames(ITr2DebugRenderable.prototype), [
     "constructor", "GetDebugOptions", "RenderDebugInfo"
   ]);
-  assert.equal(Object.getPrototypeOf(ITr2DebugRenderable.prototype), Object.prototype);
-  assert.deepEqual(Array.from(mappedInterfaces(ITr2DebugRenderable)), []);
+  assert.equal(Object.getPrototypeOf(ITr2DebugRenderable.prototype), ExposureRoot.prototype);
+  assert.deepEqual(Array.from(mappedInterfaces(ITr2DebugRenderable)), [ExposureRoot]);
 });
 
 test("ITr2DebugRenderable requires both concrete debug operations", () =>
@@ -144,10 +144,10 @@ test("ITr2DebugRenderer2 declares every unique native operation as an abstract o
   assert.equal(ITr2DebugRenderer2, DirectDebugRenderer);
   assert.equal(CjsSchema.getConstructor("ITr2DebugRenderer2"), ITr2DebugRenderer2);
   assert.deepEqual(Object.getOwnPropertyNames(ITr2DebugRenderer2.prototype), ["constructor", ...methods]);
-  assert.equal(Object.getPrototypeOf(ITr2DebugRenderer2.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(ITr2DebugRenderer2.prototype), ExposureRoot.prototype);
   assert.deepEqual(CjsSchema.getSchema(ITr2DebugRenderer2).members, []);
   assert.deepEqual(CjsSchema.getSchema(ITr2DebugRenderer2).properties, []);
-  assert.deepEqual(Array.from(mappedInterfaces(ITr2DebugRenderer2)), []);
+  assert.deepEqual(Array.from(mappedInterfaces(ITr2DebugRenderer2)), [ExposureRoot]);
   class MissingRenderer extends ITr2DebugRenderer2 {}
   for (const renderer of [new ITr2DebugRenderer2(), new MissingRenderer()])
   {

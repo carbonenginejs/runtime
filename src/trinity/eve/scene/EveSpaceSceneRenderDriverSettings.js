@@ -14,7 +14,7 @@ import { Quality } from "../../generated/postProcess/enums.js";
  *
  * Every default is Carbon's member initializer (h:56-70).
  */
-@meta.carbon("EveSpaceSceneRenderDriver::Settings")
+@meta.define({"className":"EveSpaceSceneRenderDriverSettings","carbon":"EveSpaceSceneRenderDriver::Settings"})
 export class EveSpaceSceneRenderDriverSettings
 {
 
