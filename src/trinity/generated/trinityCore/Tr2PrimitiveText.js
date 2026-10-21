@@ -11,11 +11,13 @@ import { TriDebugFont } from "../include/enums.js";
 export class Tr2PrimitiveText extends IRoot
 {
 
-  /** m_font (TriDebugFont - enum TriDebugFont) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_font (TriDebugFont - enum TriDebugFont) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2PrimitiveText_Blue.cpp:25); chooser TriDebugFontChooser (trinity/trinity/Tr2PrimitiveText_Blue.cpp:9).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.TriDebugFont")
   @type.int32
-  @type.enum("TriDebugFont")
+  @type.enum("trinity.TriDebugFont")
   font = 0;
 
   /** m_text (std::string) [READWRITE, PERSIST] */

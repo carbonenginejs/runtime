@@ -11,11 +11,13 @@ import { DistributionEntityLifeTimeEvent } from "./enums.js";
 export class EveDistributionModifierProcessLifetime extends IEveDistributionModifier
 {
 
-  /** m_killEvent (DistributionEntityLifeTimeEvent - enum DistributionEntityLifeTimeEvent) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_killEvent (DistributionEntityLifeTimeEvent - enum DistributionEntityLifeTimeEvent) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierProcessLifetime_Blue.cpp:28); chooser LifetimeEventChooser (trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierProcessLifetime_Blue.cpp:6).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.lifetimeEvent")
   @type.int32
-  @type.enum("DistributionEntityLifeTimeEvent")
+  @type.enum("trinity.lifetimeEvent")
   killEvent = 1;
 
   /** m_lifetimeDuration (float) [READWRITE, PERSIST] */

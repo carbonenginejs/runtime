@@ -11,6 +11,19 @@ import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 
+/** The BGRA channel indices behind m_channel; Carbon has no enum for them, only the chooser. */
+const Channel = Object.freeze({ Red: 2, Green: 1, Blue: 0, Alpha: 3 });
+
+// Channel_Chooser is file-local to Carbon's Tr2Sprite2dPickingMask and not registered there (trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask_Blue.cpp:12).
+blue.enums.Create("trinity.Tr2Sprite2dPickingMask.Channel_Chooser", Channel, {
+  chooser: [
+    { name: "Red", value: Channel.Red, description: "" },
+    { name: "Green", value: Channel.Green, description: "" },
+    { name: "Blue", value: Channel.Blue, description: "" },
+    { name: "Alpha", value: Channel.Alpha, description: "" }
+  ]
+});
+
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
 @legacyBlue.define({ className: "Tr2Sprite2dPickingMask", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
 @legacyBlue.interface()
@@ -37,9 +50,12 @@ export class Tr2Sprite2dPickingMask extends IRoot
     this.SetMaskPath(value);
   }
 
-  /** Native anonymous BGRA channel chooser. @type {number} */
-  @legacyBlue.readwrite
-  @type.enum({ Red: 2, Green: 1, Blue: 0, Alpha: 3 })
+  /**
+   * Native anonymous BGRA channel chooser. @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask_Blue.cpp:35); chooser Channel_Chooser (trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask_Blue.cpp:12).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.Tr2Sprite2dPickingMask.Channel_Chooser")
+  @type.enum("trinity.Tr2Sprite2dPickingMask.Channel_Chooser")
   @type.uint32
   channel = 3;
 

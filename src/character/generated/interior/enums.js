@@ -1,3 +1,4 @@
+import { blueEnums, EnumRegistrationType } from "#blue/enums/CjsBlueEnumRegistry";
 // Source: trinity/trinity/Interior/Tr2InteriorRenderBatch.h
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 // Source: trinity/trinity/Interior/Tr2InteriorVisualization.h
@@ -41,4 +42,34 @@ export const VisualizeMethod = Object.freeze({
   VM_LIGHT_PRE_PASS_SPECULAR_LIGHTING: 21,
   VM_OCCLUSION: 22,
   VM_COUNT: 23,
+});
+
+// Registered as Carbon registers it (trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp:94-95); VisualizerChooser is file-local there.
+blueEnums.Create("trinity.Tr2InteriorVisualizerMethod", VisualizeMethod, {
+  exposedName: "Tr2InteriorVisualizerMethod", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooser: [
+    { name: "VM_NONE", value: VisualizeMethod.VM_NONE, description: "No visualizer - use normal rendering" },
+    { name: "VM_WHITE", value: VisualizeMethod.VM_WHITE, description: "Pixel shader returns white (useful to verify that something is output)" },
+    { name: "VM_OBJECT_NORMAL", value: VisualizeMethod.VM_OBJECT_NORMAL, description: "Normal from vertices" },
+    { name: "VM_TANGENT", value: VisualizeMethod.VM_TANGENT, description: "Tangent from vertices" },
+    { name: "VM_BITANGENT", value: VisualizeMethod.VM_BITANGENT, description: "Bitangent from vertices" },
+    { name: "VM_TEXCOORD0", value: VisualizeMethod.VM_TEXCOORD0, description: "Texture coordinate 0" },
+    { name: "VM_TEXCOORD1", value: VisualizeMethod.VM_TEXCOORD1, description: "Texture coordinate 0" },
+    { name: "VM_TEXELDENSITY0", value: VisualizeMethod.VM_TEXELDENSITY0, description: "Density of texels mapped through texture coordinate 0" },
+    { name: "VM_NORMALMAP", value: VisualizeMethod.VM_NORMALMAP, description: "Tangent space normal from map" },
+    { name: "VM_DIFFUSEMAP", value: VisualizeMethod.VM_DIFFUSEMAP, description: "Diffuse map" },
+    { name: "VM_SPECULARMAP", value: VisualizeMethod.VM_SPECULARMAP, description: "Specular map" },
+    { name: "VM_OVERDRAW", value: VisualizeMethod.VM_OVERDRAW, description: "See the overdraw of the scene" },
+    { name: "VM_EN_ONLY", value: VisualizeMethod.VM_EN_ONLY, description: "Enlighten only)" },
+    { name: "VM_DEPTH", value: VisualizeMethod.VM_DEPTH, description: "See the depth buffer of the scene" },
+    { name: "VM_ALL_LIGHTING", value: VisualizeMethod.VM_ALL_LIGHTING, description: "See cummulative direct and secondary lighting" },
+    { name: "VM_LIGHT_PRE_PASS_NORMALS", value: VisualizeMethod.VM_LIGHT_PRE_PASS_NORMALS, description: "normal in worldspace from light pre-pass texture" },
+    { name: "VM_LIGHT_PRE_PASS_DEPTH", value: VisualizeMethod.VM_LIGHT_PRE_PASS_DEPTH, description: "depth in clip space from light pre-pass texture" },
+    { name: "VM_LIGHT_PRE_PASS_WORLD_POSITION", value: VisualizeMethod.VM_LIGHT_PRE_PASS_WORLD_POSITION, description: "world position from light pre-pass texture" },
+    { name: "VM_LIGHT_PRE_PASS_LIGHTING", value: VisualizeMethod.VM_LIGHT_PRE_PASS_LIGHTING, description: "resulting lighting from pre-pass light accumulation texture" },
+    { name: "VM_LIGHT_PRE_PASS_LIGHT_OVERDRAW", value: VisualizeMethod.VM_LIGHT_PRE_PASS_LIGHT_OVERDRAW, description: "light geometry overdraw during light accumulation pass" },
+    { name: "VM_LIGHT_PRE_PASS_DIFFUSE_LIGHTING", value: VisualizeMethod.VM_LIGHT_PRE_PASS_DIFFUSE_LIGHTING, description: "resulting deffuse lighting from pre-pass light accumulation texture" },
+    { name: "VM_LIGHT_PRE_PASS_SPECULAR_LIGHTING", value: VisualizeMethod.VM_LIGHT_PRE_PASS_SPECULAR_LIGHTING, description: "resulting specular lighting from pre-pass light accumulation texture" },
+    { name: "VM_OCCLUSION", value: VisualizeMethod.VM_OCCLUSION, description: "render occlusion geometry on top of the normal geometry" }
+  ]
 });

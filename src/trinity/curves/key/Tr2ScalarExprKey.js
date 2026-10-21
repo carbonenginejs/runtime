@@ -139,11 +139,11 @@ export class Tr2ScalarExprKey extends IInitialize
    * Native signed Interpolation storage from Tr2Key<float>.
    * Adapted: the existing Tr2CurveInterpolation vocabulary has the same three
    * CONSTANT/LINEAR/HERMITE choices as ScalarInterpolationChooser.
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp:50); chooser ScalarInterpolationChooser (trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp:9).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ScalarInterpolationChooser")
   @type.int32
-  @type.enum("trinity.Tr2CurveInterpolation")
+  @type.enum("trinity.ScalarInterpolationChooser")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
   /**

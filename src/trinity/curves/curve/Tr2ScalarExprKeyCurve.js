@@ -79,11 +79,11 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Default interpolation code used by AddKey and sampling without a preceding key. Native
    * choices are CONSTANT, LINEAR and HERMITE.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp:71); chooser ScalarInterpolationChooser (trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp:9).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ScalarInterpolationChooser")
   @type.uint32
-  @type.enum("trinity.Tr2CurveInterpolation")
+  @type.enum("trinity.ScalarInterpolationChooser")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
   /**

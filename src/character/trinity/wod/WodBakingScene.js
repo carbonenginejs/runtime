@@ -6,32 +6,10 @@ import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
 // Source: trinity/trinity/Wod/WodBakingScene_Blue.cpp
 // CarbonEngineJS maintained source.
 import { meta, type, blue } from "#schema";
+import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
 
-/**
- * Baking-scene record pairing a skinned avatar with a diagnostic visualization
- * mode. Native Carbon uses this scene to render the avatar through managed
- * skinned-object batches; CarbonEngineJS keeps the scene contract here and
- * leaves render-target realization to an engine adapter.
- */
-@be.define("WodBakingScene")
-@blue.inherit(ITr2Scene)
-@be.mapInterface(ITr2Scene)
-export class WodBakingScene extends IRoot
-{
-
-  /** m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @type.int32
-  @type.enum("VisualizeMethod")
-  visualizeMethod = 0;
-
-  /** m_skinnedObject (Tr2SkinnedObjectPtr) [READWRITE] */
-  @be.mapAttribute(be.READWRITE)
-  @type.object.ref("Tr2SkinnedObject")
-  Avatar = null;
-
-  static VisualizeMethod = Object.freeze({
+/** Visualizer methods of m_visualizeMethod: Carbon's VisualizeMethod (Tr2InteriorVisualization.h:9), shared with the interior scene. */
+const VisualizeMethod = Object.freeze({
     VM_NONE: 0,
     VM_WHITE: 1,
     VM_OBJECT_NORMAL: 2,
@@ -57,6 +35,54 @@ export class WodBakingScene extends IRoot
     VM_OCCLUSION: 22,
     VM_COUNT: 23,
   });
+
+// VisualizerChooser (trinity/trinity/Wod/WodBakingScene_Blue.cpp:9) is file-local to Carbon's WodBakingScene and not registered there; its labels differ from the interior scene's.
+blueEnums.Create("trinity.WodBakingScene.VisualizerChooser", VisualizeMethod, {
+  chooser: [
+    { name: "None", value: VisualizeMethod.VM_NONE, description: "No visualizer - use normal rendering" },
+    { name: "White", value: VisualizeMethod.VM_WHITE, description: "Pixel shader returns white (useful to verify that something is output)" },
+    { name: "Object normal", value: VisualizeMethod.VM_OBJECT_NORMAL, description: "Normal from vertices" },
+    { name: "Tangent", value: VisualizeMethod.VM_TANGENT, description: "Tangent from vertices" },
+    { name: "Bitangent", value: VisualizeMethod.VM_BITANGENT, description: "Bitangent from vertices" },
+    { name: "TexCoord0", value: VisualizeMethod.VM_TEXCOORD0, description: "Texture coordinate 0" },
+    { name: "TexCoord1", value: VisualizeMethod.VM_TEXCOORD1, description: "Texture coordinate 0" },
+    { name: "TexelDensity0", value: VisualizeMethod.VM_TEXELDENSITY0, description: "Density of texels mapped through texture coordinate 0" },
+    { name: "Normal map", value: VisualizeMethod.VM_NORMALMAP, description: "Tangent space normal from map" },
+    { name: "Diffuse map", value: VisualizeMethod.VM_DIFFUSEMAP, description: "Diffuse map" },
+    { name: "Specular map", value: VisualizeMethod.VM_SPECULARMAP, description: "Specular map" },
+    { name: "Overdraw", value: VisualizeMethod.VM_OVERDRAW, description: "See the overdraw of the scene" },
+    { name: "Enlighten only", value: VisualizeMethod.VM_EN_ONLY, description: "Enlighten only)" },
+    { name: "Depth", value: VisualizeMethod.VM_DEPTH, description: "See the depth buffer of the scene" }
+  ]
+});
+
+/**
+ * Baking-scene record pairing a skinned avatar with a diagnostic visualization
+ * mode. Native Carbon uses this scene to render the avatar through managed
+ * skinned-object batches; CarbonEngineJS keeps the scene contract here and
+ * leaves render-target realization to an engine adapter.
+ */
+@be.define("WodBakingScene")
+@blue.inherit(ITr2Scene)
+@be.mapInterface(ITr2Scene)
+export class WodBakingScene extends IRoot
+{
+
+  /**
+   * m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Wod/WodBakingScene_Blue.cpp:65); chooser VisualizerChooser (trinity/trinity/Wod/WodBakingScene_Blue.cpp:9).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.WodBakingScene.VisualizerChooser")
+  @type.int32
+  @type.enum("trinity.WodBakingScene.VisualizerChooser")
+  visualizeMethod = 0;
+
+  /** m_skinnedObject (Tr2SkinnedObjectPtr) [READWRITE] */
+  @be.mapAttribute(be.READWRITE)
+  @type.object.ref("Tr2SkinnedObject")
+  Avatar = null;
+
+  static VisualizeMethod = VisualizeMethod;
 
   /**
    * Engine-owned native render pass for baking the selected avatar.

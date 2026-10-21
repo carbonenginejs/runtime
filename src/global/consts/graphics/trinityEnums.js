@@ -77,6 +77,40 @@ export const TRITRANSFORMBASE = Object.freeze({
     TRITB_SIMPLE_SPRITE_CONSTANT: 17
 });
 
+/** Blue's D3D render-state constants (TriConstants.cpp:304, exported to Python as module constants). Values are Tr2RenderContextEnum render states. */
+export const TriD3DRenderState = Object.freeze({
+    D3DRS_ZENABLE: 7,
+    D3DRS_FILLMODE: 8,
+    D3DRS_ZWRITEENABLE: 14,
+    D3DRS_SRCBLEND: 19,
+    D3DRS_DESTBLEND: 20,
+    D3DRS_CULLMODE: 22,
+    D3DRS_ZFUNC: 23,
+    D3DRS_ALPHABLENDENABLE: 27,
+    D3DRS_STENCILENABLE: 52,
+    D3DRS_STENCILFAIL: 53,
+    D3DRS_STENCILZFAIL: 54,
+    D3DRS_STENCILPASS: 55,
+    D3DRS_STENCILFUNC: 56,
+    D3DRS_STENCILREF: 57,
+    D3DRS_STENCILMASK: 58,
+    D3DRS_STENCILWRITEMASK: 59,
+    D3DRS_COLORWRITEENABLE: 168,
+    D3DRS_BLENDOP: 171,
+    D3DRS_SLOPESCALEDEPTHBIAS: 175,
+    D3DRS_TWOSIDEDSTENCILMODE: 185,
+    D3DRS_CCW_STENCILFAIL: 186,
+    D3DRS_CCW_STENCILZFAIL: 187,
+    D3DRS_CCW_STENCILPASS: 188,
+    D3DRS_CCW_STENCILFUNC: 189,
+    D3DRS_SRGBWRITEENABLE: 194,
+    D3DRS_DEPTHBIAS: 195,
+    D3DRS_SEPARATEALPHABLENDENABLE: 206,
+    D3DRS_SRCBLENDALPHA: 207,
+    D3DRS_DESTBLENDALPHA: 208,
+    D3DRS_BLENDOPALPHA: 209
+});
+
 // Carbon TRIEXTRAPOLATION (blue/include/ITriConstants.h:33) - curve
 // extrapolation modes, shared by trinity curves (TriEventCurve) and audio
 // (AudEventCurve). Class statics alias this export (TRIOPERATOR pattern).
@@ -145,6 +179,67 @@ blueEnums.Create("blue.TRIEXTRAPOLATION", TRIEXTRAPOLATION, {
     { name: "TRIEXT_CONSTANT", value: TRIEXTRAPOLATION.TRIEXT_CONSTANT, description: "no comment" },
     { name: "TRIEXT_GRADIENT", value: TRIEXTRAPOLATION.TRIEXT_GRADIENT, description: "no comment" },
     { name: "TRIEXT_CYCLE", value: TRIEXTRAPOLATION.TRIEXT_CYCLE, description: "no comment" }
+  ]
+});
+
+// Neither TriConstants.cpp table is registered by Carbon; the choosers feed Python constants only.
+// Source: trinity/trinity/TriConstants.cpp:304
+blueEnums.Create("blue.TriD3DRenderState", TriD3DRenderState, {
+  chooser: [
+    { name: "D3DRS_ZENABLE", value: TriD3DRenderState.D3DRS_ZENABLE, description: "Depth-buffering state as one member of the ZBUFFERTYPE enumerated type.\nSet this state to ZB_TRUE to enable z-buffering, ZB_USEW to enable\nw-buffering, or ZB_FALSE to disable depth buffering. The default value\nfor this render state is ZB_TRUE if a depth stencil was created along\nwith the swap chain by setting the EnableAutoDepthStencil member of the\nPRESENT_PARAMETERS structure to TRUE, and ZB_FALSE otherwise." },
+    { name: "D3DRS_FILLMODE", value: TriD3DRenderState.D3DRS_FILLMODE, description: "One or more members of the FILLMODE enumerated type.\nThe default value is FILL_SOLID." },
+    { name: "D3DRS_ZWRITEENABLE", value: TriD3DRenderState.D3DRS_ZWRITEENABLE, description: "" },
+    { name: "D3DRS_SRCBLEND", value: TriD3DRenderState.D3DRS_SRCBLEND, description: "" },
+    { name: "D3DRS_DESTBLEND", value: TriD3DRenderState.D3DRS_DESTBLEND, description: "" },
+    { name: "D3DRS_CULLMODE", value: TriD3DRenderState.D3DRS_CULLMODE, description: "" },
+    { name: "D3DRS_ZFUNC", value: TriD3DRenderState.D3DRS_ZFUNC, description: "" },
+    { name: "D3DRS_ALPHABLENDENABLE", value: TriD3DRenderState.D3DRS_ALPHABLENDENABLE, description: "" },
+    { name: "D3DRS_STENCILENABLE", value: TriD3DRenderState.D3DRS_STENCILENABLE, description: "" },
+    { name: "D3DRS_STENCILFAIL", value: TriD3DRenderState.D3DRS_STENCILFAIL, description: "" },
+    { name: "D3DRS_STENCILZFAIL", value: TriD3DRenderState.D3DRS_STENCILZFAIL, description: "" },
+    { name: "D3DRS_STENCILPASS", value: TriD3DRenderState.D3DRS_STENCILPASS, description: "" },
+    { name: "D3DRS_STENCILFUNC", value: TriD3DRenderState.D3DRS_STENCILFUNC, description: "" },
+    { name: "D3DRS_STENCILREF", value: TriD3DRenderState.D3DRS_STENCILREF, description: "" },
+    { name: "D3DRS_STENCILMASK", value: TriD3DRenderState.D3DRS_STENCILMASK, description: "" },
+    { name: "D3DRS_STENCILWRITEMASK", value: TriD3DRenderState.D3DRS_STENCILWRITEMASK, description: "" },
+    { name: "D3DRS_COLORWRITEENABLE", value: TriD3DRenderState.D3DRS_COLORWRITEENABLE, description: "" },
+    { name: "D3DRS_BLENDOP", value: TriD3DRenderState.D3DRS_BLENDOP, description: "" },
+    { name: "D3DRS_SLOPESCALEDEPTHBIAS", value: TriD3DRenderState.D3DRS_SLOPESCALEDEPTHBIAS, description: "" },
+    { name: "D3DRS_TWOSIDEDSTENCILMODE", value: TriD3DRenderState.D3DRS_TWOSIDEDSTENCILMODE, description: "" },
+    { name: "D3DRS_CCW_STENCILFAIL", value: TriD3DRenderState.D3DRS_CCW_STENCILFAIL, description: "" },
+    { name: "D3DRS_CCW_STENCILZFAIL", value: TriD3DRenderState.D3DRS_CCW_STENCILZFAIL, description: "" },
+    { name: "D3DRS_CCW_STENCILPASS", value: TriD3DRenderState.D3DRS_CCW_STENCILPASS, description: "" },
+    { name: "D3DRS_CCW_STENCILFUNC", value: TriD3DRenderState.D3DRS_CCW_STENCILFUNC, description: "" },
+    { name: "D3DRS_SRGBWRITEENABLE", value: TriD3DRenderState.D3DRS_SRGBWRITEENABLE, description: "" },
+    { name: "D3DRS_DEPTHBIAS", value: TriD3DRenderState.D3DRS_DEPTHBIAS, description: "" },
+    { name: "D3DRS_SEPARATEALPHABLENDENABLE", value: TriD3DRenderState.D3DRS_SEPARATEALPHABLENDENABLE, description: "" },
+    { name: "D3DRS_SRCBLENDALPHA", value: TriD3DRenderState.D3DRS_SRCBLENDALPHA, description: "" },
+    { name: "D3DRS_DESTBLENDALPHA", value: TriD3DRenderState.D3DRS_DESTBLENDALPHA, description: "" },
+    { name: "D3DRS_BLENDOPALPHA", value: TriD3DRenderState.D3DRS_BLENDOPALPHA, description: "" }
+  ]
+});
+
+// Source: trinity/trinity/TriConstants.cpp:111
+blueEnums.Create("blue.TRITRANSFORMBASE", TRITRANSFORMBASE, {
+  chooser: [
+    { name: "TRITB_OBJECT", value: TRITRANSFORMBASE.TRITB_OBJECT, description: "This makes TriTransforms build hierachies as expected, that is a child inherits its parent transforms.\r\n.For TriTextures this is mosly usefull for projecting textures from objects" },
+    { name: "TRITB_CAMERA_ROTATION", value: TRITRANSFORMBASE.TRITB_CAMERA_ROTATION, description: "This sets the inverted rotation part of the camera matrix as the base for thetransformations be they texture or transforms, good for environment maps andnormal projected cubemaps." },
+    { name: "TRITB_CAMERA_TRANSLATION", value: TRITRANSFORMBASE.TRITB_CAMERA_TRANSLATION, description: "This sets the inverted translation part of the camera matrix as the base for thetransformations be they texture or transforms, good for geometry that is locked,to the camera, like nebulas and starfields, etc." },
+    { name: "TRITB_CAMERA", value: TRITRANSFORMBASE.TRITB_CAMERA, description: "This sets the inverted camera matrix as the base for the transformationsbe they texture or geometry transforms, basically the same, as TRITB_CAMERA_ROTATION except the translation is taken also" },
+    { name: "TRITB_CAMERA_ROTATION_ALIGNED", value: TRITRANSFORMBASE.TRITB_CAMERA_ROTATION_ALIGNED, description: "Makes the transform face the camera at all times, used for billboarding.The up direction of the billboard is preserved." },
+    { name: "TRITB_CAMERA_ROTATION_ALIGNED_SYMMETRY", value: TRITRANSFORMBASE.TRITB_CAMERA_ROTATION_ALIGNED_SYMMETRY, description: "Makes the transform face the camera at all times, used for billboarding,the rotation around the axis to the camera is not corrected, hence thisshould only be used for rotationally symmetric billboards." },
+    { name: "TRITB_CAMERA_ROTATION_FALLOFF", value: TRITRANSFORMBASE.TRITB_CAMERA_ROTATION_FALLOFF, description: "Same as TRITB_CAMERA_ROTATION_ALIGNED, except the billboard is scaledby distance. This is useful for lights that are not rotationally symmetric." },
+    { name: "TRITB_CAMERA_ROTATION_FALLOFF_SYMMETRY", value: TRITRANSFORMBASE.TRITB_CAMERA_ROTATION_FALLOFF_SYMMETRY, description: "Same as TRITB_CAMERA_ROTATION_ALIGNED_SYMMETRY, except the billboard is scaledby distance. This is useful for lights that are rotationally symmetric." },
+    { name: "TRITB_BOOSTER", value: TRITRANSFORMBASE.TRITB_BOOSTER, description: "Makes the sprite behave as if it were an ellipsoid" },
+    { name: "TRITB_SIMPLE_HALO", value: TRITRANSFORMBASE.TRITB_SIMPLE_HALO, description: "Ask Torfi" },
+    { name: "TRITB_SIMPLE_HALO_FALLOFF", value: TRITRANSFORMBASE.TRITB_SIMPLE_HALO_FALLOFF, description: "Ask Torfi" },
+    { name: "TRITB_SIMPLE_HALO_SYMMETRY", value: TRITRANSFORMBASE.TRITB_SIMPLE_HALO_SYMMETRY, description: "Ask Torfi" },
+    { name: "TRITB_SIMPLE_SPRITE", value: TRITRANSFORMBASE.TRITB_SIMPLE_SPRITE, description: "Ask Torfi" },
+    { name: "TRITB_SIMPLE_SPRITE_FALLOFF", value: TRITRANSFORMBASE.TRITB_SIMPLE_SPRITE_FALLOFF, description: "Ask Torfi" },
+    { name: "TRITB_SIMPLE_SPRITE_CONSTANT", value: TRITRANSFORMBASE.TRITB_SIMPLE_SPRITE_CONSTANT, description: "Don't ask Torfi" },
+    { name: "TRITB_FIXED", value: TRITRANSFORMBASE.TRITB_FIXED, description: "This placed traditionally called world-space, the transform is considered to be in the world cordinate system (object hierarchies are ignored)This leves the texture space untouched (set to the identity matrix)." },
+    { name: "TRITB_BOOSTER_FALLOFF", value: TRITRANSFORMBASE.TRITB_BOOSTER_FALLOFF, description: "Makes the sprite behave as if it were an ellipsoid, includes falloff" },
+    { name: "TRITB_WORLD", value: TRITRANSFORMBASE.TRITB_WORLD, description: "Transforms the object relative to the world zero " }
   ]
 });
 

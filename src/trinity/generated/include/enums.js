@@ -9,7 +9,7 @@
 // Source: blue/include/ITr2DebugRenderer2.h:19 (TriDebugFont)
 // Source: blue/include/ITr2DebugRenderer2.h:26 (TriDebugFontStyle)
 
-import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
+import { blueEnums, EnumRegistrationType } from "#blue/enums/CjsBlueEnumRegistry";
 
 export const CullResult = Object.freeze({
   CULLRES_OK: 1,
@@ -69,6 +69,16 @@ export const TriDebugFont = Object.freeze({
   TRI_DBG_FONT_SMALL: 0,
   TRI_DBG_FONT_MEDIUM: 1,
   TRI_DBG_FONT_LARGE: 2,
+});
+
+// Registered as Carbon registers it (trinity/trinity/Tr2PrimitiveText_Blue.cpp:15).
+blueEnums.Create("trinity.TriDebugFont", TriDebugFont, {
+  exposedName: "TriDebugFont", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooser: [
+    { name: "FontSmall", value: TriDebugFont.TRI_DBG_FONT_SMALL, description: "Small debug font" },
+    { name: "FontMedium", value: TriDebugFont.TRI_DBG_FONT_MEDIUM, description: "Medium debug font" },
+    { name: "FontLarge", value: TriDebugFont.TRI_DBG_FONT_LARGE, description: "Larget debug font" }
+  ]
 });
 
 export const TriDebugFontStyle = Object.freeze({

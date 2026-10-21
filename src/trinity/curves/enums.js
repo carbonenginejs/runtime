@@ -93,3 +93,19 @@ blue.enums.Create("trinity.Tr2ObjectFollowCurveKey.RotationSetting", RotationSet
     { name: "MODEL_ROTATION", value: RotationSetting.MODEL_ROTATION, description: "Model rotation" }
   ]
 });
+
+// ScalarInterpolationChooser (trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp:9) is a table of its own, not Tr2CurveInterpolation's: its HERMITE text differs.
+// Carbon does not register it as an enum.
+export const ScalarInterpolation = {
+  CONSTANT: 0,
+  LINEAR: 1,
+  HERMITE: 2
+};
+
+blue.enums.Create("trinity.ScalarInterpolationChooser", ScalarInterpolation, {
+  chooser: [
+    { name: "CONSTANT", value: ScalarInterpolation.CONSTANT, description: "Performs a constant interpolation" },
+    { name: "LINEAR", value: ScalarInterpolation.LINEAR, description: "Performs a linear interpolation" },
+    { name: "HERMITE", value: ScalarInterpolation.HERMITE, description: "Performs a Hermite spline interpolation" }
+  ]
+});

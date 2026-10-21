@@ -16,11 +16,13 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 export class TriTransformParameter extends CjsParameter
 {
 
-  /** m_transformBase (TRITRANSFORMBASE - enum TRITRANSFORMBASE) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_transformBase (TRITRANSFORMBASE - enum TRITRANSFORMBASE) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Shader/Parameter/TriTransformParameter_Blue.cpp:24); chooser TriTransformBase (trinity/trinity/TriConstants.cpp:111).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "blue.TRITRANSFORMBASE")
   @type.int32
-  @type.enum("TRITRANSFORMBASE")
+  @type.enum("blue.TRITRANSFORMBASE")
   transformBase = 0;
 
   /** m_rotationCenter (Vector3) [READWRITE, PERSIST] */

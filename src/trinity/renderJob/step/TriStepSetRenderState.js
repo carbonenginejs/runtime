@@ -16,10 +16,10 @@ import { RenderState } from "#consts/render-context";
 @be.exposureChainTo(TriRenderStep)
 export class TriStepSetRenderState extends TriRenderStep
 {
-  @blue.readwrite
-  @blue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/RenderJob/TriStepSetRenderState_Blue.cpp:58); chooser TriD3DRenderState (trinity/trinity/TriConstants.cpp:304). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "blue.TriD3DRenderState")
   @type.int32
-  @type.enum("RenderState")
+  @type.enum("blue.TriD3DRenderState")
   state = 0;
 
   @be.mapAttribute(be.READWRITE | be.PERSIST)

@@ -759,6 +759,31 @@
               }
             ]
           }
+        },
+        {
+          "exportName": "TriDebugFont",
+          "name": "trinity.TriDebugFont",
+          "definition": {
+            "exposedName": "TriDebugFont",
+            "exposure": 2,
+            "chooser": [
+              {
+                "name": "FontSmall",
+                "description": "Small debug font",
+                "member": "TRI_DBG_FONT_SMALL"
+              },
+              {
+                "name": "FontMedium",
+                "description": "Medium debug font",
+                "member": "TRI_DBG_FONT_MEDIUM"
+              },
+              {
+                "name": "FontLarge",
+                "description": "Larget debug font",
+                "member": "TRI_DBG_FONT_LARGE"
+              }
+            ]
+          }
         }
       ]
     },

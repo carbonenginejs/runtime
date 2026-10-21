@@ -8,6 +8,7 @@ import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
+import { VisualizeMethod } from "../../generated/interior/enums.js";
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
@@ -95,11 +96,13 @@ export class Tr2InteriorScene
   @type.path("TriTextureRes")
   backgroundCubemapPath = "";
 
-  /** m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
+  /**
+   * m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp:350); chooser VisualizerChooser (trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp:15).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.Tr2InteriorVisualizerMethod")
   @type.int32
-  @type.enum("VisualizeMethod")
+  @type.enum("trinity.Tr2InteriorVisualizerMethod")
   visualizeMethod = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
@@ -542,31 +545,6 @@ export class Tr2InteriorScene
     this.backgroundCubemapRes = null;
   }
 
-  static VisualizeMethod = Object.freeze({
-    VM_NONE: 0,
-    VM_WHITE: 1,
-    VM_OBJECT_NORMAL: 2,
-    VM_TANGENT: 3,
-    VM_BITANGENT: 4,
-    VM_TEXCOORD0: 5,
-    VM_TEXCOORD1: 6,
-    VM_TEXELDENSITY0: 7,
-    VM_NORMALMAP: 8,
-    VM_DIFFUSEMAP: 9,
-    VM_SPECULARMAP: 10,
-    VM_OVERDRAW: 11,
-    VM_EN_ONLY: 12,
-    VM_DEPTH: 13,
-    VM_ALL_LIGHTING: 14,
-    VM_LIGHT_PRE_PASS_NORMALS: 15,
-    VM_LIGHT_PRE_PASS_DEPTH: 16,
-    VM_LIGHT_PRE_PASS_WORLD_POSITION: 17,
-    VM_LIGHT_PRE_PASS_LIGHTING: 18,
-    VM_LIGHT_PRE_PASS_LIGHT_OVERDRAW: 19,
-    VM_LIGHT_PRE_PASS_DIFFUSE_LIGHTING: 20,
-    VM_LIGHT_PRE_PASS_SPECULAR_LIGHTING: 21,
-    VM_OCCLUSION: 22,
-    VM_COUNT: 23,
-  });
+  static VisualizeMethod = VisualizeMethod;
 
 }

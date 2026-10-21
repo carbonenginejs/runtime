@@ -365,7 +365,7 @@ test("curve enum fields resolve through Blue, and audio shares Blue's TRIEXTRAPO
         ["trinity/curves/curve/Tr2CurveVector3Lerp", null, "trinity.Tr2CurveVector3LerpKeyInterpolation"],
         ["trinity/curves/key/Tr2CameraFollowCurveKey", null, "trinity.Tr2FollowCurveKeyInterpolation"],
         ["trinity/curves/key/Tr2ObjectFollowCurveKey", null, "trinity.Tr2ObjectFollowCurveKey.RotationSetting"],
-        ["trinity/curves/key/Tr2ScalarExprKey", null, "trinity.Tr2CurveInterpolation"],
+        ["trinity/curves/key/Tr2ScalarExprKey", null, "trinity.ScalarInterpolationChooser"],
         ["trinity/curves/curve/TriColorSequencer", "operator", "blue.TRIOPERATOR"],
         ["trinity/curves/curve/TriVectorSequencer", "operator", "blue.TRIOPERATOR"],
         ["trinity/curves/curve/TriEventCurve", "extrapolation", "blue.TRIEXTRAPOLATION"],
