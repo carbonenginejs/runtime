@@ -10,6 +10,7 @@
 // (YamlWriter.cpp:329-341).
 //
 // `BeObjectMetadata` is the process-wide instance (BlueObjectMetadata.cpp:8-9).
+import { exposure as be } from "#be";
 import { CjsSchema, meta, blue } from "#schema";
 import { IBlueObjectMetadata } from "./IBlueObjectMetadata.js";
 
@@ -172,12 +173,12 @@ export const BeObjectMetadata = new BlueObjectMetadata();
 CjsSchema.exposure.mapInterface(IBlueObjectMetadata)(BlueObjectMetadata);
 CjsSchema.exposure.define("BlueObjectMetadata")(BlueObjectMetadata);
 CjsSchema.decorateMethod(BlueObjectMetadata, "GetMetadata", blue.method, meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "Set", blue.method, meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "GetKeys", blue.method, meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "Delete", blue.method, meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "DeleteObject", blue.method, meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "CopyDeep", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueObjectMetadata, "Get", blue.method, meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "CopyShallow", blue.method, meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "Index", blue.method, meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "GetItems", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "Set", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "GetKeys", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "Delete", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "DeleteObject", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "CopyDeep", be.mapMethodAndWrap(), meta.notImplemented);
+CjsSchema.decorateMethod(BlueObjectMetadata, "Get", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "CopyShallow", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "Index", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "GetItems", be.mapMethodAndWrap(), meta.adapted);

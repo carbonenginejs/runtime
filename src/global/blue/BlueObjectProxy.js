@@ -16,6 +16,7 @@
 //
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
+import { exposure as be } from "#be";
 import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { blue } from "./blue.js";
 import { IBlueObjectProxy } from "./IBlueObjectProxy.js";
@@ -321,8 +322,8 @@ CjsSchema.blue.define(BlueObjectProxy, {
     IsTemporary: [ legacyBlue.method, meta.implemented ],
     OnSelected: [ legacyBlue.method, meta.implemented ],
     SetObject: [ legacyBlue.method, meta.implemented ],
-    Freeze: [ legacyBlue.method, meta.implemented ],
-    SetObjectFromBuilder: [ legacyBlue.method, meta.implemented ],
+    Freeze: [ be.mapMethodAndWrap(), meta.implemented ],
+    SetObjectFromBuilder: [ be.mapMethodAndWrap(), meta.implemented ],
     _OnObjectInvalidated: [ legacyBlue.method, meta.renamed("OnObjectInvalidated"), meta.implemented ]
   }
 });

@@ -30,6 +30,7 @@
 // - `fetch`: a WHATWG fetch.
 // - `md5`: bytes to a lowercase hex digest. Runtime computes no digests
 //   (`global/utils/resFile.js`), so a host that verifies supplies one.
+import { exposure as be } from "#be";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { IRoot } from "./IRoot.js";
 import { normalizeResPath } from "#utils/path";
@@ -534,18 +535,18 @@ CjsSchema.decorateField(RemoteFileCache, "filesUsedFromCache", blue.read, type.u
 CjsSchema.decorateField(RemoteFileCache, "fullHeaderLogging", blue.readwrite, type.boolean);
 CjsSchema.decorateField(RemoteFileCache, "verifyContentsOnSave", blue.readwrite, type.boolean);
 CjsSchema.decorateField(RemoteFileCache, "verifyContentsOnLoad", blue.readwrite, type.boolean);
-CjsSchema.decorateMethod(RemoteFileCache, "DownloadFileIndex", blue.method, meta.adapted);
-CjsSchema.decorateMethod(RemoteFileCache, "AddFileIndex", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "DownloadFileIndex", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "AddFileIndex", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "SetCacheFolder", blue.method, meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "SetServer", blue.method, meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "SetPrefix", blue.method, meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted);
-CjsSchema.decorateMethod(RemoteFileCache, "FileExists", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "FileExists", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "IsCachedLocally", blue.method, meta.adapted);
 CjsSchema.decorateMethod(RemoteFileCache, "GetLocallyCachedName", blue.method, meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "IsDirectory", blue.method, meta.implemented);
-CjsSchema.decorateMethod(RemoteFileCache, "ListDir", blue.method, meta.adapted);
-CjsSchema.decorateMethod(RemoteFileCache, "RegisterOnServerFailedCallback", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "ListDir", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "RegisterOnServerFailedCallback", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.exposure.define("RemoteFileCache")(RemoteFileCache);
 
 CjsSchema.decorateMethod(RemoteFileCache, "_CreateFileStreamForCachedFile", blue.method, meta.renamed("CreateFileStreamForCachedFile"), meta.adapted);

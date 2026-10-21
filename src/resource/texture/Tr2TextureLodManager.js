@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 import { IBlueEvents } from "#blue/IBlueEvents";
 import "#blue/values";
@@ -105,6 +106,6 @@ CjsSchema.blue.define(Tr2TextureLodManager, {
   methods: {
     RegisterTexture: [ blue.method, meta.implemented ],
     UnregisterTexture: [ blue.method, meta.implemented ],
-    GetManagedTextures: [ blue.method, meta.implemented ]
+    GetManagedTextures: [ be.mapMethodAndWrap(), meta.implemented ]
   }
 });

@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.h
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
+import { exposure as be } from "#be";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
@@ -190,8 +191,8 @@ CjsSchema.blue.define(Tr2ImageRes, {
     SetPayload: [],
     GetWidth: [ blue.method, meta.adapted ],
     GetHeight: [ blue.method, meta.adapted ],
-    GetPixelColor: [ blue.method, meta.adapted ],
-    IsPixelOpaque: [ blue.method, meta.adapted ],
+    GetPixelColor: [ be.mapMethodAndWrap(), meta.adapted ],
+    IsPixelOpaque: [ be.mapMethodAndWrap(), meta.adapted ],
     GetBitmap: [ blue.method, meta.adapted ],
     IsMemoryUsageKnown: [ blue.method, meta.implemented ],
     GetMemoryUsage: [ blue.method, meta.adapted ]

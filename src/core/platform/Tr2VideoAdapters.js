@@ -204,7 +204,7 @@ blue.inherit(IRoot)(Tr2VideoAdapters);
 
 CjsSchema.decorateField(Tr2VideoAdapters, "DEFAULT_ADAPTER", blue.read);
 CjsSchema.decorateMethod(Tr2VideoAdapters, "RefreshData", be.mapMethodAndWrap("Refresh"), meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapters, "GetAdapterCount", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapters, "GetAdapterCount", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2VideoAdapters, "GetAdapterInfo", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2VideoAdapters, "GetCurrentDisplayMode", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2VideoAdapters, "GetDisplayModeCount", blue.method, meta.adapted);

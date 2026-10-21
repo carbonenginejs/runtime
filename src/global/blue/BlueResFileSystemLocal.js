@@ -151,12 +151,12 @@ CjsSchema.decorateMethod(BlueResFileSystemLocal, "IsDirectory", blue.method, met
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetDirectoryContents", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathW", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePath", blue.method, meta.implemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePath", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "Initialize", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "InitializeStdAppPaths", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "InitializeStdAppPaths", be.mapMethodAndWrap(), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "SetSearchPath", blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetSearchPath", blue.method, meta.renamed("GetSearchPathW"), meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "ClearSearchPaths", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ClearSearchPaths", be.mapMethodAndWrap(), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathForWriting", blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathToRoot", blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths", blue.method, meta.notImplemented);

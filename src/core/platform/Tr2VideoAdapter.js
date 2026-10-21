@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { CjsSchema, blue, meta } from "#schema";
 import { IRoot } from "../../global/blue/IRoot.js";
 import { optionalString, snapshotFeatures, snapshotWebIdl } from "./browserHelpers.js";
@@ -138,5 +139,5 @@ CjsSchema.decorateField(Tr2VideoAdapter, "subSystemID", blue.read);
 CjsSchema.decorateField(Tr2VideoAdapter, "revision", blue.read);
 CjsSchema.decorateField(Tr2VideoAdapter, "deviceIdentifier", blue.read);
 CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDeviceIdentifierString", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDriverInfo", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDriverInfo", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.exposure.define("Tr2VideoAdapter")(Tr2VideoAdapter);
