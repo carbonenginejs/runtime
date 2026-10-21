@@ -20,23 +20,23 @@ import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 export class Tr2FloatParameter extends ITriEffectParameter
 {
   /** m_value: Carbon's float. A one-element typed array so GetDestination can hand out its address (&m_value). */
-  #value = new Float32Array([ 1 ]);
+  #valueRef = new Float32Array([ 1 ]);
 
   /**
-   * m_value [PERSISTONLY]: the persisted row reads and writes the scalar in `#value`; `value` is the property over GetValue / SetValue.
+   * m_value [PERSISTONLY]: the persisted row reads and writes the scalar in `#valueRef[0]`; `value` is the property over GetValue / SetValue.
    */
   @be.mapAttribute(be.PERSISTONLY, "value")
   @meta.implemented
   @type.float32
   get _value()
   {
-    return this.#value[0];
+    return this.#valueRef[0];
   }
 
   @meta.implemented
   set _value(value)
   {
-    this.#value[0] = Number(value);
+    this.#valueRef[0] = Number(value);
   }
 
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
@@ -65,7 +65,7 @@ export class Tr2FloatParameter extends ITriEffectParameter
   @meta.adapted
   GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return hashFnv1String(this.name, hashFnv1Floats(this.#value, startingHash));
+    return hashFnv1String(this.name, hashFnv1Floats(this.#valueRef, startingHash));
   }
 
   /**
@@ -78,9 +78,9 @@ export class Tr2FloatParameter extends ITriEffectParameter
   {
     if (this.#reroutedValue)
     {
-      this.#value[0] = this.#reroutedValue[0];
+      this.#valueRef[0] = this.#reroutedValue[0];
     }
-    return this.#value[0];
+    return this.#valueRef[0];
   }
 
   /**
@@ -90,10 +90,10 @@ export class Tr2FloatParameter extends ITriEffectParameter
   @meta.implemented
   SetValue(value)
   {
-    this.#value[0] = Number(value);
+    this.#valueRef[0] = Number(value);
     if (this.#reroutedValue)
     {
-      this.#reroutedValue[0] = this.#value[0];
+      this.#reroutedValue[0] = this.#valueRef[0];
     }
   }
 
@@ -133,7 +133,7 @@ export class Tr2FloatParameter extends ITriEffectParameter
     if (size >= 4)
     {
       this.#reroutedValue = dest;
-      this.#reroutedValue[0] = this.#value[0];
+      this.#reroutedValue[0] = this.#valueRef[0];
     }
     else
     {
@@ -155,7 +155,7 @@ export class Tr2FloatParameter extends ITriEffectParameter
   GetDestination()
   {
     return {
-      dest: this.#reroutedValue ?? this.#value,
+      dest: this.#reroutedValue ?? this.#valueRef,
       size: 4
     };
   }
@@ -211,7 +211,7 @@ export class Tr2FloatParameter extends ITriEffectParameter
   {
     if (this.#reroutedValue)
     {
-      this.#reroutedValue[0] = this.#value[0];
+      this.#reroutedValue[0] = this.#valueRef[0];
     }
     return true;
   }
@@ -224,7 +224,7 @@ export class Tr2FloatParameter extends ITriEffectParameter
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
-    out[0] = (this.#reroutedValue ?? this.#value)[0];
+    out[0] = (this.#reroutedValue ?? this.#valueRef)[0];
   }
 
   /** JS convenience: raw values this parameter class claims for map-form inference. */
