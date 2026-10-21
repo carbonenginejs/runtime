@@ -49,9 +49,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 
   // Flattened EveSmartLightBaseGroup secondary base.
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh_Blue.cpp:35); chooser EveSOFDataFactionColorSetTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.SOFDataFactionColorChooser.ColorType")
   @type.int32
   factionColor = -1;
 

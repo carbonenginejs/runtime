@@ -23,9 +23,11 @@ export class EveSOFDataHullLightSetItem extends IRoot
   @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   lightColor = 0;
 
-  /** m_data.flags (uint16_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_data.flags (uint16_t) [READWRITE, PERSIST]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1065); chooser Tr2LightFlagChooser (trinity/trinity/Lights/Tr2Light_Blue.cpp:16).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST, "trinity.Tr2LightFlags")
   @type.uint16
   flags = 1;
 

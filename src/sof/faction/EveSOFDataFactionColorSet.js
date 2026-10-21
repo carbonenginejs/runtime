@@ -3,61 +3,10 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
 import { blue as legacyBlue } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { FactionColorType as ColorType } from "#consts/graphics";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 
-/**
- * `SOFDataFactionColorChooser::ColorType` (EveSOFData.h:177-224); TYPE_MAX is the slot count.
- * @type {Object<string, number>}
- */
-const ColorType = {
-  TYPE_PRIMARY: 0,
-  TYPE_SECONDARY: 1,
-  TYPE_TERTIARY: 2,
-  TYPE_BLACK: 3,
-  TYPE_WHITE: 4,
-  TYPE_YELLOW: 5,
-  TYPE_ORANGE: 6,
-  TYPE_RED: 7,
-  TYPE_BLUE: 8,
-  TYPE_GREEN: 9,
-  TYPE_CYAN: 10,
-  TYPE_FIRE: 11,
-  TYPE_HULL: 12,
-  TYPE_GLASS: 13,
-  TYPE_REACTOR: 14,
-  TYPE_DARKHULL: 15,
-  TYPE_BOOSTER: 16,
-  TYPE_KILLMARK: 17,
-  TYPE_PRIMARY_LIGHT: 18,
-  TYPE_SECONDARY_LIGHT: 19,
-  TYPE_TERTIARY_LIGHT: 20,
-  TYPE_WHITE_LIGHT: 21,
-  TYPE_PRIMARY_HOLOGRAM: 22,
-  TYPE_SECONDARY_HOLOGRAM: 23,
-  TYPE_TERTIARY_HOLOGRAM: 24,
-  TYPE_STATE_0: 25,
-  TYPE_STATE_1: 26,
-  TYPE_STATE_2: 27,
-  TYPE_STATE_3: 28,
-  TYPE_STATE_VULNERABLE: 29,
-  TYPE_STATE_INVULNERABLE: 30,
-  TYPE_PRIMARY_FORCEFIELD: 31,
-  TYPE_SECONDARY_FORCEFIELD: 32,
-  TYPE_PRIMARY_BANNER: 33,
-  TYPE_PRIMARY_FX: 34,
-  TYPE_SECONDARY_FX: 35,
-  TYPE_PRIMARY_SPOTLIGHT: 36,
-  TYPE_SECONDARY_SPOTLIGHT: 37,
-  TYPE_TERTIARY_SPOTLIGHT: 38,
-  TYPE_PRIMARY_BILLBOARD: 39,
-  TYPE_PRIMARY_WARP_FX: 40,
-  TYPE_PRIMARY_ATTACK_FX: 41,
-  TYPE_PRIMARY_SIEGE_FX: 42,
-  TYPE_PRIMARY_DOCKED_FX: 43,
-  TYPE_MAX: 44
-};
 
 /** One exposed `m_colors[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:156-197). */
 const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "color" },
@@ -147,53 +96,3 @@ export class EveSOFDataFactionColorSet extends IRoot
   }
 }
 
-// Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", ColorType, {
-  exposedName: "EveSOFDataFactionColorSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooser: [
-    { name: "Primary", value: ColorType.TYPE_PRIMARY, description: "Primary Color" },
-    { name: "Secondary", value: ColorType.TYPE_SECONDARY, description: "Secondary Color" },
-    { name: "Tertiary", value: ColorType.TYPE_TERTIARY, description: "Tertiary Color" },
-    { name: "Black", value: ColorType.TYPE_BLACK, description: "Black Color" },
-    { name: "White", value: ColorType.TYPE_WHITE, description: "White" },
-    { name: "Yellow", value: ColorType.TYPE_YELLOW, description: "Yellow" },
-    { name: "Orange", value: ColorType.TYPE_ORANGE, description: "Orange" },
-    { name: "Red", value: ColorType.TYPE_RED, description: "Red" },
-    { name: "Blue", value: ColorType.TYPE_BLUE, description: "Blue" },
-    { name: "Green", value: ColorType.TYPE_GREEN, description: "Green" },
-    { name: "Cyan", value: ColorType.TYPE_CYAN, description: "Cyan" },
-    { name: "Fire", value: ColorType.TYPE_FIRE, description: "Fire" },
-    { name: "Hull", value: ColorType.TYPE_HULL, description: "Material Hullarea Glow" },
-    { name: "Glass", value: ColorType.TYPE_GLASS, description: "Material Glassarea Glow" },
-    { name: "Reactor", value: ColorType.TYPE_REACTOR, description: "Material Reactorarea Glow" },
-    { name: "Darkhull", value: ColorType.TYPE_DARKHULL, description: "Material Darkhull Glow" },
-    { name: "Booster", value: ColorType.TYPE_BOOSTER, description: "Material Hullarea Heat Shimmer Glow" },
-    { name: "Killmark", value: ColorType.TYPE_KILLMARK, description: "Killmark glow color" },
-    { name: "PrimaryLight", value: ColorType.TYPE_PRIMARY_LIGHT, description: "Primary light color" },
-    { name: "SecondaryLight", value: ColorType.TYPE_SECONDARY_LIGHT, description: "Secondary light color" },
-    { name: "TertiaryLight", value: ColorType.TYPE_TERTIARY_LIGHT, description: "Tertiary light color" },
-    { name: "WhiteLight", value: ColorType.TYPE_WHITE_LIGHT, description: "White light color" },
-    { name: "PrimaryHologram", value: ColorType.TYPE_PRIMARY_HOLOGRAM, description: "Primary Hologram" },
-    { name: "SecondaryHologram", value: ColorType.TYPE_SECONDARY_HOLOGRAM, description: "Secondary Hologram color" },
-    { name: "TertiaryHologram", value: ColorType.TYPE_TERTIARY_HOLOGRAM, description: "Tertiary Hologram color" },
-    { name: "State0", value: ColorType.TYPE_STATE_0, description: "State 0 color" },
-    { name: "State1", value: ColorType.TYPE_STATE_1, description: "State 1 color" },
-    { name: "State2", value: ColorType.TYPE_STATE_2, description: "State 2 color" },
-    { name: "State3", value: ColorType.TYPE_STATE_3, description: "State 3 color" },
-    { name: "StateVulnerable", value: ColorType.TYPE_STATE_VULNERABLE, description: "State Vulnerable color" },
-    { name: "StateInvulnerable", value: ColorType.TYPE_STATE_INVULNERABLE, description: "State Invulnerable color" },
-    { name: "PrimaryForcefield", value: ColorType.TYPE_PRIMARY_FORCEFIELD, description: "Primary Forcefield color" },
-    { name: "SecondaryForcefield", value: ColorType.TYPE_SECONDARY_FORCEFIELD, description: "Secondary Forcefield color" },
-    { name: "PrimaryBanner", value: ColorType.TYPE_PRIMARY_BANNER, description: "Primary Banner color" },
-    { name: "PrimaryFx", value: ColorType.TYPE_PRIMARY_FX, description: "Primary Fx color" },
-    { name: "SecondaryFx", value: ColorType.TYPE_SECONDARY_FX, description: "Secondary Fx color" },
-    { name: "PrimarySpotlight", value: ColorType.TYPE_PRIMARY_SPOTLIGHT, description: "Primary spotlight color" },
-    { name: "SecondarySpotlight", value: ColorType.TYPE_SECONDARY_SPOTLIGHT, description: "Secondary spotlight color" },
-    { name: "TertiarySpotlight", value: ColorType.TYPE_TERTIARY_SPOTLIGHT, description: "Tertiary spotlight color" },
-    { name: "PrimaryBillboard", value: ColorType.TYPE_PRIMARY_BILLBOARD, description: "Primary Billboard color" },
-    { name: "PrimaryWarpFx", value: ColorType.TYPE_PRIMARY_WARP_FX, description: "Primary Warp FX color" },
-    { name: "PrimaryAttackFX", value: ColorType.TYPE_PRIMARY_ATTACK_FX, description: "Primary Attack FX color" },
-    { name: "PrimarySiegeFX", value: ColorType.TYPE_PRIMARY_SIEGE_FX, description: "Primary Siege FX color" },
-    { name: "PrimaryDockedFX", value: ColorType.TYPE_PRIMARY_DOCKED_FX, description: "Primary Docked FX color" }
-  ]
-});

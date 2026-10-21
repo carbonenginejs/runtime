@@ -30,6 +30,7 @@ import { num } from "#math/num";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { PixelFormat, ShaderType } from "#consts/render-context";
+import { Tr2LightFlags } from "#consts/graphics";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureArray } from "../Tr2TextureArray/index.js";
 import { Tr2GpuBuffer } from "../device/Tr2GpuBuffer.js";
@@ -201,10 +202,10 @@ export class Tr2LightManager
   // `trinity.Tr2LightFlags` (Tr2Light.js, Tr2Light_Blue.cpp:16-21).
 
   /** Carbon `FLAG_AFFECTS_SURFACES` (Tr2LightManager.h:100). */
-  static FLAG_AFFECTS_SURFACES = 1;
+  static FLAG_AFFECTS_SURFACES = Tr2LightFlags.AFFECTS_SURFACES;
 
   /** Carbon `FLAG_AFFECTS_PARTICLES` (Tr2LightManager.h:101). */
-  static FLAG_AFFECTS_PARTICLES = 1 << 1;
+  static FLAG_AFFECTS_PARTICLES = Tr2LightFlags.AFFECTS_PARTICLES;
 
   /** Carbon `FLAG_CASTS_SHADOWS` (Tr2LightManager.h:102). */
   static FLAG_CASTS_SHADOWS = 1 << 2;

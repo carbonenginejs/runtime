@@ -169,6 +169,129 @@ blueEnums.Create("trinity.EntityComponents.ReflectionMode", ReflectionMode, {
     { name: "High", value: ReflectionMode.REFLECT_HIGH, description: "Only render into the reflection map when reflection settings is set to high" }
   ]
 });
+// Enums both the SOF and the Trinity layers name: the layers may not import each other, so they live here (as ReflectionMode does).
+/**
+ * `SOFDataFactionColorChooser::ColorType` (EveSOFData.h:177-224); TYPE_MAX is the slot count.
+ * @type {Object<string, number>}
+ */
+export const FactionColorType = {
+  TYPE_PRIMARY: 0,
+  TYPE_SECONDARY: 1,
+  TYPE_TERTIARY: 2,
+  TYPE_BLACK: 3,
+  TYPE_WHITE: 4,
+  TYPE_YELLOW: 5,
+  TYPE_ORANGE: 6,
+  TYPE_RED: 7,
+  TYPE_BLUE: 8,
+  TYPE_GREEN: 9,
+  TYPE_CYAN: 10,
+  TYPE_FIRE: 11,
+  TYPE_HULL: 12,
+  TYPE_GLASS: 13,
+  TYPE_REACTOR: 14,
+  TYPE_DARKHULL: 15,
+  TYPE_BOOSTER: 16,
+  TYPE_KILLMARK: 17,
+  TYPE_PRIMARY_LIGHT: 18,
+  TYPE_SECONDARY_LIGHT: 19,
+  TYPE_TERTIARY_LIGHT: 20,
+  TYPE_WHITE_LIGHT: 21,
+  TYPE_PRIMARY_HOLOGRAM: 22,
+  TYPE_SECONDARY_HOLOGRAM: 23,
+  TYPE_TERTIARY_HOLOGRAM: 24,
+  TYPE_STATE_0: 25,
+  TYPE_STATE_1: 26,
+  TYPE_STATE_2: 27,
+  TYPE_STATE_3: 28,
+  TYPE_STATE_VULNERABLE: 29,
+  TYPE_STATE_INVULNERABLE: 30,
+  TYPE_PRIMARY_FORCEFIELD: 31,
+  TYPE_SECONDARY_FORCEFIELD: 32,
+  TYPE_PRIMARY_BANNER: 33,
+  TYPE_PRIMARY_FX: 34,
+  TYPE_SECONDARY_FX: 35,
+  TYPE_PRIMARY_SPOTLIGHT: 36,
+  TYPE_SECONDARY_SPOTLIGHT: 37,
+  TYPE_TERTIARY_SPOTLIGHT: 38,
+  TYPE_PRIMARY_BILLBOARD: 39,
+  TYPE_PRIMARY_WARP_FX: 40,
+  TYPE_PRIMARY_ATTACK_FX: 41,
+  TYPE_PRIMARY_SIEGE_FX: 42,
+  TYPE_PRIMARY_DOCKED_FX: 43,
+  TYPE_MAX: 44
+};
+
+// Native chooser labels and descriptions are distinct from C++ member names.
+blueEnums.Create("trinity.SOFDataFactionColorChooser.ColorType", FactionColorType, {
+  exposedName: "EveSOFDataFactionColorSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooser: [
+    { name: "Primary", value: FactionColorType.TYPE_PRIMARY, description: "Primary Color" },
+    { name: "Secondary", value: FactionColorType.TYPE_SECONDARY, description: "Secondary Color" },
+    { name: "Tertiary", value: FactionColorType.TYPE_TERTIARY, description: "Tertiary Color" },
+    { name: "Black", value: FactionColorType.TYPE_BLACK, description: "Black Color" },
+    { name: "White", value: FactionColorType.TYPE_WHITE, description: "White" },
+    { name: "Yellow", value: FactionColorType.TYPE_YELLOW, description: "Yellow" },
+    { name: "Orange", value: FactionColorType.TYPE_ORANGE, description: "Orange" },
+    { name: "Red", value: FactionColorType.TYPE_RED, description: "Red" },
+    { name: "Blue", value: FactionColorType.TYPE_BLUE, description: "Blue" },
+    { name: "Green", value: FactionColorType.TYPE_GREEN, description: "Green" },
+    { name: "Cyan", value: FactionColorType.TYPE_CYAN, description: "Cyan" },
+    { name: "Fire", value: FactionColorType.TYPE_FIRE, description: "Fire" },
+    { name: "Hull", value: FactionColorType.TYPE_HULL, description: "Material Hullarea Glow" },
+    { name: "Glass", value: FactionColorType.TYPE_GLASS, description: "Material Glassarea Glow" },
+    { name: "Reactor", value: FactionColorType.TYPE_REACTOR, description: "Material Reactorarea Glow" },
+    { name: "Darkhull", value: FactionColorType.TYPE_DARKHULL, description: "Material Darkhull Glow" },
+    { name: "Booster", value: FactionColorType.TYPE_BOOSTER, description: "Material Hullarea Heat Shimmer Glow" },
+    { name: "Killmark", value: FactionColorType.TYPE_KILLMARK, description: "Killmark glow color" },
+    { name: "PrimaryLight", value: FactionColorType.TYPE_PRIMARY_LIGHT, description: "Primary light color" },
+    { name: "SecondaryLight", value: FactionColorType.TYPE_SECONDARY_LIGHT, description: "Secondary light color" },
+    { name: "TertiaryLight", value: FactionColorType.TYPE_TERTIARY_LIGHT, description: "Tertiary light color" },
+    { name: "WhiteLight", value: FactionColorType.TYPE_WHITE_LIGHT, description: "White light color" },
+    { name: "PrimaryHologram", value: FactionColorType.TYPE_PRIMARY_HOLOGRAM, description: "Primary Hologram" },
+    { name: "SecondaryHologram", value: FactionColorType.TYPE_SECONDARY_HOLOGRAM, description: "Secondary Hologram color" },
+    { name: "TertiaryHologram", value: FactionColorType.TYPE_TERTIARY_HOLOGRAM, description: "Tertiary Hologram color" },
+    { name: "State0", value: FactionColorType.TYPE_STATE_0, description: "State 0 color" },
+    { name: "State1", value: FactionColorType.TYPE_STATE_1, description: "State 1 color" },
+    { name: "State2", value: FactionColorType.TYPE_STATE_2, description: "State 2 color" },
+    { name: "State3", value: FactionColorType.TYPE_STATE_3, description: "State 3 color" },
+    { name: "StateVulnerable", value: FactionColorType.TYPE_STATE_VULNERABLE, description: "State Vulnerable color" },
+    { name: "StateInvulnerable", value: FactionColorType.TYPE_STATE_INVULNERABLE, description: "State Invulnerable color" },
+    { name: "PrimaryForcefield", value: FactionColorType.TYPE_PRIMARY_FORCEFIELD, description: "Primary Forcefield color" },
+    { name: "SecondaryForcefield", value: FactionColorType.TYPE_SECONDARY_FORCEFIELD, description: "Secondary Forcefield color" },
+    { name: "PrimaryBanner", value: FactionColorType.TYPE_PRIMARY_BANNER, description: "Primary Banner color" },
+    { name: "PrimaryFx", value: FactionColorType.TYPE_PRIMARY_FX, description: "Primary Fx color" },
+    { name: "SecondaryFx", value: FactionColorType.TYPE_SECONDARY_FX, description: "Secondary Fx color" },
+    { name: "PrimarySpotlight", value: FactionColorType.TYPE_PRIMARY_SPOTLIGHT, description: "Primary spotlight color" },
+    { name: "SecondarySpotlight", value: FactionColorType.TYPE_SECONDARY_SPOTLIGHT, description: "Secondary spotlight color" },
+    { name: "TertiarySpotlight", value: FactionColorType.TYPE_TERTIARY_SPOTLIGHT, description: "Tertiary spotlight color" },
+    { name: "PrimaryBillboard", value: FactionColorType.TYPE_PRIMARY_BILLBOARD, description: "Primary Billboard color" },
+    { name: "PrimaryWarpFx", value: FactionColorType.TYPE_PRIMARY_WARP_FX, description: "Primary Warp FX color" },
+    { name: "PrimaryAttackFX", value: FactionColorType.TYPE_PRIMARY_ATTACK_FX, description: "Primary Attack FX color" },
+    { name: "PrimarySiegeFX", value: FactionColorType.TYPE_PRIMARY_SIEGE_FX, description: "Primary Siege FX color" },
+    { name: "PrimaryDockedFX", value: FactionColorType.TYPE_PRIMARY_DOCKED_FX, description: "Primary Docked FX color" }
+  ]
+});
+
+/**
+ * Carbon's `Tr2LightFlagChooser`, registered as the BlueEnum object `Tr2LightFlags` (Tr2Light_Blue.cpp:16-21). Its members are the
+ * chooser's keys and its values Tr2LightManager's flag bits (Tr2LightManager.h:100-101); the light classes and SOF's light-set item
+ * both name it, so it lives here. Every light's `flags` member names it as its chooser.
+ */
+export const Tr2LightFlags = Object.freeze({
+  AFFECTS_SURFACES: 1,
+  AFFECTS_PARTICLES: 1 << 1
+});
+
+// BLUE_REGISTER_ENUM_EX( "Tr2LightFlags", uint16_t, Tr2LightFlagChooser, ENUM_REG_ENUM_OBJECT_ON_MODULE ) (Tr2Light_Blue.cpp:16-21).
+blueEnums.Create("trinity.Tr2LightFlags", Tr2LightFlags, {
+  exposedName: "Tr2LightFlags", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooser: [
+    { name: "AFFECTS_SURFACES", value: Tr2LightFlags.AFFECTS_SURFACES, description: "Affects surfaces" },
+    { name: "AFFECTS_PARTICLES", value: Tr2LightFlags.AFFECTS_PARTICLES, description: "Affects lit particles" }
+  ]
+});
+
 // Blue's ITriConstants.h enums, shared by audio and Trinity. Neither is
 // registered; the choosers are Trinity's (audio's AudConstants.cpp:6 copy of
 // TriExtrapolation is identical).
