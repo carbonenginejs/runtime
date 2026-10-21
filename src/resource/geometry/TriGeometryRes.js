@@ -1475,9 +1475,9 @@ export class TriGeometryRes extends CjsResource
 CjsSchema.blue.define(TriGeometryRes, {
   className: "TriGeometryRes",
   fields: {
-    forceLod: [ type.boolean, blue.readwrite ],
-    forcedLodIndex: [ type.int32, blue.readwrite ],
-    name: [ type.string, blue.readwrite ]
+    forceLod: [ type.boolean, be.mapAttribute(be.READWRITE) ],
+    forcedLodIndex: [ type.int32, be.mapAttribute(be.READWRITE) ],
+    name: [ type.string, be.mapAttribute(be.READWRITE) ]
   },
   methods: {
     ReadCMFFile: [ blue.method, meta.adapted ],

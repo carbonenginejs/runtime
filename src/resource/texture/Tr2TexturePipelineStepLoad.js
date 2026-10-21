@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLoad.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLoad.json; maintained by the runtime resource layer.
@@ -60,7 +61,7 @@ export class Tr2TexturePipelineStepLoad extends IRoot
 }
 
 
-CjsSchema.decorateField(Tr2TexturePipelineStepLoad, "path", blue.readwrite, blue.persist, type.wpath);
+CjsSchema.decorateField(Tr2TexturePipelineStepLoad, "path", be.mapAttribute(be.READWRITE | be.PERSIST), type.wpath);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepLoad, "GetResourceDependencies", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepLoad, "Execute", blue.method, meta.implemented);
 CjsSchema.exposure.define("Tr2TexturePipelineStepLoad")(Tr2TexturePipelineStepLoad);

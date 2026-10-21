@@ -95,9 +95,9 @@ export class Tr2TexturePipelineStepCompress extends IRoot
 
 
 CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "format", be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ImageIO.PixelFormat"), type.int32, type.enum("trinity.ImageIO.PixelFormat"));
-CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "b", blue.readwrite, blue.persist, type.float32);
-CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "g", blue.readwrite, blue.persist, type.float32);
-CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "r", blue.readwrite, blue.persist, type.float32);
+CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "b", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
+CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "g", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
+CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "r", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepCompress, "GetResourceDependencies", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepCompress, "Execute", blue.method, meta.adapted);
 CjsSchema.exposure.define("Tr2TexturePipelineStepCompress")(Tr2TexturePipelineStepCompress);

@@ -42,6 +42,6 @@ export class Tr2TexturePackChannel extends IRoot
 CjsSchema.blue.inherit(IRoot)(Tr2TexturePackChannel);
 
 CjsSchema.decorateField(Tr2TexturePackChannel, "channel", be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ChannelChooser"), type.uint8);
-CjsSchema.decorateField(Tr2TexturePackChannel, "fill", blue.readwrite, blue.persist, type.uint8);
-CjsSchema.decorateField(Tr2TexturePackChannel, "path", blue.readwrite, blue.persist, type.wpath);
+CjsSchema.decorateField(Tr2TexturePackChannel, "fill", be.mapAttribute(be.READWRITE | be.PERSIST), type.uint8);
+CjsSchema.decorateField(Tr2TexturePackChannel, "path", be.mapAttribute(be.READWRITE | be.PERSIST), type.wpath);
 CjsSchema.exposure.define("Tr2TexturePackChannel")(Tr2TexturePackChannel);

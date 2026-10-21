@@ -261,10 +261,10 @@ export class Tr2TexturePipelineStepPack extends IRoot
 
 
 CjsSchema.decorateField(Tr2TexturePipelineStepPack, "format", be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ImageIO.PixelFormat"), type.int32, type.enum("trinity.ImageIO.PixelFormat"));
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "a", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "b", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "g", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "r", blue.read, blue.persist, type.rootRef("Tr2TexturePackChannel"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "a", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "b", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "g", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "r", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
 CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "GetResourceDependencies", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "Execute", blue.method, meta.adapted);
 blue.method(Tr2TexturePipelineStepPack, "swapRedBlue");

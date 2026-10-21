@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialMesh.json; maintained by the runtime resource layer.
+import { exposure as be } from "#be";
 import { CjsSchema, type, blue } from "#schema";
 import { IRoot } from "#blue";
 
@@ -24,5 +25,5 @@ export class Tr2MaterialMesh
 // would register a static as an instance field.
 CjsSchema.blue.inherit(IRoot)(Tr2MaterialMesh);
 
-CjsSchema.decorateField(Tr2MaterialMesh, "areas", blue.read, blue.persist, type.rootRef("Tr2MaterialAreaDict"));
+CjsSchema.decorateField(Tr2MaterialMesh, "areas", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2MaterialAreaDict"));
 CjsSchema.exposure.define("Tr2MaterialMesh")(Tr2MaterialMesh);

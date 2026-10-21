@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 import "#blue/values";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.h
@@ -94,8 +95,8 @@ export class Tr2TexturePipeline extends IRoot
 
 CjsSchema.blue.inherit(IRoot)(Tr2TexturePipeline);
 
-CjsSchema.decorateField(Tr2TexturePipeline, "pipelineType", blue.readwrite, blue.persist, type.string);
-CjsSchema.decorateField(Tr2TexturePipeline, "steps", blue.read, blue.persist, type.list("ITr2TexturePipelineStep"));
+CjsSchema.decorateField(Tr2TexturePipeline, "pipelineType", be.mapAttribute(be.READWRITE | be.PERSIST), type.string);
+CjsSchema.decorateField(Tr2TexturePipeline, "steps", be.mapAttribute(be.READ | be.PERSIST), type.list("ITr2TexturePipelineStep"));
 CjsSchema.decorateMethod(Tr2TexturePipeline, "Execute", blue.method, meta.adapted);
 CjsSchema.decorateMethod(Tr2TexturePipeline, "GetResourceDependencies", blue.method, meta.adapted);
 CjsSchema.exposure.define("Tr2TexturePipeline")(Tr2TexturePipeline);

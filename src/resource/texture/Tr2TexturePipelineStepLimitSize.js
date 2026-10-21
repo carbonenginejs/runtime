@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLimitSize.json; maintained by the runtime resource layer.
@@ -120,8 +121,8 @@ export class Tr2TexturePipelineStepLimitSize extends IRoot
 }
 
 
-CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxHeight", blue.readwrite, blue.persist, type.uint32);
-CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxWidth", blue.readwrite, blue.persist, type.uint32);
+CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxHeight", be.mapAttribute(be.READWRITE | be.PERSIST), type.uint32);
+CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxWidth", be.mapAttribute(be.READWRITE | be.PERSIST), type.uint32);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "GetResourceDependencies", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "Execute", blue.method, meta.implemented);
 blue.method(Tr2TexturePipelineStepLimitSize, "limitSize");

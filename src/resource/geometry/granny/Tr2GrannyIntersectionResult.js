@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 // Schema: format-carbon resources/Tr2GrannyIntersectionResult.json; maintained by the runtime resource layer.
+import { exposure as be } from "#be";
 import { CjsSchema, type, blue } from "#schema";
 import { IRoot } from "#blue";
 import { vec2 } from "#math/vec2";
@@ -42,14 +43,14 @@ export class Tr2GrannyIntersectionResult
 }
 
 CjsSchema.blue.inherit(IRoot)(Tr2GrannyIntersectionResult);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "position", blue.readwrite, type.vec3);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasPosition", blue.readwrite, type.boolean);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "normal", blue.readwrite, type.vec3);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasNormal", blue.readwrite, type.boolean);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "uv", blue.readwrite, type.vec2);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasUv", blue.readwrite, type.boolean);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "boneIndex", blue.readwrite, type.int32);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasBoneIndex", blue.readwrite, type.boolean);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "meshIndex", blue.readwrite, type.int32);
-CjsSchema.decorateField(Tr2GrannyIntersectionResult, "areaIndex", blue.readwrite, type.int32);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "position", be.mapAttribute(be.READWRITE), type.vec3);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasPosition", be.mapAttribute(be.READWRITE), type.boolean);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "normal", be.mapAttribute(be.READWRITE), type.vec3);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasNormal", be.mapAttribute(be.READWRITE), type.boolean);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "uv", be.mapAttribute(be.READWRITE), type.vec2);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasUv", be.mapAttribute(be.READWRITE), type.boolean);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "boneIndex", be.mapAttribute(be.READWRITE), type.int32);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "hasBoneIndex", be.mapAttribute(be.READWRITE), type.boolean);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "meshIndex", be.mapAttribute(be.READWRITE), type.int32);
+CjsSchema.decorateField(Tr2GrannyIntersectionResult, "areaIndex", be.mapAttribute(be.READWRITE), type.int32);
 CjsSchema.exposure.define("Tr2GrannyIntersectionResult")(Tr2GrannyIntersectionResult);
