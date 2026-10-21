@@ -15,12 +15,12 @@ import { type, meta } from "#schema";
  * is the one stored field and `dynamicInstances` is an accessor over it;
  * writing either name writes both, as in Carbon.
  */
-@meta.define({"className":"EveInstancedMeshManagerMeshGroup","carbon":"EveInstancedMeshManager::MeshGroup"})
+@meta.define({"className":"EveInstancedMeshManager::MeshGroup","carbon":"EveInstancedMeshManager::MeshGroup"})
 export class EveInstancedMeshManagerMeshGroup
 {
 
   /** handle (MeshGroupHandle*). Carbon initializes it to nullptr. */
-  @type.rawStruct("EveInstancedMeshManagerDataHandle")
+  @type.rawStruct("EveInstancedMeshManager::DataHandle")
   handle = null;
 
   /**

@@ -230,7 +230,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * max size from it.
    */
   @meta.attribute(meta.PERSISTONLY)
-  @type.list("EveChildBoosterSetSingleBoosterData")
+  @type.list("EveChildBoosterSet::SingleBoosterData")
   _singleBoosters = [];
 
   // m_boosterBoundingSphere (h:187): the exact exhaust-point bounding sphere

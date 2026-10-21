@@ -1503,14 +1503,14 @@ export class EveSOF extends IRoot
         // Carbon AddMesh (EveChildInstancedMeshes.cpp:463, 559-565) fills the
         // record's mirroring and picking indices; this document is built
         // without AddMesh, so it carries them.
-        const instance = document.AddNode("EveChildInstancedMeshInstance", {
+        const instance = document.AddNode("EveInstancedMeshManager::StaticPerInstanceData", {
           transform: transform.slice(),
           sphereIndex: 0,
           mirrored: mat4.determinant(transform) < 0,
           pickingMeshIndex: shared.meshes.length,
           pickingInstanceIndex: 0
         });
-        shared.meshes.push(document.AddNode("EveChildInstancedMesh", {
+        shared.meshes.push(document.AddNode("EveChildInstancedMeshes::Mesh", {
           geometryPath: dna.GetHullGeometryResPath(),
           castsShadow: dna.CastShadow(),
           reflectionMode: dna.GetReflectionMode(),
@@ -2663,7 +2663,7 @@ export class EveSOF extends IRoot
           // Carbon AddMesh (EveChildInstancedMeshes.cpp:463, 559-565), as above.
           const pickingMeshIndex = sharedMeshes.length;
           const instances = transforms.map((transform, sphereIndex) => document.AddNode(
-            "EveChildInstancedMeshInstance",
+            "EveInstancedMeshManager::StaticPerInstanceData",
             {
               transform,
               sphereIndex,
@@ -2672,7 +2672,7 @@ export class EveSOF extends IRoot
               pickingInstanceIndex: sphereIndex
             }
           ));
-          sharedMeshes.push(document.AddNode("EveChildInstancedMesh", {
+          sharedMeshes.push(document.AddNode("EveChildInstancedMeshes::Mesh", {
             geometryPath: extensionDna.GetHullGeometryResPath(),
             castsShadow: extensionDna.CastShadow(),
             reflectionMode: extensionDna.GetReflectionMode(),
@@ -2883,7 +2883,7 @@ export class EveSOF extends IRoot
           false
         );
         addEffectShaderOption(document, built.effect, "SPACE_OBJECT_INSTANCED_ATTACHMENT", "SOIA_SHARED");
-        result.push(document.AddNode("EveChildInstancedMeshArea", {
+        result.push(document.AddNode("EveChildInstancedMeshes::MeshArea", {
           effect: built.effect,
           batchType: batchType === TriBatchType.TRIBATCHTYPE_DECAL
             ? TriBatchType.TRIBATCHTYPE_OPAQUE
@@ -2996,7 +2996,7 @@ export class EveSOF extends IRoot
           boneIndex: -1
         }));
         const scale = boosterScale(transform);
-        singleBoosters.push(document.AddNode("EveBoosterSet2SingleBoosterData", {
+        singleBoosters.push(document.AddNode("EveBoosterSet2::SingleBoosterData", {
           transform,
           functionality: arrayValue(item.functionality, [0, 1, 1, 1]),
           lightPosition: boosterLightPosition(transform, lightOffset),
@@ -3012,7 +3012,7 @@ export class EveSOF extends IRoot
           offset[12] -= offset[8] * 0.5;
           offset[13] -= offset[9] * 0.5;
           offset[14] -= offset[10] * 0.5;
-          trailData.push(document.AddNode("EveTrailsSetSingleTrailData", { transform: offset, size: scale }));
+          trailData.push(document.AddNode("EveTrailsSet::SingleTrailData", { transform: offset, size: scale }));
         }
       }
       addOffset(hullOffset, dna.GetHullNextSubsystemOffset(hullIndex));
@@ -3178,7 +3178,7 @@ export class EveSOF extends IRoot
         transform[13] += hullOffset[1];
         transform[14] += hullOffset[2];
         // EveChildBoosterSet::Add (EveChildBoosterSet.cpp:162-176).
-        singleBoosters.push(document.AddNode("EveChildBoosterSetSingleBoosterData", {
+        singleBoosters.push(document.AddNode("EveChildBoosterSet::SingleBoosterData", {
           transform,
           lightPosition: boosterLightPosition(transform, lightOffset),
           lightRadius: boosterScale(transform) * Number(item.lightScale ?? 1),

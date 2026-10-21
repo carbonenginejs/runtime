@@ -1227,7 +1227,7 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   assert.equal(shared.name, "SharedInstancedMeshes");
   assert.equal(shared.meshes.length, 1);
   const sharedMesh = referencedNode(document, shared.meshes[0]);
-  assert.equal(sharedMesh._type, "EveChildInstancedMesh");
+  assert.equal(sharedMesh._type, "EveChildInstancedMeshes::Mesh");
   assert.equal(sharedMesh.instances.length, 2);
   assert.equal(sharedMesh.areas.length, 2);
   const sharedAreas = sharedMesh.areas.map(ref => referencedNode(document, ref));
@@ -1295,8 +1295,8 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   assert.equal(sharedData.areas.length, 2);
   assert.equal(getRegisteredClassName(sharedData.areas[0].effect.constructor), "Tr2Effect");
   assert.equal(hydratedShared.meshes.length, 1);
-  assert.equal(getRegisteredClassName(hydratedShared.meshes[0].constructor), "EveChildInstancedMesh");
-  assert.equal(getRegisteredClassName(hydratedShared.meshes[0].instances[0].constructor), "EveChildInstancedMeshInstance");
+  assert.equal(getRegisteredClassName(hydratedShared.meshes[0].constructor), "EveChildInstancedMeshes::Mesh");
+  assert.equal(getRegisteredClassName(hydratedShared.meshes[0].instances[0].constructor), "EveInstancedMeshManager::StaticPerInstanceData");
   const hydratedDamage = hydrated.root.locatorSets.find(set => set.name === "damage");
   assert.equal(hydratedDamage.locators.length, 5);
   assert.deepEqual(Array.from(hydratedDamage.locators[1].scale), [3, 4, 5]);
@@ -5294,11 +5294,11 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   assert.deepEqual(booster.warpHaloColor, [0.6, 0.7, 0.8, 0.9]);
   assert.equal(booster._singleBoosters.length, 2);
   const singleBoosters = booster._singleBoosters.map(ref => referencedNode(document, ref));
-  assert.deepEqual(singleBoosters.map(node => node._type), ["EveBoosterSet2SingleBoosterData", "EveBoosterSet2SingleBoosterData"]);
+  assert.deepEqual(singleBoosters.map(node => node._type), ["EveBoosterSet2::SingleBoosterData", "EveBoosterSet2::SingleBoosterData"]);
   assert.deepEqual(singleBoosters[1].transform.slice(12, 15), [14, 5, 6]);
   // Only the second hull item has a trail.
   const trailData = referencedNode(document, booster.trails)._trailData.map(ref => referencedNode(document, ref));
-  assert.deepEqual(trailData.map(node => node._type), ["EveTrailsSetSingleTrailData"]);
+  assert.deepEqual(trailData.map(node => node._type), ["EveTrailsSet::SingleTrailData"]);
   assert.deepEqual(
     root.locators
       .map(ref => referencedNode(document, ref))
@@ -5341,7 +5341,7 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   assert.equal(getRegisteredClassName(hydrated.root.boosters.effect.constructor), "Tr2Effect");
   assert.equal(getRegisteredClassName(hydrated.root.boosters.glows.constructor), "EveSpriteSet");
   assert.equal(hydrated.root.boosters._singleBoosters.length, 2);
-  assert.equal(getRegisteredClassName(hydrated.root.boosters._singleBoosters[0].constructor), "EveBoosterSet2SingleBoosterData");
+  assert.equal(getRegisteredClassName(hydrated.root.boosters._singleBoosters[0].constructor), "EveBoosterSet2::SingleBoosterData");
   const boosterData = hydrated.root.boosters.GetBoosterData();
   assert.equal(boosterData.length, 2);
   assert.deepEqual(Array.from(boosterData[0].transform).slice(12, 15), [1, 2, 3]);
@@ -6527,7 +6527,7 @@ test("BuildChildValues emits the child booster set into the placement container"
   assert.equal(boosterSet.glowScale, 2);
   assert.equal(boosterSet.lightRadius, 2);
   assert.equal(boosterSet._singleBoosters.length, 1);
-  assert.equal(boosterSet._singleBoosters[0]._type, "EveChildBoosterSetSingleBoosterData");
+  assert.equal(boosterSet._singleBoosters[0]._type, "EveChildBoosterSet::SingleBoosterData");
   assert.deepEqual(boosterSet._singleBoosters[0].transform.slice(12, 15), [1, 2, 3]);
   assert.equal(boosterSet._singleBoosters[0].atlasIndex0, 6);
   assert.ok(boosterSet.glows, "one glow sprite set rides along");

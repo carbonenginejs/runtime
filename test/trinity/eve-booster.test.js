@@ -93,8 +93,8 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
   boosters.Add(mat4.fromTranslation(mat4.create(), [-10, 0, 0]), [0, 1, 1, 1], false, 0, 0, 1);
   transform[12] = 999;
 
-  assert.equal(CjsSchema.getField(EveBoosterSet2, "_singleBoosters")?.type.itemType, "EveBoosterSet2SingleBoosterData");
-  assert.equal(CjsSchema.getField(EveTrailsSet, "_trailData")?.type.itemType, "EveTrailsSetSingleTrailData");
+  assert.equal(CjsSchema.getField(EveBoosterSet2, "_singleBoosters")?.type.itemType, "EveBoosterSet2::SingleBoosterData");
+  assert.equal(CjsSchema.getField(EveTrailsSet, "_trailData")?.type.itemType, "EveTrailsSet::SingleTrailData");
   assert.equal(boosters._singleBoosters[0] instanceof EveBoosterSet2SingleBoosterData, true);
   assert.equal(trails._trailData[0] instanceof EveTrailsSetSingleTrailData, true);
 

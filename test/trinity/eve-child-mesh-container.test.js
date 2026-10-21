@@ -312,12 +312,12 @@ test("EveChildPartData owns persistent modular part state", () =>
   assert.equal(data instanceof EveSpaceObjectChild, true);
   assert.equal(CjsSchema.getConstructor("EveChildPartData"), EveChildPartData);
   assert.equal(
-    CjsSchema.getConstructor("EveChildPartData.PartData"),
+    CjsSchema.getConstructor("EveChildPartData::PartData"),
     EveChildPartDataPartData
   );
   assert.equal(
     CjsSchema.getField(EveChildPartData, "parts")?.type?.itemType,
-    "EveChildPartData.PartData"
+    "EveChildPartData::PartData"
   );
   assert.equal(data.GetUnusedPartID(), 10);
   assert.deepEqual(CjsSchema.getValues(data, {}, { persistOnly: true }), {
@@ -365,7 +365,7 @@ test("EveChildInstancedMeshes owns shared SOF mesh records without backend state
   child.SetOrigin(IEveSpaceObjectChild.Origin.SOF);
   assert.equal(child.GetName(), "SharedInstancedMeshes");
   assert.equal(child.IsAlwaysOn(), false);
-  assert.equal(CjsSchema.getField(EveChildInstancedMeshes, "meshes")?.type.itemType, "EveChildInstancedMesh");
+  assert.equal(CjsSchema.getField(EveChildInstancedMeshes, "meshes")?.type.itemType, "EveChildInstancedMeshes::Mesh");
   assert.equal(child.AddMesh("res:/empty.gr2", false, 3, 0, [], [first]), false);
   assert.equal(child.AddMesh(
     "res:/extension.gr2",

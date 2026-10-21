@@ -19,7 +19,7 @@ import { EveInstancedMeshManagerInstanceBufferRegion } from "./EveInstancedMeshM
  * All sizes and offsets are in bytes: the AL buffer is created with a stride
  * of 4, so its element count is a quarter of its byte size.
  */
-@meta.define({"className":"EveInstancedMeshManagerInstanceBuffer","carbon":"EveInstancedMeshManager::InstanceBuffer"})
+@meta.define({"className":"EveInstancedMeshManager::InstanceBuffer","carbon":"EveInstancedMeshManager::InstanceBuffer"})
 export class EveInstancedMeshManagerInstanceBuffer
 {
 
@@ -34,7 +34,7 @@ export class EveInstancedMeshManagerInstanceBuffer
   _buffer = null;
 
   /** regions (std::vector<Region>, private). */
-  @type.list("EveInstancedMeshManagerInstanceBufferRegion")
+  @type.list("EveInstancedMeshManager::InstanceBuffer::Region")
   _regions = [];
 
   /** retiredBuffers (std::vector<std::unique_ptr<Tr2BufferAL>>, private): replaced buffers kept alive until the next trim. */

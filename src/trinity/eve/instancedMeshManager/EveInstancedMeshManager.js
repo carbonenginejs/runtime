@@ -281,7 +281,7 @@ export class EveInstancedMeshManager
   _perObjectData = [];
 
   /** m_sphereGroups (std::vector<SphereGroup>, h:287). */
-  @type.list("EveInstancedMeshManagerSphereGroup")
+  @type.list("EveInstancedMeshManager::SphereGroup")
   _sphereGroups = [];
 
   /** m_perObjectDataBuffer (Tr2GpuStructuredBufferPtr, h:288): created on the first frame with per-object data. */
@@ -289,11 +289,11 @@ export class EveInstancedMeshManager
   _perObjectDataBuffer = null;
 
   /** m_staticInstanceBuffer (InstanceBuffer, h:289), embedded by value. */
-  @type.rawStruct("EveInstancedMeshManagerInstanceBuffer")
+  @type.rawStruct("EveInstancedMeshManager::InstanceBuffer")
   _staticInstanceBuffer = new EveInstancedMeshManagerInstanceBuffer();
 
   /** m_dynamicInstanceBuffer (InstanceBuffer, h:290), embedded by value. */
-  @type.rawStruct("EveInstancedMeshManagerInstanceBuffer")
+  @type.rawStruct("EveInstancedMeshManager::InstanceBuffer")
   _dynamicInstanceBuffer = new EveInstancedMeshManagerInstanceBuffer();
 
   /** m_instanceCount (size_t, h:292): instances across every mesh group. */

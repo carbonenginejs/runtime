@@ -128,5 +128,5 @@ test("PerThreadAccumulator is an effect-sorted accumulator over the pool allocat
   assert.ok(accumulator instanceof TriRenderBatchAccumulator);
   assert.equal(accumulator.keyGenerator, EffectKeyGenerator);
   assert.equal(accumulator.GetTriPoolAllocator(), Tr2RenderContext_GetMainThreadRenderContext().GetTriPoolAllocator());
-  assert.equal(CjsSchema.getClassName(EveSpaceScene.PerThreadAccumulator), "EveSpaceScenePerThreadAccumulator");
+  assert.equal(CjsSchema.getClassName(EveSpaceScene.PerThreadAccumulator), "EveSpaceScene::PerThreadAccumulator");
 });

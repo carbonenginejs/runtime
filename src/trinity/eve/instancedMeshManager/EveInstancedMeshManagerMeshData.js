@@ -10,12 +10,12 @@ import { EveInstancedMeshManagerInstanceBufferAllocation } from "./EveInstancedM
  * thresholds (filled on first registration), and the per-frame culling and
  * binning results the draw side fills.
  */
-@meta.define({"className":"EveInstancedMeshManagerMeshData","carbon":"EveInstancedMeshManager::MeshData"})
+@meta.define({"className":"EveInstancedMeshManager::MeshData","carbon":"EveInstancedMeshManager::MeshData"})
 export class EveInstancedMeshManagerMeshData
 {
 
   /** meshGroups (std::vector<MeshGroup>). */
-  @type.list("EveInstancedMeshManagerMeshGroup")
+  @type.list("EveInstancedMeshManager::MeshGroup")
   meshGroups = [];
 
   /** material (Tr2Effect*). Carbon initializes it to nullptr. */
@@ -35,7 +35,7 @@ export class EveInstancedMeshManagerMeshData
   totalVisibleInstances = 0;
 
   /** currentAllocation (InstanceBuffer::Allocation), embedded by value. */
-  @type.rawStruct("EveInstancedMeshManagerInstanceBufferAllocation")
+  @type.rawStruct("EveInstancedMeshManager::InstanceBuffer::Allocation")
   currentAllocation = new EveInstancedMeshManagerInstanceBufferAllocation();
 
   /**

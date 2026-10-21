@@ -16,7 +16,7 @@ import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js"
  * manager registration handles.
  * The name stays because it is the SOF-persisted `_type` (EveSOF.js:1511, 2673), and SOF's layout is the sanctioned divergence.
  */
-@meta.define({"className":"EveChildInstancedMesh","carbon":"EveChildInstancedMeshes::Mesh"})
+@meta.define({"className":"EveChildInstancedMeshes::Mesh","carbon":"EveChildInstancedMeshes::Mesh"})
 export class EveChildInstancedMesh
 {
   @meta.attribute(meta.PERSIST)
@@ -36,11 +36,11 @@ export class EveChildInstancedMesh
   meshIndex = 0;
 
   @meta.attribute(meta.PERSIST)
-  @type.list("EveChildInstancedMeshArea")
+  @type.list("EveChildInstancedMeshes::MeshArea")
   areas = [];
 
   @meta.attribute(meta.PERSIST)
-  @type.list("EveChildInstancedMeshInstance")
+  @type.list("EveInstancedMeshManager::StaticPerInstanceData")
   instances = [];
 
   /** Carbon's one-to-one modular ownership tag array for instances. */

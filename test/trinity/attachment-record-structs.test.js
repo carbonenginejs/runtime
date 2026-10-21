@@ -24,7 +24,7 @@ function assertRegistration(Class, className, donor)
 
 test("EveTurretSet::SingleTurretData (EveTurretSet.h:323-347)", () =>
 {
-  assertRegistration(EveTurretSetSingleTurretData, "EveTurretSetSingleTurretData", "EveTurretSet::SingleTurretData");
+  assertRegistration(EveTurretSetSingleTurretData, "EveTurretSet::SingleTurretData", "EveTurretSet::SingleTurretData");
 
   const data = new EveTurretSetSingleTurretData();
   assert.equal(data.valid, false);
@@ -48,7 +48,7 @@ test("EveTurretSet::SingleTurretData (EveTurretSet.h:323-347)", () =>
 
 test("EveTurretSet::AnimationRequest (EveTurretSet.h:399-404)", () =>
 {
-  assertRegistration(EveTurretSetAnimationRequest, "EveTurretSetAnimationRequest", "EveTurretSet::AnimationRequest");
+  assertRegistration(EveTurretSetAnimationRequest, "EveTurretSet::AnimationRequest", "EveTurretSet::AnimationRequest");
 
   const request = new EveTurretSetAnimationRequest();
   assert.equal(request.turretIndex, 0);
@@ -58,7 +58,7 @@ test("EveTurretSet::AnimationRequest (EveTurretSet.h:399-404)", () =>
 
 test("EveTurretFiringFX::PerMuzzleData (EveTurretFiringFX.h:185-197)", () =>
 {
-  assertRegistration(EveTurretFiringFXPerMuzzleData, "EveTurretFiringFXPerMuzzleData", "EveTurretFiringFX::PerMuzzleData");
+  assertRegistration(EveTurretFiringFXPerMuzzleData, "EveTurretFiringFX::PerMuzzleData", "EveTurretFiringFX::PerMuzzleData");
 
   const data = new EveTurretFiringFXPerMuzzleData();
   assert.equal(data.started, false);
@@ -72,7 +72,7 @@ test("EveTurretFiringFX::PerMuzzleData (EveTurretFiringFX.h:185-197)", () =>
 
 test("EvePlaneSet::VolatileData (EvePlaneSet.h:140-144)", () =>
 {
-  assertRegistration(EvePlaneSetVolatileData, "EvePlaneSetVolatileData", "EvePlaneSet::VolatileData");
+  assertRegistration(EvePlaneSetVolatileData, "EvePlaneSet::VolatileData", "EvePlaneSet::VolatileData");
 
   const data = new EvePlaneSetVolatileData();
   assert.deepEqual(Array.from(data.transform), IDENTITY);
@@ -81,7 +81,7 @@ test("EvePlaneSet::VolatileData (EvePlaneSet.h:140-144)", () =>
 
 test("EveSpotlightSet::SpotlightData (EveSpotlightSet.h:143-148)", () =>
 {
-  assertRegistration(EveSpotlightSetSpotlightData, "EveSpotlightSetSpotlightData", "EveSpotlightSet::SpotlightData");
+  assertRegistration(EveSpotlightSetSpotlightData, "EveSpotlightSet::SpotlightData", "EveSpotlightSet::SpotlightData");
 
   const data = new EveSpotlightSetSpotlightData();
   assert.deepEqual(Array.from(data.transform), IDENTITY);

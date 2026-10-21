@@ -305,7 +305,7 @@ export class EveBoosterSet2 extends EveEntity
    * and Initialize derives the flares, bounds and max size from it.
    */
   @meta.attribute(meta.PERSISTONLY)
-  @type.list("EveBoosterSet2SingleBoosterData")
+  @type.list("EveBoosterSet2::SingleBoosterData")
   _singleBoosters = [];
 
   /** m_vertexDeclHandle (h:304) */

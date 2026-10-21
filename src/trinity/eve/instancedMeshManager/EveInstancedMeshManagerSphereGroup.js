@@ -14,7 +14,7 @@ import { EveInstancedMeshManagerInstanceFlags } from "./EveInstancedMeshManagerI
  *
  * A sphere is the `{ center, radius }` record TriFrustum's sphere tests read.
  */
-@meta.define({"className":"EveInstancedMeshManagerSphereGroup","carbon":"EveInstancedMeshManager::SphereGroup"})
+@meta.define({"className":"EveInstancedMeshManager::SphereGroup","carbon":"EveInstancedMeshManager::SphereGroup"})
 export class EveInstancedMeshManagerSphereGroup
 {
 
@@ -26,7 +26,7 @@ export class EveInstancedMeshManagerSphereGroup
   bounds = { center: vec3.create(), radius: -1 };
 
   /** flags (InstanceFlags), embedded by value. */
-  @type.rawStruct("EveInstancedMeshManagerInstanceFlags")
+  @type.rawStruct("EveInstancedMeshManager::InstanceFlags")
   flags = new EveInstancedMeshManagerInstanceFlags();
 
   /** count (uint32_t). */
@@ -38,7 +38,7 @@ export class EveInstancedMeshManagerSphereGroup
   boundingSpheres = null;
 
   /** handle (BoundingSphereHandle*). Carbon initializes it to nullptr. */
-  @type.rawStruct("EveInstancedMeshManagerDataHandle")
+  @type.rawStruct("EveInstancedMeshManager::DataHandle")
   handle = null;
 
   /** screenSizes (std::vector<float>). */
