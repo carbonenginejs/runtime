@@ -348,7 +348,7 @@ test("dynamic exposure runs Carbon's three compute passes over 16 x 16 tiles", (
     [ postProcess.dynamicExposureMergeHistogramShader, 1, 1, 1 ],
     [ postProcess.dynamicExposureMeasureExposureShader, 1, 1, 1 ]
   ]);
-  assert.equal(postProcess.dynamicExposureCreateHistogramShader.FindParameterByName("MinLuminance").value, Math.log(dynamicExposure.minLuminance));
+  assert.equal(postProcess.dynamicExposureCreateHistogramShader.FindParameterByName("MinLuminance").value, Math.fround(Math.log(dynamicExposure.minLuminance)), "Tr2FloatParameter stores a float");
   assert.equal(postProcess.tonemappingEffect.GetOption("DYNAMIC_EXPOSURE_TOGGLE"), "DYNAMIC_EXPOSURE_ENABLED");
   assert.equal(heldAfter, held - 1, "no pool handle leaked: the histogram is freed when debug is off (cpp:746-749)");
 });

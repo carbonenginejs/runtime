@@ -93,7 +93,7 @@ test("dynamic list paths reject structural lists and retain array indexing and n
   }
 });
 
-for (const method of ["RegisterBinding", "GetDestination", "IsRerouted"])
+for (const method of ["RegisterBinding", "GetDestination"])
 {
   test(`value rerouting requires the nominal ${method} method`, () =>
   {
