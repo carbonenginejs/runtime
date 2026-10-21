@@ -2014,7 +2014,8 @@ function registerDeclaredProperties(Constructor)
         // The getter is recorded by the first pass; flags present before it were written.
         if (!entry.property.getter && entry.edit !== undefined) RejectPropertyFlags(entry.key);
 
-        const descriptor = Object.getOwnPropertyDescriptor(Constructor.prototype, entry.key);
+        // The accessor may be inherited: a subclass's own table can map a base's property (be.mapProperty* above the class).
+        const descriptor = findPropertyDescriptor(Constructor.prototype, entry.key);
         if (!descriptor || typeof descriptor.get !== "function") throw new TypeError(`${where}: a property needs a getter.`);
         if (entry.property.persisted && typeof descriptor.set !== "function")
         {
@@ -3748,20 +3749,67 @@ function createExposureNamespace(legacy)
         exposureChainTo: Parent => carbonChainToDecorator(Parent),
         inherit: (...Bases) => CjsSchema.blue.inherit(...Bases),
         abstract: legacy.abstract,
-        mapAttribute: (flags, name) => exposureAttributeDecorator("MAP_ATTRIBUTE", flags, undefined, name),
-        mapAttributeWithChooser: (flags, chooser, name) => exposureAttributeDecorator("MAP_ATTRIBUTE_WITH_CHOOSER", flags, chooser, name),
-        mapProperty: name => exposurePropertyDecorator("MAP_PROPERTY", name),
-        mapPropertyReadOnly: name => exposurePropertyDecorator("MAP_PROPERTY_READONLY", name),
-        mapPropertyPersisted: name => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", name),
+        mapAttribute: (flags, name) => inheritedAware("mapAttribute", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE", flags, undefined, key)),
+        mapAttributeWithChooser: (flags, chooser, name) => inheritedAware("mapAttributeWithChooser", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE_WITH_CHOOSER", flags, chooser, key)),
+        mapProperty: name => inheritedAware("mapProperty", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY", key)),
+        mapPropertyReadOnly: name => inheritedAware("mapPropertyReadOnly", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY_READONLY", key)),
+        mapPropertyPersisted: name => inheritedAware("mapPropertyPersisted", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", key)),
         // The same Carbon lines realised as a plain field under the exposed name (the lint checks Carbon's accessors only read and write it).
-        mapProperty__Field: name => exposurePropertyDecorator("MAP_PROPERTY", name, true),
-        mapPropertyReadOnly__Field: name => exposurePropertyDecorator("MAP_PROPERTY_READONLY", name, true),
-        mapPropertyPersisted__Field: name => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", name, true),
-        mapMethod: name => exposureMethodDecorator("MAP_METHOD", name),
-        mapMethodAndWrap: name => exposureMethodDecorator("MAP_METHOD_AND_WRAP", name),
-        mapMethodAndWrapOptionalArgs: name => exposureMethodDecorator("MAP_METHOD_AND_WRAP_OPTIONAL_ARGS", name),
-        mapMethodAsMethod: name => exposureMethodDecorator("MAP_METHOD_AS_METHOD", name)
+        mapProperty__Field: name => inheritedAware("mapProperty__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY", key, true)),
+        mapPropertyReadOnly__Field: name => inheritedAware("mapPropertyReadOnly__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY_READONLY", key, true)),
+        mapPropertyPersisted__Field: name => inheritedAware("mapPropertyPersisted__Field", "member", name, key => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", key, true)),
+        mapMethod: name => inheritedAware("mapMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD", key)),
+        mapMethodAndWrap: name => inheritedAware("mapMethodAndWrap", "method", name, key => exposureMethodDecorator("MAP_METHOD_AND_WRAP", key)),
+        mapMethodAndWrapOptionalArgs: name => inheritedAware("mapMethodAndWrapOptionalArgs", "method", name, key => exposureMethodDecorator("MAP_METHOD_AND_WRAP_OPTIONAL_ARGS", key)),
+        mapMethodAsMethod: name => inheritedAware("mapMethodAsMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD_AS_METHOD", key))
     };
+}
+
+/**
+ * A `be.map*` decorator that also works above a class, naming a member the class inherits: Carbon's subclass `EXPOSURE_BEGIN` block maps
+ * a base's member with its own line (`RebuildLocalTransform` is declared on EveChildTransform and mapped in eight subclasses). The row lands in
+ * the subclass's own table; the base is untouched. Above a class the name is the inherited member's key and is required, and methods also take
+ * an array of names. Below a member the name stays the optional exposed name and an array is refused.
+ *
+ * Attribute and property rows must be placed below the class's identity decorator so they run before it registers; method rows may sit anywhere.
+ *
+ * @param {string} macroName Decorator name, for error messages.
+ * @param {"member"|"property"|"method"} role Which table the row lands in.
+ * @param {string|string[]|undefined} name Exposed name on a member, the inherited member's key above a class.
+ * @param {Function} build Builds the member-level decorator for one name.
+ * @returns {Function} The decorator.
+ */
+function inheritedAware(macroName, role, name, build)
+{
+    // An array of names is only meaningful above a class, so no member-level decorator is built for it.
+    const own = Array.isArray(name) ? null : build(name);
+    const decorator = (target, context) =>
+    {
+        const aboveClass = (context && typeof context === "object" && context.kind === "class") || (context === undefined && typeof target === "function");
+        if (!aboveClass)
+        {
+            if (!own) throw new TypeError(`be.${macroName} takes an array of names only above a class.`);
+            return own(target, context);
+        }
+        const names = Array.isArray(name) ? name : [ name ];
+        if (role !== "method" && Array.isArray(name)) throw new TypeError(`be.${macroName} above a class takes one inherited member name; only methods take an array.`);
+        if (!names.length || names.some(entry => typeof entry !== "string" || !entry.trim()))
+            throw new TypeError(`be.${macroName} above a class requires the name of the inherited member it maps${typeof target === "function" ? ` (${target.name || "anonymous class"})` : ""}.`);
+        for (const entry of names)
+        {
+            const key = entry.trim();
+            if (role !== "member" && !(key in target.prototype))
+                throw new TypeError(`be.${macroName} above ${target.name || "a class"} names "${key}", which the class does not have or inherit.`);
+            const parts = getDecoratorMetadata(build(key)).parts;
+            for (const part of parts)
+            {
+                if (role === "method") defineMethodMetadata(target, key, part.namespace, part.value);
+                else defineFieldMetadata(target, key, part.namespace, part.value, { kind: role === "property" ? "getter" : "field" });
+            }
+        }
+    };
+    Object.defineProperty(decorator, DECORATOR_METADATA, { value: own ? getDecoratorMetadata(own) : { parts: [] } });
+    return decorator;
 }
 
 /** Validates literal identity without depending on Function.name after minification. */
