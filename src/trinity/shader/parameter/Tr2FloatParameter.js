@@ -19,10 +19,11 @@ import { CjsParameter } from "./CjsParameter.js";
 @be.mapInterface(IInitialize)
 export class Tr2FloatParameter extends CjsParameter
 {
-  @be.mapAttribute(be.PERSISTONLY)
-
+  /** m_value [PERSISTONLY]: Carbon's backing member; `value` is the property over GetValue / SetValue. */
+  @be.mapAttribute(be.PERSISTONLY, "value")
+  @meta.implemented
   @type.float32
-  value = 1;
+  _value = 1;
 
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
@@ -36,7 +37,7 @@ export class Tr2FloatParameter extends CjsParameter
 
   #bindings = [];
   #reroutedValue = null;
-  #valueRef = {  value: this.value };
+  #valueRef = {  value: this._value };
 
   /** The shader constant name this value binds to; empty until authored. */
 
@@ -51,7 +52,7 @@ export class Tr2FloatParameter extends CjsParameter
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
-    return CjsParameter.hashFnv1String(this.name, CjsParameter.hashFnv1Floats([this.value], startingHash));
+    return CjsParameter.hashFnv1String(this.name, CjsParameter.hashFnv1Floats([this._value], startingHash));
   }
 
   /**
@@ -64,10 +65,10 @@ export class Tr2FloatParameter extends CjsParameter
   {
     if (this.#reroutedValue)
     {
-      this.value = CjsParameter.readScalarDestination(this.#reroutedValue, this.value);
-      this.#valueRef.value = this.value;
+      this._value = CjsParameter.readScalarDestination(this.#reroutedValue, this._value);
+      this.#valueRef.value = this._value;
     }
-    return this.value;
+    return this._value;
   }
 
   /**
@@ -78,12 +79,29 @@ export class Tr2FloatParameter extends CjsParameter
   @meta.implemented
   SetValue(value)
   {
-    this.value = Number(value);
-    this.#valueRef.value = this.value;
+    this._value = Number(value);
+    this.#valueRef.value = this._value;
     if (this.#reroutedValue)
     {
-      CjsParameter.writeScalarDestination(this.#reroutedValue, this.value);
+      CjsParameter.writeScalarDestination(this.#reroutedValue, this._value);
     }
+  }
+
+  /**
+   * value (MAP_PROPERTY): Carbon's property over GetValue/SetValue, which the macro calls.
+   * Carbon: MAP_PROPERTY (trinity/trinity/Shader/Parameter/Tr2FloatParameter_Blue.cpp:21).
+   */
+  @be.mapProperty()
+  @meta.implemented
+  get value()
+  {
+    return this.GetValue();
+  }
+
+  @meta.implemented
+  set value(value)
+  {
+    this.SetValue(value);
   }
 
   /** Whether reads and writes currently go through an external destination. */
@@ -105,7 +123,7 @@ export class Tr2FloatParameter extends CjsParameter
     if (size >= 4 && CjsParameter.isScalarDestination(dest))
     {
       this.#reroutedValue = dest;
-      CjsParameter.writeScalarDestination(dest, this.value);
+      CjsParameter.writeScalarDestination(dest, this._value);
     }
     else
     {
@@ -172,10 +190,10 @@ export class Tr2FloatParameter extends CjsParameter
   @meta.implemented
   Initialize()
   {
-    this.#valueRef.value = this.value;
+    this.#valueRef.value = this._value;
     if (this.#reroutedValue)
     {
-      CjsParameter.writeScalarDestination(this.#reroutedValue, this.value);
+      CjsParameter.writeScalarDestination(this.#reroutedValue, this._value);
     }
     return true;
   }

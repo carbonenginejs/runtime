@@ -129,7 +129,8 @@ test("promoted shader parameters expose source-backed Carbon metadata", () =>
   assertEquals(CjsSchema.getConstructor("TriVector4"), TriVector4);
   assertEquals(CjsSchema.getConstructor("TriFloatArrayParameter"), TriFloatArrayParameter);
   assertEquals(CjsSchema.getConstructor("CjsParameter"), CjsParameter);
-  assertEquals(CjsSchema.getField(Tr2FloatParameter, "value")?.type.kind, "float32");
+  assertEquals(CjsSchema.getSchema(Tr2FloatParameter).members.find(m => m.name === "value")?.type.kind, "float32");
+  assertEquals(CjsSchema.getSchema(Tr2FloatParameter).properties.some(p => p.name === "value"), true);
   assertEquals(CjsSchema.getField(Tr2Vector4Parameter, "value")?.type.kind, "vec4");
   assertEquals(CjsSchema.getField(Tr2Matrix4Parameter, "value")?.type.kind, "mat4");
   assertEquals(CjsSchema.getField(TriTextureParameter, "resourcePath")?.type.kind, "path");
