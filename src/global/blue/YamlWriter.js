@@ -18,9 +18,7 @@ const YAML_WRITER_METADATA_KEYS = new Set([
 ]);
 
 /** Carbon's YAML writer, using buffered yaml nodes in place of libyaml events. */
-@blue.inherit(IRootWriter)
 
-@be.define("YamlWriter")
 export class YamlWriter extends IRootWriter
 {
   _skipDefaults = true;
@@ -37,8 +35,7 @@ export class YamlWriter extends IRootWriter
    * @param {object} stream Host IBlueStream-shaped sink with Write(bytes, size).
    * @returns {void}
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
+
   WriteObjectToStream(root, stream)
   {
     const text = this.WriteObjectToString(root);
@@ -59,8 +56,7 @@ export class YamlWriter extends IRootWriter
    * @param {object} root Root object.
    * @returns {string} Red text.
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
+
   WriteObjectToString(root)
   {
     this._Cleanup();
@@ -113,8 +109,7 @@ export class YamlWriter extends IRootWriter
    * @param {object|null} type Schema descriptor.
    * @returns {void}
    */
-  @meta.cjs
-    @meta.adapted
+
   WriteNestedValue(value, type = null)
   {
     const kind = type?.kind;
@@ -186,57 +181,46 @@ export class YamlWriter extends IRootWriter
 
   /** Writes an unquoted member name; yaml may quote syntactically ambiguous names. */
 
-  @meta.adapted
   _WriteMemberName(key) { this._AddScalarEvent(key); }
 
   /** Emits a signed byte after C++ argument conversion. */
 
-  @meta.implemented
   _WriteInt8(value) { this._WriteInt32((Number(value) << 24) >> 24); }
 
   /** Emits a signed short after C++ argument conversion. */
 
-  @meta.implemented
   _WriteInt16(value) { this._WriteInt32((Number(value) << 16) >> 16); }
 
   /** Emits signed decimal int32. */
 
-  @meta.implemented
   _WriteInt32(value) { this._AddScalarEvent(Number(value) | 0); }
 
   /** Emits unsigned decimal uint32. */
 
-  @meta.implemented
   _WriteUInt32(value) { this._AddScalarEvent(Number(value) >>> 0); }
 
   /** BigInt replaces native int64 storage without passing through Number. */
 
-  @meta.adapted
   _WriteInt64(value) { this._AddScalarEvent(BigInt.asIntN(64, BigInt(value))); }
 
   /** BigInt replaces native uint64 storage without passing through Number. */
 
-  @meta.adapted
   _WriteUInt64(value) { this._AddScalarEvent(BigInt.asUintN(64, BigInt(value))); }
 
   /** Emits %.7f, retaining one fraction digit; BigInt arithmetic replaces printf. */
 
-  @meta.adapted
   _WriteFloat(value) { this._AddScalarEvent(Math.fround(value), "number", Fixed(Math.fround(value), 7)); }
 
   /** Emits %.12f, retaining one fraction digit; BigInt arithmetic replaces printf. */
 
-  @meta.adapted
   _WriteDouble(value) { this._AddScalarEvent(value, "number", Fixed(value, 12)); }
 
   /** JS strings already hold Unicode; output is quoted and non-ASCII escaped. */
 
-  @meta.adapted
   _WriteChar(value) { this._AddScalarEvent(String(value).split("\0", 1)[0], "quoted"); }
 
   /** A native null wide pointer becomes null; JS strings replace wchar_t storage. */
 
-  @meta.adapted
   _WriteWChar(value)
   {
     if (value === null) this._AddScalarEvent(null);
@@ -250,7 +234,6 @@ export class YamlWriter extends IRootWriter
    * bug as an error instead of silently producing a repaired block.
    */
 
-  @meta.adapted
   _WriteBinaryBlock(persist, propertyName)
   {
     const result = persist.GetWriteBufferAndSize(propertyName);
@@ -277,7 +260,6 @@ export class YamlWriter extends IRootWriter
 
   /** Begins a block sequence using an AST node in place of a sequence-start event. */
 
-  @meta.adapted
   _WriteVectorBegin(_size)
   {
     const node = new YAMLSeq(this._document.schema);
@@ -287,12 +269,10 @@ export class YamlWriter extends IRootWriter
 
   /** Ends the current sequence; AST ownership replaces the native end event. */
 
-  @meta.adapted
   _WriteVectorEnd(_size) { this._events.pop(); }
 
   /** Flow scalar sequence, with each value rounded as a native float. */
 
-  @meta.adapted
   _WriteFloatArray(values, numValues)
   {
     this._WriteVectorBegin(numValues);
@@ -303,7 +283,6 @@ export class YamlWriter extends IRootWriter
 
   /** Emits rows without allocating numeric scratch; JS indexes replace pointer increments. */
 
-  @meta.adapted
   _WriteFloatMatrix(values, numRows, numColumns)
   {
     this._WriteVectorBegin(numRows);
@@ -319,7 +298,6 @@ export class YamlWriter extends IRootWriter
 
   /** Native %g six-significant-digit spelling for packed FLOAT32x4 values. */
 
-  @meta.adapted
   _WriteFloatSequence(values, count)
   {
     this._WriteVectorBegin(count);
@@ -339,7 +317,6 @@ export class YamlWriter extends IRootWriter
    * avoid publishing machine-identifying authoring paths.
    */
 
-  @meta.adapted
   _WriteIRoot__Reference(instance, defaultInstance)
   {
     const mapping = this._AddMappingStartEvent();
@@ -369,7 +346,6 @@ export class YamlWriter extends IRootWriter
 
   /** JS object identity replaces QueryInterface(IRoot); anchors are retrofitted on second sight. */
 
-  @meta.adapted
   _WriteIRoot__Pointer(instance)
   {
     if (instance === null || instance === undefined) return this._AddScalarEvent(null);
@@ -388,7 +364,6 @@ export class YamlWriter extends IRootWriter
    * Only layouts supported by the runtime's meta.struct can be instantiated.
    */
 
-  @meta.adapted
   _WriteStructureList(list, type)
   {
     const itemType = type.itemType;
@@ -425,7 +400,6 @@ export class YamlWriter extends IRootWriter
 
   /** Releases AST and reference state; garbage collection replaces event deletion. */
 
-  @meta.adapted
   _Cleanup()
   {
     this._dataStream = null;
@@ -439,7 +413,6 @@ export class YamlWriter extends IRootWriter
 
   /** Appends a node; AST parent/key state replaces libyaml's event stream. */
 
-  @meta.adapted
   _AddEvent(node)
   {
     const parent = this._events.at(-1);
@@ -456,7 +429,6 @@ export class YamlWriter extends IRootWriter
 
   /** Scalar AST node; custom formats preserve printf lexemes and forced quoting. */
 
-  @meta.adapted
   _AddScalarEvent(value, style = "plain", source = null)
   {
     const node = new Scalar(value);
@@ -472,7 +444,6 @@ export class YamlWriter extends IRootWriter
 
   /** Begins a block mapping; AST node replaces the native event pointer. */
 
-  @meta.adapted
   _AddMappingStartEvent()
   {
     const node = this._AddEvent(new YAMLMap(this._document.schema));
@@ -482,29 +453,60 @@ export class YamlWriter extends IRootWriter
 
   /** Ends a mapping; AST ownership replaces the native event. */
 
-  @meta.adapted
   _AddMappingEndEvent() { this._events.pop(); }
 
   /** Emits an alias AST node in place of a native alias event. */
 
-  @meta.adapted
   _AddAliasEvent(anchor) { this._AddEvent(new Alias(anchor)); }
 
   /** Routes the native callback shape to the member using a JS receiver. */
 
-  @meta.adapted
   static _writeToStreamStatic(data, buffer, size) { return data._WriteToStream(buffer, size); }
 
   /** The host supplies IBlueStream.Write; no filesystem policy is introduced. */
 
-  @meta.adapted
   _WriteToStream(buffer, size) { return Number(this._dataStream.Write(buffer, size) === size); }
 
   /** Logs through the runtime's Carbon logging port; filenames are not held by this base yet. */
 
-  @meta.adapted
   _ReportError(message) { CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "%s", message); }
 }
+
+// Explicit registration keeps the public Blue source importable without a decorator transform.
+meta.adapted(YamlWriter, "_writeToStreamStatic");
+CjsSchema.decorateMethod(YamlWriter, "WriteObjectToStream", meta.adapted, be.mapMethodAndWrap());
+CjsSchema.decorateMethod(YamlWriter, "WriteObjectToString", meta.adapted, be.mapMethodAndWrap());
+CjsSchema.decorateMethod(YamlWriter, "WriteNestedValue", meta.adapted, meta.cjs);
+CjsSchema.decorateMethod(YamlWriter, "_WriteMemberName", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteInt8", meta.implemented);
+CjsSchema.decorateMethod(YamlWriter, "_WriteInt16", meta.implemented);
+CjsSchema.decorateMethod(YamlWriter, "_WriteInt32", meta.implemented);
+CjsSchema.decorateMethod(YamlWriter, "_WriteUInt32", meta.implemented);
+CjsSchema.decorateMethod(YamlWriter, "_WriteInt64", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteUInt64", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteFloat", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteDouble", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteChar", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteWChar", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteBinaryBlock", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteVectorBegin", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteVectorEnd", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteFloatArray", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteFloatMatrix", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteFloatSequence", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteIRoot__Reference", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteIRoot__Pointer", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteStructureList", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_Cleanup", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_AddEvent", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_AddScalarEvent", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_AddMappingStartEvent", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_AddMappingEndEvent", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_AddAliasEvent", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_WriteToStream", meta.adapted);
+CjsSchema.decorateMethod(YamlWriter, "_ReportError", meta.adapted);
+be.define("YamlWriter")(YamlWriter);
+blue.inherit(IRootWriter)(YamlWriter);
 
 /**
  * Exact binary64 -> fixed decimal, rounding ties to even as modern printf.
