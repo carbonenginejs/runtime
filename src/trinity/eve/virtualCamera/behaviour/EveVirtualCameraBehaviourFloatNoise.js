@@ -1,8 +1,9 @@
+import { exposure as be } from "#be";
 import { random } from "#math/random";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { meta, type, blue } from "#schema";
-import { INotify, blue as be } from "#blue";
+import { meta, type } from "#schema";
+import { INotify, blue } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 import { TriPerlinCurve } from "../../../curves/curve/TriPerlinCurve.js";
@@ -13,30 +14,30 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that adds a Perlin-noise wobble to a scalar camera value such
  * as field of view or roll.
  */
-@blue.define("EveVirtualCameraBehaviourFloatNoise")
-@blue.interface(INotify)
-@blue.chainTo(EveVirtualCameraBehaviourFloatBase)
+@be.define("EveVirtualCameraBehaviourFloatNoise")
+@be.mapInterface(INotify)
+@be.exposureChainTo(EveVirtualCameraBehaviourFloatBase)
 export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehaviourFloatBase
 {
   static _nextPhase = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   octaves = 8;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2CurveScalar")
   magnitudeCurve = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   magnitude = 1;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   perlineScale = 1;
 
@@ -51,7 +52,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     super();
     this.magnitudeCurve = EveVirtualCameraBehaviourFloatNoise._createMagnitudeCurve();
     this.SetName("Shake");
-    random.triSrand(be.os.GetCurrentFrameTime()); // Carbon constructor reseeds the shared stream.
+    random.triSrand(blue.os.GetCurrentFrameTime()); // Carbon constructor reseeds the shared stream.
   }
 
   /**

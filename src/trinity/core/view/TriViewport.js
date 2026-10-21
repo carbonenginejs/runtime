@@ -88,5 +88,3 @@ export function Vec3TransformByViewport(vec, viewport)
   vec[2] = viewport.minZ + vec[2] * (viewport.maxZ - viewport.minZ);
   return vec;
 }
-
-

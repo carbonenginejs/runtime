@@ -1,8 +1,8 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:260-284
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60-66, 1125-1133
-import { blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
 
 /**
@@ -26,7 +26,7 @@ const slot = (name, index) => ({ name, key: "logos", index, type: { kind: "rootR
  * Logo slots: `EveSOFDataLogoPtr m_logos[TYPE_MAX]`, exposed by chooser name.
  * Native IRoot-only data with no lifecycle.
  */
-@blue.define({
+@legacyBlue.define({
   className: "EveSOFDataLogoSet",
   members: [
   slot("Primary", LogoType.TYPE_PRIMARY),
@@ -36,8 +36,8 @@ const slot = (name, index) => ({ name, key: "logos", index, type: { kind: "rootR
   slot("Marking_02", LogoType.TYPE_MARKING_02)
 ]
 })
-@blue.interface()
-@blue.inherit(IRoot)
+@legacyBlue.interface()
+@legacyBlue.inherit(IRoot)
 export class EveSOFDataLogoSet extends IRoot
 {
   static LogoType = LogoType;
@@ -72,7 +72,7 @@ export class EveSOFDataLogoSet extends IRoot
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-be.enums.Create("trinity.EveSOFDataLogoSet.LogoType", LogoType, {
+blue.enums.Create("trinity.EveSOFDataLogoSet.LogoType", LogoType, {
   exposedName: "EveSOFDataLogoSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Primary", value: LogoType.TYPE_PRIMARY, description: "Primary Logo" },

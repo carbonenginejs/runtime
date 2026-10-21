@@ -40,4 +40,3 @@ export class Tr2CurveSetRange extends IRoot
 }
 
 // EXPOSURE_END: this plain IRoot record exposes only its concrete identity.
-

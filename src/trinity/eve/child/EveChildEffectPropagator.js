@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";
@@ -15,7 +16,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { PropagationType, TriggerType } from "../../generated/eve/child/enums.js";
-import { IsMatch, blue as be } from "#blue";
+import { IsMatch, blue } from "#blue";
 
 // Module scratch for the trigger-driven locator paths (allocation rules:
 // copy-into, never allocate per frame; child updates run sequentially so the
@@ -61,52 +62,56 @@ function SortByCircleDist(lhs, rhs)
 
 
 /** EveChildEffectPropagator (eve/child) - generated from schema shapeHash 0f2a96e8.... */
-@blue.define("EveChildEffectPropagator")
-@blue.inherit(INotify, IInitialize)
-@blue.interface(EveChildContainer, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, EveEntity)
+@be.define("EveChildEffectPropagator")
+@legacyBlue.inherit(INotify, IInitialize)
+@be.mapInterface(EveChildContainer)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(INotify)
+@be.mapInterface(EveEntity)
 export class EveChildEffectPropagator extends EveChildContainer
 {
 
   /** m_type (PropagationType - enum PropagationType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveChildEffectPropagator.PropagationType")
   propagationType = 0;
 
   /** m_triggerMethod (TriggerType - enum TriggerType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveChildEffectPropagator.TriggerType")
   triggerMethood = 0;
 
   /** m_stopAfterNumTriggers (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   stopAfterNumTriggers = -1;
 
   /** m_randScaleMin (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   randScaleMin = 1;
 
   /** m_randScaleMax (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   randScaleMax = 1;
 
   /** m_triggerSphereOffset (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   triggerSphereOffset = vec3.create();
 
@@ -116,9 +121,9 @@ export class EveChildEffectPropagator extends EveChildContainer
    * (EveChildEffectPropagator_Blue.cpp:37). Readers write it directly,
    * bypassing the setter, and OnModified then locks its edit mode.
    */
-  @blue.attribute("effect")
-  @blue.notify
-  @blue.persistOnly
+  @legacyBlue.attribute("effect")
+  @legacyBlue.notify
+  @legacyBlue.persistOnly
   @type.rootRef("EveChildInstanceContainer")
   _effect = null;
 
@@ -127,7 +132,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * (EveChildEffectPropagator_Blue.cpp:38): the setter moves component and
    * child registration to the replacement container.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("EveChildInstanceContainer")
   @meta.implemented
   get effect()
@@ -143,115 +148,115 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** m_stopToClearDelay (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   stopToClearDelay = 0;
 
   /** m_rndClosenessPreference (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   ClosenessPreference = 0.25;
 
   /** m_effectScaling (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec3
   effectScaling = vec3.fromValues(1, 1, 1);
 
   /** m_effectDuration (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   durationPerEffect = 3;
 
   /** m_isPlaying (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isPlaying = false;
 
   /** m_localLocators (EveLocatorSetsPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("EveLocatorSets")
   localLocators = null;
 
   /** m_triggerSphereRadiusCurve (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2CurveScalar")
   triggerSphereRadiusCurve = null;
 
   /** m_triggerSphereScalarMulti (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   triggerSphereScalarMulti = 1;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   locatorSetName = "";
 
   /** m_completeness (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   completeness = 1;
 
   /** m_replayAfterDelay (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   replayAfterDelay = false;
 
   /** m_trigger (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   trigger = false;
 
   /** m_rndMinRangeThreshold (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   minRangeThreshold = 0;
 
   /** m_playTime (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   playTime = 0;
 
   /** m_rndRange (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   range = 500;
 
   /** m_numTriggers (int64_t) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.int64
   numTriggers = 10;
 
   /** m_frequency (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY | be.NOTIFY)
+
+
   @type.float32
   frequency = 1;
 
   /** m_skipCleanup (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   skipCleanup = false;
 
@@ -286,7 +291,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** Carbon EveChildEffectPropagator::Stop (cpp:119-129). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Stop()
   {

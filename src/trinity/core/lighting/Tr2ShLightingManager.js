@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ShLightingManager.h
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { vec3 } from "#math/vec3";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 // Secondary lighting: light from one primary source reflected off "secondary
@@ -84,34 +85,34 @@ function readFloat(value)
  * lighting - a primary light reflected off nearby spheres - for any receiver
  * position in the scene.
  */
-@blue.define("Tr2ShLightingManager")
-@blue.inherit(IRoot)
-@blue.interface()
+@be.define("Tr2ShLightingManager")
+@legacyBlue.inherit(IRoot)
+
 export class Tr2ShLightingManager extends IRoot
 {
 
   /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2ShLightingManager.Quality")
   quality = 1;
 
   /** m_lights (PTr2PointLightVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2PointLight")
   lights = [];
 
   /** m_primaryIntensity (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   primaryIntensity = 1;
 
   /** m_secondaryIntensity (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   secondaryIntensity = 1;
 
@@ -156,7 +157,7 @@ export class Tr2ShLightingManager extends IRoot
    * @param {Float32Array} emissive - self-emissive colour
    * @returns {Boolean} true once registered
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   RegisterSecondaryLightSource(position, radius, albedo, emissive)
   {
@@ -493,7 +494,7 @@ export class Tr2ShLightingManager extends IRoot
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ShLightingManager_Blue.cpp:16).
-be.enums.Create("trinity.Tr2ShLightingManager.Quality", Tr2ShLightingManager.Quality, {
+blue.enums.Create("trinity.Tr2ShLightingManager.Quality", Tr2ShLightingManager.Quality, {
   exposedName: "ShQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "L1", value: Tr2ShLightingManager.Quality.L1, description: "" },

@@ -1,32 +1,33 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.cpp
-import { type, blue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { Debug } from "../../generated/postProcess/enums.js";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 /**
  * Temporal anti-aliasing settings: quality level, the early-out threshold below
  * which pixels are left alone, and the debug visualization selector.
  */
-@blue.define("Tr2PPTaaEffect")
-@blue.chainTo(Tr2PPEffect)
-@blue.interface(Tr2PPEffect)
+@be.define("Tr2PPTaaEffect")
+@be.exposureChainTo(Tr2PPEffect)
+@be.mapInterface(Tr2PPEffect)
 export class Tr2PPTaaEffect extends Tr2PPEffect
 {
 
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.Tr2PPTaaEffect.Debug")
   debug = Tr2PPTaaEffect.TAA_DEBUG_OFF;
 
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.Tr2PPTaaEffect.Quality")
   quality = Tr2PPTaaEffect.TAA_HIGH;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   earlyOutThreshold = 0.001;
 
@@ -58,7 +59,7 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
 
 }
 
-be.enums.Create("trinity.Tr2PPTaaEffect.Quality", Tr2PPTaaEffect.Quality, {
+blue.enums.Create("trinity.Tr2PPTaaEffect.Quality", Tr2PPTaaEffect.Quality, {
   exposedName: "TaaQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Low", value: Tr2PPTaaEffect.Quality.TAA_LOW, description: "Low Quality" },

@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight.h
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight.cpp
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight_Blue.cpp
 import { IsMatch, IInitialize, INotify } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 import { color } from "#math/color";
 import { Tr2Light } from "./Tr2Light.js";
 import { Tr2PointLight } from "./Tr2PointLight.js";
@@ -14,11 +15,13 @@ import { Tr2PointLight } from "./Tr2PointLight.js";
  * Point light that projects a texture, adding the texture path and its resolved
  * resource to the point-light attribute set and updating dynamically.
  */
-@blue.define("Tr2TexturedPointLight")
-@blue.interface(Tr2Light, IInitialize, INotify)
+@be.define("Tr2TexturedPointLight")
+@be.mapInterface(Tr2Light)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2TexturedPointLight extends Tr2PointLight
 {
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("TriTextureRes")
   texture = null;
 
@@ -27,9 +30,9 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   // inherited (Tr2TexturedPointLight_Blue.cpp:17-37 repeats them).
 
   /** m_lightData.texturePath (std::wstring) [READWRITE, PERSIST, NOTIFY] (Tr2TexturedPointLight_Blue.cpp:33). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.wpath("TriTextureRes")
   get texturePath()
   {
@@ -110,7 +113,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   {
     this.texture = null;
     if (!path) return;
-    this.texture = be.resMan.GetResource(path, {
+    this.texture = blue.resMan.GetResource(path, {
       requirement: ResourceRequirement.TEXTURE
     });
   }

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 import { ITr2Interior } from "./ITr2Interior.js";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
@@ -6,8 +7,8 @@ import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.h
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable_Blue.cpp
-import { meta, type, blue } from "#schema";
-import { blue as be, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { WodPlaceableRes } from "../../../resource/geometry/WodPlaceableRes.js";
 import { mat4 } from "#math/mat4";
@@ -15,16 +16,22 @@ import { vec3 } from "#math/vec3";
 import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
 /** Interior placeable with typed resource loading and native uniqueness notifications. */
-@blue.define("Tr2InteriorPlaceable")
-@blue.inherit(ITr2Renderable, IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
-@blue.interface(ITr2Renderable, IInitialize, INotify, ITr2Interior, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
+@be.define("Tr2InteriorPlaceable")
+@legacyBlue.inherit(ITr2Renderable, IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2Interior)
+@be.mapInterface(ITr2InteriorDynamic)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(ITr2BoundingBox)
 export class Tr2InteriorPlaceable extends IRoot
 {
 
   /** m_placeableResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("object")
   placeableResPath = "";
 
@@ -35,54 +42,54 @@ export class Tr2InteriorPlaceable extends IRoot
    * Carbon's row-major Matrix has gl-matrix's byte layout, so no conversion is needed.
    * @type {mat4}
    */
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
+
+
   @type.mat4.wrapped("TriMatrix")
   transform = mat4.create();
 
   /** m_placeableRes (WodPlaceableResPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("WodPlaceableRes")
   placeableRes = null;
 
   /** m_display (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
   /** m_boundingSphere[3] (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   boundingSphereRadius = 0;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   depthOffset = 0;
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2VariableStore")
   variableStore = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_probeOffset (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   probeOffset = vec3.create();
 
   /** m_isUniqueInstance (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   isUnique = false;
 
@@ -117,8 +124,8 @@ export class Tr2InteriorPlaceable extends IRoot
       if (this.placeableRes && this.isUnique)
       {
         ++this._loadRequest;
-        const copy = be.classes.CloneTo(this.placeableRes, null);
-        this.placeableRes = copy ? be.classes.QueryThisInterface(copy, WodPlaceableRes, copy.constructor) : null;
+        const copy = blue.classes.CloneTo(this.placeableRes, null);
+        this.placeableRes = copy ? blue.classes.QueryThisInterface(copy, WodPlaceableRes, copy.constructor) : null;
       }
       else
       {
@@ -146,7 +153,7 @@ export class Tr2InteriorPlaceable extends IRoot
     let object;
     try
     {
-      object = await be.resMan.LoadObject(path);
+      object = await blue.resMan.LoadObject(path);
     }
     catch (error)
     {
@@ -157,7 +164,7 @@ export class Tr2InteriorPlaceable extends IRoot
       return null;
     }
     if (request !== this._loadRequest || path !== this.placeableResPath) return null;
-    if (!object || be.classes.QueryThisInterface(object, WodPlaceableRes, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
+    if (!object || blue.classes.QueryThisInterface(object, WodPlaceableRes, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a WodPlaceableRes.`);
       return null;
@@ -208,7 +215,7 @@ export class Tr2InteriorPlaceable extends IRoot
   }
 
   /** Carbon method GetBoundingBoxInLocalSpace (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetBoundingBoxInLocalSpace(...args)
   {
@@ -216,7 +223,7 @@ export class Tr2InteriorPlaceable extends IRoot
   }
 
   /** Carbon method GetBoundingBoxInWorldSpace (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   GetBoundingBoxInWorldSpace(...args)
   {
@@ -224,7 +231,7 @@ export class Tr2InteriorPlaceable extends IRoot
   }
 
   /** Carbon method BoundingBoxOverride (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   BoundingBoxOverride(...args)
   {
@@ -232,7 +239,7 @@ export class Tr2InteriorPlaceable extends IRoot
   }
 
   /** Carbon method BoundingBoxReset (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.notImplemented
   BoundingBoxReset(...args)
   {

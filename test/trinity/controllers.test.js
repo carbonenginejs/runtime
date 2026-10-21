@@ -1,10 +1,10 @@
 import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import test from "node:test";
-import { type, blue } from "../../npm/dist/global/schema/index.js";
+import { type, blue as legacyBlue } from "../../npm/dist/global/schema/index.js";
 import { CjsControllerExpressionProgram, ExecuteMainThreadActions, EveChildUpdateParams, ITr2ControllerAction, ITr2GenericEmitterUpdateArguments, ITr2StateMachineStateFinalizer, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue as be, DictReader, INotify } from "../../npm/dist/global/blue/index.js";
+import { blue, DictReader, INotify } from "../../npm/dist/global/blue/index.js";
 import { ITr2SoundEmitterOwner } from "../../npm/dist/trinity/eve/ITr2SoundEmitterOwner.js";
 import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
 
@@ -303,7 +303,7 @@ test("Tr2BindingPoint resolves Carbon root, property, index, and name paths", ()
 test("registered controller actions update with sim time", t =>
 {
   const frameTime = 133000000000000000;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => frameTime);
   const updateables = [];
   const appliedTimes = [];
   const controller = {
@@ -392,7 +392,7 @@ test("Tr2ControllerEventHandler links and executes controller actions", () =>
   handler.name = "activate";
   for (const action of [first, second])
   {
-    blue.interface(ITr2ControllerAction)(action.constructor, { kind: "class" });
+    legacyBlue.interface(ITr2ControllerAction)(action.constructor, { kind: "class" });
     handler.actions.Append(action);
   }
   assertEquals(handler.GetName(), "activate");
@@ -401,7 +401,7 @@ test("Tr2ControllerEventHandler links and executes controller actions", () =>
   handler.Execute(controller);
   assertEquals(events.join(","), "first:link,second:link,first:start,second:start,first:stop,second:stop");
   const inserted = makeAction("inserted", events, controller);
-  blue.interface(ITr2ControllerAction)(inserted.constructor, { kind: "class" });
+  legacyBlue.interface(ITr2ControllerAction)(inserted.constructor, { kind: "class" });
   handler.actions.Append(inserted);
   assertEquals(events.at(-1), "inserted:link");
   handler.actions.Remove(2);
@@ -424,7 +424,7 @@ test("Tr2Controller links variables, events, callbacks, and updateables", () =>
   const action = makeAction("ignite", events, controller);
   const handler = new Tr2ControllerEventHandler();
   handler.name = "ignite";
-  blue.interface(ITr2ControllerAction)(action.constructor, { kind: "class" });
+  legacyBlue.interface(ITr2ControllerAction)(action.constructor, { kind: "class" });
   handler.actions.Append(action);
   const stateMachine = {
     Link(value)
@@ -492,7 +492,7 @@ test("Tr2Controller links variables, events, callbacks, and updateables", () =>
   ExecuteMainThreadActions();
   assert(updateRealTime > 0);
   assert(updateSimTimes[0] > 0);
-  assertEquals(updateSimTimes[0], be.os.GetCurrentFrameTime());
+  assertEquals(updateSimTimes[0], blue.os.GetCurrentFrameTime());
   controller.SetVariable("speed", 8);
   controller.Update(1);
   ExecuteMainThreadActions();
@@ -1164,8 +1164,8 @@ test("Tr2ActionOverlay follows Carbon's overlay lifecycle on a space object", as
   const { EveMeshOverlayEffect, EveMultiEffect, EveMultiEffectParameter } = await import("../../npm/dist/trinity/index.js");
   const settle = () => new Promise(resolve => setImmediate(resolve));
   const events = [];
-  const loadObject = be.resMan.LoadObject;
-  be.resMan.LoadObject = async path =>
+  const loadObject = blue.resMan.LoadObject;
+  blue.resMan.LoadObject = async path =>
   {
     events.push(`load:${path}`);
     if (path.includes("plain_file")) return { name: "plain" };
@@ -1257,7 +1257,7 @@ test("Tr2ActionOverlay follows Carbon's overlay lifecycle on a space object", as
   }
   finally
   {
-    be.resMan.LoadObject = loadObject;
+    blue.resMan.LoadObject = loadObject;
   }
 });
 
@@ -1384,7 +1384,7 @@ test("Tr2ActionBindRTPC caches Carbon emitter and expression state", t =>
 {
   // Carbon reads BeOS->GetCurrentFrameTime at Start (Tr2ActionBindRTPC.cpp:63); times are Blue ticks.
   const SECOND = 10000000;
-  t.mock.method(be.os, "GetCurrentFrameTime", () => 10 * SECOND);
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => 10 * SECOND);
   const action = new Tr2ActionBindRTPC();
   const bindSchema = CjsSchema.getSchema(Tr2ActionBindRTPC);
   assertEquals(bindSchema.members.map(field => field.name).join(","), "value,emitter,rtpcName,curve");
@@ -1585,8 +1585,8 @@ test("Tr2ActionChildEffect loads its child as Carbon does and adds it only on su
     [ "res:/beam.red", makeChild ],
     [ "res:/plain.red", () => ({ name: "plain" }) ]
   ]);
-  const loadObject = be.resMan.LoadObject;
-  be.resMan.LoadObject = async path =>
+  const loadObject = blue.resMan.LoadObject;
+  blue.resMan.LoadObject = async path =>
   {
     events.push(`load:${path}`);
     return loads.get(path)();
@@ -1664,7 +1664,7 @@ test("Tr2ActionChildEffect loads its child as Carbon does and adds it only on su
   }
   finally
   {
-    be.resMan.LoadObject = loadObject;
+    blue.resMan.LoadObject = loadObject;
   }
 });
 test("Tr2ActionChildEffect.Link forwards prefetch through controller resource host", () =>

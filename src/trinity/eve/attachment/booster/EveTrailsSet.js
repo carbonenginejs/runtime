@@ -1,13 +1,14 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { mat4 } from "#math/mat4";
-import { IsMatch, blue as be } from "#blue";
+import { IsMatch, blue } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
 import { INotify } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
@@ -25,38 +26,39 @@ const INSTANCE_VERTEX_SIZE = 16;
  * A booster set's trails: one trail mesh drawn once per booster, instanced,
  * its shape bent along each booster renderable's spline in the vertex shader.
  */
-@blue.define("EveTrailsSet")
-@blue.inherit(IInitialize, INotify, Tr2DeviceResource)
-@blue.interface(INotify, IInitialize)
+@be.define("EveTrailsSet")
+@legacyBlue.inherit(IInitialize, INotify, Tr2DeviceResource)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class EveTrailsSet
 {
 
   /** m_geometryResource (TriGeometryResPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("TriGeometryRes")
   geometryResource = null;
 
   /** m_fadeSpeed (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   fadeSpeed = 1;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2Effect")
   effect = null;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_display (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
@@ -110,7 +112,7 @@ export class EveTrailsSet
     this.Cleanup();
 
     this.geometryResource = this.geometryResPath
-      ? be.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+      ? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
       : null;
 
     this.geometryResource?.AddNotifyTarget(this);

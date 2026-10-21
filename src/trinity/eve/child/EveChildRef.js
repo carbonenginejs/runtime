@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.cpp
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
@@ -9,8 +10,8 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { IsMatch, blue as be } from "#blue";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { IsMatch, blue } from "#blue";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
@@ -27,65 +28,73 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
  * synchronously; the JS resource manager resolves it asynchronously, so the
  * child joins (registered and forwarded to) once the file has loaded.
  */
-@blue.define("EveChildRef")
-@blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
-@blue.inherit(IEveEffectChildrenOwner, ITr2SoundEmitterOwner)
+@be.define("EveChildRef")
+@legacyBlue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IEveEffectChildrenOwner)
+@be.mapInterface(IShaderConfigurer)
+@be.mapInterface(ITr2SoundEmitterOwner)
+@be.mapInterface(EveEntity)
+@legacyBlue.inherit(IEveEffectChildrenOwner, ITr2SoundEmitterOwner)
 export class EveChildRef extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildRef_Blue.cpp:28 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildRef_Blue.cpp:29 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildRef_Blue.cpp:30 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildRef_Blue.cpp:31) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   localTransform = mat4.create();
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_loadChildAutomatically (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   loadChildAutomatically = true;
 
   /** m_resPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.path("object")
   resPath = "";
 
   /** m_child (IEveSpaceObjectChildPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("IEveSpaceObjectChild")
   child = null;
 
@@ -110,7 +119,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::Reload (cpp:39-45). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   Reload(bypassAutoLoadBlocker = false)
   {
@@ -163,7 +172,7 @@ export class EveChildRef extends EveChildTransform
     const request = ++this._loadRequest;
     if (!path) return false;
 
-    Promise.resolve(be.resMan.LoadObject(path)).then(object =>
+    Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
     {
       if (request !== this._loadRequest) return;
       const child = CjsSchema.cast(object, EveSpaceObjectChild);
@@ -396,7 +405,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::SetControllerVariable (cpp:287-293). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -404,7 +413,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::HandleControllerEvent (cpp:295-301). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -421,7 +430,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::StartControllers (cpp:314-320). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
   {

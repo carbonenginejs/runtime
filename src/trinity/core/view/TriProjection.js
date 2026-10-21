@@ -302,5 +302,3 @@ export class TriProjection extends IRoot
     return out;
   }
 }
-
-

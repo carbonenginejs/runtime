@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { blue as be, CjsBlueClasses } from "#blue";
-import { meta, type, blue } from "#schema";
+import { blue, CjsBlueClasses } from "#blue";
+import { meta, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -16,10 +17,10 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  */
 function CastTo(value, className)
 {
-  const registration = be.classes.GetClassRegistration(className);
+  const registration = blue.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Tr2ActionOverlay: class ${className} is not registered with Blue`);
   if (!value || typeof value !== "object") return null;
-  return be.classes.QueryThisInterface(value, registration.type, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+  return blue.classes.QueryThisInterface(value, registration.type, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
 }
 
 
@@ -27,15 +28,15 @@ function CastTo(value, className)
  * Controller action that adds a named overlay effect to its owner when the
  * action starts and removes it again when the action stops.
  */
-@blue.define("Tr2ActionOverlay")
+@be.define("Tr2ActionOverlay")
 export class Tr2ActionOverlay extends ITr2ControllerAction
 {
   /**
    * Resource path for loading the overlay when no matching overlay exists.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("object")
   path = "";
 
@@ -43,8 +44,8 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Name used to find an existing overlay and assign to a newly loaded one.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   overlayName = "";
 
@@ -52,8 +53,8 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Named parameter or stretch endpoint used to redirect overlay ownership when the controller owner cannot hold overlays.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   targetAnotherOwner = "";
 
@@ -61,8 +62,8 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Whether Start may load and attach an overlay when none is already found.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   addOnStart = true;
 
@@ -70,8 +71,8 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Whether Stop removes the retained overlay from the resolved owner.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   removeOnStop = true;
 
@@ -163,7 +164,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
     }
 
     const request = ++this._loadRequest;
-    return Promise.resolve(be.resMan.LoadObject(path)).then(object =>
+    return Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
     {
       if (request !== this._loadRequest) return;
       const overlay = CastTo(object, "EveMeshOverlayEffect");

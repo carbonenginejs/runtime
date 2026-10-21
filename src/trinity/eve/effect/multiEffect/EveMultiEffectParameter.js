@@ -1,35 +1,36 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.h
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
 import { INotify } from "../../../../global/blue/INotify.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
-import { IsMatch, blue as be } from "#blue";
+import { IsMatch, blue } from "#blue";
 
 /**
  * One named slot in an EveMultiEffect, holding the object bound to that name
  * together with the object type the effect expects there.
  */
-@blue.define("EveMultiEffectParameter")
-@blue.inherit(INotify)
-@blue.interface(INotify)
+@be.define("EveMultiEffectParameter")
+@legacyBlue.inherit(INotify)
+@be.mapInterface(INotify)
 export class EveMultiEffectParameter extends IRoot
 {
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.EveMultiEffectParameter.ParameterType")
   type = 3;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.object.ref("IRoot")
   object = null;
 
@@ -40,7 +41,7 @@ export class EveMultiEffectParameter extends IRoot
    * (EveMultiEffectParameter_Blue.cpp:26): whether the bound object matches
    * the declared parameter type.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isValid()

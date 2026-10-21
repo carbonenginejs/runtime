@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/UI/EveSpherePin.h
 // Source: trinity/trinity/Eve/UI/EveSpherePin.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";
 import { mat4 } from "#math/mat4";
@@ -11,7 +12,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
-import { blue as be, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
+import { blue, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
 import { CcpTime } from "../../../global/blue/CcpTime.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriBatchType } from "#consts/graphics";
@@ -40,136 +41,136 @@ const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color
   edit: { read: true, write: true, notify: true, persist: true } } ];
 
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
-@blue.define({ className: "EveSpherePin", members: pinColorMembers })
-@blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify, Tr2DeviceResource)
-@blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify)
+@legacyBlue.define({ className: "EveSpherePin", members: pinColorMembers })
+@legacyBlue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify, Tr2DeviceResource)
+@legacyBlue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify)
 export class EveSpherePin
 {
 
   /** m_primitiveCount (int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   primitiveCount = 0;
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_enablePicking (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   enablePicking = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST]; its "color" name is in pinColorMembers. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.color
   pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   sortValueMultiplier = 1;
 
   /** m_centerNormal (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.vec3
   centerNormal = vec3.fromValues(0, 0, 1);
 
   /** m_pinMaxRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   pinMaxRadius = 0.2;
 
   /** m_pinRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   pinRadius = 0.2;
 
   /** m_pinEffectResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.path("Tr2EffectRes")
   pinEffectResPath = "";
 
   /** m_geomResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_pinRotation (float) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   pinRotation = 0;
 
   /** m_pinAlphaThreshold (float) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   pinAlphaThreshold = 0;
 
   /** m_uvAtlasScaleOffset (Vector4) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.vec4
   uvAtlasScaleOffset = vec4.fromValues(1, 1, 0, 0);
 
   /** m_pinEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2Effect")
   pinEffect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2Effect")
   pickEffect = null;
 
@@ -265,7 +266,7 @@ export class EveSpherePin
   {
     this._tree = null;
     this._geometryResource = this.geometryResPath
-      ? be.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+      ? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
       : null;
   }
 
@@ -335,7 +336,7 @@ export class EveSpherePin
     if (!this._tree && this.geometryResPath)
     {
       const geometry = this._geometryResource
-        ?? be.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+        ?? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
       if (geometry)
       {
         let tree = treeMap.get(geometry);

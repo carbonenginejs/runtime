@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ReflectionProbe.h
 // Source: trinity/trinity/Tr2ReflectionProbe.cpp
 // Source: trinity/trinity/Tr2ReflectionProbe_Blue.cpp
@@ -18,7 +19,7 @@ import { INotify } from "../../global/blue/INotify.js";
 // THE RENDER CONTEXT. Carbon reaches the main-thread context through
 // USE_MAIN_THREAD_RENDER_CONTEXT(); ours is Tr2RenderContext_GetMainThreadRenderContext(),
 // the default here, with an optional trailing context.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
@@ -33,7 +34,7 @@ import { Tr2Renderer } from "./Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2RuntimeTextureParameter } from "../shader/parameter/Tr2RuntimeTextureParameter.js";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** Carbon's MIP_COUNT (`cpp:15`): filtered levels below the top. */
 const MIP_COUNT = 7;
@@ -49,75 +50,75 @@ const FILTER_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Refl
 const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/CopyCube.fx";
 
 /** Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map. */
-@blue.define({ className: "Tr2ReflectionProbe", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
-@blue.inherit(INotify)
-@blue.interface(INotify)
+@legacyBlue.define({ className: "Tr2ReflectionProbe", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
+@legacyBlue.inherit(INotify)
+@legacyBlue.interface(INotify)
 export class Tr2ReflectionProbe
 {
 
   /** m_renderFrequency (ReflectionProbeRenderFrequency - enum ReflectionProbeRenderFrequency) [READWRITE, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
+  @legacyBlue.notify
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency")
   renderFrequency = 0;
 
   /** m_currentFrame (uint8_t) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint8
   currentFrame = 0;
 
   /** m_customSourceTexture (ITriTextureResPtr) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.object.ref("ITriTextureRes")
   customSourceTexture = null;
 
   /** m_backlightColor (Color) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.color
   backlightColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_backlightContrast (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   backlightContrast = 16;
 
   /** m_hollywoodMode (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   hollywoodMode = true;
 
   /** m_postFilterTarget (Tr2RenderTargetPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2RenderTarget")
   reflectionTexture = null;
 
   /** m_hdrOutput (bool) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   hdrOutput = true;
 
   /** m_lockPosition (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   lockPosition = false;
 
   /** m_position (Vector3) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec3
   position = vec3.create();
 
   /** m_intermediateSize (int) [READWRITE, NOTIFY]; Carbon's default is FILTER_SIZE * 4 (`cpp:32`). */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.int32
   reflectionSize = FILTER_SIZE * 4;
 
   /** m_renderTargetCube (Tr2RenderTargetPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2RenderTarget")
   unfilteredTexture = null;
 
@@ -394,7 +395,7 @@ export class Tr2ReflectionProbe
    * currently set texture": rebuild the targets in RGBA16F and filter
    * `customSourceTexture`.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RunFilter(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -589,7 +590,7 @@ export class Tr2ReflectionProbe
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ReflectionProbe_Blue.cpp:14).
-be.enums.Create("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", Tr2ReflectionProbe.ReflectionProbeRenderFrequency, {
+blue.enums.Create("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", Tr2ReflectionProbe.ReflectionProbeRenderFrequency, {
   exposedName: "ReflectionProbeRenderFrequency", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "OneSidePerFrame", value: Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ONE_SIDE_PER_FRAME, description: "One side per frame" },

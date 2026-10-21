@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.h
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
-import { blue as be, CcpTime } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { IWorldPosition } from "../../../core/IWorldPosition.js";
@@ -24,27 +25,27 @@ export const EVE_TURRET_RANDOM_DELAY_MAX = 0.6;
  * resolved impact and miss positions, and the queue of hit/miss results the
  * server has sent.
  */
-@blue.define("EveTurretTarget")
-@blue.inherit(IRoot)
+@be.define("EveTurretTarget")
+@legacyBlue.inherit(IRoot)
 export class EveTurretTarget extends IRoot
 {
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   targetPosition = vec3.create();
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   @type.enum("trinity.ImpactBehaviour")
   behaviour = 0;
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   positionOldInfluence = -1;
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   position = vec3.create();
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   positionOld = vec3.create();
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   locator = -1;
 
@@ -406,17 +407,17 @@ export class EveTurretTarget extends IRoot
    * @param {boolean} missed Whether that shot will miss.
    * The shot time is TimeAsDouble( BeOS->GetActualTime() ), read here as Carbon reads it (EveTurretTarget.cpp:404-414).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetShotMissed(missed)
   {
     this._missQueue.push(!!missed);
-    this._lastShotTime = CcpTime.timeAsDouble(be.os.GetActualTime());
+    this._lastShotTime = CcpTime.timeAsDouble(blue.os.GetActualTime());
     while (this._missQueue.length > 4) this._missQueue.shift();
   }
 
   /** The timestamp stamped by the most recent SetShotMissed, in seconds. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetLastShotTime()
   {
@@ -424,7 +425,7 @@ export class EveTurretTarget extends IRoot
   }
 
   /** The number of queued shot results not yet popped. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   MissQueueSize()
   {
@@ -432,7 +433,7 @@ export class EveTurretTarget extends IRoot
   }
 
   /** The maximum firing-time variance between turrets (Carbon EveTurretTarget.h:62-65). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetShotTimeVariance()
   {
@@ -489,7 +490,7 @@ function copyOrReturn(value, out)
 
 // Carbon gives this a chooser (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34) but never registers it,
 // so it takes no exposure.
-be.enums.Create("trinity.ImpactBehaviour", EveTurretTarget.ImpactBehaviour, {
+blue.enums.Create("trinity.ImpactBehaviour", EveTurretTarget.ImpactBehaviour, {
   chooser: [
     { name: "DAMAGE_LOCATOR", value: EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR, description: "" },
     { name: "SHIELD_ELLIPSOID", value: EveTurretTarget.ImpactBehaviour.SHIELD_ELLIPSOID, description: "" },

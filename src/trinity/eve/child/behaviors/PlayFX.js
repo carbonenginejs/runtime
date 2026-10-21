@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
@@ -5,8 +6,8 @@ import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { CjsSchema, meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { vec3 } from "#math/vec3";
 
@@ -17,15 +18,17 @@ const AGENT_TARGET_WS = vec3.create();
 const NO_FORCES = [];
 
 /** A steering-group behaviour that clones, aims, and starts or stops a firing effect on each drone as it arrives at and departs from its target. */
-@blue.define("PlayFX")
-@blue.inherit(IBehavior)
-@blue.inherit(IListNotify)
-@blue.interface(IBehavior, IListNotify, EveEntity)
+@be.define("PlayFX")
+@legacyBlue.inherit(IBehavior)
+@legacyBlue.inherit(IListNotify)
+@be.mapInterface(IBehavior)
+@be.mapInterface(IListNotify)
+@be.mapInterface(EveEntity)
 export class PlayFX extends EveEntity
 {
 
   /** Carbon PlayFX.cpp:166-200 maintains firing-effect registry membership. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -54,39 +57,39 @@ export class PlayFX extends EveEntity
 
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   behaviorWeight = 20;
 
   /** m_firingEffect (IEveFiringEffectElementPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("IEveFiringEffectElement")
   firingEffect = null;
 
   /** m_firingEffects (PIEveFiringEffectElementVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("IEveFiringEffectElement")
   generatedFiringEffects = new BlueList(IEveFiringEffectElement);
 
   /** m_sec (int32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   sec = 1;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   enabled = true;
 
@@ -251,7 +254,7 @@ export class PlayFX extends EveEntity
         firingEffect.SetFiringTransform(OFFSET_EFFECT_WS, AGENT_TARGET_WS);
 
         // PlayFX.cpp:125-128: Be::Time ticks against m_sec seconds.
-        const diff = be.os.GetActualTime() - agent.fxStartTime;
+        const diff = blue.os.GetActualTime() - agent.fxStartTime;
         const duration = this.sec * 10000000;
         if (diff > duration)
         {
@@ -378,7 +381,7 @@ export class PlayFX extends EveEntity
       const diff = agentSize - this._count;
       for (let i = 0; i < diff; i++)
       {
-        const newFx = be.classes.CloneTo(this.firingEffect, null);
+        const newFx = blue.classes.CloneTo(this.firingEffect, null);
         if (!newFx)
         {
           return;

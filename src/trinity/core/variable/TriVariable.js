@@ -495,4 +495,3 @@ export class TriVariable extends ITr2EffectValue
 }
 
 // Native nonexposed table has only concrete/IRoot identity; ITr2EffectValue is nominal only.
-

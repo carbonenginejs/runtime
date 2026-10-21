@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/EveMissileWarhead.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMissileWarhead.cpp
@@ -9,10 +10,10 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { EveTransform } from "./EveTransform.js";
-import { blue as be, CjsBlueClasses } from "#blue";
+import { blue, CjsBlueClasses } from "#blue";
 import { Tr2GpuSharedEmitter } from "../../particle/emitter/Tr2GpuSharedEmitter.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.js";
@@ -23,55 +24,55 @@ import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.j
  * noise-perturbed offset path it flies relative to the missile, and the impact
  * test against the target.
  */
-@blue.define("EveMissileWarhead")
-@blue.interface(EveTransform)
-@blue.chainTo(EveTransform)
+@be.define("EveMissileWarhead")
+@be.mapInterface(EveTransform)
+@be.exposureChainTo(EveTransform)
 export class EveMissileWarhead extends EveTransform
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 pathOffsetNoiseScale = 0;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 pathOffsetNoiseSpeed = 1;
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean startDataValid = false;
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec3 pathOffset = vec3.create();
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 maxExplosionDistance = 40;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 impactDuration = 0.6;
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3 explosionPosition = vec3.create();
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 impactSize = 0;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("EveSpriteSet") spriteSet = null;
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32 targetLocatorID = -1;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 durationEjectPhase = 0;
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean doSpread = true;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 acceleration = 1;
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32 id = -1;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 startEjectVelocity = 0;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 warheadLength = 1;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32 warheadRadius = 1;
 
   _state = EveMissileWarhead.State.STATE_DELAYED;
@@ -119,7 +120,7 @@ export class EveMissileWarhead extends EveTransform
    * explosion distance, speed modifier and final-target timing that vary this
    * flight.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   PrepareLaunch()
   {
@@ -152,7 +153,7 @@ export class EveMissileWarhead extends EveTransform
    * and marks the start data valid, which releases the state machine from its
    * delayed state.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Launch(startTransform)
   {
@@ -377,7 +378,7 @@ export class EveMissileWarhead extends EveTransform
   {
     for (const child of this.children)
     {
-      if (be.classes.QueryThisInterface(child, EveTransform, child.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) continue;
+      if (blue.classes.QueryThisInterface(child, EveTransform, child.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) continue;
       for (const emitter of child.particleEmitters)
       {
         if (CjsSchema.cast(emitter, Tr2GpuSharedEmitter)) emitter.Enable(enable);

@@ -86,4 +86,3 @@ export class TriRect extends IRoot
 }
 
 // Native maps IPythonMethods only; that host-specific bridge is unavailable.
-

@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ExpressionTermInfo.h
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
-import { meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 
 
 const TermType = {
@@ -17,28 +18,28 @@ const TermType = {
  * Describes one term the expression language exposes - a variable, a function or
  * a string function - with its category, argument names and help text.
  */
-@blue.define("Tr2ExpressionTermInfo")
-@blue.inherit(IRoot)
+@be.define("Tr2ExpressionTermInfo")
+@legacyBlue.inherit(IRoot)
 export class Tr2ExpressionTermInfo extends IRoot
 {
   /** Native term category; not persisted. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   @type.enum("trinity.Tr2ExpressionTermInfo.TermType")
   type = TermType.VARIABLE;
 
   /** Help category name; not persisted. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   category = "";
 
   /** Exposed term name; not persisted. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   name = "";
 
   /** Help text for the term; not persisted. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   description = "";
 
@@ -49,7 +50,7 @@ export class Tr2ExpressionTermInfo extends IRoot
    * A detached copy of the argument-name list.
    * @returns {string[]} Argument names in factory order.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetArguments()
   {
@@ -134,8 +135,6 @@ export class Tr2ExpressionTermInfo extends IRoot
 }
 
 // Carbon neither registers this nor gives it a chooser.
-be.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType);
+blue.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType);
 
 // Native IRoot record: concrete query identity with no exposure chain.
-blue.interface()(Tr2ExpressionTermInfo);
-

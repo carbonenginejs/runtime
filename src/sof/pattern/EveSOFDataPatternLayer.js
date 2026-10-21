@@ -1,13 +1,14 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { type, blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** Defines a pattern layer's texture, material source, UV modes and slots, and helpers that populate textures and custom masks. */
-@blue.define("EveSOFDataPatternLayer")
-@blue.interface()
-@blue.inherit(IRoot)
+@be.define("EveSOFDataPatternLayer")
+
+@legacyBlue.inherit(IRoot)
 export class EveSOFDataPatternLayer
 {
 
@@ -29,59 +30,59 @@ export class EveSOFDataPatternLayer
   static EMPTY_TEXTURE_RES_FILE_PATH = "";
 
   /** m_materialSource (MaterialSource - enum MaterialSource) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataPatternLayer.MaterialSource")
   materialSource = 0;
 
   /** m_projectionTypeU (ProjectionType - enum ProjectionType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataPatternLayer.ProjectionType")
   projectionTypeU = 0;
 
   /** m_projectionTypeV (ProjectionType - enum ProjectionType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataPatternLayer.ProjectionType")
   projectionTypeV = 0;
 
   /** m_textureName (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   textureName = "";
 
   /** m_textureResFilePath (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("TriTextureRes")
   textureResFilePath = "";
 
   /** m_isTargetMtl1 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isTargetMtl1 = true;
 
   /** m_isTargetMtl2 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isTargetMtl2 = true;
 
   /** m_isTargetMtl3 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isTargetMtl3 = true;
 
   /** m_isTargetMtl4 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isTargetMtl4 = true;
 
@@ -185,7 +186,7 @@ export class EveSOFDataPatternLayer
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-be.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatternLayer.ProjectionType, {
+blue.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatternLayer.ProjectionType, {
   exposedName: "EveSOFDataPatternLayerProjectionType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Repeat", value: EveSOFDataPatternLayer.ProjectionType.PROJECTION_REPEAT, description: "Repeat pattern texture projection" },
@@ -195,7 +196,7 @@ be.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatte
 });
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-be.enums.Create("trinity.EveSOFDataPatternLayer.MaterialSource", EveSOFDataPatternLayer.MaterialSource, {
+blue.enums.Create("trinity.EveSOFDataPatternLayer.MaterialSource", EveSOFDataPatternLayer.MaterialSource, {
   exposedName: "EveSOFDataPatternLayerMaterialSource", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Material1", value: EveSOFDataPatternLayer.MaterialSource.SOURCE_MATERIAL1, description: "Base material #1" },

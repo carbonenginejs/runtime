@@ -34,4 +34,3 @@ export class Tr2MatrixKey extends IRoot
 }
 
 // Native own query table; no inherited exposure chain.
-

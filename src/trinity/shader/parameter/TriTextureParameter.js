@@ -1,6 +1,7 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { ICopierCustomAssignment } from "#blue";
 import { INotify } from "#blue";
 import { IInitialize } from "#blue";
@@ -10,7 +11,7 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ResourceRequirement } from "#resource";
 import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
 import { TriTextureRes } from "#resource/texture";
-import { blue as be, CjsResource } from "#blue";
+import { blue, CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
@@ -22,58 +23,63 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
  * A named texture slot on an effect, owning the authored res path, the resolved
  * texture provider and the UV-density scales that drive mip selection.
  */
-@blue.define("TriTextureParameter")
-@blue.inherit(ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment)
-@blue.interface(ITriEffectParameter, ITriEffectResourceParameter, ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment)
+@be.define("TriTextureParameter")
+@legacyBlue.inherit(ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment)
+@be.mapInterface(ITriEffectParameter)
+@be.mapInterface(ITriEffectResourceParameter)
+@be.mapInterface(ITriEffectTextureParameter)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ICopierCustomAssignment)
 export class TriTextureParameter extends CjsParameter
 {
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriTextureRes")
   resourcePath = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   uavMipLevel = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   positionScale = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("ITr2TextureProvider")
   resource = null;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentTechnique = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentEffect = false;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   name = "";
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   uvDensityScale0 = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   uvDensityScale1 = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   uvDensityScale2 = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   uvDensityScale3 = 0;
 
@@ -136,7 +142,7 @@ export class TriTextureParameter extends CjsParameter
    * texture in use, which may be the low-res stand-in, or "" when that texture
    * is not a resource (a render target, say) or there is none.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetResourcePath()
   {
@@ -166,7 +172,7 @@ export class TriTextureParameter extends CjsParameter
    * re-resolves effect handles against the cached shader and notifies owning
    * materials.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetResource(resource)
   {
@@ -183,7 +189,7 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /** Copies a dynamically assigned provider, as TriTextureParameter.cpp:295-308. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   AssignTo(other, _copier)
   {
@@ -230,7 +236,7 @@ export class TriTextureParameter extends CjsParameter
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
@@ -311,7 +317,7 @@ export class TriTextureParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
@@ -433,18 +439,18 @@ export class TriTextureParameter extends CjsParameter
 
     if (this.resourcePath)
     {
-      const request = path => be.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE });
+      const request = path => blue.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE });
 
       // Carbon cpp:214-228, asking the same service: BePaths->FileExistsLocally
       // is be.paths.FileExistsLocally, which in a browser means "already
       // fetched".
-      if (!be.paths.FileExistsLocally(this.resourcePath))
+      if (!blue.paths.FileExistsLocally(this.resourcePath))
       {
         const dot = this.resourcePath.lastIndexOf(".");
         if (dot !== -1)
         {
           const lowResPath = `${this.resourcePath.slice(0, dot)}_lowdetail${this.resourcePath.slice(dot)}`;
-          if (be.paths.FileExistsLocally(lowResPath))
+          if (blue.paths.FileExistsLocally(lowResPath))
           {
             this._lowResResource = request(lowResPath);
             this._Listen(this._lowResResource);

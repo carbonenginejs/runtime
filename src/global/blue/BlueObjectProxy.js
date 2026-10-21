@@ -16,8 +16,8 @@
 //
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
-import { CjsSchema, meta, type, blue } from "#schema";
-import { blue as be } from "./blue.js";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "./blue.js";
 import { IBlueObjectProxy } from "./IBlueObjectProxy.js";
 import { IUnloadable } from "./IUnloadable.js";
 
@@ -156,7 +156,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
       this._object = this.builder.CreateObject(this.objectMarker, this);
     }
 
-    this._lastTimeUsed = be.os.GetInfo().realTime;
+    this._lastTimeUsed = blue.os.GetInfo().realTime;
 
     return this._object;
   }
@@ -190,7 +190,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
 
     if (this._object && timeout && this.builder)
     {
-      const delta = be.os.GetInfo().realTime - this._lastTimeUsed;
+      const delta = blue.os.GetInfo().realTime - this._lastTimeUsed;
       if (delta > timeout)
       {
         this._OnObjectInvalidated();
@@ -305,25 +305,25 @@ CjsSchema.blue.define(BlueObjectProxy, {
   members: [ { name: "object", key: "_object", type: { kind: "rootRef", className: "IRoot" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true } } ],
   fields: {
     // MAP_PROPERTY rows (BlueObjectProxy_Blue.cpp:18-23, 47-59).
-    object: [ blue.property(), type.object.ref("IRoot") ],
-    builder: [ blue.readwrite, type.object.ref("IBlueObjectBuilder") ],
-    objectMarker: [ blue.readwrite, type.uint32 ],
-    temporary: [ blue.property(), type.boolean ],
-    isResident: [ blue.property(), type.boolean ]
+    object: [ legacyBlue.property(), type.object.ref("IRoot") ],
+    builder: [ legacyBlue.readwrite, type.object.ref("IBlueObjectBuilder") ],
+    objectMarker: [ legacyBlue.readwrite, type.uint32 ],
+    temporary: [ legacyBlue.property(), type.boolean ],
+    isResident: [ legacyBlue.property(), type.boolean ]
   },
   methods: {
-    SetBuilder: [ blue.method, meta.implemented ],
-    GetObject: [ blue.method, meta.implemented ],
-    ClearObject: [ blue.method, meta.implemented ],
-    Update: [ blue.method, meta.implemented ],
-    IsResident: [ blue.method, meta.implemented ],
-    SetTemporary: [ blue.method, meta.implemented ],
-    IsTemporary: [ blue.method, meta.implemented ],
-    OnSelected: [ blue.method, meta.implemented ],
-    SetObject: [ blue.method, meta.implemented ],
-    Freeze: [ blue.method, meta.implemented ],
-    SetObjectFromBuilder: [ blue.method, meta.implemented ],
-    _OnObjectInvalidated: [ blue.method, meta.renamed("OnObjectInvalidated"), meta.implemented ]
+    SetBuilder: [ legacyBlue.method, meta.implemented ],
+    GetObject: [ legacyBlue.method, meta.implemented ],
+    ClearObject: [ legacyBlue.method, meta.implemented ],
+    Update: [ legacyBlue.method, meta.implemented ],
+    IsResident: [ legacyBlue.method, meta.implemented ],
+    SetTemporary: [ legacyBlue.method, meta.implemented ],
+    IsTemporary: [ legacyBlue.method, meta.implemented ],
+    OnSelected: [ legacyBlue.method, meta.implemented ],
+    SetObject: [ legacyBlue.method, meta.implemented ],
+    Freeze: [ legacyBlue.method, meta.implemented ],
+    SetObjectFromBuilder: [ legacyBlue.method, meta.implemented ],
+    _OnObjectInvalidated: [ legacyBlue.method, meta.renamed("OnObjectInvalidated"), meta.implemented ]
   }
 });
 CjsSchema.exposure.mapInterface(IBlueObjectProxy)(BlueObjectProxy);

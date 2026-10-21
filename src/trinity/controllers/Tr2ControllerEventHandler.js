@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.h
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler_Blue.cpp
-import { meta, type, blue } from "#schema";
-import { BlueList, blue as be, CjsBlueClasses } from "#blue";
+import { meta, type } from "#schema";
+import { BlueList, blue, CjsBlueClasses } from "#blue";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IListNotify } from "#blue/IListNotify";
@@ -23,18 +24,18 @@ import { IListNotify } from "#blue/IListNotify";
  * does not schedule updates or keep actions active across frames. Blue declarations
  * provide persistence for the authored name and action list.
  */
-@blue.define("Tr2ControllerEventHandler")
+@be.define("Tr2ControllerEventHandler")
 export class Tr2ControllerEventHandler extends IListNotify
 {
   /** Authored event name compared by the owning controller. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** Ordered native interface vector, observed by this handler. */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2ControllerAction")
   actions = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
 
@@ -70,7 +71,7 @@ export class Tr2ControllerEventHandler extends IListNotify
     {
       return;
     }
-    const action = value ? be.classes.QueryThisInterface(value, ITr2ControllerAction, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const action = value ? blue.classes.QueryThisInterface(value, ITr2ControllerAction, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

@@ -1,50 +1,52 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierLifeTimeOffset.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Offsets each spawned placement's initial lifetime with random, normalized, or cascading timing. */
-@blue.define("EveDistributionSpawnModifierLifeTimeOffset")
-@blue.inherit(IInitialize)
-@blue.interface(IEveDistributionSpawnModifier, IInitialize)
+@be.define("EveDistributionSpawnModifierLifeTimeOffset")
+@legacyBlue.inherit(IInitialize)
+@be.mapInterface(IEveDistributionSpawnModifier)
+@be.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistributionSpawnModifier
 {
 
   /** `m_timeSeed`: uint32_t( BeOS->GetCurrentFrameTime() ) (EveDistributionSpawnModifierLifeTimeOffset.cpp). */
-  _timeSeed = be.os.GetCurrentFrameTime() >>> 0;
+  _timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
 
   _currentCascadingOffset = 0;
 
   /** m_minOffset (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minOffset = 0;
 
   /** m_maxOffset (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxOffset = 0;
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   consistentRandom = false;
 
   /** m_cascadingLifetimeOffset (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   cascadingLifetimeOffset = 0;
 
   /** m_normalizeOffsets (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   normalizeOffsets = false;
 
@@ -56,7 +58,7 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
   @meta.adapted
   Initialize()
   {
-    this._timeSeed = be.os.GetCurrentFrameTime() >>> 0;
+    this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
     return true;
   }
 

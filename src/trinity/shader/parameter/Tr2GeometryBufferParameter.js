@@ -1,52 +1,56 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { CjsSchema, meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 /** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
-@blue.define("Tr2GeometryBufferParameter")
-@blue.inherit(ITriEffectResourceParameter, IInitialize, INotify)
-@blue.interface(ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify)
+@be.define("Tr2GeometryBufferParameter")
+@legacyBlue.inherit(ITriEffectResourceParameter, IInitialize, INotify)
+@be.mapInterface(ITriEffectParameter)
+@be.mapInterface(ITriEffectResourceParameter)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2GeometryBufferParameter extends CjsParameter
 {
 
   /** m_resourcePath (std::wstring) [READWRITE, NOTIFY, PERSIST] */
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.wpath
   resourcePath = "";
 
   /** m_gpuBuffer (ITr2GpuBufferPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.object.ref("ITr2GpuBuffer")
   gpuBuffer = null;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   usedByCurrentEffect = false;
 
   /** m_meshIndex (int32_t) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.int32
   meshIndex = 0;
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   name = "";
 
@@ -89,7 +93,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     if (this.resourcePath)
     {
       this.gpuBuffer = null;
-      this.gpuBuffer = CjsSchema.cast(be.resMan.GetResource(this.resourcePath), ITr2GpuBuffer);
+      this.gpuBuffer = CjsSchema.cast(blue.resMan.GetResource(this.resourcePath), ITr2GpuBuffer);
     }
     return true;
   }
@@ -141,7 +145,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * @param {number} [_flags] A `ResourceFlags` word; unread for a buffer.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, _flags = 0)
   {
@@ -163,7 +167,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {

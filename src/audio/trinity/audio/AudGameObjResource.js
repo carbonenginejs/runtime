@@ -1,5 +1,6 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudGameObjResource.h + AudGameObjResource.cpp
-import { blue as be, CjsBlueOS, IsMatch } from "#blue";
+import { blue, CjsBlueOS, IsMatch } from "#blue";
 import { CjsWwiseSoundEngineStub } from "../../../global/audio/CjsWwiseSoundEngineStub.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudGameObjResource.json.
@@ -14,7 +15,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { IInitialize } from "#blue/IInitialize";
 import { IListNotify } from "#blue/IListNotify";
 import { INotify } from "#blue/INotify";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { BlueList } from "#blue/BlueList";
 import { AudParameter } from "./AudParameter.js";
 import { quat } from "#math/quat";
@@ -69,91 +70,91 @@ function NowMs()
  * culling state. Abstract in Carbon (`BLUE_DEFINE_ABSTRACT`, _Blue.cpp:8):
  * AudEmitter, AudListener, AudUIPlayer and AudMusicPlayer build on it.
  */
-@blue.define({ className: "AudGameObjResource", abstract: true })
-@blue.inherit(IInitialize, IListNotify, INotify, IPrioritizedObject)
-@blue.interface(IInitialize, IListNotify, INotify)
+@legacyBlue.define({ className: "AudGameObjResource", abstract: true })
+@legacyBlue.inherit(IInitialize, IListNotify, INotify, IPrioritizedObject)
+@legacyBlue.interface(IInitialize, IListNotify, INotify)
 export class AudGameObjResource
 {
 
   /** m_eventPrefix (std::wstring) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   eventPrefix = "";
 
   /** m_additionalCullingWeight (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   additionalCullingWeight = 0;
 
   /** m_ID (AkGameObjectID) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rawStruct("AkGameObjectID")
   ID = null;
 
   /** m_parameters (PAudParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("AudParameter")
   parameters = new BlueList(AudParameter);
 
   /** m_name (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   name = "";
 
   /** m_playingVitalSound (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   playingVitalSound = false;
 
   /** m_playing2DSound (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   playing2DSound = false;
 
   /** m_listenerInRange (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   listenerInRange = false;
 
   /** m_isUsed (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isUsed = false;
 
   /** m_eventName (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.wstring
   eventName = "";
 
   /** m_cumulativeWeight (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   cumulativeWeight = 0;
 
   /** m_distanceSqFromListener (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   distanceFromListener = 0;
 
   /** m_scalingFactor (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   scalingFactor = 1;
 
   /** m_isVisible (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isVisible = false;
 
   /** m_forceCullingState (bool) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   forceCullingState = false;
 
@@ -161,7 +162,7 @@ export class AudGameObjResource
    * m_position (Vector3) [READ]. Starts at the `WWISE_INIT_POSITION` sentinel
    * (cpp:30,69), so an object nobody has placed reports no usable position.
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   position = vec3.fromValues(WWISE_INIT_POSITION, WWISE_INIT_POSITION, WWISE_INIT_POSITION);
 
@@ -365,7 +366,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method StopEvent: stops every playing instance of the (prefixed) event; returns whether any matched. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   StopEvent(eventName, fadeOutDuration = 1000)
   {
@@ -383,7 +384,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method StopSound: request stop for one playing id (removal happens in EventFinishedCallback). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StopSound(playingID, fadeOutDuration = 1000)
   {
@@ -407,7 +408,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method SeekOnEventPercent: seek a playing event owned by this object. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SeekOnEventPercent(playingID, percentToSeek)
   {
@@ -419,7 +420,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method SeekOnEventMs: seek a playing event owned by this object. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SeekOnEventMs(playingID, msToSeek)
   {
@@ -431,7 +432,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method StopAll. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StopAll()
   {
@@ -484,7 +485,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetRTPC: value always stored; true only when live-applied. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetRTPC(rtpcName, rtpcValue)
   {
@@ -506,7 +507,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetSwitch: value always stored; true only when live-applied. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetSwitch(switchGroup, switchState)
   {
@@ -528,7 +529,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method Wake: register, restore position/params/attenuation, replay queued events. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Wake()
   {
@@ -571,7 +572,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method Cull: loops saved to events-on-wake; in-range one-shots break, others stop. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Cull()
   {
@@ -603,7 +604,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method IsCulled. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   IsCulled()
   {
@@ -611,7 +612,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method ForceCullingStateChange: toggle culled state, then hold it forced. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ForceCullingStateChange()
   {
@@ -628,7 +629,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method ReleaseForcedCullingState. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ReleaseForcedCullingState()
   {
@@ -636,7 +637,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method Mute: muting is forcibly culling. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Mute()
   {
@@ -657,7 +658,7 @@ export class AudGameObjResource
    * object stays culled until the prioritization system wakes it; the muted
    * flag clears last. Kept as shipped (carbon-known-defects: Unmute order).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Unmute()
   {
@@ -674,7 +675,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method IsMuted. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   IsMuted()
   {
@@ -800,7 +801,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetAttenuationScalingFactor: stored only when live-applied (Carbon parity). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetAttenuationScalingFactor(value)
   {
@@ -1073,7 +1074,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetPlayingEvents: copy of playingID -> full event name. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetPlayingEvents()
   {
@@ -1081,7 +1082,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetSwitches. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetSwitches()
   {
@@ -1116,7 +1117,7 @@ export class AudGameObjResource
    * Source: audio/src/Audio2.h:35 IsUsableWorldPosition,
    * AudGameObjResource.cpp:1067 (commit 2756050).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HasUsableWorldPosition()
   {
@@ -1181,13 +1182,13 @@ export class AudGameObjResource
   /** The Wwise-shaped call surface is the currently installed Blue audio slot. */
   static get backend()
   {
-    return be.audio;
+    return blue.audio;
   }
 
   /** Legacy attachment writes the same slot; detaching restores a fresh silent engine. */
   static set backend(value)
   {
-    be.audio = value ?? new CjsWwiseSoundEngineStub();
+    blue.audio = value ?? new CjsWwiseSoundEngineStub();
   }
 
 }

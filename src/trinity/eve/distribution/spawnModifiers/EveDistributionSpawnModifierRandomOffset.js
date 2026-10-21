@@ -1,43 +1,45 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomOffset.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Adds a seeded random local translation offset to each spawned placement. */
-@blue.define("EveDistributionSpawnModifierRandomOffset")
-@blue.inherit(IInitialize)
-@blue.interface(IEveDistributionSpawnModifier, IInitialize)
+@be.define("EveDistributionSpawnModifierRandomOffset")
+@legacyBlue.inherit(IInitialize)
+@be.mapInterface(IEveDistributionSpawnModifier)
+@be.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSpawnModifier
 {
 
   /** `m_timeSeed`: uint32_t( BeOS->GetCurrentFrameTime() ) (EveDistributionSpawnModifierRandomOffset.cpp). */
-  _timeSeed = be.os.GetCurrentFrameTime() >>> 0;
+  _timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
 
   /** m_minOffset (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   minOffset = vec3.create();
 
   /** m_maxOffset (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   maxOffset = vec3.create();
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   consistentRandom = false;
 
   /** m_uniformOffset (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   uniformOffset = false;
 
@@ -49,7 +51,7 @@ export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSp
   @meta.adapted
   Initialize()
   {
-    this._timeSeed = be.os.GetCurrentFrameTime() >>> 0;
+    this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
     return true;
   }
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Font/Tr2FontManager.h
 // Source: trinity/trinity/Font/Tr2FontManager.cpp
@@ -45,8 +46,8 @@ import { g_textureAtlasMan } from "../core/Tr2TextureAtlasMan.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { PixelFormat } from "#consts/render-context";
 import { TriStorageFlags } from "#consts/graphics";
-import { blue as be, IBlueEvents } from "#blue";
-import { meta, type, blue } from "#schema";
+import { blue, IBlueEvents } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
 
 /**
  * Carbon's `TR2_FONT_FALLBACK` (Tr2FontManager.h:23, value at
@@ -74,8 +75,8 @@ const INT_MAX = 0x7fffffff;
  */
 
 /** Tracks font-loading policy together with the glyph-cache memory budget and occupancy. */
-@blue.define({ className: "Tr2FontManager", abstract: true, purpose: "Tracks font-loading policy together with the glyph-cache memory budget and occupancy." })
-@blue.inherit(IRoot, IBlueEvents)
+@legacyBlue.define({ className: "Tr2FontManager", abstract: true, purpose: "Tracks font-loading policy together with the glyph-cache memory budget and occupancy." })
+@legacyBlue.inherit(IRoot, IBlueEvents)
 export class Tr2FontManager extends IRoot
 {
 
@@ -83,7 +84,7 @@ export class Tr2FontManager extends IRoot
    * m_glyphCacheBudget (size_t) [READWRITE], default 512 KiB (Tr2FontManager.cpp:101).
    * Browser meaning: the byte budget of the CPU sbit cache (see TrimGlyphCache).
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint64
   @meta.adapted
   glyphCacheBudget = 524288;
@@ -93,7 +94,7 @@ export class Tr2FontManager extends IRoot
    * CFF glyphs are always hinted as with Carbon's default, FT_LOAD_DEFAULT,
    * and Canvas2D has no equivalent of the other flags.
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.int32
   @meta.adapted
   loadFlag = 0;
@@ -102,7 +103,7 @@ export class Tr2FontManager extends IRoot
    * m_totalGlyphsCachedSize (size_t) [READ].
    * Browser meaning: bytes held by the CPU sbit cache (see TrimGlyphCache).
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint64
   @meta.adapted
   totalGlyphsCachedSize = 0;
@@ -121,7 +122,7 @@ export class Tr2FontManager extends IRoot
   {
     g_fontManager = new Tr2FontManager();
 
-    be.os.RegisterForTicks(g_fontManager, s_cookie);
+    blue.os.RegisterForTicks(g_fontManager, s_cookie);
   }
 
   /**
@@ -141,7 +142,7 @@ export class Tr2FontManager extends IRoot
   {
     if (g_fontManager)
     {
-      be.os.UnregisterForTicks(g_fontManager, s_cookie);
+      blue.os.UnregisterForTicks(g_fontManager, s_cookie);
       g_fontManager.ClearCachedGlyphs();
     }
 
@@ -386,7 +387,7 @@ export class Tr2FontManager extends IRoot
    * @returns {number} Glyph index, or -1.
    */
   @meta.adapted
-  @blue.method
+  @legacyBlue.method
   LookupGlyphIndex(faceID, charCode)
   {
     if (!Number.isInteger(faceID))
@@ -415,7 +416,7 @@ export class Tr2FontManager extends IRoot
    * @returns {[number, number]} The face ID and glyph index that were used.
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   LookupFaceIDAndGlyphIndex(faceName, charCode)
   {
     const faceNameUsed = faceName === "" ? TR2_FONT_FALLBACK : faceName;
@@ -457,7 +458,7 @@ export class Tr2FontManager extends IRoot
    * @returns {{ascender: number, descender: number, height: number}} 26.6 metrics.
    */
   @meta.adapted
-  @blue.method
+  @legacyBlue.method
   LookupMetrics(faceID, width, height)
   {
     const size = height || width;
@@ -487,7 +488,7 @@ export class Tr2FontManager extends IRoot
    * @returns {[number, number]} Ascender and descender in pixels.
    */
   @meta.adapted
-  @blue.method
+  @legacyBlue.method
   LookupMetricsFromScript(faceID, width, height)
   {
     const metrics = this.LookupMetrics(faceID, width, height);
@@ -514,7 +515,7 @@ export class Tr2FontManager extends IRoot
    * @returns {number} Kerning in pixels.
    */
   @meta.adapted
-  @blue.method
+  @be.mapMethodAndWrap()
   LookupKerningXP(faceID, leftIndex, rightIndex)
   {
     if (!this._IsValidFace(faceID)) return INT_MAX;
@@ -544,7 +545,7 @@ export class Tr2FontManager extends IRoot
    * @returns {number} The doubly shifted kerning.
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   _PyLookupKerningXP(faceID, charCode1, charCode2)
   {
     const kerning = g_fontManager.LookupKerningXP(faceID, charCode1, charCode2) | 0;
@@ -584,7 +585,7 @@ export class Tr2FontManager extends IRoot
    * @returns {Tr2SBitWrapper} The sbit wrapper, at x = y = 0.
    * @throws {RangeError} "FTC_SBitCache_Lookup failed" for an unusable face or glyph.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   LookupSBit(faceID, width, height, glyphIndex)
   {
@@ -768,7 +769,7 @@ export class Tr2FontManager extends IRoot
    *
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ClearCachedGlyphs()
   {
@@ -797,7 +798,7 @@ export class Tr2FontManager extends IRoot
    * @param {number} cacheSize Budget in bytes.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   TrimGlyphCache(cacheSize)
   {
@@ -854,7 +855,7 @@ export class Tr2FontManager extends IRoot
    * @param {number} [color=0] Packed 32-bit value.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethod()
   @meta.adapted
   ClearBuffer(buffer, width, height, pitch, color = 0)
   {
@@ -965,7 +966,7 @@ export class Tr2FontManager extends IRoot
   }
 
   /** Blue "numGlyphsInUse" [READ] (Tr2FontManager_Blue.cpp:154-157). */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.adapted
   get numGlyphsInUse()
@@ -974,7 +975,7 @@ export class Tr2FontManager extends IRoot
   }
 
   /** Blue "numGlyphsCached" [READ] (Tr2FontManager_Blue.cpp:159-162). */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.adapted
   get numGlyphsCached()

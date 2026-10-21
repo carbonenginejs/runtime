@@ -1,61 +1,62 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#consts/trinity";
-import { type, blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { type, blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { Tr2Lod } from "#consts/trinity";
 
 /** Defines instanced-mesh geometry, shader, display and LOD policy, textures, and instance transforms. */
-@blue.define("EveSOFDataInstancedMesh")
-@blue.interface()
-@blue.inherit(IRoot)
+@be.define("EveSOFDataInstancedMesh")
+
+@legacyBlue.inherit(IRoot)
 export class EveSOFDataInstancedMesh extends IRoot
 {
   static Tr2Lod = Tr2Lod;
 
 
   /** m_displayModifier (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
   displayModifier = 5;
 
   /** m_instances (PEveSofDataMeshInstanceStructureList) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("EveSofDataMeshInstance")
   instances = [];
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataTexture")
   textures = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_lowestLodVisible (Tr2Lod - enum Tr2Lod) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   shader = "";
 
@@ -71,7 +72,7 @@ export class EveSOFDataInstancedMesh extends IRoot
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-be.enums.Create("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier", EveSOFDataInstancedMesh.DisplayQualityModifier, {
+blue.enums.Create("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier", EveSOFDataInstancedMesh.DisplayQualityModifier, {
   exposedName: "DisplayModifierChooser", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "None_", value: EveSOFDataInstancedMesh.DisplayQualityModifier.SHADER_ALL, description: "Visible to users with all shader settings" },

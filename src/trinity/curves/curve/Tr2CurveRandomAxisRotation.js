@@ -1,11 +1,12 @@
-import { blue as be } from "#blue";
+import { exposure as be } from "#be";
+import { blue } from "#blue";
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.h
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation_Blue.cpp
 import { random } from "#math/random";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, IInitialize } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -14,31 +15,32 @@ import { CcpTime } from "#blue";
  * seconds about an axis fixed by two seed-derived random rotations applied
  * before and after the spin.
  */
-@blue.define("Tr2CurveRandomAxisRotation")
-@blue.inherit(IInitialize)
-@blue.interface(ITriFunction, ITriQuaternionFunction)
+@be.define("Tr2CurveRandomAxisRotation")
+@legacyBlue.inherit(IInitialize)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriQuaternionFunction)
 export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** Full rotation period in seconds; zero disables the middle spin. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   period = 1;
 
   /** Native PERSISTONLY seed storage; readers bypass the live setter. */
-  @blue.attribute("seed")
-  @blue.persistOnly
+  @legacyBlue.attribute("seed")
+  @legacyBlue.persistOnly
   @type.uint32
   _seed = 0;
 
   /** Live Blue seed property, separate from persisted backing storage. */
-  @blue.property()
+  @be.mapProperty()
   @type.uint32
   @meta.implemented
   get seed()
@@ -54,7 +56,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   }
 
   /** Cached quaternion; exposed read-only without persistence. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   currentValue = quat.create();
 
@@ -121,7 +123,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -201,7 +203,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -289,7 +291,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   @meta.adapted
   SeedChanged()
   {
-    const engine = Tr2CurveRandomAxisRotation._makeMsvcDefaultRandomEngine(this.seed !== 0 ? this.seed : be.os.GetActualTime());
+    const engine = Tr2CurveRandomAxisRotation._makeMsvcDefaultRandomEngine(this.seed !== 0 ? this.seed : blue.os.GetActualTime());
     Tr2CurveRandomAxisRotation._buildCarbonRandomRotation(this.preRotation, engine);
     Tr2CurveRandomAxisRotation._buildCarbonRandomRotation(this.postRotation, engine);
   }

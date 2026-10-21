@@ -1,16 +1,17 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { EveSOFDataHullBannerLight } from "./EveSOFDataHullBannerLight.js";
 
 /** Defines a banner's usage, bone-relative transform, visibility, optional light override, aspect ratio, and flat or curved presentation. */
-@blue.define("EveSOFDataHullBanner")
-@blue.inherit(IRoot)
+@be.define("EveSOFDataHullBanner")
+@legacyBlue.inherit(IRoot)
 export class EveSOFDataHullBanner extends IRoot
 {
 
@@ -43,15 +44,15 @@ export class EveSOFDataHullBanner extends IRoot
   };
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullBanner.Usage")
   usage = 3;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   boneIndex = -1;
 
@@ -60,8 +61,8 @@ export class EveSOFDataHullBanner extends IRoot
    * MAP_ATTRIBUTE "scaling" PERSISTONLY (EveSOFData_Blue.cpp:672).
    * Readers write it directly, bypassing the aspect-ratio correction.
    */
-  @blue.attribute("scaling")
-  @blue.persistOnly
+  @legacyBlue.attribute("scaling")
+  @legacyBlue.persistOnly
   @type.vec3
   _scaling = vec3.fromValues(1, 1, 1);
 
@@ -70,7 +71,7 @@ export class EveSOFDataHullBanner extends IRoot
    * (EveSOFData_Blue.cpp:673): the getter returns a copy, and the setter
    * corrects one axis to keep the usage's target aspect ratio.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.vec3
   @meta.implemented
   get scaling()
@@ -90,8 +91,8 @@ export class EveSOFDataHullBanner extends IRoot
    * MAP_ATTRIBUTE "angleX" PERSISTONLY (EveSOFData_Blue.cpp:675).
    * Readers write it directly, bypassing the aspect-ratio correction.
    */
-  @blue.attribute("angleX")
-  @blue.persistOnly
+  @legacyBlue.attribute("angleX")
+  @legacyBlue.persistOnly
   @type.float32
   _angleX = 0;
 
@@ -100,7 +101,7 @@ export class EveSOFDataHullBanner extends IRoot
    * (EveSOFData_Blue.cpp:676): the horizontal curve angle; the setter
    * rescales the vertical axis when aspect preservation is on.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   @meta.implemented
   get angleX()
@@ -120,8 +121,8 @@ export class EveSOFDataHullBanner extends IRoot
    * MAP_ATTRIBUTE "angleY" PERSISTONLY (EveSOFData_Blue.cpp:677).
    * Readers write it directly, bypassing the aspect-ratio correction.
    */
-  @blue.attribute("angleY")
-  @blue.persistOnly
+  @legacyBlue.attribute("angleY")
+  @legacyBlue.persistOnly
   @type.float32
   _angleY = 0;
 
@@ -130,7 +131,7 @@ export class EveSOFDataHullBanner extends IRoot
    * (EveSOFData_Blue.cpp:678): the vertical curve angle; the setter
    * rescales the horizontal axis when aspect preservation is on.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   @meta.implemented
   get angleY()
@@ -146,37 +147,37 @@ export class EveSOFDataHullBanner extends IRoot
   }
 
   /** m_lightOverride (EveSOFDataHullBannerLightPtr) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.object.ref("EveSOFDataHullBannerLight")
   lightOverride = new EveSOFDataHullBannerLight();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_maintainAspectRatio (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   maintainAspectRatio = true;
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   visibilityGroup = "primary";
 
@@ -469,7 +470,7 @@ export class EveSOFDataHullBanner extends IRoot
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Native chooser quirk: HorizontalBanner's description says "Vertical banner".
-be.enums.Create("trinity.EveSOFDataHullBanner.Usage", EveSOFDataHullBanner.Usage, {
+blue.enums.Create("trinity.EveSOFDataHullBanner.Usage", EveSOFDataHullBanner.Usage, {
   exposedName: "HullBannerUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "AllianceLogo", value: EveSOFDataHullBanner.Usage.ALLIANCE_LOGO, description: "Alliance logo" },

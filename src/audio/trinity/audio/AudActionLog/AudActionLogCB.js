@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 // Source: audio/src/AudActionLog.h + AudActionLog.cpp
 // Hand-owned behavior port. Verify against audio/AudActionLogCB.json and the
 // AudActionRecord*.json schema documents.
 
-import { meta, blue } from "#schema";
-import { blue as be, CjsScriptCallback } from "#blue";
+import { meta } from "#schema";
+import { blue, CjsScriptCallback } from "#blue";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
 import { AudActionRecordExecuteActionOnPlayingID } from "./AudActionRecordExecuteActionOnPlayingID.js";
@@ -15,8 +16,8 @@ import { AudActionRecordSetRTPC } from "./AudActionRecordSetRTPC.js";
  * Queues Carbon-shaped audio action records and flushes them to a registered
  * JavaScript callback during manager processing.
  */
-@blue.define("AudActionLogCB")
-@blue.interface(IAudActionLog)
+@be.define("AudActionLogCB")
+@be.mapInterface(IAudActionLog)
 export class AudActionLogCB extends IAudActionLog
 {
 
@@ -35,7 +36,7 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    * @throws {TypeError} If the callback cannot be invoked.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RegisterCallback(callback)
   {
@@ -58,7 +59,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
-    this._queue.push(new AudActionRecordPostEvent(be.os.GetActualTime(), emitterID, playID, eventID, name));
+    this._queue.push(new AudActionRecordPostEvent(blue.os.GetActualTime(), emitterID, playID, eventID, name));
   }
 
   /**
@@ -76,7 +77,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
-    this._queue.push(new AudActionRecordExecuteActionOnPlayingID(be.os.GetActualTime(), emitterID, playID, action));
+    this._queue.push(new AudActionRecordExecuteActionOnPlayingID(blue.os.GetActualTime(), emitterID, playID, action));
   }
 
   /**
@@ -94,7 +95,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetSwitch(emitterID, group, state)
   {
-    this._queue.push(new AudActionRecordSetSwitch(be.os.GetActualTime(), emitterID, group, state));
+    this._queue.push(new AudActionRecordSetSwitch(blue.os.GetActualTime(), emitterID, group, state));
   }
 
   /**
@@ -111,7 +112,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetState(group, state)
   {
-    this._queue.push(new AudActionRecordSetState(be.os.GetActualTime(), group, state));
+    this._queue.push(new AudActionRecordSetState(blue.os.GetActualTime(), group, state));
   }
 
   /**
@@ -130,7 +131,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
-    this._queue.push(new AudActionRecordSetRTPC(be.os.GetActualTime(), emitterID, name, value, playID));
+    this._queue.push(new AudActionRecordSetRTPC(blue.os.GetActualTime(), emitterID, name, value, playID));
   }
 
   /**

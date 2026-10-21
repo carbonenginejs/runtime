@@ -3,9 +3,9 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { color } from "#math/color";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, blue as be, IInitialize, INotify } from "#blue";
+import { IsMatch, blue, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { LightData } from "./LightData.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
@@ -18,9 +18,9 @@ import { LightFeatures } from "./LightFeatures.js";
  * transform, and submits a converted point or spot record to the light manager
  * each frame.
  */
-@blue.define({ className: "Tr2Light", abstract: true })
-@blue.inherit(IInitialize, INotify)
-@blue.interface()
+@legacyBlue.define({ className: "Tr2Light", abstract: true })
+@legacyBlue.inherit(IInitialize, INotify)
+@legacyBlue.interface()
 export class Tr2Light
 {
   static LightType = {
@@ -81,7 +81,7 @@ export class Tr2Light
    */
   constructor()
   {
-    this.startTime = be.os.GetCurrentFrameTime();
+    this.startTime = blue.os.GetCurrentFrameTime();
   }
 
   /**
@@ -305,7 +305,7 @@ export class Tr2Light
       this.lightProfile = null;
       return;
     }
-    this.lightProfile = be.resMan.GetResource(this.lightProfilePath, {
+    this.lightProfile = blue.resMan.GetResource(this.lightProfilePath, {
       ext: "lp",
       requirement: ResourceRequirement.LIGHT_PROFILE
     });
@@ -354,11 +354,11 @@ export class Tr2Light
 }
 
 // Carbon neither registers this nor gives it a chooser.
-be.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType);
+blue.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType);
 
 // BLUE_REGISTER_ENUM_EX( "Tr2LightFlags", uint16_t, Tr2LightFlagChooser,
 // ENUM_REG_ENUM_OBJECT_ON_MODULE ) (Tr2Light_Blue.cpp:16-21).
-be.enums.Create("trinity.Tr2LightFlags", Tr2Light.Tr2LightFlags, {
+blue.enums.Create("trinity.Tr2LightFlags", Tr2Light.Tr2LightFlags, {
   exposedName: "Tr2LightFlags",
   exposure: 2,
   chooser: [

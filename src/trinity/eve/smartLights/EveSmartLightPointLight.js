@@ -1,12 +1,13 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, blue as be } from "#blue";
+import { IsMatch, blue } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { num } from "#math/num";
@@ -23,10 +24,14 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
-@blue.define("EveSmartLightPointLight")
-@blue.inherit(EveSmartLightBaseGroup, IInitialize, INotify, ITr2LightOwner)
-@blue.interface(EveSmartLightBaseGroup, IInitialize, INotify, IListNotify, EveEntity)
-@blue.chainTo(EveSmartLightBaseGroup)
+@be.define("EveSmartLightPointLight")
+@legacyBlue.inherit(EveSmartLightBaseGroup, IInitialize, INotify, ITr2LightOwner)
+@be.mapInterface(EveSmartLightBaseGroup)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(EveEntity)
+@be.exposureChainTo(EveSmartLightBaseGroup)
 export class EveSmartLightPointLight extends EveEntity
 {
   /**
@@ -41,10 +46,10 @@ export class EveSmartLightPointLight extends EveEntity
   // record.
 
   /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST], with Tr2LightFlagChooser and no ENUM bit (EveSmartLightPointLight_Blue.cpp:24). */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.uint16
-  @blue.chooser("trinity.Tr2LightFlags")
+  @legacyBlue.chooser("trinity.Tr2LightFlags")
   get flags()
   {
     return this._lightGroupData.flags;
@@ -57,8 +62,8 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** m_lightGroupData.radius (float) [READWRITE, PERSIST] (EveSmartLightPointLight_Blue.cpp:26). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get radius()
   {
@@ -72,8 +77,8 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** m_lightGroupData.innerRadius (float) [READWRITE, PERSIST] (EveSmartLightPointLight_Blue.cpp:27). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get innerRadius()
   {
@@ -87,8 +92,8 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** m_lightGroupData.brightness (float) [READWRITE, PERSIST] (EveSmartLightPointLight_Blue.cpp:29). */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   get brightness()
   {
@@ -102,38 +107,38 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2LightProfileRes")
   lightProfile = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_lightProfilePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
   /** m_staticOffsetTranslation (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   staticOffsetTranslation = vec3.create();
 
   /** m_staticOffsetRotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   staticOffsetRotation = quat.create();
 
@@ -142,28 +147,28 @@ export class EveSmartLightPointLight extends EveEntity
   // this class carries these fields).
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] (EveSmartLightBaseGroup.h:31) */
-  @blue.notify
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.persist
   @type.int32
-  @blue.readwrite
+  @legacyBlue.readwrite
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
-  @blue.persist
+  @legacyBlue.persist
   @type.boolean
-  @blue.readwrite
+  @legacyBlue.readwrite
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
-  @blue.persist
+  @legacyBlue.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
-  @blue.read
+  @legacyBlue.read
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
-  @blue.persist
+  @legacyBlue.persist
   @type.color
-  @blue.readwrite
+  @legacyBlue.readwrite
   customColor = color.createLinear();
 
   /** m_lightType (Tr2Light::LIGHT_TYPE) - POINT_LIGHT here, SPOT_LIGHT on the subclass (EveSmartLightPointLight.cpp:15). */
@@ -188,20 +193,20 @@ export class EveSmartLightPointLight extends EveEntity
 
   /** IEveSmartLightGroup default: point-light groups have no async work. */
   @meta.noop
-  @blue.method
+  @legacyBlue.method
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
   /** IEveSmartLightGroup default: light-manager visibility is handled later. */
-  @blue.method
+  @legacyBlue.method
   @meta.noop
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** IEveSmartLightGroup default: point lights are components, not renderables. */
-  @blue.method
+  @legacyBlue.method
   @meta.noop
   GetRenderables(renderables = [])
   {
@@ -209,14 +214,14 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** IEveSmartLightGroup default: point lights contribute no quads. */
-  @blue.method
+  @legacyBlue.method
   @meta.noop
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
 
   /** IEveSmartLightGroup default: point lights register no quad effect. */
-  @blue.method
+  @legacyBlue.method
   @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
@@ -228,7 +233,7 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface through the shared resolveGroupColor helper.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -247,7 +252,7 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SetColor(color)
   {
@@ -261,7 +266,7 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SetInheritProperties(colorSet)
   {
@@ -282,7 +287,7 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SetControllerVariable(name, value)
   {
@@ -299,7 +304,7 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: The secondary base's list handling lives on this class and receives the Blue
    * list event, inserted value and owning array explicitly.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {
@@ -336,7 +341,7 @@ export class EveSmartLightPointLight extends EveEntity
       this.lightProfile = null;
       return;
     }
-    this.lightProfile = be.resMan.GetResource(this.lightProfilePath, {
+    this.lightProfile = blue.resMan.GetResource(this.lightProfilePath, {
       ext: "lp",
       requirement: ResourceRequirement.LIGHT_PROFILE
     });

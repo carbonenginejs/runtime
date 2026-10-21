@@ -1,9 +1,9 @@
 import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue as legacyBlue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { blue as be, BlueList, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueList, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
@@ -20,7 +20,7 @@ for(const [name,Class,Base,table] of [
     ["Tr2CurveCombiner",Tr2CurveCombiner,ITriVectorFunction,[Tr2CurveCombiner,ITriFunction,ITriVectorFunction,ITriCurveLength]],
     ["Tr2CurveColorMixer",Tr2CurveColorMixer,ITriColorFunction,[Tr2CurveColorMixer,ITriColorFunction,ITriFunction,ITriCurveLength]]
 ])test(`${name} exposes the exact native table without model conveniences`,()=>{
-    const value=be.classes.CreateInstanceFromName(name);
+    const value=blue.classes.CreateInstanceFromName(name);
     assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
     assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
     for(const method of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(method in value,false);
@@ -41,7 +41,7 @@ test("event factory hydration initializes owned typed keys while borrowed reads 
     borrowed.AddKey(3,"後");assert.equal(borrowed.keys,keys);
     borrowed.RemoveKey(0);assert.equal(borrowed.keys,keys);assert.equal(keys.length,2);
     const destination=new TriEventCurve(),destinationKeys=destination.keys;
-    assert.equal(be.classes.CopyTo(curve,destination),destination);assert.equal(destination.keys,destinationKeys);
+    assert.equal(blue.classes.CopyTo(curve,destination),destination);assert.equal(destination.keys,destinationKeys);
     assert.equal(destination.length,2);assert.notEqual(destination.keys[0],curve.keys[0]);assert.equal(destination.keys[0].value,"始");
     const serialized=new DictWriter().WriteObject(curve,{}, {persistOnly:true});
     assert.equal(serialized.keys.length,2);assert.equal(serialized.keys[0].value,"始");assert.equal(Object.hasOwn(serialized,"length"),false);
@@ -64,7 +64,7 @@ test("event named and callable dispatch remain distinct and require present list
 test("combiner zeroes each child scratch and commits cached sum only after all children succeed",()=>{
     const combiner=new Tr2CurveCombiner(),calls=[];
     class Child extends ITriVectorFunction{Update(time,out){calls.push([time,[...out]]);out[0]=2;return out;}}
-    blue.interface(ITriVectorFunction)(Child);
+    legacyBlue.interface(ITriVectorFunction)(Child);
     const first=new Child(),second=new Child();
     second.Update=(time,out)=>{calls.push([time,[...out]]);out[1]=3;return out;};
     assert.equal(combiner.curves.Append(first),true);assert.equal(combiner.curves.Append(second),true);
@@ -82,7 +82,7 @@ test("combiner zeroes each child scratch and commits cached sum only after all c
 test("combiner pooled update scratch is isolated, zeroed and released after child failure",()=>{
     const outer=new Tr2CurveCombiner(),inner=new Tr2CurveCombiner();
     class Child extends ITriVectorFunction{}
-    blue.interface(ITriVectorFunction)(Child);
+    legacyBlue.interface(ITriVectorFunction)(Child);
     const a=new Child(),b=new Child();outer.curves.Append(a);inner.curves.Append(b);
     const originalAlloc=vec3.alloc,originalUnalloc=vec3.unalloc,active=new Set();let leases=0;
     vec3.alloc=()=>{const out=originalAlloc();assert.equal(active.has(out.buffer),false);active.add(out.buffer);out.fill(91);leases++;return out;};
@@ -103,7 +103,7 @@ test("combiner pooled update scratch is isolated, zeroed and released after chil
 test("combiner length queries exact native exposure and requires advertised methods",()=>{
     const combiner=new Tr2CurveCombiner();
     class Hidden extends ITriVectorFunction{Length(){throw new Error("unmapped length");}}
-    blue.interface(ITriVectorFunction)(Hidden);
+    legacyBlue.interface(ITriVectorFunction)(Hidden);
     const hidden=new Hidden();assert.equal(combiner.curves.Append(hidden),true);assert.equal(combiner.Length(),0);
     const curve=new Tr2CurveVector3();curve.AddKey(7,[1,2,3],1);assert.equal(combiner.curves.Append(curve),true);assert.equal(combiner.Length(),7);
     curve.Length=null;assert.throws(()=>combiner.Length(),TypeError);
@@ -113,8 +113,8 @@ test("combiner dictionary and Copier retain owned lists and persisted child topo
     const combiner=new Tr2CurveCombiner(),list=combiner.curves;
     new DictReader({declarations:true}).ReadInto(combiner,{name:"sum",curves:[{_type:"Tr2CurveVector3",name:"first"},{_type:"Tr2CurveVector3",name:"second"}]});
     assert.equal(combiner.curves,list);assert.equal(list.length,2);assert.equal(list[0].name,"first");assert.equal(list[1].name,"second");
-    const children=[];be.EnumerateChildren(combiner,child=>children.push(child));assert.equal(children[0],list[0]);assert.equal(children[1],list[1]);
-    const copy=new Tr2CurveCombiner(),copyList=copy.curves;be.classes.CopyTo(combiner,copy);
+    const children=[];blue.EnumerateChildren(combiner,child=>children.push(child));assert.equal(children[0],list[0]);assert.equal(children[1],list[1]);
+    const copy=new Tr2CurveCombiner(),copyList=copy.curves;blue.classes.CopyTo(combiner,copy);
     assert.equal(copy.curves,copyList);assert.equal(copyList.length,2);assert.notEqual(copyList[0],list[0]);assert.equal(copyList[0].name,"first");
     assert.equal(CjsSchema.getField(Tr2CurveCombiner,"curves").type.kind,"list");
 });

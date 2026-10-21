@@ -1,8 +1,9 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.cpp
-import { type, blue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -10,43 +11,43 @@ import { blue as be, EnumRegistrationType } from "#blue";
  * blur scale, bokeh shape - plus the process-wide switch that enables the effect
  * at all.
  */
-@blue.define("Tr2PPDepthOfFieldEffect")
-@blue.chainTo(Tr2PPEffect)
-@blue.interface(Tr2PPEffect)
+@be.define("Tr2PPDepthOfFieldEffect")
+@be.exposureChainTo(Tr2PPEffect)
+@be.mapInterface(Tr2PPEffect)
 export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 {
 
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2Bokeh.Shape")
   bokehShape = Tr2PPDepthOfFieldEffect.Disk;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   scale = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   cocScale = 1;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   useTAAFriendlyBokeh = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   focalLength = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   foregroundBlurNeeded = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   focalDistance = 0;
 
@@ -98,7 +99,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 
 }
 
-be.enums.Create("trinity.Tr2Bokeh.Shape", Tr2PPDepthOfFieldEffect.Shape, {
+blue.enums.Create("trinity.Tr2Bokeh.Shape", Tr2PPDepthOfFieldEffect.Shape, {
   exposedName: "BokehShapeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Disk", value: Tr2PPDepthOfFieldEffect.Shape.Disk, description: "A perfectly circular aperture" },

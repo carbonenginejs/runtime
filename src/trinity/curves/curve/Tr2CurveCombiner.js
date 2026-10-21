@@ -1,25 +1,28 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.h
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.cpp
 import { vec3 } from "#math/vec3";
-import { ITriFunction, ITriVectorFunction, ITriCurveLength, BlueList, blue as be, CjsBlueClasses } from "#blue";
-import { meta, type, blue } from "#schema";
+import { ITriFunction, ITriVectorFunction, ITriCurveLength, BlueList, blue, CjsBlueClasses } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
 
 
 /**
  * Vector function returning the component-wise sum of every child vector
  * function sampled at the same time; its length is the longest child's length.
  */
-@blue.define("Tr2CurveCombiner")
-@blue.inherit(ITriCurveLength)
-@blue.interface(ITriFunction, ITriVectorFunction, ITriCurveLength)
+@be.define("Tr2CurveCombiner")
+@legacyBlue.inherit(ITriCurveLength)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(ITriVectorFunction)
+@be.mapInterface(ITriCurveLength)
 export class Tr2CurveCombiner extends ITriVectorFunction
 {
   /**
    * Name identifying this vector-function combiner (native std::string m_name).
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -27,8 +30,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * Typed child-vector list whose sampled values are summed (native PITriVectorFunctionVector m_curves).
    * @type {BlueList<ITriVectorFunction>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriVectorFunction")
   curves = new BlueList(ITriVectorFunction, { className: null, listOps: 0 });
 
@@ -36,7 +39,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * Three-component sum committed after all child updates succeed (native Vector3 m_currentValue).
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   currentValue = vec3.create();
 
@@ -131,7 +134,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
     let maxLength = 0;
     for (const curve of this.curves)
     {
-      if (be.classes.QueryThisInterface(curve, ITriCurveLength, curve.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (blue.classes.QueryThisInterface(curve, ITriCurveLength, curve.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         maxLength = Math.max(curve.Length(), maxLength);
       }
@@ -145,7 +148,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -174,7 +177,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetValueAt(time, out)
   {

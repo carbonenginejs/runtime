@@ -248,5 +248,3 @@ export class Range extends IRoot
     this.maxRangePoint = Math.min(this._maxRange, this._sliderRangeMax);
   }
 }
-
-

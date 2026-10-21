@@ -1,7 +1,7 @@
 // Source: blueexposure/include/BlueListUtil.h:172-347,459-476,506-781
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta, blue as legacyBlue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
-import { blue as be } from "./blue.js";
+import { blue } from "./blue.js";
 import { CjsBlueClasses } from "./CjsBlueClasses.js";
 import { IList } from "./IList.js";
 import { IListNotify } from "./IListNotify.js";
@@ -325,7 +325,7 @@ export class BlueList extends Array
 /** Native QI admission, represented by the exact constructor identity in the exposure table. */
 function AcceptsItem(list, value)
 {
-  return value !== null && typeof value === "object" && be.classes.QueryThisInterface(value, list._itemType, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
+  return value !== null && typeof value === "object" && blue.classes.QueryThisInterface(value, list._itemType, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
 }
 
 /**
@@ -369,11 +369,11 @@ function SameListType(source, dest)
 
 // Array methods create ordinary arrays, never pass a result length as ItemType.
 Object.defineProperty(BlueList, Symbol.species, { value: Array });
-blue.inherit(IList, ICopierCustomAssignment)(BlueList, { kind: "class" });
+legacyBlue.inherit(IList, ICopierCustomAssignment)(BlueList, { kind: "class" });
 CjsSchema.exposure.mapInterface(IList)(BlueList);
 CjsSchema.exposure.mapInterface(ICopierCustomAssignment)(BlueList);
-for (const name of [ "GetSize", "Clear", "Replace" ]) CjsSchema.decorateMethod(BlueList, name, blue.method, meta.implemented);
+for (const name of [ "GetSize", "Clear", "Replace" ]) CjsSchema.decorateMethod(BlueList, name, legacyBlue.method, meta.implemented);
 for (const name of [ "GetInfo", "Insert", "Append", "Remove", "GetAt", "FindKey", "Swap", "Move", "Sort", "SetNotify", "GetAllItems", "AssignFrom", "AssignTo" ])
 {
-  CjsSchema.decorateMethod(BlueList, name, blue.method, meta.adapted);
+  CjsSchema.decorateMethod(BlueList, name, legacyBlue.method, meta.adapted);
 }

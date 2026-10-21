@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.h
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.cpp
 // Source: trinity/trinity/Curves/Tr2DistanceTracker_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { blue as be, ITriFunction, INotify, CcpTime } from "#blue";
-import { meta, type, blue } from "#schema";
+import { blue, ITriFunction, INotify, CcpTime } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
 
 
 /**
@@ -11,17 +12,18 @@ import { meta, type, blue } from "#schema";
  * the full separation or its projection onto a fixed direction, and optionally
  * signed by which side of that direction the target lies.
  */
-@blue.define("Tr2DistanceTracker")
-@blue.inherit(INotify)
-@blue.interface(ITriFunction, INotify)
+@be.define("Tr2DistanceTracker")
+@legacyBlue.inherit(INotify)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(INotify)
 export class Tr2DistanceTracker extends ITriFunction
 {
   /**
    * Authored name identifying this distance-tracking function; native wide string.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.wstring
   name = "";
 
@@ -30,7 +32,7 @@ export class Tr2DistanceTracker extends ITriFunction
    * units when direction is normalized. Read-only metadata; not persisted.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   value = 0;
 
@@ -39,8 +41,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * nonnegative.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   signedDistance = true;
 
@@ -48,8 +50,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * Selects directional projection instead of full source-to-target separation.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   distanceToClosest = true;
 
@@ -58,8 +60,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * sampling uses the authored components unchanged.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   direction = vec3.create();
 
@@ -67,9 +69,9 @@ export class Tr2DistanceTracker extends ITriFunction
    * Optional position function sampled into sourcePosition during updates.
    * @type {ITriVectorFunction|null}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.object.ref("ITriVectorFunction")
   sourceObject = null;
 
@@ -77,9 +79,9 @@ export class Tr2DistanceTracker extends ITriFunction
    * Optional position function sampled into targetPosition during updates.
    * @type {ITriVectorFunction|null}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.object.ref("ITriVectorFunction")
   targetObject = null;
 
@@ -88,8 +90,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * source function is attached.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   sourcePosition = vec3.create();
 
@@ -98,8 +100,8 @@ export class Tr2DistanceTracker extends ITriFunction
    * target function is attached.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   targetPosition = vec3.create();
 
@@ -159,7 +161,7 @@ export class Tr2DistanceTracker extends ITriFunction
   @meta.implemented
   OnModified(_value = null)
   {
-    this.UpdateValue(CcpTime.timeAsDouble(be.os.GetCurrentFrameTime()));
+    this.UpdateValue(CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()));
     return true;
   }
 }

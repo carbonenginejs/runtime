@@ -4,9 +4,9 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
-  IBlueEventListener, IBluePlacementObserver, IBlueMultiPlacementObserver, PositionDescription, blue as be
+  IBlueEventListener, IBluePlacementObserver, IBlueMultiPlacementObserver, PositionDescription, blue
 } from "@carbonenginejs/runtime/blue";
-import { CjsSchema, blue } from "@carbonenginejs/runtime/schema";
+import { CjsSchema, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
 import { vec3 } from "@carbonenginejs/runtime/math/vec3";
 import { IBlueEventListener as DirectListener } from "../../src/global/blue/IBlueEventListener.js";
 import { IBluePlacementObserver as DirectObserver } from "../../src/global/blue/IBluePlacementObserver.js";
@@ -25,7 +25,7 @@ test("Blue observer interfaces register one identity and only their native abstr
     assert.equal(Type, direct);
     assert.equal(CjsSchema.getClassName(Type), name);
     assert.equal(CjsSchema.getConstructor(name), Type);
-    assert.equal(be.classes.GetClassRegistration(name).type, Type);
+    assert.equal(blue.classes.GetClassRegistration(name).type, Type);
     assert.equal(CjsSchema.getMethod(Type, method).impl.status, "abstract");
     assert.deepEqual(CjsSchema.getSchema(Type).members, []);
     assert.deepEqual(CjsSchema.getSchema(Type).properties, []);
@@ -64,7 +64,7 @@ test("PositionDescription is an unregistered native-shaped aggregate value recor
   assert.equal(Object.getPrototypeOf(PositionDescription.prototype), Object.prototype);
   assert.equal(CjsSchema.getClassName(PositionDescription), null);
   assert.equal(CjsSchema.getConstructor("PositionDescription"), null);
-  assert.equal(be.classes.GetClassRegistration("PositionDescription"), null);
+  assert.equal(blue.classes.GetClassRegistration("PositionDescription"), null);
   position.front_z = 1;
   position.pos_x = 3.5;
   assert.equal(new PositionDescription().pos_x, 0);
@@ -83,7 +83,7 @@ test("multi-placement composition preserves the caller's ordered records without
     }
   }
   const implementation = MultiObserver.prototype.UpdatePlacements;
-  blue.inherit(IBlueMultiPlacementObserver)(MultiObserver, { kind: "class" });
+  legacyBlue.inherit(IBlueMultiPlacementObserver)(MultiObserver, { kind: "class" });
   CjsSchema.define(MultiObserver, { className: "TestBlueMultiPlacementObserverProvider" });
   const observer = new MultiObserver();
   const first = new PositionDescription();
@@ -103,7 +103,7 @@ test("multi-placement composition preserves the caller's ordered records without
   assert.equal(CjsSchema.cast(observer, IBlueMultiPlacementObserver), observer);
   assert.equal(CjsSchema.cast({ UpdatePlacements() {} }, IBlueMultiPlacementObserver), null);
   assert.equal(mappedInterfaces(MultiObserver).has(IBlueMultiPlacementObserver), false);
-  blue.interface(IBlueMultiPlacementObserver)(MultiObserver);
+  legacyBlue.interface(IBlueMultiPlacementObserver)(MultiObserver);
   assert.deepEqual(mappedInterfaces(MultiObserver), new Set([ExposureRoot, MultiObserver, IBlueMultiPlacementObserver]));
 });
 
@@ -124,7 +124,7 @@ test("Blue observer composition retains concrete calls and requires explicit que
   }
   const handleEvent = Observer.prototype.HandleEvent;
   const updatePlacement = Observer.prototype.UpdatePlacement;
-  blue.inherit(IBlueEventListener, IBluePlacementObserver)(Observer, { kind: "class" });
+  legacyBlue.inherit(IBlueEventListener, IBluePlacementObserver)(Observer, { kind: "class" });
   CjsSchema.define(Observer, { className: "TestBlueObserverInterfaceProvider" });
 
   const observer = new Observer();
@@ -148,7 +148,7 @@ test("Blue observer composition retains concrete calls and requires explicit que
   assert.equal(calls[1][3], position);
   assert.deepEqual(Array.from(position), [12, -3, 4]);
 
-  blue.interface(IBlueEventListener, IBluePlacementObserver)(Observer);
+  legacyBlue.interface(IBlueEventListener, IBluePlacementObserver)(Observer);
   assert.deepEqual(mappedInterfaces(Observer), new Set([ExposureRoot, Observer, IBlueEventListener, IBluePlacementObserver]));
   assert.equal("Initialize" in observer, false);
   assert.equal("SetValues" in observer, false);

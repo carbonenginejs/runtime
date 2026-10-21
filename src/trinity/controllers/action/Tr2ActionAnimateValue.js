@@ -1,8 +1,9 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue_Blue.cpp
-import { meta, type, blue } from "#schema";
-import { IsMatch, blue as be } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { IsMatch, blue } from "#blue";
 import { INotify } from "#blue/INotify";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -15,54 +16,56 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * an expression-driven value, by default the action's curve sampled at state
  * time, into a bound destination property.
  */
-@blue.define("Tr2ActionAnimateValue")
-@blue.inherit(ITr2Updateable, INotify)
-@blue.interface(ITr2ControllerAction, ITr2Updateable, INotify)
+@be.define("Tr2ActionAnimateValue")
+@legacyBlue.inherit(ITr2Updateable, INotify)
+@be.mapInterface(ITr2ControllerAction)
+@be.mapInterface(ITr2Updateable)
+@be.mapInterface(INotify)
 export class Tr2ActionAnimateValue extends ITr2ControllerAction
 {
   /** Flattened adapter storage for m_destination.m_path. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   path = "";
 
   /** Flattened adapter storage for m_destination.m_object. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.rootRef("IRoot")
   destination = null;
 
   /** Flattened adapter storage for m_destination.m_attribute. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   attribute = "";
 
   /** m_value: expression compiled when linked or notified. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   value = "Curve(StateTime())";
 
   /** m_curve: native scalar curve, without member notification. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriScalarFunction")
   curve = null;
 
   /** m_delayBinding: defers a nonempty path binding to Start. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   delayBinding = false;
 
   /** Live native READ property reporting the current binding. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isBindingValid()
@@ -71,7 +74,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   }
 
   /** Live native READ property observing retained compilation without compiling. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isExpressionValid()
@@ -138,7 +141,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
     {
       return;
     }
-    this._runtime.startTime = be.os.GetCurrentFrameTime();
+    this._runtime.startTime = blue.os.GetCurrentFrameTime();
     this._runtime.lastTime = this._runtime.startTime;
     controller.RegisterUpdateable(this);
   }
@@ -240,7 +243,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Adapted: retains compile-on-query behavior; native observes its retained
    * evaluator without compiling. Queries can therefore adopt unnotified edits.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   IsExpressionValid()
   {
@@ -254,7 +257,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * this forward takes and discards the attribute name. Same forward here
    * for nominal parity.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {
@@ -276,7 +279,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   /**
    * Carbon GetDestination (Tr2ActionAnimateValue.cpp:145-148): the binding's bound object.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetDestination()
   {
@@ -288,7 +291,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Adapted: shared AST term records replace native evaluator metadata; a
    * linked controller supplies its required GetExpressionTermInfo operation.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -306,7 +309,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * context instead of native BlueStdResult failures. Native typed error and
    * float32 evaluation parity remain outside this class-removal batch.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   EvaluateExpression(expression)
   {

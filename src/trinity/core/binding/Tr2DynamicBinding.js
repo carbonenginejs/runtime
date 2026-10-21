@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2DynamicBinding.h
 // Source: trinity/trinity/Tr2DynamicBinding.cpp
 // Source: trinity/trinity/Tr2DynamicBinding_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { IList } from "#blue/IList";
 import { INotify } from "#blue/INotify";
 import { ISimTimeRebaseNotify } from "#blue/ISimTimeRebaseNotify";
-import { blue as be, CcpTime } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { TriValueBinding } from "./TriValueBinding.js";
 
 
@@ -17,28 +18,28 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * Times are Be::Time, Blue 100ns ticks. Every instance takes part in sim-time
  * rebasing from construction, as Carbon's does.
  */
-@blue.define("Tr2DynamicBinding")
-@blue.inherit(ISimTimeRebaseNotify)
-@blue.interface(INotify)
+@be.define("Tr2DynamicBinding")
+@legacyBlue.inherit(ISimTimeRebaseNotify)
+@be.mapInterface(INotify)
 export class Tr2DynamicBinding extends INotify
 {
   /** Native name member. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** Native destination object path member. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   destinationObjectPath = "";
 
   /** Native destination object attribute member. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   destinationObjectAttribute = "";
 
@@ -50,7 +51,7 @@ export class Tr2DynamicBinding extends INotify
    *
    * @returns {object|null} The destination object.
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.weak("IRoot")
   get destination()
   {
@@ -61,7 +62,7 @@ export class Tr2DynamicBinding extends INotify
    * Native readonly endpoint validity property.
    * @returns {boolean} Whether the endpoint is alive.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isDestinationValid()
@@ -70,16 +71,16 @@ export class Tr2DynamicBinding extends INotify
   }
 
   /** Native source object path member. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   sourceObjectPath = "";
 
   /** Native source object attribute member. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   sourceObjectAttribute = "";
 
@@ -91,7 +92,7 @@ export class Tr2DynamicBinding extends INotify
    *
    * @returns {object|null} The source object.
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.weak("IRoot")
   get source()
   {
@@ -99,15 +100,15 @@ export class Tr2DynamicBinding extends INotify
   }
 
   /** Native scale member. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   scale = 1;
 
   /** Native binding delay member. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   bindingDelay = 0;
 
@@ -115,7 +116,7 @@ export class Tr2DynamicBinding extends INotify
    * Native readonly endpoint validity property.
    * @returns {boolean} Whether the endpoint is alive.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isSourceValid()
@@ -124,7 +125,7 @@ export class Tr2DynamicBinding extends INotify
   }
 
   /** Native binding member. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("TriValueBinding")
   binding = null;
 
@@ -157,7 +158,7 @@ export class Tr2DynamicBinding extends INotify
   constructor()
   {
     super();
-    this._rebaseOS = be.os;
+    this._rebaseOS = blue.os;
     this._rebaseOS.RegisterForSimTimeRebase(this);
   }
 
@@ -233,7 +234,7 @@ export class Tr2DynamicBinding extends INotify
       );
       if (this._bindingTime === 0)
       {
-        this._bindingTime = be.os.GetCurrentFrameTime() + CcpTime.timeFromMS(this.bindingDelay);
+        this._bindingTime = blue.os.GetCurrentFrameTime() + CcpTime.timeFromMS(this.bindingDelay);
       }
       return true;
     }

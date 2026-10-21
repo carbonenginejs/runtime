@@ -2,12 +2,12 @@ import { IRoot as ExposureRoot } from "../../npm/dist/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
-import { blue as be } from "../../npm/dist/global/blue/blue.js";
+import { blue } from "../../npm/dist/global/blue/blue.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
-import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue as legacyBlue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
@@ -176,7 +176,7 @@ test("removing the current state stops it, starts the start state, then unlinks 
     ["removed.Unlink", null], ["removed.Stop", "removed.Unlink"]
   ]);
   assert.equal(machine.currentState, start);
-  assert.equal(machine._stateStartTime, be.os.GetCurrentFrameTime());
+  assert.equal(machine._stateStartTime, blue.os.GetCurrentFrameTime());
   assert.equal(start.GetStateMachine(), machine);
   assert.equal(start._isActive, true);
   assert.equal(removed.GetStateMachine(), null);
@@ -215,7 +215,7 @@ test("unlinked removal still selects and calls Start on the start state", () =>
   assert.deepEqual(calls, [["start.Start", null], ["removed.Unlink", null]]);
   assert.equal(machine.GetController(), null);
   assert.equal(machine.currentState, start);
-  assert.equal(machine._stateStartTime, be.os.GetCurrentFrameTime());
+  assert.equal(machine._stateStartTime, blue.os.GetCurrentFrameTime());
   assert.equal(start.GetStateMachine(), null);
   assert.equal(start._isActive, false, "the real Start cannot activate an unlinked state");
 });
@@ -283,7 +283,7 @@ test("state payload admission requires exact query exposure even for nominal sub
 {
   class UnexposedState extends Tr2StateMachineState {}
   CjsSchema.define(UnexposedState, { className: "NativeStateListUnexposedState" });
-  blue.interface()(UnexposedState);
+  legacyBlue.interface()(UnexposedState);
   const machine = new Tr2StateMachine(), state = new UnexposedState();
   Linked(t, machine, [state]);
   const calls = TraceStates([[state, "state"]]);

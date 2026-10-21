@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2Transform.h
 // Source: trinity/trinity/Tr2Transform.cpp
@@ -6,11 +7,11 @@ import { IRoot } from "../../global/blue/IRoot.js";
 import { TriBatchType } from "#consts/graphics";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
-import { blue as be, CcpTime } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 
 
@@ -74,8 +75,8 @@ function setViewBasis(out, inverseView, scale)
 
 
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
-@blue.define("Tr2Transform")
-@blue.inherit(ITr2Renderable)
+@be.define("Tr2Transform")
+@legacyBlue.inherit(ITr2Renderable)
 export class Tr2Transform extends IRoot
 {
 
@@ -212,7 +213,7 @@ export class Tr2Transform extends IRoot
   }
 
   /** Carbon's default ITr2Renderable visibility contract. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   IsVisible(_updateContext)
   {
@@ -228,7 +229,7 @@ export class Tr2Transform extends IRoot
    * @param {ITriRenderBatchAccumulator} _accumulator The accumulator.
    * @returns {Tr2PerObjectData|null} The object's per-object data.
    */
-  @blue.abstract
+  @legacyBlue.abstract
   GetPerObjectData(_accumulator) {}
 
   /** Returns whether the displayed mesh has transparent areas. */
@@ -426,19 +427,19 @@ export class Tr2Transform extends IRoot
   }
 
   /** m_modifier (Tr2TransformModifier - enum Tr2TransformModifier) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2TransformModifier")
   modifier = Tr2TransformModifier.TR2TM_NONE;
 
   /** m_localTransform (Matrix) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.mat4
   localTransform = mat4.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.mat4
   worldTransform = mat4.create();
 
@@ -446,74 +447,74 @@ export class Tr2Transform extends IRoot
   lastWorldTransform = mat4.create();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_distanceBasedScaleArg1 (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   distanceBasedScaleArg1 = 0.2;
 
   /** m_distanceBasedScaleArg2 (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   distanceBasedScaleArg2 = 0.63;
 
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2MeshBase")
   mesh = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_useDistanceBasedScale (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useDistanceBasedScale = false;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   update = true;
 
   /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   sortValueMultiplier = 1;
 

@@ -1,44 +1,46 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomRotation.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's orientation with a seeded random yaw, pitch, and roll. */
-@blue.define("EveDistributionSpawnModifierRandomRotation")
-@blue.inherit(IInitialize)
-@blue.interface(IEveDistributionSpawnModifier, IInitialize)
+@be.define("EveDistributionSpawnModifierRandomRotation")
+@legacyBlue.inherit(IInitialize)
+@be.mapInterface(IEveDistributionSpawnModifier)
+@be.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierRandomRotation extends IEveDistributionSpawnModifier
 {
 
   /** `m_timeSeed`: uint32_t( BeOS->GetCurrentFrameTime() ) (EveDistributionSpawnModifierRandomRotation.cpp). */
-  _timeSeed = be.os.GetCurrentFrameTime() >>> 0;
+  _timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
 
   /** m_minRotation (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   minRotation = vec3.create();
 
   /** m_maxRotation (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   maxRotation = vec3.create();
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   consistentRandom = false;
 
   /** m_overrideRotation (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   overrideRotation = false;
 
@@ -50,7 +52,7 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
   @meta.adapted
   Initialize()
   {
-    this._timeSeed = be.os.GetCurrentFrameTime() >>> 0;
+    this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
     return true;
   }
 

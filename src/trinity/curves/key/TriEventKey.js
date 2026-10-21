@@ -38,4 +38,3 @@ export class TriEventKey extends IRoot
 }
 
 // Native own query table; no inherited exposure chain.
-

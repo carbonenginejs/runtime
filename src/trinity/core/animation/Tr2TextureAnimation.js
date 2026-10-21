@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { BitmapDimensions } from "#imageio";
 import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
 import { CjsVtaFormat } from "../../../resource/formats/vta/CjsVtaFormat.js";
@@ -14,9 +15,10 @@ import { Tr2TextureSubresource } from "../../../trinityal/Tr2HalHelperStructures
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
-@blue.define("Tr2TextureAnimation")
-@blue.inherit(IInitialize, INotify)
-@blue.interface(IInitialize, INotify)
+@be.define("Tr2TextureAnimation")
+@legacyBlue.inherit(IInitialize, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2TextureAnimation extends IRoot
 {
   _channels = new Map();
@@ -27,37 +29,37 @@ export class Tr2TextureAnimation extends IRoot
 
   _restartState = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   fps = 1;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   frame = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   time = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   paused = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   updateOnlyWhenRendered = true;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.wpath(".vta")
   resPath = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   looped = true;
 
@@ -248,7 +250,7 @@ export class Tr2TextureAnimation extends IRoot
    * retain their synchronous Restart/Reset adapter behavior when no VTA is loaded.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RestartAnimation()
   {
@@ -284,7 +286,7 @@ export class Tr2TextureAnimation extends IRoot
    * Adapted: Returns a JavaScript array instead of a vector of shared strings.
    * @returns {string[]} Channel names.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetChannelNames()
   {
@@ -403,7 +405,7 @@ export class Tr2TextureAnimation extends IRoot
 
   static async readFile(request)
   {
-    const bytes = await be.resMan.ReadResource(request.filename);
+    const bytes = await blue.resMan.ReadResource(request.filename);
     if (request.state.cancel) return;
     request.state.bytes = bytes;
     await this.decodeFirstFrame(request);

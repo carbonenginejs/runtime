@@ -1,13 +1,14 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.h
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.cpp
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:45-64
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { IsMatch, INotify, IInitialize, blue as be, CjsBlueClasses } from "#blue";
+import { IsMatch, INotify, IInitialize, blue, CjsBlueClasses } from "#blue";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 
 
@@ -19,74 +20,76 @@ import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
  * contracts. Vector output buffers and quaternion math retain the JS adapter.
  * Native destruction only clears references; no resource disposal is required.
  */
-@blue.define("Tr2ObjectFollowCurveKey")
-@blue.inherit(INotify, IInitialize)
-@blue.interface(ITr2FollowCurveKey, INotify, IInitialize)
+@be.define("Tr2ObjectFollowCurveKey")
+@legacyBlue.inherit(INotify, IInitialize)
+@be.mapInterface(ITr2FollowCurveKey)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
 {
   /** Authored key name. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** Runtime followed object; notified but not persisted. */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.object.ref("IRoot")
   object = null;
 
   /** Authored key time. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   time = 0;
 
   /** Authored interpolation of the outgoing segment. */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   /** Authored incoming tangent. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   leftTangent = vec3.create();
 
   /** Authored outgoing tangent. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   rightTangent = vec3.create();
 
   /** Last sampled incoming tangent. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   rotatedLeftTangent = vec3.create();
 
   /** Last sampled outgoing tangent. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   rotatedRightTangent = vec3.create();
 
   /** Authored locator set name. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   offsetLocatorName = "";
 
   /** Authored local position offset. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   offset = vec3.create();
 
   /** Authored rotation selection. */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2ObjectFollowCurveKey.RotationSetting")
   rotationSetting = RotationSetting.NO_ROTATION;
@@ -213,7 +216,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
     {
       return null;
     }
-    if (be.classes.QueryThisInterface(object, EveSpaceObject2, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+    if (blue.classes.QueryThisInterface(object, EveSpaceObject2, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
     {
       const locators = object.GetLocatorsForSet(this.offsetLocatorName);
       if (locators && locators.length > 0)
@@ -241,7 +244,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
         break;
       case RotationSetting.MODEL_ROTATION:
         {
-          if (this.object && be.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+          if (this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
           {
             return quat.normalize(this._rotation, this.object.GetWorldRotation());
           }
@@ -258,7 +261,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    */
   GetWorldPosition(out)
   {
-    return this.object && be.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null
+    return this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null
       ? this.object.GetWorldPosition(out) : null;
   }
 

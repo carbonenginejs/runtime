@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython_Blue.cpp
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
-import { meta, type, blue } from "#schema";
-import { IsMatch, blue as be, INotify, IInitialize, ICustomPersist, CcpTime } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { IsMatch, blue, INotify, IInitialize, ICustomPersist, CcpTime } from "#blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 
@@ -22,9 +23,13 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
  * State is Carbon's custom binary block: readers move its bytes through this
  * class's ICustomPersist methods.
  */
-@blue.define("Tr2ActionPython")
-@blue.inherit(ITr2Updateable, INotify, IInitialize, ICustomPersist)
-@blue.interface(ITr2ControllerAction, ITr2Updateable, INotify, IInitialize, ICustomPersist)
+@be.define("Tr2ActionPython")
+@legacyBlue.inherit(ITr2Updateable, INotify, IInitialize, ICustomPersist)
+@be.mapInterface(ITr2ControllerAction)
+@be.mapInterface(ITr2Updateable)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ICustomPersist)
 export class Tr2ActionPython extends ITr2ControllerAction
 {
   static _factory = null;
@@ -117,9 +122,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Native Python module import path, forwarded to the registered JavaScript action factory.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   module = "";
 
@@ -127,9 +132,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Implementation class name passed with module to the registered action factory.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   className = "";
 
@@ -141,7 +146,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * no Python; a JavaScript host receives the bytes through OnLoad as they are.
    * @type {Uint8Array}
    */
-  @blue.persistOnly
+  @legacyBlue.persistOnly
   @type.binary
   @type.uint8Array
   @meta.notSupported
@@ -278,8 +283,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
         onStart(owner, controller);
       });
     }
-    this._prevRealTime = be.os.GetActualTime();
-    this._prevSimTime = be.os.GetCurrentFrameTime();
+    this._prevRealTime = blue.os.GetActualTime();
+    this._prevSimTime = blue.os.GetCurrentFrameTime();
   }
 
   /**
@@ -346,7 +351,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Adapted: returns a JavaScript host object instead of native BluePy.
    * @returns {object|null} The cached host instance.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetInstance()
   {

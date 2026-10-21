@@ -1,16 +1,17 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { type, blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataLogoSet } from "../shared/EveSOFDataLogoSet.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Defines a logo or usage decal with faction color, bone and transform placement, mesh and material data, and single- or multi-hull index buffers. */
-@blue.define("EveSOFDataHullDecalSetItem")
-@blue.inherit(IRoot)
+@be.define("EveSOFDataHullDecalSetItem")
+@legacyBlue.inherit(IRoot)
 export class EveSOFDataHullDecalSetItem extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
@@ -30,90 +31,90 @@ export class EveSOFDataHullDecalSetItem extends IRoot
   };
 
   /** m_logoType (EveSOFDataLogoSet::LogoType - enum LogoType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataLogoSet.LogoType")
   logoType = 0;
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullDecalSetItem.Usage")
   usage = 0;
 
   /** m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   glowColorType = 0;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   boneIndex = -1;
 
   /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataParameter")
   parameters = [];
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataTexture")
   textures = [];
 
   /** m_indexBuffers (PEveSOFDataDecalIndexBufferVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataDecalIndexBuffer")
   indexBuffers = [];
 
   /** m_multiHullIndexBuffers (PEveSOFDataMultiHullDecalIndexBuffersVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataMultiHullDecalIndexBuffers")
   multiHullIndexBuffers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_meshIndex (int32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.int32
   meshIndex = -1;
 
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-be.enums.Create("trinity.EveSOFDataHullDecalSetItem.Usage", EveSOFDataHullDecalSetItem.Usage, {
+blue.enums.Create("trinity.EveSOFDataHullDecalSetItem.Usage", EveSOFDataHullDecalSetItem.Usage, {
   exposedName: "DecalUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Standard", value: EveSOFDataHullDecalSetItem.Usage.USAGE_STANDARD, description: "Standard decal" },

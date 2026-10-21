@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2Mesh.h
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, blue as be, IInitialize, INotify } from "#blue";
+import { IsMatch, blue, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 
@@ -12,36 +13,37 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
  * A mesh backed by a geometry resource, adding the resource path plus the
  * morph-target weights and baked-morph state on top of Tr2MeshBase.
  */
-@blue.define("Tr2Mesh")
-@blue.inherit(IInitialize, INotify)
-@blue.interface(IInitialize, INotify)
-@blue.chainTo(Tr2MeshBase)
+@be.define("Tr2Mesh")
+@legacyBlue.inherit(IInitialize, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.exposureChainTo(Tr2MeshBase)
 export class Tr2Mesh extends Tr2MeshBase
 {
   _morphAnimations = new Map();
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriGeometryRes")
   geometryResPath = "";
 
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
   @type.list("Tr2SerializedMorphAnimation")
   serializedMorphAnimations = [];
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.boolean
   deferGeometryLoad = false;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("TriGeometryRes")
   geometry = null;
 
   /** m_lowResGeometryResource: the stand-in rendered while the authored mesh loads. */
-  @blue.read
+  @legacyBlue.read
   @type.rootRef("TriGeometryRes")
   lowResGeometry = null;
 
@@ -120,7 +122,7 @@ export class Tr2Mesh extends Tr2MeshBase
       return;
     }
 
-    const request = path => be.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY });
+    const request = path => blue.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY });
 
     // Carbon cpp:113-127: when the authored file is NOT there but a
     // <base>_lowdetail<ext> sibling is, take the low-detail one to render with
@@ -128,10 +130,10 @@ export class Tr2Mesh extends Tr2MeshBase
     // same service Carbon asks - BePaths->FileExistsLocally is
     // be.paths.FileExistsLocally.
     let lowRes = null;
-    if (!be.paths.FileExistsLocally(this.geometryResPath))
+    if (!blue.paths.FileExistsLocally(this.geometryResPath))
     {
       const lowResPath = Tr2Mesh._lowDetailPath(this.geometryResPath);
-      if (lowResPath && be.paths.FileExistsLocally(lowResPath)) lowRes = request(lowResPath);
+      if (lowResPath && blue.paths.FileExistsLocally(lowResPath)) lowRes = request(lowResPath);
     }
 
     const geometry = request(this.geometryResPath);
@@ -194,7 +196,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * already-prepared resource calls back immediately (BlueAsyncRes.cpp:274-276),
    * so a resource that is already good rebuilds here rather than on a later frame.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetGeometryRes(resource)
   {
@@ -265,7 +267,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon PySetGeometryRes (cpp:202-206): binding a resource by hand clears
    * the authored path first, so the next notification does not refetch it.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   PySetGeometryRes(resource)
   {
@@ -304,7 +306,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Reads the selected geometry resource path, including the low-detail stand-in.
    * Source: trinity/trinity/Tr2MeshBase.cpp:425-434
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetGeometryResPath()
   {
@@ -314,7 +316,7 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /** The fixed number of mesh-area lists a mesh carries (14). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetAreasCount()
   {

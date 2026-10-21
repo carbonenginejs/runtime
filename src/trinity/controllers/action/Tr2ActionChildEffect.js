@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { blue as be, CjsBlueClasses } from "#blue";
-import { meta, CjsSchema, type, blue } from "#schema";
+import { blue, CjsBlueClasses } from "#blue";
+import { meta, CjsSchema, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -15,10 +16,10 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  */
 function CastTo(value, className)
 {
-  const registration = be.classes.GetClassRegistration(className);
+  const registration = blue.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Tr2ActionChildEffect: class ${className} is not registered with Blue`);
   if (!value || typeof value !== "object") return null;
-  return be.classes.QueryThisInterface(value, registration.type, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+  return blue.classes.QueryThisInterface(value, registration.type, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
 }
 
 
@@ -26,7 +27,7 @@ function CastTo(value, className)
  * Controller action that attaches a child effect loaded from a resource path to
  * its owner on start and detaches it on stop.
  */
-@blue.define("Tr2ActionChildEffect")
+@be.define("Tr2ActionChildEffect")
 export class Tr2ActionChildEffect extends ITr2ControllerAction
 {
   static _resourcePrefetcher = null;
@@ -55,32 +56,32 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   }
 
   /** Native m_path: std::string with file-path editor/transport semantics. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("object")
   path = "";
 
   /** Native m_childName. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   childName = "";
 
   /** Native m_targetAnotherOwner: BlueSharedString. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   targetAnotherOwner = "";
 
   /** Native m_addOnStart. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   addOnStart = true;
 
   /** Native m_removeOnStop. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   removeOnStop = true;
 
@@ -194,7 +195,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   {
     const path = this.path;
     const request = ++this._loadRequest;
-    Promise.resolve(be.resMan.LoadObject(path)).then(object =>
+    Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
     {
       if (request !== this._loadRequest)
       {
@@ -293,7 +294,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
         const obj = stack.pop();
         if (seen.has(obj)) continue;
         seen.add(obj);
-        be.EnumerateChildren(obj, next => stack.push(next));
+        blue.EnumerateChildren(obj, next => stack.push(next));
       }
     };
     const retained = new Set();

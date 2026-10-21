@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2SSAO.h
 // Source: trinity/trinity/Tr2SSAO.cpp
 // Source: trinity/trinity/Tr2SSAO_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, ShaderType, Tr2GpuUsage } from "#consts/render-context";
 import { Failed, Tr2BitmapDimensions, Tr2ConstantBufferAL } from "#trinityal";
@@ -12,7 +13,7 @@ import { SSAOQuality } from "../generated/trinityCore/enums.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { PER_OBJECT_VS, Tr2Renderer } from "../core/Tr2Renderer.js";
 import { GpuResourceHandle } from "../core/Tr2GpuResourcePool/GpuResourceHandle.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 
 /** CORTAO's effects and lookup table (`Tr2SSAO.cpp:99, 102, 108`). */
 const CORTAO_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/System/CORTAO/CORTAO.fx";
@@ -56,89 +57,89 @@ function DispatchSize(tileSize, totalSize)
  * in the constructor, `Tr2SSAO.cpp:20`) and the one ported here; CACAO
  * (`PerformPass`, AMD's FidelityFX CACAO) is not.
  */
-@blue.define("Tr2SSAO")
-@blue.inherit(IRoot)
+@be.define("Tr2SSAO")
+@legacyBlue.inherit(IRoot)
 export class Tr2SSAO extends IRoot
 {
-  @blue.notify
-  @blue.readwrite
+  @legacyBlue.notify
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.SSAOQuality")
   quality = SSAOQuality.HIGHEST;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.boolean
   cortaoBentNormal = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   zoomLevel = 5;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   shadowClamp = 0.98;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   shadowPower = 2.6;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   shadowMultiplier = 1;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   cortaoBlur = true;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.boolean
   cortaoEnabled = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   sharpness = 0.5;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   enabled = true;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   cortaoMipBias = -4;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   cortaoMaxBlockerSearchRadius = 0.25;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   cortaoRadius = 1e10;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   cortaoStrength = 1;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   downsampled = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   radius = 6;
 
@@ -215,7 +216,7 @@ export class Tr2SSAO extends IRoot
       this._cortaoBlurEffect = new Tr2Effect();
       this._cortaoBlurEffect.SetEffectPathName(CORTAO_BLUR_EFFECT_PATH);
 
-      this._cortaoLookupTable = be.resMan.GetResource(CORTAO_LOOKUP_TABLE_PATH, { requirement: ResourceRequirement.TEXTURE });
+      this._cortaoLookupTable = blue.resMan.GetResource(CORTAO_LOOKUP_TABLE_PATH, { requirement: ResourceRequirement.TEXTURE });
 
       this._cortaoInitialized = true;
     }

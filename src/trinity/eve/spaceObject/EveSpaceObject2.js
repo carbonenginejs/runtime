@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
@@ -15,8 +16,8 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2ImpostorSource } from "../../core/mesh/ITr2ImpostorSource/ITr2ImpostorSource.js";
 import "#consts/graphics/trinityEnums";
 import "#consts/trinity";
-import { CjsSchema, meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
@@ -87,9 +88,9 @@ const meshLodMember = { carbon: { member: true }, name: "meshLod", key: "mesh", 
  * controllers - together with the curve-driven world transform, visibility, LOD
  * and batch submission that drive them each frame.
  */
-@blue.define({ className: "EveSpaceObject2", abstract: true, members: [ meshLodMember ] })
-@blue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, IShaderConfigurer, ITr2LightOwner)
-@blue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveShadowCaster, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2DebugRenderable, IListNotify, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2LightOwner)
+@legacyBlue.define({ className: "EveSpaceObject2", abstract: true, members: [ meshLodMember ] })
+@legacyBlue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, IShaderConfigurer, ITr2LightOwner)
+@legacyBlue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveShadowCaster, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2DebugRenderable, IListNotify, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2LightOwner)
 export class EveSpaceObject2 extends EveEntity
 {
 
@@ -97,9 +98,9 @@ export class EveSpaceObject2 extends EveEntity
    * Reflection participation mode used when registering render components.
    * @type {number}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
@@ -108,8 +109,8 @@ export class EveSpaceObject2 extends EveEntity
    * Effect children updated and rendered with the hull.
    * @type {Array<IEveSpaceObjectChild>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObjectChild")
   effectChildren = [];
 
@@ -117,8 +118,8 @@ export class EveSpaceObject2 extends EveEntity
    * Transform children whose visibility and transforms follow the hull.
    * @type {Array<IEveTransform>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveTransform")
   children = [];
 
@@ -126,9 +127,9 @@ export class EveSpaceObject2 extends EveEntity
    * Name identifying the space object.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   name = "";
 
@@ -136,8 +137,8 @@ export class EveSpaceObject2 extends EveEntity
    * Whether child effects and local audio observers are muted.
    * @type {boolean}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   mute = false;
 
@@ -145,7 +146,7 @@ export class EveSpaceObject2 extends EveEntity
    * Shared inherited properties supplied to child effects.
    * @type {EveChildInheritProperties|null}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("EveChildInheritProperties")
   inheritProperties = null;
 
@@ -153,8 +154,8 @@ export class EveSpaceObject2 extends EveEntity
    * Authored custom-material masks copied into per-object shader data.
    * @type {Array<EveCustomMask>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveCustomMask")
   customMasks = [];
 
@@ -162,8 +163,8 @@ export class EveSpaceObject2 extends EveEntity
    * Mesh overlay effects applied to this hull.
    * @type {Array<EveMeshOverlayEffect>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveMeshOverlayEffect")
   overlayEffects = [];
 
@@ -171,7 +172,7 @@ export class EveSpaceObject2 extends EveEntity
    * Binding target for the object's position delta.
    * @type {Tr2BindingVector3|null}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2BindingVector3")
   positionDelta = null;
 
@@ -179,7 +180,7 @@ export class EveSpaceObject2 extends EveEntity
    * Current detail level selected for the hull mesh.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lodLevel = -1;
@@ -188,8 +189,8 @@ export class EveSpaceObject2 extends EveEntity
    * Curve sets advanced by the object's update schedule.
    * @type {Array<TriCurveSet>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
@@ -197,7 +198,7 @@ export class EveSpaceObject2 extends EveEntity
    * Whether the object participates in picking.
    * @type {boolean}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   isPickable = true;
 
@@ -205,7 +206,7 @@ export class EveSpaceObject2 extends EveEntity
    * Estimated screen diameter of the hull's own bounds.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   estimatedPixelDiameter = 0;
 
@@ -213,7 +214,7 @@ export class EveSpaceObject2 extends EveEntity
    * Screen diameter of the combined hull and child bounds.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   estimatedPixelDiameterWithChildren = 0;
 
@@ -221,7 +222,7 @@ export class EveSpaceObject2 extends EveEntity
    * Center returned by the latest authored-or-derived shape ellipsoid query.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   generatedShapeEllipsoidCenter = vec3.create();
 
@@ -229,7 +230,7 @@ export class EveSpaceObject2 extends EveEntity
    * Radii returned by the latest authored-or-derived shape ellipsoid query.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   generatedShapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
@@ -237,7 +238,7 @@ export class EveSpaceObject2 extends EveEntity
    * Owned animation updater providing the hull's bone transforms.
    * @type {Tr2GrannyAnimation}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2GrannyAnimation")
   animationUpdater = new Tr2GrannyAnimation();
 
@@ -245,8 +246,8 @@ export class EveSpaceObject2 extends EveEntity
    * SOF DNA string describing the authored hull configuration.
    * @type {string}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.string
   dna = "";
 
@@ -254,9 +255,9 @@ export class EveSpaceObject2 extends EveEntity
    * Whether the hull registers as a shadow caster.
    * @type {boolean}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.boolean
   castShadow = false;
 
@@ -264,8 +265,8 @@ export class EveSpaceObject2 extends EveEntity
    * Whether the hull uses animated mesh data.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isAnimated = false;
 
@@ -273,8 +274,8 @@ export class EveSpaceObject2 extends EveEntity
    * Whether dynamic bounds contribute to the object's bounding sphere.
    * @type {boolean}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.boolean
   dynamicBoundingSphereEnabled = false;
 
@@ -282,8 +283,8 @@ export class EveSpaceObject2 extends EveEntity
    * Attachments that contribute updates, bounds and render batches.
    * @type {Array<IEveSpaceObjectAttachment>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
@@ -291,8 +292,8 @@ export class EveSpaceObject2 extends EveEntity
    * Decals rendered against the hull's mesh and parent data.
    * @type {Array<EveSpaceObjectDecal>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSpaceObjectDecal")
   decals = [];
 
@@ -300,9 +301,9 @@ export class EveSpaceObject2 extends EveEntity
    * Local lights whose transforms and brightness follow the object.
    * @type {Array<Tr2Light>}
    */
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
+
+
   @type.list("Tr2Light")
   lights = [];
 
@@ -310,8 +311,8 @@ export class EveSpaceObject2 extends EveEntity
    * External parameter bindings attached to this object's graph.
    * @type {Array<Tr2ExternalParameter>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
@@ -319,8 +320,8 @@ export class EveSpaceObject2 extends EveEntity
    * Controllers linked to this object and supplied with its variables.
    * @type {Array<ITr2Controller>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2Controller")
   controllers = [];
 
@@ -328,8 +329,8 @@ export class EveSpaceObject2 extends EveEntity
    * Named locators authored directly on the hull.
    * @type {Array<EveLocator2>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveLocator2")
   locators = [];
 
@@ -337,8 +338,8 @@ export class EveSpaceObject2 extends EveEntity
    * Hull mesh supplying geometry, areas and shader options.
    * @type {Tr2MeshBase|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2MeshBase")
   mesh = null;
 
@@ -346,8 +347,8 @@ export class EveSpaceObject2 extends EveEntity
    * Overlay receiving hull impact effects and shader-data offsets.
    * @type {EveImpactOverlay|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("EveImpactOverlay")
   impactOverlay = null;
 
@@ -355,8 +356,8 @@ export class EveSpaceObject2 extends EveEntity
    * Authored center of the hull clipping sphere.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   clipSphereCenter = vec3.create();
 
@@ -364,8 +365,8 @@ export class EveSpaceObject2 extends EveEntity
    * Secondary dissolve factor used to compute the second clipping radius.
    * @type {number}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   clipSphereFactor2 = 0;
 
@@ -373,8 +374,8 @@ export class EveSpaceObject2 extends EveEntity
    * Primary dissolve factor used to compute the clipping radius.
    * @type {number}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   clipSphereFactor = 0;
 
@@ -382,8 +383,8 @@ export class EveSpaceObject2 extends EveEntity
    * Local observers updated with the hull and its visibility.
    * @type {Array<TriObserverLocal>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriObserverLocal")
   observers = [];
 
@@ -391,7 +392,7 @@ export class EveSpaceObject2 extends EveEntity
    * Current world position sampled from the translation curve.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   worldPosition = vec3.create();
 
@@ -399,8 +400,8 @@ export class EveSpaceObject2 extends EveEntity
    * Curve supplying the object's world rotation.
    * @type {ITriQuaternionFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriQuaternionFunction")
   rotationCurve = null;
 
@@ -408,7 +409,7 @@ export class EveSpaceObject2 extends EveEntity
    * Current world rotation sampled from the rotation curve.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.quat
   worldRotation = quat.create();
 
@@ -416,8 +417,8 @@ export class EveSpaceObject2 extends EveEntity
    * Uniform scale applied when constructing the model transform.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   modelScale = 1;
 
@@ -425,8 +426,8 @@ export class EveSpaceObject2 extends EveEntity
    * Authored locator groups merged with child locator sets.
    * @type {Array<EveLocatorSets>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveLocatorSets")
   locatorSets = [];
 
@@ -434,7 +435,7 @@ export class EveSpaceObject2 extends EveEntity
    * Activation value forwarded to children, lights and shader data.
    * @type {number}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   activationStrength = 1;
 
@@ -442,7 +443,7 @@ export class EveSpaceObject2 extends EveEntity
    * Hull albedo used when registering secondary lighting.
    * @type {Float32Array}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.color
   albedoColor = color.createLinear();
 
@@ -450,9 +451,9 @@ export class EveSpaceObject2 extends EveEntity
    * Whether the hull and its render components are displayed.
    * @type {boolean}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
@@ -460,8 +461,8 @@ export class EveSpaceObject2 extends EveEntity
    * Whether the object's update work is enabled.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   update = true;
 
@@ -469,7 +470,7 @@ export class EveSpaceObject2 extends EveEntity
    * Radius supplied to the secondary-lighting manager.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   secondaryLightingSphereRadius = 0;
 
@@ -477,8 +478,8 @@ export class EveSpaceObject2 extends EveEntity
    * Authored local-space center of the hull's bounding sphere.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   boundingSphereCenter = vec3.create();
 
@@ -486,8 +487,8 @@ export class EveSpaceObject2 extends EveEntity
    * Dirt amount forwarded to controllers and packed shader ship data.
    * @type {number}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   dirtLevel = 0;
 
@@ -495,7 +496,7 @@ export class EveSpaceObject2 extends EveEntity
    * Four script-controlled values copied into per-object shader constants.
    * @type {Float32Array}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec4
   customShaderData = vec4.create();
 
@@ -506,7 +507,7 @@ export class EveSpaceObject2 extends EveEntity
    * Packed ship values supplied to the vertex and pixel shader records.
    * @type {Float32Array}
    */
-  @blue.read
+  @legacyBlue.read
   @type.vec4
   spaceObjectShipData = vec4.create();
 
@@ -514,7 +515,7 @@ export class EveSpaceObject2 extends EveEntity
    * Index of the last selected damage locator; negative before a hit.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   lastDamageLocatorHit = -1;
 
@@ -522,8 +523,8 @@ export class EveSpaceObject2 extends EveEntity
    * Whether damage locators request automatic occlusion filtering.
    * @type {boolean}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   damageLocatorAutoFilterEnabled = false;
 
@@ -531,8 +532,8 @@ export class EveSpaceObject2 extends EveEntity
    * Local bounding radius; a negative value marks unavailable bounds.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   boundingSphereRadius = -1;
 
@@ -540,7 +541,7 @@ export class EveSpaceObject2 extends EveEntity
    * World-space center of the transformed hull bounding sphere.
    * @type {Float32Array}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   modelWorldPosition = vec3.create();
 
@@ -548,8 +549,8 @@ export class EveSpaceObject2 extends EveEntity
    * Curve supplying the model's local translation offset.
    * @type {ITriVectorFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriVectorFunction")
   modelTranslationCurve = null;
 
@@ -557,8 +558,8 @@ export class EveSpaceObject2 extends EveEntity
    * Curve supplying the model's local rotation offset.
    * @type {ITriQuaternionFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriQuaternionFunction")
   modelRotationCurve = null;
 
@@ -566,8 +567,8 @@ export class EveSpaceObject2 extends EveEntity
    * Authored local center used by the shape ellipsoid query.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   shapeEllipsoidCenter = vec3.create();
 
@@ -575,8 +576,8 @@ export class EveSpaceObject2 extends EveEntity
    * Authored local radii; unavailable radii cause bounds-derived ellipsoid queries.
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   shapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
@@ -584,8 +585,8 @@ export class EveSpaceObject2 extends EveEntity
    * Curve supplying the object's world position and velocity.
    * @type {ITriVectorFunction|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriVectorFunction")
   translationCurve = null;
 
@@ -593,7 +594,7 @@ export class EveSpaceObject2 extends EveEntity
    * Current model-to-world transform, including model offsets and scale.
    * @type {Float32Array}
    */
-  @blue.read
+  @legacyBlue.read
   @type.mat4
   worldTransform = mat4.create();
 
@@ -607,7 +608,7 @@ export class EveSpaceObject2 extends EveEntity
    * Inverse of the current model-to-world transform.
    * @type {Float32Array}
    */
-  @blue.read
+  @legacyBlue.read
   @type.mat4
   inverseWorldTransform = mat4.create();
 
@@ -615,7 +616,7 @@ export class EveSpaceObject2 extends EveEntity
    * Previous world transform retained for motion and shader data.
    * @type {Float32Array}
    */
-  @blue.read
+  @legacyBlue.read
   @type.mat4
   lastWorldTransform = mat4.create();
 
@@ -623,7 +624,7 @@ export class EveSpaceObject2 extends EveEntity
    * Current world velocity obtained from the translation curve derivative.
    * @type {Float32Array}
    */
-  @blue.read
+  @legacyBlue.read
   @type.vec3
   worldVelocity = vec3.create();
 
@@ -639,7 +640,7 @@ export class EveSpaceObject2 extends EveEntity
    * GetAudioGeometry/SetAudioGeometry (EveSpaceObject2_Blue.cpp:327): the
    * Wwise spatial-audio geometry interface.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("ITr2AudGeometry")
   @meta.implemented
   get audioGeometry()
@@ -924,7 +925,7 @@ export class EveSpaceObject2 extends EveEntity
    * time - so a field-populated graph reaches the same live state as the
    * authoring path.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   Initialize()
   {
@@ -961,7 +962,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Returns the hull mesh, or null when none is attached. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetMesh()
   {
@@ -972,7 +973,7 @@ export class EveSpaceObject2 extends EveEntity
    * Replaces the hull mesh; the cached area blocks are only rebuilt on the next
    * batch call.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SetMesh(mesh)
   {
@@ -990,7 +991,7 @@ export class EveSpaceObject2 extends EveEntity
    * the updater's own subscription here (Tr2GrannyAnimation.SetSharedGeometryRes),
    * and the audio geometry is not ported.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   PrepareForAnimation()
   {
@@ -1004,7 +1005,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Borrowed overlay vector used by child mesh inheritance. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetOverlayEffects()
   {
@@ -1016,7 +1017,7 @@ export class EveSpaceObject2 extends EveEntity
    * list's INSERTED arm replays the controller variables onto it (cpp:376-389).
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   AddOverlayEffect(overlayEffect)
   {
     addChild(this, "overlayEffects", overlayEffect, { listNotify: this });
@@ -1024,7 +1025,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Removes an overlay effect when present (Carbon EveSpaceObject2.cpp:3319-3326). */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   RemoveOverlayEffect(overlayEffect)
   {
     removeChild(this, "overlayEffects", overlayEffect, { listNotify: this });
@@ -1035,7 +1036,7 @@ export class EveSpaceObject2 extends EveEntity
    * (Carbon EveSpaceObject2.cpp:3332-3347).
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   GetOverlayEffectByName(name)
   {
     if (name == null) return null;
@@ -1044,7 +1045,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Whether the hull is animated, as the SOF sets it (Carbon EveSpaceObject2.cpp:2530-2533). */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   IsAnimated()
   {
     return this.isAnimated;
@@ -1052,7 +1053,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2.cpp:2535-2538. */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   SetIsAnimated(isAnimated)
   {
     this.isAnimated = !!isAnimated;
@@ -1062,7 +1063,7 @@ export class EveSpaceObject2 extends EveEntity
    * Appends a controller, links it to this object when it is not already linked,
    * and replays the current controller variables onto it.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   AddController(controller)
   {
@@ -1076,7 +1077,7 @@ export class EveSpaceObject2 extends EveEntity
    * transform on every synchronous update; the observer is returned for
    * chaining.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   AddObserver(observer)
   {
@@ -1089,7 +1090,7 @@ export class EveSpaceObject2 extends EveEntity
    * inherit-properties holder on first use, and pushes it to the existing
    * children and lights.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -1119,7 +1120,7 @@ export class EveSpaceObject2 extends EveEntity
    * Returns the first effect child with the given name, or null when none
    * matches.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetEffectChildByName(name)
   {
@@ -1149,7 +1150,7 @@ export class EveSpaceObject2 extends EveEntity
    * the last removal or an unload. Decals renumber their priorities, which is
    * the one arm needing SWAPPED and MOVED.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   OnListModified(event, key = 0, key2 = 0, value = null, list = null)
   {
@@ -1271,7 +1272,7 @@ export class EveSpaceObject2 extends EveEntity
    * then replaying the current controller variables onto it, so a late addition
    * starts in the same state as the rest.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   AddToEffectChildrenList(child)
   {
@@ -1283,7 +1284,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Appends a light, first giving it the hull's inherited properties. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   AddLight(light)
   {
@@ -1296,7 +1297,7 @@ export class EveSpaceObject2 extends EveEntity
    * Drops every light from the hull; component registration is not revisited
    * here.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   ClearLights()
   {
@@ -1309,7 +1310,7 @@ export class EveSpaceObject2 extends EveEntity
    * Removes an effect child, returning false when it is not attached to this
    * hull.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   RemoveFromEffectChildrenList(child)
   {
@@ -1324,7 +1325,7 @@ export class EveSpaceObject2 extends EveEntity
    * Sets the curve that rotates the model within the hull's ball rotation, or
    * clears it when passed nothing.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetModelRotationCurve(curve)
   {
@@ -1332,7 +1333,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Returns the model rotation curve, or null when none is set. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetModelRotationCurve()
   {
@@ -1343,7 +1344,7 @@ export class EveSpaceObject2 extends EveEntity
    * Sets the curve that offsets the model within the hull's ball position, or
    * clears it when passed nothing.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetModelTranslationCurve(curve)
   {
@@ -1351,7 +1352,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Returns the model translation curve, or null when none is set. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetModelTranslationCurve()
   {
@@ -1363,7 +1364,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {number} time Frame time; repeating the previous call's time is a no-op.
    * @returns {boolean} False when the transform had already been built for this time.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   UpdateWorldTransform(time)
   {
@@ -1440,7 +1441,7 @@ export class EveSpaceObject2 extends EveEntity
    * Refreshes Carbon's realized world-space sphere from the dynamic skinned
    * sphere when available, otherwise from the authored local sphere.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   UpdateWorldBounds()
   {
@@ -1469,7 +1470,7 @@ export class EveSpaceObject2 extends EveEntity
    * world bounds, packs the ship data, and derives the clip-sphere dissolve
    * values into the persistent per-object records.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   PrepareShaderData(updateContext = null)
   {
@@ -1514,7 +1515,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Object} manager - Tr2ShLightingManager
    * @param {Object} [updateContext] - frame context, for the detail thresholds
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   UpdateShLighting(manager, updateContext = null)
   {
@@ -1554,7 +1555,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   RegisterSecondaryLightSource(manager)
   {
@@ -1567,7 +1568,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager removed it.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   UnregisterSecondaryLightSource(manager)
   {
@@ -1595,7 +1596,7 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon EveSpaceObject2::ClearShLighting (cpp:1423-1426): drops this hull's
    * secondary-lighting contribution back to nothing.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   ClearShLighting()
   {
@@ -1611,7 +1612,7 @@ export class EveSpaceObject2 extends EveEntity
    * attachment reading it sees the hull's current coefficients.
    * @param {Object} [out] - caller-owned record, refreshed in place
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetParentData(out = new IEveSpaceObject2ParentData())
   {
@@ -1636,7 +1637,7 @@ export class EveSpaceObject2 extends EveEntity
    * PS record as Carbon does.
    * @returns {{vs: RawData, ps: RawData}} independent copies, not live records
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetPerObjectStructs(vsData = RawData.create("EveSpaceObjectVSData"), psData = RawData.create("EveSpaceObjectPSData"))
   {
@@ -1652,7 +1653,7 @@ export class EveSpaceObject2 extends EveEntity
    * CPU animation updater advances by context delta instead of native clock.
    * @returns {boolean} False when the update flag is off; the world transform is refreshed either way.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   UpdateSyncronous(updateContext = null)
   {
@@ -1719,7 +1720,7 @@ export class EveSpaceObject2 extends EveEntity
    * and returns the computed controller frequency; the native method is void.
    * @returns {number} The controller update frequency in 0..1, which is also handed to the effect children; 0 when the hull is not visible or the update flag is off.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   UpdateAsyncronous(updateContext = null)
   {
@@ -1845,7 +1846,7 @@ export class EveSpaceObject2 extends EveEntity
    *
    * Adapted: raytracing mesh updates are not ported.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   UpdateVisibility(updateContext = null, _parentTransform = EveSpaceObject2._identityTransform)
   {
@@ -1977,7 +1978,7 @@ export class EveSpaceObject2 extends EveEntity
    *
    * @param {object} quadRenderer The scene's Tr2QuadRenderer.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -1994,7 +1995,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {object} frustum The frame's frustum.
    * @param {object} quadRenderer The scene's Tr2QuadRenderer.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -2027,7 +2028,7 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {ITr2Renderable[]} out
    */
   @meta.adapted
-  @blue.method
+  @legacyBlue.method
   GetRenderables__Impostors(out = [], impostors)
   {
     this._impostorMode = this._impostorMode && impostors !== null;
@@ -2058,7 +2059,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Map<number, object>} batches Accumulators by TriBatchType.
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   GetImpostorBatches(_frustum, batches)
   {
     const renderables = [];
@@ -2072,7 +2073,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** ITr2ImpostorSource (cpp:4254-4259): how far the view has turned since the impostor was captured. */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   GetRenderPriority(oldHash, newHash)
   {
     const dotView = vec3.dot(oldHash.viewDir, newHash.viewDir);
@@ -2082,7 +2083,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** ITr2ImpostorSource (cpp:4261-4264): the object's bounding sphere. */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   GetImpostorBoundingSphere(sphere)
   {
     return this.GetBoundingSphere(sphere);
@@ -2090,7 +2091,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** ITr2ImpostorSource (cpp:4266-4274): the bounding sphere moved to last frame's world position. */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   GetLastImpostorBoundingSphere(sphere)
   {
     this.GetImpostorBoundingSphere(sphere);
@@ -2112,7 +2113,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   PushRenderables(out)
   {
     if (this.mesh && this._isMeshVisible && this.mesh.IsLoading() !== true)
@@ -2134,7 +2135,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   PushChildrenAndDecalRenderables(out)
   {
     if (this.DisplayChildren())
@@ -2165,7 +2166,7 @@ export class EveSpaceObject2 extends EveEntity
    * attachments recurse, the impact overlay contributes, the hull mesh delegates
    * per batch type, and TRANSPARENT routes through the distance-sorted area
    * path, then GetBatchesFromOverlayVector adds the overlay batches. */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, reason)
   {
@@ -2276,7 +2277,7 @@ export class EveSpaceObject2 extends EveEntity
    * shadow list groups OPAQUE areas by shared material. All coalesced.
    * Carbon (cpp:2408-2419) calls CollectOverlayAreaBlocks from the geometry-resource
    * notify callback; here it rebuilds lazily on first batch use from the mesh areas alone. */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   RebuildCachedData()
   {
@@ -2298,7 +2299,7 @@ export class EveSpaceObject2 extends EveEntity
    * Drops the cached overlay and shadow area-block lists so the next batch call
    * rebuilds them from the current mesh.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   ReleaseCachedData()
   {
@@ -2331,7 +2332,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Number} pickTypes - a Tr2PickType mask
    * @param {Object} perObjectData - this hull's per-object record
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
@@ -2378,7 +2379,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Number} [_areaID] - the picked area, unused by this class
    * @returns {EveSpaceObject2} this
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetID(_areaID = 0)
   {
@@ -2395,7 +2396,7 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: LOD draw args are left as a geometry source descriptor and primitive-count
    * gating is not ported yet; Carbon bakes both here.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
@@ -2438,7 +2439,7 @@ export class EveSpaceObject2 extends EveEntity
    * maximum priority, then each overlay effect draws over its overlay-type
    * blocks, through EveMeshOverlayEffect.emitDamageOverlayBatches/emitOverlayBatches.
    * The cached blocks are rebuilt lazily (see RebuildCachedData). */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetBatchesFromOverlayVector(batches, perObjectData, batchType, mesh)
   {
@@ -2473,7 +2474,7 @@ export class EveSpaceObject2 extends EveEntity
    *
    * Adapted: Portable mesh area access replaces Carbon's native mesh-area vectors.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   HasTransparentBatches()
   {
@@ -2491,7 +2492,7 @@ export class EveSpaceObject2 extends EveEntity
    * Returns the distance from the renderer's view position to the hull
    * world translation, used to order transparent renderables back-to-front.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetSortValue()
   {
@@ -2514,7 +2515,7 @@ export class EveSpaceObject2 extends EveEntity
    * wraps its two persistent RawData records in native per-object data so each
    * gathering owns its picking pointer independently of the persistent payloads.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetPerObjectData(_accumulator = null)
   {
@@ -2538,7 +2539,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Carbon forwards the shadow pass to the same per-object record. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetShadowPerObjectData(accumulator = null)
   {
@@ -2553,7 +2554,7 @@ export class EveSpaceObject2 extends EveEntity
    * pass uses the Tr2Light default 1) - one frame of activation-strength
    * lag, preserved verbatim. cpp:3554's dead `DisplayChildren()` local is
    * not ported. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetLights(lightManager)
   {
@@ -2583,7 +2584,7 @@ export class EveSpaceObject2 extends EveEntity
    * out-parameter.
    */
   @meta.adapted
-  @blue.method
+  @legacyBlue.method
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || this._boundingSphereWorldRadius <= 0)
@@ -2622,7 +2623,7 @@ export class EveSpaceObject2 extends EveEntity
    * own components and its children with the scene registration container "so
    * we don't have to traverse the tree every frame". RegisterAudioGeometry
    * (cpp:3572-3575) is audio-engine-owned and unported. Gate m_display. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -2661,7 +2662,7 @@ export class EveSpaceObject2 extends EveEntity
    * called UnRegisterAllComponents(this) first (EveEntity.cpp:90) - and does
    * not re-check display. UnregisterAudioGeometry (cpp:3617) is
    * audio-engine-owned and unported. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   UnRegisterComponents()
   {
@@ -2712,7 +2713,7 @@ export class EveSpaceObject2 extends EveEntity
    * Reports whether children and effect children should be shown; always true on
    * the base hull, subclasses gate it on activation state.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   DisplayChildren()
   {
@@ -2726,7 +2727,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetObserverTransform(out)
   {
@@ -2739,7 +2740,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {mat4} [out]
    * @returns {mat4} out
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetLocalToWorldTransform(out = mat4.create())
   {
@@ -2754,7 +2755,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {number} t - the time to update to, in Blue ticks
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   UpdateModelCenterWorldPosition(position, t)
   {
     this.UpdateWorldTransform(t);
@@ -2773,7 +2774,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Carbon's non-updating model-center query. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetModelCenterWorldPosition(out)
   {
@@ -2785,7 +2786,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Float32Array} out Caller-owned position.
    * @returns {Float32Array} out
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetWorldPosition(out)
   {
@@ -2797,7 +2798,7 @@ export class EveSpaceObject2 extends EveEntity
    * rotation curve; the quaternion is the object's own field and is rewritten by
    * the next transform update.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetWorldRotation()
   {
@@ -2808,7 +2809,7 @@ export class EveSpaceObject2 extends EveEntity
    * Finds a sound emitter by observer name on this hull and then recursively in
    * the effect children, returning null when no emitter carries the name.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   FindSoundEmitter(name)
   {
@@ -2837,7 +2838,7 @@ export class EveSpaceObject2 extends EveEntity
    * Sets the mute flag and pushes it to every effect child and placement
    * observer.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SetMute(mute)
   {
@@ -2856,7 +2857,7 @@ export class EveSpaceObject2 extends EveEntity
    * Plays an animation with explicit loop, start, and speed settings
    * (Carbon PlayAnimationEx, MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
    */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   PlayAnimationEx(animName, loopCount, start, speed, clearWhenDone = true)
   {
@@ -2869,7 +2870,7 @@ export class EveSpaceObject2 extends EveEntity
    * is unported. Returns an inverted-empty { min, max } box when dynamic
    * bounds are disabled, as Carbon's BoundingBoxInitialize does.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   CalculateSkinnedBoundingBoxFromTransform(transform)
   {
@@ -2900,7 +2901,7 @@ export class EveSpaceObject2 extends EveEntity
    * sphere; granny path unported). Returns (0,0,0,-1) when dynamic bounds
    * are disabled.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   CalculateSkinnedBoundingSphere(out = vec4.create())
   {
@@ -2913,7 +2914,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Marks the derived locator graph stale and restarts any requested filter. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   InvalidateMergedLocators(reason = "structure")
   {
@@ -2929,7 +2930,7 @@ export class EveSpaceObject2 extends EveEntity
    * Rebuilds the locator sets visible on this object from its own authored sets
    * plus the sets owned by child meshes and nested child containers.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   EnsureChildLocatorMerged()
   {
@@ -3000,7 +3001,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Releases every active raycast preparation session used by damage filtering. */
-  @blue.method
+  @legacyBlue.method
   _ReleaseDamageFilterSessions()
   {
     if (this._damageFilterState !== 2) return;
@@ -3098,7 +3099,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Rebuilds the enabled mask by testing each locator ray against occluders. */
-  @blue.method
+  @legacyBlue.method
   _RefreshDamageLocatorMask(damageLocators)
   {
     this._damageLocatorEnabled = damageLocators.map(locator =>
@@ -3151,7 +3152,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Advances the asynchronous damage-locator filtering state machine. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   UpdateDamageLocatorFilter()
   {
@@ -3196,7 +3197,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Requests a damage-locator filter pass. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RunDamageLocatorFilter()
   {
@@ -3207,7 +3208,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Clears all impact and damage effects on the impact overlay.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearImpactDamage()
   {
@@ -3223,7 +3224,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Clears all animations on the animation updater.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearAnimations()
   {
@@ -3233,7 +3234,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Creates an impact facing a position on the closest facing damage locator.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   CreateImpactFromPosition(position, direction, lifeTime, size)
   {
@@ -3244,7 +3245,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Creates an impact effect on a damage locator through the impact overlay.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   CreateImpact(damageLocatorIndex, direction, lifeTime, size)
   {
@@ -3279,7 +3280,7 @@ export class EveSpaceObject2 extends EveEntity
    * index equal to the locator count is accepted.
    * @param {number} locator Damage locator index.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetLastDamageLocatorHit(locator)
   {
@@ -3290,7 +3291,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Ends the current animation on the animation updater.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   EndAnimation()
   {
@@ -3301,7 +3302,7 @@ export class EveSpaceObject2 extends EveEntity
    * Freezes LOD selection at the current mesh and marks decal geometry
    * frozen.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   FreezeHighDetailMesh()
   {
@@ -3315,7 +3316,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the number of damage locators on this object.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetDamageLocatorCount()
   {
@@ -3326,7 +3327,7 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon EveSpaceObject2::GetLastDamageLocatorHit (EveSpaceObject2.cpp:3730-3733).
    * @returns {number} The last hit damage locator, or -1.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetLastDamageLocatorHit()
   {
@@ -3339,7 +3340,7 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   ResetClipSphereCenter()
   {
     vec3.negate(this.clipSphereCenter, this.GetBoundingSphereCenter(this.clipSphereCenter));
@@ -3352,7 +3353,7 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   ResetClipSphereCenterToPos(center)
   {
     vec3.copy(this.clipSphereCenter, center);
@@ -3361,7 +3362,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Gets the number of locators in a named locator set.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetLocatorCount(locatorSetName)
   {
@@ -3372,7 +3373,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the first locator list whose set has the requested Carbon name.
    * The returned list remains owned by the locator set.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetLocatorsForSet(locatorSetName)
   {
@@ -3389,7 +3390,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Appends copies of a named locator set, merging with an existing authored set. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   MergeToLocatorSet(locatorSet)
   {
@@ -3407,7 +3408,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Adds a new authored locator set without replacing another set of the same name. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   AddLocatorSet(name, locators)
   {
@@ -3419,7 +3420,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Removes all authored locator sets and invalidates every derived locator view. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   ClearLocatorSets()
   {
@@ -3431,7 +3432,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the closest locator in a set to a world position, ignoring locator
    * facing. Returns -1 when the set is missing or empty.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetCloseLocatorIndex(position, locatorSetName)
   {
@@ -3466,7 +3467,7 @@ export class EveSpaceObject2 extends EveEntity
    * (EveSpaceObject2_Blue.cpp); the internal randomized fit heuristic is not
    * script-exposed.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetGoodLocatorIndex(position, locatorSetName)
   {
@@ -3478,7 +3479,7 @@ export class EveSpaceObject2 extends EveEntity
    * indices out of range (Carbon script GetDamageLocatorDirection maps to
    * GetDamageLocatorDirectionLocal).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetDamageLocatorDirection(index, inWorldSpaceOrOut = vec3.create(), out = vec3.create())
   {
@@ -3503,7 +3504,7 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: CarbonEngineJS keeps output parameters last and returns a validity flag for
    * targetable callers.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetDamageLocatorPosition(index, inWorldSpace, out = vec3.create())
   {
@@ -3524,7 +3525,7 @@ export class EveSpaceObject2 extends EveEntity
    * authored position, no animation (Carbon EveSpaceObject2.cpp:2785-2796).
    * Impact overlays seed decals here so they stay put on animated parts.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetDamageLocatorBindPosition(index, out = vec3.create())
   {
@@ -3539,7 +3540,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Gets the closest facing damage locator for ITriTargetable consumers. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetClosestDamageLocatorIndex(position)
   {
@@ -3551,7 +3552,7 @@ export class EveSpaceObject2 extends EveEntity
    *
    * Random draws delegate to the matching generator in global/math/random.js.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetGoodDamageLocatorIndex(position)
   {
@@ -3605,7 +3606,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Gets the model-scaled target radius. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetRadius()
   {
@@ -3613,7 +3614,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Computes a miss point just outside the model silhouette. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetMissPosition(hit, source, out = vec3.create())
   {
@@ -3640,7 +3641,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Gets the current target impact material. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetImpactConfiguration()
   {
@@ -3650,7 +3651,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Replaces the ship impact overlay. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetImpactOverlay(overlay)
   {
@@ -3658,7 +3659,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Returns the ship impact overlay. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetImpactOverlay()
   {
@@ -3666,7 +3667,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Reports whether impacts currently use the authored shield ellipsoid. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   HasImpactConfigurationShield()
   {
@@ -3680,7 +3681,7 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: CarbonEngineJS uses an out-last signature; the ellipsoid intersection is
    * otherwise source-faithful CPU math.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetImpactPosition(locator, posPrev, posNow, epsilon, out = vec3.create())
   {
@@ -3709,7 +3710,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Updates an existing impact overlay entry. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   UpdateImpact(out, direction, impactIndex)
   {
@@ -3729,7 +3730,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the local position of an indexed damage locator, (0,0,0) for
    * indices out of range.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetDamageLocator(index, out = vec3.create())
   {
@@ -3747,7 +3748,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the world-space position of an indexed damage locator, (0,0,0) for
    * indices out of range (returned untransformed, as Carbon does).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetTransformedDamageLocator(index, out = vec3.create())
   {
@@ -3765,7 +3766,7 @@ export class EveSpaceObject2 extends EveEntity
    * Checks whether this object is in impostor mode. The impostor system that
    * raises the flag is unported, so this reports the default until then.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   IsImpostor()
   {
@@ -3777,7 +3778,7 @@ export class EveSpaceObject2 extends EveEntity
    * position by value, through GetLocatorPosition.
    * @returns {vec3} a new vector
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetLocatorPositionFromSet(index, inWorldSpace, locatorSetName)
   {
@@ -3796,7 +3797,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {string} locatorSetName
    * @returns {boolean} whether the locator exists
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetLocatorPosition(out, index, inWorldSpace, locatorSetName)
   {
@@ -3828,7 +3829,7 @@ export class EveSpaceObject2 extends EveEntity
    * direction by value, through GetLocatorDirection.
    * @returns {vec3} a new vector
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetLocatorRotationFromSet(index, inWorldSpace, locatorSetName)
   {
@@ -3846,7 +3847,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {string} locatorSetName
    * @returns {boolean} whether the locator exists
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetLocatorDirection(out, index, inWorldSpace, locatorSetName)
   {
@@ -3881,7 +3882,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::UpdateCurveSet (cpp:3901-3924): samples matching own sets at an explicit time on both clocks, then the children. */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets)
@@ -3893,7 +3894,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::PlayCurveSet (cpp:3930-3961): matching own sets play whole or a named range, then the children. */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   PlayCurveSet(name, rangeName = "")
   {
     for (const curveSet of this.curveSets)
@@ -3914,7 +3915,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::StopCurveSet (cpp:3967-3990). */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   StopCurveSet(name)
   {
     for (const curveSet of this.curveSets)
@@ -3926,7 +3927,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::GetCurveSetDuration (cpp:3996-4019): the longest over matching own sets and the children. */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   GetCurveSetDuration(name)
   {
     let duration = 0;
@@ -3940,7 +3941,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::GetRangeDuration (cpp:4024-4047): the longest named range over own sets and the children. */
   @meta.implemented
-  @blue.method
+  @legacyBlue.method
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
@@ -3956,7 +3957,7 @@ export class EveSpaceObject2 extends EveEntity
    * Raises a named controller event on this hull's controllers and forwards it
    * to the effect children and overlay effects.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -3979,7 +3980,7 @@ export class EveSpaceObject2 extends EveEntity
    * Plays an animation once, replacing the current one
    * (Carbon script PlayAnimation maps to PlayAnimationOnce).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   PlayAnimation(animName)
   {
@@ -3989,7 +3990,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Chains an animation once after the current one (Carbon ChainAnimation).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ChainAnimation(animName)
   {
@@ -4000,7 +4001,7 @@ export class EveSpaceObject2 extends EveEntity
    * Chains an animation with explicit loop, start, and speed settings
    * (Carbon ChainAnimationEx).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ChainAnimationEx(animName, loopCount, start, speed)
   {
@@ -4015,7 +4016,7 @@ export class EveSpaceObject2 extends EveEntity
    * Forwards a playback request to the animation updater, which owns all
    * animation state; a hull without an updater does nothing, as in Carbon.
    */
-  @blue.method
+  @legacyBlue.method
   _PlayAnimation(animName, replace, loopCount, delay, speed, clearWhenDone)
   {
     this.animationUpdater?.PlayAnimation(String(animName ?? ""), replace, loopCount, delay, speed, clearWhenDone);
@@ -4025,7 +4026,7 @@ export class EveSpaceObject2 extends EveEntity
    * Recalculates the authored bounding sphere from the mesh geometry
    * resource. Fails when no mesh or ready geometry resource is attached.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RebuildBoundingSphereInformation()
   {
@@ -4053,7 +4054,7 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: Carbon's CcpMath::Sphere is represented by core-math sph3; object-shaped
    * center/radius input is accepted at adapter boundaries.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SetBoundingSphereInformation(sphere)
   {
@@ -4073,7 +4074,7 @@ export class EveSpaceObject2 extends EveEntity
    * Returns a plain-object snapshot of the controller variables currently
    * stamped on this hull.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetControllerVariables()
   {
@@ -4086,7 +4087,7 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: Geometry resources without multi-LOD support expose their sole browser LOD as
    * index zero.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetLastUsedMeshLod()
   {
@@ -4103,7 +4104,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {string|null} [prefix]
    * @returns {number}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   CountLocatorsByPrefix(prefix)
   {
@@ -4124,7 +4125,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {{index: number}} indexOut
    * @returns {boolean}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   FindLocatorTransformByName(name, indexOut)
   {
@@ -4147,7 +4148,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {{index: number}} indexOut
    * @returns {boolean}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   FindLocatorJointByName(name, indexOut)
   {
@@ -4166,7 +4167,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {{index: number}} indexOut
    * @returns {number} A member of EveSpaceObject2.LocatorType.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   DetermineLocatorType(name, indexOut)
   {
@@ -4192,7 +4193,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {mat4} [out] Output matrix for the numeric overload.
    * @returns {mat4|null}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetLocatorTransform(nameOrType, indexOrOut, out)
   {
@@ -4241,7 +4242,7 @@ export class EveSpaceObject2 extends EveEntity
    * frame). With out arguments it fills them and returns true; without, it
    * returns { min, max }.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetLocalBoundingBox(minBounds, maxBounds)
   {
@@ -4275,7 +4276,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Gets Carbon's cached local box transformed into a world-axis-aligned box. */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetWorldBoundingBox(minBounds, maxBounds)
   {
@@ -4289,7 +4290,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Reports whether the attached mesh has a ready geometry resource. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   IsBoundingBoxReady()
   {
@@ -4302,7 +4303,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets Carbon's realized world sphere, optionally accumulated with transform
    * and effect children when query is EVE_BOUNDS_WITH_CHILDREN.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetBoundingSphere(out = sph3.create(), query = 0)
   {
@@ -4331,7 +4332,7 @@ export class EveSpaceObject2 extends EveEntity
    * local box as a world sphere through the exact pixel query; a meshless
    * object sizes its bounding sphere through the estimated one.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   EstimatePixelDiameter(frustum)
   {
@@ -4355,7 +4356,7 @@ export class EveSpaceObject2 extends EveEntity
 
 
   /** Carbon EveSpaceObject2::GetWorldVelocity (cpp:3014-3017): the ball's velocity. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetWorldVelocity(velocity)
   {
@@ -4364,7 +4365,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Reports the result of the latest Carbon visibility update. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   IsInFrustum()
   {
@@ -4375,7 +4376,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the bounding sphere center, preferring the dynamic skinned sphere
    * when one is published.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetBoundingSphereCenter(out = vec3.create())
   {
@@ -4390,7 +4391,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the model-scaled bounding sphere radius, preferring the dynamic
    * skinned sphere when one is published.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetBoundingSphereRadius()
   {
@@ -4405,7 +4406,7 @@ export class EveSpaceObject2 extends EveEntity
    * The Tr2GrannyAnimation driving this object, or null
    * (ITr2GrannyAnimationOwner, EveSpaceObject2.h:450-453).
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetAnimationController()
   {
@@ -4416,7 +4417,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the number of mesh-bound bones. Carbon dereferences the animation
    * updater unchecked; CarbonEngineJS reports 0 when none is attached.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetBoneCount()
   {
@@ -4447,7 +4448,7 @@ export class EveSpaceObject2 extends EveEntity
    * mirrors them into the ShieldDamage, ArmorDamage and HullDamage controller
    * variables so bound effects follow.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetImpactDamageState(shield, armor, hull, doCreateArmorImpacts = true)
   {
@@ -4470,7 +4471,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Toggles a named impact-overlay animation (boosters, hardeners, ...).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetImpactAnimation(name, enable, duration)
   {
@@ -4486,7 +4487,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Creates and synchronizes the damage overlay owned by one child-locator range. */
-  @blue.method
+  @legacyBlue.method
   EnsureChildDamageOverlay(range)
   {
     let overlay = range.owner.GetPartDamageOverlay(range.partTag);
@@ -4517,7 +4518,7 @@ export class EveSpaceObject2 extends EveEntity
    * merged damage locator set, as [overlay, start] pairs (Carbon
    * EveSpaceObject2.cpp:3561-3574).
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   CollectPartDamageOverlays(out = [])
   {
@@ -4540,7 +4541,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {string|null} [propertyName] The changed member's exposed name.
    * @returns {boolean} Always true.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -4569,7 +4570,7 @@ export class EveSpaceObject2 extends EveEntity
    * Sets a shader option on the mesh, overlay effects, decals, attachments and
    * effect children (EveSpaceObject2.cpp:4358-4388).
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -4585,7 +4586,7 @@ export class EveSpaceObject2 extends EveEntity
    * effect children and overlay effects; the stored value is replayed onto
    * controllers and children added later.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -4610,7 +4611,7 @@ export class EveSpaceObject2 extends EveEntity
    * Forwards a procedural-container variable to every effect child; the hull
    * itself keeps no copy.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
@@ -4624,7 +4625,7 @@ export class EveSpaceObject2 extends EveEntity
    * Starts this hull's controllers and those of its effect children and overlay
    * effects.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
   {
@@ -4650,7 +4651,7 @@ export class EveSpaceObject2 extends EveEntity
    * LocatorStructureList shape) or the same [position, rotation, boneIndex]
    * tuple shape it returns.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   TransformLocators(locators = [])
   {
@@ -4679,7 +4680,7 @@ export class EveSpaceObject2 extends EveEntity
    * boneIndex] tuples (Carbon script GetTransformedLocatorsFromSet maps to
    * PyGetTransformedLocatorsFromSet, EveSpaceObject2_Blue.cpp:146-181).
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetTransformedLocatorsFromSet(locatorSetName)
   {
@@ -4762,7 +4763,7 @@ export class EveSpaceObject2 extends EveEntity
    *
    * Overridable on purpose: Carbon's EveSwarm overrides this.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
   {
@@ -4797,7 +4798,7 @@ export class EveSpaceObject2 extends EveEntity
    * world position - 0 when the set is missing, -1 when no locator faces the
    * position.
    */
-  @blue.method
+  @legacyBlue.method
   GetClosestLocatorIndex(position, locatorSetName)
   {
     const locators = this.GetLocatorsForSet(locatorSetName);
@@ -4853,7 +4854,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Carbon's authored-or-derived local shape ellipsoid query. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetShapeEllipsoid(outCenter, outRadii)
   {
@@ -5131,7 +5132,7 @@ export class EveSpaceObject2 extends EveEntity
 
 }
 
-be.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType);
+blue.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType);
 
 
 // Supported native mappings; the concrete self slot enables locator queries.

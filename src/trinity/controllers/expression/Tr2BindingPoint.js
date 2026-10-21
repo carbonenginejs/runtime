@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.h
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
-import { blue as be, CjsBlueClasses, IList, INotify } from "#blue";
-import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor, type, blue } from "#schema";
+import { blue, CjsBlueClasses, IList, INotify } from "#blue";
+import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor, type, blue as legacyBlue } from "#schema";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "../../../global/blue/dictionaryDeclarations.js";
 
 
@@ -75,7 +75,7 @@ export class Tr2BindingPoint
    *
    * @param {Array<[string, object]>} roots Named roots, as a controller's GetBindingPathRoots.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   Link(roots)
   {
@@ -92,7 +92,7 @@ export class Tr2BindingPoint
   }
 
   /** Carbon Unlink (cpp:295-303). */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   Unlink()
   {
@@ -109,7 +109,7 @@ export class Tr2BindingPoint
    *
    * @returns {boolean} Whether a destination is bound.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   IsValid()
   {
@@ -126,7 +126,7 @@ export class Tr2BindingPoint
    *
    * @param {number} value The value; stored as a C++ float first.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SetValue(value)
   {
@@ -163,7 +163,7 @@ export class Tr2BindingPoint
    *
    * @returns {number|null} The destination value as a float.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetValue()
   {
@@ -180,7 +180,7 @@ export class Tr2BindingPoint
    *
    * @returns {object|null} The resolved object, else the authored one.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetBoundObject()
   {
@@ -197,7 +197,7 @@ export class Tr2BindingPoint
    * @param {string} attribute Member name with an optional `.x` swizzle.
    * @returns {boolean} Whether a destination was bound.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetDestination(object, attribute)
   {
@@ -237,7 +237,7 @@ export class Tr2BindingPoint
     this._destinationObject = object;
     this._entryOffset = entryOffset;
     this._arraySize = arraySize;
-    this._notifyPtr = be.classes.QueryThisInterface(object, INotify, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    this._notifyPtr = blue.classes.QueryThisInterface(object, INotify, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     return true;
   }
 
@@ -338,7 +338,7 @@ export class Tr2BindingPoint
   {
     if (Array.isArray(object)) return object;
     if (!object || typeof object !== "object") return null;
-    return be.classes.QueryThisInterface(object, IList, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    return blue.classes.QueryThisInterface(object, IList, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
   }
 
   /** Carbon GetListElement by index (cpp:78-92); negative counts from the end. */

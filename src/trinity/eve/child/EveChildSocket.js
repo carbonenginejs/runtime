@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
@@ -9,10 +10,10 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { IsMatch, blue as be } from "#blue";
+import { IsMatch, blue } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { EveChildPlug } from "./EveChildPlug.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
@@ -21,34 +22,43 @@ import { EveSocketParameterString } from "../socket/EveSocketParameterString.js"
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
-@blue.define("EveChildSocket")
-@blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
-@blue.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
+@be.define("EveChildSocket")
+@legacyBlue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IEveEffectChildrenOwner)
+@be.mapInterface(ITr2DebugRenderable)
+@be.mapInterface(IShaderConfigurer)
+@be.mapInterface(ITr2SoundEmitterOwner)
+@be.mapInterface(EveEntity)
+@legacyBlue.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
 export class EveChildSocket extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:28 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:29 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:30 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildSocket_Blue.cpp:31) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   localTransform = mat4.create();
 
@@ -59,34 +69,34 @@ export class EveChildSocket extends EveChildTransform
   _pendingPlugCalls = null;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_parameters (PIEveSocketParameterVector) [READ, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
+
+
   @type.list("IEveSocketParameter")
   parameters = [];
 
   /** m_plugResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.path("object")
   resPath = "";
 
   /** m_plug (EveChildPlugPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("EveChildPlug")
   plug = null;
 
@@ -94,7 +104,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon EveChildSocket.cpp:431-437 forwards an event. Adapted: retain calls
    * made while the synchronous native load is pending in JavaScript.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   HandleControllerEvent(name)
   {
@@ -107,7 +117,7 @@ export class EveChildSocket extends EveChildTransform
    * EveChildSocket_Blue.cpp:67-72. Adapted: the existing partial port creates
    * string bindings only; already-authored parameter classes bind directly.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   BindParameters()
   {
@@ -132,7 +142,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Blue-exposed alias for Carbon BindParameters (EveChildSocket_Blue.cpp:67). */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   Rebind()
   {
@@ -200,7 +210,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket.cpp:42-45 reloads by initializing again. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Reload()
   {
@@ -238,7 +248,7 @@ export class EveChildSocket extends EveChildTransform
     let object = null;
     try
     {
-      if (path) object = await be.resMan.LoadObject(path);
+      if (path) object = await blue.resMan.LoadObject(path);
     }
     catch
     {
@@ -283,7 +293,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon cpp:423-429 forwards a variable. Adapted: replay calls made during
    * asynchronous loading after the plug has been registered and bound.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   SetControllerVariable(name, value)
   {
@@ -295,7 +305,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon cpp:447-453 starts the plug controllers. Adapted: defer starts made
    * during loading until the native registration/binding order is complete.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   StartControllers()
   {

@@ -1,12 +1,13 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2KelvinColor.h
 // Source: trinity/trinity/Tr2KelvinColor.cpp
 // Source: trinity/trinity/Tr2KelvinColor_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 
 /**
  * A light colour authored as a temperature in kelvin, a tint, and a white-balance
@@ -14,26 +15,26 @@ import { blue as be } from "#blue";
  * GetTemperature/GetTint/GetWhiteBalance accessors and RGBA AsRGB are not exposed
  * here. Initialization and the native self/IInitialize query are supported.
  */
-@blue.define("Tr2KelvinColor")
-@blue.interface(IInitialize)
+@be.define("Tr2KelvinColor")
+@be.mapInterface(IInitialize)
 export class Tr2KelvinColor extends IInitialize
 {
 
   /** m_temperature (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   temperature = 5500;
 
   /** m_tint (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   tint = 0.5;
 
   /** m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2StandardIlluminant")
   whiteBalance = 2;
@@ -196,7 +197,7 @@ export class Tr2KelvinColor extends IInitialize
 
 
 
-CjsSchema.decorateMethod(Tr2KelvinColor, "GetTemperature", blue.method);
-CjsSchema.decorateMethod(Tr2KelvinColor, "GetTint", blue.method);
-CjsSchema.decorateMethod(Tr2KelvinColor, "GetWhiteBalance", blue.method);
-CjsSchema.decorateMethod(Tr2KelvinColor, "AsRGB", blue.method);
+CjsSchema.decorateMethod(Tr2KelvinColor, "GetTemperature", legacyBlue.method);
+CjsSchema.decorateMethod(Tr2KelvinColor, "GetTint", legacyBlue.method);
+CjsSchema.decorateMethod(Tr2KelvinColor, "GetWhiteBalance", legacyBlue.method);
+CjsSchema.decorateMethod(Tr2KelvinColor, "AsRGB", legacyBlue.method);

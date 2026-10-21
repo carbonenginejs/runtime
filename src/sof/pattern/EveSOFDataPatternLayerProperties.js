@@ -1,13 +1,14 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 
 /** Stores a pattern layer's projection modes, area types, and material slots. */
-@blue.define("EveSOFDataPatternLayerProperties")
-@blue.inherit(IRoot)
-@blue.interface()
+@be.define("EveSOFDataPatternLayerProperties")
+@legacyBlue.inherit(IRoot)
+
 export class EveSOFDataPatternLayerProperties extends IRoot
 {
 
@@ -32,94 +33,94 @@ export class EveSOFDataPatternLayerProperties extends IRoot
   ]);
 
   /** m_projectionTypeU (ProjectionType - enum ProjectionType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataPatternLayerProperties.ProjectionType")
   projectionTypeU = 0;
 
   /** m_projectionTypeV (ProjectionType - enum ProjectionType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataPatternLayerProperties.ProjectionType")
   projectionTypeV = 0;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_PRIMARY] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   Primary = true;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_GLASS] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   Glass = true;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_SAILS] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   Sails = true;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_REACTOR] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   Reactor = true;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_DARKHULL] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   Darkhull = true;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_ROCK] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   Rock = true;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_MONUMENT] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   Monument = true;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_ORNAMENT] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   Ornament = true;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_SIMPLEPRIMARY] (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   SimplePrimary = true;
 
   /** m_isTargetMtl1 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isTargetMtl1 = true;
 
   /** m_isTargetMtl2 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isTargetMtl2 = true;
 
   /** m_isTargetMtl3 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isTargetMtl3 = true;
 
   /** m_isTargetMtl4 (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isTargetMtl4 = true;
 
@@ -137,7 +138,7 @@ export class EveSOFDataPatternLayerProperties extends IRoot
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Carbon reuses this chooser but declares this enum type independently.
-be.enums.Create("trinity.EveSOFDataPatternLayerProperties.ProjectionType", EveSOFDataPatternLayerProperties.ProjectionType, {
+blue.enums.Create("trinity.EveSOFDataPatternLayerProperties.ProjectionType", EveSOFDataPatternLayerProperties.ProjectionType, {
   chooser: [
     { name: "Repeat", value: EveSOFDataPatternLayerProperties.ProjectionType.PROJECTION_REPEAT, description: "Repeat pattern texture projection" },
     { name: "Clamp", value: EveSOFDataPatternLayerProperties.ProjectionType.PROJECTION_CLAMP, description: "Clamp the projection" },

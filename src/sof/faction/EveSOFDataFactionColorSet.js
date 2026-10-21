@@ -2,8 +2,8 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:177-243
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
-import { blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 
@@ -67,7 +67,7 @@ const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "colo
  * A faction's colour palette: `Color m_colors[TYPE_MAX]`, exposed by chooser
  * name. Declarations keep the order this class has always exported.
  */
-@blue.define({
+@legacyBlue.define({
   className: "EveSOFDataFactionColorSet",
   members: [
   slot("Killmark", ColorType.TYPE_KILLMARK),
@@ -116,8 +116,8 @@ const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "colo
   slot("StateInvulnerable", ColorType.TYPE_STATE_INVULNERABLE)
 ]
 })
-@blue.inherit(IRoot)
-@blue.interface()
+@legacyBlue.inherit(IRoot)
+@legacyBlue.interface()
 export class EveSOFDataFactionColorSet extends IRoot
 {
   static ColorType = ColorType;
@@ -148,7 +148,7 @@ export class EveSOFDataFactionColorSet extends IRoot
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-be.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", ColorType, {
+blue.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", ColorType, {
   exposedName: "EveSOFDataFactionColorSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Primary", value: ColorType.TYPE_PRIMARY, description: "Primary Color" },

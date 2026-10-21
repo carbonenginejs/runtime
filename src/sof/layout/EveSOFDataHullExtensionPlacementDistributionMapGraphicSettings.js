@@ -1,25 +1,26 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
 /** Tests map graphic-quality settings as a condition for a hull-extension placement. */
-@blue.define("EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings")
-@blue.interface(IEveSOFDataHullExtensionPlacementDistribution)
+@be.define("EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings")
+@be.mapInterface(IEveSOFDataHullExtensionPlacementDistribution)
 export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings extends IEveSOFDataHullExtensionPlacementDistribution
 {
 
   /** m_displayFilter (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier")
   displayFilter = 5;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -37,7 +38,7 @@ export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings exte
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Carbon reuses this chooser but declares this enum type independently.
-be.enums.Create("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier", EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier, {
+blue.enums.Create("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier", EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier, {
   chooser: [
     { name: "None_", value: EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier.SHADER_ALL, description: "Visible to users with all shader settings" },
     { name: "Medium_and_High", value: EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier.SHADER_HIGHMID, description: "Visible for users with shader settings on Medium or High" },

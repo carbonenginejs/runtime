@@ -1,20 +1,21 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/TriRenderJob.h
 // Source: trinity/trinity/RenderJob/TriRenderJob.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
 import { TriRenderJobStatus } from "../generated/renderJob/enums.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 
 
 /**
  * An ordered list of render steps plus the cursor and status that let the
  * sequence pause mid-list and resume on a later frame.
  */
-@blue.define("TriRenderJob")
-@blue.interface(IRoot)
-@blue.inherit(IRoot)
+@be.define("TriRenderJob")
+
+@legacyBlue.inherit(IRoot)
 export class TriRenderJob extends IRoot
 {
   static Status = TriRenderJobStatus;
@@ -26,29 +27,29 @@ export class TriRenderJob extends IRoot
 
   static StepResult = TriRenderStep.Result;
 
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.TriRenderJobStatus")
   status = TriRenderJob.Status.RJ_INIT;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   stackGuard = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   enabled = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriRenderStep")
   steps = [];
 

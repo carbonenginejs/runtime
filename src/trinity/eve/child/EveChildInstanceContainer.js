@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
@@ -6,7 +7,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -21,38 +22,46 @@ import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
-import { blue as be, IsMatch } from "#blue";
+import { blue, IsMatch } from "#blue";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
-@blue.define("EveChildInstanceContainer")
-@blue.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, IEveEffectChildrenOwner, ITr2ControllerOwner, IListNotify, EveEntity, IShaderConfigurer)
-@blue.inherit(IEveEffectChildrenOwner)
+@be.define("EveChildInstanceContainer")
+@legacyBlue.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(INotify)
+@be.mapInterface(IEveEffectChildrenOwner)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(IListNotify)
+@be.mapInterface(EveEntity)
+@be.mapInterface(IShaderConfigurer)
+@legacyBlue.inherit(IEveEffectChildrenOwner)
 export class EveChildInstanceContainer extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:30 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:31 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildInstanceContainer_Blue.cpp:33) */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   localTransform = mat4.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:32 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
@@ -71,57 +80,57 @@ export class EveChildInstanceContainer extends EveChildTransform
   _worldVelocity = vec3.create();
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
+
+
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
   /** m_transforms (PEveChildInstanceTransformStructureList) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("EveChildInstanceTransform")
   transforms = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_isAlwaysOn (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   alwaysOn = false;
 
   /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("EveChildInheritProperties")
   inheritProperties = null;
 
   /** m_reset (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   reset = true;
 
   /** m_instances (PIEveSpaceObjectChildVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("IEveSpaceObjectChild")
   instances = [];
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.string
   locatorSet = "";
 
@@ -131,8 +140,8 @@ export class EveChildInstanceContainer extends EveChildTransform
    * (EveChildInstanceContainer_Blue.cpp:58). Readers write it directly,
    * bypassing the setter; OnModified then requests recreation.
    */
-  @blue.attribute("source")
-  @blue.persistOnly
+  @legacyBlue.attribute("source")
+  @legacyBlue.persistOnly
   @type.rootRef("IEveSpaceObjectChild")
   _source = null;
 
@@ -141,7 +150,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * (EveChildInstanceContainer_Blue.cpp:59): the setter moves child ownership
    * and the source's edit-mode registration to the replacement.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("IEveSpaceObjectChild")
   @meta.implemented
   get source()
@@ -157,7 +166,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** m_origin (Origin - enum Origin) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
@@ -318,7 +327,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   {
     if (!this._source) return;
     const translationParent = new EveChildContainer();
-    const instance = be.classes.CopyTo(this._source, null);
+    const instance = blue.classes.CopyTo(this._source, null);
     if (!instance) return;
     for (const modifier of this.transformModifiers) instance.AddTransformModifier(modifier);
     translationParent.AddToEffectChildrenList(instance);
@@ -415,7 +424,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -423,7 +432,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -435,7 +444,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
   {

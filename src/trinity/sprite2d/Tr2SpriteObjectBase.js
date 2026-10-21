@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.h
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable sprite state is maintained here.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { blue as be, INotify } from "#blue";
+import { blue, INotify } from "#blue";
 
 /**
  * Shared portable state and dirty propagation for Sprite2D objects.
@@ -15,9 +16,9 @@ import { blue as be, INotify } from "#blue";
  * ordinary JavaScript references; native destructor detach assertions have no
  * deterministic destruction counterpart here.
  */
-@blue.define({ className: "Tr2SpriteObjectBase", abstract: true })
-@blue.inherit(INotify)
-@blue.interface(ITr2SpriteObject, INotify)
+@legacyBlue.define({ className: "Tr2SpriteObjectBase", abstract: true })
+@legacyBlue.inherit(INotify)
+@legacyBlue.interface(ITr2SpriteObject, INotify)
 export class Tr2SpriteObjectBase extends ITr2SpriteObject
 {
 
@@ -27,7 +28,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    *
    * @param {Tr2Sprite2dScene} _renderer The scene gathering sprites.
    */
-  @blue.abstract
+  @legacyBlue.abstract
   GatherSprites(_renderer) {}
 
   /**
@@ -40,7 +41,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {Tr2Sprite2dScene} _renderer The scene being picked.
    * @returns {ITr2SpriteObject|null} The picked object.
    */
-  @blue.abstract
+  @legacyBlue.abstract
   PickPoint(_x, _y, _renderer) {}
 
   /** Carbon method GetDisplay.
@@ -193,7 +194,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method SetDirty (MAP_METHOD_AND_WRAP).
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetDirty()
   {
@@ -253,17 +254,17 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   }
 
   /** Sprite label stored as native std::wstring. @type {string} */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.wstring
   name = "";
 
   /** Native non-owning auxiliary mouseover object; READ only. @type {ITr2SpriteObject|null} */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.weak("ITr2SpriteObject")
   auxMouseover = null;
 
   /** Native READWRITE display property. @returns {boolean} */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   get display()
   {
@@ -277,43 +278,43 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   }
 
   /** Whether sprite state has changed since the last render. @type {boolean} */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   isDirty = true;
 
   /** Horizontal translation component, stored separately from native Vector2. @type {number} */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   displayX = 0;
 
   /** Vertical translation component, stored separately from native Vector2. @type {number} */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   displayY = 0;
 
   /** Displayed sprite width in pixels; external writes notify. @type {number} */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   displayWidth = 0;
 
   /** Displayed sprite height in pixels; external writes notify. @type {number} */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.float32
   displayHeight = 0;
 
   /** Persistent native pick-state chooser controlling self/child hit testing. @type {number} */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2SpriteObjectPickState")
   pickState = Tr2SpriteObjectPickState.TR2_SPS_ON;
 
   /** Optional owned mask consulted by concrete sprite picking. @type {Tr2Sprite2dPickingMask|null} */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Sprite2dPickingMask")
   pickingMask = null;
 

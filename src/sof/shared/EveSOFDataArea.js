@@ -1,8 +1,8 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:352-383
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113-145
-import { blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 
 /**
  * `EveSOFDataArea::AreaType` (EveSOFData.h:363-377). TYPE_MAX and
@@ -34,7 +34,7 @@ const slot = (name, index) => ({ name, key: "materials", index, type: { kind: "r
  * exposed by chooser name. TYPE_WRECK has no exposed slot, so it is never
  * read or written and stays null. Native IRoot-only data with no lifecycle.
  */
-@blue.define({
+@legacyBlue.define({
   className: "EveSOFDataArea",
   members: [
   slot("Primary", AreaType.TYPE_PRIMARY),
@@ -49,8 +49,8 @@ const slot = (name, index) => ({ name, key: "materials", index, type: { kind: "r
   slot("Turret", AreaType.TYPE_TURRET)
 ]
 })
-@blue.interface()
-@blue.inherit(IRoot)
+@legacyBlue.interface()
+@legacyBlue.inherit(IRoot)
 export class EveSOFDataArea extends IRoot
 {
   static AreaType = AreaType;
@@ -63,7 +63,7 @@ export class EveSOFDataArea extends IRoot
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-be.enums.Create("trinity.EveSOFDataArea.AreaType", AreaType, {
+blue.enums.Create("trinity.EveSOFDataArea.AreaType", AreaType, {
   exposedName: "EveSOFDataAreaType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Primary", value: AreaType.TYPE_PRIMARY, description: "Primary Area Type" },

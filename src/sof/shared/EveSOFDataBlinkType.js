@@ -1,8 +1,8 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:301-324
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70-77, 1140-1147
-import { blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 
 /**
  * `EveSOFDataBlinkType::BlinkType` (EveSOFData.h:312-319). Carbon sizes the
@@ -26,7 +26,7 @@ const slot = (name, index) => ({ name, key: "blinkType", index, type: { kind: "r
  * by chooser name. TYPE_STATIC has no exposed slot. Nothing in Carbon reads
  * the slots. Native IRoot-only data with no lifecycle.
  */
-@blue.define({
+@legacyBlue.define({
   className: "EveSOFDataBlinkType",
   members: [
   slot("Blink", BlinkType.TYPE_BLINK),
@@ -36,8 +36,8 @@ const slot = (name, index) => ({ name, key: "blinkType", index, type: { kind: "r
   { ...slot("Cycle", BlinkType.TYPE_CYCLE), impl: { adapted: true, status: "adapted" } }
 ]
 })
-@blue.interface()
-@blue.inherit(IRoot)
+@legacyBlue.interface()
+@legacyBlue.inherit(IRoot)
 export class EveSOFDataBlinkType extends IRoot
 {
   static BlinkType = BlinkType;
@@ -68,7 +68,7 @@ export class EveSOFDataBlinkType extends IRoot
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-be.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", BlinkType, {
+blue.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", BlinkType, {
   exposedName: "EveSOFDataBlinkType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Static", value: BlinkType.TYPE_STATIC, description: "Static, no blinking" },

@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
 import { mat3 } from "#math/mat3";
@@ -31,94 +32,94 @@ const DEBUG_DIRECTION = vec3.create();
 const DEBUG_POSITION = vec3.create();
 
 /** A steering behaviour that shuttles each drone between seek and deliver locators, slowing on approach, snapping its facing, and triggering effects on arrival. */
-@blue.define("BackAndForth")
-@blue.inherit(IBehavior)
-@blue.interface(IBehavior)
+@be.define("BackAndForth")
+@legacyBlue.inherit(IBehavior)
+@be.mapInterface(IBehavior)
 export class BackAndForth extends IRoot
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_enabled (bool) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.boolean
   @type.enum("trinity.IBehavior.ProcessPriority")
   enabled = true;
 
   /** m_locatorType (LocatorType - enum LocatorType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.BackAndForth.LocatorType")
   locatorType = 0;
 
   /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveLocatorSets")
   locatorSet = [];
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   arrivedRadius = 50;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   distFromOrigin = 20;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   slowDownRadius = 200;
 
   /** m_backAndForthWeight (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   backAndForthWeight = 100;
 
   /** m_fxBehavior (IBehavior*) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.weak("IBehavior")
   fxBehavior = null;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @meta.reference
   @type.object.weak("EveSpaceObject2")
   target = null;
 
   /** m_parent (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @meta.reference
   @type.object.weak("EveSpaceObject2")
   parent = null;
 
   /** m_seconds (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   secondsToTurn = 0.25;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   locatorSetName = "damage";
 
@@ -309,7 +310,7 @@ export class BackAndForth extends IRoot
         // Start playing fx when slowing down
         if (!agent.playFX && this.fxBehavior !== null)
         {
-          agent.fxStartTime = be.os.GetActualTime(); // BackAndForth.cpp:172
+          agent.fxStartTime = blue.os.GetActualTime(); // BackAndForth.cpp:172
           agent.playFX = true;
         }
 
@@ -501,7 +502,7 @@ export class BackAndForth extends IRoot
   }
 
   /** Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   AddLocatorSet()
   {

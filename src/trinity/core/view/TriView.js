@@ -50,5 +50,3 @@ export class TriView extends IRoot
   }
 
 }
-
-

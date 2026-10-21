@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveImpactOverlay.h
@@ -6,7 +7,7 @@ import { IInitialize } from "../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { Tr2ScalarFader } from "../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../generated/include/enums.js";
 import { Tr2Lod } from "./EveLODHelper.js";
@@ -16,7 +17,7 @@ import {
   IMPACT_ARMOR_SIZE_MAX
 } from "./overlays/EveDamageOverlay.js";
 import { ITr2GenericEmitterUpdateArguments } from "../particle/ITr2GenericEmitter/index.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 import { EveDamageOverlayOwnerInfo } from "./overlays/EveDamageOverlayOwnerInfo.js";
 
 
@@ -31,27 +32,27 @@ const IMPACT_ARMOR_PARTICLE_LOD_FACTOR = 400;
  * resources, the faders driving hardening and repair effects, and the
  * data-texture bookkeeping that feeds them.
  */
-@blue.define("EveImpactOverlay")
-@blue.inherit(IInitialize)
+@be.define("EveImpactOverlay")
+@legacyBlue.inherit(IInitialize)
 export class EveImpactOverlay extends IRoot
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   display = true;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("EveDamageOverlay")
   damageOverlay = new EveDamageOverlay();
 
   // EveImpactOverlay_Blue.cpp:33-48: armour/hull state lives on the damage overlay; these names are live properties over it.
 
   /** MAP_PROPERTY_READONLY "seed" over GetSeed. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.uint32
   @meta.implemented
   get seed()
@@ -60,7 +61,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY_READONLY "configuration" over GetImpactConfiguration. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @type.enum("trinity.ITriTargetable.ImpactConfiguration")
   @meta.implemented
@@ -70,7 +71,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY_READONLY "impactDataNextIdx" over GetImpactDataNextIdx. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
   get impactDataNextIdx()
@@ -79,7 +80,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY_READONLY "armorImpactGoalCount" over GetArmorImpactGoalCount. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.uint64
   @meta.implemented
   get armorImpactGoalCount()
@@ -88,7 +89,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY_READONLY "armorImpactParentSize" over GetArmorImpactParentSize. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.float32
   @meta.implemented
   get armorImpactParentSize()
@@ -97,7 +98,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY "debugForceSpawnDebris" over Get/SetDebugForceSpawnDebris. */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   @meta.implemented
   get debugForceSpawnDebris()
@@ -112,7 +113,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY_READONLY "renderPriority" over GetRenderPriority. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.float32
   @meta.implemented
   get renderPriority()
@@ -121,7 +122,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY_READONLY "dataTextureBlockID" over GetDataTextureBlockID. */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.int32
   @meta.implemented
   get dataTextureBlockID()
@@ -130,7 +131,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY_PERSISTED "armorDamageShader" over Get/SetArmorDamageShaderEffect. */
-  @blue.property(undefined, { persisted: true })
+  @be.mapPropertyPersisted()
   @type.rootRef("Tr2Effect")
   @meta.implemented
   get armorDamageShader()
@@ -145,7 +146,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY "armorRepairing" over Get/SetArmorRepairing. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get armorRepairing()
@@ -160,7 +161,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY "armorHardening" over Get/SetArmorHardening. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get armorHardening()
@@ -175,7 +176,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY "hullRepairing" over Get/SetHullRepairing. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get hullRepairing()
@@ -190,7 +191,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY_PERSISTED "hullDamageFlickerCurve" over Get/SetHullDamageFlickerCurve. */
-  @blue.property(undefined, { persisted: true })
+  @be.mapPropertyPersisted()
   @type.rootRef("TriPerlinCurve")
   @meta.implemented
   get hullDamageFlickerCurve()
@@ -205,7 +206,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** MAP_PROPERTY "hullDamageFactor" over Get/SetHullDamageFactor. */
-  @blue.property()
+  @be.mapProperty()
   @type.float32
   @meta.implemented
   get hullDamageFactor()
@@ -219,46 +220,46 @@ export class EveImpactOverlay extends IRoot
     this.SetHullDamageFactor(value);
   }
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   shieldImpactColorFade = 0;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   shieldImpactParentSize = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   shieldIsEllipsoid = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2MeshBase")
   mesh = null;
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   maxShieldImpacts = 8;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   overallShieldImpact = -1;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2ScalarFader")
   shieldHardening = new Tr2ScalarFader();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2ScalarFader")
   shieldBoosting = new Tr2ScalarFader();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2GpuUniqueEmitter")
   armorImpactEmitter = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2GpuUniqueEmitter")
   hullImpactEmitter = null;
 
@@ -324,7 +325,7 @@ export class EveImpactOverlay extends IRoot
   }
 
   /** Seconds an armour impact stays alive before it is retired. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetArmorImpactLifeTime()
   {
@@ -336,7 +337,7 @@ export class EveImpactOverlay extends IRoot
    * @param {Array} out - caller-owned vec3
    * @returns {Array} out
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetLastDamageState(out)
   {

@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2Controller.h
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
 // Source: trinity/trinity/Controllers/Tr2Controller_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { blue as be, BlueList, IListNotify, CjsBlueClasses } from "#blue";
+import { blue, BlueList, IListNotify, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
@@ -23,38 +24,40 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
  * bypass both, as in BlueList. Child helpers notify explicitly.
  * Link binds the owner, variables and children; no Initialize contract is added.
  */
-@blue.define("Tr2Controller")
-@blue.inherit(ITr2ActionController, IListNotify)
-@blue.interface(ITr2Controller, ITr2ActionController, IListNotify)
-@blue.chainTo(EveThrottleable)
+@be.define("Tr2Controller")
+@legacyBlue.inherit(ITr2ActionController, IListNotify)
+@be.mapInterface(ITr2Controller)
+@be.mapInterface(ITr2ActionController)
+@be.mapInterface(IListNotify)
+@be.exposureChainTo(EveThrottleable)
 export class Tr2Controller extends EveThrottleable
 {
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2StateMachine")
   stateMachines = new BlueList(Tr2StateMachine, { className: "Tr2StateMachine", listOps: 0 });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ControllerFloatVariable")
   variables = new BlueList(Tr2ControllerFloatVariable, { className: "Tr2ControllerFloatVariable", listOps: 0 });
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ControllerEventHandler")
   eventHandlers = new BlueList(Tr2ControllerEventHandler, { className: "Tr2ControllerEventHandler", listOps: 0 });
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isPlaying = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isShared = false;
 
@@ -94,7 +97,7 @@ export class Tr2Controller extends EveThrottleable
    * JavaScript array length remains a Number, declared uint64.
    * @returns {number} Live callback count.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.uint64
   @meta.implemented
   get callbackCount()
@@ -106,7 +109,7 @@ export class Tr2Controller extends EveThrottleable
    * Returns the current callback-vector size (Tr2Controller.h:63-66).
    * @returns {number} Number of registered callbacks.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetCallbackCount()
   {
@@ -223,7 +226,7 @@ export class Tr2Controller extends EveThrottleable
    * Relinks the current owner when linked.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ReLink()
   {
@@ -249,7 +252,7 @@ export class Tr2Controller extends EveThrottleable
    * Stops any previous run, marks all variables dirty, then starts every state machine.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Start()
   {
@@ -269,7 +272,7 @@ export class Tr2Controller extends EveThrottleable
    * Stops each state machine in list order when playing.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Stop()
   {
@@ -304,7 +307,7 @@ export class Tr2Controller extends EveThrottleable
     {
       return;
     }
-    const currentTime = be.os.GetActualTime();
+    const currentTime = blue.os.GetActualTime();
     const dirtyVariables = this._dirtyVariables.value;
     this._dirtyVariables.value = 0n;
     for (const stateMachine of this.stateMachines)
@@ -313,7 +316,7 @@ export class Tr2Controller extends EveThrottleable
     }
     if (this._updateables.size)
     {
-      const simTime = be.os.GetCurrentFrameTime();
+      const simTime = blue.os.GetCurrentFrameTime();
       for (const updateable of this._updateables)
       {
         ContinueOnMainThread(() =>
@@ -342,7 +345,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {string} eventName Authored event name.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HandleEvent(eventName)
   {
@@ -363,7 +366,7 @@ export class Tr2Controller extends EveThrottleable
    * Returns the current linked owner.
    * @returns {object|null} Owner, or null when unlinked.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetOwner()
   {
@@ -604,7 +607,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {Function} callback Function called without arguments.
    * @returns {boolean} Always true after registration.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RegisterCallback(callbackName, callback)
   {
@@ -619,7 +622,7 @@ export class Tr2Controller extends EveThrottleable
    * Clears every registered callback.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   ClearCallbacks()
   {
@@ -657,7 +660,7 @@ export class Tr2Controller extends EveThrottleable
    */
   _OnStateMachineListModified(event, value)
   {
-    const stateMachine = value ? be.classes.QueryThisInterface(value, Tr2StateMachine, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const stateMachine = value ? blue.classes.QueryThisInterface(value, Tr2StateMachine, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
@@ -692,7 +695,7 @@ export class Tr2Controller extends EveThrottleable
    */
   _OnEventHandlerListModified(event, value)
   {
-    const handler = value ? be.classes.QueryThisInterface(value, Tr2ControllerEventHandler, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const handler = value ? blue.classes.QueryThisInterface(value, Tr2ControllerEventHandler, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

@@ -1,8 +1,9 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp
-import { IsMatch, blue as be, CjsBlueClasses } from "#blue";
+import { IsMatch, blue, CjsBlueClasses } from "#blue";
 
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
@@ -11,7 +12,7 @@ import { vec4 } from "#math/vec4";
 import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { Tr2Lod } from "../../EveLODHelper.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
@@ -36,73 +37,82 @@ import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
  * the span, at the destination and at a travelling point between them, driven by
  * its own controllers, dynamic bindings and curve sets.
  */
-@blue.define("EveStretch3")
-@blue.inherit(ITr2DebugRenderable, ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
+@be.define("EveStretch3")
+@legacyBlue.inherit(ITr2DebugRenderable, ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
   INotify, IListNotify, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner, EveEntity)
-@blue.interface(INotify, IListNotify, IInitialize, IEveSpaceObject2, IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner, ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(IEveFiringEffectElement)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(ITr2DynamicBindingOwner)
+@be.mapInterface(ITr2SoundEmitterOwner)
+@be.mapInterface(EveEntity)
 export class EveStretch3 extends IEveFiringEffectElement
 {
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   sourcePosition = vec3.create();
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.vec3
   destinationPosition = vec3.create();
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
  @type.object.ref("ITriVectorFunction")
   source = null;
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
  @type.object.ref("ITriVectorFunction")
   dest = null;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.string
   name = "";
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.object.ref("TriFloat")
   moveProgression = new TriFloat();
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.object.ref("IStretchAudio")
   stretchAudio = null;
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
  @type.list("ITr2Controller")
   controllers = [];
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
  @type.list("TriCurveSet")
   curveSets = [];
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
  @type.object.ref("TriFloat")
   length = new TriFloat();
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
  @type.list("Tr2DynamicBinding")
   dynamicBindings = [];
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
  @type.boolean
   display = true;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.boolean
   update = true;
   /** Hidden persisted destObject storage, distinct from the live setter. */
-  @blue.attribute("destObject")
-  @blue.persistOnly
+  @legacyBlue.attribute("destObject")
+  @legacyBlue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _destObject = null;
 
   /** Live destObject property. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get destObject()
@@ -117,13 +127,13 @@ export class EveStretch3 extends IEveFiringEffectElement
     this.SetDestObject(value);
   }
   /** Hidden persisted sourceObject storage, distinct from the live setter. */
-  @blue.attribute("sourceObject")
-  @blue.persistOnly
+  @legacyBlue.attribute("sourceObject")
+  @legacyBlue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _sourceObject = null;
 
   /** Live sourceObject property. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get sourceObject()
@@ -138,13 +148,13 @@ export class EveStretch3 extends IEveFiringEffectElement
     this.SetSourceObject(value);
   }
   /** Hidden persisted stretchObject storage, distinct from the live setter. */
-  @blue.attribute("stretchObject")
-  @blue.persistOnly
+  @legacyBlue.attribute("stretchObject")
+  @legacyBlue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _stretchObject = null;
 
   /** Live stretchObject property. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get stretchObject()
@@ -159,21 +169,21 @@ export class EveStretch3 extends IEveFiringEffectElement
     this.SetStretchObject(value);
   }
   /** m_startTime (Be::Time, Blue 100ns ticks): the update time latched on the first asynchronous update (cpp:469-472). */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float64
   startTime = 0;
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
  @type.object.ref("ITr2Audio")
   audio = null;
   /** Hidden persisted moveObject storage, distinct from the live setter. */
-  @blue.attribute("moveObject")
-  @blue.persistOnly
+  @legacyBlue.attribute("moveObject")
+  @legacyBlue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _moveObject = null;
 
   /** Live moveObject property. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get moveObject()
@@ -189,7 +199,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Live sourceSpaceObject pointer property; native backing storage is weak. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("IEveSpaceObject2")
   @meta.implemented
   get sourceSpaceObject()
@@ -205,7 +215,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Live destSpaceObject pointer property; native backing storage is weak. */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("IEveSpaceObject2")
   @meta.implemented
   get destSpaceObject()
@@ -367,7 +377,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (list === this.controllers)
     {
-      const controller = value ? be.classes.QueryThisInterface(value, ITr2Controller, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+      const controller = value ? blue.classes.QueryThisInterface(value, ITr2Controller, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
       if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED && controller) controller.Link(this);
       else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED && controller) controller.Unlink();
       else if (maskedEvent === BLUELISTEVENT.BELIST_UNLOADSTART)
@@ -377,7 +387,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     }
     else if (list === this.dynamicBindings)
     {
-      const binding = value ? be.classes.QueryThisInterface(value, Tr2DynamicBinding, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+      const binding = value ? blue.classes.QueryThisInterface(value, Tr2DynamicBinding, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
       if (!binding) return;
       if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED)
       {
@@ -424,10 +434,10 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._sourceObject;
-    const previousEntity = previous ? be.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const previousEntity = previous ? blue.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (previousEntity) previousEntity.UnRegister(registry);
     this._sourceObject = value;
-    const entity = value ? be.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const entity = value ? blue.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (entity) entity.Register(registry);
   }
 
@@ -446,10 +456,10 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._destObject;
-    const previousEntity = previous ? be.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const previousEntity = previous ? blue.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (previousEntity) previousEntity.UnRegister(registry);
     this._destObject = value;
-    const entity = value ? be.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const entity = value ? blue.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (entity) entity.Register(registry);
   }
 
@@ -468,7 +478,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._stretchObject;
-    const previousEntity = previous ? be.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const previousEntity = previous ? blue.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (previousEntity) previousEntity.UnRegister(registry);
     this._stretchObject = value;
     if (value)
@@ -477,7 +487,7 @@ export class EveStretch3 extends IEveFiringEffectElement
       if (this.dest) this._stretchModifier.SetDest(this.dest);
     }
     else this._stretchModifier = null;
-    const entity = value ? be.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const entity = value ? blue.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (entity) entity.Register(registry);
   }
 
@@ -496,10 +506,10 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     const registry = this.GetComponentRegistry();
     const previous = this._moveObject;
-    const previousEntity = previous ? be.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const previousEntity = previous ? blue.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (previousEntity) previousEntity.UnRegister(registry);
     this._moveObject = value;
-    const entity = value ? be.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const entity = value ? blue.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (entity) entity.Register(registry);
   }
 
@@ -791,7 +801,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Requests a firing start; the controller variables are only applied on the next synchronous update, while the stretch audio starts immediately.
    * @param {Number} [delay] - seconds handed to the controllers as the FiringDelay variable
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartFiring(delay = 0)
   {
@@ -807,7 +817,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Requests a firing stop; IsFiring is cleared on the next synchronous update,
    * while the stretch audio stops immediately.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StopFiring()
   {
@@ -895,7 +905,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * IEveFiringEffectElement intensity hook; EveStretch3 has no intensity term of
    * its own.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.noop
   SetIntensity(_intensity)
   {
@@ -905,7 +915,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Sets a controller variable on every child and on this stretch's own
    * controllers.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -1064,7 +1074,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       this._RunOnComponents((component) =>
       {
-        const entity = component ? be.classes.QueryThisInterface(component, EveEntity, component.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+        const entity = component ? blue.classes.QueryThisInterface(component, EveEntity, component.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
         if (entity) entity.Register(registry);
       });
     }
@@ -1080,7 +1090,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       this._RunOnComponents((component) =>
       {
-        const entity = component ? be.classes.QueryThisInterface(component, EveEntity, component.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+        const entity = component ? blue.classes.QueryThisInterface(component, EveEntity, component.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
         if (entity) entity.UnRegister(registry);
       });
     }

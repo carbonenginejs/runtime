@@ -1,11 +1,12 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierStretch.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierStretch.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierStretch_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { meta, type } from "#schema";
+import { blue } from "#blue";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
@@ -13,12 +14,12 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
  * position to a destination point, scaling it to the stretch length and centring
  * it on the midpoint.
  */
-@blue.define("EveChildModifierStretch")
-@blue.interface(IEveChildTransformModifier)
+@be.define("EveChildModifierStretch")
+@be.mapInterface(IEveChildTransformModifier)
 export class EveChildModifierStretch extends IEveChildTransformModifier
 {
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriVectorFunction")
   dest = null;
 
@@ -52,7 +53,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
 
     mat4.decomposeCarbon(transform, sourceRotation, sourceTranslation, sourceScale);
     vec3.copy(end, this._destPosition);
-    const now = be.os.GetCurrentFrameTime();
+    const now = blue.os.GetCurrentFrameTime();
     if (this.dest) this.dest.GetValueAt__Ticks(now, end);
 
     vec3.set(diff, end[0] - transform[12], end[1] - transform[13], end[2] - transform[14]);

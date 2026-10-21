@@ -1,8 +1,8 @@
 import { IRoot as ExposureRoot } from "../../src/global/blue/IRoot.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, blue as be } from "@carbonenginejs/runtime/blue";
-import { CjsSchema, type, blue } from "@carbonenginejs/runtime/schema";
+import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, blue } from "@carbonenginejs/runtime/blue";
+import { CjsSchema, type, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
 
@@ -14,15 +14,15 @@ class Item
 CjsSchema.define(Item, {
   className: "TestBlueListItem",
   fields: {
-    value: [ type.float64, blue.persist ],
-    peer: [ type.rootRef("TestBlueListItem"), blue.persist ]
+    value: [ type.float64, legacyBlue.persist ],
+    peer: [ type.rootRef("TestBlueListItem"), legacyBlue.persist ]
   }
 });
-blue.interface()(Item);
+legacyBlue.interface()(Item);
 
 class UnexposedItem extends Item {}
 CjsSchema.define(UnexposedItem, { className: "TestBlueListUnexposedItem" });
-blue.interface()(UnexposedItem);
+legacyBlue.interface()(UnexposedItem);
 
 // This test class fixes the generic constructor arguments. Production generic
 // dispatch and stored-list preservation need their explicit Copier integration;
@@ -68,7 +68,7 @@ function Events(observer)
 test("IList exposes abstract operations while BlueList keeps its generic template unregistered", () =>
 {
   assert.equal(CjsSchema.getConstructor("IList"), IList);
-  assert.equal(be.classes.GetClassRegistration("IList").type, IList);
+  assert.equal(blue.classes.GetClassRegistration("IList").type, IList);
   assert.equal(CjsSchema.getClassName(BlueList), null);
   assert.equal(CjsSchema.getConstructor("BlueList"), null);
   for (const name of [ "GetSize", "GetInfo", "Insert", "Remove", "Append", "GetAt", "FindKey", "Swap", "Sort", "SetNotify", "Move", "GetAllItems" ])

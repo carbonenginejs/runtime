@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask.h
 //   trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask.cpp
@@ -5,15 +6,15 @@ import { IRoot } from "../../global/blue/IRoot.js";
 //   maskPath property pair)
 // Hand-maintained from Carbon source, promoted out of generated intake
 // 2026-09-06.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
-@blue.define({ className: "Tr2Sprite2dPickingMask", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
-@blue.interface()
-@blue.inherit(IRoot)
+@legacyBlue.define({ className: "Tr2Sprite2dPickingMask", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
+@legacyBlue.interface()
+@legacyBlue.inherit(IRoot)
 export class Tr2Sprite2dPickingMask extends IRoot
 {
 
@@ -21,7 +22,7 @@ export class Tr2Sprite2dPickingMask extends IRoot
   _maskPath = "";
 
   /** Carbon MAP_PROPERTY "maskPath" (Tr2Sprite2dPickingMask_Blue.cpp:27-33), read through GetMaskPath. @returns {string} */
-  @blue.property()
+  @be.mapProperty()
   @type.wstring
   @meta.implemented
   get maskPath()
@@ -37,38 +38,38 @@ export class Tr2Sprite2dPickingMask extends IRoot
   }
 
   /** Native anonymous BGRA channel chooser. @type {number} */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.enum({ Red: 2, Green: 1, Blue: 0, Alpha: 3 })
   @type.uint32
   channel = 3;
 
   /** Sampled channel must exceed this native READWRITE threshold. @type {number} */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   threshold = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   leftEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   topEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   rightEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   bottomEdge = 0;
 
   /** Native READ held image resource; excluded from value serialization. @type {Tr2ImageRes|null} */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.resource("Tr2ImageRes")
   mask = null;
 
@@ -100,7 +101,7 @@ export class Tr2Sprite2dPickingMask extends IRoot
     this._maskPath = String(path ?? "");
     this.mask = null;
     if (!this._maskPath) return;
-    this.mask = be.resMan.GetResource(this._maskPath, {
+    this.mask = blue.resMan.GetResource(this._maskPath, {
       requirement: ResourceRequirement.IMAGE
     });
   }

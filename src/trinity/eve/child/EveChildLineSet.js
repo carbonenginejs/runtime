@@ -1,15 +1,16 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
-import { blue as be, EnumRegistrationType, IInitialize, INotify, IsMatch } from "#blue";
+import { blue, EnumRegistrationType, IInitialize, INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -32,113 +33,117 @@ import { CalculateBoundingSphereForLineSetPaths } from "./lineSetPaths/IEveLineS
 const DEBUG_TRANSFORM = mat4.create();
 
 /** A child that renders a set of curved and sphere-projected line paths, as object geometry, as dedicated line rendering, or both. */
-@blue.define("EveChildLineSet")
-@blue.inherit(ITr2Renderable, IInitialize, INotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize, INotify, ITr2Renderable)
-@blue.inherit(ITr2DebugRenderable, Tr2DeviceResource)
+@be.define("EveChildLineSet")
+@legacyBlue.inherit(ITr2Renderable, IInitialize, INotify)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2Renderable)
+@legacyBlue.inherit(ITr2DebugRenderable, Tr2DeviceResource)
 export class EveChildLineSet extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildLineSet_Blue.cpp:31 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildLineSet_Blue.cpp:32 */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
   /** m_type (lineSetType - enum lineSetType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveChildLineSet.lineSetType")
   renderType = 1;
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("EveCurveLineSet")
   lineSet = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minScreenSize = -1;
 
   /** m_brightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   brightness = 1;
 
   /** m_baseColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec4
   baseColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_animColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.vec4
   animColor = color.createLinear();
 
   /** m_additiveBatch (bool) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   additiveBatches = false;
 
   /** m_scrollSpeed (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   scrollSpeed = 0;
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveLineSetPath")
   lines = [];
 
   /** m_isAlwaysOn (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   alwaysOn = false;
 
   /** m_currentScreenSize (float) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   currentScreenSize = 1;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.object.ref("Tr2Mesh")
   mesh = null;
 
@@ -535,7 +540,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native Blue readonly property (EveChildLineSet_Blue.cpp:29). */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   get isUpdating()
   {
@@ -643,7 +648,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns native numeric TEXCOORD usage/index pairs in JS tuples. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetVertexElementAddedThroughCode()
   {
@@ -666,7 +671,7 @@ export class EveChildLineSet extends EveChildTransform
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:13).
-be.enums.Create("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSetType, {
+blue.enums.Create("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSetType, {
   exposedName: "LineSetTypes", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "ObjectRender", value: EveChildLineSet.lineSetType.OBJECT_RENDER, description: "sprites or other objects are rendered at each segment" },

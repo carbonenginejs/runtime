@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/EveSpaceScene.h
 // Source: trinity/trinity/Eve/EveSpaceScene.cpp
 //
@@ -6,7 +7,7 @@
 // additions are the per-frame update driver ported from Carbon
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { IsMatch, BlueList, IInitialize, INotify, IListNotify, CjsResource } from "#blue";
 import { ITr2Scene } from "../../core/ITr2Scene.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -62,7 +63,7 @@ import { TriShadowFrustum } from "./shadows/TriShadowFrustum.js";
 import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
 import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 import { ExecuteMainThreadActions } from "../../core/continueOnMainThread.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { EvePickingContext, EvePendingPickingReadback } from "./picking/index.js";
@@ -237,14 +238,17 @@ function EmptyShadowResources()
 // ---------------------------------------------------------------------------
 
 /** Owns and updates an Eve space scene's entities, component registry, lighting, fog, post-process state, culling, and per-frame shader data. */
-@blue.define("EveSpaceScene")
-@blue.inherit(ITr2Scene, IInitialize, INotify, IListNotify, Tr2DeviceResource)
-@blue.interface(ITr2Scene, ITr2Updateable, IInitialize, INotify)
+@be.define("EveSpaceScene")
+@legacyBlue.inherit(ITr2Scene, IInitialize, INotify, IListNotify, Tr2DeviceResource)
+@be.mapInterface(ITr2Scene)
+@be.mapInterface(ITr2Updateable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class EveSpaceScene
 {
 
   /** m_visualizeMethod (EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
   visualizeMethod = 0;
@@ -262,62 +266,62 @@ export class EveSpaceScene
   }));
 
   /** m_envMap1ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriTextureRes")
   envMap1ResPath = "";
 
   /** m_envMap2ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriTextureRes")
   envMap2ResPath = "";
 
   /** m_envMap3ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriTextureRes")
   envMap3ResPath = "";
 
   /** m_lowQualityNebulaResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriTextureRes")
   lowQualityNebulaResPath = "";
 
   /** m_lowQualityNebulaMixResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriTextureRes")
   lowQualityNebulaMixResPath = "";
 
   /** m_envMapResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriTextureRes")
   envMapResPath = "";
 
   /** m_fogColor (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   fogColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
   /** m_sunData.DirWorld (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   sunDirection = vec3.fromValues(0, -1, 0);
 
   /** m_ambientColor (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   ambientColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
@@ -328,8 +332,8 @@ export class EveSpaceScene
    * the setter; Initialize replays it through SetShLightingManager
    * (cpp:3252-3257).
    */
-  @blue.attribute("shLightingManager")
-  @blue.persistOnly
+  @legacyBlue.attribute("shLightingManager")
+  @legacyBlue.persistOnly
   @type.rootRef("Tr2ShLightingManager")
   _shLightingManager = null;
 
@@ -339,7 +343,7 @@ export class EveSpaceScene
    * the setter moves the planets' and objects' secondary light sources to the
    * new manager.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("Tr2ShLightingManager")
   @meta.implemented
   get shLightingManager()
@@ -357,22 +361,22 @@ export class EveSpaceScene
   /** m_combinedPostProcessAttributes (Tr2PostProcessAttributesPtr) [READ] -
    * default-constructed like Carbon's ctor CreateInstance (cpp:297); refreshed
    * by UpdatePostProcessAttributes' re-export at MEDIUM_PRIORITY (cpp:407). */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2PostProcessAttributes")
   combinedPostProcessAttributes = new Tr2PostProcessAttributes();
 
   /** m_dataTextureMgr (Tr2DataTextureManagerPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2DataTextureManager")
   dataTextureMgr = new Tr2DataTextureManager();
 
   /** m_dynamicObjectReflectionEnabled (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   dynamicObjectReflectionEnabled = true;
 
   /** m_componentRegistry (EveComponentRegistryPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("EveComponentRegistry")
   componentRegistry = new EveComponentRegistry();
 
@@ -388,7 +392,7 @@ export class EveSpaceScene
    * (EveSpaceScene_Blue.cpp:164-167): the effect children of the camera
    * attachment parent.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.list("IEveSpaceObjectChild")
   @meta.implemented
   get cameraAttachments()
@@ -401,107 +405,107 @@ export class EveSpaceScene
   postProcessDebug = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_defaultDiffuseRoughness (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   defaultDiffuseRoughness = 1;
 
   /** m_fogStart (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   fogStart = 0;
 
   /** m_fogEnd (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   fogEnd = 0;
 
   /** m_reflectionIntensity (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   reflectionIntensity = 1;
 
   /** m_distanceFields (PEveDistanceFieldVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("EveDistanceField")
   distanceFields = [];
 
   /** m_backgroundEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2Effect")
   backgroundEffect = null;
 
   /** m_backgroundReflectionIntensity (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   backgroundReflectionIntensity = 1;
 
   /** m_nebulaIntensity (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   nebulaIntensity = 1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   display = true;
 
   /** m_backgroundRenderingEnabled (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   backgroundRenderingEnabled = false;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   update = true;
 
   /** m_impostorManager (Tr2ImpostorManagerPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2ImpostorManager")
   impostorManager = null;
 
   /** m_lensflares (PEveLensflareVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveLensflare")
   lensflares = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_fogMax (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   fogMax = 0;
 
   /** m_staticParticles (PEveSceneStaticParticlesVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("EveSceneStaticParticles")
   staticParticles = [];
 
   /** m_debugRenderer (Tr2DebugRendererPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2DebugRenderer")
   debugRenderer = null;
 
@@ -518,149 +522,149 @@ export class EveSpaceScene
   instancedMeshManager = new EveInstancedMeshManager();
 
   /** m_objects (PIEveSpaceObject2Vector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObject2")
   objects = new BlueList(IEveSpaceObject2);
 
   /** m_uiObjects (PIEveSpaceObject2Vector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObject2")
   uiObjects = new BlueList(IEveSpaceObject2);
 
   /** m_backgroundObjects (PIEveSpaceObject2Vector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObject2")
   backgroundObjects = new BlueList(IEveSpaceObject2);
 
   /** m_planets (PEvePlanetVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EvePlanet")
   planets = new BlueList(EvePlanet, { className: "EvePlanet" });
 
   /** m_rtManager (Tr2RaytracingManagerPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2RaytracingManager")
   raytracingManager = null;
 
   /** m_reflectionBackLightingColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.color
   reflectionBackLightingColor = vec4.fromValues(2, 2, 2, 2);
 
   /** m_reflectionBackLightingContrast (float) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.float32
   reflectionBackLightingContrast = 8;
 
   /** m_reflectionProbe (Tr2ReflectionProbePtr) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.object.ref("Tr2ReflectionProbe")
   reflectionProbe = null;
 
   /** m_volumetricsRenderer (Tr2VolumetricsRendererPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2VolumetricsRenderer")
   volumetricsRenderer = new Tr2VolumetricsRenderer();
 
   /** m_starfield (EveStarfieldPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("EveStarfield")
   starfield = null;
 
   /** m_planetScale (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   planetScale = EvePlanet.scale;
 
   /** m_planetCameraScale (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   planetCameraScale = EvePlanet.scale;
 
   /** m_sssss (Tr2SSSSSPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2SSSSS")
   subSurfaceScattering = null;
 
   /** m_shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.int32
   @type.enum("trinity.ShadowQuality")
   shadowQualitySetting = 3;
 
   /** m_sunColor (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   sunDiffuseColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_sunColorWithDynamicLights (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   sunDiffuseColorWithDynamicLights = vec4.fromValues(1, 1, 1, 1);
 
   /** m_envMapRotation (Quaternion) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   envMapRotation = quat.create();
 
   /** m_ballpark (IEveBallparkPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("IEveBallpark")
   ballpark = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_sunBall (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriVectorFunction")
   sunBall = null;
 
   /** m_sceneDefaultPostProcess (Tr2PostProcess2Ptr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2PostProcess2")
   postprocess = null;
 
   /** m_virtualCameraSystem (EveVirtualCameraSystemPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("EveVirtualCameraSystem")
   virtualCameraSystem = null;
 
   /** m_warpTunnel (IEveSpaceObject2Ptr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("IEveSpaceObject2")
   warpTunnel = null;
 
   /** m_perFrameDebug (float) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   perFrameDebug = 0;
 
   /** m_cascadedShadowMap (Tr2ShadowMapPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2ShadowMap")
   cascadedShadowMap = null;
 
@@ -673,7 +677,7 @@ export class EveSpaceScene
    * (EveSpaceScene_Blue.cpp:532-537): whether reflections own a cascaded
    * shadow map (used only while shadows are enabled).
    */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   @meta.implemented
   get shadowsInReflections()
@@ -693,7 +697,7 @@ export class EveSpaceScene
    * (EveSpaceScene_Blue.cpp:448-451): the shared quad renderer that batches
    * space object attachments.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.rootRef("Tr2QuadRenderer")
   @meta.implemented
   get quadRenderer()
@@ -714,28 +718,28 @@ export class EveSpaceScene
   _reflectionJitter = mat4.create();
 
   /** m_updateTime (Be::Time) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float64
   updateTime = 0;
 
   /** m_useSunColorWithDynamicLights (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useSunDiffuseColorWithDynamicLights = false;
 
   /** m_envMap1 (ITr2TextureProviderPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("ITr2TextureProvider")
   envMap1 = null;
 
   /** m_envMap2 (ITr2TextureProviderPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("ITr2TextureProvider")
   envMap2 = null;
 
   /** m_envMap3 (ITr2TextureProviderPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("ITr2TextureProvider")
   envMap3 = null;
 
@@ -749,7 +753,7 @@ export class EveSpaceScene
    * MAP_PROPERTY "gpuParticleSystem" (EveSpaceScene_Blue.cpp:472): the GPU
    * particle system, held by the update context, which hands it to emitters.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("Tr2GpuParticleSystem")
   get gpuParticleSystem()
   {
@@ -995,7 +999,7 @@ export class EveSpaceScene
   }
 
   /** Immediate pick, awaitable because WebGPU cannot block on readback. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   async PickObject(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
@@ -1004,7 +1008,7 @@ export class EveSpaceScene
   }
 
   /** Carbon method PickAsyncObject (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   PickAsyncObject(listener, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
@@ -1013,7 +1017,7 @@ export class EveSpaceScene
   }
 
   /** Carbon method PickObjectAndAreaID -> PyPickObjectAndAreaID (MAP_METHOD). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   async PickObjectAndAreaID(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
@@ -1022,7 +1026,7 @@ export class EveSpaceScene
   }
 
   /** Owns a fresh listener, so an immediate call can never return an earlier hit. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.adapted
   async PickObjectAndExtraData(x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
@@ -1039,7 +1043,7 @@ export class EveSpaceScene
   }
 
   /** Native polling: submit this pixel and return the latest completed result. */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   PickAsyncObjectAndExtraData(listener, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT)
   {
@@ -1571,7 +1575,7 @@ export class EveSpaceScene
    * @returns {Float32Array|null} the normalized world direction, or null when
    *   either matrix cannot be inverted
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   PickInfinity(x, y, projection, view, viewport = null, out = vec3.create())
   {
@@ -1914,7 +1918,7 @@ export class EveSpaceScene
    * @param {Array} objects - scene objects and the camera attachment parent
    * @returns {Number} how many receivers were updated
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   UpdateShLighting(objects = [])
   {
@@ -2006,7 +2010,7 @@ export class EveSpaceScene
     {
       this._staticEnvMapTextureRes = null;
       if (this._staticEnvMapHandle)
-        this._staticEnvMapTextureRes = be.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE });
+        this._staticEnvMapTextureRes = blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE });
       if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
       {
         this._envMapTextureRes = this.reflectionProbe.GetReflection();
@@ -2020,7 +2024,7 @@ export class EveSpaceScene
       if (!IsMatch(property, field + "ResPath")) continue;
       this[field] = null;
       if (this[field + "ResPath"])
-        this[field] = be.resMan.GetResource(this[field + "ResPath"], { requirement: ResourceRequirement.TEXTURE });
+        this[field] = blue.resMan.GetResource(this[field + "ResPath"], { requirement: ResourceRequirement.TEXTURE });
     }
     if ((IsMatch(property, "reflectionBackLightingColor") || IsMatch(property, "reflectionBackLightingContrast"))
       && this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
@@ -2114,7 +2118,7 @@ export class EveSpaceScene
    * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   static registerWithVariableStore(shadowResources, gpuResourcePool)
   {
@@ -2183,7 +2187,7 @@ export class EveSpaceScene
   Initialize(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     this._staticEnvMapTextureRes = this.envMapResPath
-      ? be.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE })
+      ? blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE })
       : null;
 
     if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
@@ -2200,15 +2204,15 @@ export class EveSpaceScene
     // cpp:3228-3239: the scene's extra environment maps.
     if (this.envMap1ResPath)
     {
-      this.envMap1 = be.resMan.GetResource(this.envMap1ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap1 = blue.resMan.GetResource(this.envMap1ResPath, { requirement: ResourceRequirement.TEXTURE });
     }
     if (this.envMap2ResPath)
     {
-      this.envMap2 = be.resMan.GetResource(this.envMap2ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap2 = blue.resMan.GetResource(this.envMap2ResPath, { requirement: ResourceRequirement.TEXTURE });
     }
     if (this.envMap3ResPath)
     {
-      this.envMap3 = be.resMan.GetResource(this.envMap3ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap3 = blue.resMan.GetResource(this.envMap3ResPath, { requirement: ResourceRequirement.TEXTURE });
     }
 
     // cpp:3252-3257: a reader stored the persisted manager without its
@@ -2427,7 +2431,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   UpdateQuadRenderer(frustum, objects, renderContext)
   {
@@ -2475,7 +2479,7 @@ export class EveSpaceScene
    * @param {number} [reason] The render reason.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   RenderRenderables(renderables, batch, batchType, rm, renderContext, reason = undefined)
   {
@@ -2506,7 +2510,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   RenderBatch(batch, rm, renderContext)
   {
@@ -4035,7 +4039,7 @@ export class EveSpaceScene
    * @param {object} shadowMap The light shadow atlas.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   RenderShadowMapForSpotLight(renderContext, shadowCasters, shadowMapScale, shadowMapOffsetX, shadowMapOffsetY, lightPosition, view, projection, shadowMap)
   {
@@ -4725,7 +4729,7 @@ export class EveSpaceScene
    * @param {object|null} value The inserted or removed item.
    * @param {Array} list The list that changed.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -4783,7 +4787,7 @@ export class EveSpaceScene
    *
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ReregisterEntities()
   {
@@ -4826,7 +4830,7 @@ export class EveSpaceScene
   }
 
   /** Carbon method GetPostProcessDebug (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetPostProcessDebug()
   {
@@ -4834,7 +4838,7 @@ export class EveSpaceScene
   }
 
   /** Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   UpdateScene(time)
   {

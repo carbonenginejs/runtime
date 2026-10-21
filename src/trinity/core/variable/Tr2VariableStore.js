@@ -427,5 +427,3 @@ export class Tr2VariableStore
     return Tr2VariableStore._global;
   }
 }
-
-

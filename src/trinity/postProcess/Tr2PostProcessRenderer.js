@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.cpp
@@ -11,9 +12,9 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // only when the scene's Tr2PostProcess2 enables that effect, so a scene
 // without them runs the chain end to end: copy, sharpening, tonemapping.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 import { num } from "#math/num";
 import { Tr2ColorAttachment, Tr2BufferDescriptionAL, Tr2ConstantBufferAL, Tr2SubresourceData } from "#trinityal";
 import {
@@ -79,25 +80,25 @@ function effectAt(path, options = null)
  * Carbon's post-process renderer: the chain from the scene's colour buffer to
  * the back buffer, driven by the scene's combined Tr2PostProcess2.
  */
-@blue.define("Tr2PostProcessRenderer")
-@blue.inherit(IRoot)
+@be.define("Tr2PostProcessRenderer")
+@legacyBlue.inherit(IRoot)
 export class Tr2PostProcessRenderer extends IRoot
 {
-  @blue.notify
-  @blue.readwrite
+  @legacyBlue.notify
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.Tr2PostProcessRenderer.BloomDebugMode")
   bloomDebugMode = BloomDebugMode.BLOOM_DEBUG_NONE;
 
-  @blue.notify
-  @blue.readwrite
+  @legacyBlue.notify
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.PostProcess.Quality")
   quality = Quality.HIGH;
 
   // THE EFFECTS CARBON'S CONSTRUCTOR CREATES (cpp:537-635), in its order.
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   tonemappingEffect = effectAt(PostProcessEffectPaths.ToneMapping);
 
@@ -105,7 +106,7 @@ export class Tr2PostProcessRenderer extends IRoot
 
   _transparencyMaskEffect = effectAt(PostProcessEffectPaths.TransparencyMask);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   bloomHighPassFilter = effectAt(PostProcessEffectPaths.HighPassFilter);
 
@@ -117,19 +118,19 @@ export class Tr2PostProcessRenderer extends IRoot
 
   _upsamplerVertical = effectAt(PostProcessEffectPaths.Upsample, { UPSAMPLING_STEP: "UPSAMPLING_STEP_SECOND" });
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   dynamicExposureToTextureShader = effectAt(PostProcessEffectPaths.ExposureToTexture);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   dynamicExposureCreateHistogramShader = effectAt(PostProcessEffectPaths.CreateHistograms);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   dynamicExposureMergeHistogramShader = effectAt(PostProcessEffectPaths.MergeHistograms);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   dynamicExposureMeasureExposureShader = effectAt(PostProcessEffectPaths.MeasureExposure);
 
@@ -137,46 +138,46 @@ export class Tr2PostProcessRenderer extends IRoot
 
   _downsampleDepthEffect = effectAt(PostProcessEffectPaths.DownsampleDepth);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   fogColorEffect = effectAt(PostProcessEffectPaths.EnvironmentFogColor);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   fogCompositeEffect = effectAt(PostProcessEffectPaths.EnvironmentFogComposit);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   depthOfFieldBokehBlurShader = effectAt(PostProcessEffectPaths.Bokeh, { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_AVERAGE" });
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   depthOfFieldBokehFillShader = effectAt(PostProcessEffectPaths.Bokeh, { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_MAX" });
 
   _depthOfFieldBokehTAAShader = effectAt(PostProcessEffectPaths.BokehTAA);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   depthOfFieldCoCShader = effectAt(PostProcessEffectPaths.CircleOfConfusion);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   godrayEffect = effectAt(PostProcessEffectPaths.Godrays);
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   signalLossEffect = effectAt(PostProcessEffectPaths.SignalLoss);
 
   _grainShader = Tr2PostProcessRenderer._createGrainShader();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   taaEffect = effectAt(PostProcessEffectPaths.TAA);
 
   _taaCopyEffect = effectAt(PostProcessEffectPaths.TAACopy);
 
   /** Created on first use by RenderBloomDebug (cpp:1115-1144). */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   bloomDebugShader = null;
 
@@ -184,8 +185,8 @@ export class Tr2PostProcessRenderer extends IRoot
   _dynamicExposureDebugShader = null;
 
   /** m_useNewBloom, from the newBloom setting at construction (cpp:525). */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   useNewBloom = Tr2PostProcessRenderer.newBloom;
 
@@ -254,7 +255,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   Execute(destination, sourceBuffer, depthMap, velocity, opaqueColor, scene, upscalingContext, gpuResourcePool, renderContext, renderer)
   {
@@ -529,7 +530,7 @@ export class Tr2PostProcessRenderer extends IRoot
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   RenderTonemapping(dest, postprocess, renderContext, renderer)
   {
@@ -1142,7 +1143,7 @@ export class Tr2PostProcessRenderer extends IRoot
   }
 
   /** Carbon RenderUpscaling (cpp:1287-1390). */
-  @blue.method
+  @legacyBlue.method
   @meta.notImplemented
   RenderUpscaling()
   {

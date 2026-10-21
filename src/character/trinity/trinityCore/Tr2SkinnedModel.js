@@ -1,7 +1,8 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2SkinnedModel.h
 // Source: trinity/trinity/Tr2SkinnedModel.cpp
-import { blue as be, IsMatch, IInitialize, INotify, IListNotify, ResourceRequirement } from "#blue";
-import { meta, type, blue } from "#schema";
+import { blue, IsMatch, IInitialize, INotify, IListNotify, ResourceRequirement } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -19,10 +20,11 @@ const FLT_MAX = 3.4028234663852886e38;
  * Not ported: GetBatches and GetBatchesForArea (cpp:32-139), which need Carbon's Tr2PerObjectDataSkinned and
  * Tr2PerAreaDataSkinned (see the character README); until then Tr2Model's batches are used.
  */
-@blue.define("Tr2SkinnedModel")
-@blue.inherit(IInitialize, INotify, IListNotify)
-@blue.interface(IInitialize, INotify)
-@blue.chainTo(Tr2Model)
+@be.define("Tr2SkinnedModel")
+@legacyBlue.inherit(IInitialize, INotify, IListNotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.exposureChainTo(Tr2Model)
 export class Tr2SkinnedModel extends Tr2Model
 {
 
@@ -39,27 +41,27 @@ export class Tr2SkinnedModel extends Tr2Model
   _skeletonIx = NO_SKELETON;
 
   /** m_geometryResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_geometryRes (TriGeometryResPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("TriGeometryRes")
   geometryRes = null;
 
   /** m_skeletonName (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.string
   skeletonName = "";
 
   /** m_skinScale (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   skinScale = vec3.fromValues(1, 1, 1);
 
@@ -103,7 +105,7 @@ export class Tr2SkinnedModel extends Tr2Model
       this.geometryRes.RemoveNotifyTarget(this);
       this.geometryRes = null;
     }
-    this.geometryRes = be.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+    this.geometryRes = blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
     if (this.geometryRes)
     {
       this.geometryRes.AddNotifyTarget(this);
@@ -112,7 +114,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon OnListModified (Tr2SkinnedModel.cpp:276-283): an inserted mesh triggers rebinding. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   OnListModified(event)
@@ -217,7 +219,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon ResetBindings (Tr2SkinnedModel.cpp:197-200). */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   ResetBindings()
   {

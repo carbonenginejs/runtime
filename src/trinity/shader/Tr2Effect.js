@@ -1,6 +1,7 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, normalizeCarbonValue, meta, type, blue } from "#schema";
+import { CjsSchema, normalizeCarbonValue, meta, type, blue as legacyBlue } from "#schema";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
@@ -13,7 +14,7 @@ import { Tr2EffectParam } from "./material/Tr2EffectParam.js";
 import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
 import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";
 import { ResourceRequirement } from "#resource";
-import { blue as be, BlueList, IInitialize, INotify, IListNotify } from "#blue";
+import { blue, BlueList, IInitialize, INotify, IListNotify } from "#blue";
 import { ITriEffectParameter } from "./parameter/ITriEffectParameter.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
@@ -68,9 +69,12 @@ function requireShader(shader)
 const VECTOR4_PAD = vec4.create();
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
-@blue.define("Tr2Effect")
-@blue.inherit(IInitialize, INotify, IListNotify)
-@blue.interface(Tr2Material, INotify, IInitialize, IListNotify)
+@be.define("Tr2Effect")
+@legacyBlue.inherit(IInitialize, INotify, IListNotify)
+@be.mapInterface(Tr2Material)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IListNotify)
 export class Tr2Effect extends Tr2Material
 {
   /** Subscribes the two native pointer lists (Tr2Effect.cpp:255-256). */
@@ -87,9 +91,9 @@ export class Tr2Effect extends Tr2Material
    * Authored shader effect path used to resolve the effect resource.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
 
   @type.path("Tr2EffectRes")
   effectFilePath = "";
@@ -100,8 +104,8 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2ShaderOption>}
    */
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("Tr2ShaderOption")
   options = [];
 
@@ -110,8 +114,8 @@ export class Tr2Effect extends Tr2Material
    * Authored name identifying this effect instance.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -121,8 +125,8 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2ConstantEffectParameter>}
    */
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("Tr2ConstantEffectParameter")
   constParameters = [];
 
@@ -132,8 +136,8 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<import("./parameter/ITriEffectParameter.js").ITriEffectParameter>}
    */
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriEffectParameter")
   parameters = new BlueList(ITriEffectParameter);
 
@@ -143,8 +147,8 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<ITriEffectResourceParameter>}
    */
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITriEffectResourceParameter")
   resources = new BlueList(ITriEffectResourceParameter);
 
@@ -153,7 +157,7 @@ export class Tr2Effect extends Tr2Material
    * Loaded effect resource whose shader variations this instance uses.
    * @type {Tr2EffectRes|null}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2EffectRes")
   effectResource = null;
 
@@ -168,7 +172,7 @@ export class Tr2Effect extends Tr2Material
    * Resolved shader path after applying the effect-path defaults.
    * @type {string}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.path("Tr2EffectRes")
   actualEffectFilePath = "";
 
@@ -178,8 +182,8 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2SamplerOverride>}
    */
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.structList("Tr2SamplerOverride")
   samplerOverrides = [];
 
@@ -289,7 +293,7 @@ export class Tr2Effect extends Tr2Material
    *
    * @param {object} [resource] Resource that finished loading.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   RebuildCachedData(resource)
   {
@@ -390,7 +394,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method GetParameterAnnotations -> PyGetParameterAnnotations (MAP_METHOD). */
-  @blue.method
+  @be.mapMethod()
   @meta.implemented
   GetParameterAnnotations(parameterName)
   {
@@ -398,7 +402,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method PopulateParameters (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   PopulateParameters()
   {
@@ -442,7 +446,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method EndUpdate (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   EndUpdate()
   {
@@ -454,7 +458,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method PruneParameters (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   PruneParameters()
   {
@@ -470,7 +474,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method IsParameterUsedByTechnique (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   IsParameterUsedByTechnique(parameterName)
   {
@@ -507,7 +511,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method StartUpdate (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartUpdate()
   {
@@ -642,7 +646,7 @@ export class Tr2Effect extends Tr2Material
    * @param {object} passParameters Owning pass parameters.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.renamed("MapPassParameters")
   #MapPassParameters(stage, stageInput, passParameters)
   {
@@ -741,7 +745,7 @@ export class Tr2Effect extends Tr2Material
    * @param {object} passParameters Owning pass parameters.
    * @returns {void}
    */
-  @blue.method
+  @legacyBlue.method
   @meta.renamed("MapPassResources")
   #MapPassResources(resources, into, passParameters)
   {
@@ -870,7 +874,7 @@ export class Tr2Effect extends Tr2Material
     // A caller that assigned a resource by hand owns it; do not replace it.
     if (this.effectResource !== null) return;
 
-    const resource = be.resMan.GetResource(this.actualEffectFilePath, {
+    const resource = blue.resMan.GetResource(this.actualEffectFilePath, {
       requirement: ResourceRequirement.SHADER
     });
 
@@ -894,7 +898,7 @@ export class Tr2Effect extends Tr2Material
    * destination cleared and is detached from the material, an inserted one is
    * attached, and cached data is rebuilt either way.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   OnListModified(event, _key, _key2, value)
   {
@@ -927,7 +931,7 @@ export class Tr2Effect extends Tr2Material
    * the way; a no-op while a StartUpdate batch is open. Resolves shader metadata
    * only - no GPU program is created.
    */
-  @blue.method
+  @legacyBlue.method
   RebuildCachedDataInternal()
   {
     if (this._destroyed) return;

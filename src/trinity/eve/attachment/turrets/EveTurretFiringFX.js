@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.cpp
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
 import { IsMatch, CjsBlueClasses } from "#blue";
 
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveTurretFiringFXPerMuzzleData } from "./EveTurretFiringFXPerMuzzleData.js";
 import { mat4 } from "#math/mat4";
@@ -15,14 +16,18 @@ import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
-import { blue as be } from "../../../../global/blue/blue.js";
+import { blue } from "../../../../global/blue/blue.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { EveUpdateContext } from "../../EveUpdateContext.js";
 
 /** Coordinates a turret set's multi-muzzle firing effects, delays, stretch endpoints, observers, and impact timing. */
-@blue.define("EveTurretFiringFX")
-@blue.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner, ITr2DebugRenderable)
-@blue.interface(IInitialize, INotify, IListNotify, ITr2ControllerOwner, EveEntity)
+@be.define("EveTurretFiringFX")
+@legacyBlue.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner, ITr2DebugRenderable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(EveEntity)
 export class EveTurretFiringFX extends EveEntity
 {
 
@@ -30,8 +35,8 @@ export class EveTurretFiringFX extends EveEntity
    * Curve set played when a muzzle starts firing.
    * @type {TriCurveSet|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("TriCurveSet")
   startCurveSet = null;
 
@@ -39,8 +44,8 @@ export class EveTurretFiringFX extends EveEntity
    * Curve set played when firing stops.
    * @type {TriCurveSet|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("TriCurveSet")
   stopCurveSet = null;
 
@@ -48,8 +53,8 @@ export class EveTurretFiringFX extends EveEntity
    * Firing elements associated with the muzzle slots.
    * @type {Array<IEveFiringEffectElement>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveFiringEffectElement")
   stretch = [];
 
@@ -57,8 +62,8 @@ export class EveTurretFiringFX extends EveEntity
    * Name identifying the firing effect.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -66,8 +71,8 @@ export class EveTurretFiringFX extends EveEntity
    * Offset into the burst used to time the target impact.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingPeakTime = 0;
 
@@ -75,8 +80,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 1 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay1 = 0;
 
@@ -84,8 +89,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 10 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay10 = 0;
 
@@ -93,8 +98,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 11 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay11 = 0;
 
@@ -102,8 +107,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 12 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay12 = 0;
 
@@ -111,8 +116,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 2 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay2 = 0;
 
@@ -120,8 +125,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 3 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay3 = 0;
 
@@ -129,8 +134,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 4 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay4 = 0;
 
@@ -138,8 +143,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 5 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay5 = 0;
 
@@ -147,8 +152,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 6 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay6 = 0;
 
@@ -156,8 +161,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 7 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay7 = 0;
 
@@ -165,8 +170,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 8 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay8 = 0;
 
@@ -174,8 +179,8 @@ export class EveTurretFiringFX extends EveEntity
    * Authored start delay added to muzzle 9 when preparing a burst.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   firingDelay9 = 0;
 
@@ -183,7 +188,7 @@ export class EveTurretFiringFX extends EveEntity
    * World-space target point shared by the firing elements.
    * @type {Float32Array}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.vec3
   endPosition = vec3.create();
 
@@ -191,7 +196,7 @@ export class EveTurretFiringFX extends EveEntity
    * Resolved duration used to expire non-looping muzzle effects.
    * @type {number}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   firingDuration = 1000;
 
@@ -199,7 +204,7 @@ export class EveTurretFiringFX extends EveEntity
    * Whether the effect is currently armed or firing.
    * @type {boolean}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.boolean
   isFiring = false;
 
@@ -207,8 +212,8 @@ export class EveTurretFiringFX extends EveEntity
    * Observer updated at the target endpoint.
    * @type {TriObserverLocal|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("TriObserverLocal")
   destinationObserver = null;
 
@@ -216,8 +221,8 @@ export class EveTurretFiringFX extends EveEntity
    * Observer updated from the first muzzle transform.
    * @type {TriObserverLocal|null}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("TriObserverLocal")
   sourceObserver = null;
 
@@ -225,9 +230,9 @@ export class EveTurretFiringFX extends EveEntity
    * Authored duration override; a negative value uses the element curve duration.
    * @type {number}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.float32
   firingDurationOverride = -1;
 
@@ -235,8 +240,8 @@ export class EveTurretFiringFX extends EveEntity
    * Whether firing elements use the full muzzle transform instead of its translation.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useMuzzleTransform = false;
 
@@ -244,8 +249,8 @@ export class EveTurretFiringFX extends EveEntity
    * Whether muzzle effects remain active beyond the resolved firing duration.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isLoopFiring = false;
 
@@ -253,8 +258,8 @@ export class EveTurretFiringFX extends EveEntity
    * Bone name used to locate the firing muzzle.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   boneName = "Pos_Fire";
 
@@ -262,8 +267,8 @@ export class EveTurretFiringFX extends EveEntity
    * Whether active firing elements are registered for display.
    * @type {boolean}
    */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   display = true;
 
@@ -271,8 +276,8 @@ export class EveTurretFiringFX extends EveEntity
    * Whether target radius controls destination-object scale.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   scaleEffectTarget = false;
 
@@ -280,8 +285,8 @@ export class EveTurretFiringFX extends EveEntity
    * Target radius mapped to the minimum destination-object scale.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minRadius = 30;
 
@@ -289,8 +294,8 @@ export class EveTurretFiringFX extends EveEntity
    * Target radius mapped to the maximum destination-object scale.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxRadius = 3000;
 
@@ -298,8 +303,8 @@ export class EveTurretFiringFX extends EveEntity
    * Destination-object scale at or below the minimum target radius.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   minScale = 1;
 
@@ -358,7 +363,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     this.StopFiring();
     const context = new EveUpdateContext();
-    context.SetTime(be.os.GetCurrentFrameTime());
+    context.SetTime(blue.os.GetCurrentFrameTime());
     context.SetLodFactor(1);
     this.UpdateAsynchronous(context);
     this.UpdateSynchronous(context);
@@ -395,7 +400,7 @@ export class EveTurretFiringFX extends EveEntity
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (!this.isFiring || list !== this.stretch || (event & BLUELISTEVENT.BELIST_LOADING)) return;
-    if (!value || be.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
+    if (!value || blue.classes.QueryThisInterface(value, EveEntity, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
     const registry = this.GetComponentRegistry();
     if (!registry) return;
     const operation = event & BLUELISTEVENT.BELIST_EVENTMASK;
@@ -473,7 +478,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       const emitter = this.destinationObserver.GetObserver();
       const contract = CjsSchema.getConstructor("ITr2AudEmitter");
-      if (emitter && contract && be.classes.QueryThisInterface(emitter, contract, emitter.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (emitter && contract && blue.classes.QueryThisInterface(emitter, contract, emitter.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         emitter.SetAttenuationScalingFactor(radius);
       }
@@ -821,8 +826,8 @@ export class EveTurretFiringFX extends EveEntity
    * Destination-object scale at or above the maximum target radius.
    * @type {number}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxScale = 10;
 
@@ -830,7 +835,7 @@ export class EveTurretFiringFX extends EveEntity
    * The number of muzzles the effect drives, which is the number of authored
    * stretch elements rather than the twelve-muzzle maximum.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetPerMuzzleEffectCount()
   {
@@ -906,7 +911,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && be.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.SetControllerVariable(name, value);
       }
@@ -920,7 +925,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && be.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.HandleControllerEvent(name);
       }
@@ -934,7 +939,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     for (const stretch of this.stretch)
     {
-      if (stretch && be.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (stretch && blue.classes.QueryThisInterface(stretch, ITr2ControllerOwner, stretch.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         stretch.StartControllers();
       }
@@ -1012,7 +1017,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        if (element && be.classes.QueryThisInterface(element, EveEntity, element.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.Register(registry);
+        if (element && blue.classes.QueryThisInterface(element, EveEntity, element.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.Register(registry);
       }
     }
   }
@@ -1028,7 +1033,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        if (element && be.classes.QueryThisInterface(element, EveEntity, element.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.UnRegister(registry);
+        if (element && blue.classes.QueryThisInterface(element, EveEntity, element.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) element.UnRegister(registry);
       }
     }
   }

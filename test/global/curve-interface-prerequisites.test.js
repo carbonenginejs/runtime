@@ -5,9 +5,9 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   ITriFunction, ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction,
-  ITriColorFunction, ITriCurveLength, blue as be
+  ITriColorFunction, ITriCurveLength, blue
 } from "@carbonenginejs/runtime/blue";
-import { CjsSchema, blue } from "@carbonenginejs/runtime/schema";
+import { CjsSchema, blue as legacyBlue } from "@carbonenginejs/runtime/schema";
 import { ITriFunction as DirectFunction } from "../../src/global/blue/ITriFunction.js";
 import { ITriScalarFunction as DirectScalar } from "../../src/global/blue/ITriScalarFunction.js";
 import { ITriVectorFunction as DirectVector } from "../../src/global/blue/ITriVectorFunction.js";
@@ -73,7 +73,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     if (direct) assert.equal(Contract, direct);
     assert.equal(CjsSchema.getClassName(Contract), name);
     assert.equal(CjsSchema.getConstructor(name), Contract);
-    assert.equal(be.classes.GetClassRegistration(name).type, Contract);
+    assert.equal(blue.classes.GetClassRegistration(name).type, Contract);
     assert.deepEqual(Object.getOwnPropertyNames(Contract.prototype), [ "constructor", ...own, ...(hasRoot ? [ "ClassType", "QueryInterface", "GetRootObject" ] : []) ]);
     assert.equal(Object.getPrototypeOf(Contract.prototype), base ? base.prototype : Object.prototype);
     assert.deepEqual(CjsSchema.getSchema(Contract).members, []);
@@ -95,7 +95,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
   {
     class Derived extends Contract {}
     class Composed {}
-    blue.inherit(Contract)(Composed);
+    legacyBlue.inherit(Contract)(Composed);
     CjsSchema.define(Composed, { className: `TestCurvePrerequisiteMissing${name}` });
     const composed = new Composed();
     assert.equal(CjsSchema.cast(composed, Contract), composed);
@@ -161,13 +161,13 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     }
     class Consumer extends Operations {}
     const methods = hasReset ? [ ...required, "Reset" ] : required;
-    blue.inherit(Contract)(Consumer);
+    legacyBlue.inherit(Contract)(Consumer);
     CjsSchema.define(Consumer, { className: `TestCurvePrerequisiteConcrete${name}` });
     const instance = new Consumer();
     for (const method of methods) assert.equal(instance[method], Operations.prototype[method]);
     assert.equal(CjsSchema.cast(instance, Contract), instance);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), []);
-    blue.interface(Contract)(Consumer);
+    legacyBlue.interface(Contract)(Consumer);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), [ExposureRoot, Consumer, Contract]);
     if (base)
     {

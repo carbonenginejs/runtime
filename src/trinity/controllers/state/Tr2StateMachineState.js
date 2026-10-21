@@ -1,8 +1,9 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
-import { IsMatch, BlueList, IListNotify, INotify, blue as be, CjsBlueClasses } from "#blue";
-import { meta, type, blue } from "#schema";
+import { IsMatch, BlueList, IListNotify, INotify, blue, CjsBlueClasses } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2ControllerAction } from "../action/ITr2ControllerAction.js";
@@ -15,9 +16,10 @@ import { Tr2StateMachineTransition } from "./Tr2StateMachineTransition.js";
  * state. Its typed BlueLists report explicit list operations to this owner; raw
  * array operations bypass admission and notification.
  */
-@blue.define("Tr2StateMachineState")
-@blue.inherit(IListNotify, INotify)
-@blue.interface(IListNotify, INotify)
+@be.define("Tr2StateMachineState")
+@legacyBlue.inherit(IListNotify, INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(INotify)
 export class Tr2StateMachineState
 {
   /**
@@ -25,8 +27,8 @@ export class Tr2StateMachineState
    * and stopped on exit. The same actions can veto an outgoing transition.
    * @type {BlueList}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2ControllerAction")
   actions = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
 
@@ -35,8 +37,8 @@ export class Tr2StateMachineState
    * to select the next state. This state receives the list's notifications.
    * @type {BlueList}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2StateMachineTransition")
   transitions = new BlueList(Tr2StateMachineTransition, { className: "Tr2StateMachineTransition", listOps: 0 });
 
@@ -45,9 +47,9 @@ export class Tr2StateMachineState
    * have been requested; null permits completion without this check.
    * @type {ITr2StateMachineStateFinalizer|null}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.object.ref("ITr2StateMachineStateFinalizer")
   finalizer = null;
 
@@ -55,8 +57,8 @@ export class Tr2StateMachineState
    * State name matched by machine lookups and transition destinations.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -357,7 +359,7 @@ export class Tr2StateMachineState
    * Gets the linked state machine.
    * @returns {Tr2StateMachine|null} Owning machine, or null while unlinked.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetStateMachine()
   {
@@ -497,7 +499,7 @@ export class Tr2StateMachineState
    */
   static _asAction(value)
   {
-    return value ? be.classes.QueryThisInterface(value, ITr2ControllerAction, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    return value ? blue.classes.QueryThisInterface(value, ITr2ControllerAction, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
   }
 
   /**
@@ -507,7 +509,7 @@ export class Tr2StateMachineState
    */
   static _asTransition(value)
   {
-    return value ? be.classes.QueryThisInterface(value, Tr2StateMachineTransition, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    return value ? blue.classes.QueryThisInterface(value, Tr2StateMachineTransition, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
   }
 
   /**

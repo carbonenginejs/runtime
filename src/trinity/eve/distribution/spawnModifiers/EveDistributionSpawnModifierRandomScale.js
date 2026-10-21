@@ -1,49 +1,51 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomScale.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
-import { blue as be } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's scale with seeded random per-axis or uniform values. */
-@blue.define("EveDistributionSpawnModifierRandomScale")
-@blue.inherit(IInitialize)
-@blue.interface(IEveDistributionSpawnModifier, IInitialize)
+@be.define("EveDistributionSpawnModifierRandomScale")
+@legacyBlue.inherit(IInitialize)
+@be.mapInterface(IEveDistributionSpawnModifier)
+@be.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpawnModifier
 {
 
   /** `m_timeSeed`: uint32_t( BeOS->GetCurrentFrameTime() ) (EveDistributionSpawnModifierRandomScale.cpp). */
-  _timeSeed = be.os.GetCurrentFrameTime() >>> 0;
+  _timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
 
   /** m_minScale (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   minScale = vec3.fromValues(1, 1, 1);
 
   /** m_maxScale (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   maxScale = vec3.fromValues(1, 1, 1);
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   consistentRandom = false;
 
   /** m_uniformScale (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   uniformScale = false;
 
   /** m_overrideScale (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   overrideScale = false;
 
@@ -55,7 +57,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   @meta.adapted
   Initialize()
   {
-    this._timeSeed = be.os.GetCurrentFrameTime() >>> 0;
+    this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
     return true;
   }
 

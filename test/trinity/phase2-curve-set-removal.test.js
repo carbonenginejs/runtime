@@ -4,7 +4,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue as legacyBlue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
@@ -13,7 +13,7 @@ import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { ISimTimeRebaseNotify } from "../../npm/dist/global/blue/ISimTimeRebaseNotify.js";
 import { ITriFunction } from "../../npm/dist/global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../npm/dist/global/blue/ITriCurveLength.js";
-import { blue as be } from "../../npm/dist/global/blue/blue.js";
+import { blue } from "../../npm/dist/global/blue/blue.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { TriDevice } from "../../npm/dist/trinity/core/device/TriDevice.js";
@@ -38,7 +38,7 @@ class SampleFunction extends ITriFunction
 CjsSchema.define(SampleFunction, { className: "Phase2CurveSetSampleFunction", fields: {
   name: { type: "string", edit: { read: true, write: true, persist: true } }
 } });
-blue.interface(ITriFunction)(SampleFunction, { kind: "class" });
+legacyBlue.interface(ITriFunction)(SampleFunction, { kind: "class" });
 
 class SampleBinding extends ITr2ValueBinding
 {
@@ -46,7 +46,7 @@ class SampleBinding extends ITr2ValueBinding
   CopyValue() { this.copies++; }
 }
 CjsSchema.define(SampleBinding, { className: "Phase2CurveSetSampleBinding" });
-blue.interface(ITr2ValueBinding)(SampleBinding, { kind: "class" });
+legacyBlue.interface(ITr2ValueBinding)(SampleBinding, { kind: "class" });
 
 test("curve-set and range have native bases and exact exposure without model conveniences", () =>
 {
@@ -133,12 +133,12 @@ test("duration lookup uses mapped native interfaces and ignores a coincidental L
   class Duration extends SampleFunction { Length() { return 7; } }
   class CurveLength extends SampleFunction { Length() { return 5; } }
   class Unmapped extends SampleFunction { Length() { assert.fail("not exposed"); } }
-  blue.inherit(ITriDuration)(Duration, { kind: "class" });
-  blue.inherit(ITriCurveLength)(CurveLength, { kind: "class" });
-  blue.inherit(ITriDuration)(Unmapped, { kind: "class" });
-  blue.interface(ITriFunction, ITriDuration)(Duration, { kind: "class" });
-  blue.interface(ITriFunction, ITriCurveLength)(CurveLength, { kind: "class" });
-  blue.interface(ITriFunction)(Unmapped, { kind: "class" });
+  legacyBlue.inherit(ITriDuration)(Duration, { kind: "class" });
+  legacyBlue.inherit(ITriCurveLength)(CurveLength, { kind: "class" });
+  legacyBlue.inherit(ITriDuration)(Unmapped, { kind: "class" });
+  legacyBlue.interface(ITriFunction, ITriDuration)(Duration, { kind: "class" });
+  legacyBlue.interface(ITriFunction, ITriCurveLength)(CurveLength, { kind: "class" });
+  legacyBlue.interface(ITriFunction)(Unmapped, { kind: "class" });
   const set = new TriCurveSet();
   set.AddCurve(new Unmapped());
   assert.equal(set.GetMaxCurveDuration(), 0);
@@ -188,12 +188,12 @@ test("rebase converts the tick difference once and preserves pending relative st
 
 test("initialization acquires once and explicit disposal releases the acquired OS after replacement", t =>
 {
-  const previous = be.os, calls = [], owner = {
+  const previous = blue.os, calls = [], owner = {
     RegisterForSimTimeRebase(value) { calls.push(["register", value]); },
     UnregisterForSimTimeRebase(value) { calls.push(["unregister", value]); }
   };
-  be.os = owner;
-  t.after(() => { be.os = previous; });
+  blue.os = owner;
+  t.after(() => { blue.os = previous; });
   const set = new TriCurveSet();
   set.playOnLoad = false;
   set.useSimTimeRebase = true;
@@ -204,7 +204,7 @@ test("initialization acquires once and explicit disposal releases the acquired O
   assert.equal(set.IsUsingSimTimeRebase(), true, "native false reinitialization does not clear an acquired subscription");
   set.Stop();
   assert.deepEqual(calls, [["register", set]]);
-  be.os = { UnregisterForSimTimeRebase() { assert.fail("wrong OS owner"); } };
+  blue.os = { UnregisterForSimTimeRebase() { assert.fail("wrong OS owner"); } };
   set.Dispose();
   set.Dispose();
   assert.deepEqual(calls, [["register", set], ["unregister", set]]);
@@ -311,7 +311,7 @@ test("shared traversal reaches functions bindings and ranges without instance he
   set.bindings.Append(binding);
   set.ranges.Append(range);
   const visited = [];
-  visited.push(set, ...be.FindAllReferences(set).keys());
+  visited.push(set, ...blue.FindAllReferences(set).keys());
   for (const value of [set, curve, binding, range]) assert.equal(visited.includes(value), true);
   assert.deepEqual(GetResources(set), []);
 });
@@ -326,9 +326,9 @@ for (const route of ["declared dictionary", "canonical Black runtime", "default 
     const bytes = readFileSync(join(corpus, "skin_change.black"));
     assert.equal(bytes.length, 1514);
     assert.equal(createHash("sha256").update(bytes).digest("hex"), "4f5ec0fe1b7a9669f979e131bfb53bdf171d111ef46560bfdce74fb4d858c656");
-    const previous = be.resMan;
-    be.resMan = new StubResMan();
-    t.after(() => { be.resMan = previous; });
+    const previous = blue.resMan;
+    blue.resMan = new StubResMan();
+    t.after(() => { blue.resMan = previous; });
     assert.equal(CjsSchema.getConstructor("EveMeshOverlayEffect"), EveMeshOverlayEffect);
     const overlay = route === "declared dictionary"
       ? new DictReader({ declarations: true }).CreateObject(CjsBlackFormat.readPayload(bytes).object)

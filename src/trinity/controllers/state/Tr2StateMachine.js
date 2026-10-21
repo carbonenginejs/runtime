@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachine.h
 // Source: trinity/trinity/Controllers/Tr2StateMachine.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { IsMatch, blue as be, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
+import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
 
@@ -14,9 +15,10 @@ import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
  * change. Its typed BlueList reports explicit list operations to this owner;
  * raw array operations bypass admission and notification.
  */
-@blue.define("Tr2StateMachine")
-@blue.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
-@blue.interface(IListNotify, INotify)
+@be.define("Tr2StateMachine")
+@legacyBlue.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(INotify)
 export class Tr2StateMachine
 {
   /**
@@ -24,8 +26,8 @@ export class Tr2StateMachine
    * notify this machine so it can maintain state linkage.
    * @type {BlueList}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2StateMachineState")
   states = new BlueList(Tr2StateMachineState, { className: "Tr2StateMachineState", listOps: 0 });
 
@@ -34,7 +36,7 @@ export class Tr2StateMachine
    * This reference is not persisted with the authored machine.
    * @type {Tr2StateMachineState|null}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2StateMachineState")
   currentState = null;
 
@@ -43,9 +45,9 @@ export class Tr2StateMachine
    * restarts the machine; it refers to the state itself rather than a copy.
    * @type {Tr2StateMachineState|null}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.object.ref("Tr2StateMachineState")
   startState = null;
 
@@ -53,8 +55,8 @@ export class Tr2StateMachine
    * Authored identifier for this state machine within a controller.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -95,7 +97,7 @@ export class Tr2StateMachine
     {
       return;
     }
-    const state = value ? be.classes.QueryThisInterface(value, Tr2StateMachineState, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const state = value ? blue.classes.QueryThisInterface(value, Tr2StateMachineState, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
@@ -112,7 +114,7 @@ export class Tr2StateMachine
             state.Stop();
           }
           this.currentState = this.startState;
-          this._stateStartTime = be.os.GetCurrentFrameTime();
+          this._stateStartTime = blue.os.GetCurrentFrameTime();
           this.currentState?.Start();
           state.Unlink();
         }
@@ -207,7 +209,7 @@ export class Tr2StateMachine
       return;
     }
     this.currentState = this.startState;
-    const now = be.os.GetCurrentFrameTime();
+    const now = blue.os.GetCurrentFrameTime();
     this._machineStartTime = now;
     this._stateStartTime = now;
     if (!this.currentState)
@@ -302,7 +304,7 @@ export class Tr2StateMachine
   @meta.implemented
   GetMachineRunTime()
   {
-    return this._machineStartTime ? CcpTime.timeAsFloat(be.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
+    return this._machineStartTime ? CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
   }
 
   /**
@@ -313,7 +315,7 @@ export class Tr2StateMachine
   @meta.implemented
   GetStateRunTime()
   {
-    return this._stateStartTime ? CcpTime.timeAsFloat(be.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
+    return this._stateStartTime ? CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
   }
 
   /**
@@ -368,7 +370,7 @@ export class Tr2StateMachine
       }
       this.currentState = next;
       this.currentState.Start();
-      this._stateStartTime = be.os.GetCurrentFrameTime();
+      this._stateStartTime = blue.os.GetCurrentFrameTime();
       next = this.currentState.Update(0xffffffffffffffffn) ?? null;
     }
   }

@@ -1,12 +1,13 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/UI/EveConnector.h
 // Source: trinity/trinity/Eve/UI/EveConnector.cpp
 // Source: trinity/trinity/Eve/UI/EveConnector_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 const Y_AXIS = vec3.fromValues(0, 1, 0);
@@ -60,94 +61,94 @@ function rotateToPlane(out, point, planePoint, normal)
 
 
 /** Builds authored tactical connector curves into an EveCurveLineSet. */
-@blue.define("EveConnector")
-@blue.inherit(IRoot)
-@blue.interface()
+@be.define("EveConnector")
+@legacyBlue.inherit(IRoot)
+
 export class EveConnector extends IRoot
 {
 
   /** m_type (ConnectorType - enum ConnectorType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveConnector.ConnectorType")
   type = ConnectorType.PointToPoint;
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   color = vec4.fromValues(0.5, 0.5, 0.5, 1);
 
   /** m_width (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   lineWidth = 1;
 
   /** m_animationColor (Color) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.color
   animationColor = vec4.fromValues(1, 0, 0, 1);
 
   /** m_animationScale (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   animationScale = 1;
 
   /** m_animationSpeed (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   animationSpeed = 0;
 
   /** m_isAnimated (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   isAnimated = false;
 
   /** m_autoScaleAnimation (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   autoScaleAnimation = false;
 
   /** m_destPosition (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   destPosition = vec3.create();
 
   /** m_sourcePosition (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   sourcePosition = vec3.create();
 
   /** m_destObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriVectorFunction")
   destObject = null;
 
   /** m_sourceObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITriVectorFunction")
   sourceObject = null;
 
   /** m_normal (Vector3) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   planeNormal = vec3.fromValues(0, 1, 0);
 
   /** m_length (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   length = 0;
 
@@ -439,7 +440,7 @@ export class EveConnector extends IRoot
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/UI/EveConnector_Blue.cpp:34).
-be.enums.Create("trinity.EveConnector.ConnectorType", EveConnector.ConnectorType, {
+blue.enums.Create("trinity.EveConnector.ConnectorType", EveConnector.ConnectorType, {
   exposedName: "EveConnectorStyle", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "PointToPoint", value: EveConnector.ConnectorType.PointToPoint, description: "Connection between two points" },

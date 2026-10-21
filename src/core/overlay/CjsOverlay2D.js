@@ -7,8 +7,8 @@
 //
 // Input is not this class's job: attach the input manager to this canvas (it
 // is on top, so it receives the pointer) and let its consumers route.
-import { CjsSchema, blue, meta } from "#schema";
-import { blue as be, IBlueEvents } from "#blue";
+import { CjsSchema, blue as legacyBlue, meta } from "#schema";
+import { blue, IBlueEvents } from "#blue";
 
 /**
  * A 2D canvas pinned over a 3D canvas: same backing size, same CSS box,
@@ -68,7 +68,7 @@ export class CjsOverlay2D extends IBlueEvents
     this.Sync();
     if (tick)
     {
-      be.os.RegisterForTicks(this, "CjsOverlay2D");
+      blue.os.RegisterForTicks(this, "CjsOverlay2D");
       this._ticking = true;
     }
   }
@@ -146,7 +146,7 @@ export class CjsOverlay2D extends IBlueEvents
    */
   Destruct()
   {
-    if (this._ticking) be.os.UnregisterForTicks(this, "CjsOverlay2D");
+    if (this._ticking) blue.os.UnregisterForTicks(this, "CjsOverlay2D");
     this._ticking = false;
     this._observer?.disconnect();
     this._observer = null;
@@ -155,7 +155,7 @@ export class CjsOverlay2D extends IBlueEvents
   }
 }
 
-CjsSchema.decorateMethod(CjsOverlay2D, "OnTick", blue.method);
+CjsSchema.decorateMethod(CjsOverlay2D, "OnTick", legacyBlue.method);
 CjsSchema.meta.define(CjsOverlay2D, {
   className: "CjsOverlay2D",
   methods: Object.fromEntries([ "Sync", "AddDrawer", "RemoveDrawer", "Render", "OnTick", "Destruct" ].map(name => [ name, [] ]))

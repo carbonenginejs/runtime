@@ -1,32 +1,33 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderPass.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { PassType } from "../../generated/include/enums.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 
 /** A render step that renders one named pass of a multi-pass scene. */
-@blue.define("TriStepRenderPass")
-@blue.interface(TriRenderStep)
-@blue.chainTo(TriRenderStep)
+@be.define("TriStepRenderPass")
+@be.mapInterface(TriRenderStep)
+@be.exposureChainTo(TriRenderStep)
 export class TriStepRenderPass extends TriRenderStep
 {
 
   /** m_pass (ITr2MultiPassScene::PassType - enum PassType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.ITr2MultiPassScene.PassType")
   passType = 0;
 
   /** m_scene (ITr2MultiPassScenePtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("ITr2MultiPassScene")
   scene = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   __init__(scene = null, passType = 0)
   {

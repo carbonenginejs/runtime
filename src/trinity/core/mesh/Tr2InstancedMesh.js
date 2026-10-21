@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2InstancedMesh.h
 // Source: trinity/trinity/Tr2InstancedMesh.cpp
 // Source: trinity/trinity/Tr2InstancedMesh_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
 import { box3 } from "#math/box3";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { TriGeometryRes, ResourceRequirement } from "#resource";
 import { TriDevice } from "../device/TriDevice.js";
@@ -15,15 +16,15 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 import { CreateLodAllocations } from "./TriGeometryResAllocations.js";
-import { IsMatch, blue as be, EnumRegistrationType } from "#blue";
+import { IsMatch, blue, EnumRegistrationType } from "#blue";
 
 
 /**
  * A mesh drawn once per entry of a separate instance-data stream, with static
  * bounds or bounds expanded by the per-instance size.
  */
-@blue.define("Tr2InstancedMesh")
-@blue.chainTo(Tr2Mesh)
+@be.define("Tr2InstancedMesh")
+@be.exposureChainTo(Tr2Mesh)
 export class Tr2InstancedMesh extends Tr2Mesh
 {
   /** Carbon m_vertexDeclaration: combined mesh and instance elements. */
@@ -35,41 +36,41 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /** Carbon m_loadedGeometryResource, preferred over an assigned provider. */
   _loadedGeometryResource = null;
 
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2InstancedMesh.BoundsMethod")
   boundsMethod = 0;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriGeometryRes")
   instanceGeometryResPath = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   maxBounds = vec3.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   maxInstanceSize = 0;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   minBounds = vec3.create();
 
-  @blue.readwrite
-  @blue.persistOnly
+  @legacyBlue.readwrite
+  @legacyBlue.persistOnly
   @type.object.ref("ITr2InstanceData")
   instanceGeometryResource = null;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.int32
   instanceMeshIndex = 0;
 
@@ -100,7 +101,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   PrepareResources()
   {
@@ -115,7 +116,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   {
     if (!this.deferGeometryLoad && this.instanceGeometryResPath)
     {
-      this._loadedGeometryResource = be.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+      this._loadedGeometryResource = blue.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY });
     }
     return super.Initialize();
   }
@@ -207,7 +208,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
       if (!this.deferGeometryLoad)
       {
         this.SetInstanceGeometryRes(this.instanceGeometryResPath
-          ? be.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+          ? blue.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY })
           : null);
       }
     }
@@ -236,7 +237,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @param {boolean} [reverseAreas] Reverse each area's authored winding.
    * @returns {boolean} Whether a batch was committed.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   GetBatches(batches, areas, data, screenSize = Infinity, reverseAreas = false)
   {
@@ -632,7 +633,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2InstancedMesh_Blue.cpp:21).
-be.enums.Create("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMesh.BoundsMethod, {
+blue.enums.Create("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMesh.BoundsMethod, {
   exposedName: "Tr2InstanceMeshBoundsMethod", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "STATIC", value: Tr2InstancedMesh.BoundsMethod.STATIC, description: "Bounds are defined explicitely on the mesh" },

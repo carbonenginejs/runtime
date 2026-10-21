@@ -1,74 +1,75 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { type, blue as legacyBlue } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { vec2 } from "#math/vec2";
 
 /** Groups plane items with usage, texture, atlas, visibility, and skinning policy. */
-@blue.define("EveSOFDataHullPlaneSet")
-@blue.inherit(IRoot)
+@be.define("EveSOFDataHullPlaneSet")
+@legacyBlue.inherit(IRoot)
 export class EveSOFDataHullPlaneSet extends IRoot
 {
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullPlaneSet.Usage")
   usage = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
   /** m_layer1MapResPath (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("TriTextureRes")
   layer1MapResPath = "";
 
   /** m_layer2MapResPath (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("TriTextureRes")
   layer2MapResPath = "";
 
   /** m_maskMapResPath (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.path("TriTextureRes")
   maskMapResPath = "";
 
   /** m_skinned (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   skinned = false;
 
   /** m_atlasAspectRatio (Vector2) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec2
   atlasAspectRatio = vec2.fromValues(1, 1);
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   visibilityGroup = "primary";
 
   /** m_atlasSize (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   atlasSize = 1;
 
   /** m_items (PEveSOFDataHullPlaneSetItemVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveSOFDataHullPlaneSetItem")
   items = [];
 
@@ -82,7 +83,7 @@ export class EveSOFDataHullPlaneSet extends IRoot
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-be.enums.Create("trinity.EveSOFDataHullPlaneSet.Usage", EveSOFDataHullPlaneSet.Usage, {
+blue.enums.Create("trinity.EveSOFDataHullPlaneSet.Usage", EveSOFDataHullPlaneSet.Usage, {
   exposedName: "HullPlanesetUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Standard", value: EveSOFDataHullPlaneSet.Usage.USAGE_STANDARD, description: "Standard planeset" },

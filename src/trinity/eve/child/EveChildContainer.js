@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
@@ -21,7 +22,7 @@ import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { EveChildInheritProperties } from "./EveChildInheritProperties.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -42,7 +43,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2ActionController } from "../../controllers/ITr2Controller/ITr2ActionController.js";
-import { IsMatch, blue as be, EnumRegistrationType } from "#blue";
+import { IsMatch, blue, EnumRegistrationType } from "#blue";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 import { IEveSpaceObjectAttachmentOwner } from "../attachment/IEveSpaceObjectAttachmentOwner.js";
 
@@ -56,132 +57,146 @@ const ZERO_VEC3 = vec3.create();
  * their curve sets, controllers, observers, lights, attachments and transform
  * modifiers, and gating them on a display-quality filter.
  */
-@blue.define("EveChildContainer")
-@blue.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
-@blue.inherit(IInitialize, IListNotify, INotify)
-@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, IEveSpaceObjectAttachmentOwner, ITr2Renderable, ITr2LightOwner, IShaderConfigurer)
-@blue.inherit(IEveEffectChildrenOwner, IEveSpaceObjectAttachmentOwner)
+@be.define("EveChildContainer")
+@legacyBlue.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
+@legacyBlue.inherit(IInitialize, IListNotify, INotify)
+@be.mapInterface(EveEntity)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IListNotify)
+@be.mapInterface(INotify)
+@be.mapInterface(IEveEffectChildrenOwner)
+@be.mapInterface(ITr2SoundEmitterOwner)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(IEveInheritPropertiesOwner)
+@be.mapInterface(IEveSpaceObjectAttachmentOwner)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(ITr2LightOwner)
+@be.mapInterface(IShaderConfigurer)
+@legacyBlue.inherit(IEveEffectChildrenOwner, IEveSpaceObjectAttachmentOwner)
 export class EveChildContainer extends EveChildTransform
 {
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveChildContainer.DisplayQualityModifier")
   displayFilter = 5;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObjectChild")
   objects = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriCurveSet")
   curveSets = [];
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.mat4
   worldTransform = mat4.create();
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   mute = false;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.boolean
   display = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   translation = vec3.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   rotation = quat.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.mat4
   localTransform = mat4.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   staticTransform = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   alwaysOn = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   updateOnDisplay = true;
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("TriObserverLocal")
   observers = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveFxAttribute")
   fxAttributes = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("Tr2Light")
   lights = [];
 
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("ITr2Controller")
   controllers = [];
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("EveChildInheritProperties")
   inheritProperties = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useSRT = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useStaticRotation = false;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   useStaticScale = false;
 
@@ -196,7 +211,7 @@ export class EveChildContainer extends EveChildTransform
    * @type {ITr2GrannyAnimationOwner|null}
    */
   @meta.adapted
-  @blue.read
+  @be.mapAttribute(be.READ)
   @meta.persist
   @type.object.ref("ITr2GrannyAnimationOwner")
   animationOwner = null;
@@ -210,7 +225,7 @@ export class EveChildContainer extends EveChildTransform
    * @type {number}
    */
   @meta.adapted
-  @blue.read
+  @be.mapAttribute(be.READ)
   @meta.persist
   @type.int32
   @type.enum("trinity.EveSpaceObjectChild.Origin")
@@ -247,7 +262,7 @@ export class EveChildContainer extends EveChildTransform
    * (EveChildContainer_Blue.cpp:60): whether the children render under the
    * current display filter and shader settings.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isRendering()
@@ -260,7 +275,7 @@ export class EveChildContainer extends EveChildTransform
    * (EveChildContainer_Blue.cpp:61): whether the children update under the
    * current display filter and shader settings.
    */
-  @blue.property()
+  @be.mapPropertyReadOnly()
   @type.boolean
   @meta.implemented
   get isUpdating()
@@ -323,7 +338,7 @@ export class EveChildContainer extends EveChildTransform
    * Returns the authored container name, which GetEffectChildByName matches
    * against on the parent side.
    */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   GetName()
   {
@@ -331,7 +346,7 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Sets the authored container name, coercing nullish to the empty string. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   SetName(name)
   {
@@ -450,7 +465,7 @@ export class EveChildContainer extends EveChildTransform
    * container, and recurses into the contained children; the recorded value is
    * also replayed onto controllers and children added later.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -471,7 +486,7 @@ export class EveChildContainer extends EveChildTransform
    * Fires a named controller event on every controller here and recurses into
    * the contained children.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -487,7 +502,7 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Starts every controller here and recurses into the contained children. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   StartControllers()
   {
@@ -505,7 +520,7 @@ export class EveChildContainer extends EveChildTransform
    * Forwards a procedural container variable to the contained children; a plain
    * container holds none of its own.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
@@ -1661,7 +1676,7 @@ export class EveChildContainer extends EveChildTransform
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:24).
-be.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildContainer.DisplayQualityModifier, {
+blue.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildContainer.DisplayQualityModifier, {
   exposedName: "SetShader", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "None_", value: EveChildContainer.DisplayQualityModifier.SHADER_ALL, description: "Visible to users with all shader settings" },

@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { EveProceduralMethodCyclingParameter } from "./EveProceduralMethodCyclingParameter.js";
-import { blue as be, CcpTime } from "#blue";
+import { blue, CcpTime } from "#blue";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
@@ -12,9 +13,10 @@ import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.j
 const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodCycling (eve/child/procedural/selection) - generated from schema shapeHash 2014815d.... */
-@blue.define("EveProceduralMethodCycling")
-@blue.inherit(INotify)
-@blue.interface(IEveProceduralSelectionMethod, INotify)
+@be.define("EveProceduralMethodCycling")
+@legacyBlue.inherit(INotify)
+@be.mapInterface(IEveProceduralSelectionMethod)
+@be.mapInterface(INotify)
 export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 {
 
@@ -24,31 +26,31 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   _startTime = 0;
 
   /** m_parameters (PEveProceduralMethodCyclingParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("EveProceduralMethodCyclingParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_startTimeOffset (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.float32
   startTimeOffset = 0;
 
   /** m_randomizeOrder (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   randomizeOrder = false;
 
   /** m_selectedChildIndex (int) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.int32
   selectedChild = -1;
 
@@ -58,7 +60,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * The start is Blue's frame time, read here as Carbon reads
    * BeOS->GetCurrentFrameTime(), less TimeFromDouble(startTimeOffset) (cpp:58).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   restart()
   {
@@ -82,7 +84,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
       this.selectedChild = (this.selectedChild + 1) % count;
     }
 
-    this._startTime = be.os.GetCurrentFrameTime() - CcpTime.timeFromDouble(this.startTimeOffset);
+    this._startTime = blue.os.GetCurrentFrameTime() - CcpTime.timeFromDouble(this.startTimeOffset);
     this._selectedChildModified = true;
     return true;
   }
@@ -163,7 +165,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     const param = CjsSchema.cast(this.parameters[this.selectedChild], EveProceduralMethodCyclingParameter);
     if (param)
     {
-      const elapsedTime = CcpTime.timeAsFloat(be.os.GetCurrentFrameTime() - this._startTime);
+      const elapsedTime = CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._startTime);
       // Both sides are float in Carbon: TimeAsFloat and the float GetDuration (cpp:100-101).
       if (elapsedTime >= Math.fround(param.GetDuration()))
       {

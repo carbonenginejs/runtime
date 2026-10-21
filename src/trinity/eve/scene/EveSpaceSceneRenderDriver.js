@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/EveSpaceSceneRenderDriver.{h,cpp}
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 //
@@ -19,7 +20,7 @@
 // Carbon's BeginRender/GatherBatches into scene-owned CPU methods that a driver
 // calls in order; that contract is written on EveSpaceScene itself, and this is
 // the driver it describes.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
@@ -55,7 +56,7 @@ import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { EveSpaceScene } from "./EveSpaceScene.js";
 import { EveSpaceSceneRenderDriverSettings } from "./EveSpaceSceneRenderDriverSettings.js";
 import { EveSpaceSceneRenderDriverTimers } from "./EveSpaceSceneRenderDriverTimers.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import "../../postProcess/effect/Tr2PPEffect.js";
 import "#consts/renderContext/formats";
@@ -68,9 +69,9 @@ import "#consts/renderContext/formats";
 const CARBON_DEFAULT_SETTINGS = new EveSpaceSceneRenderDriverSettings();
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
-@blue.define({ className: "EveSpaceSceneRenderDriver", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
-@blue.inherit(ITr2RenderNode, Tr2DeviceResource)
-@blue.interface(ITr2RenderNode)
+@legacyBlue.define({ className: "EveSpaceSceneRenderDriver", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
+@legacyBlue.inherit(ITr2RenderNode, Tr2DeviceResource)
+@legacyBlue.interface(ITr2RenderNode)
 export class EveSpaceSceneRenderDriver
 {
 
@@ -87,49 +88,49 @@ export class EveSpaceSceneRenderDriver
   }
 
   /** m_settings.aoQuality (AmbientOcclusionQuality - enum AmbientOcclusionQuality) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality")
   aoQuality = CARBON_DEFAULT_SETTINGS.aoQuality;
 
   /** m_settings.antiAliasingQuality (AntiAliasingQuality - enum AntiAliasingQuality) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality")
   antiAliasingQuality = CARBON_DEFAULT_SETTINGS.antiAliasingQuality;
 
   /** m_settings.visualizeMethod (EveSpaceScene::EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
   visualizeMethod = 0;
 
   /** m_settings.postProcessingQuality (PostProcess::Quality - enum Quality) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.PostProcess.Quality")
   postProcessingQuality = CARBON_DEFAULT_SETTINGS.postProcessingQuality;
 
   /** m_settings.shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.ShadowQuality")
   shadowQuality = CARBON_DEFAULT_SETTINGS.shadowQuality;
 
   /** m_customStencilFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.ImageIO.PixelFormat")
   customStencilFormat = 0;
 
   /** m_internalPixelFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.ImageIO.PixelFormat")
   internalPixelFormat = 10;
 
   /** m_settings.volumetricQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, ENUM] */
-  @blue.readwrite
+  @legacyBlue.readwrite
   @type.int32
   @type.enum("trinity.Tr2VolumerticQuality")
   volumetricQuality = CARBON_DEFAULT_SETTINGS.volumetricQuality;
@@ -141,8 +142,8 @@ export class EveSpaceSceneRenderDriver
    * blue.Find methods to work". Script reads and writes go through the
    * same-name property below.
    */
-  @blue.attribute("scene")
-  @blue.persistOnly
+  @legacyBlue.attribute("scene")
+  @legacyBlue.persistOnly
   @type.rootRef("EveSpaceScene")
   _scene = null;
 
@@ -150,7 +151,7 @@ export class EveSpaceSceneRenderDriver
    * Carbon MAP_PROPERTY "scene" over GetScene/SetScene
    * (EveSpaceSceneRenderDriver_Blue.cpp:78-82): the scene to render.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.rootRef("EveSpaceScene")
   @meta.implemented
   get scene()
@@ -170,7 +171,7 @@ export class EveSpaceSceneRenderDriver
    * (EveSpaceSceneRenderDriver_Blue.cpp:263-267): in debug mode the pool
    * stops sharing temporary GPU resources.
    */
-  @blue.property()
+  @be.mapProperty()
   @type.boolean
   @meta.implemented
   get debugMode()
@@ -186,114 +187,114 @@ export class EveSpaceSceneRenderDriver
   }
 
   /** m_name (std::string) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   name = "";
 
   /** m_settings.enableUpscaling (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   enableUpscaling = CARBON_DEFAULT_SETTINGS.enableUpscaling;
 
   /** m_projection (TriProjectionPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("TriProjection")
   projection = null;
 
   /** m_camera (EveCameraPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("EveCamera")
   camera = null;
 
   /** m_view (TriViewPtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("TriView")
   view = null;
 
   /** m_settings.clearColor (Color) [READWRITE]; Carbon's default is opaque black (EveSpaceSceneRenderDriver.h:59). */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.color
   clearColor = vec4.fromValues(0, 0, 0, 1);
 
   /** m_distortionEffect (Tr2EffectPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2Effect")
   distortionEffect = null;
 
   /** m_settings.enableDistortion (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   enableDistortion = CARBON_DEFAULT_SETTINGS.enableDistortion;
 
   /** m_reflectionCorrectionEnabled (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   reflectionCorrectionEnabled = true;
 
   /** m_settings.forceOpaqueBuffer (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   forceOpaqueBuffer = false;
 
   /** m_settings.forceNormalMap (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   forceNormalMap = false;
 
   /** m_settings.forceVelocityMap (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   forceVelocityMap = false;
 
   /** m_fpsRenderer (TriStepRenderFpsPtr) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("TriStepRenderFps")
   fpsRenderer = null;
 
   /** m_mainPassRenderingEnabled (bool) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   mainPassRenderingEnabled = true;
 
   /** m_toolsScenes (PITr2SceneVector) [READ] */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.list("ITr2Scene")
   toolsScenes = [];
 
   /** m_depthPassTechnique (unknown) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.string
   depthPassTechnique = "Depth";
 
   /** m_postProcess (Tr2PostProcessRendererPtr) [READ], created in the constructor (cpp:151). */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2PostProcessRenderer")
   postProcess = new Tr2PostProcessRenderer();
 
   /** m_settings.showFPS (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   showFPS = false;
 
   /** m_sceneOverlay (ITr2RenderNodePtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("ITr2RenderNode")
   sceneOverlay = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("ITr2RenderNode")
   background = null;
 
   /** m_ssao (Tr2SSAOPtr) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("Tr2SSAO")
   SSAO = null;
 
   /** m_enableRendering (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   enableRendering = true;
 
@@ -311,7 +312,7 @@ export class EveSpaceSceneRenderDriver
    *
    * @returns {Tr2TextureReference[]} One reference per pooled temp texture.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   GetAllTempTextures()
   {

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclarationName.json).
-import { type, blue, meta } from "#schema";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { type, blue as legacyBlue, meta } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** Tr2ParticleElementDeclarationName (particle) - generated from schema shapeHash 115c80e5.... */
 @meta.carbon("Tr2ParticleElementDeclarationName")
@@ -70,7 +70,7 @@ export class Tr2ParticleElementDeclarationName
   }
 
   /** Carbon GetName - human-readable name; CUSTOM returns the custom name. */
-  @blue.method
+  @legacyBlue.method
   GetName()
   {
     if (this.type >= Tr2ParticleElementDeclarationName.Type.CUSTOM)
@@ -85,7 +85,7 @@ export class Tr2ParticleElementDeclarationName
    * (LIFETIME->TANGENT, POSITION->POSITION, VELOCITY->NORMAL,
    * MASS->BITANGENT, CUSTOM->TEXCOORD).
    */
-  @blue.method
+  @legacyBlue.method
   GetD3DUsage()
   {
     return Tr2ParticleElementDeclarationName.#usageCodes[this.type];
@@ -107,7 +107,7 @@ export class Tr2ParticleElementDeclarationName
 }
 
 
-be.enums.Create("trinity.Tr2ParticleElementDeclarationName.Type", Tr2ParticleElementDeclarationName.Type, {
+blue.enums.Create("trinity.Tr2ParticleElementDeclarationName.Type", Tr2ParticleElementDeclarationName.Type, {
   exposedName: "PARTICLE_ELEMENT_TYPE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "LIFETIME", value: Tr2ParticleElementDeclarationName.Type.LIFETIME, description: "Particle life time (2D float)" },

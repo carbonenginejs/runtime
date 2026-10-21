@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet.h
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet.cpp
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta, type, blue } from "#schema";
-import { blue as be, IInitialize, IsMatch, ResourceRequirement } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue, IInitialize, IsMatch, ResourceRequirement } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage, Topology } from "#consts/render-context";
 import { decodeTangentFrame } from "#math/tangent";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
@@ -18,27 +19,27 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 /** Granny/CMF debug geometry rendered as colored triangle edges, solids, or picking triangles. */
-@blue.define("Tr2GrannyPrimitiveSet")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(Tr2PrimitiveSet)
+@be.define("Tr2GrannyPrimitiveSet")
+@legacyBlue.inherit(IInitialize)
+@be.mapInterface(IInitialize)
+@be.exposureChainTo(Tr2PrimitiveSet)
 export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 {
   /** Native resource path (Blue READWRITE | PERSIST | NOTIFY). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.path("TriGeometryRes")
   grannyResPath = "";
 
   /** Native solid-versus-wire draw switch. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   renderSolid = false;
 
   /** The GEOMETRY route supplies TriGeometryRes in JS, replacing the raw SDK handle. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("TriGeometryRes")
   grannyRes = null;
 
@@ -104,7 +105,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
       this.ReleaseCachedData(null);
       return;
     }
-    const resource = be.resMan.GetResource(this.grannyResPath, { requirement: ResourceRequirement.GEOMETRY });
+    const resource = blue.resMan.GetResource(this.grannyResPath, { requirement: ResourceRequirement.GEOMETRY });
     this.grannyRes = resource;
     // Carbon registers a notify target here; a resource that has already
     // finished calls RebuildCachedData at once.
@@ -238,7 +239,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Inherited native device-resource creation guard. */
-  @blue.method
+  @legacyBlue.method
   @meta.implemented
   PrepareResources()
   {

@@ -1,8 +1,9 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ShadowMap.h
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { INotify, IsMatch } from "../../global/blue/INotify.js";
 //   trinity/trinity/Tr2ShadowMap.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -11,7 +12,7 @@ import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Denoiser } from "./Tr2Denoiser.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { TriFrustumOrtho } from "./view/TriFrustumOrtho.js";
-import { blue as be, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 const SHADOW_FRUSTUM_COUNT = 16;
@@ -106,106 +107,106 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 }
 
 /** Cascaded-shadow split producer. Its GPU operations are not ported yet. */
-@blue.define("Tr2ShadowMap")
-@blue.inherit(INotify)
-@blue.interface(INotify)
+@be.define("Tr2ShadowMap")
+@legacyBlue.inherit(INotify)
+@be.mapInterface(INotify)
 export class Tr2ShadowMap
 {
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.notify
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.Tr2ShadowMap.ShadowSplitMode")
   shadowSplitMode = 0;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Denoiser")
   denoiser = new Tr2Denoiser();
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.object.ref("Tr2Effect")
   cascadeEffect = createShadowEffect();
 
-  @blue.notify
-  @blue.read
+  @be.mapAttribute(be.READ | be.NOTIFY)
+
   @type.uint32
   splitCount = SHADOW_FRUSTUM_COUNT;
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   debugColorSplit = false;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr15 = STATIC_SPLITS[15];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr8 = STATIC_SPLITS[8];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr6 = STATIC_SPLITS[6];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr5 = STATIC_SPLITS[5];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr14 = STATIC_SPLITS[14];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr10 = STATIC_SPLITS[10];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr13 = STATIC_SPLITS[13];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr4 = STATIC_SPLITS[4];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr3 = STATIC_SPLITS[3];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr7 = STATIC_SPLITS[7];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr1 = STATIC_SPLITS[1];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr9 = STATIC_SPLITS[9];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr0 = STATIC_SPLITS[0];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr11 = STATIC_SPLITS[11];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr12 = STATIC_SPLITS[12];
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.float32
   SplitNr2 = STATIC_SPLITS[2];
 
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
+
   @type.boolean
   disableShimmer = true;
 
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.uint32
   size = 2048;
 
@@ -749,7 +750,7 @@ export class Tr2ShadowMap
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ShadowMap_Blue.cpp:14).
-be.enums.Create("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.ShadowSplitMode, {
+blue.enums.Create("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.ShadowSplitMode, {
   exposedName: "ShadowSplitModeChooser", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooser: [
     { name: "Static", value: Tr2ShadowMap.ShadowSplitMode.STATIC, description: "Staticly computed splits for the shadow map" },

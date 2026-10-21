@@ -1,9 +1,10 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.h
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
-import { IsMatch, blue as be, INotify, IInitialize, CjsBlueClasses } from "#blue";
+import { IsMatch, blue, INotify, IInitialize, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { ITr2Controller } from "./ITr2Controller/index.js";
 
@@ -12,20 +13,22 @@ import { ITr2Controller } from "./ITr2Controller/index.js";
  * Stands in for a controller loaded from a resource path, forwarding the full
  * controller lifecycle to whichever controller the path resolves to.
  */
-@blue.define("Tr2ControllerReference")
-@blue.inherit(INotify, IInitialize)
-@blue.interface(IInitialize, INotify, ITr2Controller)
+@be.define("Tr2ControllerReference")
+@legacyBlue.inherit(INotify, IInitialize)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2Controller)
 export class Tr2ControllerReference extends ITr2Controller
 {
   /** Authored controller resource path; notifications reload the reference. */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.path("object")
   path = "";
 
   /** Runtime loaded controller, exposed read-only and not persisted. */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("ITr2Controller")
   controller = null;
 
@@ -135,7 +138,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: retain start intent until the asynchronous load is linked.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Start()
   {
@@ -148,7 +151,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: cancel pending start intent before the asynchronous load completes.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   Stop()
   {
@@ -189,7 +192,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {string} eventName Event forwarded to the loaded controller.
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   HandleEvent(eventName)
   {
@@ -200,7 +203,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Gets the linked owner.
    * @returns {object|null} Current owner.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetOwner()
   {
@@ -232,7 +235,7 @@ export class Tr2ControllerReference extends ITr2Controller
     let object;
     try
     {
-      object = await be.resMan.LoadObject(path);
+      object = await blue.resMan.LoadObject(path);
     }
     catch (error)
     {
@@ -244,7 +247,7 @@ export class Tr2ControllerReference extends ITr2Controller
     }
     if (request !== this._loadRequest || path !== this.path) return null;
     // Native LoadObject<ITr2Controller> requires the exposed interface identity.
-    const controller = object ? be.classes.QueryThisInterface(object, ITr2Controller, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const controller = object ? blue.classes.QueryThisInterface(object, ITr2Controller, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (!controller)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not an ITr2Controller.`);

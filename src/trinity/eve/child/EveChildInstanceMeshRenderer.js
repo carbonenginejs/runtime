@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.h
 import { INotify } from "../../../global/blue/INotify.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
@@ -13,14 +14,14 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { EntityComponents } from "../EntityComponents.js";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { Tr2RuntimeInstanceData } from "../../core/mesh/Tr2RuntimeInstanceData.js";
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
-import { blue as be } from "#blue";
+import { blue } from "#blue";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 
@@ -55,7 +56,7 @@ const INSTANCE_SPHERE = vec4.create();
  * current/previous transform record per instance. Trinity owns the placement,
  * culling and CPU-byte policy; an engine realizes Tr2RuntimeInstanceData.
  */
-@blue.define("EveChildInstanceMeshRenderer")
+@be.define("EveChildInstanceMeshRenderer")
 // Carbon's renderer Blue surface omits currentScreenSize, but its
 // EveSmartLightMesh descendant exposes that inherited field. CjsSchema hidden
 // fields cannot be reintroduced by descendants, so this one shared field stays
@@ -89,33 +90,40 @@ const INSTANCE_SPHERE = vec4.create();
   "sofLocatorSetName",
   "sofLocatorIndex"
 ])
-@blue.inherit(IInitialize, INotify)
-@blue.interface(EveEntity, EveChildMesh, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
+@legacyBlue.inherit(IInitialize, INotify)
+@be.mapInterface(EveEntity)
+@be.mapInterface(EveChildMesh)
+@be.mapInterface(EveSpaceObjectChild)
+@be.mapInterface(IEveSpaceObjectChild)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
+@be.mapInterface(IEveShadowCaster)
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
-  @blue.readwrite
-  @blue.persist
+  @legacyBlue.readwrite
+  @legacyBlue.persist
   @type.int32
   @type.enum("trinity.EveChildInstanceMeshRenderer.RotationalConstraints")
   rotationConstraint = RotationalConstraints.NONE;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.quat
   staticOffsetRotation = quat.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   staticOffsetTranslation = vec3.create();
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.object.ref("IEveDistributionMethod")
   distribution = null;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.vec3
   staticOffsetScale = vec3.fromValues(1, 1, 1);
 
@@ -161,7 +169,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * sphere and threshold policy are unchanged.
    */
 
-  @blue.contextual(["camera"])
+  @legacyBlue.contextual(["camera"])
   @meta.adapted
   IsVisible(updateContext)
   {
@@ -349,7 +357,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Re-arms static instance geometry publication. */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   RefreshStaticGeometry()
   {

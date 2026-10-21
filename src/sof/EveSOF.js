@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../global/blue/IRoot.js";
 import { random as carbonRandom } from "#math/random";
 import * as CcpLog from "../global/logging/ccpLog.js";
@@ -7,7 +8,7 @@ import { GenerateBoosterLightPhase } from "#utils/boosterLightPhase";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -23,7 +24,7 @@ import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
 import { EveSOFDataArea } from "./shared/EveSOFDataArea.js";
 import { EveSOFDataInstancedMesh } from "./shared/EveSOFDataInstancedMesh.js";
 import { EveSOFUtilsParameterName } from "./shared/EveSOFUtilsParameterName.js";
-import { blue as be, BeObjectMetadata } from "#blue";
+import { blue, BeObjectMetadata } from "#blue";
 import { EveSOFDNA } from "./EveSOFDNA.js";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import { CjsSofLibraryBuilder } from "./CjsSofLibraryBuilder.js";
@@ -273,8 +274,8 @@ const SOF_INSTANCE_LAYOUT = [
 /**
  * Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph.
  */
-@blue.define("EveSOF")
-@blue.interface()
+@be.define("EveSOF")
+
 export class EveSOF extends IRoot
 {
 
@@ -283,7 +284,7 @@ export class EveSOF extends IRoot
    * m_allowFileCaching. Loaded objects are not cached by this flag.
    * @type {boolean}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   allowFileCaching = true;
 
@@ -330,7 +331,7 @@ export class EveSOF extends IRoot
    * assembly; native m_dataMgr.
    * @type {EveSOFDataMgr}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.rootRef("EveSOFDataMgr")
   dataMgr = new EveSOFDataMgr();
 
@@ -339,7 +340,7 @@ export class EveSOF extends IRoot
    * objects; native m_editorMode.
    * @type {boolean}
    */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   editorMode = false;
 
@@ -611,7 +612,7 @@ export class EveSOF extends IRoot
   _GetResourceExists()
   {
     if (this._resourceExists !== null) return this._resourceExists;
-    const paths = this._paths ?? be.paths;
+    const paths = this._paths ?? blue.paths;
     return path => paths.FileExists(path) === true;
   }
 
@@ -891,7 +892,7 @@ export class EveSOF extends IRoot
    * Performs Carbon's separate slow/offline DNA validation after data acquisition.
    * Adapted: asynchronous catalogs must be ready before native validation runs.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   async ValidateDNA(dnaString, options = {})
   {
@@ -905,7 +906,7 @@ export class EveSOF extends IRoot
    * Adapted: returns what BuildFromDNA returns (model values for now), not
    * Carbon's live space-object instance.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   async Build(hullName, factionName, raceName, options = {})
   {
@@ -1317,7 +1318,7 @@ export class EveSOF extends IRoot
    * space-object instance. Whether this returns values or objects is still to
    * be decided (operator, 2026-10-07).
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   async BuildFromDNA(dnaString, options = {})
   {
@@ -1329,7 +1330,7 @@ export class EveSOF extends IRoot
    * model values instead of constructing Trinity objects.
    */
   @meta.adapted
-  @blue.method
+  @legacyBlue.method
   _BuildFromDNA(dnaString, options)
   {
     this._buildDiagnostics = [];
@@ -4612,7 +4613,7 @@ export class EveSOF extends IRoot
    * Adapted: Delegates effect traversal and mutation through the supplied turret’s
    * ApplySofTurretMaterial interface instead of walking Trinity objects inside SOF.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   async SetupTurretMaterialFromFaction(turretSet, factionName, options = {})
   {
@@ -4665,7 +4666,7 @@ export class EveSOF extends IRoot
    * Adapted: Delegates opaque mesh-area traversal and mutation through the child
    * turret’s ApplySofTurretMaterial interface instead of walking Trinity objects in SOF.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   async SetupChildTurretMaterialFromFaction(childTurret, factionName, options = {})
   {
@@ -4681,7 +4682,7 @@ export class EveSOF extends IRoot
    * Adapted: Delegates effect traversal and mutation through the turret’s
    * ApplySofTurretMaterial interface. Invalid DNA returns without Carbon’s error log.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   async SetupTurretMaterialFromDNA(turretSet, dnaString, options = {})
   {

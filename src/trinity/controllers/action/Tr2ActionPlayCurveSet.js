@@ -1,8 +1,9 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
-import { blue as be, CcpTime } from "#blue";
+import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { blue, CcpTime } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -13,17 +14,17 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
  * its owner for the duration of the action, and can hold off state transitions
  * until a synced range iteration has completed.
  */
-@blue.define("Tr2ActionPlayCurveSet")
-@blue.inherit(ITr2Updateable)
-@blue.interface(ITr2ControllerAction)
+@be.define("Tr2ActionPlayCurveSet")
+@legacyBlue.inherit(ITr2Updateable)
+@be.mapInterface(ITr2ControllerAction)
 export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 {
   /**
    * Name of the owner curve set played on Start and stopped on Stop.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   curveSetName = "";
 
@@ -31,8 +32,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * Named time range to play; an empty string selects the full curve set.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   rangeName = "";
 
@@ -40,8 +41,8 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
    * Whether transitions wait for a named range iteration boundary when its duration is positive.
    * @type {boolean}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   syncToRange = false;
 
@@ -69,7 +70,7 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
     if (this.syncToRange && this.rangeName)
     {
       this._duration = owner.GetRangeDuration(this.curveSetName, this.rangeName);
-      this._startTime = be.os.GetCurrentFrameTime();
+      this._startTime = blue.os.GetCurrentFrameTime();
       this._prevTime = this._startTime;
       controller.RegisterUpdateable(this);
     }
@@ -115,7 +116,7 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
     {
       return true;
     }
-    const now = be.os.GetCurrentFrameTime();
+    const now = blue.os.GetCurrentFrameTime();
     if (now === this._startTime)
     {
       return true;
@@ -133,7 +134,7 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
   @meta.implemented
   Update(_realTime, _simTime)
   {
-    this._prevTime = be.os.GetCurrentFrameTime();
+    this._prevTime = blue.os.GetCurrentFrameTime();
   }
 
 }

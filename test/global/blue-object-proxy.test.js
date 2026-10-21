@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 // global/blue is raw source (no decorators), so its own tests import src.
-import { blue as be, BlueObjectProxy, CcpTime, IBlueObjectBuilder, IBlueObjectProxy, IUnloadable } from "../../src/global/blue/index.js";
-import { CjsSchema, blue } from "../../src/global/schema/index.js";
+import { blue, BlueObjectProxy, CcpTime, IBlueObjectBuilder, IBlueObjectProxy, IUnloadable } from "../../src/global/blue/index.js";
+import { CjsSchema, blue as legacyBlue } from "../../src/global/schema/index.js";
 
 // The LOD holder is decorated character source, so it comes from npm/dist,
 // with that build's own Blue realm. Until npm/dist is rebuilt from a source
@@ -37,10 +37,10 @@ class UnloadableThing
   UnloadWhenUnreferenced() { this.unloads++; }
   ReloadWhenReferenced() { this.reloads++; }
 }
-blue.inherit(IUnloadable)(UnloadableThing, { kind: "class" });
+legacyBlue.inherit(IUnloadable)(UnloadableThing, { kind: "class" });
 
 /** Drives `BeOS->GetInfo()->mRealTime` for the duration of one test. */
-function realClock(t, start = 1000, os = be.os)
+function realClock(t, start = 1000, os = blue.os)
 {
   const clock = { now: start };
   t.mock.method(os, "GetInfo", () => ({ realTime: clock.now }));
@@ -49,8 +49,8 @@ function realClock(t, start = 1000, os = be.os)
 
 test("BlueObjectProxy is registered as Carbon's Blue class with its exposure", () =>
 {
-  assert.equal(be.classes.FindClsid("BlueObjectProxy"), "BlueObjectProxy");
-  const proxy = be.classes.CreateInstance("BlueObjectProxy");
+  assert.equal(blue.classes.FindClsid("BlueObjectProxy"), "BlueObjectProxy");
+  const proxy = blue.classes.CreateInstance("BlueObjectProxy");
   assert.equal(CjsSchema.getClassName(proxy.constructor), "BlueObjectProxy");
   assert.equal(CjsSchema.cast(proxy, IBlueObjectProxy), proxy);
   assert.equal(CjsSchema.getSchema(BlueObjectProxy).blue, true);

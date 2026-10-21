@@ -1,22 +1,24 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2MaterialParameterStore.h
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
-import { meta, type, blue } from "#schema";
-import { IsMatch, blue as be, IInitialize, INotify, CjsBlueClasses } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { IsMatch, blue, IInitialize, INotify, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /** Local shader parameter overrides with an optional resource-loaded parent store. */
-@blue.define("Tr2MaterialParameterStore")
-@blue.inherit(INotify)
-@blue.interface(INotify, IInitialize)
+@be.define("Tr2MaterialParameterStore")
+@legacyBlue.inherit(INotify)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class Tr2MaterialParameterStore extends IInitialize
 {
   /**
    * Native m_name: authored material name.
    * @type {string}
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -25,9 +27,9 @@ export class Tr2MaterialParameterStore extends IInitialize
    * Retains the existing JavaScript path declaration for resource addressing.
    * @type {string}
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.path("object")
   parentPath = "";
 
@@ -35,7 +37,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * Native m_parentStore: loaded parent searched after local overrides.
    * @type {Tr2MaterialParameterStore|null}
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2MaterialParameterStore")
   parent = null;
 
@@ -43,8 +45,8 @@ export class Tr2MaterialParameterStore extends IInitialize
    * Native m_parameters: named local effect parameters, including null shadows.
    * @type {Map<string, import("../shader/parameter/ITriEffectParameter.js").ITriEffectParameter|null>}
    */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
+
   @type.map("ITriEffectParameter")
   parameters = new Map();
 
@@ -99,7 +101,7 @@ export class Tr2MaterialParameterStore extends IInitialize
     let object;
     try
     {
-      object = await be.resMan.LoadObject(path);
+      object = await blue.resMan.LoadObject(path);
     }
     catch (error)
     {
@@ -110,7 +112,7 @@ export class Tr2MaterialParameterStore extends IInitialize
       return null;
     }
     if (request !== this._loadRequest || path !== this.parentPath) return null;
-    const parent = object ? be.classes.QueryThisInterface(object, Tr2MaterialParameterStore, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const parent = object ? blue.classes.QueryThisInterface(object, Tr2MaterialParameterStore, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (!parent)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a Tr2MaterialParameterStore.`);
@@ -125,7 +127,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @param {string} name Parameter name.
    * @returns {object|null} First entry, including a local null shadow, or null.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   FindParameter(name)
   {

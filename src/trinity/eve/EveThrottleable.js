@@ -1,35 +1,36 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
-import { meta, type, blue } from "#schema";
-import { blue as be, CcpTime } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue, CcpTime } from "#blue";
 
 
 /**
  * Update-rate state for objects that run at less than frame rate, mapping a
  * normalized detail level onto an update frequency between authored bounds.
  */
-@blue.define("EveThrottleable")
-@blue.inherit(IRoot)
-@blue.interface()
+@be.define("EveThrottleable")
+@legacyBlue.inherit(IRoot)
+
 export class EveThrottleable extends IRoot
 {
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.float32
   currentUpdateFrequency = 10;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.boolean
   updateThrottle = true;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   maxUpdateFrequency = 20;
 
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   minUpdateFrequency = 2;
 
@@ -50,7 +51,7 @@ export class EveThrottleable extends IRoot
   @meta.implemented
   ShouldSkipUpdate(normalizedUpdateFrequency = 0.5)
   {
-    const currentTime = be.os.GetActualTime();
+    const currentTime = blue.os.GetActualTime();
 
     if (!this.updateThrottle)
     {

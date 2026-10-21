@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.cpp
 
@@ -6,8 +7,8 @@ import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
-import { blue as be, CjsBlueClasses } from "#blue";
+import { meta, type, blue as legacyBlue } from "#schema";
+import { blue, CjsBlueClasses } from "#blue";
 import { IListNotify } from "#blue/IListNotify";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
@@ -22,19 +23,21 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
  * locators or animated bones it fires from and tracking how many of its turrets
  * are active.
  */
-@blue.define("EveMobile")
-@blue.inherit(IListNotify, IInitialize)
-@blue.interface(IEveSpaceObject2, ITr2Renderable, IListNotify)
-@blue.chainTo(EveSpaceObject2)
+@be.define("EveMobile")
+@legacyBlue.inherit(IListNotify, IInitialize)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IListNotify)
+@be.exposureChainTo(EveSpaceObject2)
 export class EveMobile extends EveSpaceObject2
 {
-  @blue.notify
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
+
+
   @type.list("EveTurretSet")
   turretSets = [];
 
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.uint32
   ActiveTurretCount = 0;
 
@@ -85,7 +88,7 @@ export class EveMobile extends EveSpaceObject2
     const action = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (action === BLUELISTEVENT.BELIST_INSERTED || action === BLUELISTEVENT.BELIST_REMOVED)
     {
-      if (list !== this.turretSets || !value || be.classes.QueryThisInterface(value, EveTurretSet, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
+      if (list !== this.turretSets || !value || blue.classes.QueryThisInterface(value, EveTurretSet, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
       this.RebuildTurretPositions();
       if (action === BLUELISTEVENT.BELIST_INSERTED)
       {
@@ -97,7 +100,7 @@ export class EveMobile extends EveSpaceObject2
     {
       for (const entity of list)
       {
-        if (entity && be.classes.QueryThisInterface(entity, EveEntity, entity.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) entity.UnRegister(this.GetComponentRegistry());
+        if (entity && blue.classes.QueryThisInterface(entity, EveEntity, entity.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) entity.UnRegister(this.GetComponentRegistry());
       }
     }
   }
@@ -140,7 +143,7 @@ export class EveMobile extends EveSpaceObject2
    * Returns the locator index a turret slot was bound to, or 0 when the set or
    * slot has no binding.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetTurretLocatorIndex(turretSetIndex, slotIndex)
   {
@@ -154,7 +157,7 @@ export class EveMobile extends EveSpaceObject2
    * Adapted: an index holder and caller-owned matrix replace native out pointers;
    * the existing JS return reports completion.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   RebuildTurretPositions()
   {
@@ -225,7 +228,7 @@ export class EveMobile extends EveSpaceObject2
    * Carbon EveMobile.cpp:326-443 accepts a-only layouts and checks matching a/b
    * bitsets when b exists; trailing name text after a/b is accepted.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   GetTurretLocatorCount()
   {

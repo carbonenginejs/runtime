@@ -151,4 +151,3 @@ export class Tr2ScalarFader extends IRoot
 }
 
 // Exact native exposure table; no inherited or implicit entries.
-

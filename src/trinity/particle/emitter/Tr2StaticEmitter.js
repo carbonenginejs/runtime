@@ -1,12 +1,13 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp
-import { blue as be, IsMatch, INotify } from "#blue";
+import { blue, IsMatch, INotify } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type, blue as legacyBlue } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 import { Tr2ParticleElementDeclarationName } from "../element/Tr2ParticleElementDeclarationName.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -26,9 +27,11 @@ import { CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/ve
  */
 
 /** A one-shot particle emitter that spawns one particle per vertex of a geometry mesh on first update. */
-@blue.define("Tr2StaticEmitter")
-@blue.inherit(ITr2GenericEmitter, INotify, IInitialize)
-@blue.interface(ITr2GenericEmitter, INotify, IInitialize)
+@be.define("Tr2StaticEmitter")
+@legacyBlue.inherit(ITr2GenericEmitter, INotify, IInitialize)
+@be.mapInterface(ITr2GenericEmitter)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
 export class Tr2StaticEmitter extends IRoot
 {
 
@@ -39,8 +42,8 @@ export class Tr2StaticEmitter extends IRoot
   hasSpawnedParticles = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.string
   name = "";
 
@@ -51,34 +54,34 @@ export class Tr2StaticEmitter extends IRoot
    * TriGrannyRes; ours has no load path, and TriGeometryRes carries the same
    * meshes in CMF form.
    */
-  @blue.read
+  @be.mapAttribute(be.READ)
   @type.object.ref("TriGeometryRes")
   geometryResource = null;
 
   /** m_meshIndex (uint32_t) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+
   @type.uint32
   meshIndex = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
+
+
   @type.object.ref("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_geometryResourcePath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
+
+
   @type.path("TriGeometryRes")
   geometryResourcePath = "";
 
   /**
    * Carbon Spawn (Tr2StaticEmitter.cpp:314-317): spawns again on the next update.
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.implemented
   Spawn()
   {
@@ -103,7 +106,7 @@ export class Tr2StaticEmitter extends IRoot
    *
    * @returns {void}
    */
-  @blue.method
+  @be.mapMethodAndWrap()
   @meta.adapted
   ForceSpawn()
   {
@@ -206,14 +209,14 @@ export class Tr2StaticEmitter extends IRoot
    * Both Carbon SpawnParticles overloads are empty for the static emitter -
    * it only spawns once from Update (Tr2StaticEmitter.cpp:293-308).
    */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
   }
 
   /** Carbon's start/end SpawnParticles overload; empty, as above. */
-  @blue.method
+  @legacyBlue.method
   @meta.adapted
   SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
@@ -323,7 +326,7 @@ export class Tr2StaticEmitter extends IRoot
    */
   static GetGeometry(path)
   {
-    return path ? be.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY }) : null;
+    return path ? blue.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY }) : null;
   }
 
 }
