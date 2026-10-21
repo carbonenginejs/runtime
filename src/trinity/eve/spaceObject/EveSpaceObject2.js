@@ -504,9 +504,11 @@ export class EveSpaceObject2 extends EveEntity
    * .y activation strength, .z dirt level, .w bounding-sphere radius
    * (PrepareShaderData, cpp:734-744). .x is authored elsewhere and left alone.
    * Packed ship values supplied to the vertex and pixel shader records.
+   * Adapted: Carbon declares m_spaceObjectShipData (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:625) but does not expose it; exposed here for the values interface.
    * @type {Float32Array}
    */
-  @legacyBlue.read
+  @meta.attribute(meta.READ)
+  @meta.adapted
   @type.vec4
   spaceObjectShipData = vec4.create();
 
@@ -621,9 +623,11 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Current world velocity obtained from the translation curve derivative.
+   * Adapted: Carbon declares m_worldVelocity (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h:615) but does not expose it; exposed here for the values interface.
    * @type {Float32Array}
    */
-  @legacyBlue.read
+  @meta.attribute(meta.READ)
+  @meta.adapted
   @type.vec3
   worldVelocity = vec3.create();
 

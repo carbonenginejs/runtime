@@ -64,21 +64,33 @@ export class Tr2MeshArea extends IRoot
   @type.boolean
   castsShadows = true;
 
-  /** m_generateDepthArea - authored depth-area participation (SOF-stamped). */
+  /**
+   * m_generateDepthArea - authored depth-area participation (SOF-stamped).
+   * Adapted: Carbon declares m_generateDepthArea (trinity/trinity/Tr2MeshArea.h:95) but does not expose it; exposed here for the values interface.
+   */
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
+  @meta.adapted
   @type.boolean
   generateDepthArea = false;
 
-  /** m_alphaCutout - decal-style surface whose ray-facing rule is two-sided. */
+  /**
+   * m_alphaCutout - decal-style surface whose ray-facing rule is two-sided.
+   * Adapted: Carbon declares m_alphaCutout (trinity/trinity/Tr2MeshArea.h:99) but does not expose it; exposed here for the values interface.
+   */
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
+  @meta.adapted
   @type.boolean
   alphaCutout = false;
 
-  /** m_minLod (Tr2Lod) - minimal visible lod; TR2_LOD_UNSPECIFIED = -1. */
+  /**
+   * m_minLod (Tr2Lod) - minimal visible lod; TR2_LOD_UNSPECIFIED = -1.
+   * Adapted: Carbon declares m_minLod (trinity/trinity/Tr2MeshArea.h:82) but does not expose it; exposed here for the values interface.
+   */
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
+  @meta.adapted
   @type.int32
   minLod = -1;
 

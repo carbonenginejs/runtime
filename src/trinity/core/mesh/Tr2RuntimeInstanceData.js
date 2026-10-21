@@ -74,12 +74,14 @@ export class Tr2RuntimeInstanceData
   layout = [];
 
 
-  @blue.notify
-  @blue.persist
+  @meta.cjs
+  @meta.attribute(meta.NOTIFY | meta.PERSIST)
   @type.array("unknown")
   rows = [];
 
-  @blue.persist
+  /** Adapted: Carbon declares m_explicitBoundingBox (trinity/trinity/Tr2RuntimeInstanceData.h:109) but does not expose it; exposed here for the values interface. */
+  @meta.attribute(meta.PERSIST)
+  @meta.adapted
   @type.boolean
   explicitBoundingBox = false;
 
