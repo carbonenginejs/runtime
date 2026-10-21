@@ -38,6 +38,7 @@ const INSTANCE_STRIDE = 40;
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(INotify)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveChildBulletStorm extends EveSpaceObjectChild
 {
 

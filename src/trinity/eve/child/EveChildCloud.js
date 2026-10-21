@@ -57,6 +57,7 @@ function updateBoundingSphere(cloud)
 @blue.inherit(ITr2Renderable, ITr2DebugRenderable)
 @blue.inherit(IInitialize, INotify, Tr2DeviceResource)
 @blue.interface(ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveChildCloud extends EveSpaceObjectChild
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

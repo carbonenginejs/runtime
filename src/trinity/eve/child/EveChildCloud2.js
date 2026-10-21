@@ -109,6 +109,7 @@ function TransformNormal(out, v, m)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(ITr2LightOwner)
 @be.mapInterface(EveEntity)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 

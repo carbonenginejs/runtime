@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /**
@@ -13,6 +13,7 @@ import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.j
  */
 @be.define("EveSocketParameterColor")
 @be.mapInterface(IEveSocketParameter)
+@be.mapMethodAndWrap("Used")
 export class EveSocketParameterColor extends EveSocketParameterBindingBase
 {
 

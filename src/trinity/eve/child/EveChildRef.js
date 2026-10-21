@@ -40,6 +40,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.mapInterface(ITr2SoundEmitterOwner)
 @be.mapInterface(EveEntity)
 @be.inherit(IEveEffectChildrenOwner, ITr2SoundEmitterOwner)
+@be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 export class EveChildRef extends EveChildTransform
 {
 

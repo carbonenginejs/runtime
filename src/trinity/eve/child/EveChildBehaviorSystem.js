@@ -44,6 +44,7 @@ import { ITr2DebugRenderable } from "#interfaces";
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(INotify)
 @be.mapInterface(EveEntity)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveChildBehaviorSystem extends EveChildTransform
 {
 

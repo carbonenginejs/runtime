@@ -86,6 +86,7 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
 @be.mapInterface(ITr2LightOwner)
 @be.mapInterface(ITr2Pickable)
 @be.mapInterface(IEveShadowCaster)
+@be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 export class EveChildMesh extends EveChildTransform
 {
   _isMorphsBaked = false;

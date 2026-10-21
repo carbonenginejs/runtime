@@ -866,3 +866,5 @@ CjsSchema.blue.define(TriTextureRes, {
 });
 blue.inherit(ICacheable)(TriTextureRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriTextureRes);
+// Carbon maps these in TriTextureRes_Blue.cpp:227-229 although BlueAsyncRes (CjsResource) declares them.
+be.mapMethodAndWrap([ "IsPrepared", "IsLoading", "IsGood" ])(TriTextureRes);

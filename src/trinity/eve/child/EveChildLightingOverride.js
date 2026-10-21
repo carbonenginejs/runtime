@@ -35,6 +35,7 @@ const DEBUG_TRANSFORM = mat4.create();
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2DebugRenderable)
 @be.inherit(ITr2DebugRenderable)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveChildLightingOverride extends EveChildTransform
 {
   _overrideIntensity = 0;

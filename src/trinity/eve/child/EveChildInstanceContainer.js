@@ -38,6 +38,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.mapInterface(EveEntity)
 @be.mapInterface(IShaderConfigurer)
 @be.inherit(IEveEffectChildrenOwner)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveChildInstanceContainer extends EveChildTransform
 {
 

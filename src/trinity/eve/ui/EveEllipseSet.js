@@ -62,6 +62,7 @@ const TRI_PI = Math.fround(3.141592654);
 @be.mapInterface(ITr2Pickable)
 @be.mapInterface(IListNotify)
 @be.mapInterface(INotify)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveEllipseSet extends EveChildTransform
 {
 

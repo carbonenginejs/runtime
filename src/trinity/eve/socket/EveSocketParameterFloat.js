@@ -2,12 +2,13 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named float socket value to external parameters, capturing and restoring each binding's previous value. */
 @be.define("EveSocketParameterFloat")
 @be.mapInterface(IEveSocketParameter)
+@be.mapMethodAndWrap("Used")
 export class EveSocketParameterFloat extends EveSocketParameterBindingBase
 {
 

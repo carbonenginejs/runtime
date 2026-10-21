@@ -69,6 +69,7 @@ function SortByCircleDist(lhs, rhs)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(INotify)
 @be.mapInterface(EveEntity)
+@be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 export class EveChildEffectPropagator extends EveChildContainer
 {
 

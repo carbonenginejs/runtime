@@ -34,6 +34,7 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 @be.mapInterface(IEveInheritPropertiesOwner)
 @be.mapInterface(EveEntity)
 @be.mapInterface(IShaderConfigurer)
+@be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 export class EveChildProceduralContainer extends EveChildTransform
 {
 

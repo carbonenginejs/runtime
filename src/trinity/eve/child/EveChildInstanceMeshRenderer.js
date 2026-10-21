@@ -99,6 +99,7 @@ const INSTANCE_SPHERE = vec4.create();
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IEveShadowCaster)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:37); chooser RotationalConstraintsChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:7). */

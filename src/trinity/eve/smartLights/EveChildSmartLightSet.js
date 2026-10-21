@@ -26,6 +26,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 @be.mapInterface(IListNotify)
 @be.mapInterface(IEveInheritPropertiesOwner)
 @be.mapInterface(EveEntity)
+@be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 export class EveChildSmartLightSet extends EveChildTransform
 {
 

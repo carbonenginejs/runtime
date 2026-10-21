@@ -3,12 +3,13 @@ import { exposure as be } from "#be";
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named four-component vector socket value to external parameters, preserving defaults by copy for restoration. */
 @be.define("EveSocketParameterVector4")
 @be.mapInterface(IEveSocketParameter)
+@be.mapMethodAndWrap("Used")
 export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
 {
 

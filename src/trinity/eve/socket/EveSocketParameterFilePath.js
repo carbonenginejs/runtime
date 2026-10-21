@@ -2,7 +2,6 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern.
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
-import { blue } from "#schema";
 import { EveSocketParameterString } from "./EveSocketParameterString.js";
 
 /**
@@ -13,6 +12,7 @@ import { EveSocketParameterString } from "./EveSocketParameterString.js";
  */
 @be.define("EveSocketParameterFilePath")
 @be.mapInterface(IEveSocketParameter)
+@be.mapMethodAndWrap([ "Used", "SetValueToDefault" ])
 export class EveSocketParameterFilePath extends EveSocketParameterString
 {
 }
