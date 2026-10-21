@@ -48,7 +48,7 @@ test("real Carbon audio classes are exported with their Carbon families", () =>
   for (const [Constructor, className, family] of expectations)
   {
     assert.equal(CjsSchema.getClassName(Constructor), className, `${className} schema className`);
-    // SpatialAudioSettings is an unexposed Carbon struct; exposed classes carry the Blue stamp.
+    // SpatialAudioSettings is an unexposed Carbon class; exposed classes carry the Blue stamp.
     const schema = CjsSchema.getSchema(Constructor);
     if (Constructor === SpatialAudioSettings) assert.equal(schema.carbon, "SpatialAudioSettings");
     else assert.equal(schema.blue, true, `${className} is stamped Carbon's`);
