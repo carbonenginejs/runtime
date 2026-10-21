@@ -7,7 +7,7 @@ import { vec4 } from "#math/vec4";
 
 /** Combines the noise, frequency, speed, and color parameters that define a booster shape. */
 @be.define("EveSOFDataBoosterShape")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataBoosterShape extends IRoot
 {

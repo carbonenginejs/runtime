@@ -5,7 +5,7 @@ import { blue } from "#schema";
 
 /** Required logging contract consumed by AudManager. */
 @be.interface("IAudActionLog")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IAudActionLog extends IRoot
 {
   /** Records an event post. */

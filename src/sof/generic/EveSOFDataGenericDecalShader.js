@@ -11,7 +11,7 @@ import { type, blue } from "#schema";
  * Existing JavaScript configuration helpers remain custom conveniences.
  */
 @be.define("EveSOFDataGenericDecalShader")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataGenericDecalShader extends IRoot
 {

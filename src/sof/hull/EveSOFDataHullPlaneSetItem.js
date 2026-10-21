@@ -11,7 +11,7 @@ import { vec4 } from "#math/vec4";
 
 /** Defines a plane item's transform, colors, blink and UV scrolling, atlas selection, groups, intensity, and point-light contribution. */
 @be.define("EveSOFDataHullPlaneSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullPlaneSetItem extends IRoot
 {
   static BlinkType = EveSOFDataBlinkType.BlinkType;

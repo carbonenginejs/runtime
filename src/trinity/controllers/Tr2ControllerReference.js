@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
 import { IsMatch, blue, INotify, IInitialize, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { ITr2Controller } from "./ITr2Controller/index.js";
 
@@ -14,7 +14,7 @@ import { ITr2Controller } from "./ITr2Controller/index.js";
  * controller lifecycle to whichever controller the path resolves to.
  */
 @be.define("Tr2ControllerReference")
-@legacyBlue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2Controller)

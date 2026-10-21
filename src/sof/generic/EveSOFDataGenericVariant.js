@@ -11,7 +11,7 @@ import { type, blue } from "#schema";
  * The hull area is an authored object reference, not a held resource.
  */
 @be.define("EveSOFDataGenericVariant")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataGenericVariant extends IRoot
 {

@@ -14,7 +14,7 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
  * set's playhead from an expression, by default the elapsed state time.
  */
 @be.define("Tr2ActionAnimateCurveSet")
-@legacyBlue.inherit(ITr2Updateable, INotify)
+@be.inherit(ITr2Updateable, INotify)
 @be.mapInterface(ITr2ControllerAction)
 @be.mapInterface(ITr2Updateable)
 @be.mapInterface(INotify)

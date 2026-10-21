@@ -53,7 +53,7 @@ function colorByte(value)
  * and the point lights the sprites emit.
  */
 @be.define("EveSpriteSet")
-@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@be.inherit(IInitialize, ITr2LightOwner, EveEntity)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IEveSpaceObjectAttachment)
 @be.mapInterface(EveEntity)

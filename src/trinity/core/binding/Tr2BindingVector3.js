@@ -8,7 +8,7 @@ import { vec3 } from "#math/vec3";
 /** A shared vector value used by bindings, including space-object position deltas. */
 @be.define("Tr2BindingVector3")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2BindingVector3 extends IRoot
 {
 

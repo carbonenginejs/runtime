@@ -15,7 +15,7 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
  * emitter.
  */
 @be.define("Tr2ActionBindRTPC")
-@legacyBlue.inherit(ITr2Updateable, INotify)
+@be.inherit(ITr2Updateable, INotify)
 @be.mapInterface(ITr2ControllerAction)
 @be.mapInterface(ITr2Updateable)
 @be.mapInterface(INotify)

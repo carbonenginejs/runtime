@@ -10,7 +10,7 @@ import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 
 /** An ordered list of vec4 rows uploaded into one named shader constant array. */
 @be.define("TriFloatArrayParameter")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

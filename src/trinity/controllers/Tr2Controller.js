@@ -25,7 +25,7 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
  * Link binds the owner, variables and children; no Initialize contract is added.
  */
 @be.define("Tr2Controller")
-@legacyBlue.inherit(ITr2ActionController, IListNotify)
+@be.inherit(ITr2ActionController, IListNotify)
 @be.mapInterface(ITr2Controller)
 @be.mapInterface(ITr2ActionController)
 @be.mapInterface(IListNotify)

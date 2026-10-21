@@ -12,7 +12,7 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 
 /** Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change. */
 @be.define("EveDistributionPlacementGeneratorVolume")
-@blue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(IEveDistributionPlacementGenerators)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

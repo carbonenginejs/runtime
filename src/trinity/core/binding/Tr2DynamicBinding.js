@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2DynamicBinding.h
 // Source: trinity/trinity/Tr2DynamicBinding.cpp
 // Source: trinity/trinity/Tr2DynamicBinding_Blue.cpp
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { IList } from "#blue/IList";
 import { INotify } from "#blue/INotify";
 import { ISimTimeRebaseNotify } from "#blue/ISimTimeRebaseNotify";
@@ -19,7 +19,7 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * rebasing from construction, as Carbon's does.
  */
 @be.define("Tr2DynamicBinding")
-@legacyBlue.inherit(ISimTimeRebaseNotify)
+@be.inherit(ISimTimeRebaseNotify)
 @be.mapInterface(INotify)
 export class Tr2DynamicBinding extends INotify
 {

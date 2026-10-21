@@ -27,7 +27,7 @@ const DEBUG_P1 = vec3.create();
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
 @be.define("Tr2PlaneConstraint")
-@blue.inherit(INotify, IInitialize, IListNotify)
+@be.inherit(INotify, IInitialize, IListNotify)
 @be.mapInterface(ITr2GenericParticleConstraint)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

@@ -6,7 +6,7 @@ import { blue } from "#schema";
 
 /** Required child-transform modifier contract (IEveChildTransformModifier.h:8-13). */
 @be.interface("IEveChildTransformModifier")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IEveChildTransformModifier extends IRoot
 {
 

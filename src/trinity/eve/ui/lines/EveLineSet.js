@@ -38,7 +38,7 @@ const EVE_LINE_DATA_SIZE = EVE_LINE_DATA_FLOATS * 4;
  * renderTransparent.
  */
 @be.define("EveLineSet")
-@blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, Tr2DeviceResource)
+@be.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IEveTransform)

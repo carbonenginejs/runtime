@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -10,7 +10,7 @@ import { EveSOFDataHullBanner } from "./EveSOFDataHullBanner.js";
 
 /** Places one banner by usage, bone, and transform, with optional point-light, aspect-scale, and curvature settings. */
 @be.define("EveSOFDataHullBannerSetItem")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullBannerSetItem extends IRoot
 {
 

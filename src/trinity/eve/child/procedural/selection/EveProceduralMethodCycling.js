@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { EveProceduralMethodCyclingParameter } from "./EveProceduralMethodCyclingParameter.js";
 import { blue, CcpTime } from "#blue";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
@@ -14,7 +14,7 @@ const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodCycling (eve/child/procedural/selection) - generated from schema shapeHash 2014815d.... */
 @be.define("EveProceduralMethodCycling")
-@legacyBlue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(IEveProceduralSelectionMethod)
 @be.mapInterface(INotify)
 export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod

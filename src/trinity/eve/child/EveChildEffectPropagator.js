@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";
@@ -63,7 +63,7 @@ function SortByCircleDist(lhs, rhs)
 
 /** EveChildEffectPropagator (eve/child) - generated from schema shapeHash 0f2a96e8.... */
 @be.define("EveChildEffectPropagator")
-@legacyBlue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(EveChildContainer)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)

@@ -14,7 +14,7 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
  * morph-target weights and baked-morph state on top of Tr2MeshBase.
  */
 @be.define("Tr2Mesh")
-@legacyBlue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.exposureChainTo(Tr2MeshBase)

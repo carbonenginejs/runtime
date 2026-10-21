@@ -22,7 +22,7 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 /** A set of coloured lines with an accompanying picking-triangle list, submitted as one buffer. */
 @be.define("Tr2LineSet")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(Tr2PrimitiveSet)

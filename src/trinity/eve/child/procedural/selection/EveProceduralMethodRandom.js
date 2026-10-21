@@ -14,7 +14,7 @@ const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodRandom (eve/child/procedural/selection) - generated from schema shapeHash 9e2d2332.... */
 @be.define("EveProceduralMethodRandom")
-@blue.inherit(INotify, IListNotify, IInitialize)
+@be.inherit(INotify, IListNotify, IInitialize)
 @be.mapInterface(IEveProceduralSelectionMethod)
 @be.mapInterface(INotify)
 @be.mapInterface(IListNotify)

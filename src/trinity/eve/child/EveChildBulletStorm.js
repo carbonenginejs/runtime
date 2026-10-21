@@ -32,8 +32,8 @@ const INSTANCE_STRIDE = 40;
 
 /** Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine. */
 @be.define("EveChildBulletStorm")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(IInitialize)
+@be.inherit(ITr2Renderable)
+@be.inherit(IInitialize)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2Renderable)

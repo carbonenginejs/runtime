@@ -32,7 +32,7 @@ const OFFSET_SCRATCH = vec3.create();
  * instanced mesh.
  */
 @be.define("EveSceneStaticParticles")
-@blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Renderable)
+@be.inherit(IInitialize, ITr2DebugRenderable, ITr2Renderable)
 @be.mapInterface(IInitialize)
 export class EveSceneStaticParticles extends IRoot
 {

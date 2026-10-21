@@ -6,7 +6,7 @@ import { type, blue } from "#schema";
 
 /** Groups named sprite items with visibility and skinning policy. */
 @be.define("EveSOFDataHullSpriteSet")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullSpriteSet extends IRoot
 {
 

@@ -32,8 +32,8 @@ const DEBUG_TRANSFORM = mat4.create();
 
 /** A steering behaviour that pulls unassigned drones into spline tunnel entrances and steers locked drones along their assigned tunnel's points toward the exit. */
 @be.define("FollowASpline")
-@blue.inherit(INotify)
-@blue.inherit(IBehavior)
+@be.inherit(INotify)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 @be.mapInterface(INotify)
 export class FollowASpline extends IRoot

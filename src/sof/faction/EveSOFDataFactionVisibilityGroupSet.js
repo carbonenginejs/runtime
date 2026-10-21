@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Defines faction visibility-group membership and object-visibility policy. */
 @be.define("EveSOFDataFactionVisibilityGroupSet")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataFactionVisibilityGroupSet extends IRoot
 {
 

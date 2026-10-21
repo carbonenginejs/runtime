@@ -11,7 +11,7 @@ import { meta, type, blue } from "#schema";
  * the native query table exposes only this concrete class.
  */
 @be.define("TriViewport")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class TriViewport extends IRoot
 {
   /** Horizontal raster origin; negative window coordinates are valid. */

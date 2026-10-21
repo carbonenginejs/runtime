@@ -5,7 +5,7 @@ import { random as carbonRandom } from "#math/random";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
@@ -33,7 +33,7 @@ const DEBUG_POSITION = vec3.create();
 
 /** A steering behaviour that shuttles each drone between seek and deliver locators, slowing on approach, snapping its facing, and triggering effects on arrival. */
 @be.define("BackAndForth")
-@legacyBlue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class BackAndForth extends IRoot
 {

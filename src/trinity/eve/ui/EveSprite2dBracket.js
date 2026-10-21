@@ -12,7 +12,7 @@ import { meta, type, blue } from "#schema";
  * translation and display flag.
  */
 @be.define("EveSprite2dBracket")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSprite2dBracket extends IRoot
 {

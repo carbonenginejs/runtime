@@ -11,7 +11,7 @@ import "./enums.js";
 
 /** Places a RED child resource with build and LOD policy plus scale, rotation, and translation, deriving its name from the resource path. */
 @be.define("EveSOFDataHullChildSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullChildSetItem extends IRoot
 {
   static Tr2Lod = Tr2Lod;

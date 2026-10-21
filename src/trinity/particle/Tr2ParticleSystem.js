@@ -31,7 +31,7 @@ const DEBUG_AABB = box3.create();
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
 @be.define("Tr2ParticleSystem")
-@legacyBlue.inherit(IInitialize, INotify, IListNotify, ITr2InstanceData, ITr2GpuBuffer, ISimTimeRebaseNotify, Tr2DeviceResource)
+@be.inherit(IInitialize, INotify, IListNotify, ITr2InstanceData, ITr2GpuBuffer, ISimTimeRebaseNotify, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2InstanceData)

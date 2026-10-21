@@ -6,7 +6,7 @@ import { type, blue } from "#schema";
 
 /** Stores one authored event name and time for an audio event curve. */
 @be.define("AudEventKey")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class AudEventKey extends IRoot
 {

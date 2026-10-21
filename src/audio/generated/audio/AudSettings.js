@@ -6,7 +6,7 @@ import { type, blue } from "#schema";
 
 /** Stores Carbon audio path, language, device-name, and spatial-audio settings. */
 @be.define("AudSettings")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class AudSettings extends IRoot
 {

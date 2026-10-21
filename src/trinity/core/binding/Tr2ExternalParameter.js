@@ -12,7 +12,7 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * another object, exposing it for type-checked reads and writes.
  */
 @be.define("Tr2ExternalParameter")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class Tr2ExternalParameter extends IInitialize

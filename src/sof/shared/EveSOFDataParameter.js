@@ -19,7 +19,7 @@ import { vec4 } from "#math/vec4";
  * construction; the empty destructor needs no resource or update lifecycle.
  */
 @be.define("EveSOFDataParameter")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataParameter extends IRoot
 {

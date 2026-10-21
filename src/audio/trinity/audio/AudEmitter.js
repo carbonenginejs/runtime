@@ -12,7 +12,7 @@ import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 
 /** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
 @be.define("AudEmitter")
-@blue.inherit(ITr2AudEmitter, IBlueEventListener, IBluePlacementObserver, ITr2DebugRenderable)
+@be.inherit(ITr2AudEmitter, IBlueEventListener, IBluePlacementObserver, ITr2DebugRenderable)
 @be.mapInterface(IBlueEventListener)
 @be.mapInterface(IBluePlacementObserver)
 @be.mapInterface(ITr2AudEmitter)

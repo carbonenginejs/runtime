@@ -61,7 +61,7 @@ function FindDamageLocators(sets)
  * world cull bounds.
  */
 @be.define("EveChildInstancedMeshes")
-@blue.inherit(ITr2Renderable, IEveShadowCaster, IEveInstanceMeshProvider)
+@be.inherit(ITr2Renderable, IEveShadowCaster, IEveInstanceMeshProvider)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(EveEntity)

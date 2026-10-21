@@ -14,7 +14,7 @@ import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
  * variable-store metadata.
  */
 @be.define("Tr2IntSkinnedObject")
-@blue.inherit(IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox, IBluePlacementObserver)
+@be.inherit(IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox, IBluePlacementObserver)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2Interior)

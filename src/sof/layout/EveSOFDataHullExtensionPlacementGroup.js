@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 /** Groups enabled nested placements with group-level conditions and depletion counters. */
 @be.define("EveSOFDataHullExtensionPlacementGroup")
 @be.mapInterface(IEveSOFDataHullExtensionPlacement)
-@blue.inherit(IEveSOFDataHullExtensionPlacement)
+@be.inherit(IEveSOFDataHullExtensionPlacement)
 export class EveSOFDataHullExtensionPlacementGroup extends IRoot
 {
 

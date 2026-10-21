@@ -21,7 +21,7 @@ const FLT_MAX = 3.4028234663852886e38;
  * Tr2PerAreaDataSkinned (see the character README); until then Tr2Model's batches are used.
  */
 @be.define("Tr2SkinnedModel")
-@legacyBlue.inherit(IInitialize, INotify, IListNotify)
+@be.inherit(IInitialize, INotify, IListNotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.exposureChainTo(Tr2Model)

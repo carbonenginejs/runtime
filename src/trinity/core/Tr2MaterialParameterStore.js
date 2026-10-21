@@ -2,13 +2,13 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2MaterialParameterStore.h
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { IsMatch, blue, IInitialize, INotify, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /** Local shader parameter overrides with an optional resource-loaded parent store. */
 @be.define("Tr2MaterialParameterStore")
-@legacyBlue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 export class Tr2MaterialParameterStore extends IInitialize

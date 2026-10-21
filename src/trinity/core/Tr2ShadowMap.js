@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { INotify, IsMatch } from "../../global/blue/INotify.js";
 //   trinity/trinity/Tr2ShadowMap.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -108,7 +108,7 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 
 /** Cascaded-shadow split producer. Its GPU operations are not ported yet. */
 @be.define("Tr2ShadowMap")
-@legacyBlue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 export class Tr2ShadowMap
 {

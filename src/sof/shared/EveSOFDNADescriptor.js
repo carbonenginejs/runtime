@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Stores the hull, faction, race, pattern, and layout selections encoded by one parsed SOF DNA value. */
 @be.define("EveSOFDNADescriptor")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDNADescriptor extends IRoot
 {
 

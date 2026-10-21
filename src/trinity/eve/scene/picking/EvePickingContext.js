@@ -10,7 +10,7 @@ import { meta, type, blue } from "#schema";
  * screen coordinates, hit object and both extra-data words - for a scene.
  */
 @be.define("EvePickingContext")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EvePickingContext extends IRoot
 {
   @type.list("EvePendingPickingReadback")

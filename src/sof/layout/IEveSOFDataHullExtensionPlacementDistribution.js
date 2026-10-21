@@ -5,7 +5,7 @@ import { type, blue, meta } from "#schema";
 
 /** Common Carbon interface for hull-extension placement conditions. */
 @be.interface("IEveSOFDataHullExtensionPlacementDistribution")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IEveSOFDataHullExtensionPlacementDistribution extends IRoot
 {
 

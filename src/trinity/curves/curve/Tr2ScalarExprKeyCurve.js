@@ -16,7 +16,7 @@ import "../../generated/include/enums.js";
  * playback over the key range.
  */
 @be.define("Tr2ScalarExprKeyCurve")
-@blue.inherit(IInitialize, ITriCurveLength)
+@be.inherit(IInitialize, ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITriCurveLength)

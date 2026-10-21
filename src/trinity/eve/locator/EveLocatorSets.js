@@ -62,7 +62,7 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
  * distributions to attach to.
  */
 @be.define("EveLocatorSets")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveLocatorSets extends IRoot
 {
   @be.mapAttribute(be.READ | be.PERSIST)

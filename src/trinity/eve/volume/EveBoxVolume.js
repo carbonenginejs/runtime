@@ -40,7 +40,7 @@ const INNER_TO_OUTER_BOX = mat4.create();
  * and seeding random points across its shell.
  */
 @be.define("EveBoxVolume")
-@blue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(IEveVolume)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

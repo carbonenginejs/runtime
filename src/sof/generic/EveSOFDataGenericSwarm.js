@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
  * Native behavior members retain the existing flat authored-field representation.
  */
 @be.define("EveSOFDataGenericSwarm")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataGenericSwarm extends IRoot
 {

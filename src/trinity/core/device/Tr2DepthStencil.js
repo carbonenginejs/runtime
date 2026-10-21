@@ -32,7 +32,7 @@ import "#consts/renderContext/formats";
 
 /** Holds the depth-stencil surface a pass renders into, with the parameters it was created with. */
 @be.define("Tr2DepthStencil")
-@blue.inherit(ITr2TextureProvider)
+@be.inherit(ITr2TextureProvider)
 @be.mapInterface(ITr2TextureProvider)
 export class Tr2DepthStencil extends IRoot
 {

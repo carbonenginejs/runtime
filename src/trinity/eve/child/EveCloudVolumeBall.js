@@ -11,7 +11,7 @@ import { vec4 } from "#math/vec4";
 
 /** Runtime model for one editable cloud-volume ball. */
 @be.define("EveCloudVolumeBall")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 export class EveCloudVolumeBall extends IRoot
 {

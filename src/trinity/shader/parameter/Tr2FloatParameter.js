@@ -13,7 +13,7 @@ import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
  * an external scalar destination.
  */
 @be.define("Tr2FloatParameter")
-@blue.inherit(ITriReroutable, IInitialize)
+@be.inherit(ITriReroutable, IInitialize)
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(ITriReroutable)
 @be.mapInterface(IInitialize)

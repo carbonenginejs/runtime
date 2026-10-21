@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue, CcpTime, ISimTimeRebaseNotify } from "#blue";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
 import { ITr2Controller, ITr2ActionController } from "../ITr2Controller/index.js";
@@ -16,7 +16,7 @@ import { UnlinkReason } from "../enums.js";
  * start/end range on an enabled track.
  */
 @be.define("Tr2TimelineController")
-@legacyBlue.inherit(ITr2ActionController, ISimTimeRebaseNotify)
+@be.inherit(ITr2ActionController, ISimTimeRebaseNotify)
 @be.mapInterface(ITr2Controller)
 @be.mapInterface(ITr2ActionController)
 @be.exposureChainTo(EveThrottleable)

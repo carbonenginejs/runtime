@@ -10,7 +10,7 @@ import { type, blue } from "#schema";
  * no additional initialization or update lifecycle.
  */
 @be.define("EveSOFDataMaterial")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataMaterial extends IRoot
 {

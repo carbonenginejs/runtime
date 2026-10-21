@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet_Blue.cpp
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { blue, CcpTime } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
@@ -15,7 +15,7 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
  * until a synced range iteration has completed.
  */
 @be.define("Tr2ActionPlayCurveSet")
-@legacyBlue.inherit(ITr2Updateable)
+@be.inherit(ITr2Updateable)
 @be.mapInterface(ITr2ControllerAction)
 export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 {

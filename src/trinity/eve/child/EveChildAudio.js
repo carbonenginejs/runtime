@@ -19,7 +19,7 @@ import { ITr2DebugRenderable } from "#interfaces";
  * and orientation tracking the child's world transform.
  */
 @be.define("EveChildAudio")
-@blue.inherit(IInitialize, INotify, ITr2DebugRenderable)
+@be.inherit(IInitialize, INotify, ITr2DebugRenderable)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IInitialize)

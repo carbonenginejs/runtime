@@ -6,7 +6,7 @@ import { blue } from "#schema";
 
 /** Required time-varying world reference-point contract. */
 @be.interface("IEveReferencePoint")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class IEveReferencePoint extends IRoot
 {

@@ -211,7 +211,7 @@ function clampProjectedSize(size, minSize, maxSize)
 
 /** Projects an owned world-space bounding box into a Sprite2D bracket. */
 @be.define("Tr2ProjectBoundingBoxBracket")
-@blue.inherit(ITriFunction)
+@be.inherit(ITriFunction)
 @be.mapInterface(ITriFunction)
 export class Tr2ProjectBoundingBoxBracket extends IRoot
 {

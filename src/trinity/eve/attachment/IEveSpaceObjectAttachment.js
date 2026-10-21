@@ -8,7 +8,7 @@ import { EveEntity } from "../EveEntity.js";
 
 /** Carbon space-object attachment contract with its interface defaults. */
 @be.interface("IEveSpaceObjectAttachment")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IEveSpaceObjectAttachment extends EveEntity
 {
 

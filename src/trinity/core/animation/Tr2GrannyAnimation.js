@@ -109,7 +109,7 @@ function sampleCmfChannel(out, curves, channel, time)
 
 /** Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a. */
 @be.define("Tr2GrannyAnimation")
-@blue.inherit(IInitialize, ITr2AnimationUpdater)
+@be.inherit(IInitialize, ITr2AnimationUpdater)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2AnimationUpdater)
 export class Tr2GrannyAnimation extends IRoot

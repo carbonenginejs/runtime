@@ -25,7 +25,7 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
  * particle system on demand.
  */
 @be.define("Tr2RuntimeInstanceData")
-@blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
+@be.inherit(ITr2InstanceData, ITr2GpuBuffer)
 @be.mapInterface(ITr2InstanceData)
 @be.mapInterface(ITr2GpuBuffer)
 export class Tr2RuntimeInstanceData

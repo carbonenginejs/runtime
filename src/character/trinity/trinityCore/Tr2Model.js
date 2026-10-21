@@ -12,7 +12,7 @@ import { Tr2Renderer } from "../../../trinity/core/Tr2Renderer.js";
 
 /** Named character model record grouping its Trinity mesh objects. */
 @be.define("Tr2Model")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class Tr2Model extends IRoot
 {

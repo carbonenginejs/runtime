@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/TriRenderJob.h
 // Source: trinity/trinity/RenderJob/TriRenderJob.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
 import { TriRenderJobStatus } from "../generated/renderJob/enums.js";
@@ -15,7 +15,7 @@ import { blue } from "#blue";
  */
 @be.define("TriRenderJob")
 
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 export class TriRenderJob extends IRoot
 {
   static Status = TriRenderJobStatus;

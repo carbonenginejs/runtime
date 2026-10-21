@@ -5,7 +5,7 @@ import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
 import { IsMatch, CjsBlueClasses } from "#blue";
 
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveTurretFiringFXPerMuzzleData } from "./EveTurretFiringFXPerMuzzleData.js";
 import { mat4 } from "#math/mat4";
@@ -22,7 +22,7 @@ import { EveUpdateContext } from "../../EveUpdateContext.js";
 
 /** Coordinates a turret set's multi-muzzle firing effects, delays, stretch endpoints, observers, and impact timing. */
 @be.define("EveTurretFiringFX")
-@legacyBlue.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner, ITr2DebugRenderable)
+@be.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner, ITr2DebugRenderable)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IListNotify)

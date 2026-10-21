@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
@@ -23,7 +23,7 @@ import { EveBoosterSet2 } from "./EveBoosterSet2.js";
  * five-point trail spline and its LOD flags.
  */
 @be.define("EveBoosterSet2Renderable")
-@blue.inherit(ITr2Renderable)
+@be.inherit(ITr2Renderable)
 @be.mapInterface(ITr2Renderable)
 export class EveBoosterSet2Renderable
 {

@@ -26,7 +26,7 @@ export const IMPACT_ARMOR_SIZE_MAX = 10;
  * and by independently rendered child meshes.
  */
 @be.define("EveDamageOverlay")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 
 export class EveDamageOverlay extends IRoot
 {

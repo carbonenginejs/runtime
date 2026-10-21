@@ -32,7 +32,7 @@ const DEBUG_TRANSLATION = mat4.create();
  * radius, weighting points and seeding random ones inside it.
  */
 @be.define("EveSphereVolume")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(IEveVolume)
 @be.mapInterface(INotify)
 export class EveSphereVolume extends IEveVolume

@@ -10,7 +10,7 @@ import "#consts/graphics/trinityEnums";
 /** A render-graph node that binds named sources onto an effect and produces its output. */
 @be.define("Tr2RenderNodeEffect")
 @be.mapInterface(ITr2RenderNode)
-@blue.inherit(ITr2RenderNode)
+@be.inherit(ITr2RenderNode)
 export class Tr2RenderNodeEffect extends IRoot
 {
 

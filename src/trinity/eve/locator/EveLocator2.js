@@ -11,7 +11,7 @@ import { meta, type, blue } from "#schema";
  * rather than decomposed components.
  */
 @be.define("EveLocator2")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveLocator2 extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

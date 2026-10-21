@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue as legacyBlue } from "#schema";
+import { type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -10,7 +10,7 @@ import { EveSOFDataHullBuildFilter } from "./enums.js";
 
 /** Carbon-authored hull record. */
 @be.define("EveSOFDataHull")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHull extends IRoot
 {
 

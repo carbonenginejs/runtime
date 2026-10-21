@@ -50,7 +50,7 @@ const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
  * renderable instances draw.
  */
 @be.define("EveBoosterSet2")
-@blue.inherit(IInitialize, INotify, Tr2DeviceResource, ITr2LightOwner)
+@be.inherit(IInitialize, INotify, Tr2DeviceResource, ITr2LightOwner)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(EveEntity)

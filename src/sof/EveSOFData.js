@@ -6,7 +6,7 @@ import { type, blue } from "#schema";
 
 /** Root SOF data catalog. */
 @be.define("EveSOFData")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFData extends IRoot
 {
 

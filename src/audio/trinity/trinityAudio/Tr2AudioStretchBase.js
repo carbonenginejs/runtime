@@ -12,7 +12,7 @@ import { StretchAudio } from "../audio/StretchAudio.js";
 
 /** Creates and updates the three Carbon emitters used by a Trinity audio stretch. */
 @be.define("Tr2AudioStretchBase")
-@blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
+@be.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2DebugRenderable)
 @be.mapInterface(ITr2Audio)

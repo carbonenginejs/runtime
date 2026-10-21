@@ -18,7 +18,7 @@ import "../../generated/include/enums.js";
  * previous key.
  */
 @be.define("Tr2ScalarExprKey")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class Tr2ScalarExprKey extends IInitialize

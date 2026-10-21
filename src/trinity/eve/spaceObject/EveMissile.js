@@ -22,7 +22,7 @@ import { EveMissileWarhead } from "./EveMissileWarhead.js";
  * it, own the targeting state and supply the missile bounds.
  */
 @be.define("EveMissile")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(ITr2Renderable)
 @be.exposureChainTo(EveSpaceObject2)

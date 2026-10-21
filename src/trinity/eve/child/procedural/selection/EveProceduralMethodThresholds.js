@@ -13,7 +13,7 @@ const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
 @be.define("EveProceduralMethodThresholds")
-@blue.inherit(INotify, IListNotify, IInitialize)
+@be.inherit(INotify, IListNotify, IInitialize)
 @be.mapInterface(IEveProceduralSelectionMethod)
 @be.mapInterface(INotify)
 @be.mapInterface(IListNotify)

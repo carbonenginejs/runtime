@@ -15,7 +15,7 @@ import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
  * handling and optional rerouting into an external destination.
  */
 @be.define("Tr2Vector2Parameter")
-@blue.inherit(ITriReroutable, IInitialize)
+@be.inherit(ITriReroutable, IInitialize)
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(ITriReroutable)
 @be.mapInterface(IInitialize)

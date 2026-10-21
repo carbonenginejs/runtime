@@ -15,7 +15,7 @@ import { meta, type, blue } from "#schema";
  * chosen blend of target materials inside it.
  */
 @be.define("EveCustomMask")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveCustomMask extends IRoot
 {

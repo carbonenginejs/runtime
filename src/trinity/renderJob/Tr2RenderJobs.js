@@ -13,7 +13,7 @@ import { TriRenderJob } from "./TriRenderJob.js";
  */
 @be.define("Tr2RenderJobs")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2RenderJobs extends IRoot
 {
   @be.mapAttribute(be.READ | be.PERSIST)

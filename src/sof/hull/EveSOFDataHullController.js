@@ -7,7 +7,7 @@ import "./enums.js";
 
 /** Names a controller resource path and its build filter, deriving the controller name from the path. */
 @be.define("EveSOFDataHullController")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullController extends IRoot
 {
 

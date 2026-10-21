@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Names a faction child and records its group and visibility settings. */
 @be.define("EveSOFDataFactionChild")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataFactionChild extends IRoot
 {
 

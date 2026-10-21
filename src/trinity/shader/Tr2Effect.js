@@ -101,7 +101,7 @@ function findByName(values, name)
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
 @be.define("Tr2Effect")
-@legacyBlue.inherit(IInitialize, INotify, IListNotify)
+@be.inherit(IInitialize, INotify, IListNotify)
 @be.mapInterface(Tr2Material)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

@@ -18,7 +18,7 @@ const CLAMP_MIN = vec4.create();
  * JavaScript combines native time overloads as seconds-first calls with output last.
  */
 @be.define("Tr2CurveColor")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriColorFunction)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriCurveLength)

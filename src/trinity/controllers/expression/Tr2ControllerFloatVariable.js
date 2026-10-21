@@ -24,7 +24,7 @@ import { Type } from "../enums.js";
  * The destination storage remains caller-owned.
  */
 @be.define("Tr2ControllerFloatVariable")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class Tr2ControllerFloatVariable extends IInitialize

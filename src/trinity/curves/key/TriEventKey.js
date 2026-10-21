@@ -10,7 +10,7 @@ import { type, blue } from "#schema";
  * One key of a TriEventCurve: a time in seconds plus either a named event string
  * or a callable and its arguments to invoke when the playhead crosses it.
  */
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 @be.define("TriEventKey")
 export class TriEventKey extends IRoot
 {

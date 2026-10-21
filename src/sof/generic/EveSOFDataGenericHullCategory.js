@@ -12,7 +12,7 @@ import { ReflectionMode } from "#consts/graphics";
  * is required, and the native destructor is empty.
  */
 @be.define("EveSOFDataGenericHullCategory")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataGenericHullCategory extends IRoot
 {

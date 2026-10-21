@@ -74,8 +74,8 @@ const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
  * invalid offset (EveChildBoosterSet.cpp:478).
  */
 @be.define("EveChildBoosterSet")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(INotify, IInitialize, ITr2ControllerOwner, ITr2DebugRenderable)
+@be.inherit(ITr2Renderable)
+@be.inherit(INotify, IInitialize, ITr2ControllerOwner, ITr2DebugRenderable)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(INotify)

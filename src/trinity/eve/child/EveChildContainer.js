@@ -58,8 +58,8 @@ const ZERO_VEC3 = vec3.create();
  * modifiers, and gating them on a display-quality filter.
  */
 @be.define("EveChildContainer")
-@legacyBlue.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
-@legacyBlue.inherit(IInitialize, IListNotify, INotify)
+@be.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
+@be.inherit(IInitialize, IListNotify, INotify)
 @be.mapInterface(EveEntity)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
@@ -75,7 +75,7 @@ const ZERO_VEC3 = vec3.create();
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(ITr2LightOwner)
 @be.mapInterface(IShaderConfigurer)
-@legacyBlue.inherit(IEveEffectChildrenOwner, IEveSpaceObjectAttachmentOwner)
+@be.inherit(IEveEffectChildrenOwner, IEveSpaceObjectAttachmentOwner)
 export class EveChildContainer extends EveChildTransform
 {
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:59); chooser EveChildContainerDataSetShaderChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:14). */

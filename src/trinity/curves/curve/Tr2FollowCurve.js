@@ -16,7 +16,7 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
  * follows it.
  */
 @be.define("Tr2FollowCurve")
-@blue.inherit(IListNotify)
+@be.inherit(IListNotify)
 @be.mapInterface(ITriVectorFunction)
 @be.mapInterface(ITriFunction)
 export class Tr2FollowCurve extends ITriVectorFunction

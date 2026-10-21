@@ -5,7 +5,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 import { CjsScriptCallback } from "#blue/CjsScriptCallback";
 import { mat3 } from "#math/mat3";
@@ -26,7 +26,7 @@ const DEBUG_DIRECTION = vec3.create();
 
 /** A steering behaviour that assigns drones to repair locators on a target ship, splitting the target's bounding box into buckets so damage-seeking agents distribute evenly across it. */
 @be.define("SeekTarget")
-@legacyBlue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class SeekTarget extends IRoot
 {

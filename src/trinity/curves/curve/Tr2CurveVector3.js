@@ -14,7 +14,7 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * JavaScript combines native time overloads as seconds-first calls with output last.
  */
 @be.define("Tr2CurveVector3")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriVectorFunction)
 @be.mapInterface(ITriCurveLength)

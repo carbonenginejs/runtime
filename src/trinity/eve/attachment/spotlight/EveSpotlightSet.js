@@ -75,7 +75,7 @@ const DEBUG_CONE_OFFSET = vec3.fromValues(0, 0, 0.5);
  * cone and glow effects that draw them, and the spot lights they emit.
  */
 @be.define("EveSpotlightSet")
-@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@be.inherit(IInitialize, ITr2LightOwner, EveEntity)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IEveSpaceObjectAttachment)
 @be.mapInterface(EveEntity)

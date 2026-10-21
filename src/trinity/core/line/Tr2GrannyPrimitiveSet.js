@@ -20,7 +20,7 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 /** Granny/CMF debug geometry rendered as colored triangle edges, solids, or picking triangles. */
 @be.define("Tr2GrannyPrimitiveSet")
-@legacyBlue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(IInitialize)
 @be.exposureChainTo(Tr2PrimitiveSet)
 export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet

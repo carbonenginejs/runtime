@@ -14,7 +14,7 @@ const NO_FORCES = [];
 
 /** A steering behaviour that populates and repopulates a drone group's agents, either regenerating a jittered spawn grid or spawning agents by count on a schedule or one-shot trigger. */
 @be.define("SpawnDrones")
-@blue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class SpawnDrones extends IRoot
 {

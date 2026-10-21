@@ -107,7 +107,7 @@ function sphericalToCartesian(value, center)
 
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
 @be.define("Tr2CurveLineSet")
-@blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
+@be.inherit(ITr2Renderable, ITr2Pickable, INotify)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2Pickable)

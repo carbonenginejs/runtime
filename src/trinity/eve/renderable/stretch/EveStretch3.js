@@ -38,7 +38,7 @@ import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
  * its own controllers, dynamic bindings and curve sets.
  */
 @be.define("EveStretch3")
-@legacyBlue.inherit(ITr2DebugRenderable, ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
+@be.inherit(ITr2DebugRenderable, ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
   INotify, IListNotify, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner, EveEntity)
 @be.mapInterface(INotify)
 @be.mapInterface(IListNotify)

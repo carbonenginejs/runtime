@@ -12,7 +12,7 @@ import { VisualizeMethod } from "../../generated/interior/enums.js";
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { blue, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
 import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
@@ -40,13 +40,13 @@ import { RawData } from "../../../trinity/core/rawData/RawData.js";
  * and scene rendering remain unported; allocation is not rendered shadows.
  */
 @be.define("Tr2InteriorScene")
-@legacyBlue.inherit(IInitialize, INotify, ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, ITr2DebugRenderable)
+@be.inherit(IInitialize, INotify, ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, ITr2DebugRenderable)
 @be.mapInterface(ITr2Scene)
 @be.mapInterface(ITr2MultiPassScene)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2Updateable)
-@legacyBlue.inherit(IListNotify)
+@be.inherit(IListNotify)
 export class Tr2InteriorScene
 {
   // Carbon m_apexScene remains empty until the physics scene is installed.

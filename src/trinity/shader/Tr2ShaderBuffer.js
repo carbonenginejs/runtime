@@ -12,7 +12,7 @@ const EMPTY_DATA = new Uint8Array(0); // alloc: shared empty byte payload, never
 
 /** Owns a detached byte payload and binds it at the selected stage's per-object register. */
 @be.define("Tr2ShaderBuffer")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class Tr2ShaderBuffer extends IRoot
 {

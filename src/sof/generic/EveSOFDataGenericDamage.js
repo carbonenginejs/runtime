@@ -13,7 +13,7 @@ import { vec4 } from "#math/vec4";
  * Shader and geometry paths are authored strings, not held resources.
  */
 @be.define("EveSOFDataGenericDamage")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataGenericDamage extends IRoot
 {

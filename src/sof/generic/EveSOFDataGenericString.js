@@ -10,7 +10,7 @@ import { type, blue } from "#schema";
  * are empty; no initialization, update or resource lifecycle is required.
  */
 @be.define("EveSOFDataGenericString")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataGenericString extends IRoot
 {

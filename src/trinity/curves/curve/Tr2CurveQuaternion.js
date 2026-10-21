@@ -14,7 +14,7 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
  * JavaScript keeps time-first output-buffer calls instead of native output-first overloads.
  */
 @be.define("Tr2CurveQuaternion")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriQuaternionFunction)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriCurveLength)

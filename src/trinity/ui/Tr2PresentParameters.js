@@ -14,7 +14,7 @@ import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.j
  */
 @be.define("Tr2PresentParameters")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2PresentParameters extends Tr2PresentParametersAL
 {
   /**

@@ -4,7 +4,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.h
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 import { blue, CcpTime } from "#blue";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
@@ -26,7 +26,7 @@ export const EVE_TURRET_RANDOM_DELAY_MAX = 0.6;
  * server has sent.
  */
 @be.define("EveTurretTarget")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveTurretTarget extends IRoot
 {
   @be.mapAttribute(be.READ)

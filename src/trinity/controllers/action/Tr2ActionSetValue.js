@@ -18,7 +18,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * the result into a bound destination property.
  */
 @be.define("Tr2ActionSetValue")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(ITr2ControllerAction)
 @be.mapInterface(INotify)
 export class Tr2ActionSetValue extends ITr2ControllerAction

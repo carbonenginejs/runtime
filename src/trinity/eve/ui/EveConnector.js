@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/UI/EveConnector.cpp
 // Source: trinity/trinity/Eve/UI/EveConnector_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { blue, EnumRegistrationType } from "#blue";
@@ -62,7 +62,7 @@ function rotateToPlane(out, point, planePoint, normal)
 
 /** Builds authored tactical connector curves into an EveCurveLineSet. */
 @be.define("EveConnector")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveConnector extends IRoot
 {

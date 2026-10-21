@@ -5,7 +5,7 @@ import { ITr2Pickable } from "../../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { mat4 } from "#math/mat4";
@@ -21,7 +21,7 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
 /** Carbon's EveSwarmRenderable (EveSwarm.h:20-95): one fighter of an EveSwarm, drawing the squad's shared mesh at its own world transform. */
 @be.define("EveSwarmRenderable")
-@blue.inherit(ITr2Renderable, ITr2Pickable, IShaderConfigurer, IEveShadowCaster)
+@be.inherit(ITr2Renderable, ITr2Pickable, IShaderConfigurer, IEveShadowCaster)
 @be.mapInterface(ITr2Pickable)
 @be.mapInterface(EveEntity)
 @be.mapInterface(IEveShadowCaster)

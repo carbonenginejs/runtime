@@ -20,7 +20,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  * itself.
  */
 @be.define("EveMultiEffect")
-@blue.inherit(IListNotify, IInitialize, IEveSpaceObject2, ITr2DynamicBindingOwner, ITr2ControllerOwner, ITr2CurveSetOwner)
+@be.inherit(IListNotify, IInitialize, IEveSpaceObject2, ITr2DynamicBindingOwner, ITr2ControllerOwner, ITr2CurveSetOwner)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(ITr2ControllerOwner)
 @be.mapInterface(IInitialize)

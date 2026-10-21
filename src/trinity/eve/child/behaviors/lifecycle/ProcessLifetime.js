@@ -30,8 +30,8 @@ const SPAWN_POSITION = vec3.create();
 
 /** ProcessLifetime (eve/child/behaviors) - generated from schema shapeHash 1fd3ebfa.... */
 @be.define("ProcessLifetime")
-@blue.inherit(IInitialize)
-@blue.inherit(IBehavior)
+@be.inherit(IInitialize)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

@@ -10,7 +10,7 @@ import { type, blue } from "#schema";
  * string, not a held resource; empty constructor/destructor need no lifecycle.
  */
 @be.define("EveSOFDataTexture")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataTexture extends IRoot
 {

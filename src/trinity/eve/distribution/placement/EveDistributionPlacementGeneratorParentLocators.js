@@ -10,7 +10,7 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 
 /** Builds distribution placements from a named locator set resolved on the parent space object. */
 @be.define("EveDistributionPlacementGeneratorParentLocators")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(IEveDistributionPlacementGenerators)
 @be.mapInterface(INotify)
 export class EveDistributionPlacementGeneratorParentLocators extends IEveDistributionPlacementGenerators

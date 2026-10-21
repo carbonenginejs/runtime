@@ -38,7 +38,7 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
  * evaluation runs in UpdateSyncronous.
  */
 @be.define("EveTriggerVolume")
-@blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2DebugRenderable)
+@be.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2DebugRenderable)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IWorldPosition)

@@ -15,7 +15,7 @@ const INVALID_UNIQUE_ID = 0;
  * runtime (no persisted fields) from a plain audio metadata object.
  */
 @be.define("AudStaticDataRepository")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class AudStaticDataRepository extends IRoot
 {

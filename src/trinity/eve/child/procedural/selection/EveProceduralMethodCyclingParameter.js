@@ -9,7 +9,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodCyclingParameter (eve/child/procedural/selection) - generated from schema shapeHash 90bcbbe1.... */
 @be.define("EveProceduralMethodCyclingParameter")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 export class EveProceduralMethodCyclingParameter extends IRoot

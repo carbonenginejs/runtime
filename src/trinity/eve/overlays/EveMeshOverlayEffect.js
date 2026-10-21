@@ -20,7 +20,7 @@ import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
  * together with the curve set and controllers that animate them.
  */
 @be.define("EveMeshOverlayEffect")
-@blue.inherit(IInitialize, IListNotify, ITr2ControllerOwner, ITr2CurveSetOwner)
+@be.inherit(IInitialize, IListNotify, ITr2ControllerOwner, ITr2CurveSetOwner)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IListNotify)
 @be.mapInterface(ITr2ControllerOwner)

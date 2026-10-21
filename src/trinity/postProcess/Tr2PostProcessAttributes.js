@@ -26,7 +26,7 @@ import { blue } from "#blue";
  * volumes are blended together.
  */
 @be.define("Tr2PostProcessAttributes")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class Tr2PostProcessAttributes extends IRoot
 {

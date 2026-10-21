@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines a faction-aware sprite line with bone-relative transform, spacing, circle mode, blink, scale, falloff, intensity, saturation, and point-light data. */
 @be.define("EveSOFDataHullSpriteLineSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullSpriteLineSetItem extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;

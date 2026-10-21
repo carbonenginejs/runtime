@@ -6,7 +6,7 @@ import { meta, blue } from "#schema";
 
 /** Required distribution attribute-modifier contract. */
 @be.interface("IEveDistributionModifier")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IEveDistributionModifier extends IRoot
 {
 

@@ -26,7 +26,7 @@ const DEBUG_SPHERE = vec4.create();
  * distorted per quadrant, and emits the resulting chain as line segments.
  */
 @be.define("EveCircle")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(IEveLineSetPath)
 @be.mapInterface(INotify)
 export class EveCircle extends IEveLineSetPath

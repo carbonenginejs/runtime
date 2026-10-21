@@ -42,7 +42,7 @@ const DEBUG_MISSING_BONE_ZFAIL_COLOR = vec4.fromValues(0.9, 0.2, 0.2, 0.1);
  * owning their static and per-bone bounds and the point lights they emit.
  */
 @be.define("EveSpriteLineSet")
-@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@be.inherit(IInitialize, ITr2LightOwner, EveEntity)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IEveSpaceObjectAttachment)
 @be.mapInterface(EveEntity)

@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ExpressionTermInfo.h
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 
 
@@ -19,7 +19,7 @@ const TermType = {
  * a string function - with its category, argument names and help text.
  */
 @be.define("Tr2ExpressionTermInfo")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2ExpressionTermInfo extends IRoot
 {
   /** Native term category; not persisted. */

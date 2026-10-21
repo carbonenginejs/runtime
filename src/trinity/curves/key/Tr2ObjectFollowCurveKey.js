@@ -8,7 +8,7 @@ import { IsMatch, INotify, IInitialize, blue, CjsBlueClasses } from "#blue";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 
 
@@ -21,7 +21,7 @@ import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
  * Native destruction only clears references; no resource disposal is required.
  */
 @be.define("Tr2ObjectFollowCurveKey")
-@legacyBlue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(ITr2FollowCurveKey)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

@@ -14,7 +14,7 @@ import { Tr2CurveScalarKey } from "../key/Tr2CurveScalarKey.js";
  * extrapolation before the first and after the last key.
  */
 @be.define("Tr2CurveScalar")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriScalarFunction)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriCurveLength)

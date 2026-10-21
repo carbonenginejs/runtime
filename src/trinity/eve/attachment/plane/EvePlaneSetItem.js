@@ -15,7 +15,7 @@ import { meta, type, blue } from "#schema";
  * transformed and scrolling texture layers, mask atlas slot and blink data.
  */
 @be.define("EvePlaneSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EvePlaneSetItem extends IRoot
 {
 

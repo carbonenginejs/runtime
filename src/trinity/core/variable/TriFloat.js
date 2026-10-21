@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
  */
 @be.define("TriFloat")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class TriFloat extends IRoot
 {
 

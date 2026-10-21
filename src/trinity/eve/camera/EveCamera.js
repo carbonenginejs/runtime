@@ -114,7 +114,7 @@ const CAMERA_YAW_PITCH_ROLL = new Float64Array(3);
 
 /** Carbon's orbit camera and its CPU-side view/projection state. */
 @be.define("EveCamera")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 export class EveCamera extends IRoot
 {

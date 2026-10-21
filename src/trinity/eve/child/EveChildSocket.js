@@ -23,7 +23,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
 @be.define("EveChildSocket")
-@legacyBlue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
+@be.inherit(ITr2CurveSetOwner, IInitialize, INotify)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2CurveSetOwner)
@@ -34,7 +34,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.mapInterface(IShaderConfigurer)
 @be.mapInterface(ITr2SoundEmitterOwner)
 @be.mapInterface(EveEntity)
-@legacyBlue.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
+@be.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
 export class EveChildSocket extends EveChildTransform
 {
 

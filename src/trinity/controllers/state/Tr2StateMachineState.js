@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
 import { IsMatch, BlueList, IListNotify, INotify, blue, CjsBlueClasses } from "#blue";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2ControllerAction } from "../action/ITr2ControllerAction.js";
@@ -17,7 +17,7 @@ import { Tr2StateMachineTransition } from "./Tr2StateMachineTransition.js";
  * array operations bypass admission and notification.
  */
 @be.define("Tr2StateMachineState")
-@legacyBlue.inherit(IListNotify, INotify)
+@be.inherit(IListNotify, INotify)
 @be.mapInterface(IListNotify)
 @be.mapInterface(INotify)
 export class Tr2StateMachineState

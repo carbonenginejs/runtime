@@ -15,7 +15,7 @@ import { meta, type, blue } from "#schema";
  * four-component haze shaping data.
  */
 @be.define("EveHazeSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveHazeSetItem extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

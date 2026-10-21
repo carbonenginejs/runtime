@@ -12,7 +12,7 @@ import { vec4 } from "#math/vec4";
  * is required, and the native destructor is empty.
  */
 @be.define("EveSOFDataGenericHullDamage")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataGenericHullDamage extends IRoot
 {

@@ -99,7 +99,7 @@ function TransformNormal(out, v, m)
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @be.define("EveChildCloud2")
-@blue.inherit(ITr2VolumetricRenderable, ITr2Renderable, INotify, IListNotify, IInitialize, ITr2DebugRenderable, ITr2LightOwner, Tr2DeviceResource)
+@be.inherit(ITr2VolumetricRenderable, ITr2Renderable, INotify, IListNotify, IInitialize, ITr2DebugRenderable, ITr2LightOwner, Tr2DeviceResource)
 @be.mapInterface(ITr2VolumetricRenderable)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

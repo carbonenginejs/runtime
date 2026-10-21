@@ -5,7 +5,7 @@ import { blue } from "#schema";
 
 
 /** Required particle-attribute generation contract. */
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 @be.interface("ITr2AttributeGenerator")
 export class ITr2AttributeGenerator extends IRoot
 {

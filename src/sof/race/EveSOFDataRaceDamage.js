@@ -9,7 +9,7 @@ import { EveSOFDataTexture } from "../shared/EveSOFDataTexture.js";
 /** Stores, combines, and assigns race-level armor and shield damage parameters and textures. */
 @be.define("EveSOFDataRaceDamage")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataRaceDamage extends IRoot
 {
 

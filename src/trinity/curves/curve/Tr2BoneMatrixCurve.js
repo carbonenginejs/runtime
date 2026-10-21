@@ -19,7 +19,7 @@ const SPHERICAL_LINEAR = 4;
  * world transform rather than sampling its own keys.
  */
 @be.define("Tr2BoneMatrixCurve")
-@blue.inherit(IInitialize, ITriCurveLength)
+@be.inherit(IInitialize, ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITriCurveLength)

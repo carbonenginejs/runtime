@@ -23,8 +23,8 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 
 /** EveChildProceduralContainer (eve/child/procedural) - generated from schema shapeHash 91d6cbc5.... */
 @be.define("EveChildProceduralContainer")
-@blue.inherit(ITr2CurveSetOwner, IEveInheritPropertiesOwner, ITr2SoundEmitterOwner)
-@blue.inherit(IInitialize, IListNotify, INotify)
+@be.inherit(ITr2CurveSetOwner, IEveInheritPropertiesOwner, ITr2SoundEmitterOwner)
+@be.inherit(IInitialize, IListNotify, INotify)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2CurveSetOwner)

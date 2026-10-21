@@ -63,7 +63,7 @@ function ClampLength(value, maxLength)
 
 /** Owns a group of drone agents, running its priority-ordered behaviours each frame to integrate their acceleration, velocity, orientation and position, and managing their count, visibility, lighting and rendering. */
 @be.define("BehaviorGroup")
-@blue.inherit(IInitialize, INotify, IListNotify, ITr2LightOwner)
+@be.inherit(IInitialize, INotify, IListNotify, ITr2LightOwner)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IListNotify)

@@ -16,7 +16,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * enqueues a stop when it ends.
  */
 @be.define("Tr2ActionPlayMeshAnimation")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(ITr2ControllerAction)
 @be.mapInterface(INotify)
 export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction

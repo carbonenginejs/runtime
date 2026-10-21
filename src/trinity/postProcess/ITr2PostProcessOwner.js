@@ -14,7 +14,7 @@ import { blue } from "#schema";
  * supplies post-process attributes for the scene to blend.
  */
 @be.interface("ITr2PostProcessOwner")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class ITr2PostProcessOwner extends IRoot
 {
 

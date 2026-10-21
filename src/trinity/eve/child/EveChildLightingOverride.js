@@ -26,15 +26,15 @@ const DEBUG_TRANSFORM = mat4.create();
  * volumes it owns.
  */
 @be.define("EveChildLightingOverride")
-@blue.inherit(IEveLightingOverride)
-@blue.inherit(IInitialize)
+@be.inherit(IEveLightingOverride)
+@be.inherit(IInitialize)
 @be.mapInterface(EveEntity)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(IEveLightingOverride)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2DebugRenderable)
-@blue.inherit(ITr2DebugRenderable)
+@be.inherit(ITr2DebugRenderable)
 export class EveChildLightingOverride extends EveChildTransform
 {
   _overrideIntensity = 0;

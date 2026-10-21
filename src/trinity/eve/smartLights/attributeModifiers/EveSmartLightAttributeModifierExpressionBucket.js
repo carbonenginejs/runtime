@@ -14,7 +14,7 @@ import { EveSmartLightAttributeModifierExpressionBucketArguments } from "./EveSm
 
 /** EveSmartLightAttributeModifierExpressionBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash 02cc58c3.... */
 @be.define("EveSmartLightAttributeModifierExpressionBucket")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(EveSmartLightAttributeModifierBucket)
 @be.mapInterface(IEveSmartLightGroupAttributeModifier)
 @be.mapInterface(EveSmartLightBaseAttributeModifier)

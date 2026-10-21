@@ -14,7 +14,7 @@ import { vec4 } from "#math/vec4";
  * plan built when the endpoints resolve.
  */
 @be.define("TriValueBinding")
-@blue.inherit(ITr2ValueBinding)
+@be.inherit(ITr2ValueBinding)
 @be.mapInterface(ITr2ValueBinding)
 @be.mapInterface(INotify)
 export class TriValueBinding extends INotify

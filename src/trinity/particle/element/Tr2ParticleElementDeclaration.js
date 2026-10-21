@@ -6,7 +6,7 @@ import { meta, type, blue } from "#schema";
 import { Tr2ParticleElementDeclarationName } from "./Tr2ParticleElementDeclarationName.js";
 
 /** Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6639.... */
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 @be.define("Tr2ParticleElementDeclaration")
 export class Tr2ParticleElementDeclaration extends IRoot
 {

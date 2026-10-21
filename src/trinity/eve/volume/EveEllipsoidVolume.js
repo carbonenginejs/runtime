@@ -38,7 +38,7 @@ const RAY_DIR = vec3.create();
  * points by falloff and seeding random points between the two shells.
  */
 @be.define("EveEllipsoidVolume")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(IEveVolume)
 @be.mapInterface(INotify)
 export class EveEllipsoidVolume extends IEveVolume

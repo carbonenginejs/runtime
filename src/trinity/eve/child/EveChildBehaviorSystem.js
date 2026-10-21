@@ -37,8 +37,8 @@ import { ITr2DebugRenderable } from "#interfaces";
  * own placement under the hull.
  */
 @be.define("EveChildBehaviorSystem")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(INotify, IInitialize, IListNotify, ITr2DebugRenderable)
+@be.inherit(ITr2Renderable)
+@be.inherit(INotify, IInitialize, IListNotify, ITr2DebugRenderable)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2Renderable)

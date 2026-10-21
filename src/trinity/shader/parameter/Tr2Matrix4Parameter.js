@@ -13,7 +13,7 @@ import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
  * external 64-byte destination.
  */
 @be.define("Tr2Matrix4Parameter")
-@blue.inherit(ITriReroutable)
+@be.inherit(ITriReroutable)
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(ITriReroutable)
 export class Tr2Matrix4Parameter extends ITriEffectParameter

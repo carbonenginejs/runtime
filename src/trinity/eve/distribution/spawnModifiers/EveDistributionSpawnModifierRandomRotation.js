@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomRotation.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { quat } from "#math/quat";
@@ -11,7 +11,7 @@ import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's orientation with a seeded random yaw, pitch, and roll. */
 @be.define("EveDistributionSpawnModifierRandomRotation")
-@legacyBlue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(IEveDistributionSpawnModifier)
 @be.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierRandomRotation extends IEveDistributionSpawnModifier

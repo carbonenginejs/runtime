@@ -7,7 +7,7 @@ import { meta, blue } from "#schema";
 
 /** Carbon socket-parameter contract with its interface defaults. */
 @be.interface("IEveSocketParameter")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 export class IEveSocketParameter extends IRoot
 {
 

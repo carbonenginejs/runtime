@@ -10,7 +10,7 @@ import { vec3 } from "#math/vec3";
 /** Stores pattern position, scale, rotation, and mirror settings and composes their transformation matrix. */
 @be.define("EveSOFDataPatternTransform")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataPatternTransform extends IRoot
 {
 

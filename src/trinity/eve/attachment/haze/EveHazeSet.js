@@ -79,7 +79,7 @@ const DEBUG_BOX_MAX = vec3.fromValues(0.5, 0.5, 0.5);
  * lights the haze emits.
  */
 @be.define("EveHazeSet")
-@blue.inherit(IInitialize, Tr2DeviceResource, ITr2LightOwner, EveEntity)
+@be.inherit(IInitialize, Tr2DeviceResource, ITr2LightOwner, EveEntity)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IEveSpaceObjectAttachment)
 @be.mapInterface(EveEntity)

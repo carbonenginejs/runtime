@@ -6,7 +6,7 @@ import { blue } from "#schema";
 
 /** Required EVE effect-attribute update contract. */
 @be.interface("IEveFxAttribute")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IEveFxAttribute extends IRoot
 {
 

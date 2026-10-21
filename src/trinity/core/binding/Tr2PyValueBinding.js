@@ -8,7 +8,7 @@ import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 
 /** Copies named JavaScript attributes through the portable Python-value adapter. */
 @be.define("Tr2PyValueBinding")
-@blue.inherit(ITr2ValueBinding)
+@be.inherit(ITr2ValueBinding)
 @be.mapInterface(ITr2ValueBinding)
 @be.mapInterface(INotify)
 export class Tr2PyValueBinding extends INotify

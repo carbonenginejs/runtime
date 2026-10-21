@@ -16,7 +16,7 @@ import { meta, type, blue } from "#schema";
  * is a retained adapter.
  */
 @be.define("Range")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Range extends IRoot
 {
   /**

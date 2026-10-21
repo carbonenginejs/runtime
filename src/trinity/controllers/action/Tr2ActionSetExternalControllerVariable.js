@@ -13,7 +13,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * owner's binding roots.
  */
 @be.define("Tr2ActionSetExternalControllerVariable")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(ITr2ControllerAction)
 @be.mapInterface(INotify)
 export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction

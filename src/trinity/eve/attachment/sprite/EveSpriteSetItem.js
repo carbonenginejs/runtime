@@ -13,7 +13,7 @@ import { meta, type, blue } from "#schema";
  * falloff and normal and warp colours.
  */
 @be.define("EveSpriteSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSpriteSetItem extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

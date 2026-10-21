@@ -10,7 +10,7 @@ import { type, blue } from "#schema";
  * is required, and the native destructor is empty.
  */
 @be.define("EveSOFDataVisibilityGroup")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataVisibilityGroup extends IRoot
 {

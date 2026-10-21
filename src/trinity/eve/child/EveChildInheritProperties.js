@@ -62,7 +62,7 @@ const COLOR_PROPERTIES = Object.freeze([
 // Self-map: EveChildInheritProperties_Blue.cpp:13-14 (EXPOSURE_BEGIN / MAP_INTERFACE).
 
 @be.define("EveChildInheritProperties")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveChildInheritProperties extends IRoot
 {
   /**

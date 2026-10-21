@@ -48,7 +48,7 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2BoundingBox)
 @be.exposureChainTo(Tr2Transform)
-@blue.inherit(IEveTransform, IEveSpaceObject2, ITr2Pickable, IWorldPosition, IInitialize, ITr2CurveSetOwner, ITr2BoundingBox, ITr2DebugRenderable)
+@be.inherit(IEveTransform, IEveSpaceObject2, ITr2Pickable, IWorldPosition, IInitialize, ITr2CurveSetOwner, ITr2BoundingBox, ITr2DebugRenderable)
 export class EveTransform extends Tr2Transform
 {
 

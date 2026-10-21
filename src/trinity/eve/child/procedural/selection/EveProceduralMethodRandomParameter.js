@@ -9,7 +9,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodRandomParameter (eve/child/procedural/selection) - generated from schema shapeHash 8b32e583.... */
 @be.define("EveProceduralMethodRandomParameter")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 export class EveProceduralMethodRandomParameter extends IRoot

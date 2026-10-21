@@ -4,7 +4,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2SSAO.h
 // Source: trinity/trinity/Tr2SSAO.cpp
 // Source: trinity/trinity/Tr2SSAO_Blue.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, ShaderType, Tr2GpuUsage } from "#consts/render-context";
 import { Failed, Tr2BitmapDimensions, Tr2ConstantBufferAL } from "#trinityal";
@@ -58,7 +58,7 @@ function DispatchSize(tileSize, totalSize)
  * (`PerformPass`, AMD's FidelityFX CACAO) is not.
  */
 @be.define("Tr2SSAO")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2SSAO extends IRoot
 {
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2SSAO_Blue.cpp:26); chooser SSAOQualityChooser (trinity/trinity/Tr2SSAO_Blue.cpp:8). */

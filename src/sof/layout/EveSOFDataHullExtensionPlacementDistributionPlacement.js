@@ -11,7 +11,7 @@ import { vec3 } from "#math/vec3";
 // (EveSOFData.h:1999-2021); it is NOT a distribution condition, despite the
 // name - the distribution conditions implement the separate BLUE_INTERFACE.
 @be.define("EveSOFDataHullExtensionPlacementDistributionPlacement")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullExtensionPlacementDistributionPlacement extends IRoot
 {
 

@@ -8,7 +8,7 @@ import { ITr2GenericEmitterUpdateArguments, ITr2GenericEmitter } from "../ITr2Ge
 
 /** A continuous-rate particle emitter that binds attribute generators to a particle system and spawns particles over time from an accumulated emission rate. */
 @be.define("Tr2DynamicEmitter")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(ITr2GenericEmitter)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

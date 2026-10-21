@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
 
 /** One vec4 row of a TriFloatArrayParameter's value list. */
 @be.define("TriVector4")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class TriVector4 extends IRoot
 {

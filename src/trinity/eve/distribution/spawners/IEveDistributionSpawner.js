@@ -6,7 +6,7 @@ import { meta, blue } from "#schema";
 
 /** Distribution spawner contract with Carbon's optional no-op hooks. */
 @be.interface("IEveDistributionSpawner")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IEveDistributionSpawner extends IRoot
 {
 

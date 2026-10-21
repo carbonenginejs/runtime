@@ -17,8 +17,8 @@ import { BLUELISTEVENT } from "#consts/blue";
 
 /** A child that drives a placement distribution and fans its per-frame update, visibility, rendering and registration across a set of smart-light groups. */
 @be.define("EveChildSmartLightSet")
-@blue.inherit(IEveInheritPropertiesOwner)
-@blue.inherit(ITr2DebugRenderable, INotify, IListNotify)
+@be.inherit(IEveInheritPropertiesOwner)
+@be.inherit(ITr2DebugRenderable, INotify, IListNotify)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2DebugRenderable)

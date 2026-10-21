@@ -20,7 +20,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
  * through RegisterVariable__TextureAL, the native texture-reference overload.
  */
 @be.define("Tr2VariableStore")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2VariableStore
 {
   /**

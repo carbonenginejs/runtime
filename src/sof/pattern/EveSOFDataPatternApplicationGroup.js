@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Names per-layer pattern properties and provides searchable per-hull projections. */
 @be.define("EveSOFDataPatternApplicationGroup")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataPatternApplicationGroup extends IRoot
 {
 

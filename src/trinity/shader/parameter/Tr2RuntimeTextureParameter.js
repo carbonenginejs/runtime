@@ -16,7 +16,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
  * authored res path.
  */
 @be.define("Tr2RuntimeTextureParameter")
-@blue.inherit(ITriEffectResourceParameter, INotify)
+@be.inherit(ITriEffectResourceParameter, INotify)
 @be.mapInterface(ITriEffectResourceParameter)
 @be.mapInterface(INotify)
 export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter

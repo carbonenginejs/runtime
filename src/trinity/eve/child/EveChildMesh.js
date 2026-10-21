@@ -71,9 +71,9 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
  * state.
  */
 @be.define("EveChildMesh")
-@blue.inherit(ITr2Renderable, IEveShadowCaster)
-@blue.inherit(IListNotify)
-@blue.inherit(IInitialize, INotify, IListNotify, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, IEveSpaceObjectAttachmentOwner)
+@be.inherit(ITr2Renderable, IEveShadowCaster)
+@be.inherit(IListNotify)
+@be.inherit(IInitialize, INotify, IListNotify, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, IEveSpaceObjectAttachmentOwner)
 @be.mapInterface(EveEntity)
 @be.mapInterface(IEveSpaceObjectDecalOwner)
 @be.mapInterface(EveSpaceObjectChild)

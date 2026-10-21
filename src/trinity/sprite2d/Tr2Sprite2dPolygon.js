@@ -29,7 +29,7 @@ const INVALID_INDEX = 0xffff;
 /** Stores editable Sprite2D polygon vertices and triangles and validates wrapped append input. */
 @be.define("Tr2Sprite2dPolygon")
 @be.exposureChainTo(Tr2TexturedSpriteObject)
-@blue.inherit(IListNotify)
+@be.inherit(IListNotify)
 
 export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 {

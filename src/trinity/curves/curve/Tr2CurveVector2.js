@@ -14,7 +14,7 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * JavaScript writes native returned vectors into caller-owned output buffers.
  */
 @be.define("Tr2CurveVector2")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriCurveLength)
 export class Tr2CurveVector2 extends ITriFunction

@@ -7,7 +7,7 @@ import { meta, type, blue } from "#schema";
 
 /** Character GState animation record for an external state-machine adapter. */
 @be.define("Tr2GStateAnimation")
-@blue.inherit(IInitialize, ITr2AnimationUpdater)
+@be.inherit(IInitialize, ITr2AnimationUpdater)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2AnimationUpdater)
 export class Tr2GStateAnimation extends IRoot

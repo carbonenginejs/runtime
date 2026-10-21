@@ -7,7 +7,7 @@ import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectR
 
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
-import { meta, CjsSchema, type, blue as legacyBlue } from "#schema";
+import { meta, CjsSchema, type } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
@@ -67,7 +67,7 @@ const DEBUG_CENTER = vec3.create();
 
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @be.define("EveTurretSet")
-@legacyBlue.inherit(IInitialize, INotify, Tr2DeviceResource, ITr2Renderable, IShaderConfigurer, ITr2ControllerOwner, ITr2DebugRenderable, IEveShadowCaster)
+@be.inherit(IInitialize, INotify, Tr2DeviceResource, ITr2Renderable, IShaderConfigurer, ITr2ControllerOwner, ITr2DebugRenderable, IEveShadowCaster)
 @be.mapInterface(EveEntity)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

@@ -16,7 +16,7 @@ import { CcpTime } from "#blue";
  * before and after the spin.
  */
 @be.define("Tr2CurveRandomAxisRotation")
-@legacyBlue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriQuaternionFunction)
 export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction

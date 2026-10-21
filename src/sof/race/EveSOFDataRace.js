@@ -10,7 +10,7 @@ import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 /** Names a race, stores its heat color, and combines race-level booster and damage configuration. */
 @be.define("EveSOFDataRace")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataRace extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;

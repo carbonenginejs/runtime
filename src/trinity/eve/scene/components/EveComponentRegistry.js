@@ -13,7 +13,7 @@ import { ITr2PostProcessOwner } from "../../../postProcess/ITr2PostProcessOwner.
 
 /** Indexes Eve entities and their component collections for scene processing. */
 @be.define("EveComponentRegistry")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveComponentRegistry extends IRoot
 {

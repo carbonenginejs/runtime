@@ -64,7 +64,7 @@ blueEnums.Create("trinity.TriDeviceThrottlingReasonChooser", ThrottlingReason, {
 // Native inheritance differs from Blue exposure: TriDevice_Blue.cpp maps only
 // ITriDevice. Its declaration remains quarantined in trinity/dropped; this
 // class currently composes the other two native contracts.
-@legacyBlue.inherit(IBlueEvents, ISimTimeRebaseNotify)
+@be.inherit(IBlueEvents, ISimTimeRebaseNotify)
 export class TriDevice extends IRoot
 {
 

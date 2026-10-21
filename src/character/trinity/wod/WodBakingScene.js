@@ -63,7 +63,7 @@ blueEnums.Create("trinity.WodBakingScene.VisualizerChooser", VisualizeMethod, {
  * leaves render-target realization to an engine adapter.
  */
 @be.define("WodBakingScene")
-@blue.inherit(ITr2Scene)
+@be.inherit(ITr2Scene)
 @be.mapInterface(ITr2Scene)
 export class WodBakingScene extends IRoot
 {

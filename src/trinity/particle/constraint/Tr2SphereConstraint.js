@@ -14,7 +14,7 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 
 /** A collision constraint that keeps particles outside or inside a sphere, reflecting velocity and triggering generators and emitters on contact. */
 @be.define("Tr2SphereConstraint")
-@blue.inherit(IInitialize, IListNotify)
+@be.inherit(IInitialize, IListNotify)
 @be.mapInterface(ITr2GenericParticleConstraint)
 export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 {

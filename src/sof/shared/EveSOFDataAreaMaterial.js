@@ -10,7 +10,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
  * construction; the empty destructor needs no resource or update lifecycle.
  */
 @be.define("EveSOFDataAreaMaterial")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataAreaMaterial extends IRoot
 {

@@ -90,7 +90,7 @@ const INSTANCE_SPHERE = vec4.create();
   "sofLocatorSetName",
   "sofLocatorIndex"
 ])
-@legacyBlue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(EveEntity)
 @be.mapInterface(EveChildMesh)
 @be.mapInterface(EveSpaceObjectChild)

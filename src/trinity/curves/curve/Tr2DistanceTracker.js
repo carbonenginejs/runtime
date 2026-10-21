@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2DistanceTracker_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { blue, ITriFunction, INotify, CcpTime } from "#blue";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -13,7 +13,7 @@ import { meta, type, blue as legacyBlue } from "#schema";
  * signed by which side of that direction the target lies.
  */
 @be.define("Tr2DistanceTracker")
-@legacyBlue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(INotify)
 export class Tr2DistanceTracker extends ITriFunction

@@ -29,7 +29,7 @@ blueEnums.Create("trinity.Tr2GpuBufferFlags", CreationFlags, {
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
 @be.define("Tr2GpuBuffer")
-@blue.inherit(ITr2GpuBuffer, INotify, IInitialize)
+@be.inherit(ITr2GpuBuffer, INotify, IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2GpuBuffer)

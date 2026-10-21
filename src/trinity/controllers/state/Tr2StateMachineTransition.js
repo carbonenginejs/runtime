@@ -14,7 +14,7 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
  * expression and, when it passes, names the destination state to switch to.
  */
 @be.define("Tr2StateMachineTransition")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 export class Tr2StateMachineTransition extends IRoot
 {

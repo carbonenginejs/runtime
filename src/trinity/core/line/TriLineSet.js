@@ -21,7 +21,7 @@ const MAX_VERTICES = 100000;
 
 /** A debug line set that builds boxes, spheres, cylinders and cones out of coloured line segments. */
 @be.define("TriLineSet")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class TriLineSet extends IRoot
 {

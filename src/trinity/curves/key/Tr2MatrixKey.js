@@ -15,7 +15,7 @@ import { type, blue } from "#schema";
  * uninitialized scalar. The identity matrix matches Matrix's default constructor
  * (math/include/Matrix_inline.h:7-11).
  */
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 @be.define("Tr2MatrixKey")
 export class Tr2MatrixKey extends IRoot
 {

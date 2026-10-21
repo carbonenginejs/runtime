@@ -20,7 +20,7 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 /** A set of coloured triangles with a running centre of mass, submitted as one buffer. */
 @be.define("Tr2SolidSet")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(IInitialize)
 @be.mapInterface(Tr2PrimitiveSet)
 @be.exposureChainTo(Tr2PrimitiveSet)

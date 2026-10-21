@@ -9,7 +9,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodAttributeMapParameter (eve/child/procedural/selection) - generated from schema shapeHash 5880f54c.... */
 @be.define("EveProceduralMethodAttributeMapParameter")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 export class EveProceduralMethodAttributeMapParameter extends IRoot

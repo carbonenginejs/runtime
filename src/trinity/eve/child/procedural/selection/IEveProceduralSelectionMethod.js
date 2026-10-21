@@ -6,7 +6,7 @@ import { meta, blue } from "#schema";
 
 /** Required procedural-child selection contract. */
 @be.interface("IEveProceduralSelectionMethod")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IEveProceduralSelectionMethod extends IRoot
 {
 

@@ -31,7 +31,7 @@ const VEC4_BYTES = 16;
 
 /** Packs shader-readable data blocks into the shared impact data texture. */
 @be.define("Tr2DataTextureManager")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 
 export class Tr2DataTextureManager
 {

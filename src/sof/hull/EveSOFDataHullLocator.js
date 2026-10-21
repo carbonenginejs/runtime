@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 
 /** Stores a named hull locator and its transformation matrix. */
 @be.define("EveSOFDataHullLocator")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullLocator extends IRoot
 {
 

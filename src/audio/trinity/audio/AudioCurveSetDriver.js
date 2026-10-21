@@ -14,7 +14,7 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
  * and disposes drivers. Construction alone installs no manager or audio backend.
  */
 @be.define("AudioCurveSetDriver")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(ICurveSetDriver)
 @be.mapInterface(IInitialize)
 export class AudioCurveSetDriver extends ICurveSetDriver

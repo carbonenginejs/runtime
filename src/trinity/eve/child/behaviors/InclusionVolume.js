@@ -18,7 +18,7 @@ const NO_FORCES = [];
  * drift into the falloff shell; agents fully inside feel no force.
  */
 @be.define("InclusionVolume")
-@blue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class InclusionVolume extends IRoot
 {

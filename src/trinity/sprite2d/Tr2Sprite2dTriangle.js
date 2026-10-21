@@ -12,7 +12,7 @@ import { type, blue } from "#schema";
  */
 @be.define("Tr2Sprite2dTriangle")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2Sprite2dTriangle extends IRoot
 {
 

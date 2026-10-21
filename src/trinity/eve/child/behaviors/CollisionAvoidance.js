@@ -16,7 +16,7 @@ const NO_FORCES = [];
  * volume they intersect, weighted by the volume's intensity at the agent.
  */
 @be.define("CollisionAvoidance")
-@blue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class CollisionAvoidance extends IRoot
 {

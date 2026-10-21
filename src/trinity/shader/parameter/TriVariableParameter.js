@@ -10,7 +10,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Forwards a named variable-store entry into a named effect constant or resource. */
 @be.define("TriVariableParameter")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

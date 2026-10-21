@@ -23,7 +23,7 @@ const DEBUG_COLOR = color.create();
 
 /** A steering behaviour that pulls each drone toward the centroid of its nearby neighbours, recomputing the pull force on a throttled schedule and reusing it between refreshes. */
 @be.define("ApproachGroup")
-@blue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class ApproachGroup extends IRoot
 {

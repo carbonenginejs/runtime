@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue, CjsBlueClasses } from "#blue";
 import { IListNotify } from "#blue/IListNotify";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -24,7 +24,7 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
  * are active.
  */
 @be.define("EveMobile")
-@legacyBlue.inherit(IListNotify, IInitialize)
+@be.inherit(IListNotify, IInitialize)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IListNotify)

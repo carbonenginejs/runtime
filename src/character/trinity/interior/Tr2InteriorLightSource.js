@@ -17,7 +17,7 @@ import { Tr2KelvinColor } from "../../../trinity/core/lighting/Tr2KelvinColor.js
  * animation settings.
  */
 @be.define("Tr2InteriorLightSource")
-@blue.inherit(IInitialize, INotify, ITr2InteriorLight, ITr2DebugRenderable)
+@be.inherit(IInitialize, INotify, ITr2InteriorLight, ITr2DebugRenderable)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2InteriorLight)

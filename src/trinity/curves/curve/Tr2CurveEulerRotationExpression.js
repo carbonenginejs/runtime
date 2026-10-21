@@ -13,7 +13,7 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
  * yaw, pitch and roll in radians at time divided by timeScale.
  */
 @be.define("Tr2CurveEulerRotationExpression")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(ITriQuaternionFunction)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(IInitialize)

@@ -14,7 +14,7 @@ import { CcpTime } from "#blue";
  * `start` (a Blue time) and clamping outside that window.
  */
 @be.define("Tr2QuaternionLerpCurve")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriQuaternionFunction)
 @be.mapInterface(ITriCurveLength)

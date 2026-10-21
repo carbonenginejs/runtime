@@ -11,7 +11,7 @@ import { meta, type, blue as legacyBlue } from "#schema";
  * function sampled at the same time; its length is the longest child's length.
  */
 @be.define("Tr2CurveCombiner")
-@legacyBlue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriVectorFunction)
 @be.mapInterface(ITriCurveLength)

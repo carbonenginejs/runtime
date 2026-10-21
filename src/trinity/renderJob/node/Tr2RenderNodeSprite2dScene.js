@@ -8,7 +8,7 @@ import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 /** A render-graph node that draws a sprite scene into a destination texture, over an optional background node. */
 @be.define("Tr2RenderNodeSprite2dScene")
 @be.mapInterface(ITr2RenderNode)
-@blue.inherit(ITr2RenderNode)
+@be.inherit(ITr2RenderNode)
 export class Tr2RenderNodeSprite2dScene extends IRoot
 {
 

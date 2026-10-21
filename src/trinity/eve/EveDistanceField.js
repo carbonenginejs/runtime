@@ -22,7 +22,7 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
  * a curve set from the eased camera distance to that volume.
  */
 @be.define("EveDistanceField")
-@blue.inherit(IListNotify, INotify, ITr2DebugRenderable)
+@be.inherit(IListNotify, INotify, ITr2DebugRenderable)
 @be.mapInterface(IListNotify)
 @be.mapInterface(INotify)
 export class EveDistanceField extends IRoot

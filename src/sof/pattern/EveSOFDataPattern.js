@@ -10,7 +10,7 @@ import { ErrSOFProjectionNotFound } from "./ErrSOFProjectionNotFound.js";
 /** Defines a named two-layer pattern with application groups, per-hull lookup, flip policy, and custom mask support. */
 @be.define("EveSOFDataPattern")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataPattern extends IRoot
 {
 

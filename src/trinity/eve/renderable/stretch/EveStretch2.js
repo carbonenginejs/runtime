@@ -57,7 +57,7 @@ const STRETCH_VERTEX_DECL = [ { usage: Tr2VertexUsageCode.POSITION, usageIndex: 
  * of hosting child objects.
  */
 @be.define("EveStretch2")
-@blue.inherit(ITr2Renderable, IInitialize, INotify, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
+@be.inherit(ITr2Renderable, IInitialize, INotify, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IEveFiringEffectElement)
 @be.mapInterface(IInitialize)

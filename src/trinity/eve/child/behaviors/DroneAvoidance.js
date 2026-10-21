@@ -24,7 +24,7 @@ const DEBUG_COLOR = color.create();
 
 /** A steering behaviour that pushes each drone away from its nearby neighbours, blended with its current velocity direction, to keep agents from clustering or overlapping. */
 @be.define("DroneAvoidance")
-@blue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class DroneAvoidance extends IRoot
 {

@@ -13,7 +13,7 @@ import { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPref
 /** Provides the top-level generic SOF configuration for shaders, material prefixes, decals, material tables, variants, categories, visibility, swarm, and damage data, with their named lookup helpers. */
 @be.define("EveSOFDataGeneric")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataGeneric extends IRoot
 {
   static AreaType = EveSOFDataArea.AreaType;

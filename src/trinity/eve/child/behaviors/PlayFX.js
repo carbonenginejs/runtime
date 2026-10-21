@@ -6,7 +6,7 @@ import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { blue } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { vec3 } from "#math/vec3";
@@ -19,8 +19,8 @@ const NO_FORCES = [];
 
 /** A steering-group behaviour that clones, aims, and starts or stops a firing effect on each drone as it arrives at and departs from its target. */
 @be.define("PlayFX")
-@legacyBlue.inherit(IBehavior)
-@legacyBlue.inherit(IListNotify)
+@be.inherit(IBehavior)
+@be.inherit(IListNotify)
 @be.mapInterface(IBehavior)
 @be.mapInterface(IListNotify)
 @be.mapInterface(EveEntity)

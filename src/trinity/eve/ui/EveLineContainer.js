@@ -10,7 +10,7 @@ import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 
 /** Owns and updates a connector-built EveCurveLineSet. */
 @be.define("EveLineContainer")
-@blue.inherit(IEveSpaceObject2)
+@be.inherit(IEveSpaceObject2)
 @be.mapInterface(IEveSpaceObject2)
 export class EveLineContainer extends IRoot
 {

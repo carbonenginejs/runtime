@@ -17,7 +17,7 @@ import { Tr2QuadRenderer } from "../core/Tr2QuadRenderer/Tr2QuadRenderer.js";
 
 /** Transient edit session for one modular EveSpaceObject2. */
 @be.define("EveModularObjectModifier")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveModularObjectModifier extends IRoot
 {
   _object = null;

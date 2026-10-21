@@ -8,7 +8,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines point-light placement, rotation, intensity, saturation, scale, noise, and profile data for an attachment. */
 @be.define("EveSOFDataPointLightAttachment")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataPointLightAttachment extends IRoot
 {

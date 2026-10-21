@@ -20,8 +20,8 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A billboard quad child that renders through the shared quad renderer's additive instance batch rather than the normal render-batch path. */
 @be.define("EveChildQuad")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(IInitialize)
+@be.inherit(ITr2Renderable)
+@be.inherit(IInitialize)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(IInitialize)

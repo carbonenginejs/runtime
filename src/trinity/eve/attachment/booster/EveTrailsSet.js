@@ -8,7 +8,7 @@ import { IsMatch, blue } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
 import { INotify } from "#blue";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
@@ -27,7 +27,7 @@ const INSTANCE_VERTEX_SIZE = 16;
  * its shape bent along each booster renderable's spline in the vertex shader.
  */
 @be.define("EveTrailsSet")
-@legacyBlue.inherit(IInitialize, INotify, Tr2DeviceResource)
+@be.inherit(IInitialize, INotify, Tr2DeviceResource)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 export class EveTrailsSet

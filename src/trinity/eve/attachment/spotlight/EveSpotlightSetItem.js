@@ -15,7 +15,7 @@ import { meta, type, blue } from "#schema";
  * modulates it.
  */
 @be.define("EveSpotlightSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSpotlightSetItem extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

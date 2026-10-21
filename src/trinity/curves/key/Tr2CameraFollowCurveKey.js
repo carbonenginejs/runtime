@@ -23,7 +23,7 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
  * Existing ambient-context and gl-matrix framing adaptations are unchanged.
  */
 @be.define("Tr2CameraFollowCurveKey")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(ITr2FollowCurveKey)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

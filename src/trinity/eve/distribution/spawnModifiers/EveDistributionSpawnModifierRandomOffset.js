@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomOffset.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
@@ -10,7 +10,7 @@ import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Adds a seeded random local translation offset to each spawned placement. */
 @be.define("EveDistributionSpawnModifierRandomOffset")
-@legacyBlue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(IEveDistributionSpawnModifier)
 @be.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSpawnModifier

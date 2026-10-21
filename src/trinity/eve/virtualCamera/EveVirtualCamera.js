@@ -19,7 +19,7 @@ const SCRUB_MAX_ITERATIONS = 20;
  * local timeline.
  */
 @be.define("EveVirtualCamera")
-@blue.inherit(ITr2DebugRenderable)
+@be.inherit(ITr2DebugRenderable)
 export class EveVirtualCamera extends IRoot
 {
   @be.mapAttribute(be.READ)

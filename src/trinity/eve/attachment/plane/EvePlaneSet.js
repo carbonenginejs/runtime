@@ -91,7 +91,7 @@ const DEBUG_PLANE_ZFAIL_COLOR = vec4.fromValues(0.0, 0.7, 0.9, 0.1);
  * the four shared texture parameters and the plane lights.
  */
 @be.define("EvePlaneSet")
-@blue.inherit(IInitialize, INotify, ITr2LightOwner, EveEntity)
+@be.inherit(IInitialize, INotify, ITr2LightOwner, EveEntity)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IEveSpaceObjectAttachment)

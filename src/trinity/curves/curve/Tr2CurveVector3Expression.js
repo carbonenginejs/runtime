@@ -20,7 +20,7 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
  * signatures; Be::Time overloads remain unimplemented. Programs are not resources.
  */
 @be.define("Tr2CurveVector3Expression")
-@blue.inherit(ITriVectorFunction, IInitialize)
+@be.inherit(ITriVectorFunction, IInitialize)
 @be.mapInterface(ITriColorFunction)
 @be.mapInterface(ITriVectorFunction)
 @be.mapInterface(ITriFunction)

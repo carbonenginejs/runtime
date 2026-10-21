@@ -67,7 +67,7 @@ const INVALID_OFFSET = 0xffffffff;
  * One upload arena per data type, fenced by frame.
  */
 @be.define("Tr2RingBuffer")
-@blue.inherit(ITr2GpuBuffer)
+@be.inherit(ITr2GpuBuffer)
 
 export class Tr2RingBuffer
 {

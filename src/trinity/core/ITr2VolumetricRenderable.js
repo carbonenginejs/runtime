@@ -18,7 +18,7 @@ import { blue } from "#schema";
  * object the volumetrics renderer sorts, batches, lights and shadows.
  */
 @be.interface("ITr2VolumetricRenderable")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class ITr2VolumetricRenderable extends IRoot
 {
 

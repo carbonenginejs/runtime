@@ -13,7 +13,7 @@ import { Tr2SwapChainAL } from "../../../trinityal/Tr2SwapChainAL/index.js";
 
 /** Tr2SwapChain (trinityCore) - generated from schema shapeHash 955529ab.... */
 @be.define("Tr2SwapChain")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class Tr2SwapChain extends IRoot
 {

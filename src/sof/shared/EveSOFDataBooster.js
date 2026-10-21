@@ -8,7 +8,7 @@ import { EveSOFDataBoosterShape } from "./EveSOFDataBoosterShape.js";
 
 /** Combines normal and warp booster colors, scales, shapes, textures, and light settings. */
 @be.define("EveSOFDataBooster")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataBooster extends IRoot
 {

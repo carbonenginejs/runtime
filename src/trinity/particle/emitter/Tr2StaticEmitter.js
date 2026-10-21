@@ -28,7 +28,7 @@ import { CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/ve
 
 /** A one-shot particle emitter that spawns one particle per vertex of a geometry mesh on first update. */
 @be.define("Tr2StaticEmitter")
-@legacyBlue.inherit(ITr2GenericEmitter, INotify, IInitialize)
+@be.inherit(ITr2GenericEmitter, INotify, IInitialize)
 @be.mapInterface(ITr2GenericEmitter)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

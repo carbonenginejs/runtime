@@ -7,7 +7,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines spotlight placement, intensity, saturation, cone angles, scales, noise, and profile data for an attachment. */
 @be.define("EveSOFDataSpotLightAttachment")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataSpotLightAttachment extends IRoot
 {

@@ -76,7 +76,7 @@ function setViewBasis(out, inverseView, scale)
 
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
 @be.define("Tr2Transform")
-@legacyBlue.inherit(ITr2Renderable)
+@be.inherit(ITr2Renderable)
 export class Tr2Transform extends IRoot
 {
 

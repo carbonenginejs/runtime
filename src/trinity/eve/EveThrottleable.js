@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue, CcpTime } from "#blue";
 
 
@@ -11,7 +11,7 @@ import { blue, CcpTime } from "#blue";
  * normalized detail level onto an update frequency between authored bounds.
  */
 @be.define("EveThrottleable")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveThrottleable extends IRoot
 {

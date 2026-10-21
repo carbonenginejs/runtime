@@ -26,15 +26,15 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
 @be.define("EveChildParticleSystem")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(IInitialize, INotify)
+@be.inherit(ITr2Renderable)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(EveEntity)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
-@blue.inherit(ITr2DebugRenderable)
+@be.inherit(ITr2DebugRenderable)
 export class EveChildParticleSystem extends EveChildTransform
 {
 

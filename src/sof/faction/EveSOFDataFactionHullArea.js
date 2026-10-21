@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Stores named faction hull-area parameters and provides case-insensitive lookup. */
 @be.define("EveSOFDataFactionHullArea")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataFactionHullArea extends IRoot
 {
 

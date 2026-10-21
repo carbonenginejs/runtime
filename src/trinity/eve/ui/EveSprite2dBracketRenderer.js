@@ -6,7 +6,7 @@ import { vec4 } from "#math/vec4";
 // Source: trinity/trinity/EveSprite2dBracketRenderer.cpp
 // Source: trinity/trinity/EveSprite2dBracketRenderer_Blue.cpp
 // Derives from Carbon's Tr2SpriteObject to inherit its Sprite2D contract.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2BufferAL, Tr2BufferDescriptionAL, Failed } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -21,7 +21,7 @@ import { Tr2SpriteObject } from "../../sprite2d/Tr2SpriteObject.js";
  */
 @be.define("EveSprite2dBracketRenderer")
 @be.exposureChainTo(Tr2SpriteObject)
-@blue.inherit(Tr2DeviceResource)
+@be.inherit(Tr2DeviceResource)
 export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 {
 

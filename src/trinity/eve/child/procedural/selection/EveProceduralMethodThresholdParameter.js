@@ -9,7 +9,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodThresholdParameter (eve/child/procedural/selection) - generated from schema shapeHash e31926d9.... */
 @be.define("EveProceduralMethodThresholdParameter")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 export class EveProceduralMethodThresholdParameter extends IRoot

@@ -15,7 +15,7 @@ import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTra
  * runs the transition that hands control from one to another.
  */
 @be.define("EveVirtualCameraSystem")
-@blue.inherit(IInitialize, ITr2DebugRenderable)
+@be.inherit(IInitialize, ITr2DebugRenderable)
 export class EveVirtualCameraSystem
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

@@ -13,7 +13,7 @@ import { vec3 } from "#math/vec3";
  * rotation in degrees and the two semi-axis lengths.
  */
 @be.define("EveEllipseDefinition")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 export class EveEllipseDefinition extends IRoot
 {

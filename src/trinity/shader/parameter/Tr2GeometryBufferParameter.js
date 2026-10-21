@@ -12,7 +12,7 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 /** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
 @be.define("Tr2GeometryBufferParameter")
-@legacyBlue.inherit(ITriEffectResourceParameter, IInitialize, INotify)
+@be.inherit(ITriEffectResourceParameter, IInitialize, INotify)
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(ITriEffectResourceParameter)
 @be.mapInterface(IInitialize)

@@ -28,7 +28,7 @@ import { sph3 } from "#math/sph3";
  * travelling from one end to the other.
  */
 @be.define("EveStretch")
-@blue.inherit(INotify, IEveTransform, IEveSpaceObject2, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
+@be.inherit(INotify, IEveTransform, IEveSpaceObject2, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
 @be.mapInterface(INotify)
 @be.mapInterface(IEveTransform)
 @be.mapInterface(IEveSpaceObject2)

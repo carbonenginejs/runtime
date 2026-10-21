@@ -60,7 +60,7 @@ import { LightData } from "../../lights/LightData.js";
  * largest single banner radius its LOD is measured on, and the banner lights.
  */
 @be.define("EveBannerSet")
-@blue.inherit(IInitialize, ITr2LightOwner, EveEntity, Tr2DeviceResource)
+@be.inherit(IInitialize, ITr2LightOwner, EveEntity, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IEveSpaceObjectAttachment)
 @be.mapInterface(EveEntity)

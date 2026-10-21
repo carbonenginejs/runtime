@@ -8,7 +8,7 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Gates a nested set of distribution spawners from a named controller variable. */
 @be.define("EveDistributionSpawnerControllerTrigger")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(IEveDistributionSpawner)
 @be.mapInterface(INotify)
 export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpawner

@@ -17,7 +17,7 @@ import "#consts/graphics/trinityEnums";
  * sampling uses local temporaries. Numeric tick overloads remain unimplemented.
  */
 @be.define("TriColorSequencer")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriColorFunction)
 @be.mapInterface(ITriCurveLength)

@@ -41,7 +41,7 @@ const XM_EPSILON = 1.192092896e-7;
  */
 @be.define("Tr2Sprite2dLineTrace")
 @be.exposureChainTo(Tr2TexturedSpriteObject)
-@blue.inherit(IListNotify)
+@be.inherit(IListNotify)
 
 export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 {

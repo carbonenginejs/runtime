@@ -34,7 +34,7 @@ const TRI_2PI = Math.fround(6.283185307);
 
 /** A light whose colour is derived from a faction palette entry blended by a saturation factor, in addition to its own authored light attributes. */
 @be.define("Tr2FactionLight")
-@blue.inherit(IEveInheritPropertiesOwner)
+@be.inherit(IEveInheritPropertiesOwner)
 @be.mapInterface(IEveInheritPropertiesOwner)
 @be.mapInterface(Tr2Light)
 @be.mapInterface(IInitialize)

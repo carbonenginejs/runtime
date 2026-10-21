@@ -11,7 +11,7 @@ import { meta, blue } from "#schema";
  */
 @be.define("EveEntity")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveEntity extends IRoot
 {
 

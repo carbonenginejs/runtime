@@ -15,7 +15,7 @@ import "#consts/graphics/trinityEnums";
 
 /** Fires authored audio events as playback time crosses ordered event keys on a timeline curve. */
 @be.define("AudEventCurve")
-@blue.inherit(IInitialize, ITriFunction, ITriCurveLength)
+@be.inherit(IInitialize, ITriFunction, ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITriCurveLength)

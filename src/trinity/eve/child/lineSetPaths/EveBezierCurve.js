@@ -28,7 +28,7 @@ const DEBUG_POSITION = vec3.create();
  * segments.
  */
 @be.define("EveBezierCurve")
-@blue.inherit(INotify, IInitialize)
+@be.inherit(INotify, IInitialize)
 @be.mapInterface(IEveLineSetPath)
 @be.mapInterface(INotify)
 export class EveBezierCurve extends IEveLineSetPath

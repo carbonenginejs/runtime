@@ -12,7 +12,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // only when the scene's Tr2PostProcess2 enables that effect, so a scene
 // without them runs the chain end to end: copy, sharpening, tonemapping.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
 import { blue } from "#blue";
 import { num } from "#math/num";
@@ -81,7 +81,7 @@ function effectAt(path, options = null)
  * the back buffer, driven by the scene's combined Tr2PostProcess2.
  */
 @be.define("Tr2PostProcessRenderer")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2PostProcessRenderer extends IRoot
 {
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:47); chooser BloomDebugChooser (trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:9). */

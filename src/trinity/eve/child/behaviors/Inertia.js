@@ -28,7 +28,7 @@ function ClampLength(value, maxLength)
 
 /** A steering behaviour that smooths each agent's acceleration by rotating it toward the previous frame's direction at a limited angular speed and blending its magnitude toward the desired value. */
 @be.define("Inertia")
-@blue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class Inertia extends IRoot
 {

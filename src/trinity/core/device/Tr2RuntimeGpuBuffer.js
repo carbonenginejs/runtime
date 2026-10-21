@@ -12,7 +12,7 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
  * wraps a `Tr2BufferAL` in so a buffer parameter can hold it.
  */
 @be.define("Tr2RuntimeGpuBuffer")
-@blue.inherit(ITr2GpuBuffer)
+@be.inherit(ITr2GpuBuffer)
 @be.mapInterface(ITr2GpuBuffer)
 export class Tr2RuntimeGpuBuffer extends IRoot
 {

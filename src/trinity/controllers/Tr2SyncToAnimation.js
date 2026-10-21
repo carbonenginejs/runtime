@@ -13,7 +13,7 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
  * animation layer named by `mask` has finished playing.
  */
 @be.define("Tr2SyncToAnimation")
-@blue.inherit(ITr2StateMachineStateFinalizer)
+@be.inherit(ITr2StateMachineStateFinalizer)
 @be.mapInterface(ITr2StateMachineStateFinalizer)
 export class Tr2SyncToAnimation extends IRoot
 {

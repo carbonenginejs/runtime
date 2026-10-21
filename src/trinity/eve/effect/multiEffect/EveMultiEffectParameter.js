@@ -4,7 +4,7 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
 import { INotify } from "../../../../global/blue/INotify.js";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
@@ -15,7 +15,7 @@ import { IsMatch, blue } from "#blue";
  * together with the object type the effect expects there.
  */
 @be.define("EveMultiEffectParameter")
-@legacyBlue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 export class EveMultiEffectParameter extends IRoot
 {

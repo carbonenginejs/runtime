@@ -20,7 +20,7 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
  * areas into GPU-free render batches and shadow area blocks.
  */
 @be.define("Tr2MeshBase")
-@blue.inherit(IListNotify)
+@be.inherit(IListNotify)
 
 export class Tr2MeshBase
 {

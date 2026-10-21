@@ -6,7 +6,7 @@ import { blue } from "#schema";
 
 /** Required stretch-audio component contract. */
 @be.interface("IStretchAudio")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IStretchAudio extends IRoot
 {
 

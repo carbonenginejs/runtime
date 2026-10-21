@@ -21,7 +21,7 @@ import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
  * The selected AL supplies mapping storage; this provider keeps no CPU copy.
  */
 @be.define("Tr2DirectInstanceData")
-@blue.inherit(ITr2InstanceData)
+@be.inherit(ITr2InstanceData)
 export class Tr2DirectInstanceData
 {
 

@@ -6,7 +6,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { IsMatch, blue } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveChildMesh } from "./EveChildMesh.js";
@@ -40,7 +40,7 @@ const INVERSE_WORLD_SCRATCH = mat4.create();
  * serialized scene data - SOF never constructs one.
  */
 @be.define("EveChildTurret")
-@legacyBlue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.exposureChainTo(EveChildMesh)
 export class EveChildTurret extends EveChildMesh
 {

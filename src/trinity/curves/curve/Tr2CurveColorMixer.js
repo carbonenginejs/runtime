@@ -14,7 +14,7 @@ import { meta, type, blue } from "#schema";
  * linear-space conversion.
  */
 @be.define("Tr2CurveColorMixer")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriColorFunction)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriCurveLength)

@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Aggregates a faction's area, color, logo, pattern, material-slot, visibility, plane, spotlight, child, and resource-path configuration. */
 @be.define("EveSOFDataFaction")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataFaction extends IRoot
 {
 

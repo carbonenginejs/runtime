@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 /** Native IRoot torque key; TriRigidOrientation_Blue.cpp maps no query interfaces. */
 @be.define("TriTorque")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class TriTorque extends IRoot
 {
 

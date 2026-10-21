@@ -23,7 +23,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Native primitive scene and tool handles. Text rendering is a separate port. */
 @be.define("Tr2PrimitiveScene")
-@blue.inherit(ITr2Scene)
+@be.inherit(ITr2Scene)
 @be.mapInterface(ITr2Scene)
 export class Tr2PrimitiveScene extends ITr2PickableScene
 {

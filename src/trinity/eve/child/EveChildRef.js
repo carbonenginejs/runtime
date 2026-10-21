@@ -11,7 +11,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { IsMatch, blue } from "#blue";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
@@ -29,7 +29,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
  * child joins (registered and forwarded to) once the file has loaded.
  */
 @be.define("EveChildRef")
-@legacyBlue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
+@be.inherit(ITr2CurveSetOwner, IInitialize, INotify)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2CurveSetOwner)
@@ -39,7 +39,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.mapInterface(IShaderConfigurer)
 @be.mapInterface(ITr2SoundEmitterOwner)
 @be.mapInterface(EveEntity)
-@legacyBlue.inherit(IEveEffectChildrenOwner, ITr2SoundEmitterOwner)
+@be.inherit(IEveEffectChildrenOwner, ITr2SoundEmitterOwner)
 export class EveChildRef extends EveChildTransform
 {
 

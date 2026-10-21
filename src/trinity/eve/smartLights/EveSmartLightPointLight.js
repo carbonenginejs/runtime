@@ -25,7 +25,7 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
 @be.define("EveSmartLightPointLight")
-@legacyBlue.inherit(EveSmartLightBaseGroup, IInitialize, INotify, ITr2LightOwner)
+@be.inherit(EveSmartLightBaseGroup, IInitialize, INotify, ITr2LightOwner)
 @be.mapInterface(EveSmartLightBaseGroup)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

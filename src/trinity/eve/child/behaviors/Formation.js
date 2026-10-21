@@ -38,7 +38,7 @@ function ClampLength(value, maxLength)
 
 /** A steering behaviour that detects when a drone group's motion has converged, organises the agents into a rotating slot grid, and pulls each agent toward its assigned slot. */
 @be.define("Formation")
-@blue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class Formation extends IRoot
 {

@@ -14,7 +14,7 @@ import { meta, type, blue } from "#schema";
  * distributed around a circle, with the blink timing and colour they share.
  */
 @be.define("EveSpriteLineSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSpriteLineSetItem extends IRoot
 {
 

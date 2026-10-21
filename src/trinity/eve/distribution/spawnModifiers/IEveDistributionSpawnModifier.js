@@ -6,7 +6,7 @@ import { blue } from "#schema";
 
 /** Required distribution spawn-modifier contract. */
 @be.interface("IEveDistributionSpawnModifier")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class IEveDistributionSpawnModifier extends IRoot
 {
 

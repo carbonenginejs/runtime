@@ -13,7 +13,7 @@ import { Quality } from "../generated/postProcess/enums.js";
  * to use.
  */
 @be.define("Tr2PostProcess2")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2PostProcess2 extends IRoot
 {
 

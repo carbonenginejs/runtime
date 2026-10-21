@@ -46,7 +46,7 @@ const LINE_VERTEX_BYTES = TRAIL_VERTEX_DEFINITION.nextOffset[0];
  * points relative to the ego ball and drawn as a strip of quads with connectors, transparent under RM_ALPHA.
  */
 @be.define("EveTacticalTrails")
-@blue.inherit(IEveSpaceObject2, ITr2Renderable, Tr2DeviceResource)
+@be.inherit(IEveSpaceObject2, ITr2Renderable, Tr2DeviceResource)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(ITr2Renderable)
 export class EveTacticalTrails

@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines a faction-aware spotlight placement with group and booster policy, cone, flare, sprite, saturation, scale, and typed spotlight-light data. */
 @be.define("EveSOFDataHullSpotlightSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullSpotlightSetItem extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;

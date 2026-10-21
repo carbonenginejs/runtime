@@ -7,7 +7,7 @@ import { IInitialize } from "../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2ScalarFader } from "../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../generated/include/enums.js";
 import { Tr2Lod } from "./EveLODHelper.js";
@@ -33,7 +33,7 @@ const IMPACT_ARMOR_PARTICLE_LOD_FACTOR = 400;
  * data-texture bookkeeping that feeds them.
  */
 @be.define("EveImpactOverlay")
-@legacyBlue.inherit(IInitialize)
+@be.inherit(IInitialize)
 export class EveImpactOverlay extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

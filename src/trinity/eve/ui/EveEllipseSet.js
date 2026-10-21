@@ -55,7 +55,7 @@ const TRI_PI = Math.fround(3.141592654);
  * a notifying member changed.
  */
 @be.define("EveEllipseSet")
-@blue.inherit(ITr2Renderable, IListNotify, INotify, ITr2Pickable, Tr2DeviceResource)
+@be.inherit(ITr2Renderable, IListNotify, INotify, ITr2Pickable, Tr2DeviceResource)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2Renderable)

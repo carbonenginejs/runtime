@@ -33,7 +33,7 @@ import { BLUELISTEVENT } from "#consts/blue";
   "partTag",
   "distribution"
 ])
-@blue.inherit(EveSmartLightBaseGroup)
+@be.inherit(EveSmartLightBaseGroup)
 @be.mapInterface(EveChildInstanceMeshRenderer)
 @be.mapInterface(IEveSmartLightGroup)
 @be.mapInterface(ITr2Renderable)

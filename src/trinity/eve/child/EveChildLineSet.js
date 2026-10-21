@@ -3,7 +3,7 @@ import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectR
 import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -34,13 +34,13 @@ const DEBUG_TRANSFORM = mat4.create();
 
 /** A child that renders a set of curved and sphere-projected line paths, as object geometry, as dedicated line rendering, or both. */
 @be.define("EveChildLineSet")
-@legacyBlue.inherit(ITr2Renderable, IInitialize, INotify)
+@be.inherit(ITr2Renderable, IInitialize, INotify)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2Renderable)
-@legacyBlue.inherit(ITr2DebugRenderable, Tr2DeviceResource)
+@be.inherit(ITr2DebugRenderable, Tr2DeviceResource)
 export class EveChildLineSet extends EveChildTransform
 {
 

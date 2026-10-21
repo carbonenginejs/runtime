@@ -6,7 +6,7 @@ import { type, blue } from "#schema";
 
 /** Stores the brightness, radius, noise, saturation, and octave tuning for a banner light. */
 @be.define("EveSOFDataHullBannerLight")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullBannerLight extends IRoot
 {
 

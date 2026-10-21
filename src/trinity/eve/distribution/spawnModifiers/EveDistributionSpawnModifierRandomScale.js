@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomScale.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
@@ -10,7 +10,7 @@ import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's scale with seeded random per-axis or uniform values. */
 @be.define("EveDistributionSpawnModifierRandomScale")
-@legacyBlue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(IEveDistributionSpawnModifier)
 @be.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpawnModifier

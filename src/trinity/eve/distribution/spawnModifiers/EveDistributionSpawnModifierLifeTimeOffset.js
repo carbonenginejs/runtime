@@ -2,14 +2,14 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierLifeTimeOffset.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Offsets each spawned placement's initial lifetime with random, normalized, or cascading timing. */
 @be.define("EveDistributionSpawnModifierLifeTimeOffset")
-@legacyBlue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(IEveDistributionSpawnModifier)
 @be.mapInterface(IInitialize)
 export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistributionSpawnModifier

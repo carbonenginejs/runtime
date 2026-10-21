@@ -7,7 +7,7 @@ import { EveSOFDataTexture } from "./EveSOFDataTexture.js";
 
 /** Stores a logo texture set and supports assignment and composition with another logo value. */
 @be.define("EveSOFDataLogo")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataLogo extends IRoot
 {

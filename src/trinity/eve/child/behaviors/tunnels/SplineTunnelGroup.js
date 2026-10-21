@@ -19,7 +19,7 @@ const DEBUG_END = vec3.create();
 
 /** SplineTunnelGroup (eve/child/behaviors) - generated from schema shapeHash da595535.... */
 @be.define("SplineTunnelGroup")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 export class SplineTunnelGroup extends IRoot
 {

@@ -8,7 +8,7 @@ import { vec4 } from "#math/vec4";
 /** Names a faction spotlight-set group and supplies its cone, sprite, and flare colors. */
 @be.define("EveSOFDataFactionSpotlightSet")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataFactionSpotlightSet extends IRoot
 {
 

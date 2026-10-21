@@ -14,7 +14,7 @@ import "#consts/graphics/trinityEnums";
  * restarting the key cursor when time rewinds or a cycle wraps.
  */
 @be.define("TriEventCurve")
-@blue.inherit(IInitialize, ITriCurveLength)
+@be.inherit(IInitialize, ITriCurveLength)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITriCurveLength)

@@ -20,7 +20,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
 @be.define("EveChildPlug")
-@blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
+@be.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2CurveSetOwner)
@@ -31,7 +31,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.mapInterface(IShaderConfigurer)
 @be.mapInterface(ITr2SoundEmitterOwner)
 @be.mapInterface(EveEntity)
-@blue.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
+@be.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
 export class EveChildPlug extends EveChildTransform
 {
 

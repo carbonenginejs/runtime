@@ -18,7 +18,7 @@ const NO_FORCES = [];
  * agent's lifetime and id, so each drone drifts on its own path.
  */
 @be.define("Wander")
-@blue.inherit(IBehavior)
+@be.inherit(IBehavior)
 @be.mapInterface(IBehavior)
 export class Wander extends IRoot
 {

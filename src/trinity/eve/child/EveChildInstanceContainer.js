@@ -7,7 +7,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -27,7 +27,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @be.define("EveChildInstanceContainer")
-@legacyBlue.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
+@be.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2CurveSetOwner)
@@ -37,7 +37,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.mapInterface(IListNotify)
 @be.mapInterface(EveEntity)
 @be.mapInterface(IShaderConfigurer)
-@legacyBlue.inherit(IEveEffectChildrenOwner)
+@be.inherit(IEveEffectChildrenOwner)
 export class EveChildInstanceContainer extends EveChildTransform
 {
 

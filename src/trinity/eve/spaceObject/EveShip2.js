@@ -15,7 +15,7 @@ import { TriFloat } from "../../core/variable/TriFloat.js";
 
 /** A ship space object: booster drive, speed state, and ship shader data. */
 @be.define("EveShip2")
-@blue.inherit(IListNotify, IInitialize)
+@be.inherit(IListNotify, IInitialize)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IListNotify)

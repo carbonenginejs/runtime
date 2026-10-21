@@ -20,7 +20,7 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
  * Be::Time overloads remain unimplemented. Programs are local state, not resources.
  */
 @be.define("Tr2CurveScalarExpression")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriScalarFunction)
 @be.mapInterface(IInitialize)

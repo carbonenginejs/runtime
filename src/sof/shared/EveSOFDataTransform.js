@@ -15,7 +15,7 @@ import { vec3 } from "#math/vec3";
  * GetTransform remains a JavaScript convenience; native stores these fields only.
  */
 @be.define("EveSOFDataTransform")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataTransform extends IRoot
 {

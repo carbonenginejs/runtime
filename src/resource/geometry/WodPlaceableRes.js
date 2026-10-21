@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 /** Authored placeable geometry, animations, fade distances and cached bounds. */
 @be.define("WodPlaceableRes")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class WodPlaceableRes
 {
   /** Native visual model. */

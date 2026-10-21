@@ -14,7 +14,7 @@ import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 
 /** Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers. */
 @be.define("EveBaseDistributionMethod")
-@blue.inherit(IInitialize, IListNotify)
+@be.inherit(IInitialize, IListNotify)
 @be.mapInterface(IEveDistributionMethod)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IListNotify)

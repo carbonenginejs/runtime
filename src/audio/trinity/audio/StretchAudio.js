@@ -12,7 +12,7 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Positions source, destination, and stretch emitters along one beam segment, with the listener projected onto that segment. */
 @be.define("StretchAudio")
-@blue.inherit(IInitialize, ITr2DebugRenderable)
+@be.inherit(IInitialize, ITr2DebugRenderable)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2DebugRenderable)
 @be.mapInterface(IStretchAudio)

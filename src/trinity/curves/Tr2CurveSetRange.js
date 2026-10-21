@@ -10,7 +10,7 @@ import { type, blue } from "#schema";
  * Named sub-interval of a curve set's scaled timeline, giving a start and end
  * time and whether playback loops inside it.
  */
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 @be.define("Tr2CurveSetRange")
 export class Tr2CurveSetRange extends IRoot
 {

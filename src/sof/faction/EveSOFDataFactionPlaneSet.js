@@ -8,7 +8,7 @@ import { vec4 } from "#math/vec4";
 /** Names a faction plane-set group and supplies its color. */
 @be.define("EveSOFDataFactionPlaneSet")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataFactionPlaneSet extends IRoot
 {
 

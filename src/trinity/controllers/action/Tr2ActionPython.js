@@ -24,7 +24,7 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
  * class's ICustomPersist methods.
  */
 @be.define("Tr2ActionPython")
-@legacyBlue.inherit(ITr2Updateable, INotify, IInitialize, ICustomPersist)
+@be.inherit(ITr2Updateable, INotify, IInitialize, ICustomPersist)
 @be.mapInterface(ITr2ControllerAction)
 @be.mapInterface(ITr2Updateable)
 @be.mapInterface(INotify)

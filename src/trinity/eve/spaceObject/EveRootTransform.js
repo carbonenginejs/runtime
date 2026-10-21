@@ -6,7 +6,7 @@ import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveTransform } from "./EveTransform.js";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
@@ -20,7 +20,7 @@ import { ITriTargetable } from "../../core/ITriTargetable.js";
  * which stands in as a single targetable point for missiles and impacts.
  */
 @be.define("EveRootTransform")
-@blue.inherit(ITriTargetable)
+@be.inherit(ITriTargetable)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(ITriTargetable)
 @be.mapInterface(IWorldPosition)

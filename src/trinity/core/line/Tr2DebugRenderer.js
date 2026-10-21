@@ -223,7 +223,7 @@ export function GetDebugRenderOptions(object)
 
 /** Resolves which debug visualisations an object draws and draws them. */
 @be.define("Tr2DebugRenderer")
-@blue.inherit(ITr2DebugRenderer2)
+@be.inherit(ITr2DebugRenderer2)
 
 export class Tr2DebugRenderer
 {

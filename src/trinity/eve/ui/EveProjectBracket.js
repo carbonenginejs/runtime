@@ -5,7 +5,7 @@ import { ITriFunction } from "../../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Eve/UI/EveProjectBracket.cpp
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue, CjsScriptCallback } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -52,7 +52,7 @@ function bicylindricProjection(out, source, projection, viewport, scratch)
 
 /** Projects an authored world position into a Sprite2D bracket. */
 @be.define("EveProjectBracket")
-@legacyBlue.inherit(ITriFunction)
+@be.inherit(ITriFunction)
 @be.mapInterface(ITriFunction)
 export class EveProjectBracket extends IRoot
 {

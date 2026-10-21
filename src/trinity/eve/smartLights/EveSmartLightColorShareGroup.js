@@ -16,7 +16,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group that computes one shared faction-aware colour, applies it to its child light groups, and fans out their per-frame updates. */
 @be.define("EveSmartLightColorShareGroup")
-@blue.inherit(EveSmartLightBaseGroup, INotify)
+@be.inherit(EveSmartLightBaseGroup, INotify)
 @be.mapInterface(EveSmartLightBaseGroup)
 @be.mapInterface(INotify)
 @be.mapInterface(IListNotify)

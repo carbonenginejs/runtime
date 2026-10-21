@@ -239,7 +239,7 @@ function EmptyShadowResources()
 
 /** Owns and updates an Eve space scene's entities, component registry, lighting, fog, post-process state, culling, and per-frame shader data. */
 @be.define("EveSpaceScene")
-@legacyBlue.inherit(ITr2Scene, IInitialize, INotify, IListNotify, Tr2DeviceResource)
+@be.inherit(ITr2Scene, IInitialize, INotify, IListNotify, Tr2DeviceResource)
 @be.mapInterface(ITr2Scene)
 @be.mapInterface(ITr2Updateable)
 @be.mapInterface(IInitialize)

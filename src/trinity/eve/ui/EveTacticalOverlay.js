@@ -90,7 +90,7 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 
 /** Produces tactical anchor, range, and velocity quad-instance records. */
 @be.define("EveTacticalOverlay")
-@blue.inherit(IEveSpaceObject2, IInitialize, INotify)
+@be.inherit(IEveSpaceObject2, IInitialize, INotify)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(IInitialize)
 export class EveTacticalOverlay

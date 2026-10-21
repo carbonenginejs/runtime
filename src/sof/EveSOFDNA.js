@@ -32,7 +32,7 @@ const BUILD_CLASSES = Object.freeze([
 
 /** Resolves a SOF DNA string against an EveSOFDataMgr. */
 @be.define("EveSOFDNA")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDNA extends IRoot
 {

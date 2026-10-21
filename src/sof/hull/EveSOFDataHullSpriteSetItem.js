@@ -8,7 +8,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines a faction-aware sprite with bone-relative position, blink, scale, falloff, intensity, saturation, and point-light data. */
 @be.define("EveSOFDataHullSpriteSetItem")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataHullSpriteSetItem extends IRoot
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;

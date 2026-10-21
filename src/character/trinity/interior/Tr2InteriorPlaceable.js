@@ -17,7 +17,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
 /** Interior placeable with typed resource loading and native uniqueness notifications. */
 @be.define("Tr2InteriorPlaceable")
-@legacyBlue.inherit(ITr2Renderable, IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
+@be.inherit(ITr2Renderable, IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

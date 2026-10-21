@@ -28,7 +28,7 @@ function BankKey(name)
 
 /** Coordinates audio lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion. */
 @be.define("AudManager")
-@blue.inherit(IRoot, IBlueEvents)
+@be.inherit(IRoot, IBlueEvents)
 
 export class AudManager extends IRoot
 {

@@ -7,7 +7,7 @@ import { type, blue } from "#schema";
 /** Defines a four-slot target mask for overriding pattern materials. */
 @be.define("EveSOFDataPatternMaterialOverride")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataPatternMaterialOverride extends IRoot
 {
 

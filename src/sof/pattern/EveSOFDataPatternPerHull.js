@@ -8,7 +8,7 @@ import { EveSOFDataPatternTransform } from "./EveSOFDataPatternTransform.js";
 /** Stores named per-hull transforms for both pattern layers plus flip, clear, and customization policy. */
 @be.define("EveSOFDataPatternPerHull")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveSOFDataPatternPerHull
 {
 

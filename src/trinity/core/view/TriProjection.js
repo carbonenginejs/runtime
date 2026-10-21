@@ -16,7 +16,7 @@ const VIEWPORT_ADJUSTMENT = mat4.create();
  * the 4x4 matrix built from them.
  */
 @be.define("TriProjection")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class TriProjection extends IRoot
 {
   static FOV = 1;

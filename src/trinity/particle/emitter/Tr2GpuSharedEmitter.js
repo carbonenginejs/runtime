@@ -21,7 +21,7 @@ const MAXIMUM_FRAME_TIME = Math.fround(1 / 15);
  * turbulence and gravity terms the simulation applies.
  */
 @be.define("Tr2GpuSharedEmitter")
-@blue.inherit(IInitialize, INotify, ITr2GenericEmitter)
+@be.inherit(IInitialize, INotify, ITr2GenericEmitter)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2GenericEmitter)

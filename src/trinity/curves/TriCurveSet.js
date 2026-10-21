@@ -20,7 +20,7 @@ import { mappedInterfaces } from "../../global/compose/interface.js";
  * playing.
  */
 @be.define("TriCurveSet")
-@legacyBlue.inherit(ITr2Updateable, ISimTimeRebaseNotify)
+@be.inherit(ITr2Updateable, ISimTimeRebaseNotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2Updateable)
 export class TriCurveSet extends IInitialize

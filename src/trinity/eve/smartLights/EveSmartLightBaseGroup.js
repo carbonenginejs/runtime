@@ -31,7 +31,7 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 
 /** The shared faction-colour resolution and attribute-modifier surface flattened into every smart-light group implementation. */
 @be.define("EveSmartLightBaseGroup")
-@blue.inherit(IEveSmartLightGroup, IListNotify)
+@be.inherit(IEveSmartLightGroup, IListNotify)
 @be.mapInterface(IEveSmartLightGroup)
 @be.mapInterface(IListNotify)
 export class EveSmartLightBaseGroup extends IRoot

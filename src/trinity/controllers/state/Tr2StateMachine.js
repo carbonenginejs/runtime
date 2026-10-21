@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachine.h
 // Source: trinity/trinity/Controllers/Tr2StateMachine.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -16,7 +16,7 @@ import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
  * raw array operations bypass admission and notification.
  */
 @be.define("Tr2StateMachine")
-@legacyBlue.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
+@be.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
 @be.mapInterface(IListNotify)
 @be.mapInterface(INotify)
 export class Tr2StateMachine

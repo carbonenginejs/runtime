@@ -19,7 +19,7 @@ import { EveComponentType } from "../EntityComponents.js";
 
 /** A child that unions a set of inclusion and exclusion volumes into a bounding sphere and drives a post-process effect's intensity from the camera's position relative to them. */
 @be.define("EveChildPostProcessVolume")
-@blue.inherit(IInitialize, ITr2DebugRenderable, ITr2PostProcessOwner)
+@be.inherit(IInitialize, ITr2DebugRenderable, ITr2PostProcessOwner)
 @be.mapInterface(ITr2PostProcessOwner)
 @be.mapInterface(EveEntity)
 @be.mapInterface(EveSpaceObjectChild)

@@ -10,7 +10,7 @@ import { LifeTimeFormulas } from "./enums.js";
 
 /** Owns common smart-light activation state and a nominal modifier contract whose optional colour and controller hooks default to no-ops while required update and attribute-processing methods throw until a concrete modifier implements them. */
 @be.define("EveSmartLightBaseAttributeModifier")
-@blue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class EveSmartLightBaseAttributeModifier extends IRoot

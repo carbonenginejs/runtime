@@ -22,7 +22,7 @@ import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#int
  * asset.
  */
 @be.define("AudioGameObject")
-@blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2DebugRenderable, INotify)
+@be.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2DebugRenderable, INotify)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IWorldPosition)

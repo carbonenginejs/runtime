@@ -5,7 +5,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 import { BitmapDimensions } from "#imageio";
 import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
@@ -16,7 +16,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
 @be.define("Tr2TextureAnimation")
-@legacyBlue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class Tr2TextureAnimation extends IRoot

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 
 
@@ -13,7 +13,7 @@ import { EveEntity } from "../../EveEntity.js";
  * the endpoint state that is pushed into that element every update.
  */
 @be.define("EveFiringEffectElementContainer")
-@blue.inherit(IEveSpaceObject2)
+@be.inherit(IEveSpaceObject2)
 @be.mapInterface(IEveSpaceObject2)
 @be.mapInterface(EveEntity)
 export class EveFiringEffectElementContainer extends EveEntity

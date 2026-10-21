@@ -51,7 +51,7 @@ const FOG_LIGHT_BITS = new Uint32Array(FOG_LIGHTS.buffer); // alloc: uint32 view
  * passes themselves wait on WGSL translation of their compute effects (see _RenderFog_Resources).
  */
 @be.define("Tr2VolumetricsRenderer")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2VolumetricsRenderer
 {
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:29); chooser Tr2VolumetricQuality_Chooser (trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:8). */

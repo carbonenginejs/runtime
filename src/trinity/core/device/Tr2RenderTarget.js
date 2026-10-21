@@ -53,7 +53,7 @@ function GetUsage(msaaType, flags)
 
 /** Holds a render-target texture and the parameters it was created with. */
 @be.define("Tr2RenderTarget")
-@blue.inherit(ITr2TextureProvider)
+@be.inherit(ITr2TextureProvider)
 @be.mapInterface(ITr2TextureProvider)
 export class Tr2RenderTarget extends IRoot
 {

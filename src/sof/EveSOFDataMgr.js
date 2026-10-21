@@ -31,7 +31,7 @@ const LOGO_KEYS = Object.freeze(["Primary", "Secondary", "Tertiary", "Marking_01
  * plain JavaScript records here; they are not persisted fields on the manager.
  */
 @be.define("EveSOFDataMgr")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveSOFDataMgr extends IRoot
 {

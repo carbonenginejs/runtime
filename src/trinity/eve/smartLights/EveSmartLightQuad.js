@@ -23,7 +23,7 @@ import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../child/packQuadInsta
 
 /** A smart-light group member that places faction-colour-aware flare quads at each distribution placement and submits them to the quad renderer. */
 @be.define("EveSmartLightQuad")
-@blue.inherit(EveSmartLightBaseGroup, IInitialize, INotify)
+@be.inherit(EveSmartLightBaseGroup, IInitialize, INotify)
 @be.mapInterface(EveSmartLightBaseGroup)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

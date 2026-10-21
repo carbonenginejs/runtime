@@ -14,7 +14,7 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * in radians.
  */
 @be.define("Tr2CurveEulerRotation")
-@blue.inherit(ITriCurveLength)
+@be.inherit(ITriCurveLength)
 @be.mapInterface(ITriQuaternionFunction)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(ITriCurveLength)

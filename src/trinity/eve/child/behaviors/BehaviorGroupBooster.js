@@ -5,7 +5,7 @@ import { IsMatch, INotify, blue, CcpTime } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
@@ -41,7 +41,7 @@ const DEBUG_COLOR = color.create();
 
 /** A drone-group component that builds and drives the group's shared booster and ambient or halo flare effects and contributes their point light to the scene. */
 @be.define("BehaviorGroupBooster")
-@legacyBlue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class BehaviorGroupBooster extends IRoot

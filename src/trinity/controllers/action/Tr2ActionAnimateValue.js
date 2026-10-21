@@ -17,7 +17,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * time, into a bound destination property.
  */
 @be.define("Tr2ActionAnimateValue")
-@legacyBlue.inherit(ITr2Updateable, INotify)
+@be.inherit(ITr2Updateable, INotify)
 @be.mapInterface(ITr2ControllerAction)
 @be.mapInterface(ITr2Updateable)
 @be.mapInterface(INotify)

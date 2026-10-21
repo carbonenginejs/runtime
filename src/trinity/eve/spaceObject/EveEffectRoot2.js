@@ -55,7 +55,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 @be.mapInterface(ITr2BoundingBox)
 @be.mapInterface(IWorldPosition)
 @be.mapInterface(EveEntity)
-@blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2SecondaryLightSource, ITriTargetable, ITr2DebugRenderable, ITr2CurveSetOwner, INotify, IListNotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, ITr2LightOwner, ITr2BoundingBox)
+@be.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2SecondaryLightSource, ITriTargetable, ITr2DebugRenderable, ITr2CurveSetOwner, INotify, IListNotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, ITr2LightOwner, ITr2BoundingBox)
 export class EveEffectRoot2 extends EveEntity
 {
 

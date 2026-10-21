@@ -34,7 +34,7 @@ import "#consts/graphics/trinityEnums";
  * visibility ramp.
  */
 @be.define("EveSpaceObjectDecal")
-@blue.inherit(IInitialize, INotify, ITr2Pickable, ITr2Renderable, Tr2DeviceResource)
+@be.inherit(IInitialize, INotify, ITr2Pickable, ITr2Renderable, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2Renderable)

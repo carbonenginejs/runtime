@@ -11,7 +11,7 @@ import { meta, type, blue } from "#schema";
  * to Tr2PostProcess2's named effect slots.
  */
 @be.define("Tr2PostProcess")
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 export class Tr2PostProcess extends IRoot
 {
   @be.mapAttribute(be.READ | be.PERSIST)

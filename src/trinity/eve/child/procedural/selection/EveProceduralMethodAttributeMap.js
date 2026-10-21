@@ -9,7 +9,7 @@ import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.j
 
 /** EveProceduralMethodAttributeMap (eve/child/procedural/selection) - generated from schema shapeHash 691cb5f9.... */
 @be.define("EveProceduralMethodAttributeMap")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(IEveProceduralSelectionMethod)
 @be.mapInterface(INotify)
 export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMethod

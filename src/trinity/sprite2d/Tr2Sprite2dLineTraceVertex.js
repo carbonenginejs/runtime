@@ -12,7 +12,7 @@ import { vec4 } from "#math/vec4";
  */
 @be.define("Tr2Sprite2dLineTraceVertex")
 
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2Sprite2dLineTraceVertex extends IRoot
 {
 

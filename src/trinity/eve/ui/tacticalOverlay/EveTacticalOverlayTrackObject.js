@@ -12,7 +12,7 @@ import { meta, type, blue } from "#schema";
  * presents it with.
  */
 @be.define("EveTacticalOverlayTrackObject")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class EveTacticalOverlayTrackObject extends IRoot
 {

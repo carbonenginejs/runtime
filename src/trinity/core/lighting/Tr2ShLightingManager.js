@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ShLightingManager.h
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -86,7 +86,7 @@ function readFloat(value)
  * position in the scene.
  */
 @be.define("Tr2ShLightingManager")
-@legacyBlue.inherit(IRoot)
+@be.inherit(IRoot)
 
 export class Tr2ShLightingManager extends IRoot
 {
