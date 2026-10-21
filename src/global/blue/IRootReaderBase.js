@@ -31,6 +31,7 @@ import { CjsSchema, meta, blue } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
 import { mappedInterfaces } from "../compose/interface.js";
+import { num } from "#math/num";
 import { ICustomPersist } from "./ICustomPersist.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { InvalidAttributeException } from "./InvalidAttributeException.js";
@@ -319,15 +320,19 @@ export class IRootReaderBase
   /** Reads a binary block into an ICustomPersist (`ReadBinaryBlock`, IRootReader.h:114); a subclass provides it. */
   ReadBinaryBlock(_instance, _propertyName) {}
 
-  /** Whether a member's old and new values are the same, element by element for arrays. */
+  /**
+   * Whether a member's old and new values are the same, element by element for arrays. Numbers compare
+   * with num.equals (relative 1e-6), so float rounding is not a change; NaN equals NaN, as Object.is has it.
+   */
   static areEquivalent(a, b)
   {
     if (Object.is(a, b)) return true;
+    if (typeof a === "number" && typeof b === "number") return num.equals(a, b);
 
     if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b))
     {
       if (a.constructor !== b.constructor || a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) if (!Object.is(a[i], b[i])) return false;
+      for (let i = 0; i < a.length; i++) if (!IRootReaderBase.areEquivalent(a[i], b[i])) return false;
       return true;
     }
 

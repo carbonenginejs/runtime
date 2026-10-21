@@ -1508,6 +1508,7 @@ function MatchesListValues(current, source)
 function MatchesObjectValues(current, source)
 {
   if (Object.is(current, source)) return true;
+  if (typeof current === "number" && typeof source === "number") return IRootReaderBase.areEquivalent(current, source);
   if (Array.isArray(current) && Array.isArray(source)) return MatchesListValues(current, source);
   if (ArrayBuffer.isView(current) || ArrayBuffer.isView(source)) return IRootReaderBase.areEquivalent(current, source);
   if (!current || !IsPlainObject(source) || typeof current !== "object") return false;
