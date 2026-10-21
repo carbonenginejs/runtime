@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
 import { IsMatch, INotify, CjsResource } from "#blue";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { CjsParameter } from "./CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 import { Tr2ColorSpace } from "#consts/render-context";
@@ -19,7 +19,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 @blue.inherit(ITriEffectResourceParameter, INotify)
 @be.mapInterface(ITriEffectResourceParameter)
 @be.mapInterface(INotify)
-export class Tr2RuntimeTextureParameter extends CjsParameter
+export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
@@ -83,9 +83,9 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   /** Content hash: the texture provider's identity (Carbon hashes its pointer). */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return CjsParameter.hashFnv1Identity(this.texture, startingHash);
+    return hashFnv1Identity(this.texture, startingHash);
   }
 
   /**

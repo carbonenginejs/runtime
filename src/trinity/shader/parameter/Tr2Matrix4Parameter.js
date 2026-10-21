@@ -5,7 +5,8 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { mat4 } from "#math/mat4";
 import { meta, type, blue } from "#schema";
-import { CjsVectorParameter } from "./CjsVectorParameter.js";
+import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
+import { copyNumberArray, isNumberArrayValue, isVectorDestination, readVectorDestination, writeVectorDestination } from "./parameterDestination.js";
 
 
 /**
@@ -16,7 +17,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 @blue.inherit(ITriReroutable)
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(ITriReroutable)
-export class Tr2Matrix4Parameter extends CjsVectorParameter
+export class Tr2Matrix4Parameter extends ITriEffectParameter
 {
   @be.mapAttribute(be.PERSISTONLY)
 
@@ -52,9 +53,9 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   /** Content hash: matrix bytes then name. */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsVectorParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return CjsVectorParameter.hashFnv1String(this.name, CjsVectorParameter.hashFnv1Floats(this.value, startingHash));
+    return hashFnv1String(this.name, hashFnv1Floats(this.value, startingHash));
   }
 
   /**
@@ -67,9 +68,9 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   {
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.readVectorDestination(this.#reroutedValue, this.value, 16);
+      readVectorDestination(this.#reroutedValue, this.value, 16);
     }
-    return CjsVectorParameter.copyNumberArray(out, this.value, 16);
+    return copyNumberArray(out, this.value, 16);
   }
 
   /**
@@ -80,10 +81,10 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   @meta.implemented
   SetValue(value)
   {
-    CjsVectorParameter.copyNumberArray(this.value, value, 16);
+    copyNumberArray(this.value, value, 16);
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 16);
+      writeVectorDestination(this.#reroutedValue, this.value, 16);
     }
   }
 
@@ -103,16 +104,20 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   @meta.adapted
   SetDestination(dest, size = 64)
   {
-    if (size >= 64 && CjsVectorParameter.isVectorDestination(dest, 16))
+    if (size >= 64 && isVectorDestination(dest, 16))
     {
       this.#reroutedValue = dest;
-      CjsVectorParameter.writeVectorDestination(dest, this.value, 16);
+      writeVectorDestination(dest, this.value, 16);
     }
     else
     {
       this.#reroutedValue = null;
     }
-    CjsVectorParameter.notifyBindings(this.#bindings, this.GetDestination().dest);
+    // Carbon notifies each binding of the effective destination (Tr2Matrix4Parameter.cpp:68).
+    for (const binding of this.#bindings)
+    {
+      binding.RerouteDestination(this.GetDestination().dest);
+    }
   }
 
   /**
@@ -138,7 +143,8 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   @meta.adapted
   RegisterBinding(binding)
   {
-    CjsVectorParameter.registerBinding(this.#bindings, binding);
+    // Carbon push_back (Tr2Matrix4Parameter.cpp:105).
+    this.#bindings.push(binding);
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
@@ -146,7 +152,12 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   @meta.adapted
   UnregisterBinding(binding)
   {
-    CjsVectorParameter.unregisterBinding(this.#bindings, binding);
+    // Carbon erases the first match (Tr2Matrix4Parameter.cpp:114).
+    const index = this.#bindings.indexOf(binding);
+    if (index >= 0)
+    {
+      this.#bindings.splice(index, 1);
+    }
   }
 
   /**
@@ -162,7 +173,8 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
     {
       this.SetDestination(null, 0);
     }
-    const used = !!this.name && CjsVectorParameter.hasEffectConstant(effectRes, this.name);
+    // Tr2Matrix4Parameter.cpp:136-150
+    const used = !!this.name && !!effectRes && !!effectRes.GetConstant(this.name);
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
   }
@@ -177,7 +189,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   {
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 16);
+      writeVectorDestination(this.#reroutedValue, this.value, 16);
     }
     return true;
   }
@@ -191,13 +203,13 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
-    CjsVectorParameter.writeVectorDestination(out, this.GetValue(), 16);
+    writeVectorDestination(out, this.GetValue(), 16);
   }
 
   /** JS convenience: raw values this parameter class claims for map-form inference. */
   static isValue(value)
   {
-    return CjsVectorParameter.isNumberArrayValue(value, 16);
+    return isNumberArrayValue(value, 16);
   }
 
 }

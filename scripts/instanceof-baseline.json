@@ -38,7 +38,6 @@
   "src/trinity/eve/spaceObject/fxAttributes/EveSpaceObjectFxAttributes.js": 3,
   "src/trinity/renderJob/Tr2RenderJobs.js": 3,
   "src/trinity/renderJob/TriRenderJob.js": 2,
-  "src/trinity/shader/parameter/CjsParameter.js": 1,
   "src/trinity/shader/Tr2Effect.js": 8,
   "src/trinity/shader/Tr2Material.js": 1,
   "src/trinityal/webgpu/CjsWebgpuDevice.js": 2,

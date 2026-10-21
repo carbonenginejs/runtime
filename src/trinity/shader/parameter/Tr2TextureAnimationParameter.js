@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IsMatch, INotify } from "#blue";
 import { meta, type, blue } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
-import { CjsParameter } from "./CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 
@@ -13,7 +13,7 @@ import { ResourceFlags } from "./ITr2EffectValue.js";
 @blue.inherit(ITriEffectResourceParameter, INotify)
 @be.mapInterface(ITriEffectResourceParameter)
 @be.mapInterface(INotify)
-export class Tr2TextureAnimationParameter extends CjsParameter
+export class Tr2TextureAnimationParameter extends ITriEffectResourceParameter
 {
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST, NOTIFY] */
@@ -50,9 +50,9 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /** Content hash: the animation object's identity (Carbon hashes its pointer). */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return CjsParameter.hashFnv1Identity(this.animation, startingHash);
+    return hashFnv1Identity(this.animation, startingHash);
   }
 
   /**
@@ -79,7 +79,8 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
-    const resource = this.name ? CjsParameter.getEffectResource(effectRes, this.name) : null;
+    // Tr2TextureAnimationParameter.cpp:61-69
+    const resource = this.name && effectRes ? effectRes.GetResource(this.name) : null;
     if (resource)
     {
       this.resourceType = resource.type ?? this.resourceType;

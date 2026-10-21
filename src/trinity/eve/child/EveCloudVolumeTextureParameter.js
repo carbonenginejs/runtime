@@ -11,7 +11,7 @@ import { exposure as be } from "#be";
 // engine lane.
 import { meta, type, blue } from "#schema";
 import { ITriEffectResourceParameter } from "../../shader/parameter/ITriEffectResourceParameter.js";
-import { CjsParameter } from "../../shader/parameter/CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 
 /** Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it. */
 @blue.define({ className: "EveCloudVolumeTextureParameter", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
@@ -49,9 +49,9 @@ export class EveCloudVolumeTextureParameter extends IRoot
    */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return CjsParameter.hashFnv1Identity(this.volume, startingHash);
+    return hashFnv1Identity(this.volume, startingHash);
   }
 
   /** Carbon GetParameterName (cpp:394-397). */
@@ -76,7 +76,7 @@ export class EveCloudVolumeTextureParameter extends IRoot
   {
     this.isUsedByEffect = false;
     if (!this.name || !effectRes) return;
-    this.isUsedByEffect = CjsParameter.hasEffectResource(effectRes, this.name);
+    this.isUsedByEffect = !!effectRes.GetResource(this.name);
   }
 
 }

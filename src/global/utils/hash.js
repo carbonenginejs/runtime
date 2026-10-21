@@ -11,21 +11,19 @@
 //
 // They live together because they are the same algorithm at two widths, and
 // because the alternative is what was here before: one in `resFile.js`, one on
-// `CjsParameter`, no cross-reference, and a third about to be written.
+// the shader parameter base, no cross-reference, and a third about to be written.
 //
 // Per-format FNV constants elsewhere (bnk, the CMF writer, the string table,
 // wwiseRoomVerb) are wire ABIs of THEIR formats and stay where they are.
 //
 // Source: Carbon `CcpHashFNV1` (core/include/CcpHash.h:13-17).
 //
-// WHY THE 32-BIT FAMILY MOVED HERE. These four were statics on `CjsParameter`, which was the
-// right home while the shader parameters were the only caller. The abstraction
+// WHY THE 32-BIT FAMILY MOVED HERE. These four were statics on the invented shader parameter base,
+// which was the right home while the shader parameters were the only caller. The abstraction
 // layer became a second caller on 2026-09-06 (`ComputeHash`), and an AL class
 // importing a shader class to borrow a hash inverts the layering — the AL sits
-// UNDER Trinity's shader code, not over it.
-//
-// `CjsParameter` keeps its four statics and delegates, so nothing that reads
-// `CjsParameter.hashFnv1String` had to change.
+// UNDER Trinity's shader code, not over it. That base is gone; the parameter
+// classes import these functions directly.
 //
 // TWO DELIBERATE DIVERGENCES FROM CARBON, both forced and both already
 // documented where they were: Carbon hashes interned name POINTERS and struct

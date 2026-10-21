@@ -5,7 +5,7 @@ import { IsMatch, IInitialize } from "#blue";
 import { INotify } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { meta, type, blue } from "#schema";
-import { CjsParameter } from "./CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1String } from "#utils/hash";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Forwards a named variable-store entry into a named effect constant or resource. */
@@ -14,7 +14,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
-export class TriVariableParameter extends CjsParameter
+export class TriVariableParameter extends ITriEffectParameter
 {
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
@@ -63,9 +63,9 @@ export class TriVariableParameter extends CjsParameter
   /** Content hash: name only - the variable's value comes from the store. */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return CjsParameter.hashFnv1String(this.name, startingHash);
+    return hashFnv1String(this.name, startingHash);
   }
 
   /**
@@ -130,7 +130,7 @@ export class TriVariableParameter extends CjsParameter
     const isResource = type === TriVariableContentType.TRIVARIABLE_TEXTURE_RES
       || type === TriVariableContentType.TRIVARIABLE_GPUBUFFER
       || type === "texture" || type === "textureRes" || type === "gpuBuffer";
-    const used = isResource ? !!CjsParameter.getEffectResource(effectRes, this.name) : !!CjsParameter.getEffectConstant(effectRes, this.name);
+    const used = isResource ? !!effectRes.GetResource(this.name) : !!effectRes.GetConstant(this.name);
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
   }

@@ -7,7 +7,8 @@ import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { num } from "#math/num";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
-import { CjsVectorParameter } from "./CjsVectorParameter.js";
+import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
+import { copyNumberArray, isNumberArrayValue, isVectorDestination, readVectorDestination, writeVectorDestination } from "./parameterDestination.js";
 
 
 /**
@@ -19,7 +20,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(ITriReroutable)
 @be.mapInterface(IInitialize)
-export class Tr2Vector4Parameter extends CjsVectorParameter
+export class Tr2Vector4Parameter extends ITriEffectParameter
 {
   @be.mapAttribute(be.PERSISTONLY)
 
@@ -189,9 +190,9 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   /** Content hash: authored value bytes then name. */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsVectorParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return CjsVectorParameter.hashFnv1String(this.name, CjsVectorParameter.hashFnv1Floats(this.value, startingHash));
+    return hashFnv1String(this.name, hashFnv1Floats(this.value, startingHash));
   }
 
   // Carbon returns `const Vector4&` - a reference the compiler forbids writing
@@ -213,7 +214,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   GetValue(out = vec4.create())
   {
     this.#RefreshFromReroute();
-    return CjsVectorParameter.copyNumberArray(out, this.value, 4);
+    return copyNumberArray(out, this.value, 4);
   }
 
   /** Pulls the reroute destination into the stored value, without copying it out. */
@@ -221,7 +222,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   {
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.readVectorDestination(this.#reroutedValue, this.value, 4);
+      readVectorDestination(this.#reroutedValue, this.value, 4);
     }
     return this.value;
   }
@@ -234,11 +235,11 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   @meta.implemented
   SetValue(value)
   {
-    CjsVectorParameter.copyNumberArray(this.value, value, 4);
+    copyNumberArray(this.value, value, 4);
     this.#updateLinearValue();
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 4);
+      writeVectorDestination(this.#reroutedValue, this.value, 4);
     }
   }
 
@@ -262,17 +263,21 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   @meta.adapted
   SetDestination(dest, size = 16)
   {
-    if (size >= 16 && !this.isSrgb && CjsVectorParameter.isVectorDestination(dest, 4))
+    if (size >= 16 && !this.isSrgb && isVectorDestination(dest, 4))
     {
       this.#reroutedValue = dest;
-      CjsVectorParameter.writeVectorDestination(dest, this.value, 4);
+      writeVectorDestination(dest, this.value, 4);
     }
     else
     {
       this.#reroutedValue = null;
       this.#updateLinearValue();
     }
-    CjsVectorParameter.notifyBindings(this.#bindings, this.GetDestination().dest);
+    // Carbon notifies each binding of the effective destination (Tr2Vector4Parameter.cpp:261).
+    for (const binding of this.#bindings)
+    {
+      binding.RerouteDestination(this.GetDestination().dest);
+    }
   }
 
   /**
@@ -298,7 +303,8 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   @meta.adapted
   RegisterBinding(binding)
   {
-    CjsVectorParameter.registerBinding(this.#bindings, binding);
+    // Carbon push_back (Tr2Vector4Parameter.cpp:305).
+    this.#bindings.push(binding);
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
@@ -306,7 +312,12 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   @meta.adapted
   UnregisterBinding(binding)
   {
-    CjsVectorParameter.unregisterBinding(this.#bindings, binding);
+    // Carbon erases the first match (Tr2Vector4Parameter.cpp:314).
+    const index = this.#bindings.indexOf(binding);
+    if (index >= 0)
+    {
+      this.#bindings.splice(index, 1);
+    }
   }
 
   /**
@@ -323,11 +334,12 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
     {
       this.SetDestination(null, 0);
     }
-    const constant = this.name ? CjsVectorParameter.getEffectConstant(effectRes, this.name) : null;
+    // Tr2Vector4Parameter.cpp:328-358
+    const constant = this.name && effectRes ? effectRes.GetConstant(this.name) : null;
     const used = !!constant;
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
-    this.isSrgb = CjsVectorParameter.getConstantIsSrgb(constant);
+    this.isSrgb = constant ? constant.isSRGB : false;
     if (this.isSrgb)
     {
       this.SetDestination(null, 0);
@@ -345,7 +357,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   {
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 4);
+      writeVectorDestination(this.#reroutedValue, this.value, 4);
     }
     this.#updateLinearValue();
     return true;
@@ -361,7 +373,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   CopyValueToEffect(_inputType, out)
   {
     const source = this.#reroutedValue ?? (this.isSrgb ? this.linearValue : this.value);
-    CjsVectorParameter.writeVectorDestination(out, source, 4);
+    writeVectorDestination(out, source, 4);
   }
 
   /**
@@ -373,7 +385,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   {
     if (!this.isSrgb)
     {
-      CjsVectorParameter.copyNumberArray(this.linearValue, this.value, 4);
+      copyNumberArray(this.linearValue, this.value, 4);
       return;
     }
     this.linearValue[0] = num.gammaToLinear(this.value[0]);
@@ -395,7 +407,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   /** JS convenience: raw values this parameter class claims for map-form inference. */
   static isValue(value)
   {
-    return CjsVectorParameter.isNumberArrayValue(value, 4);
+    return isNumberArrayValue(value, 4);
   }
 
 }

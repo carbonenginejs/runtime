@@ -5,7 +5,8 @@ import { IInitialize } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { meta, type, blue } from "#schema";
-import { CjsParameter } from "./CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
+import { isScalarDestination, readScalarDestination, writeScalarDestination } from "./parameterDestination.js";
 
 
 /**
@@ -17,7 +18,7 @@ import { CjsParameter } from "./CjsParameter.js";
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(ITriReroutable)
 @be.mapInterface(IInitialize)
-export class Tr2FloatParameter extends CjsParameter
+export class Tr2FloatParameter extends ITriEffectParameter
 {
   /** m_value [PERSISTONLY]: Carbon's backing member; `value` is the property over GetValue / SetValue. */
   @be.mapAttribute(be.PERSISTONLY, "value")
@@ -50,9 +51,9 @@ export class Tr2FloatParameter extends CjsParameter
   /** Content hash: value bytes then name (Carbon hashes the interned name pointer). */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return CjsParameter.hashFnv1String(this.name, CjsParameter.hashFnv1Floats([this._value], startingHash));
+    return hashFnv1String(this.name, hashFnv1Floats([this._value], startingHash));
   }
 
   /**
@@ -65,7 +66,7 @@ export class Tr2FloatParameter extends CjsParameter
   {
     if (this.#reroutedValue)
     {
-      this._value = CjsParameter.readScalarDestination(this.#reroutedValue, this._value);
+      this._value = readScalarDestination(this.#reroutedValue, this._value);
       this.#valueRef.value = this._value;
     }
     return this._value;
@@ -83,7 +84,7 @@ export class Tr2FloatParameter extends CjsParameter
     this.#valueRef.value = this._value;
     if (this.#reroutedValue)
     {
-      CjsParameter.writeScalarDestination(this.#reroutedValue, this._value);
+      writeScalarDestination(this.#reroutedValue, this._value);
     }
   }
 
@@ -120,16 +121,20 @@ export class Tr2FloatParameter extends CjsParameter
   @meta.adapted
   SetDestination(dest, size = 4)
   {
-    if (size >= 4 && CjsParameter.isScalarDestination(dest))
+    if (size >= 4 && isScalarDestination(dest))
     {
       this.#reroutedValue = dest;
-      CjsParameter.writeScalarDestination(dest, this._value);
+      writeScalarDestination(dest, this._value);
     }
     else
     {
       this.#reroutedValue = null;
     }
-    CjsParameter.notifyBindings(this.#bindings, this.GetDestination().dest);
+    // Carbon notifies each binding of the effective destination (Tr2FloatParameter.cpp:72).
+    for (const binding of this.#bindings)
+    {
+      binding.RerouteDestination(this.GetDestination().dest);
+    }
   }
 
   /**
@@ -155,7 +160,8 @@ export class Tr2FloatParameter extends CjsParameter
   @meta.adapted
   RegisterBinding(binding)
   {
-    CjsParameter.registerBinding(this.#bindings, binding);
+    // Carbon push_back (Tr2FloatParameter.cpp:108).
+    this.#bindings.push(binding);
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
@@ -163,7 +169,12 @@ export class Tr2FloatParameter extends CjsParameter
   @meta.adapted
   UnregisterBinding(binding)
   {
-    CjsParameter.unregisterBinding(this.#bindings, binding);
+    // Carbon erases the first match (Tr2FloatParameter.cpp:114).
+    const index = this.#bindings.indexOf(binding);
+    if (index >= 0)
+    {
+      this.#bindings.splice(index, 1);
+    }
   }
 
   /**
@@ -179,7 +190,8 @@ export class Tr2FloatParameter extends CjsParameter
     {
       this.SetDestination(null, 0);
     }
-    this.usedByCurrentEffect = !!this.name && CjsParameter.hasEffectConstant(effectRes, this.name);
+    // Tr2FloatParameter.cpp:130
+    this.usedByCurrentEffect = !!effectRes && !!this.name && !!effectRes.GetConstant(this.name);
   }
 
   /**
@@ -193,7 +205,7 @@ export class Tr2FloatParameter extends CjsParameter
     this.#valueRef.value = this._value;
     if (this.#reroutedValue)
     {
-      CjsParameter.writeScalarDestination(this.#reroutedValue, this._value);
+      writeScalarDestination(this.#reroutedValue, this._value);
     }
     return true;
   }
@@ -206,7 +218,7 @@ export class Tr2FloatParameter extends CjsParameter
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
-    CjsParameter.writeScalarDestination(out, this.GetValue());
+    writeScalarDestination(out, this.GetValue());
   }
 
   /** JS convenience: raw values this parameter class claims for map-form inference. */

@@ -5,15 +5,15 @@ import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { ICopierCustomAssignment } from "#blue";
 import { INotify } from "#blue";
 import { IInitialize } from "#blue";
-import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
-import { ITriEffectParameter } from "./ITriEffectParameter.js";
 
 import { ResourceRequirement } from "#resource";
 import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
 import { TriTextureRes } from "#resource/texture";
 import { blue, CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
-import { CjsParameter } from "./CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1String } from "#utils/hash";
+import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
@@ -31,7 +31,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(ICopierCustomAssignment)
-export class TriTextureParameter extends CjsParameter
+export class TriTextureParameter extends ITriEffectTextureParameter
 {
 
   @legacyBlue.notify
@@ -115,13 +115,13 @@ export class TriTextureParameter extends CjsParameter
   /** Content hash: resource path (when set) then name. */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
     if (this.resourcePath)
     {
-      startingHash = CjsParameter.hashFnv1String(this.resourcePath, startingHash);
+      startingHash = hashFnv1String(this.resourcePath, startingHash);
     }
-    return CjsParameter.hashFnv1String(this.name, startingHash);
+    return hashFnv1String(this.name, startingHash);
   }
 
   /**
@@ -489,19 +489,19 @@ export class TriTextureParameter extends CjsParameter
     this.usedByCurrentTechnique = false;
     if (!this.name || !effectRes) return;
 
-    const resource = CjsParameter.getEffectResource(effectRes, this.name);
+    const resource = effectRes.GetResource(this.name);
     if (resource)
     {
       this._resourceType = resource.type;
       this.usedByCurrentEffect = true;
     }
-    else if (CjsParameter.hasEffectConstant(effectRes, this.name))
+    else if (effectRes.GetConstant(this.name))
     {
       this.usedByCurrentEffect = true;
       this._resourceType = Tr2EffectResource.Type.TEXTURE_2D;
       this._bindlessColorSpace = Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
-      const annotations = CjsParameter.getEffectAnnotations(effectRes, this.name);
+      const annotations = effectRes.GetParameterAnnotations(this.name);
       if (annotations)
       {
         for (const annotation of annotations)

@@ -7,7 +7,8 @@ import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { num } from "#math/num";
 import { vec2 } from "#math/vec2";
 import { meta, type, blue } from "#schema";
-import { CjsVectorParameter } from "./CjsVectorParameter.js";
+import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
+import { copyNumberArray, isNumberArrayValue, isVectorDestination, readVectorDestination, writeVectorDestination } from "./parameterDestination.js";
 
 
 /**
@@ -19,7 +20,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(ITriReroutable)
 @be.mapInterface(IInitialize)
-export class Tr2Vector2Parameter extends CjsVectorParameter
+export class Tr2Vector2Parameter extends ITriEffectParameter
 {
   @be.mapAttribute(be.PERSISTONLY)
 
@@ -161,9 +162,9 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   /** Content hash: authored value bytes then name. */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsVectorParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    return CjsVectorParameter.hashFnv1String(this.name, CjsVectorParameter.hashFnv1Floats(this.value, startingHash));
+    return hashFnv1String(this.name, hashFnv1Floats(this.value, startingHash));
   }
 
   // Carbon returns `const Vector2&` - a reference the compiler forbids writing
@@ -185,7 +186,7 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   GetValue(out = vec2.create())
   {
     this.#RefreshFromReroute();
-    return CjsVectorParameter.copyNumberArray(out, this.value, 2);
+    return copyNumberArray(out, this.value, 2);
   }
 
   /** Pulls the reroute destination into the stored value, without copying it out. */
@@ -193,7 +194,7 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   {
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.readVectorDestination(this.#reroutedValue, this.value, 2);
+      readVectorDestination(this.#reroutedValue, this.value, 2);
     }
     return this.value;
   }
@@ -206,11 +207,11 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   @meta.implemented
   SetValue(value)
   {
-    CjsVectorParameter.copyNumberArray(this.value, value, 2);
+    copyNumberArray(this.value, value, 2);
     this.#updateLinearValue();
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 2);
+      writeVectorDestination(this.#reroutedValue, this.value, 2);
     }
   }
 
@@ -234,17 +235,21 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   @meta.adapted
   SetDestination(dest, size = 8)
   {
-    if (size >= 8 && !this.isSrgb && CjsVectorParameter.isVectorDestination(dest, 2))
+    if (size >= 8 && !this.isSrgb && isVectorDestination(dest, 2))
     {
       this.#reroutedValue = dest;
-      CjsVectorParameter.writeVectorDestination(dest, this.value, 2);
+      writeVectorDestination(dest, this.value, 2);
     }
     else
     {
       this.#reroutedValue = null;
       this.#updateLinearValue();
     }
-    CjsVectorParameter.notifyBindings(this.#bindings, this.GetDestination().dest);
+    // Carbon notifies each binding of the effective destination (Tr2Vector2Parameter.cpp:131).
+    for (const binding of this.#bindings)
+    {
+      binding.RerouteDestination(this.GetDestination().dest);
+    }
   }
 
   /**
@@ -270,7 +275,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   @meta.adapted
   RegisterBinding(binding)
   {
-    CjsVectorParameter.registerBinding(this.#bindings, binding);
+    // Carbon push_back (Tr2Vector2Parameter.cpp:186).
+    this.#bindings.push(binding);
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
@@ -278,7 +284,12 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   @meta.adapted
   UnregisterBinding(binding)
   {
-    CjsVectorParameter.unregisterBinding(this.#bindings, binding);
+    // Carbon erases the first match (Tr2Vector2Parameter.cpp:201).
+    const index = this.#bindings.indexOf(binding);
+    if (index >= 0)
+    {
+      this.#bindings.splice(index, 1);
+    }
   }
 
   /**
@@ -295,11 +306,12 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
     {
       this.SetDestination(null, 0);
     }
-    const constant = this.name ? CjsVectorParameter.getEffectConstant(effectRes, this.name) : null;
+    // Tr2Vector2Parameter.cpp:223-253
+    const constant = this.name && effectRes ? effectRes.GetConstant(this.name) : null;
     const used = !!constant;
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
-    this.isSrgb = CjsVectorParameter.getConstantIsSrgb(constant);
+    this.isSrgb = constant ? constant.isSRGB : false;
     if (this.isSrgb)
     {
       this.SetDestination(null, 0);
@@ -317,7 +329,7 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   {
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.writeVectorDestination(this.#reroutedValue, this.value, 2);
+      writeVectorDestination(this.#reroutedValue, this.value, 2);
     }
     this.#updateLinearValue();
     return true;
@@ -334,10 +346,10 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   {
     if (this.#reroutedValue)
     {
-      CjsVectorParameter.writeVectorDestination(out, this.value, 2);
+      writeVectorDestination(out, this.value, 2);
       return;
     }
-    CjsVectorParameter.writeVectorDestination(out, this.isSrgb ? this.linearValue : this.value, 2);
+    writeVectorDestination(out, this.isSrgb ? this.linearValue : this.value, 2);
   }
 
   /**
@@ -348,7 +360,7 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   {
     if (!this.isSrgb)
     {
-      CjsVectorParameter.copyNumberArray(this.linearValue, this.value, 2);
+      copyNumberArray(this.linearValue, this.value, 2);
       return;
     }
     this.linearValue[0] = num.gammaToLinear(this.value[0]);
@@ -368,7 +380,7 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   /** JS convenience: raw values this parameter class claims for map-form inference. */
   static isValue(value)
   {
-    return CjsVectorParameter.isNumberArrayValue(value, 2);
+    return isNumberArrayValue(value, 2);
   }
 
 }

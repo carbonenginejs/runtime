@@ -834,8 +834,8 @@ export class EveTurretSet extends EveEntity
       // Picking the vec4 entries out of a mixed parameter list. This names a
       // LEAF CLASS because the family has no declared contract to ask for:
       // Carbon derives it from ITriEffectParameter and ITriReroutable
-      // (Tr2Vector4Parameter.h:13-16) and our port put the shared behaviour on
-      // an invented CjsParameter instead.
+      // (Tr2Vector4Parameter.h:13-16); this class does the same, but the
+      // interface that selects only the vec4 entries is not declared, so it asks the leaf class.
       if (!CjsSchema.cast(parameter, Tr2Vector4Parameter))
       {
         continue;

@@ -33,7 +33,8 @@ import { TriFloatArrayParameter } from "./parameter/TriFloatArrayParameter.js";
 import { TriTextureParameter } from "./parameter/TriTextureParameter.js";
 import { TriVariableParameter } from "./parameter/TriVariableParameter.js";
 import { TriVector4 } from "./parameter/TriVector4.js";
-import { CjsParameter } from "./parameter/CjsParameter.js";
+import { hashFnv1Floats, hashFnv1String } from "#utils/hash";
+import { isNumberArrayValue } from "./parameter/parameterDestination.js";
 import { CjsTextureArrayBridge } from "./parameter/CjsTextureArrayBridge.js";
 import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
@@ -81,6 +82,29 @@ function requireShader(shader)
 
 /** Padding scratch for the Vector2/Vector3 overloads; Tr2Vector4Parameter copies it. */
 const VECTOR4_PAD = vec4.create();
+
+/**
+ * A parameter's shader name: a parameter answers GetParameterName, a constant struct carries a name field.
+ * Carbon asks GetParameterName of an ITriEffectParameter (Tr2Effect.cpp:1559).
+ */
+function getNamedValue(value)
+{
+  const parameter = CjsSchema.cast(value, ITriEffectParameter);
+  if (parameter) return parameter.GetParameterName();
+  return value?.name ?? "";
+}
+
+/** The name of a collection entry that may be a bare string, a named model, or a `{ key }` pair. */
+function getArrayItemName(value)
+{
+  return typeof value === "string" ? value : value?.name ?? value?.key ?? "";
+}
+
+/** First array entry whose item name or parameter name matches; null for a non-array. */
+function findByName(values, name)
+{
+  return Array.isArray(values) ? values.find(value => getArrayItemName(value) === name || getNamedValue(value) === name) ?? null : null;
+}
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
 @be.define("Tr2Effect")
@@ -383,17 +407,17 @@ export class Tr2Effect extends Tr2Material
     const path = this.actualEffectFilePath || this.effectFilePath;
     if (path)
     {
-      hash = CjsParameter.hashFnv1String(path);
+      hash = hashFnv1String(path);
     }
     for (const option of this.options)
     {
-      hash = CjsParameter.hashFnv1String(option?.name ?? "", hash);
-      hash = CjsParameter.hashFnv1String(option?.value ?? "", hash);
+      hash = hashFnv1String(option?.name ?? "", hash);
+      hash = hashFnv1String(option?.value ?? "", hash);
     }
     for (const parameter of this.constParameters)
     {
-      hash = CjsParameter.hashFnv1String(parameter?.name ?? "", hash);
-      hash = CjsParameter.hashFnv1Floats(parameter?.value ?? [0, 0, 0, 0], hash);
+      hash = hashFnv1String(parameter?.name ?? "", hash);
+      hash = hashFnv1Floats(parameter?.value ?? [0, 0, 0, 0], hash);
     }
     for (const parameter of this.parameters)
     {
@@ -411,7 +435,8 @@ export class Tr2Effect extends Tr2Material
   @meta.implemented
   GetParameterAnnotations(parameterName)
   {
-    return CjsParameter.getEffectAnnotations(this.shader, parameterName);
+    // Tr2Effect.cpp:1672
+    return this.shader ? this.shader.GetParameterAnnotations(parameterName) : null;
   }
 
   /** Carbon method PopulateParameters (MAP_METHOD_AND_WRAP). */
@@ -479,9 +504,9 @@ export class Tr2Effect extends Tr2Material
     {
       return false;
     }
-    this.parameters.splice(0, this.parameters.length, ...this.parameters.filter(parameter => this.#isShaderParameterVisible(CjsParameter.getNamedValue(parameter))));
+    this.parameters.splice(0, this.parameters.length, ...this.parameters.filter(parameter => this.#isShaderParameterVisible(getNamedValue(parameter))));
     this.constParameters = this.constParameters.filter(parameter => this.#isShaderParameterVisible(parameter?.name));
-    this.resources.splice(0, this.resources.length, ...this.resources.filter(parameter => this.#isShaderParameterVisible(CjsParameter.getNamedValue(parameter))));
+    this.resources.splice(0, this.resources.length, ...this.resources.filter(parameter => this.#isShaderParameterVisible(getNamedValue(parameter))));
     this._PruneOwnedProviders();
     return true;
   }
@@ -1435,7 +1460,7 @@ export class Tr2Effect extends Tr2Material
   #SetValueParameter(name, Parameter, value)
   {
     const parameterName = String(name ?? "");
-    const existing = CjsParameter.findByName(this.parameters, parameterName);
+    const existing = findByName(this.parameters, parameterName);
     if (existing instanceof Parameter)
     {
       existing.SetValue(value);
@@ -1618,7 +1643,7 @@ export class Tr2Effect extends Tr2Material
       {
         throw new TypeError(`Tr2Effect.SetConstParameters cannot read a vec4 value for "${name}".`);
       }
-      const existing = CjsParameter.findByName(this.constParameters, name);
+      const existing = findByName(this.constParameters, name);
       if (existing)
       {
         vec4.copy(existing.value, vector);
@@ -1675,7 +1700,7 @@ export class Tr2Effect extends Tr2Material
         updated = this.#removeNamed(this.samplerOverrides, name) || updated;
         continue;
       }
-      const existing = CjsParameter.findByName(this.samplerOverrides, name);
+      const existing = findByName(this.samplerOverrides, name);
       if (value instanceof Tr2SamplerOverride)
       {
         if (!value.name)
@@ -1745,7 +1770,7 @@ export class Tr2Effect extends Tr2Material
       const { type, Type, _type, ...fields } = value;
       const parameter = new ExplicitClass();
       CjsSchema.setValues(parameter, fields);
-      if (name && !CjsParameter.getNamedValue(parameter))
+      if (name && !getNamedValue(parameter))
       {
         CjsSchema.setValues(parameter, { name: String(name) });
       }
@@ -1779,7 +1804,7 @@ export class Tr2Effect extends Tr2Material
    */
   #removeNamed(list, name)
   {
-    const existing = CjsParameter.findByName(list, name);
+    const existing = findByName(list, name);
     if (!existing)
     {
       return false;
@@ -1805,7 +1830,7 @@ export class Tr2Effect extends Tr2Material
     {
       return this.#setNamedTexture(name, value);
     }
-    const existing = CjsParameter.findByName(this.parameters, name);
+    const existing = findByName(this.parameters, name);
     if (existing && existing.constructor.isValue?.(value))
     {
       existing.SetValue(value);
@@ -1818,7 +1843,7 @@ export class Tr2Effect extends Tr2Material
     }
     if (CjsSchema.cast(created, TriTextureParameter))
     {
-      const existingResource = CjsParameter.findByName(this.resources, name);
+      const existingResource = findByName(this.resources, name);
       if (existingResource)
       {
         existingResource.OnRemovedFromMaterial(this);
@@ -1905,7 +1930,7 @@ export class Tr2Effect extends Tr2Material
     {
       return vec4.fromValues(value, value, value, value);
     }
-    if (CjsParameter.isNumberArrayValue(value, 4))
+    if (isNumberArrayValue(value, 4))
     {
       return vec4.clone(value);
     }
@@ -1966,7 +1991,7 @@ export class Tr2Effect extends Tr2Material
 
   SetOption(name, value)
   {
-    const existing = CjsParameter.findByName(this.options, name);
+    const existing = findByName(this.options, name);
     if (existing)
     {
       if (existing.value !== value)
@@ -1998,7 +2023,7 @@ export class Tr2Effect extends Tr2Material
 
   GetOption(name)
   {
-    return CjsParameter.findByName(this.options, name)?.value ?? "";
+    return findByName(this.options, name)?.value ?? "";
   }
 
   /**
@@ -2018,14 +2043,14 @@ export class Tr2Effect extends Tr2Material
 
   FindParameterByName(name)
   {
-    return this.parameters.find(parameter => CjsParameter.getNamedValue(parameter) === name) ?? null;
+    return this.parameters.find(parameter => getNamedValue(parameter) === name) ?? null;
   }
 
   /** The resource parameter with this shader name, or null. */
 
   GetResourceByName(name)
   {
-    return this.resources.find(parameter => CjsParameter.getNamedValue(parameter) === name) ?? null;
+    return this.resources.find(parameter => getNamedValue(parameter) === name) ?? null;
   }
 
   /** Whether a sampler override is authored for this resource name. */

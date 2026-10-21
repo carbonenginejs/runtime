@@ -3,11 +3,11 @@ import { exposure as be } from "#be";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "#blue";
-import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
 import { blue } from "#blue";
 import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
-import { CjsParameter } from "./CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1String } from "#utils/hash";
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 /** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
@@ -17,7 +17,7 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 @be.mapInterface(ITriEffectResourceParameter)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
-export class Tr2GeometryBufferParameter extends CjsParameter
+export class Tr2GeometryBufferParameter extends ITriEffectResourceParameter
 {
 
   /** m_resourcePath (std::wstring) [READWRITE, NOTIFY, PERSIST] */
@@ -67,13 +67,13 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   /** Content hash: resource path (when set) then name. */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
     if (this.resourcePath)
     {
-      startingHash = CjsParameter.hashFnv1String(this.resourcePath, startingHash);
+      startingHash = hashFnv1String(this.resourcePath, startingHash);
     }
-    return CjsParameter.hashFnv1String(this.name, startingHash);
+    return hashFnv1String(this.name, startingHash);
   }
 
   /**
@@ -124,7 +124,8 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   RebuildEffectHandles(effectRes)
   {
     this.cachedEffect = effectRes;
-    this.usedByCurrentEffect = !!this.name && !!CjsParameter.getEffectResource(effectRes, this.name);
+    // Tr2GeometryBufferParameter.cpp:94
+    this.usedByCurrentEffect = !!this.name && !!effectRes && !!effectRes.GetResource(this.name);
   }
 
   /**

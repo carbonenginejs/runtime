@@ -6,14 +6,14 @@ import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsParameter } from "./CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 import { TRITRANSFORMBASE } from "#consts/graphics";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** Composes authored translation, rotation, scale, and transform-base state into the matrix uploaded to a shader constant. */
 @be.define("TriTransformParameter")
 @be.mapInterface(ITriEffectParameter)
-export class TriTransformParameter extends CjsParameter
+export class TriTransformParameter extends ITriEffectParameter
 {
 
   /**
@@ -82,13 +82,13 @@ export class TriTransformParameter extends CjsParameter
    */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
-    startingHash = CjsParameter.hashFnv1Floats([this.transformBase], startingHash);
-    startingHash = CjsParameter.hashFnv1Floats(this.translation, startingHash);
-    startingHash = CjsParameter.hashFnv1Floats(this.scaling, startingHash);
-    startingHash = CjsParameter.hashFnv1Floats(this.rotation, startingHash);
-    return CjsParameter.hashFnv1String(this.name, startingHash);
+    startingHash = hashFnv1Floats([this.transformBase], startingHash);
+    startingHash = hashFnv1Floats(this.translation, startingHash);
+    startingHash = hashFnv1Floats(this.scaling, startingHash);
+    startingHash = hashFnv1Floats(this.rotation, startingHash);
+    return hashFnv1String(this.name, startingHash);
   }
 
   /** Carbon TriTransformParameter::CopyValueToEffect

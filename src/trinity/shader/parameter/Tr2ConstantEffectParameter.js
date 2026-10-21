@@ -12,8 +12,6 @@ import { vec4 } from "#math/vec4";
  * BLUE_DECLARE_STRUCTURE_LIST and carrying no methods and no
  * ITriEffectParameter. The value is always a Vector4 - these exist to be packed.
  *
- * It extended CjsParameter here, which gave a two-field record the whole
- * parameter surface it never had in Carbon.
  * Native 64-bit size 24; offsets and storage types: trinity/trinity/
  * Shader/Tr2Effect.h:41-45; Shader/Tr2Effect.cpp:33-37.
  */

@@ -5,7 +5,7 @@ import { IInitialize } from "#blue";
 import { INotify } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { meta, type, blue } from "#schema";
-import { CjsParameter } from "./CjsParameter.js";
+import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 
 
 /** An ordered list of vec4 rows uploaded into one named shader constant array. */
@@ -14,7 +14,7 @@ import { CjsParameter } from "./CjsParameter.js";
 @be.mapInterface(ITriEffectParameter)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
-export class TriFloatArrayParameter extends CjsParameter
+export class TriFloatArrayParameter extends ITriEffectParameter
 {
   @be.mapAttribute(be.READ | be.NOTIFY | be.PERSIST)
 
@@ -49,13 +49,13 @@ export class TriFloatArrayParameter extends CjsParameter
   /** Content hash: each row's vec4 bytes, then name. */
 
   @meta.adapted
-  GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
+  GetHashValue(startingHash = FNV1_INITIAL)
   {
     for (const row of this.value)
     {
-      startingHash = CjsParameter.hashFnv1Floats(row?.data ?? [0, 0, 0, 0], startingHash);
+      startingHash = hashFnv1Floats(row?.data ?? [0, 0, 0, 0], startingHash);
     }
-    return CjsParameter.hashFnv1String(this.name, startingHash);
+    return hashFnv1String(this.name, startingHash);
   }
 
   /** Nothing to resolve - the rows are authored data; returns true. */
@@ -87,7 +87,8 @@ export class TriFloatArrayParameter extends CjsParameter
   RebuildEffectHandles(effectRes)
   {
     this.#cachedEffect = effectRes;
-    const used = !!this.name && CjsParameter.hasEffectConstant(effectRes, this.name);
+    // TriFloatArrayParameter.cpp:82
+    const used = !!this.name && !!effectRes && !!effectRes.GetConstant(this.name);
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;
   }
