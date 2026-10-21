@@ -146,8 +146,8 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
 }
 
 CjsSchema.exposure.mapInterface(IBlueResFileSystem)(BlueResFileSystemLocal);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "FileExists", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "IsDirectory", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "FileExists", be.mapMethodAndWrap("exists"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "IsDirectory", be.mapMethodAndWrap("isdir"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetDirectoryContents", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathW", blue.method, meta.notImplemented);
@@ -166,5 +166,5 @@ CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetInitialWorkingDirectory", b
 CjsSchema.decorateField(BlueResFileSystemLocal, "initialWorkingDirectory", be.mapPropertyReadOnly(), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetAllSearchPaths", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPathsAsDict", blue.method, meta.implemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "ListDirFromScript", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ListDirFromScript", be.mapMethodAndWrap("listdir"), meta.notImplemented);
 CjsSchema.exposure.define("BlueResFileSystemLocal")(BlueResFileSystemLocal);

@@ -544,7 +544,7 @@ CjsSchema.decorateMethod(RemoteFileCache, "GetStreamFromPath", blue.method, meta
 CjsSchema.decorateMethod(RemoteFileCache, "FileExists", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "IsCachedLocally", blue.method, meta.adapted);
 CjsSchema.decorateMethod(RemoteFileCache, "GetLocallyCachedName", blue.method, meta.implemented);
-CjsSchema.decorateMethod(RemoteFileCache, "IsDirectory", blue.method, meta.implemented);
+CjsSchema.decorateMethod(RemoteFileCache, "IsDirectory", be.mapMethodAndWrap("isdir"), meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "ListDir", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(RemoteFileCache, "RegisterOnServerFailedCallback", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.exposure.define("RemoteFileCache")(RemoteFileCache);

@@ -538,10 +538,10 @@ export class VideoPlayer
 
 blue.inherit(INotify, IBlueEvents)(VideoPlayer);
 
-CjsSchema.decorateMethod(VideoPlayer, "Create", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Create", be.mapMethodAndWrapOptionalArgs("__init__"), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "Update", blue.method, meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "Pause", blue.method, meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "Resume", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Pause", be.mapMethodAndWrap("pause"), meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Resume", be.mapMethodAndWrap("resume"), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "IsPaused", blue.method, meta.adapted);
 CjsSchema.decorateField(VideoPlayer, "is_paused", be.mapPropertyReadOnly(), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetMediaTime", blue.method, meta.adapted);
@@ -549,15 +549,15 @@ CjsSchema.decorateField(VideoPlayer, "media_time", be.mapPropertyReadOnly(), met
 CjsSchema.decorateMethod(VideoPlayer, "GetDuration", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetDownloadedMediaTime", blue.method, meta.adapted);
 CjsSchema.decorateField(VideoPlayer, "downloaded_media_time", be.mapPropertyReadOnly(), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "GetVideoInfo", blue.method, meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "ClearTextures", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "GetVideoInfo", be.mapMethodAndWrap("get_video_info"), meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "ClearTextures", be.mapMethodAndWrap("clear_textures"), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "OnModified", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "OnTick", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "SetBgraTexture", blue.method, meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetBgraTexture", blue.method, meta.implemented);
-CjsSchema.decorateMethod(VideoPlayer, "Seek", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Seek", be.mapMethodAndWrap("seek"), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "GetState", blue.method, meta.adapted);
 CjsSchema.decorateField(VideoPlayer, "state", be.mapPropertyReadOnly(), meta.adapted);
-CjsSchema.decorateMethod(VideoPlayer, "Validate", blue.method, meta.adapted);
+CjsSchema.decorateMethod(VideoPlayer, "Validate", be.mapMethodAndWrap("validate"), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "Destruct", meta.adapted);
 CjsSchema.exposure.define("VideoPlayer")(VideoPlayer);
