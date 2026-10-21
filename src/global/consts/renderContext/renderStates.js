@@ -1,3 +1,4 @@
+import { blueEnums } from "../../blue/enums/CjsBlueEnumRegistry.js";
 // Source: trinity/trinityal/Tr2RenderContextEnum.h
 //   (CullMode, ColorWriteEnable, CompareFunc, FillMode, BlendMode, BlendOperation)
 //
@@ -51,6 +52,11 @@ export const TextureAddressMode = Object.freeze({
     TA_BORDER: 4,
     TA_MIRROR_ONCE: 5
 });
+
+// Carbon registers neither enum (Tr2RenderContextEnum.h) and gives them no chooser; Tr2SamplerOverride names them, so they are
+// registered under the Tr2RenderContextEnum qualifier SwapEffect and PresentInterval use.
+blueEnums.Create("trinity.Tr2RenderContextEnum.TextureFilter", TextureFilter);
+blueEnums.Create("trinity.Tr2RenderContextEnum.TextureAddressMode", TextureAddressMode);
 
 export const FillMode = Object.freeze({
     FM_POINT: 1,

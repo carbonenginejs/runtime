@@ -25,31 +25,31 @@ export class Tr2SamplerOverride
   /** addressU (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
   @meta.attribute(meta.PERSIST)
   @meta.struct.UINT32_1(8)
-  @type.enum("TextureAddressMode")
+  @type.enum("trinity.Tr2RenderContextEnum.TextureAddressMode")
   addressU = 1;
 
   /** addressV (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
   @meta.attribute(meta.PERSIST)
   @meta.struct.UINT32_1(12)
-  @type.enum("TextureAddressMode")
+  @type.enum("trinity.Tr2RenderContextEnum.TextureAddressMode")
   addressV = 1;
 
   /** addressW (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
   @meta.attribute(meta.PERSIST)
   @meta.struct.UINT32_1(16)
-  @type.enum("TextureAddressMode")
+  @type.enum("trinity.Tr2RenderContextEnum.TextureAddressMode")
   addressW = 1;
 
   /** filter (Tr2RenderContextEnum::TextureFilter) */
   @meta.attribute(meta.PERSIST)
   @meta.struct.UINT32_1(20)
-  @type.enum("TextureFilter")
+  @type.enum("trinity.Tr2RenderContextEnum.TextureFilter")
   filter = 2;
 
   /** mipFilter (Tr2RenderContextEnum::TextureFilter) */
   @meta.attribute(meta.PERSIST)
   @meta.struct.UINT32_1(24)
-  @type.enum("TextureFilter")
+  @type.enum("trinity.Tr2RenderContextEnum.TextureFilter")
   mipFilter = 2;
 
   /** lodBias (float) */

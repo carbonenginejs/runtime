@@ -72,7 +72,7 @@ export class CjsTexturePipelineStepPack extends Tr2TexturePipelineStepPack
 CjsSchema.meta.define(CjsTexturePipelineStepPack, {
   className: "CjsTexturePipelineStepPack",
   fields: {
-    format: [ blue.readwrite, blue.persist, type.int32, type.enum("PixelFormat") ]
+    format: [ blue.readwrite, blue.persist, type.int32, type.enum("trinity.ImageIO.PixelFormat") ]
   },
   methods: {
     Execute: []

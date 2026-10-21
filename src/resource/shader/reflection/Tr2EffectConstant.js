@@ -5,6 +5,7 @@ import { CjsSchema } from "#schema";
 import {
 } from "#utils/is";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
+import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
 
 /** Reflected shader constant metadata. */
 export class Tr2EffectConstant
@@ -89,6 +90,9 @@ export class Tr2EffectConstant
 
 }
 
+// Carbon registers neither this nor a chooser for it (Shader/Tr2EffectDescription.h:34); the name qualifies it by its owner, as trinity.Tr2Light.LIGHT_TYPE does.
+blueEnums.Create("trinity.Tr2EffectConstant.Type", Tr2EffectConstant.Type);
+
 // Declared imperatively rather than with decorators, so this module stays plain
 // ESM that loads from source without a transform, which lets its tests import
 // source instead of build output.
@@ -102,7 +106,7 @@ CjsSchema.blue.define(Tr2EffectConstant, {
     { name: "name", type: { kind: "string" } },
     { name: "offset", type: { kind: "uint32" } },
     { name: "size", type: { kind: "uint32" } },
-    { name: "type", enum: { enumType: "Type" }, type: { kind: "int32" } },
+    { name: "type", enum: { enumType: "trinity.Tr2EffectConstant.Type" }, type: { kind: "int32" } },
     { name: "dimension", type: { kind: "uint32" } },
     { name: "elements", type: { kind: "uint32" } },
     { name: "isSRGB", type: { kind: "boolean" } },
