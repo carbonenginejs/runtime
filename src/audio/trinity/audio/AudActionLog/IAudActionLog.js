@@ -9,26 +9,26 @@ import { blue } from "#schema";
 export class IAudActionLog extends IRoot
 {
   /** Records an event post. */
-  @blue.abstract
+  @be.abstract
   LogPostEvent(emitterID, playID, eventID, name) {}
 
   /** Records an action applied to a playing event. */
-  @blue.abstract
+  @be.abstract
   LogExecuteActionOnPlayingID(emitterID, playID, action) {}
 
   /** Records an emitter switch change. */
-  @blue.abstract
+  @be.abstract
   LogSetSwitch(emitterID, group, state) {}
 
   /** Records a global state change. */
-  @blue.abstract
+  @be.abstract
   LogSetState(group, state) {}
 
   /** Records a real-time parameter change. */
-  @blue.abstract
+  @be.abstract
   LogSetRTPC(emitterID, name, value, playID = 0) {}
 
   /** Delivers pending records. */
-  @blue.abstract
+  @be.abstract
   Flush() {}
 }

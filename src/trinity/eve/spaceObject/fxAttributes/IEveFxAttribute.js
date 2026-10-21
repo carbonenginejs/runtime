@@ -11,7 +11,7 @@ export class IEveFxAttribute extends IRoot
 {
 
   /** Updates effect attributes during the asynchronous graph phase. */
-  @blue.abstract
+  @be.abstract
   UpdateAsyncronous(_updateContext) {}
 
 }

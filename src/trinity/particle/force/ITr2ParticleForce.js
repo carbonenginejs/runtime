@@ -11,7 +11,7 @@ export class ITr2ParticleForce extends IRoot
 {
 
   /** Updates force-owned state before particle integration. */
-  @blue.abstract
+  @be.abstract
   Update(_dt) {}
 
   /**
@@ -29,7 +29,7 @@ export class ITr2ParticleForce extends IRoot
    * @param {vec3} [_out] Receives the force.
    * @returns {vec3} out
    */
-  @blue.abstract
+  @be.abstract
   GetForce(_position, _velocity, _dt, _mass, _out) {}
 
   /**

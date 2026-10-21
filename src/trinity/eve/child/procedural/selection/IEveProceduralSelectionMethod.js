@@ -11,19 +11,19 @@ export class IEveProceduralSelectionMethod extends IRoot
 {
 
   /** Updates the procedural selection method during the asynchronous phase. */
-  @blue.abstract
+  @be.abstract
   UpdateAsyncronous(_updateContext) {}
 
   /** Reports whether the selected child changed. */
-  @blue.abstract
+  @be.abstract
   IsSelectedChildModified() {}
 
   /** Returns the volumes used to visualize this selection method. */
-  @blue.abstract
+  @be.abstract
   GetDebugVolumes(_out) {}
 
   /** Returns the currently selected child reference. */
-  @blue.abstract
+  @be.abstract
   GetSelectedChild() {}
 
   /** Accepts an optional procedural-selection variable. */

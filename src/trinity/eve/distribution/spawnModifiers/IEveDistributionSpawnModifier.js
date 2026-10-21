@@ -11,7 +11,7 @@ export class IEveDistributionSpawnModifier extends IRoot
 {
 
   /** Applies this modifier to one newly spawned placement. */
-  @blue.abstract
+  @be.abstract
   ProcessSpawnModifier(_placement, _context) {}
 
 }

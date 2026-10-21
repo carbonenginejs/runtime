@@ -11,11 +11,11 @@ export class ITr2AttributeGenerator extends IRoot
 {
 
   /** Binds this generator to a particle-system declaration. */
-  @blue.abstract
+  @be.abstract
   Bind(_particleSystem, _boundElements) {}
 
   /** Writes this generator's attribute values for one particle. */
-  @blue.abstract
+  @be.abstract
   Generate(_position, _velocity, _index) {}
 
 }

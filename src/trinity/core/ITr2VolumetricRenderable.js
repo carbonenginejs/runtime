@@ -32,7 +32,7 @@ export class ITr2VolumetricRenderable extends IRoot
    * @param {TriFrustum} _frustum The view frustum.
    * @returns {number} The sort value.
    */
-  @blue.abstract
+  @be.abstract
   GetSortValue__Frustum(_frustum) {}
 
   /**
@@ -41,7 +41,7 @@ export class ITr2VolumetricRenderable extends IRoot
    * @param {TriFrustum} _frustum The view frustum.
    * @param {ITriRenderBatchAccumulator} _batches Receives the batches.
    */
-  @blue.abstract
+  @be.abstract
   GetVolumetricBatches(_frustum, _batches) {}
 
   /**
@@ -50,7 +50,7 @@ export class ITr2VolumetricRenderable extends IRoot
    * @param {Tr2RenderContext} _renderContext The render context.
    * @returns {boolean} Whether the lightmap is up to date.
    */
-  @blue.abstract
+  @be.abstract
   UpdateVolumetricLightmap(_renderContext) {}
 
   /**
@@ -58,7 +58,7 @@ export class ITr2VolumetricRenderable extends IRoot
    * sceneInformation )` (h:48).
    * @param {object} _sceneInformation A SceneInformation record (h:26-36).
    */
-  @blue.abstract
+  @be.abstract
   SetSceneInformation(_sceneInformation) {}
 
   /**
@@ -66,7 +66,7 @@ export class ITr2VolumetricRenderable extends IRoot
    * ITriRenderBatchAccumulator* batches )` (h:49).
    * @param {ITriRenderBatchAccumulator} _batches Receives the batches.
    */
-  @blue.abstract
+  @be.abstract
   GetVolumetricShadowBatches(_batches) {}
 
   /**
@@ -75,7 +75,7 @@ export class ITr2VolumetricRenderable extends IRoot
    * @param {object} _shadowInfo The ShadowInfo record (h:38-43) to fill.
    * @param {vec3} _sunDir The sun direction.
    */
-  @blue.abstract
+  @be.abstract
   GetVolumetricShadowInfo(_shadowInfo, _sunDir) {}
 
   /**
@@ -84,10 +84,10 @@ export class ITr2VolumetricRenderable extends IRoot
    * @param {Tr2RenderContext} _renderContext The render context.
    * @returns {boolean} Whether the shadow map is ready.
    */
-  @blue.abstract
+  @be.abstract
   PrepareCloudShadowMap(_renderContext) {}
 
   /** Carbon's pure virtual `void SetCloudShadowMapHandle()` (h:52). */
-  @blue.abstract
+  @be.abstract
   SetCloudShadowMapHandle() {}
 }

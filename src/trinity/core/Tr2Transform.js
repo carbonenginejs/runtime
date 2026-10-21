@@ -229,7 +229,7 @@ export class Tr2Transform extends IRoot
    * @param {ITriRenderBatchAccumulator} _accumulator The accumulator.
    * @returns {Tr2PerObjectData|null} The object's per-object data.
    */
-  @legacyBlue.abstract
+  @be.abstract
   GetPerObjectData(_accumulator) {}
 
   /** Returns whether the displayed mesh has transparent areas. */

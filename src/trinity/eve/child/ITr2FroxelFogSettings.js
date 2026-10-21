@@ -1,6 +1,5 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
-import { blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 
@@ -17,7 +16,7 @@ export class ITr2FroxelFogSettings extends EveChildTransform
 {
 
   /** Returns the provider's stable FroxelFogSettings value record. */
-  @blue.abstract
+  @be.abstract
   GetFroxelFogSettings() {}
 
 }

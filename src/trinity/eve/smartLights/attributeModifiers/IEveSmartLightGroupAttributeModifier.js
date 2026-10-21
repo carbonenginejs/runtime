@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/IEveSmartLightGroupAttributeModifier.h
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 
 
@@ -10,11 +10,11 @@ export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttri
 {
 
   /** Updates modifier state for the current smart-light group activation. */
-  @blue.abstract
+  @be.abstract
   UpdateSyncronous(_updateContext, _params, _activationMultiplier) {}
 
   /** Applies this modifier to one smart-light attribute. */
-  @blue.abstract
+  @be.abstract
   ProcessAttributeModifier(_attribute, _placement, _entityPosition, _entityDirection, _modifierStrength) {}
 
   /** Accepts an optional controller variable. */

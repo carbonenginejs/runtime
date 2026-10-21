@@ -23,7 +23,7 @@ export class IEveChildTransformModifier extends IRoot
    * @param {mat4} _out Caller-owned; receives the modified transform.
    * @returns {mat4} `out`.
    */
-  @blue.abstract
+  @be.abstract
   ApplyTransform(_transform, _boneCount, _bones, _out) {}
 
 }

@@ -11,19 +11,19 @@ export class IStretchAudio extends IRoot
 {
 
   /** Starts playback for the stretch-audio component. */
-  @blue.abstract
+  @be.abstract
   Start() {}
 
   /** Stops playback for the stretch-audio component. */
-  @blue.abstract
+  @be.abstract
   Stop() {}
 
   /** Updates the source and destination positions used by the stretch effect. */
-  @blue.abstract
+  @be.abstract
   Update(_sourcePosition, _destinationPosition) {}
 
   /** Finds an owned audio emitter by name. */
-  @blue.abstract
+  @be.abstract
   FindEmitterByName(_name) {}
 
 }

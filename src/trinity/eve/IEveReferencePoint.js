@@ -12,7 +12,7 @@ export class IEveReferencePoint extends IRoot
 {
 
   /** Writes the world reference point for the requested time. */
-  @blue.abstract
+  @be.abstract
   GetReferencePoint(_time, _out) {}
 
 }

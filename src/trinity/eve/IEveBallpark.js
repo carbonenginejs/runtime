@@ -1,6 +1,5 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Include/IEveBallpark.h
-import { blue } from "#schema";
 import { IEveReferencePoint } from "./IEveReferencePoint.js";
 
 
@@ -10,19 +9,19 @@ export class IEveBallpark extends IEveReferencePoint
 {
 
   /** Writes the current and smoothed reference-point deltas for a time. */
-  @blue.abstract
+  @be.abstract
   Delta(_time, _referencePoint, _smoothedReferencePoint) {}
 
   /** Writes the reference-point velocity delta for a time. */
-  @blue.abstract
+  @be.abstract
   DeltaVel(_time, _velocity) {}
 
   /** Returns the ballpark unit scale. */
-  @blue.abstract
+  @be.abstract
   GetUnitBase() {}
 
   /** Sets the ballpark unit scale. */
-  @blue.abstract
+  @be.abstract
   SetUnitBase(_unit) {}
 
 }

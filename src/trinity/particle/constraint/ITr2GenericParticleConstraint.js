@@ -17,7 +17,7 @@ export class ITr2GenericParticleConstraint extends IRoot
    *
    * @param {Tr2ParticleSystem} _particleSystem The owning particle system.
    */
-  @blue.abstract
+  @be.abstract
   Bind(_particleSystem) {}
 
   /**
@@ -32,7 +32,7 @@ export class ITr2GenericParticleConstraint extends IRoot
    * @param {number} _count Number of particles.
    * @param {number} _dt Frame time.
    */
-  @blue.abstract
+  @be.abstract
   ApplyConstraint(_arguments, _particles, _strides, _count, _dt) {}
 
   /**

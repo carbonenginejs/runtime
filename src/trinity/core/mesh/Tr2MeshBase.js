@@ -411,7 +411,7 @@ export class Tr2MeshBase
    *
    * @returns {object} The geometry resource.
    */
-  @blue.abstract
+  @be.abstract
   GetGeometryResource() {}
 
   /**

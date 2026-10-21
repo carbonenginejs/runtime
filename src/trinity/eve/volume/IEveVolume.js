@@ -17,7 +17,7 @@ export class IEveVolume extends IRoot
    * @param {vec3} _position The position.
    * @returns {number} The intensity.
    */
-  @blue.abstract
+  @be.abstract
   GetIntensity(_position) {}
 
   /**
@@ -27,7 +27,7 @@ export class IEveVolume extends IRoot
    * @param {Function} _callBack Called when the volume changes.
    * @returns {number} The callback ID.
    */
-  @blue.abstract
+  @be.abstract
   RegisterForChanges(_callBack) {}
 
   /**
@@ -35,7 +35,7 @@ export class IEveVolume extends IRoot
    *
    * @param {number} _callbackID An ID `RegisterForChanges` returned.
    */
-  @blue.abstract
+  @be.abstract
   UnregisterForChanges(_callbackID) {}
 
   /**
@@ -49,7 +49,7 @@ export class IEveVolume extends IRoot
    * @param {boolean} _excludeInnerVolume Whether to skip the inner volume.
    * @param {number} _fallOffFactor Falloff weighting.
    */
-  @blue.abstract
+  @be.abstract
   GeneratePointsInVolume(_points, _howManyToAdd, _excludeInnerVolume, _fallOffFactor) {}
 
   /**
@@ -60,7 +60,7 @@ export class IEveVolume extends IRoot
    * @param {mat4} _parentTransform The parent's world transform.
    * @param {vec4} [_baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
    */
-  @blue.abstract
+  @be.abstract
   RenderDebugInfo(_renderer, _parentTransform, _baseColor) {}
 
   /**
@@ -69,7 +69,7 @@ export class IEveVolume extends IRoot
    *
    * @returns {{center: vec3, radius: number}} The volume's bounding sphere.
    */
-  @blue.abstract
+  @be.abstract
   GetBoundingSphere() {}
 
 }

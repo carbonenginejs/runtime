@@ -11,11 +11,11 @@ export class IEveDistributionPlacementGenerators extends IRoot
 {
 
   /** Writes the generator's initial placement records. */
-  @blue.abstract
+  @be.abstract
   GetInitialPlacements(_out) {}
 
   /** Reports whether this generator requests placement regeneration. */
-  @blue.abstract
+  @be.abstract
   IsRequestingRegeneration() {}
 
   /** Runs the optional synchronous placement-generator update hook. */

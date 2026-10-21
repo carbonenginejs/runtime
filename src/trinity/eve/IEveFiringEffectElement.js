@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/IEveFiringEffectElement.h
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { EveEntity } from "./EveEntity.js";
 
 
@@ -10,47 +10,47 @@ export class IEveFiringEffectElement extends EveEntity
 {
 
   /** Sets the destination-object scale applied by this firing element. */
-  @blue.abstract
+  @be.abstract
   SetDestObjectScale(_scale) {}
 
   /** Starts movement owned by this firing element. */
-  @blue.abstract
+  @be.abstract
   StartMoving() {}
 
   /** Returns the duration of the firing element's authored curves. */
-  @blue.abstract
+  @be.abstract
   GetCurveDuration() {}
 
   /** Starts firing after the supplied delay. */
-  @blue.abstract
+  @be.abstract
   StartFiring(_delay) {}
 
   /** Stops the active firing sequence. */
-  @blue.abstract
+  @be.abstract
   StopFiring() {}
 
   /** Sets the firing source transform and destination position. */
-  @blue.abstract
+  @be.abstract
   SetFiringTransform(_source, _destination) {}
 
   /** Sets whether the source and destination endpoints are displayed. */
-  @blue.abstract
+  @be.abstract
   DisplayEndPoints(_displaySource, _displayDestination) {}
 
   /** Performs the asynchronous firing-effect update phase. */
-  @blue.abstract
+  @be.abstract
   UpdateEffectAsync(_updateContext) {}
 
   /** Performs the synchronous firing-effect update phase. */
-  @blue.abstract
+  @be.abstract
   UpdateEffectSync(_updateContext) {}
 
   /** Updates visibility beneath the supplied parent transform. */
-  @blue.abstract
+  @be.abstract
   UpdateVisibility(_updateContext, _parentTransform) {}
 
   /** Appends this element's renderer-neutral renderables. */
-  @blue.abstract
+  @be.abstract
   GetRenderables(_renderables) {}
 
   /** Runs the optional general update hook. */
