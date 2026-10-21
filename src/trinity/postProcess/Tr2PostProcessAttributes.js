@@ -6,7 +6,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2PPBloomEffect } from "./effect/Tr2PPBloomEffect.js";
 import { Tr2PPColorCorrectionEffect } from "./effect/Tr2PPColorCorrectionEffect.js";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
@@ -53,8 +53,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's signalLossIntensity setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   signalLossIntensityEnabled = false;
 
@@ -70,8 +69,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomBrightness setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomBrightnessEnabled = false;
 
@@ -87,8 +85,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomLuminanceThreshold setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomLuminanceThresholdEnabled = false;
 
@@ -104,8 +101,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomLuminanceScale setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomLuminanceScaleEnabled = false;
 
@@ -121,8 +117,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomSizeScale setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomSizeScaleEnabled = false;
 
@@ -138,8 +133,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomDirectionalWeight setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomDirectionalWeightEnabled = false;
 
@@ -155,8 +149,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepSize1 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepSize1Enabled = false;
 
@@ -172,8 +165,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepSize2 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepSize2Enabled = false;
 
@@ -189,8 +181,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepSize3 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepSize3Enabled = false;
 
@@ -206,8 +197,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepSize4 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepSize4Enabled = false;
 
@@ -223,8 +213,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepSize5 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepSize5Enabled = false;
 
@@ -240,8 +229,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepSize6 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepSize6Enabled = false;
 
@@ -257,8 +245,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepTint1 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepTint1Enabled = false;
 
@@ -274,8 +261,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepTint2 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepTint2Enabled = false;
 
@@ -291,8 +277,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepTint3 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepTint3Enabled = false;
 
@@ -308,8 +293,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepTint4 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepTint4Enabled = false;
 
@@ -325,8 +309,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepTint5 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepTint5Enabled = false;
 
@@ -342,8 +325,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's bloomStepTint6 setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   bloomStepTint6Enabled = false;
 
@@ -359,8 +341,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's grimeIntensity setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   grimeIntensityEnabled = false;
 
@@ -376,8 +357,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's grimePath setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   grimePathEnabled = false;
 
@@ -393,8 +373,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's exposureAdjustment setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   exposureAdjustmentEnabled = false;
 
@@ -410,8 +389,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's filmGrainIntensity setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   filmGrainIntensityEnabled = false;
 
@@ -427,8 +405,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's filmGrainSize setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   filmGrainSizeEnabled = false;
 
@@ -444,8 +421,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's filmGrainDensity setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   filmGrainDensityEnabled = false;
 
@@ -461,8 +437,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's filmGrainContrast setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   filmGrainContrastEnabled = false;
 
@@ -478,8 +453,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's filmGrainBrightnessModifier setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   filmGrainBrightnessModifierEnabled = false;
 
@@ -495,8 +469,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's filmGrainColored setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   filmGrainColoredEnabled = false;
 
@@ -512,8 +485,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's filmGrainColorAmount setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   filmGrainColorAmountEnabled = false;
 
@@ -529,8 +501,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's saturation setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   saturationEnabled = false;
 
@@ -546,8 +517,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's fadeIntensity setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   fadeIntensityEnabled = false;
 
@@ -563,8 +533,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's fadeColor setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   fadeColorEnabled = false;
 
@@ -580,8 +549,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's lutIntensity setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   lutIntensityEnabled = false;
 
@@ -597,8 +565,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's lutPath setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   lutPathEnabled = false;
 
@@ -614,8 +581,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteIntensity setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteIntensityEnabled = false;
 
@@ -631,8 +597,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteOpacity setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteOpacityEnabled = false;
 
@@ -648,8 +613,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteColor setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteColorEnabled = false;
 
@@ -665,8 +629,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteDetail1Size setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteDetail1SizeEnabled = false;
 
@@ -682,8 +645,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteDetail1Scroll setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteDetail1ScrollEnabled = false;
 
@@ -699,8 +661,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteDetail2Size setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteDetail2SizeEnabled = false;
 
@@ -716,8 +677,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteDetail2Scroll setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteDetail2ScrollEnabled = false;
 
@@ -733,8 +693,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteShapePath setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteShapePathEnabled = false;
 
@@ -750,8 +709,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteDetailPath setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteDetailPathEnabled = false;
 
@@ -767,8 +725,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteSineFrequency setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteSineFrequencyEnabled = false;
 
@@ -784,8 +741,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteMinSineFrequency setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteMinSineFrequencyEnabled = false;
 
@@ -801,8 +757,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's vignetteMaxSineFrequency setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   vignetteMaxSineFrequencyEnabled = false;
 
@@ -818,8 +773,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's depthOfFieldScale setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   depthOfFieldScaleEnabled = false;
 
@@ -835,8 +789,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's depthOfFieldFocalDistance setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   depthOfFieldFocalDistanceEnabled = false;
 
@@ -852,8 +805,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's depthOfFieldFocalLength setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   depthOfFieldFocalLengthEnabled = false;
 
@@ -869,8 +821,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's depthOfFieldShape setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST | be.PERSIST)
   @type.boolean
   depthOfFieldShapeEnabled = false;
 
@@ -888,8 +839,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's whiteTemperature setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   whiteTemperatureEnabled = false;
 
@@ -905,8 +855,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's whiteTint setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   whiteTintEnabled = false;
 
@@ -922,8 +871,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's colorSaturation setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   colorSaturationEnabled = false;
 
@@ -939,8 +887,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's colorContrast setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   colorContrastEnabled = false;
 
@@ -956,8 +903,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's colorGamma setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   colorGammaEnabled = false;
 
@@ -973,8 +919,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's colorGain setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   colorGainEnabled = false;
 
@@ -990,8 +935,7 @@ export class Tr2PostProcessAttributes extends IRoot
    * Includes this volume's colorOffset setting in priority-weighted accumulation; false excludes its value and intensity from that attribute's blend.
    * @type {boolean}
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.boolean
   colorOffsetEnabled = false;
 
