@@ -3,7 +3,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
 import { blue as legacyBlue } from "#schema";
-import { FactionColorType as ColorType } from "#consts/graphics";
+import { ColorType } from "#consts/graphics";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 

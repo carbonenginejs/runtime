@@ -9,6 +9,7 @@ import { IInitialize, INotify } from "#blue";
 import { noise } from "#math/noise";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 import { Tr2CurveInterpolation } from "../enums.js";
+import "../../generated/include/enums.js";
 
 
 /**

@@ -39,6 +39,16 @@ export const Interpolation = Object.freeze({
   SPHERICAL_QUADRANGLE: 5,
 });
 
+// ScalarInterpolationChooser (trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp:9) lists the first three of Carbon's global Interpolation
+// enum with its own text (HERMITE differs from Tr2CurveInterpolation's); Carbon registers it as no enum, so the chooser names it.
+blueEnums.Create("trinity.ScalarInterpolationChooser", Interpolation, {
+  chooser: [
+    { name: "CONSTANT", value: Interpolation.CONSTANT, description: "Performs a constant interpolation" },
+    { name: "LINEAR", value: Interpolation.LINEAR, description: "Performs a linear interpolation" },
+    { name: "HERMITE", value: Interpolation.HERMITE, description: "Performs a Hermite spline interpolation" }
+  ]
+});
+
 export const PassType = {
   RP_BEGIN_RENDER: 0,
   RP_PRE_PASS: 1,

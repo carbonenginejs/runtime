@@ -7,6 +7,7 @@ import { BlueList, ITriFunction, IInitialize, ITriCurveLength } from "#blue";
 import { meta, type, blue } from "#schema";
 import { Tr2CurveInterpolation } from "../enums.js";
 import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
+import "../../generated/include/enums.js";
 
 
 /**

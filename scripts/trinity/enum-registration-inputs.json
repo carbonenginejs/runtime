@@ -691,6 +691,29 @@
           "definition": {}
         },
         {
+          "exportName": "Interpolation",
+          "name": "trinity.ScalarInterpolationChooser",
+          "definition": {
+            "chooser": [
+              {
+                "name": "CONSTANT",
+                "description": "Performs a constant interpolation",
+                "member": "CONSTANT"
+              },
+              {
+                "name": "LINEAR",
+                "description": "Performs a linear interpolation",
+                "member": "LINEAR"
+              },
+              {
+                "name": "HERMITE",
+                "description": "Performs a Hermite spline interpolation",
+                "member": "HERMITE"
+              }
+            ]
+          }
+        },
+        {
           "exportName": "PassType",
           "name": "trinity.ITr2MultiPassScene.PassType",
           "definition": {
