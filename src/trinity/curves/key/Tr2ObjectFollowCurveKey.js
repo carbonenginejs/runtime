@@ -45,9 +45,11 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   @type.float32
   time = 0;
 
-  /** Authored interpolation of the outgoing segment. */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * Authored interpolation of the outgoing segment.
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:51); chooser Tr2FollowCurveKeyInterpolationChooser (trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:24).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2FollowCurveKeyInterpolation")
   @type.int32
   @type.enum("trinity.Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
@@ -87,9 +89,11 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   @type.vec3
   offset = vec3.create();
 
-  /** Authored rotation selection. */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * Authored rotation selection.
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:58); chooser RotationChooser (trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:11).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ObjectFollowCurveKey.RotationSetting")
   @type.int32
   @type.enum("trinity.Tr2ObjectFollowCurveKey.RotationSetting")
   rotationSetting = RotationSetting.NO_ROTATION;

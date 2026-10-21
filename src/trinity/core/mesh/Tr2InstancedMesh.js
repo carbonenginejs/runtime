@@ -36,8 +36,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /** Carbon m_loadedGeometryResource, preferred over an assigned provider. */
   _loadedGeometryResource = null;
 
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2InstancedMesh_Blue.cpp:39); chooser BoundsMethodChooser (trinity/trinity/Tr2InstancedMesh_Blue.cpp:13). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2InstancedMesh.BoundsMethod")
   @type.int32
   @type.enum("trinity.Tr2InstancedMesh.BoundsMethod")
   boundsMethod = 0;

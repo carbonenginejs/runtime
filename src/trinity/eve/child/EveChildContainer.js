@@ -78,9 +78,8 @@ const ZERO_VEC3 = vec3.create();
 @legacyBlue.inherit(IEveEffectChildrenOwner, IEveSpaceObjectAttachmentOwner)
 export class EveChildContainer extends EveChildTransform
 {
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:59); chooser EveChildContainerDataSetShaderChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:14). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM | be.NOTIFY, "trinity.EveChildContainer.DisplayQualityModifier")
   @type.int32
   @type.enum("trinity.EveChildContainer.DisplayQualityModifier")
   displayFilter = 5;

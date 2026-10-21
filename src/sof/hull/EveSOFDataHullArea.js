@@ -13,9 +13,11 @@ export class EveSOFDataHullArea extends IRoot
   static AreaType = EveSOFDataArea.AreaType;
 
 
-  /** m_areaType (EveSOFDataArea::AreaType - enum AreaType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_areaType (EveSOFDataArea::AreaType - enum AreaType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:773); chooser EveSOFDataAreaTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataArea.AreaType")
   @type.int32
   @type.enum("trinity.EveSOFDataArea.AreaType")
   areaType = 0;

@@ -78,9 +78,9 @@ export class EveSOFDataAreaMaterial extends IRoot
    * Faction-color selector for the area's GeneralGlowColor parameter; native m_glowColorType
    * (SOFDataFactionColorChooser.ColorType), defaulting to TYPE_HULL.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:89); chooser EveSOFDataFactionColorSetTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.SOFDataFactionColorChooser.ColorType")
   @type.int32
   @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   colorType = 12;

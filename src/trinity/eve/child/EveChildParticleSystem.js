@@ -82,10 +82,9 @@ export class EveChildParticleSystem extends EveChildTransform
    *
    * Reflection policy controlling registration for cubemap rendering.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem_Blue.cpp:35); chooser ReflectionModeChooser (trinity/trinity/Eve/EveEntity_Blue.cpp:10).
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.EntityComponents.ReflectionMode")
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;

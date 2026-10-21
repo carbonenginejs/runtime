@@ -20,8 +20,8 @@ import { blue, ITriVectorFunction } from "#blue";
 @be.mapInterface(ITriVectorFunction)
 export class EveLocalPositionCurve extends ITriVectorFunction
 {
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve_Blue.cpp:51); chooser EveLocalPositionChooser (trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve_Blue.cpp:8). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveLocalPositionCurve.LocalPositionBehavior")
  @type.int32
   @type.enum("trinity.EveLocalPositionCurve.LocalPositionBehavior")
   behavior = 0;

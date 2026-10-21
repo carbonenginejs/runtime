@@ -30,23 +30,29 @@ export class EveSOFDataHullDecalSetItem extends IRoot
     USAGE_MAX: 7
   };
 
-  /** m_logoType (EveSOFDataLogoSet::LogoType - enum LogoType) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_logoType (EveSOFDataLogoSet::LogoType - enum LogoType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1051); chooser EveSOFDataLogoSetTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataLogoSet.LogoType")
   @type.int32
   @type.enum("trinity.EveSOFDataLogoSet.LogoType")
   logoType = 0;
 
-  /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1044); chooser EveSOFDecalUsageChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1028).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataHullDecalSetItem.Usage")
   @type.int32
   @type.enum("trinity.EveSOFDataHullDecalSetItem.Usage")
   usage = 0;
 
-  /** m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1050); chooser EveSOFDataFactionColorSetTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.SOFDataFactionColorChooser.ColorType")
   @type.int32
   @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   glowColorType = 0;

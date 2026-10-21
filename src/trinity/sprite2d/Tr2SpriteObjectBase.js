@@ -306,9 +306,11 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   @type.float32
   displayHeight = 0;
 
-  /** Persistent native pick-state chooser controlling self/child hit testing. @type {number} */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * Persistent native pick-state chooser controlling self/child hit testing. @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:113); chooser Tr2SpriteObjectPickStateChooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:10).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2SpriteObjectPickState")
   @type.int32
   @type.enum("trinity.Tr2SpriteObjectPickState")
   pickState = Tr2SpriteObjectPickState.TR2_SPS_ON;

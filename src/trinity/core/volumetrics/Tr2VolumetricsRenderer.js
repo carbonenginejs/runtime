@@ -54,7 +54,8 @@ const FOG_LIGHT_BITS = new Uint32Array(FOG_LIGHTS.buffer); // alloc: uint32 view
 @blue.inherit(IRoot)
 export class Tr2VolumetricsRenderer
 {
-  @blue.readwrite
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:29); chooser Tr2VolumetricQuality_Chooser (trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:8). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.Tr2VolumerticQuality")
   @type.int32
   @type.enum("trinity.Tr2VolumerticQuality")
   quality = Tr2VolumerticQuality.High;

@@ -247,8 +247,11 @@ function EmptyShadowResources()
 export class EveSpaceScene
 {
 
-  /** m_visualizeMethod (EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_visualizeMethod (EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:339); chooser EveVisualizerChooser (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:20).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.EveSpaceScene.EveVisualizeMethod")
   @type.int32
   @type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
   visualizeMethod = 0;

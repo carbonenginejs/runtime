@@ -12,9 +12,11 @@ import { vec2 } from "#math/vec2";
 export class EveSOFDataHullPlaneSet extends IRoot
 {
 
-  /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:393); chooser EveSOFDataHullPlaneSetUsageChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:375).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataHullPlaneSet.Usage")
   @type.int32
   @type.enum("trinity.EveSOFDataHullPlaneSet.Usage")
   usage = 0;

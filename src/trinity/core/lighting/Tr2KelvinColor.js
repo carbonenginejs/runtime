@@ -32,9 +32,11 @@ export class Tr2KelvinColor extends IInitialize
   @type.float32
   tint = 0.5;
 
-  /** m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2KelvinColor_Blue.cpp:208); chooser Tr2StandardIlluminantChooser (trinity/trinity/Tr2KelvinColor_Blue.cpp:12).
+   */
+  @be.mapAttributeWithChooser(be.ENUM | be.READWRITE | be.PERSIST, "trinity.Tr2StandardIlluminant")
   @type.int32
   @type.enum("trinity.Tr2StandardIlluminant")
   whiteBalance = 2;

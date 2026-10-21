@@ -426,9 +426,11 @@ export class Tr2Transform extends IRoot
     setViewBasis(this.worldTransform, scratch.lookAt, scratch.scale);
   }
 
-  /** m_modifier (Tr2TransformModifier - enum Tr2TransformModifier) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_modifier (Tr2TransformModifier - enum Tr2TransformModifier) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2Transform_Blue.cpp:49); chooser ModifierChooser (trinity/trinity/Tr2Transform_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2TransformModifier")
   @type.int32
   @type.enum("trinity.Tr2TransformModifier")
   modifier = Tr2TransformModifier.TR2TM_NONE;

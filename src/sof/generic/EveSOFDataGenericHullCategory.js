@@ -26,9 +26,11 @@ export class EveSOFDataGenericHullCategory extends IRoot
   @type.string
   name = "";
 
-  /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:563); chooser ReflectionModeChooser (trinity/trinity/Eve/EveEntity_Blue.cpp:10).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EntityComponents.ReflectionMode")
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = ReflectionMode.REFLECT_NEVER;

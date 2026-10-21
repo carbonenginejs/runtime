@@ -75,10 +75,11 @@ const DEBUG_CENTER = vec3.create();
 export class EveTurretSet extends EveEntity
 {
 
-  /** m_impactBehaviour (ImpactBehaviour::Type - enum ImpactBehaviour) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_impactBehaviour (ImpactBehaviour::Type - enum ImpactBehaviour) [READWRITE, NOTIFY, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:116); chooser ImpactBehaviourChooser (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.PERSIST | be.ENUM, "trinity.ImpactBehaviour")
   @type.int32
   @type.enum("trinity.ImpactBehaviour")
   impactBehaviour = 0;

@@ -22,9 +22,11 @@ import "#consts/graphics/trinityEnums";
 export class AudEventCurve extends IRoot
 {
 
-  /** m_extrapolation (TRIEXTRAPOLATION - enum TRIEXTRAPOLATION) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_extrapolation (TRIEXTRAPOLATION - enum TRIEXTRAPOLATION) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (audio/src/AudEventCurve_Blue.cpp:50); chooser TriExtrapolation (audio/src/AudConstants.cpp:6).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "blue.TRIEXTRAPOLATION")
   @type.int32
   @type.enum("blue.TRIEXTRAPOLATION")
   extrapolation = 0;

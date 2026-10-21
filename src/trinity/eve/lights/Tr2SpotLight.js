@@ -58,11 +58,12 @@ export class Tr2SpotLight extends Tr2Light
   // m_lod rows are: the accessors only read and write the record, and maths
   // values are copied into the record's own storage.
 
-  /** m_lightData.flags (uint16_t) [READWRITE, PERSIST], with Tr2LightFlagChooser and no ENUM bit (Tr2SpotLight_Blue.cpp:18). */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_lightData.flags (uint16_t) [READWRITE, PERSIST], with Tr2LightFlagChooser and no ENUM bit (Tr2SpotLight_Blue.cpp:18).
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Lights/Tr2SpotLight_Blue.cpp:18); chooser Tr2LightFlagChooser (trinity/trinity/Lights/Tr2Light_Blue.cpp:16).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST, "trinity.Tr2LightFlags")
   @type.uint16
-  @blue.chooser("trinity.Tr2LightFlags")
   get flags()
   {
     return this._lightData.flags;
@@ -257,10 +258,11 @@ export class Tr2SpotLight extends Tr2Light
     this._lightData.noiseOctaves = value;
   }
 
-  /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM], with PerLightShadowSettingChooser (Tr2SpotLight_Blue.cpp:36). */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM], with PerLightShadowSettingChooser (Tr2SpotLight_Blue.cpp:36).
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Lights/Tr2SpotLight_Blue.cpp:36); chooser PerLightShadowSettingChooser (trinity/trinity/Lights/Tr2Light_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.PerLightShadowSetting")
   @type.int32
   @type.enum("trinity.PerLightShadowSetting")
   get castsShadows()

@@ -11,9 +11,11 @@ import { blue, EnumRegistrationType } from "#blue";
 export class EveSOFDataHullHazeSet extends IRoot
 {
 
-  /** m_hazeType (HazeType - enum HazeType) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_hazeType (HazeType - enum HazeType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:547); chooser EveSOFDataHazeTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:95).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataHullHazeSet.HazeType")
   @type.int32
   @type.enum("trinity.EveSOFDataHullHazeSet.HazeType")
   hazeType = 0;

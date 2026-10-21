@@ -33,10 +33,11 @@ function ClampLength(value, maxLength)
 export class Inertia extends IRoot
 {
 
-  /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Inertia_Blue.cpp:16); chooser BehaviorPriorityChooser (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.IBehavior.ProcessPriority")
   @type.int32
   @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;

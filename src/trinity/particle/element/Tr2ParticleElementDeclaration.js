@@ -11,9 +11,11 @@ import { Tr2ParticleElementDeclarationName } from "./Tr2ParticleElementDeclarati
 export class Tr2ParticleElementDeclaration extends IRoot
 {
 
-  /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Particle/Tr2ParticleElementDeclaration_Blue.cpp:39); chooser Tr2ParticleElementDeclarationNameTypeChooser (trinity/trinity/Particle/Tr2ParticleElementDeclaration_Blue.cpp:6).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ParticleElementDeclarationName.Type")
   @type.int32
   @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = 4;

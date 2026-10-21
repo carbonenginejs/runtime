@@ -84,14 +84,14 @@ function effectAt(path, options = null)
 @legacyBlue.inherit(IRoot)
 export class Tr2PostProcessRenderer extends IRoot
 {
-  @legacyBlue.notify
-  @legacyBlue.readwrite
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:47); chooser BloomDebugChooser (trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:9). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.ENUM, "trinity.Tr2PostProcessRenderer.BloomDebugMode")
   @type.int32
   @type.enum("trinity.Tr2PostProcessRenderer.BloomDebugMode")
   bloomDebugMode = BloomDebugMode.BLOOM_DEBUG_NONE;
 
-  @legacyBlue.notify
-  @legacyBlue.readwrite
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:46); chooser PostProcessQualityChooser (trinity/trinity/PostProcess/Effects/Tr2PPEffect_Blue.cpp:7). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.NOTIFY, "trinity.PostProcess.Quality")
   @type.int32
   @type.enum("trinity.PostProcess.Quality")
   quality = Quality.HIGH;

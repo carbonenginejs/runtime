@@ -203,10 +203,11 @@ export class EveChildTurret extends EveChildMesh
   @type.float32
   impactSize = 0;
 
-  /** What the impacts should hit (an ImpactBehaviour value). */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * What the impacts should hit (an ImpactBehaviour value).
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildTurret_Blue.cpp:47); chooser ImpactBehaviourChooser (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.PERSIST | be.ENUM, "trinity.ImpactBehaviour")
   @type.int32
   @type.enum("trinity.ImpactBehaviour")
   impactBehaviour = EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR;

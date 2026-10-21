@@ -3,7 +3,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ResetBehavior } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -35,9 +35,9 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 
   /** Authored reset mode.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp:25); chooser ResetBehaviorChooser (trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp:10).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ActionResetClipSphereCenter.ResetBehavior")
   @type.int32
   @type.enum("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior")
   resetBehavior = ResetBehavior.OBJECT_CENTER;

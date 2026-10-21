@@ -19,9 +19,11 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   @type.uint32
   eventFilter = 0xffffffff;
 
-  /** m_filterType (FilterType - enum FilterType) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_filterType (FilterType - enum FilterType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:69); chooser TriVisibilityResultsFilterTypeChooser (trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:44).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.TriStepFilterVisibilityResults.FilterType")
   @type.int32
   @type.enum("trinity.TriStepFilterVisibilityResults.FilterType")
   filterType = 1;

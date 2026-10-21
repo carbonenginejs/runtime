@@ -56,10 +56,11 @@ export class EveChildLineSet extends EveChildTransform
   @type.quat
   rotation = quat.create();
 
-  /** m_type (lineSetType - enum lineSetType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_type (lineSetType - enum lineSetType) [READWRITE, PERSIST, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:34); chooser LineSetTypeChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:7).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM | be.NOTIFY, "trinity.EveChildLineSet.lineSetType")
   @type.int32
   @type.enum("trinity.EveChildLineSet.lineSetType")
   renderType = 1;

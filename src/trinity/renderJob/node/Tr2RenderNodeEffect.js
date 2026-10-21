@@ -18,8 +18,11 @@ export class Tr2RenderNodeEffect extends IRoot
   @type.list("Tr2RenderNodeEffectSource")
   sources = [];
 
-  /** m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) [READWRITE, ENUM] */
-  @blue.readwrite
+  /**
+   * m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2RenderNodeEffect_Blue.cpp:43); chooser TriRMChooser (trinity/trinity/Tr2RenderNodeEffect_Blue.cpp:9).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.Tr2EffectStateManager.RenderingMode")
   @type.int32
   @type.enum("trinity.Tr2EffectStateManager.RenderingMode")
   renderingMode = 8;

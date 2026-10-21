@@ -27,8 +27,8 @@ export class TriRenderJob extends IRoot
 
   static StepResult = TriRenderStep.Result;
 
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/RenderJob/TriRenderJob_Blue.cpp:42); chooser TriRenderJobStatusChooser (trinity/trinity/RenderJob/TriRenderJob_Blue.cpp:8). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.TriRenderJobStatus")
   @type.int32
   @type.enum("trinity.TriRenderJobStatus")
   status = TriRenderJob.Status.RJ_INIT;

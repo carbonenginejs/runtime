@@ -60,10 +60,11 @@ export class SeekTarget extends IRoot
   /** m_arrivalPoints: each agent's target point from the last update, kept for debug drawing (h:86). */
   _arrivalPoints = [];
 
-  /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget_Blue.cpp:16); chooser BehaviorPriorityChooser (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.IBehavior.ProcessPriority")
   @type.int32
   @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;

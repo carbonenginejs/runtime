@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderPass.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { PassType } from "../../generated/include/enums.js";
 import { blue } from "#blue";
@@ -13,9 +13,11 @@ import { blue } from "#blue";
 export class TriStepRenderPass extends TriRenderStep
 {
 
-  /** m_pass (ITr2MultiPassScene::PassType - enum PassType) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_pass (ITr2MultiPassScene::PassType - enum PassType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/RenderJob/TriStepRenderPass_Blue.cpp:41); chooser TriMultiPassScenePassTypeChooser (trinity/trinity/RenderJob/TriStepRenderPass_Blue.cpp:6).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ITr2MultiPassScene.PassType")
   @type.int32
   @type.enum("trinity.ITr2MultiPassScene.PassType")
   passType = 0;

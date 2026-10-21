@@ -14,9 +14,11 @@ export class EveSOFDataHullSpriteSetItem extends IRoot
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 
 
-  /** m_colorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_colorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:456); chooser EveSOFDataFactionColorSetTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.SOFDataFactionColorChooser.ColorType")
   @type.int32
   @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   colorType = 0;

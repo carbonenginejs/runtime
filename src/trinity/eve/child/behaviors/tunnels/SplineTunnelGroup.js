@@ -28,10 +28,11 @@ export class SplineTunnelGroup extends IRoot
   /** CPU spline tunnel records rebuilt from the authored curve sets. */
   tunnels = [];
 
-  /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, NOTIFY, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup_Blue.cpp:28); chooser SplineTunnelGroupTypeChooser (trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.SplineTunnelGroup.TunnelGroupType")
   @type.int32
   @type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
   tunnelGroupType = 2;

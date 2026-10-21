@@ -16,9 +16,11 @@ export class EveSOFDataInstancedMesh extends IRoot
   static Tr2Lod = Tr2Lod;
 
 
-  /** m_displayModifier (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_displayModifier (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:70); chooser DisplayFlagModifierChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:52).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
   @type.int32
   @type.enum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
   displayModifier = 5;

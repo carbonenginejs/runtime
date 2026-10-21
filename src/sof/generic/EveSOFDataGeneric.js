@@ -19,9 +19,11 @@ export class EveSOFDataGeneric extends IRoot
   static AreaType = EveSOFDataArea.AreaType;
 
 
-  /** m_turretAreaType (EveSOFDataArea::AreaType - enum AreaType) [READ, PERSIST, ENUM] */
-  @blue.read
-  @blue.persist
+  /**
+   * m_turretAreaType (EveSOFDataArea::AreaType - enum AreaType) [READ, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1241); chooser EveSOFDataAreaTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113).
+   */
+  @be.mapAttributeWithChooser(be.READ | be.PERSIST | be.ENUM, "trinity.EveSOFDataArea.AreaType")
   @type.int32
   @type.enum("trinity.EveSOFDataArea.AreaType")
   turretAreaType = 0;

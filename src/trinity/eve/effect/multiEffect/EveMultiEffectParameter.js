@@ -19,7 +19,8 @@ import { IsMatch, blue } from "#blue";
 @be.mapInterface(INotify)
 export class EveMultiEffectParameter extends IRoot
 {
-  @legacyBlue.readwrite
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp:25); chooser EveMultiEffectParameterTypeChooser (trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp:8). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.EveMultiEffectParameter.ParameterType")
   @type.int32
   @type.enum("trinity.EveMultiEffectParameter.ParameterType")
   type = 3;

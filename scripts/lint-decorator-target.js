@@ -137,7 +137,7 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
                 const chooserEqual=r=>{
                     const expected=[null,"NULL","nullptr","0"].includes(r.chooser)?null:r.chooser;
                     const actual=chooser?.$expr??chooser??null;
-                    return actual===expected||chooserBindings[expected]===actual;
+                    return actual===expected||[chooserBindings[expected]].flat().includes(actual);
                 };
                 if(!rows.some(chooserEqual))add("exposure-chooser",c,m,"Chooser identity needs equality or an explicit native-to-registry binding.",rows.map(r=>r.chooser));
             }

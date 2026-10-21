@@ -34,9 +34,9 @@ export class Tr2PostProcessAttributes extends IRoot
   /**
    * Priority band used to order volume blending; higher bands consume contribution weight before lower bands.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:38); chooser Tr2PostProcessPriorityChooser (trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:9).
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.PostProcessEnums.Priority")
   @type.int32
   @type.enum("trinity.PostProcessEnums.Priority")
   priority = Tr2PostProcessAttributes.MEDIUM_PRIORITY;
@@ -925,9 +925,9 @@ export class Tr2PostProcessAttributes extends IRoot
   /**
    * Bokeh Shape enum selecting the blur kernel; the strongest contributor wins instead of averaging enum values.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:107); chooser BokehShapeChooser (trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect_Blue.cpp:10).
    */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2Bokeh.Shape")
   @type.int32
   @type.enum("trinity.Tr2Bokeh.Shape")
   depthOfFieldShape = 0;

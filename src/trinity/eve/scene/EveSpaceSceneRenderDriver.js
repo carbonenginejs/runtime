@@ -87,50 +87,74 @@ export class EveSpaceSceneRenderDriver
     TriDevice.RegisterResource(this);
   }
 
-  /** m_settings.aoQuality (AmbientOcclusionQuality - enum AmbientOcclusionQuality) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_settings.aoQuality (AmbientOcclusionQuality - enum AmbientOcclusionQuality) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:162); chooser AmbientOcclusionQualityChooser (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:18).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality")
   @type.int32
   @type.enum("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality")
   aoQuality = CARBON_DEFAULT_SETTINGS.aoQuality;
 
-  /** m_settings.antiAliasingQuality (AntiAliasingQuality - enum AntiAliasingQuality) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_settings.antiAliasingQuality (AntiAliasingQuality - enum AntiAliasingQuality) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:155); chooser AntiAliasingQualityChooser (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:11).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality")
   @type.int32
   @type.enum("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality")
   antiAliasingQuality = CARBON_DEFAULT_SETTINGS.antiAliasingQuality;
 
-  /** m_settings.visualizeMethod (EveSpaceScene::EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_settings.visualizeMethod (EveSpaceScene::EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:211); chooser EveVisualizerChooser (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:20).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.EveSpaceScene.EveVisualizeMethod")
   @type.int32
   @type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
   visualizeMethod = 0;
 
-  /** m_settings.postProcessingQuality (PostProcess::Quality - enum Quality) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_settings.postProcessingQuality (PostProcess::Quality - enum Quality) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:226); chooser PostProcessQualityChooser (trinity/trinity/PostProcess/Effects/Tr2PPEffect_Blue.cpp:7).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.PostProcess.Quality")
   @type.int32
   @type.enum("trinity.PostProcess.Quality")
   postProcessingQuality = CARBON_DEFAULT_SETTINGS.postProcessingQuality;
 
-  /** m_settings.shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_settings.shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:148); chooser ShadowQualityChooser (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:25).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.ShadowQuality")
   @type.int32
   @type.enum("trinity.ShadowQuality")
   shadowQuality = CARBON_DEFAULT_SETTINGS.shadowQuality;
 
-  /** m_customStencilFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_customStencilFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:245); chooser Tr2RenderContextEnum_PixelFormat_Chooser (trinity/trinity/Tr2RenderContext_Blue.cpp:141).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.ImageIO.PixelFormat")
   @type.int32
   @type.enum("trinity.ImageIO.PixelFormat")
   customStencilFormat = 0;
 
-  /** m_internalPixelFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_internalPixelFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:140); chooser Tr2RenderContextEnum_PixelFormat_Chooser (trinity/trinity/Tr2RenderContext_Blue.cpp:141).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.ImageIO.PixelFormat")
   @type.int32
   @type.enum("trinity.ImageIO.PixelFormat")
   internalPixelFormat = 10;
 
-  /** m_settings.volumetricQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_settings.volumetricQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:219); chooser Tr2VolumetricQuality_Chooser (trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.Tr2VolumerticQuality")
   @type.int32
   @type.enum("trinity.Tr2VolumerticQuality")
   volumetricQuality = CARBON_DEFAULT_SETTINGS.volumetricQuality;

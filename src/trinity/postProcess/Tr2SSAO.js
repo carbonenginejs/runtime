@@ -61,8 +61,8 @@ function DispatchSize(tileSize, totalSize)
 @legacyBlue.inherit(IRoot)
 export class Tr2SSAO extends IRoot
 {
-  @legacyBlue.notify
-  @legacyBlue.readwrite
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2SSAO_Blue.cpp:26); chooser SSAOQualityChooser (trinity/trinity/Tr2SSAO_Blue.cpp:8). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.ENUM, "trinity.SSAOQuality")
   @type.int32
   @type.enum("trinity.SSAOQuality")
   quality = SSAOQuality.HIGHEST;

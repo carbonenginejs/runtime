@@ -41,9 +41,11 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   @type.float32
   time = 0;
 
-  /** Native follow-key segment interpolation. */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * Native follow-key segment interpolation.
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:72); chooser Tr2FollowCurveKeyInterpolationChooser (trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:24).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2FollowCurveKeyInterpolation")
   @type.int32
   @type.enum("trinity.Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;

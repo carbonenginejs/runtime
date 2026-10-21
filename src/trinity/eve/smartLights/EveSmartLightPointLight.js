@@ -45,11 +45,12 @@ export class EveSmartLightPointLight extends EveEntity
   // Tr2SkinnedObject's m_lod rows are: the accessors only read and write the
   // record.
 
-  /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST], with Tr2LightFlagChooser and no ENUM bit (EveSmartLightPointLight_Blue.cpp:24). */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST], with Tr2LightFlagChooser and no ENUM bit (EveSmartLightPointLight_Blue.cpp:24).
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight_Blue.cpp:24); chooser Tr2LightFlagChooser (trinity/trinity/Lights/Tr2Light_Blue.cpp:16).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST, "trinity.Tr2LightFlags")
   @type.uint16
-  @legacyBlue.chooser("trinity.Tr2LightFlags")
   get flags()
   {
     return this._lightGroupData.flags;

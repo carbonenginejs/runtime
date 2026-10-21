@@ -67,9 +67,11 @@ function rotateToPlane(out, point, planePoint, normal)
 export class EveConnector extends IRoot
 {
 
-  /** m_type (ConnectorType - enum ConnectorType) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_type (ConnectorType - enum ConnectorType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/UI/EveConnector_Blue.cpp:64); chooser EveConnectorTypeChooser (trinity/trinity/Eve/UI/EveConnector_Blue.cpp:6).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveConnector.ConnectorType")
   @type.int32
   @type.enum("trinity.EveConnector.ConnectorType")
   type = ConnectorType.PointToPoint;

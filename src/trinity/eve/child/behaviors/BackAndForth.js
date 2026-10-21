@@ -38,26 +38,29 @@ const DEBUG_POSITION = vec3.create();
 export class BackAndForth extends IRoot
 {
 
-  /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth_Blue.cpp:25); chooser BehaviorPriorityChooser (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.IBehavior.ProcessPriority")
   @type.int32
   @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
-  /** m_enabled (bool) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_enabled (bool) [READWRITE, PERSIST, NOTIFY, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth_Blue.cpp:24); chooser BehaviorPriorityChooser (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.IBehavior.ProcessPriority")
   @type.boolean
   @type.enum("trinity.IBehavior.ProcessPriority")
   enabled = true;
 
-  /** m_locatorType (LocatorType - enum LocatorType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_locatorType (LocatorType - enum LocatorType) [READWRITE, PERSIST, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth_Blue.cpp:26); chooser LocatorChooser (trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth_Blue.cpp:10).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM | be.NOTIFY, "trinity.BackAndForth.LocatorType")
   @type.int32
   @type.enum("trinity.BackAndForth.LocatorType")
   locatorType = 0;

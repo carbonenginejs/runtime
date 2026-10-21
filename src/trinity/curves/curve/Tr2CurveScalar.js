@@ -242,9 +242,9 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Native Tr2CurveExtrapolation policy used before the first key.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2CurveScalar_Blue.cpp:84); chooser Tr2CurveExtrapolationChooser (trinity/trinity/Curves/Tr2CurveScalar_Blue.cpp:38).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.ENUM | be.READWRITE | be.PERSIST, "trinity.Tr2CurveExtrapolation")
   @type.uint32
   @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
@@ -252,9 +252,9 @@ export class Tr2CurveScalar extends ITriScalarFunction
   /**
    * Native Tr2CurveExtrapolation policy used after the last key.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2CurveScalar_Blue.cpp:90); chooser Tr2CurveExtrapolationChooser (trinity/trinity/Curves/Tr2CurveScalar_Blue.cpp:38).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.ENUM | be.READWRITE | be.PERSIST, "trinity.Tr2CurveExtrapolation")
   @type.uint32
   @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;

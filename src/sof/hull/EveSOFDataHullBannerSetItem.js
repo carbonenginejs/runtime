@@ -42,9 +42,11 @@ export class EveSOFDataHullBannerSetItem extends IRoot
     _USAGE_COUNT: 24
   };
 
-  /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:704); chooser EveSOFDataHullBannerSetItemUsageChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:585).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataHullBannerSetItem.Usage")
   @type.int32
   @type.enum("trinity.EveSOFDataHullBannerSetItem.Usage")
   usage = 3;

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.h
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderingMode } from "#consts/graphics";
@@ -36,8 +36,8 @@ export class TriStepSetStdRndStates extends TriRenderStep
   static RM_PREPASS_COLOR = 13;
   static RM_COUNT = 14;
 
-  @blue.readwrite
-  @blue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/RenderJob/TriStepSetStandardRenderStates_Blue.cpp:31); chooser TriRMChooser (trinity/trinity/RenderJob/TriStepSetStandardRenderStates_Blue.cpp:9). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2EffectStateManager.RenderingMode")
   @type.int32
   @type.enum("trinity.Tr2EffectStateManager.RenderingMode")
   renderingMode = TriStepSetStdRndStates.RM_OPAQUE;

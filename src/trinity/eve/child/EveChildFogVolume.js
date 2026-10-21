@@ -73,8 +73,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 
   _froxelFogSettings = createFroxelFogSettings();
 
-  @blue.readwrite
-  @blue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume_Blue.cpp:19); chooser Tr2PostProcessPriorityChooser (trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:9). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.PostProcessEnums.Priority")
   @type.int32
   @type.enum("trinity.PostProcessEnums.Priority")
   priority = 2;

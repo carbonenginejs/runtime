@@ -56,9 +56,9 @@ export class TriColorSequencer extends ITriColorFunction
    * TRIOPERATOR code selecting component-wise multiplication; all other values use addition in
    * the current sampler.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/TriSequencer_Blue.cpp:91); chooser TriOperator (trinity/trinity/TriConstants.cpp:185).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "blue.TRIOPERATOR")
   @type.int32
   @type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;

@@ -40,8 +40,8 @@ export class EveChildLightingOverride extends EveChildTransform
   _overrideIntensity = 0;
   _boundingSphere = { center: vec3.create(), radius: 0, initialized: false };
 
-  @blue.readwrite
-  @blue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride_Blue.cpp:23); chooser Tr2PostProcessPriorityChooser (trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:9). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.PostProcessEnums.Priority")
   @type.int32
   @type.enum("trinity.PostProcessEnums.Priority")
   priority = 2;

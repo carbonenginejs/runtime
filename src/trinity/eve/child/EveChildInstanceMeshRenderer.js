@@ -101,8 +101,8 @@ const INSTANCE_SPHERE = vec4.create();
 @be.mapInterface(IEveShadowCaster)
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:37); chooser RotationalConstraintsChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:7). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveChildInstanceMeshRenderer.RotationalConstraints")
   @type.int32
   @type.enum("trinity.EveChildInstanceMeshRenderer.RotationalConstraints")
   rotationConstraint = RotationalConstraints.NONE;

@@ -49,10 +49,11 @@ export class Tr2GpuBuffer extends IRoot
   @type.uint32
   creationFlags = 0;
 
-  /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, ENUM, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, ENUM, PERSIST, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2GpuBuffer_Blue.cpp:92); chooser Tr2RenderContextEnum_PixelFormat_Chooser (trinity/trinity/Tr2RenderContext_Blue.cpp:141).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM | be.PERSIST | be.NOTIFY, "trinity.ImageIO.PixelFormat")
   @type.int32
   @type.enum("trinity.ImageIO.PixelFormat")
   format = 0;

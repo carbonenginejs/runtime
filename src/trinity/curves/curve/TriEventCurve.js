@@ -140,9 +140,9 @@ export class TriEventCurve extends ITriFunction
    * TRIEXTRAPOLATION time-wrapping mode; CYCLE repeats the track and other modes use incoming
    * time unchanged.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/TriEventCurve_Blue.cpp:47); chooser TriExtrapolation (trinity/trinity/TriConstants.cpp:94).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "blue.TRIEXTRAPOLATION")
   @type.int32
   @type.enum("blue.TRIEXTRAPOLATION")
   extrapolation = TRIEXTRAPOLATION.TRIEXT_NONE;

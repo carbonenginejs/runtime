@@ -66,8 +66,11 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
   @type.boolean
   windowed = false;
 
-  /** Native bool with the existing hardware/software chooser identity. */
-  @blue.readwrite
+  /**
+   * Native bool with the existing hardware/software chooser identity.
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/UI/Tr2PresentParameters_Blue.cpp:27); chooser TriDeviceTypeChooser (trinity/trinity/TriDevice_Blue.cpp:151).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.TriDevice.DeviceType")
   @type.boolean
   @type.enum("trinity.TriDevice.DeviceType")
   software = false;

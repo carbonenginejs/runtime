@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ElementBlendConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
@@ -14,9 +14,11 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 
   #element = null;
 
-  /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Particle/Tr2ElementBlendConstraint_Blue.cpp:22); chooser Tr2ParticleElementDeclarationNameTypeChooser (trinity/trinity/Particle/Tr2ParticleElementDeclaration_Blue.cpp:6).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ParticleElementDeclarationName.Type")
   @type.int32
   @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;

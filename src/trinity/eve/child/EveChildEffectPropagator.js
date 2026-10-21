@@ -72,18 +72,20 @@ function SortByCircleDist(lhs, rhs)
 export class EveChildEffectPropagator extends EveChildContainer
 {
 
-  /** m_type (PropagationType - enum PropagationType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_type (PropagationType - enum PropagationType) [READWRITE, PERSIST, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:44); chooser PropagationChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:7).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM | be.NOTIFY, "trinity.EveChildEffectPropagator.PropagationType")
   @type.int32
   @type.enum("trinity.EveChildEffectPropagator.PropagationType")
   propagationType = 0;
 
-  /** m_triggerMethod (TriggerType - enum TriggerType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_triggerMethod (TriggerType - enum TriggerType) [READWRITE, PERSIST, ENUM, NOTIFY]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:45); chooser PropagationTriggerChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:15).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM | be.NOTIFY, "trinity.EveChildEffectPropagator.TriggerType")
   @type.int32
   @type.enum("trinity.EveChildEffectPropagator.TriggerType")
   triggerMethood = 0;

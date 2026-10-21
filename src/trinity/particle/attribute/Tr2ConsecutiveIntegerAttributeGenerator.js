@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2ConsecutiveIntegerAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { vec4 } from "#math/vec4";
 import { bindParticleElement } from "../element/particleElementBinding.js";
@@ -17,9 +17,11 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
 
   #element = null;
 
-  /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Particle/Tr2ConsecutiveIntegerAttributeGenerator_Blue.cpp:17); chooser Tr2ParticleElementDeclarationNameTypeChooser (trinity/trinity/Particle/Tr2ParticleElementDeclaration_Blue.cpp:6).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ParticleElementDeclarationName.Type")
   @type.int32
   @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;

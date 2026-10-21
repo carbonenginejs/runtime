@@ -42,9 +42,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   /**
    * PlayAction enum selecting immediate or queued playback on Start.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:39); chooser PlayActionChooser (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:11).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ActionPlayMeshAnimation.PlayAction")
   @type.int32
   @type.enum("trinity.Tr2ActionPlayMeshAnimation.PlayAction")
   playAction = PlayAction.ENQUEUE_PLAY;
@@ -52,9 +52,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   /**
    * StopAction enum selecting immediate stop, queued stop, or no stop.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:40); chooser StopActionChooser (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:16).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ActionPlayMeshAnimation.StopAction")
   @type.int32
   @type.enum("trinity.Tr2ActionPlayMeshAnimation.StopAction")
   stopAction = StopAction.ENQUEUE_STOP;
@@ -89,10 +89,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   /**
    * DestinationType enum selecting the controller owner or a bound child.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:45); chooser DestinationTypeChooser (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:22).
    */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.PERSIST | be.ENUM, "trinity.Tr2ActionPlayMeshAnimation.DestinationType")
   @type.int32
   @type.enum("trinity.Tr2ActionPlayMeshAnimation.DestinationType")
   destinationType = DestinationType.OWNER;

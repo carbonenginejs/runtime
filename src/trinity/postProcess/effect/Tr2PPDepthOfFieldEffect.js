@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.cpp
-import { type, blue as legacyBlue } from "#schema";
+import { type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { blue, EnumRegistrationType } from "#blue";
 
@@ -17,8 +17,8 @@ import { blue, EnumRegistrationType } from "#blue";
 export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 {
 
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect_Blue.cpp:31); chooser BokehShapeChooser (trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect_Blue.cpp:10). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2Bokeh.Shape")
   @type.int32
   @type.enum("trinity.Tr2Bokeh.Shape")
   bokehShape = Tr2PPDepthOfFieldEffect.Disk;

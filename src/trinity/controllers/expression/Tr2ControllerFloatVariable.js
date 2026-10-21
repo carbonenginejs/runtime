@@ -35,9 +35,11 @@ export class Tr2ControllerFloatVariable extends IInitialize
   @type.string
   name = "";
 
-  /** Editor presentation type; runtime storage remains float32. */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * Editor presentation type; runtime storage remains float32.
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp:28); chooser TypeChooser (trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp:9).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ControllerFloatVariable.Type")
   @type.int32
   @type.enum("trinity.Tr2ControllerFloatVariable.Type")
   variableType = Type.FLOAT;

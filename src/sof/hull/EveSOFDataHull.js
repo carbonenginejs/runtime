@@ -35,16 +35,20 @@ export class EveSOFDataHull extends IRoot
     DEFAULT_FILTER: 0xffffffff
   });
 
-  /** m_buildClass (BuildClass - enum BuildClass) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_buildClass (BuildClass - enum BuildClass) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:966); chooser EveSOFBuildClassChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:937).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataHull.BuildClass")
   @type.int32
   @type.enum("trinity.EveSOFDataHull.BuildClass")
   buildClass = 0;
 
-  /** m_impactEffectType (ImpactEffectType - enum ImpactEffectType) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_impactEffectType (ImpactEffectType - enum ImpactEffectType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:992); chooser EveSOFImpactEffectTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:947).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveSOFDataHull.ImpactEffectType")
   @type.int32
   @type.enum("trinity.EveSOFDataHull.ImpactEffectType")
   impactEffectType = 0;

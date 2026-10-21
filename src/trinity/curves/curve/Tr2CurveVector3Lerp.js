@@ -36,8 +36,9 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
   /**
    * Native LINEAR or HERMITE mode used during the initial blend interval.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2CurveVector3Lerp_Blue.cpp:39); chooser Tr2CurveVector3LerpKeyInterpolationChooser (trinity/trinity/Curves/Tr2CurveVector3Lerp_Blue.cpp:7).
    */
-  @blue.readwrite
+  @be.mapAttributeWithChooser(be.ENUM | be.READWRITE, "trinity.Tr2CurveVector3LerpKeyInterpolation")
   @type.int32
   @type.enum("trinity.Tr2CurveVector3LerpKeyInterpolation")
   startInterpolation = Tr2CurveVector3LerpKeyInterpolation.HERMITE;

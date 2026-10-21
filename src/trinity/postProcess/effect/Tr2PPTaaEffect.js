@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.cpp
-import { type, blue as legacyBlue } from "#schema";
+import { type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { Debug } from "../../generated/postProcess/enums.js";
 import { blue, EnumRegistrationType } from "#blue";
@@ -17,12 +17,14 @@ import { blue, EnumRegistrationType } from "#blue";
 export class Tr2PPTaaEffect extends Tr2PPEffect
 {
 
-  @legacyBlue.readwrite
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:31); chooser Tr2PPTaaEffectDebugChooser (trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:17). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.Tr2PPTaaEffect.Debug")
   @type.int32
   @type.enum("trinity.Tr2PPTaaEffect.Debug")
   debug = Tr2PPTaaEffect.TAA_DEBUG_OFF;
 
-  @legacyBlue.readwrite
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:30); chooser Tr2PPTaaEffectQualityChooser (trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:9). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.Tr2PPTaaEffect.Quality")
   @type.int32
   @type.enum("trinity.Tr2PPTaaEffect.Quality")
   quality = Tr2PPTaaEffect.TAA_HIGH;

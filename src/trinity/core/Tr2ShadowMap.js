@@ -112,9 +112,8 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 @be.mapInterface(INotify)
 export class Tr2ShadowMap
 {
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2ShadowMap_Blue.cpp:59); chooser ShadowSplitModeChooser (trinity/trinity/Tr2ShadowMap_Blue.cpp:8). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM | be.NOTIFY, "trinity.Tr2ShadowMap.ShadowSplitMode")
   @type.int32
   @type.enum("trinity.Tr2ShadowMap.ShadowSplitMode")
   shadowSplitMode = 0;

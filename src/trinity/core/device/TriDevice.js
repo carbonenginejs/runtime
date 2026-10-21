@@ -63,18 +63,20 @@ export class TriDevice extends IRoot
 
   static ApplicationActivation = Object.freeze({ APP_ACTIVATED: 0, APP_DEACTIVATED: 1 });
 
-  /** mPresentParam.presentInterval (Tr2PresentParametersAL - enum Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * mPresentParam.presentInterval (Tr2PresentParametersAL - enum Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/TriDevice_Blue.cpp:214); chooser Tr2RenderContextEnum_PresentInterval_Chooser (trinity/trinity/Tr2RenderContext_Blue.cpp:277).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.PERSIST | be.ENUM, "trinity.Tr2RenderContextEnum.PresentInterval")
   @type.int32
   @type.enum("trinity.Tr2RenderContextEnum.PresentInterval")
   presentationInterval = 1;
 
-  /** mSwapEffect (Tr2RenderContextEnum::SwapEffect - enum SwapEffect) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * mSwapEffect (Tr2RenderContextEnum::SwapEffect - enum SwapEffect) [READWRITE, NOTIFY, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/TriDevice_Blue.cpp:212); chooser Tr2RenderContextEnum_SwapEffect_Chooser (trinity/trinity/Tr2RenderContext_Blue.cpp:265).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.PERSIST | be.ENUM, "trinity.Tr2RenderContextEnum.SwapEffect")
   @type.int32
   @type.enum("trinity.Tr2RenderContextEnum.SwapEffect")
   swapEffect = 0;
@@ -84,8 +86,11 @@ export class TriDevice extends IRoot
   @type.uint32
   throttlingState = 0;
 
-  /** m_deviceType (DeviceType - enum DeviceType) [READWRITE, ENUM] */
-  @legacyBlue.readwrite
+  /**
+   * m_deviceType (DeviceType - enum DeviceType) [READWRITE, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/TriDevice_Blue.cpp:229); chooser TriDeviceTypeChooser (trinity/trinity/TriDevice_Blue.cpp:151).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.ENUM, "trinity.TriDevice.DeviceType")
   @type.int32
   @type.enum("trinity.TriDevice.DeviceType")
   deviceType = 0;

@@ -91,9 +91,11 @@ function readFloat(value)
 export class Tr2ShLightingManager extends IRoot
 {
 
-  /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  /**
+   * m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2ShLightingManager_Blue.cpp:33); chooser Tr2ShLightingManagerQualityChooser (trinity/trinity/Tr2ShLightingManager_Blue.cpp:10).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2ShLightingManager.Quality")
   @type.int32
   @type.enum("trinity.Tr2ShLightingManager.Quality")
   quality = 1;

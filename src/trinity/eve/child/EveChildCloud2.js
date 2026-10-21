@@ -112,17 +112,20 @@ function TransformNormal(out, v, m)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 
-  /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2_Blue.cpp:47); chooser ReflectionModeChooser (trinity/trinity/Eve/EveEntity_Blue.cpp:10).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.EntityComponents.ReflectionMode")
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = ReflectionMode.REFLECT_NEVER;
 
-  /** m_minVisibleQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_minVisibleQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2_Blue.cpp:26); chooser Tr2VolumetricQuality_Chooser (trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.Tr2VolumerticQuality")
   @type.int32
   @type.enum("trinity.Tr2VolumerticQuality")
   minVisibleQuality = 0;

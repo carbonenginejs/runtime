@@ -52,9 +52,9 @@ export class TriVectorSequencer extends ITriVectorFunction
    * TRIOPERATOR code selecting component-wise multiplication, addition or averaging; unrecognized
    * values also take the average branch.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/TriSequencer_Blue.cpp:42); chooser TriOperator (trinity/trinity/TriConstants.cpp:185).
    */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "blue.TRIOPERATOR")
   @type.int32
   @type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;

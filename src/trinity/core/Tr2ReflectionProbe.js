@@ -56,9 +56,11 @@ const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Co
 export class Tr2ReflectionProbe
 {
 
-  /** m_renderFrequency (ReflectionProbeRenderFrequency - enum ReflectionProbeRenderFrequency) [READWRITE, NOTIFY, ENUM] */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
+  /**
+   * m_renderFrequency (ReflectionProbeRenderFrequency - enum ReflectionProbeRenderFrequency) [READWRITE, NOTIFY, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Tr2ReflectionProbe_Blue.cpp:29); chooser RenderFrequencyChooser (trinity/trinity/Tr2ReflectionProbe_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.NOTIFY | be.ENUM, "trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency")
   @type.int32
   @type.enum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency")
   renderFrequency = 0;

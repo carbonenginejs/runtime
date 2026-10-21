@@ -46,17 +46,20 @@ export class FollowASpline extends IRoot
   @type.boolean
   shouldReassignTunnelIDs = true;
 
-  /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline_Blue.cpp:29); chooser BehaviorPriorityChooser (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.IBehavior.ProcessPriority")
   @type.int32
   @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
-  /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, ENUM] */
-  @blue.readwrite
-  @blue.persist
+  /**
+   * m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, ENUM]
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline_Blue.cpp:27); chooser FollowASplineTunnelGroupTypeChooser (trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline_Blue.cpp:8).
+   */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.SplineTunnelGroup.TunnelGroupType")
   @type.int32
   @type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
   tunnelGroupType = 2;

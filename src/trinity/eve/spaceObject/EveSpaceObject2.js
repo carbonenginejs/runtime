@@ -97,10 +97,9 @@ export class EveSpaceObject2 extends EveEntity
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM]
    * Reflection participation mode used when registering render components.
    * @type {number}
+   * Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp:590); chooser ReflectionModeChooser (trinity/trinity/Eve/EveEntity_Blue.cpp:10).
    */
-  @legacyBlue.notify
-  @legacyBlue.readwrite
-  @legacyBlue.persist
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.EntityComponents.ReflectionMode")
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;

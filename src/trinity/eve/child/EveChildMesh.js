@@ -175,9 +175,8 @@ export class EveChildMesh extends EveChildTransform
     return this._activationStrength;
   }
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp:67); chooser ReflectionModeChooser (trinity/trinity/Eve/EveEntity_Blue.cpp:10). */
+  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.EntityComponents.ReflectionMode")
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
