@@ -15,6 +15,7 @@ const bits = { NONE:0, READ:1, WRITE:2, READWRITE:3, NOTIFY:4, HIDDEN:8, PERSIST
 const oldBits = {read:1,write:2,readwrite:3,notify:4,hidden:8,persist:16,rpersist:32,persistOnly:24};
 const maps = {mapAttribute:"MAP_ATTRIBUTE",mapAttributeWithChooser:"MAP_ATTRIBUTE_WITH_CHOOSER",
     mapProperty:"MAP_PROPERTY",mapPropertyReadOnly:"MAP_PROPERTY_READONLY",mapPropertyPersisted:"MAP_PROPERTY_PERSISTED",
+    mapProperty__Field:"MAP_PROPERTY",mapPropertyReadOnly__Field:"MAP_PROPERTY_READONLY",mapPropertyPersisted__Field:"MAP_PROPERTY_PERSISTED",
     mapMethod:"MAP_METHOD",mapMethodAndWrap:"MAP_METHOD_AND_WRAP",mapMethodAndWrapOptionalArgs:"MAP_METHOD_AND_WRAP_OPTIONAL_ARGS",mapMethodAsMethod:"MAP_METHOD_AS_METHOD"};
 
 /** Evaluates only literal EDITFLAGS unions; unknown expressions stay review findings. */
@@ -136,12 +137,12 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
                 add("exposure-absent",c,m,"No own Carbon macro row for this declaration.");continue;
             }
             // A property on a plain field is faithful only where Carbon's getter and setter just read and write one member.
-            if(category==="properties"&&mapped.some(d=>d.name.includes("mapProperty"))&&m.kind!=="get"&&m.kind!=="method"&&fs.existsSync(process.env.CARBON_ROOT??"E:/carbonengine"))
+            if(mapped.some(d=>d.name.endsWith("__Field"))&&fs.existsSync(process.env.CARBON_ROOT??"E:/carbonengine"))
             {
                 const row=rows.find(r=>r.name===exposed&&r.getter);
                 if(row)
                 {
-                    const readOnly=mapped.some(d=>d.name.endsWith("mapPropertyReadOnly"));
+                    const readOnly=mapped.some(d=>d.name.includes("mapPropertyReadOnly"));
                     const check=checkAccessorBodies(c.name,row.getter,readOnly?null:row.setter);
                     if(!check.ok)add("property-field-body",c,m,"Carbon's accessors do more than read and write one member, so the property cannot sit on a plain field.",check.reasons);
                 }

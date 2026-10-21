@@ -3753,6 +3753,10 @@ function createExposureNamespace(legacy)
         mapProperty: name => exposurePropertyDecorator("MAP_PROPERTY", name),
         mapPropertyReadOnly: name => exposurePropertyDecorator("MAP_PROPERTY_READONLY", name),
         mapPropertyPersisted: name => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", name),
+        // The same Carbon lines realised as a plain field under the exposed name (the lint checks Carbon's accessors only read and write it).
+        mapProperty__Field: name => exposurePropertyDecorator("MAP_PROPERTY", name, true),
+        mapPropertyReadOnly__Field: name => exposurePropertyDecorator("MAP_PROPERTY_READONLY", name, true),
+        mapPropertyPersisted__Field: name => exposurePropertyDecorator("MAP_PROPERTY_PERSISTED", name, true),
         mapMethod: name => exposureMethodDecorator("MAP_METHOD", name),
         mapMethodAndWrap: name => exposureMethodDecorator("MAP_METHOD_AND_WRAP", name),
         mapMethodAndWrapOptionalArgs: name => exposureMethodDecorator("MAP_METHOD_AND_WRAP_OPTIONAL_ARGS", name),
@@ -3823,7 +3827,7 @@ function exposureAttributeDecorator(macro, flags, chooser, name)
 }
 
 /** The explicit property macro fixes read/write/persist bits, independently of other JS accessors. */
-function exposurePropertyDecorator(macro, name)
+function exposurePropertyDecorator(macro, name, asField = false)
 {
     const legacy = propertyDecorator(name, { persisted: macro === "MAP_PROPERTY_PERSISTED" }, true);
     const definition = Object.fromEntries(getDecoratorMetadata(legacy).parts.map(part => [ part.namespace, part.value ]));
@@ -3836,21 +3840,22 @@ function exposurePropertyDecorator(macro, name)
     const fieldCombined = combinedFieldDecorator(fieldDefinition);
     const decorator = (target, context) =>
     {
-        if (context && typeof context === "object")
+        if (asField)
         {
-            if (context.kind === "field") return fieldCombined(target, context);
-            if (context.kind !== "getter") throw new TypeError("Property maps decorate a getter or a plain field.");
-        }
-        else if (typeof context === "string" || typeof context === "symbol")
-        {
+            if (context && typeof context === "object" && context.kind !== "field")
+                throw new TypeError("mapProperty__Field decorates a plain field; use the bare form on an accessor.");
             // decorateField(Class, "key", ...): the prototype shows whether the key is an accessor.
-            const descriptor = target && Object.getOwnPropertyDescriptor(target, context);
-            if (!descriptor || (!descriptor.get && !descriptor.set)) return fieldCombined(target, context);
+            const descriptor = typeof context !== "object" && target && Object.getOwnPropertyDescriptor(target, context);
+            if (descriptor && (descriptor.get || descriptor.set))
+                throw new TypeError(`mapProperty__Field decorates a plain field, but "${String(context)}" is an accessor.`);
+            return fieldCombined(target, context);
         }
+        if (context && typeof context === "object" && context.kind !== "getter")
+            throw new TypeError("Property maps decorate a getter; a plain field takes the __Field form.");
         if (context && typeof context === "object" && hasStage3Namespace(context, "edit")) RejectPropertyFlags(context.name);
         return combined(target, context);
     };
-    Object.defineProperty(decorator, DECORATOR_METADATA, { value: getDecoratorMetadata(combined) });
+    Object.defineProperty(decorator, DECORATOR_METADATA, { value: getDecoratorMetadata(asField ? fieldCombined : combined) });
     return decorator;
 }
 

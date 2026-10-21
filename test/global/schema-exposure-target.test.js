@@ -430,7 +430,7 @@ test("a function exposed under two names keeps the second MAP_METHOD line as an 
     unregisterClass("TwoNamesStage3");
 });
 
-test("mapProperty* on a plain field carries the macro's flags and no accessor pair", async () =>
+test("mapProperty__Field* on a plain field carries the macro's flags and no accessor pair; the bare forms refuse a field", async () =>
 {
     const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
     const targetUrl = new URL("../../src/global/schema/be.js", import.meta.url).href;
@@ -438,9 +438,9 @@ test("mapProperty* on a plain field carries the macro's flags and no accessor pa
         import { exposure } from ${JSON.stringify(targetUrl)};
         @exposure.define("PropertyOnFieldStage3")
         export class Sample {
-            @exposure.mapPropertyReadOnly() @type.uint32 width = 3;
-            @exposure.mapProperty("depth") @type.float32 depthValue = 1;
-            @exposure.mapPropertyPersisted() @type.string title = "";
+            @exposure.mapPropertyReadOnly__Field() @type.uint32 width = 3;
+            @exposure.mapProperty__Field("depth") @type.float32 depthValue = 1;
+            @exposure.mapPropertyPersisted__Field() @type.string title = "";
         }`;
     const code = transformSync(source, { configFile: false, babelrc: false,
         plugins: [[decoratorsPlugin, { version: "2023-11" }]] }).code;
@@ -454,6 +454,10 @@ test("mapProperty* on a plain field carries the macro's flags and no accessor pa
     assert.equal(CjsSchema.getSchema(Sample).properties.length, 0);
     assert.equal(new Sample().width, 3);
     unregisterClass("PropertyOnFieldStage3");
+    const bare = transformSync(`import { exposure } from ${JSON.stringify(targetUrl)};
+        export class Refused { @exposure.mapProperty() value = 1; }`, { configFile: false, babelrc: false,
+        plugins: [[decoratorsPlugin, { version: "2023-11" }]] }).code;
+    await assert.rejects(import(`data:text/javascript;base64,${Buffer.from(bare).toString("base64")}`), /decorate a getter/);
 });
 
 test("standalone Stage-3 native identity still registers before its module is consumed", async () =>
