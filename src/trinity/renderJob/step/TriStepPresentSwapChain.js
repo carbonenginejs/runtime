@@ -34,7 +34,7 @@ export class TriStepPresentSwapChain extends TriRenderStep
    * 2026-09-09 this called `renderContext.PresentSwapChain(...)`, a method
    * Carbon does not have, which reached an AL present that ignored the argument.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

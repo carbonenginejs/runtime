@@ -270,7 +270,7 @@ export class Tr2PointLight extends Tr2Light
    * @param {Float32Array|null} [bones] Packed Float4x3 bone matrices.
    * @param {number} [boneCount] Number of bones in `bones`.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, worldMatrix, bones = null, boneCount = 0)
   {

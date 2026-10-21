@@ -76,7 +76,7 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
   /**
    * Resolves the target element by semantic type or custom name, marking the generator valid only when it resolves.
    */
-  @blue.method
+
   @meta.implemented
   Bind(particleSystem, boundElements)
   {
@@ -90,7 +90,7 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
   /**
    * Advances and wraps a per-component running counter and writes it into the particle's element slot.
    */
-  @blue.method
+
   @meta.adapted
   Generate(position, velocity, index)
   {
@@ -112,7 +112,7 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
   /**
    * The bound element's component count, or zero when unbound.
    */
-  @blue.method
+
   @meta.implemented
   GetDimension()
   {
@@ -122,7 +122,7 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
   /**
    * The bound element's custom name, or its semantic type name.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {

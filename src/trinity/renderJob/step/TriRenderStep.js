@@ -39,7 +39,7 @@ export class TriRenderStep
    * Reports whether the owning job should run this step; disabled steps are
    * skipped without advancing any state.
    */
-  @blue.method
+
   @meta.implemented
   IsEnabled()
   {
@@ -50,7 +50,7 @@ export class TriRenderStep
    * Hook the owning job calls before Execute; the base step does nothing, and
    * subclasses use it to set up state that EndExecute tears down.
    */
-  @blue.method
+
   @meta.adapted
   BeginExecute()
   {
@@ -68,7 +68,7 @@ export class TriRenderStep
    * Hook the owning job calls after Execute, including when Execute threw; the
    * base step does nothing.
    */
-  @blue.method
+
   @meta.adapted
   EndExecute()
   {

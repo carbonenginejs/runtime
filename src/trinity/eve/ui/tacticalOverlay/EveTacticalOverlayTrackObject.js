@@ -51,7 +51,7 @@ export class EveTacticalOverlayTrackObject
    * Adapted: Carbon vector functions use output pointers; runtime curves use the established
    * time-first, out-last calling convention.
    */
-  @blue.method
+
   @meta.adapted
   UpdatePosition(updateContext)
   {
@@ -67,7 +67,7 @@ export class EveTacticalOverlayTrackObject
    * Adapted: Carbon returns Vector3 by value; JavaScript follows the runtime vector
    * out-parameter convention.
    */
-  @blue.method
+
   @meta.adapted
   GetVelocity(out = vec3.create())
   {
@@ -80,7 +80,7 @@ export class EveTacticalOverlayTrackObject
    * Adapted: Carbon returns Vector3 by value; JavaScript follows the runtime vector
    * out-parameter convention.
    */
-  @blue.method
+
   @meta.adapted
   GetPosition(out = vec3.create())
   {
@@ -88,7 +88,7 @@ export class EveTacticalOverlayTrackObject
   }
 
   /** Returns the authored radius the overlay sizes this object's marker from. */
-  @blue.method
+
   @meta.implemented
   GetRadius()
   {
@@ -99,7 +99,7 @@ export class EveTacticalOverlayTrackObject
    * Reports whether the object is flagged as aggressive, which the overlay uses
    * to choose its presentation.
    */
-  @blue.method
+
   @meta.implemented
   IsAggressive()
   {
@@ -107,7 +107,7 @@ export class EveTacticalOverlayTrackObject
   }
 
   /** Reports whether the overlay should draw this object's velocity indicator. */
-  @blue.method
+
   @meta.implemented
   ShowVelocity()
   {

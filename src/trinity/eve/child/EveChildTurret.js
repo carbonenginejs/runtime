@@ -275,7 +275,8 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** The turret's target tracker (Carbon exposes it as the READ attribute "target"). */
-  @meta.implemented
+  @meta.cjs
+    @meta.implemented
   GetTarget()
   {
     return this._target;
@@ -288,7 +289,8 @@ export class EveChildTurret extends EveChildMesh
    * Adapted: Carbon's by-value embed becomes an accessor; the flat Blue schema is preserved
    * on this class.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetAiming()
   {
     const aiming = this._aiming;
@@ -312,7 +314,7 @@ export class EveChildTurret extends EveChildMesh
    * (Carbon EveChildTurret.cpp:48-60). Adapted: JS LoadObject completes
    * asynchronously; calls needing the new effect wait for that completion.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -332,7 +334,7 @@ export class EveChildTurret extends EveChildMesh
    * Adapted: the firing effect loads asynchronously (_LoadFiringEffectFromPath)
    * where Carbon's LoadObject is synchronous.
    */
-  @blue.method
+
   @meta.adapted
   OnModified(value = null)
   {
@@ -354,7 +356,8 @@ export class EveChildTurret extends EveChildMesh
    * installs null, as the native typed load does; the prior effect remains
    * registered until its replacement arrives.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   async _LoadFiringEffectFromPath()
   {
     const request = ++this._firingEffectRequest;
@@ -374,7 +377,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** Registers the firing effect's entity half when displayed (Carbon cpp:73-84). */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -387,7 +390,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** Unregisters the firing effect's entity half; not display-gated (Carbon cpp:85-96). */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -405,7 +408,7 @@ export class EveChildTurret extends EveChildMesh
    * target tracker fed from the effect's start position (or this world
    * translation), and the movement observer following the world transform.
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -459,7 +462,7 @@ export class EveChildTurret extends EveChildMesh
    * transforms and target end position onto the firing effect - with the
    * late muzzle fallback to the turret root until geometry loads.
    */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
@@ -534,7 +537,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** Forwards visibility to the firing effect when displayed (Carbon cpp:262-270). */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
@@ -547,7 +550,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** Appends the firing effect's renderables when displayed (Carbon cpp:272-280). */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -568,7 +571,7 @@ export class EveChildTurret extends EveChildMesh
    * not ported yet.
    * @param {Tr2QuadRenderer} quadRenderer The quad renderer.
    */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -590,7 +593,7 @@ export class EveChildTurret extends EveChildMesh
    * @param {TriFrustum} frustum The view frustum.
    * @param {Tr2QuadRenderer} quadRenderer The quad renderer.
    */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -606,7 +609,7 @@ export class EveChildTurret extends EveChildMesh
    * Rebuilds the cached sysbone/muzzle lookups when the geometry resource
    * changes (Carbon cpp:302-315).
    */
-  @blue.method
+
   @meta.implemented
   UpdateCachedGeometryData()
   {
@@ -625,7 +628,7 @@ export class EveChildTurret extends EveChildMesh
    * muzzle bones, hooks the animation and forces the idle animation for the
    * current state (Carbon cpp:316-336; the sequencing is behavior).
    */
-  @blue.method
+
   @meta.implemented
   BuildCachedGeometryData(geometryRes)
   {
@@ -646,7 +649,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** Drops the cached geometry link and the muzzle stamp (Carbon cpp:337-341). */
-  @blue.method
+
   @meta.implemented
   ReleaseCachedGeometryData()
   {
@@ -831,7 +834,7 @@ export class EveChildTurret extends EveChildMesh
    * locator search uses THIS turret's world translation; the tracker's fire
    * source deliberately uses the PARENT transform's translation.
    */
-  @blue.method
+
   @meta.implemented
   SetupFiringState()
   {
@@ -928,7 +931,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** Force-plays the idle loop matching the current state (Carbon cpp:608-631). */
-  @blue.method
+
   @meta.implemented
   ForceIdleAnimation()
   {
@@ -990,7 +993,7 @@ export class EveChildTurret extends EveChildMesh
    * Adapted: Carbon's CCP_LOGERR for more firing bones than MUZZLECOUNT_MAX
    * (cpp:694-697) is not reproduced; the count is clamped as Carbon clamps it.
    */
-  @blue.method
+
   @meta.adapted
   InitializeFiringEffect()
   {
@@ -1021,7 +1024,7 @@ export class EveChildTurret extends EveChildMesh
    * hooked updater on swap (Carbon cpp:714-731). CleanUp performs Carbon's
    * destructor unhook.
    */
-  @blue.method
+
   @meta.implemented
   InitializeAnimation()
   {
@@ -1068,7 +1071,7 @@ export class EveChildTurret extends EveChildMesh
    * null for the pitch localTransform - only EveTurretSet uses the
    * behind-the-arm flip.
    */
-  @blue.method
+
   @meta.implemented
   ModifyPose(_skeleton, pose)
   {
@@ -1100,7 +1103,7 @@ export class EveChildTurret extends EveChildMesh
    * boneLocal * worldTransform, gl multiply(out, worldTransform, boneWorld)
    * (Carbon cpp:759-772).
    */
-  @blue.method
+
   @meta.implemented
   GetTurretBoneTransform(boneID, out = mat4.create())
   {
@@ -1117,7 +1120,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** The mesh's geometry resource, or null (Carbon cpp:774-777). */
-  @blue.method
+
   @meta.implemented
   GetGeometryRes()
   {
@@ -1129,7 +1132,7 @@ export class EveChildTurret extends EveChildMesh
    * once on the base layer and the idle loop forever after it; returns the
    * action animation's duration (Carbon cpp:779-802).
    */
-  @blue.method
+
   @meta.implemented
   PlayAnimation(animName, animNameIdle, delay = 0)
   {
@@ -1160,7 +1163,7 @@ export class EveChildTurret extends EveChildMesh
    * not a second digit.
    * @returns {string} The fire animation name.
    */
-  @blue.method
+
   @meta.implemented
   _GetFireAnimationName()
   {
@@ -1174,7 +1177,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** The firing effect module (Carbon cpp:817-820). */
-  @blue.method
+
   @meta.implemented
   GetFiringEffect()
   {
@@ -1186,7 +1189,7 @@ export class EveChildTurret extends EveChildMesh
    * its muzzle bones (Carbon cpp:822-835). Adapted: an explicit setter also
    * supersedes pending JS IO and resumes calls deferred by that IO.
    */
-  @blue.method
+
   @meta.adapted
   SetFiringEffect(firingEffect)
   {
@@ -1267,7 +1270,7 @@ export class EveChildTurret extends EveChildMesh
    * idle or switching targets. Null clears the target, dropping a targeting
    * or firing turret back to idle (Carbon EveChildTurret.cpp:837-864).
    */
-  @blue.method
+
   @meta.implemented
   SetTargetObject(target)
   {
@@ -1295,7 +1298,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** The tracked targetable, or null (Carbon cpp:866-869). */
-  @blue.method
+
   @meta.implemented
   GetTargetObject()
   {
@@ -1303,7 +1306,7 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** Scales the firing effect by the target's radius (Carbon cpp:871-878). */
-  @blue.method
+
   @meta.implemented
   SetTargetScale()
   {

@@ -93,7 +93,7 @@ export class TriStepCopyRenderTarget extends TriRenderStep
    * zero and trims the same amount off the copied region; a source viewport
    * with no extent copies nothing.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

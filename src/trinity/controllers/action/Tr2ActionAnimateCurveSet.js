@@ -46,7 +46,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Links this action to a controller and compiles its expression.
    * Adapted: a CSP-safe AST program replaces native parser bytecode.
    */
-  @blue.method
+
   @meta.adapted
   Link(controller)
   {
@@ -59,7 +59,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Adapted: the retained JS cache reset also zeros its timestamps, unlike native
    * Unlink which clears only the controller and evaluator.
    */
-  @blue.method
+
   @meta.adapted
   Unlink()
   {
@@ -71,7 +71,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Adapted: retains the JS optional-controller convenience and records the
    * supplied controller and last time; native Start only sets the start time.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller = this._runtime.controller)
   {
@@ -89,7 +89,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Stops timeline updates for this action.
    * Adapted: an omitted controller uses the stored JS link; no link is a no-op.
    */
-  @blue.method
+
   @meta.adapted
   Stop(controller = this._runtime.controller)
   {
@@ -99,7 +99,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
   /**
    * Rebases stored simulation time.
    */
-  @blue.method
+
   @meta.implemented
   RebaseSimTime(diff)
   {
@@ -114,7 +114,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * successful nonfinite results and target errors remain visible. Stored text does not
    * compile during Update; Link or OnModified owns recompilation.
    */
-  @blue.method
+
   @meta.adapted
   Update(_realTime, simTime)
   {
@@ -141,7 +141,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
   /**
    * Recompiles when the expression changes.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {

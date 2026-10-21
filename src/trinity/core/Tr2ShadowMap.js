@@ -246,7 +246,7 @@ export class Tr2ShadowMap
    * Adapted: The fixed PerSplitData arrays make split counts above Carbon's 16-slot capacity
    * fail immediately instead of corrupting adjacent native memory.
    */
-  @blue.method
+
   @meta.adapted
   Setup(elementSize, elementCount, useDenoiser)
   {
@@ -274,7 +274,7 @@ export class Tr2ShadowMap
    * shadow effect's debug option; a split-mode change applies the static splits
    * or resets the dynamic clip range; every notification refreshes the split count.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -299,7 +299,7 @@ export class Tr2ShadowMap
   }
 
   /** Changes whether an existing denoiser should be used for future results. */
-  @blue.method
+
   @meta.implemented
   ShouldUseDenoiser(value)
   {
@@ -318,7 +318,7 @@ export class Tr2ShadowMap
   }
 
   /** Recomputes geometric dynamic split endpoints when the clip range changes. */
-  @blue.method
+
   @meta.implemented
   UpdateSplitValues(nearClip, farClip)
   {
@@ -342,7 +342,7 @@ export class Tr2ShadowMap
    * Adapted: The caller supplies owned JS output containers; matrix bytes stay in logical
    * gl-matrix form and are never pre-transposed.
    */
-  @blue.method
+
   @meta.adapted
   static CalculateAABB(
     projection,
@@ -394,7 +394,7 @@ export class Tr2ShadowMap
    * Trinity stores the logical matrix for RawData's terminal transpose and reuses one
    * allocation-free result per split.
    */
-  @blue.method
+
   @meta.adapted
   SetupShadowSplit(splitIndex, invViewTransform, lightDirection, zNear, leftDivNear, rightDivNear, topDivNear, bottomDivNear)
   {
@@ -483,7 +483,7 @@ export class Tr2ShadowMap
    * @returns {object|null} The borrowed depth texture, or null when the pool
    *   could not supply one - which Carbon notes happens on a lost device.
    */
-  @blue.method
+
   @meta.implemented
   PrepareShadowRendering(gpuResourcePool, renderContext)
   {
@@ -524,7 +524,7 @@ export class Tr2ShadowMap
    * @param {object} renderContext The context to set the viewport on.
    * @param {number} splitIndex Which cascade split.
    */
-  @blue.method
+
   @meta.implemented
   BeginShadowRendering(renderContext, splitIndex)
   {
@@ -546,7 +546,7 @@ export class Tr2ShadowMap
    *
    * @param {object} renderContext The context to restore.
    */
-  @blue.method
+
   @meta.implemented
   EndShadowRendering(renderContext)
   {
@@ -589,7 +589,7 @@ export class Tr2ShadowMap
    * @param {object} renderer The renderer owning the blitter.
    * @returns {object|null} The shadow-factor target, or null without a pool.
    */
-  @blue.method
+
   @meta.adapted
   DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth, upscaling, renderer)
   {
@@ -636,7 +636,7 @@ export class Tr2ShadowMap
   }
 
   /** Returns the number of active cascade splits. */
-  @blue.method
+
   @meta.implemented
   GetShadowSplitCount()
   {
@@ -644,7 +644,7 @@ export class Tr2ShadowMap
   }
 
   /** Returns the square pixel size of one atlas cell. */
-  @blue.method
+
   @meta.implemented
   GetShadowMapSize()
   {
@@ -685,7 +685,7 @@ export class Tr2ShadowMap
   }
 
   /** Returns the logical effect used to resolve the screen-space shadow mask. */
-  @blue.method
+
   @meta.implemented
   GetShadowEffect()
   {
@@ -693,7 +693,7 @@ export class Tr2ShadowMap
   }
 
   /** Reports whether cascade-debug colouring is enabled. */
-  @blue.method
+
   @meta.implemented
   GetDebugSplitValue()
   {
@@ -701,7 +701,7 @@ export class Tr2ShadowMap
   }
 
   /** Returns Carbon's packed debug colour for a cascade colour index. */
-  @blue.method
+
   @meta.implemented
   GetDebugColors(switchCase)
   {

@@ -66,7 +66,7 @@ export class EveCustomMask
    * and target material weights in one call, substituting neutral defaults for
    * any argument that is missing.
    */
-  @blue.method
+
   @meta.adapted
   Setup(position, scaling, rotation, isMirrored, clampU, clampV, sourceMaterialID, targets)
   {
@@ -86,7 +86,7 @@ export class EveCustomMask
    * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
    * @returns {Array} out
    */
-  @blue.method
+
   @meta.adapted
   GetDebugDrawMatrix(out = mat4.create(), objectRadius = 0)
   {
@@ -100,7 +100,7 @@ export class EveCustomMask
    * @param {Number} index - custom-mask slot, 0 or 1
    * @returns {Boolean} false for an out-of-range slot, a missing struct, or a placement that cannot be inverted
    */
-  @blue.method
+
   @meta.adapted
   FillPerObjectData(index, vsData, psData)
   {
@@ -136,7 +136,7 @@ export class EveCustomMask
    * @param {Number} index - custom-mask slot, 0 or 1
    * @returns {Boolean} false for an out-of-range slot or a missing struct
    */
-  @blue.method
+
   @meta.adapted
   static ZeroPerObjectData(index, vsData, psData)
   {

@@ -110,7 +110,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   /**
    * Prepares existing geometry after reader population; JS arrays need no reserve.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -145,7 +145,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Explicit AL destruction replaces Carbon's empty reference-counted handles. */
-  @blue.method
+
   @meta.adapted
   ReleaseResources()
   {
@@ -154,7 +154,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Packs Carbon's native vertex records into mapped AL storage instead of memcpy. */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources()
   {
@@ -206,7 +206,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Native Tr2SolidSet draw dispatch, including the visible-buffer gate for picking. */
-  @blue.method
+
   @meta.implemented
   GetBatchesImpl(accumulator, perObjectData, effect, _reason)
   {

@@ -54,7 +54,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   }
 
   /** Retains the constructor's unique identity when parameters change. */
-  @blue.method
+
   @meta.noop
   GenerateID()
   {
@@ -72,7 +72,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * shared emission (cpp:18-53). Module scratch replaces C++ stack copies;
    * the schema's local attractor and other authored values remain unchanged.
    */
-  @blue.method
+
   @meta.adapted
   Update(arguments_)
   {

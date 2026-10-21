@@ -177,7 +177,7 @@ export class Tr2PPFogEffect extends Tr2PPEffect
   originalBrightenOnly = 0.5;
 
   /** Carbon Tr2PPFogEffect::IsActive override. */
-  @blue.method
+
   IsActive()
   {
     return this.display && this.intensity > 0;

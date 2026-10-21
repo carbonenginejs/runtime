@@ -40,7 +40,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   _materials = [];
 
   /** The shader resource name the animated texture binds to. */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -48,7 +48,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   }
 
   /** Content hash: the animation object's identity (Carbon hashes its pointer). */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -58,7 +58,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /**
    * Invalidates each registered material's resource sets on an animation edit.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -75,7 +75,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * one, and leaves the previous type in place otherwise; no GPU binding is
    * created.
    */
-  @blue.method
+
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -128,7 +128,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /**
    * Registers one material occurrence for animation-reference invalidation.
    */
-  @blue.method
+
   @meta.implemented
   OnAddedToMaterial(material)
   {
@@ -138,7 +138,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /**
    * Removes the first matching material registration, retaining duplicates.
    */
-  @blue.method
+
   @meta.implemented
   OnRemovedFromMaterial(material)
   {
@@ -153,7 +153,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * The animation's texture for this parameter's channel, or null when no
    * animation is attached.
    */
-  @blue.method
+
   @meta.adapted
   GetTexture()
   {

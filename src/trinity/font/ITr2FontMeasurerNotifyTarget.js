@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Font/Tr2FontMeasurer.h:20-24
 //
 //     class ITr2FontMeasurerNotifyTarget
@@ -25,6 +26,6 @@ export class ITr2FontMeasurerNotifyTarget
    * @param {import("./Tr2FontMeasurer.js").Tr2FontMeasurer} _measurer The measurer that changed.
    * @returns {void}
    */
-  @blue.abstract
+  @meta.abstract
   FontMeasurerChanged(_measurer) {}
 }

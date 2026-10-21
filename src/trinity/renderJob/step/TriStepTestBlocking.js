@@ -30,7 +30,7 @@ export class TriStepTestBlocking extends TriRenderStep
    * Adapted: Carbon logs the outcome through its own logger on each call; logging is a host
    * concern.
    */
-  @blue.method
+
   @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {

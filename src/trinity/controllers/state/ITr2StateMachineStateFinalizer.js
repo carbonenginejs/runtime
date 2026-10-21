@@ -20,14 +20,14 @@ export class ITr2StateMachineStateFinalizer
    *
    * @param {object} _controller The owning controller.
    */
-  @blue.method
+
   @meta.noop
   Link(_controller)
   {
   }
 
   /** Detaches this finalizer, dropping every reference to the controller. */
-  @blue.method
+
   @meta.noop
   Unlink()
   {

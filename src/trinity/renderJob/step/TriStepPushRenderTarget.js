@@ -33,7 +33,7 @@ export class TriStepPushRenderTarget extends TriRenderStep
    * Pushes the render target for its slot; every push needs a matching
    * TriStepPopRenderTarget in the same job or the job's stack guard unwinds it.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

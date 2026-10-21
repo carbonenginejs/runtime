@@ -123,7 +123,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Re-evaluates expressions in stored key order without sorting.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -134,7 +134,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Gets authored duration.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {
@@ -148,7 +148,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Updates cached value.
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {

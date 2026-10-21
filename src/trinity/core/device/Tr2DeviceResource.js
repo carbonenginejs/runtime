@@ -49,7 +49,7 @@ export class Tr2DeviceResource
    * released, TRISTORAGE_VIDEOMEMORY before a reset.
    * @param {number} _s TriStorageFlags.
    */
-  @blue.abstract
+  @meta.abstract
   ReleaseResources(_s)
   {
   }
@@ -81,7 +81,7 @@ export class Tr2DeviceResource
    * from PrepareResources, never directly.
    * @returns {boolean} Whether preparation succeeded.
    */
-  @blue.abstract
+  @meta.abstract
   OnPrepareResources()
   {
   }

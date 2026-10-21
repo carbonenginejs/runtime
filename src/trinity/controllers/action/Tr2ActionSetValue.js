@@ -91,7 +91,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * program replaces native bytecode and is retained until a value notification,
    * relink or unlink.
    */
-  @blue.method
+
   @meta.adapted
   Link(controller)
   {
@@ -106,7 +106,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Unlinks the destination binding.
    */
-  @blue.method
+
   @meta.implemented
   Unlink()
   {
@@ -127,7 +127,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * The existing no-argument/unlinked JavaScript convenience remains; Carbon
    * requires an invocation controller reference.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller = this._controller)
   {
@@ -154,7 +154,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Relinks or recompiles when authored fields change.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -174,7 +174,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Checks whether the binding currently resolves.
    */
-  @blue.method
+
   @meta.implemented
   IsBindingValid()
   {
@@ -340,7 +340,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   }
 
   /** Carbon LinkDestination (Tr2ActionSetValue.cpp:103-106): link against the controller's roots. */
-  @blue.method
+
   @meta.implemented
   LinkDestination(controller = this._controller)
   {
@@ -351,7 +351,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Checks whether binding is deferred to Start, which requires both the
    * delayBinding flag and an authored path.
    */
-  @blue.method
+
   @meta.implemented
   HasDelayedBinding()
   {

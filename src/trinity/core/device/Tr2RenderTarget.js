@@ -216,7 +216,7 @@ export class Tr2RenderTarget
    * Carbon `GetTexture` (`cpp:237-245`): the texture, only when it can be
    * sampled.
    */
-  @blue.method
+
   @meta.implemented
   GetTexture()
   {
@@ -231,7 +231,7 @@ export class Tr2RenderTarget
    *
    * @returns {Tr2Event} m_onTextureChange.
    */
-  @blue.method
+
   @meta.implemented
   OnTextureChange()
   {
@@ -242,7 +242,7 @@ export class Tr2RenderTarget
    * Carbon `Attach` (`cpp:262-271`): reference an AL render target someone
    * else owns, such as a swap-chain back buffer.
    */
-  @blue.method
+
   @meta.implemented
   Attach(renderTarget, owner)
   {
@@ -256,7 +256,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `Detach` (`cpp:277-285`). */
-  @blue.method
+
   @meta.implemented
   Detach()
   {
@@ -270,7 +270,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `IsAttached` (`cpp:294-297`). */
-  @blue.method
+
   @meta.implemented
   IsAttached()
   {
@@ -283,7 +283,7 @@ export class Tr2RenderTarget
    *
    * @returns {object|null} The `Tr2TextureAL`.
    */
-  @blue.method
+
   @meta.implemented
   GetRenderTarget()
   {
@@ -291,7 +291,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `IsValid` (`cpp:328-331`). */
-  @blue.method
+
   @meta.implemented
   IsValid()
   {
@@ -299,7 +299,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `Destroy` (`cpp:333-352`): releases the owned texture and resets. */
-  @blue.method
+
   @meta.implemented
   Destroy()
   {
@@ -328,7 +328,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `IsReadable` (`cpp:354-357`). */
-  @blue.method
+
   @meta.implemented
   IsReadable()
   {
@@ -379,7 +379,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetWidth` (`cpp:411-414`). */
-  @blue.method
+
   @meta.implemented
   GetWidth()
   {
@@ -387,7 +387,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetHeight` (`cpp:422-425`). */
-  @blue.method
+
   @meta.implemented
   GetHeight()
   {
@@ -395,7 +395,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetMipCount` (`cpp:433-436`). */
-  @blue.method
+
   @meta.implemented
   GetMipCount()
   {
@@ -403,7 +403,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetArraySize` (`cpp:444-447`). */
-  @blue.method
+
   @meta.implemented
   GetArraySize()
   {
@@ -411,7 +411,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetMsaaType` (`cpp:455-458`). */
-  @blue.method
+
   @meta.implemented
   GetMsaaType()
   {
@@ -419,7 +419,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetMsaaQuality` (`cpp:466-469`). */
-  @blue.method
+
   @meta.implemented
   GetMsaaQuality()
   {
@@ -427,7 +427,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetFormat` (`cpp:477-480`). */
-  @blue.method
+
   @meta.implemented
   GetFormat()
   {
@@ -435,7 +435,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetType` (`cpp:482-485`). */
-  @blue.method
+
   @meta.implemented
   GetType()
   {
@@ -443,7 +443,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `SetName` (`cpp:44-48`), which names the texture too. */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -452,7 +452,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetName` (`cpp:50-53`). */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -463,7 +463,7 @@ export class Tr2RenderTarget
    * Carbon `ReleaseResources` (`cpp:488-495`): drop the owned texture when its
    * memory class is being released.
    */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(storage)
   {
@@ -480,7 +480,7 @@ export class Tr2RenderTarget
    * Carbon `OnPrepareResources` (`cpp:498-508`): recreate a released texture
    * from the parameters it was made with.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {

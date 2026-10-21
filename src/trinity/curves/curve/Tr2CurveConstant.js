@@ -53,8 +53,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {number} _time Time in seconds.
    * @returns {void}
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   UpdateValue(_time)
   {
   }
@@ -66,7 +66,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -85,7 +85,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @blue.method
+
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -129,8 +129,8 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {number} _scale Curve parameter.
    * @returns {void}
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   ScaleTime(_scale)
   {
   }
@@ -142,7 +142,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+
   @meta.implemented
   GetValueDotAt(_time, out)
   {
@@ -156,7 +156,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+
   @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
@@ -170,7 +170,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+
   @meta.adapted
   InterpolatedPosition(_time, out)
   {

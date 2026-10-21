@@ -39,7 +39,7 @@ export class EveSOFDataHullController
    * Derives the controller resource's basename without its extension when a
    * forward-slash-qualified path is available.
    */
-  @blue.method
+
   GetName()
   {
     const slash = this.path.lastIndexOf("/");

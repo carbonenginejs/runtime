@@ -345,7 +345,7 @@ export class Tr2GpuParticleSystem
   }
 
   /** Carbon InitializeBuffers (cpp:125-134): the GPU buffer objects, created empty. */
-  @blue.method
+
   @meta.implemented
   InitializeBuffers()
   {
@@ -362,7 +362,7 @@ export class Tr2GpuParticleSystem
    * Carbon RegisterVariables (cpp:140-149): the buffers, by the names the
    * effects bind them under.
    */
-  @blue.method
+
   @meta.implemented
   RegisterVariables()
   {
@@ -382,7 +382,7 @@ export class Tr2GpuParticleSystem
    *
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -402,7 +402,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {number} maxParticles The capacity.
    */
-  @blue.method
+
   @meta.implemented
   SetMaxParticles(maxParticles)
   {
@@ -417,7 +417,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {number} storage The TriStorage mask being released.
    */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(storage)
   {
@@ -434,7 +434,7 @@ export class Tr2GpuParticleSystem
    *
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -489,7 +489,7 @@ export class Tr2GpuParticleSystem
    * @param {string} propertyName The Blue name that changed.
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -506,7 +506,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {object|null} effect A Tr2Effect.
    */
-  @blue.method
+
   @meta.implemented
   SetVariableStore(effect)
   {
@@ -533,7 +533,7 @@ export class Tr2GpuParticleSystem
    * @param {Float32Array|number[]} originShift The world origin shift since the previous frame.
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   Update(time, originShift, renderContext)
   {
@@ -596,7 +596,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} _renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.notImplemented
   UpdateLiveCount(_renderContext)
   {
@@ -611,7 +611,7 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {boolean} Whether the clear kernel ran.
    */
-  @blue.method
+
   @meta.implemented
   DoClear(renderContext)
   {
@@ -633,7 +633,7 @@ export class Tr2GpuParticleSystem
    * @param {Float32Array|number[]} originShift The world origin shift.
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   RunSimulation(dt, originShift, renderContext)
   {
@@ -677,7 +677,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {number} dt The frame time.
    */
-  @blue.method
+
   @meta.adapted
   ExpireEmitterParams(dt)
   {
@@ -701,7 +701,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   UpdateEmitterParams(renderContext)
   {
@@ -756,7 +756,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   UpdateGpuEmitterParams(renderContext)
   {
@@ -780,7 +780,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   EmitParticles(renderContext)
   {
@@ -807,7 +807,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   Sort(renderContext)
   {
@@ -845,7 +845,7 @@ export class Tr2GpuParticleSystem
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {boolean} Whether this was the last level.
    */
-  @blue.method
+
   @meta.implemented
   SortIncremental(presorted, renderContext)
   {
@@ -891,7 +891,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   Render(renderContext)
   {
@@ -908,7 +908,7 @@ export class Tr2GpuParticleSystem
    *
    * @param {object} renderContext The Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   SubmitGeometry(renderContext)
   {
@@ -932,7 +932,7 @@ export class Tr2GpuParticleSystem
    * @param {number} hash The params' hash.
    * @param {object} params A Tr2GpuSharedEmitter params record.
    */
-  @blue.method
+
   @meta.adapted
   Emit(emitter, id, hash, params)
   {
@@ -970,7 +970,7 @@ export class Tr2GpuParticleSystem
    * MAP_PROPERTY_READONLY rows (Tr2GpuParticleSystem_Blue.cpp:89-104) stay
    * unconverted until these Gets exist, since a reading getter would throw.
    */
-  @blue.method
+
   @meta.notImplemented
   GetEmitTime()
   {
@@ -978,7 +978,7 @@ export class Tr2GpuParticleSystem
   }
 
   /** Carbon GetUpdateTime (cpp:737-740); see GetEmitTime. Waiting: its "updateTime" property. */
-  @blue.method
+
   @meta.notImplemented
   GetUpdateTime()
   {
@@ -986,7 +986,7 @@ export class Tr2GpuParticleSystem
   }
 
   /** Carbon GetSortTime (cpp:742-745); see GetEmitTime. Waiting: its "sortTime" property. */
-  @blue.method
+
   @meta.notImplemented
   GetSortTime()
   {
@@ -994,7 +994,7 @@ export class Tr2GpuParticleSystem
   }
 
   /** Carbon GetRenderTime (cpp:747-750); see GetEmitTime. Waiting: its "renderTime" property. */
-  @blue.method
+
   @meta.notImplemented
   GetRenderTime()
   {
@@ -1007,7 +1007,7 @@ export class Tr2GpuParticleSystem
    *
    * @returns {boolean} Whether any particle may be alive.
    */
-  @blue.method
+
   @meta.implemented
   HasParticles()
   {

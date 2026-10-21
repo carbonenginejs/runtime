@@ -54,7 +54,7 @@ export class Tr2PPFilmGrainEffect extends Tr2PPEffect
   colored = true;
 
   /** Carbon Tr2PPFilmGrainEffect::IsActive override. */
-  @blue.method
+
   IsActive()
   {
     return this.display && this.intensity > 0;

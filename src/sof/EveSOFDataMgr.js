@@ -141,7 +141,7 @@ export class EveSOFDataMgr
    * Returns the normalized hull projection for an exact key, or null when
    * absent.
    */
-  @blue.method
+
   @meta.implemented
   GetHullData(name)
   {
@@ -160,7 +160,7 @@ export class EveSOFDataMgr
    * Returns the normalized faction projection for an exact key, or null when
    * absent.
    */
-  @blue.method
+
   @meta.implemented
   GetFactionData(name)
   {
@@ -179,7 +179,7 @@ export class EveSOFDataMgr
    * Returns the normalized race projection for an exact key, or null when
    * absent.
    */
-  @blue.method
+
   @meta.implemented
   GetRaceData(name)
   {
@@ -198,7 +198,7 @@ export class EveSOFDataMgr
    * Returns the normalized material projection for an exact key, or null when
    * absent.
    */
-  @blue.method
+
   @meta.implemented
   GetMaterialData(name)
   {
@@ -217,7 +217,7 @@ export class EveSOFDataMgr
    * Returns the normalized pattern projection for an exact key, or null when
    * absent.
    */
-  @blue.method
+
   @meta.implemented
   GetPatternData(name)
   {
@@ -225,7 +225,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact layout key in the manager's normalized projection table. */
-  @blue.method
+
   @meta.implemented
   HasLayoutData(name)
   {
@@ -233,7 +233,7 @@ export class EveSOFDataMgr
   }
 
   /** Carbon's GetLayoutData( name ) (EveSOFDataMgr.cpp:321): one layout, or null. */
-  @blue.method
+
   @meta.implemented
   GetLayoutData(name)
   {
@@ -263,7 +263,7 @@ export class EveSOFDataMgr
    * Exposes the current normalized generic projection used by DNA and SOF
    * assembly.
    */
-  @blue.method
+
   @meta.implemented
   GetGenericData()
   {

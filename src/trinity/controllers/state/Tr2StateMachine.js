@@ -87,7 +87,7 @@ export class Tr2StateMachine
    * @param {IList|null} [list=this.states] Emitting list identity.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.states)
   {
@@ -125,7 +125,7 @@ export class Tr2StateMachine
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -139,7 +139,7 @@ export class Tr2StateMachine
    * @param {number} newTime Replacement simulation time in Blue ticks.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
@@ -157,7 +157,7 @@ export class Tr2StateMachine
    * @param {Tr2Controller} controller Controller owning this machine.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Link(controller)
   {
@@ -174,7 +174,7 @@ export class Tr2StateMachine
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
@@ -198,7 +198,7 @@ export class Tr2StateMachine
    * Adapted: BigInt preserves the native all-bits uint64 dirty mask.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Start()
   {
@@ -222,7 +222,7 @@ export class Tr2StateMachine
    * Stops the current state.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Stop()
   {
@@ -241,7 +241,7 @@ export class Tr2StateMachine
    * @param {bigint} [dirtyVariables=0n] Variables changed by the controller.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Update(dirtyVariables = 0n)
   {
@@ -255,7 +255,7 @@ export class Tr2StateMachine
    * Gets the linked controller.
    * @returns {Tr2Controller|null} Linked controller, or null while unlinked.
    */
-  @blue.method
+
   @meta.implemented
   GetController()
   {
@@ -286,7 +286,7 @@ export class Tr2StateMachine
    * @param {string} name Authored state name.
    * @returns {Tr2StateMachineState|null} Matching state, or null when absent.
    */
-  @blue.method
+
   @meta.implemented
   GetStateByName(name)
   {
@@ -298,7 +298,7 @@ export class Tr2StateMachine
    * difference in ticks, converted with TimeAsFloat (`Tr2StateMachine.cpp:206-209`).
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
-  @blue.method
+
   @meta.implemented
   GetMachineRunTime()
   {
@@ -309,7 +309,7 @@ export class Tr2StateMachine
    * Gets seconds since the current state started (`Tr2StateMachine.cpp:211-214`).
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
-  @blue.method
+
   @meta.implemented
   GetStateRunTime()
   {
@@ -334,7 +334,7 @@ export class Tr2StateMachine
    * @param {bigint} dirtyVariables Variables changed for the first transition.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   _FollowTransitions(dirtyVariables)
   {

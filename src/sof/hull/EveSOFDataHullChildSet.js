@@ -36,7 +36,7 @@ export class EveSOFDataHullChildSet
   }
 
   /** Uses the child set's visibility group as its externally comparable name. */
-  @blue.method
+
   GetName()
   {
     return this.visibilityGroup;

@@ -34,7 +34,7 @@ export class EveModularObjectModifier
   static _pendingEdits = new WeakMap();
 
   /** Opens an edit session and creates persistent part data when absent. */
-  @blue.method
+
   @meta.adapted
   Create(object, sof, objectLoader = null)
   {
@@ -358,7 +358,7 @@ export class EveModularObjectModifier
   }
 
   /** Finds an unused nonzero tag across recorded parts and attached children. */
-  @blue.method
+
   _AllocatePartId()
   {
     let id = this._data.GetUnusedPartID();
@@ -371,7 +371,7 @@ export class EveModularObjectModifier
   }
 
   /** Refreshes the owning impact overlay after the locator graph changes. */
-  @blue.method
+
   _UpdateImpactOverlayLocatorCount()
   {
     if (!this._object.impactOverlay) return;

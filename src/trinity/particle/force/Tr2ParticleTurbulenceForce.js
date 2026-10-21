@@ -44,7 +44,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
    *
    * Adapted: Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.
    */
-  @blue.method
+
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
@@ -85,7 +85,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
   /**
    * Advances the time accumulator that animates the turbulence field.
    */
-  @blue.method
+
   @meta.implemented
   Update(dt)
   {

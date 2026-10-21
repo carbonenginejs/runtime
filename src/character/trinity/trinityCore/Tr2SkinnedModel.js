@@ -64,7 +64,7 @@ export class Tr2SkinnedModel extends Tr2Model
   skinScale = vec3.fromValues(1, 1, 1);
 
   /** Carbon OnModified (Tr2SkinnedModel.cpp:226-238): a new geometry path or skeleton name re-initialises. */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -85,7 +85,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * when it already is).
    * @returns {boolean} true
    */
-  @blue.method
+
   @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   Initialize()
@@ -125,7 +125,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon ReleaseCachedData (Tr2SkinnedModel.cpp:240-243): forgets the selected skeleton. */
-  @blue.method
+
   @meta.implemented
   ReleaseCachedData(_resource = null)
   {
@@ -136,7 +136,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * Carbon RebuildCachedData (Tr2SkinnedModel.cpp:245-262): selects the first skeleton named skeletonName.
    * @param {TriGeometryRes|null} [_resource] - the notifying resource; the model reads its own geometryRes
    */
-  @blue.method
+
   @meta.implemented
   RebuildCachedData(_resource = null)
   {
@@ -160,7 +160,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * Carbon GetSkeleton (Tr2SkinnedModel.cpp:264-272).
    * @returns {object|null} the selected payload skeleton, or null when none is selected
    */
-  @blue.method
+
   @meta.implemented
   GetSkeleton()
   {
@@ -179,7 +179,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * @param {number} numBones
    * @param {boolean} forceRebind
    */
-  @blue.method
+
   @meta.implemented
   BindToRig(boneList, numBones, forceRebind)
   {
@@ -234,7 +234,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** Carbon SetGeometryResPath (Tr2SkinnedModel.h:72-75): sets the path without re-initialising. */
   @meta.implemented
-  @blue.method
+
   SetGeometryResPath(path)
   {
     this.geometryResPath = path;
@@ -242,7 +242,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** Carbon GetGeometryResPath (Tr2SkinnedModel.h:76-79). */
   @meta.implemented
-  @blue.method
+
   GetGeometryResPath()
   {
     return this.geometryResPath;
@@ -250,7 +250,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** Carbon SetSkeletonName (Tr2SkinnedModel.h:80-83): sets the name without re-initialising. */
   @meta.implemented
-  @blue.method
+
   SetSkeletonName(name)
   {
     this.skeletonName = name;
@@ -265,7 +265,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * @returns {boolean} false when the model has no meshes
    */
   @meta.implemented
-  @blue.method
+
   GetDynamicBoundingBox(boneTransforms, minBounds, maxBounds)
   {
     if (!this.meshes.length)

@@ -68,7 +68,7 @@ export class DroneAvoidance
   _returnForces = [];
 
   /** Carbon DroneAvoidance::GetProcessPriority (cpp:22-25). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -91,7 +91,7 @@ export class DroneAvoidance
    * @param {Array} dronesInSearchRadius - per-agent neighbour lists
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, dronesInSearchRadius)
   {
@@ -210,7 +210,7 @@ export class DroneAvoidance
   }
 
   /** Carbon DroneAvoidance::GetBehaviorSearchRadius (cpp:132-144). */
-  @blue.method
+
   @meta.implemented
   GetBehaviorSearchRadius()
   {
@@ -227,7 +227,7 @@ export class DroneAvoidance
    * Carbon DroneAvoidance::GetDebugOptions (cpp:146-149).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -242,7 +242,7 @@ export class DroneAvoidance
    * @param {Array} agents DroneAgent records.
    * @param {mat4} parentWorldLocation Places the agents in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, agents, parentWorldLocation)
   {

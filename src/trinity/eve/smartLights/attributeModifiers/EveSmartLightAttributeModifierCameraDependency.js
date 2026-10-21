@@ -121,7 +121,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * update the child modifiers here
    * (EveSmartLightAttributeModifierCameraDependency.cpp:31-34).
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
@@ -132,7 +132,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Scales the child modifiers by the camera-dependent activation value
    * (EveSmartLightAttributeModifierCameraDependency.cpp:106-117).
    */
-  @blue.method
+
   @meta.implemented
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength)
   {
@@ -153,7 +153,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * [minimumActivation, maximumActivation] range
    * (EveSmartLightAttributeModifierCameraDependency.cpp:95-104).
    */
-  @blue.method
+
   @meta.implemented
   _GetActivationValue(objectPosition, entityDirection)
   {
@@ -176,7 +176,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   }
 
   /** Normalized camera-distance ramp (EveSmartLightAttributeModifierCameraDependency.cpp:36-50). */
-  @blue.method
+
   _GetDistanceAmplitude(vec2obj)
   {
     if (!this.useCameraDistance)
@@ -196,7 +196,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Camera look-at cone amplitude
    * (EveSmartLightAttributeModifierCameraDependency.cpp:52-72).
    */
-  @blue.method
+
   @meta.implemented
   _GetLookAtAmplitude(vec2obj)
   {
@@ -223,7 +223,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   }
 
   /** Entity-facing amplitude (EveSmartLightAttributeModifierCameraDependency.cpp:74-93). */
-  @blue.method
+
   _GetPlacementAmplitude(vec2obj, entityDirection)
   {
     if (!this.useCameraPlacement)

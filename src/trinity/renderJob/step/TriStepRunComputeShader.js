@@ -57,7 +57,7 @@ export class TriStepRunComputeShader extends TriRenderStep
    * Carbon Execute (TriStepRunComputeShader.cpp:37-55): dispatches through
    * Tr2Renderer, indirectly from the provider's buffer when one is bound.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

@@ -18,7 +18,7 @@ export class Tr2PPSignalLossEffect extends Tr2PPEffect
   strength = 0;
 
   /** Carbon Tr2PPSignalLossEffect::IsActive override. */
-  @blue.method
+
   IsActive()
   {
     return this.display && this.strength > 0;

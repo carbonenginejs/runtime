@@ -25,7 +25,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   /**
    * Checks whether vector track handles are ready.
    */
-  @blue.method
+
   @meta.implemented
   TracksReady()
   {
@@ -35,7 +35,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   /**
    * Clears vector track handles.
    */
-  @blue.method
+
   @meta.implemented
   ResetTracks()
   {
@@ -45,7 +45,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   /**
    * Applies vector track handles.
    */
-  @blue.method
+
   @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
@@ -69,7 +69,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
    * GetKeyFrameAtT, anything else with the Granny evaluator stand-in
    * (Tr2GrannyVectorTrack.cpp:21-32).
    */
-  @blue.method
+
   @meta.adapted
   UpdateValueImpl(time)
   {

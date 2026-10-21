@@ -64,8 +64,8 @@ export class Tr2ExpressionTermInfo
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
   @meta.implemented
-  @blue.method
-  @meta.renamed("Variable")
+
+
   static variable(category, name, description)
   {
     return Tr2ExpressionTermInfo._create(TermType.VARIABLE, category, name, [], description);
@@ -81,8 +81,8 @@ export class Tr2ExpressionTermInfo
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
   @meta.adapted
-  @blue.method
-  @meta.renamed("Function")
+
+
   static function(category, name, ...argumentsAndDescription)
   {
     const values = argumentsAndDescription.slice();
@@ -99,8 +99,8 @@ export class Tr2ExpressionTermInfo
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
   @meta.implemented
-  @blue.method
-  @meta.renamed("StringFunction")
+
+
   static stringFunction(category, name, argument, description)
   {
     return Tr2ExpressionTermInfo._create(TermType.STRING_FUNCTION, category, name, [argument], description);

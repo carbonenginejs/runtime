@@ -26,7 +26,7 @@ export class Tr2PPGenericEffect extends Tr2PPEffect
   effect = null;
 
   /** Returns the wrapped effect, which may be null when none was authored. */
-  @blue.method
+
   GetEffect()
   {
     return this.effect;

@@ -150,7 +150,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
    *
    * Uses the shared particle RNG for capsule sampling and interpolation.
    */
-  @blue.method
+
   @meta.adapted
   Generate(parentPosition, parentVelocity, index)
   {
@@ -207,7 +207,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * A label saying whether the generator controls position only, or position and velocity.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {

@@ -31,7 +31,7 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
   scaleCurve = null;
 
   /** Reports a transform effect whenever a non-zero scale factor is authored. */
-  @blue.method
+
   @meta.implemented
   AffectsTransform()
   {
@@ -43,7 +43,7 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
    *
    * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
    */
-  @blue.method
+
   @meta.adapted
   ProcessDistributionModifier(placement, _deltaTime, params)
   {

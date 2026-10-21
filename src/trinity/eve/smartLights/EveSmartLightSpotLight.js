@@ -80,7 +80,7 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
    * @param {Array<object>} placements Placement data with identifiers.
    * @param {number} size Number of placements to draw.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, placements, size)
   {

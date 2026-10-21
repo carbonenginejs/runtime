@@ -46,7 +46,7 @@ export class Tr2ShaderBuffer
    * Sets which shader stage this buffer belongs to; a non-numeric value becomes
    * 0.
    */
-  @blue.method
+
   SetShaderType(shaderType)
   {
     this.shaderType = Number(shaderType) || 0;
@@ -59,7 +59,7 @@ export class Tr2ShaderBuffer
    * @returns {boolean} Whether the upload and binding succeeded.
    */
   @meta.implemented
-  @blue.method
+
   ApplyBuffer(renderContext)
   {
     return Tr2RenderUtils.fillAndSetConstants(

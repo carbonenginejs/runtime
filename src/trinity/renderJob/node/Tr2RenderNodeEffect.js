@@ -45,7 +45,7 @@ export class Tr2RenderNodeEffect
    * Adapted: Tr2BitmapDimensions spans are represented by JavaScript arrays of value
    * records.
    */
-  @blue.method
+
   @meta.adapted
   Validate(destinationDimensions, outputs, realTime, simTime)
   {

@@ -38,7 +38,7 @@ export class TriStepPythonCB extends TriRenderStep
   /**
    * Invokes the host callback and reports the step complete.
    */
-  @blue.method
+
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

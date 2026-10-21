@@ -17,7 +17,7 @@ export class IRenderCallback
    * @param {object} _renderContext The `Tr2RenderContext` to draw on.
    * @returns {void}
    */
-  @blue.abstract
+  @meta.abstract
   SubmitGeometry(_renderContext) {}
 
 }

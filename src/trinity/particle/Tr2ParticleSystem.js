@@ -415,7 +415,7 @@ export class Tr2ParticleSystem
    * threaded, so the contract is an exact no-op at this layer.
    */
   @blue.method
-  @meta.noop
+  @meta.adapted
   SetThreadSafeFlag()
   {
   }
@@ -1085,7 +1085,8 @@ export class Tr2ParticleSystem
   /**
    * Resolves the runtime element matching a semantic type index or element name.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetElement(type)
   {
     return this._ResolveElement(type);
@@ -1154,7 +1155,7 @@ export class Tr2ParticleSystem
    * InsertParticle. JS never creates that mutex (see SetThreadSafeFlag), so there is nothing to release.
    */
   @blue.method
-  @meta.noop
+  @meta.adapted
   DoneInsertingParticle()
   {
   }
@@ -1197,7 +1198,8 @@ export class Tr2ParticleSystem
   /**
    * Reserves a new particle slot and writes each supplied attribute into its matching element buffer.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   SpawnParticle(values = {})
   {
     const index = this.BeginSpawnParticle();
@@ -1224,7 +1226,8 @@ export class Tr2ParticleSystem
    * Writes a scalar or vector into a resolved element. This existing JS
    * script setter marks data dirty like Carbon's constraint-write path.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   SetParticleElement(index, type, value)
   {
     const element = this._ResolveElement(type);
@@ -1252,7 +1255,8 @@ export class Tr2ParticleSystem
   /**
    * A view onto one particle's stored values for the resolved element, or null when unresolved or out of range.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetParticleElement(index, type)
   {
     const element = this._ResolveElement(type);
@@ -1507,7 +1511,7 @@ export class Tr2ParticleSystem
    * order means nothing; this Set's insertion order serves.
    * @returns {Set<Tr2ParticleSystem>}
    */
-  @meta.renamed("GetAllSystems")
+
   static getAllSystems()
   {
     return Tr2ParticleSystem._allSystems;
@@ -1525,7 +1529,7 @@ export class Tr2ParticleSystem
    * @param {ITr2GenericEmitterUpdateArguments} updateArguments
    */
   @meta.adapted
-  @meta.renamed("UpdateAllSystems")
+
   static updateAllSystems(updateArguments)
   {
     if (Tr2ParticleSystem._previousUpdateTime !== -1 && Tr2ParticleSystem._previousUpdateTime === updateArguments.time)

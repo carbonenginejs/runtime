@@ -170,7 +170,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the effect that draws the haze volumes. */
-  @blue.method
+
   @meta.implemented
   Setup(effect)
   {
@@ -178,7 +178,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon Initialize (cpp:77-82): the device half, then the bounds. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -208,7 +208,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Adapted: the allocation's own parent stands in for g_sharedBuffer, since
    * the shared buffer here is per render context (TriGeometryResAllocations).
    */
-  @blue.method
+
   @meta.adapted
   ReleaseResources(_storage)
   {
@@ -223,7 +223,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * index and bone index - into the shared buffer, and quad-list indices for
    * all of them.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -287,7 +287,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon GetBatches (cpp:254-292): one additive batch of all the boxes,
    * indexed as quads, never in a reflection.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -315,7 +315,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon CreateBoundingBox (EveHazeSet.cpp:245-248): one delegation to the
    * shared item-set helper, always skinned.
    */
-  @blue.method
+
   @meta.implemented
   CreateBoundingBox()
   {
@@ -325,7 +325,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /** Carbon EveHazeSet::UpdateVisibility (cpp:208-218). Unlike the other sets
    * this one has no GetAabb of its own and never gates the bone count, because
    * its bounds are always built skinned. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
@@ -349,7 +349,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Appends an authored haze item; the bounds only pick it up on the next
    * Rebuild.
    */
-  @blue.method
+
   @meta.implemented
   AddHazeItem(item)
   {
@@ -360,7 +360,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon EveHazeSet::GetDebugOptions (cpp:319-323).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -384,7 +384,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
    * @param {number} boneCount
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
@@ -469,7 +469,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /**
    * Sets a shader option on the haze effect, doing nothing when no effect is attached.
    */
-  @blue.method
+
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -483,7 +483,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveHazeSetLight and
    * appends it to the set.
    */
-  @blue.method
+
   @meta.adapted
   AddLightFromSOF(light)
   {
@@ -492,7 +492,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveHazeSet::RegisterComponents (cpp:394-401): LightOwner when
    * lights are authored. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -513,7 +513,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * gets only the parent transform. Binding 0 is a mesh bone binding and can
    * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
    * Normal2Warp - so ours applies bone 0 like any other. */
-  @blue.method
+
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
   {
@@ -546,7 +546,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    *
    * Adapted: Profile-index packing is by-reference per lightConversion.js conventions.
    */
-  @blue.method
+
   @meta.adapted
   GetLights(lightManager)
   {

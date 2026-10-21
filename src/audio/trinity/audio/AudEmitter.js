@@ -103,7 +103,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method HandleEvent (IBlueEventListener): event tracks post directly on this emitter. */
-  @blue.method
+
   @meta.implemented
   HandleEvent(eventName)
   {
@@ -132,7 +132,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method UpdatePlacement: placement observers forward here. */
-  @blue.method
+
   @meta.implemented
   UpdatePlacement(front, top, position)
   {
@@ -143,7 +143,7 @@ export class AudEmitter extends AudGameObjResource
   // to [minNormalizedScalingFactor, maxNormalizedScalingFactor]. Carbon does
   // NOT clamp - out-of-domain inputs extrapolate. Preserved.
   /** Carbon method SetAttenuationScalingFactor: optional normalization, then base store/push. */
-  @blue.method
+
   @meta.implemented
   SetAttenuationScalingFactor(scalingFactor)
   {
@@ -159,7 +159,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SetName (ITr2AudEmitter). */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -167,7 +167,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method GetName (ITr2AudEmitter). */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -175,7 +175,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SetPrefix (ITr2AudEmitter). */
-  @blue.method
+
   @meta.implemented
   SetPrefix(prefix)
   {
@@ -183,7 +183,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SetVisibility (ITr2AudEmitter). */
-  @blue.method
+
   @meta.implemented
   SetVisibility(isVisible)
   {

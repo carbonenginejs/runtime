@@ -67,7 +67,7 @@ export class ApproachGroup
   _returnForces = [];
 
   /** Carbon ApproachGroup::GetProcessPriority (cpp:22-25). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -90,7 +90,7 @@ export class ApproachGroup
    * @param {Array} dronesInSearchRadius - per-agent neighbour lists
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, dronesInSearchRadius)
   {
@@ -184,7 +184,7 @@ export class ApproachGroup
   }
 
   /** Carbon ApproachGroup::GetBehaviorSearchRadius (cpp:108-120). */
-  @blue.method
+
   @meta.implemented
   GetBehaviorSearchRadius()
   {
@@ -201,7 +201,7 @@ export class ApproachGroup
    * Carbon ApproachGroup::GetDebugOptions (cpp:122-125).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -216,7 +216,7 @@ export class ApproachGroup
    * @param {Array} agents DroneAgent records.
    * @param {mat4} parentWorldLocation Places the agents in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, agents, parentWorldLocation)
   {

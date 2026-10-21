@@ -49,7 +49,7 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * Seeds the listener from its default value before the base crossfade seed
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:15-21).
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -64,7 +64,7 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * flag is edited, then defers to the base active-edit handling
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:23-39).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -78,7 +78,7 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * and the value always fans out to the child modifiers
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:41-60).
    */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {

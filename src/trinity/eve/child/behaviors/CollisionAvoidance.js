@@ -53,7 +53,7 @@ export class CollisionAvoidance
   _volumeCenters = [];
 
   /** Carbon CollisionAvoidance::GetProcessPriority (cpp:18-21). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -72,7 +72,7 @@ export class CollisionAvoidance
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @blue.method
+
   @meta.implemented
   CalculateBehavior(agents, _scratchData, _deltaTime, _group, _system, _dronesInSearchRadius)
   {
@@ -109,7 +109,7 @@ export class CollisionAvoidance
    * Carbon CollisionAvoidance::GetDebugOptions (cpp:51-54).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -123,7 +123,7 @@ export class CollisionAvoidance
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {

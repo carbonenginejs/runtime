@@ -38,7 +38,7 @@ export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehav
    * on the smoothed value; the first update (local time at or below zero) only
    * seeds the retained value and contributes nothing.
    */
-  @blue.method
+
   @meta.implemented
   Update(_camera, current, _deltaTime, localElapsedTime)
   {

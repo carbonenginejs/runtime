@@ -106,7 +106,7 @@ export class Formation
   _stubbornnessCounter = 0;
 
   /** Carbon Formation::GetProcessPriority (cpp:43-46). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -114,7 +114,7 @@ export class Formation
   }
 
   /** Carbon Formation::GetBehaviorName (cpp:48-51). */
-  @blue.method
+
   @meta.implemented
   GetBehaviorName()
   {
@@ -127,7 +127,7 @@ export class Formation
    * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per
    * agent, so any non-zero value means 'has scratch'.
    */
-  @blue.method
+
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -140,7 +140,7 @@ export class Formation
    * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh
    * record instead.
    */
-  @blue.method
+
   @meta.adapted
   InitializeScratch()
   {
@@ -150,7 +150,7 @@ export class Formation
   }
 
   /** Carbon Formation::InFormation (cpp:53-56). */
-  @blue.method
+
   @meta.implemented
   InFormation()
   {
@@ -158,7 +158,7 @@ export class Formation
   }
 
   /** Carbon Formation::Reset (cpp:261-264). */
-  @blue.method
+
   @meta.implemented
   Reset()
   {
@@ -178,7 +178,7 @@ export class Formation
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @blue.method
+
   @meta.implemented
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
@@ -252,7 +252,7 @@ export class Formation
   /**
    * Whether the agents' accelerations, or once formed their pull toward their assigned slots, agree on a common direction.
    */
-  @blue.method
+
   _CheckIfFormalizing(agents, scratchData)
   {
     if (agents.length === 0)
@@ -309,7 +309,7 @@ export class Formation
   /**
    * Computes the group's centre from the agent positions, builds the slot grid, assigns each agent a slot, and marks the group in formation.
    */
-  @blue.method
+
   _InitializeFormation(agents, scratchData, radius)
   {
     if (agents.length === 0)
@@ -340,7 +340,7 @@ export class Formation
   /**
    * Builds a square grid of slot offsets around the formation centre, oriented to face the group's average pull direction.
    */
-  @blue.method
+
   _CreateFormationGrid(agents, targetDir, radius)
   {
     targetDir[1] = this._formationPosition[1];
@@ -372,7 +372,7 @@ export class Formation
   /**
    * Assigns each agent to its nearest unreserved formation slot.
    */
-  @blue.method
+
   _AssignSlots(agents, scratchData)
   {
     for (let c = 0; c < agents.length; c++)
@@ -410,7 +410,7 @@ export class Formation
   /**
    * Resets the formation's position, speed and acceleration state and clears the slot grid, taking the group out of formation.
    */
-  @blue.method
+
   _BreakFormation()
   {
     vec3.set(this._formationPosition, 0, 0, 0);
@@ -428,7 +428,7 @@ export class Formation
   /**
    * Advances the formation centre each frame as if it were a single ship, applying inertia to its acceleration and clamping its speed.
    */
-  @blue.method
+
   _UpdateFormation(deltaTime, group)
   {
     vec3.copy(FORMATION_ACCELERATION, this._formationAcceleration);
@@ -484,7 +484,7 @@ export class Formation
   /**
    * Damps each agent's incoming acceleration, pulls it toward its assigned slot, and slows it as it nears that slot.
    */
-  @blue.method
+
   _UpdateAgents(agents, scratchData, radius)
   {
     const radiusSq = radius * radius;
@@ -521,7 +521,7 @@ export class Formation
    * Carbon Formation::GetDebugOptions (cpp:349-352).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -536,7 +536,7 @@ export class Formation
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation Places the formation in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {

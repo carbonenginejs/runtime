@@ -77,7 +77,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Links and compiles the RTPC value expression.
    * Adapted: a CSP-safe AST program replaces native parser bytecode.
    */
-  @blue.method
+
   @meta.adapted
   Link(controller)
   {
@@ -90,7 +90,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Adapted: the existing JS cache reset also resets timestamps; native clears
    * only its controller and evaluator. The emitter remains retained in both.
    */
-  @blue.method
+
   @meta.adapted
   Unlink()
   {
@@ -103,7 +103,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * JS controller/last time, and resolves or clears the target before registering.
    * Native registers first and retains an old target if lookup finds none.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller = this._runtime.controller)
   {
@@ -133,7 +133,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Stops RTPC updates.
    * Adapted: the omitted-controller JS convenience uses the current link, if any.
    */
-  @blue.method
+
   @meta.adapted
   Stop(controller = this._runtime.controller)
   {
@@ -157,7 +157,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Evaluation failures skip the target; successful NaN/Infinity are preserved.
    * Required target errors remain visible outside the evaluator failure boundary.
    */
-  @blue.method
+
   @meta.adapted
   Update(_realTime, simTime)
   {
@@ -183,7 +183,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
   /**
    * Recompiles when the authored value receives its notification.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -224,7 +224,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Gets a curve value for expression helpers.
    * Returns zero for no curve; a present ITriScalarFunction supplies GetValueAt.
    */
-  @blue.method
+
   @meta.implemented
   GetCurveValue(time)
   {

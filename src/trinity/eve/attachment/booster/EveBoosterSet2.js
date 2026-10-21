@@ -379,7 +379,7 @@ export class EveBoosterSet2 extends EveEntity
    * derives what Add derives from them: the flares, the bounding sphere and
    * the max size. Every renderable instance is bound back to this set.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -399,7 +399,7 @@ export class EveBoosterSet2 extends EveEntity
    * Adapted: the allocation's own parent stands in for g_sharedBuffer, since
    * the shared buffer here is per render context (TriGeometryResAllocations).
    */
-  @blue.method
+
   @meta.adapted
   ReleaseResources(_storage)
   {
@@ -412,7 +412,7 @@ export class EveBoosterSet2 extends EveEntity
    * vertex declaration, the box or star by shader model, and the instance
    * buffer.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -440,7 +440,7 @@ export class EveBoosterSet2 extends EveEntity
    * ReleaseResources), and Allocate returns a new Allocation rather than
    * filling m_instanceBuffer in place.
    */
-  @blue.method
+
   @meta.adapted
   RebuildInstanceData(renderContext)
   {
@@ -493,7 +493,7 @@ export class EveBoosterSet2 extends EveEntity
    * Carbon OnModified (cpp:660-685): a flare member rebuilds the flares, and
    * staticTrailLength respaces the static trail offsets; both only with glows.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -524,7 +524,7 @@ export class EveBoosterSet2 extends EveEntity
    * booster set - keeping at least one, and rebinds every instance; returns the
    * resulting count.
    */
-  @blue.method
+
   @meta.implemented
   SetCount(count)
   {
@@ -552,7 +552,7 @@ export class EveBoosterSet2 extends EveEntity
    * acceleration and rotation, creating the first instance when the set has
    * none; returns false when boosterInstance is out of range.
    */
-  @blue.method
+
   @meta.adapted
   Update(
     deltaTime,
@@ -588,7 +588,7 @@ export class EveBoosterSet2 extends EveEntity
    * Advances every instance's trail spline and then the trail set itself;
    * returns false when no trail set is attached.
    */
-  @blue.method
+
   @meta.adapted
   UpdateTrails(deltaTime, time)
   {
@@ -611,7 +611,7 @@ export class EveBoosterSet2 extends EveEntity
    * the bounding sphere, and releases the device resources. Carbon leaves the
    * max size as it was.
    */
-  @blue.method
+
   @meta.implemented
   Clear()
   {
@@ -631,7 +631,7 @@ export class EveBoosterSet2 extends EveEntity
    * bounding sphere and max size. Throws a TypeError when localMatrix is not
    * sixteen values.
    */
-  @blue.method
+
   @meta.implemented
   Add(
     localMatrix,
@@ -742,7 +742,7 @@ export class EveBoosterSet2 extends EveEntity
    * Sets the whole booster point-light description in one call: light offset,
    * flicker amplitude and frequency, and the normal and warp radius and colour.
    */
-  @blue.method
+
   @meta.implemented
   SetLightData(offset, flickerAmplitude, flickerFrequency, radius, color, warpRadius, warpColor)
   {
@@ -759,7 +759,7 @@ export class EveBoosterSet2 extends EveEntity
    * Sets the near and far booster effects; the renderable's boosterHighLod flag
    * picks between them at draw time.
    */
-  @blue.method
+
   @meta.implemented
   SetEffect(effect, effectFar)
   {
@@ -771,7 +771,7 @@ export class EveBoosterSet2 extends EveEntity
    * Attaches the sprite set that the per-booster flares are added to; without
    * one no flares are created.
    */
-  @blue.method
+
   @meta.implemented
   SetGlow(glow)
   {
@@ -782,7 +782,7 @@ export class EveBoosterSet2 extends EveEntity
    * Attaches the trails set that per-booster trails are added to; without one no
    * trails are created.
    */
-  @blue.method
+
   @meta.implemented
   SetTrail(trail)
   {
@@ -794,7 +794,7 @@ export class EveBoosterSet2 extends EveEntity
    * instance; zero when the set has none (EveBoosterSet2.cpp:1048).
    * @returns {number}
    */
-  @blue.method
+
   @meta.implemented
   GetBoosterIntensity()
   {
@@ -832,7 +832,7 @@ export class EveBoosterSet2 extends EveEntity
    * drawing at the instance's parent transform, with no bones.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -877,7 +877,7 @@ export class EveBoosterSet2 extends EveEntity
    * Adapted: Carbon EveBoosterSet2.cpp:1115–1124 aggregates renderable spheres; JS writes the result to the caller's
    * output array.
    */
-  @blue.method
+
   @meta.adapted
   GetBoundingSphere(out)
   {
@@ -898,7 +898,8 @@ export class EveBoosterSet2 extends EveEntity
    * light position, radius and phase, and atlas indices - safe for an
    * adapter to keep.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetBoosterData()
   {
     return this._singleBoosters.map(booster => ({
@@ -921,7 +922,7 @@ export class EveBoosterSet2 extends EveEntity
    * Adapted: returns m_glowsVisible; Carbon returns void.
    * @returns {boolean} whether a glow is on screen
    */
-  @blue.method
+
   @meta.adapted
   UpdateVisibility(updateContext)
   {
@@ -952,7 +953,7 @@ export class EveBoosterSet2 extends EveEntity
    * @param {Tr2QuadRenderer} quadRenderer
    */
   @meta.implemented
-  @blue.method
+
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.glows)
@@ -969,7 +970,7 @@ export class EveBoosterSet2 extends EveEntity
    * @param {mat4} _world - the parent's world transform
    */
   @meta.implemented
-  @blue.method
+
   AddToQuadRenderer(quadRenderer, _world)
   {
     if (!this.glows || !this._glowsVisible || !this.display)
@@ -989,7 +990,7 @@ export class EveBoosterSet2 extends EveEntity
   /** Carbon EveBoosterSet2::GetRenderables (cpp:1130-1145): gated on display
    * AND on the set owning an effect, then delegated to each renderable's own
    * visibility. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(out = [])
   {
@@ -1006,7 +1007,7 @@ export class EveBoosterSet2 extends EveEntity
 
   /** Carbon EveBoosterSet2::RegisterComponents (cpp:1272-1279): unconditional
    * LightOwner leaf self-registration. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -1032,7 +1033,7 @@ export class EveBoosterSet2 extends EveEntity
    *
    * Random draws delegate to the matching generator in global/math/random.js.
    */
-  @blue.method
+
   @meta.adapted
   GetLights(lightManager)
   {
@@ -1075,7 +1076,7 @@ export class EveBoosterSet2 extends EveEntity
    * The flare parameters CreateBoosterFlares consumes, in Carbon's
    * EveBoosterFlareParams shape (EveBoosterSet2.cpp:739-742).
    */
-  @blue.method
+
   static _GetFlareParams(owner)
   {
     return {

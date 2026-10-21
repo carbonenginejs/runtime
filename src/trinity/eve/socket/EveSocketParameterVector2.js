@@ -25,7 +25,7 @@ export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @blue.method
+
   @meta.implemented
   ClearBindings()
   {
@@ -34,7 +34,7 @@ export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @blue.method
+
   @meta.implemented
   Reset()
   {
@@ -51,7 +51,7 @@ export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
    * keeping it at zero unless the source has at least two components; always
    * succeeds, so a bind is never refused on its account.
    */
-  @blue.method
+
   ExtractDefault(externalParameter)
   {
     const value = vec2.create();

@@ -188,7 +188,7 @@ export class TriValueBinding extends INotify
    * Adapted: Resolves Blue field metadata through JavaScript properties and supports the portable runtime's numeric, vector, boolean, and callback value families.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -260,7 +260,7 @@ export class TriValueBinding extends INotify
    * Adapted: Copies portable JavaScript values instead of invoking Carbon's native typed copy-function table; scalar reroute records synchronize the exposed value property.
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.adapted
   CopyValue()
   {
@@ -315,7 +315,7 @@ export class TriValueBinding extends INotify
    * @param {string|null} [_value] Changed member name.
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(_value = null)
   {
@@ -327,7 +327,7 @@ export class TriValueBinding extends INotify
    * The destination attribute string, including any .x/.r component suffix.
    * @returns {string} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   GetDestinationAttributeName()
   {
@@ -342,7 +342,7 @@ export class TriValueBinding extends INotify
    * @param {object|null} sourceObject Source endpoint.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   SetSource(sourceAttribute, sourceObject)
   {
@@ -364,7 +364,7 @@ export class TriValueBinding extends INotify
    * @param {object|null} destinationObject Destination endpoint.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   SetDestination(destinationAttribute, destinationObject)
   {
@@ -384,7 +384,7 @@ export class TriValueBinding extends INotify
    * @param {number} scale Source multiplier.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   SetScale(scale)
   {
@@ -404,7 +404,7 @@ export class TriValueBinding extends INotify
    * @param {ArrayLike|number} [offset] Component offset or four-component value offset.
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.adapted
   CreateWeakBinding(source, sourceAttribute, destination, destinationAttribute, scale = 1, offset = [0, 0, 0, 0])
   {
@@ -435,7 +435,7 @@ export class TriValueBinding extends INotify
    * Whether the last Initialize produced a usable copy plan.
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   IsValid()
   {
@@ -447,7 +447,7 @@ export class TriValueBinding extends INotify
    * held source has been collected.
    * @returns {object|null} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   GetCurrentSourceObject()
   {
@@ -459,7 +459,7 @@ export class TriValueBinding extends INotify
    * weakly held destination has been collected.
    * @returns {object|null} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   GetCurrentDestinationObject()
   {
@@ -470,7 +470,7 @@ export class TriValueBinding extends INotify
    * Carbon's second name for GetCurrentSourceObject.
    * @returns {object|null} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   GetSourceObject()
   {
@@ -484,7 +484,7 @@ export class TriValueBinding extends INotify
    * @param {object|null} sourceObject Source endpoint.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   SetSourceObject(sourceObject)
   {
@@ -505,7 +505,7 @@ export class TriValueBinding extends INotify
    * Carbon's second name for GetCurrentDestinationObject.
    * @returns {object|null} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   GetDestinationObject()
   {
@@ -519,7 +519,7 @@ export class TriValueBinding extends INotify
    * @param {object|null} destinationObject Destination endpoint.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   SetDestinationObject(destinationObject)
   {
@@ -545,7 +545,7 @@ export class TriValueBinding extends INotify
    * @param {*} destination Destination storage or endpoint.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   RerouteDestination(destination)
   {

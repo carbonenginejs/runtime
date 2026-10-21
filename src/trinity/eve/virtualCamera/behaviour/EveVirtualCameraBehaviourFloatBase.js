@@ -27,7 +27,7 @@ export class EveVirtualCameraBehaviourFloatBase
   name = "";
 
   /** Returns the authored behaviour name shown in tooling. */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -38,7 +38,7 @@ export class EveVirtualCameraBehaviourFloatBase
    * Sets the behaviour name, coercing to a string; subclasses override this to
    * rename the curves they own alongside it.
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -49,7 +49,7 @@ export class EveVirtualCameraBehaviourFloatBase
    * Re-applies the current name after a field change, which propagates it to any
    * owned curves through the subclass SetName override.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -58,7 +58,7 @@ export class EveVirtualCameraBehaviourFloatBase
   }
 
   /** Reports whether the camera should evaluate this behaviour this update. */
-  @blue.method
+
   @meta.implemented
   IsActive()
   {

@@ -69,7 +69,7 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
   scale = vec2.fromValues(1, 1);
 
   /** Gathers backgrounds then children in reverse order under the local transform and opacity. */
-  @blue.method
+
   @meta.implemented
   GatherSprites(renderer)
   {
@@ -94,7 +94,7 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
   }
 
   /** Picks translated bounds first, then transformed children in front-to-back order. */
-  @blue.method
+
   @meta.implemented
   PickPoint(x, y, renderer)
   {
@@ -144,7 +144,7 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @returns {Float32Array} Owned 4x4 local transform.
    */
   @meta.adapted
-  @blue.method
+
   _GetTransformationMatrix()
   {
     const sx = Math.floor(this.scalingCenter[0] * this.displayWidth + 0.5);

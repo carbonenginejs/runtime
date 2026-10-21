@@ -229,7 +229,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @param {Float32Array} [out] Caller-owned; allocated when omitted.
    * @returns {Float32Array} The plane normal.
    */
-  @blue.method
+
   @meta.implemented
   GetDesiredPlaneNormal(_ray, viewMatrix, out = vec3.create())
   {
@@ -256,7 +256,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * Carbon GetUnTransformedBaseVectors (Tr2RotationTool.cpp:211-216): the
    * identity axes, the untransformed counterpart to GetBaseVectors.
    */
-  @blue.method
+
   @meta.implemented
   GetUnTransformedBaseVectors(outX = vec3.create(), outY = vec3.create(), outZ = vec3.create())
   {
@@ -287,7 +287,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @param {Float32Array} [out] Caller-owned; allocated when omitted.
    * @returns {Float32Array} The arcball vector.
    */
-  @blue.method
+
   @meta.implemented
   Hemisphere(mouseX, mouseY, viewport, viewMatrix, projectionMatrix, out = vec3.create())
   {
@@ -335,7 +335,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
    * visible-object vector.
    */
-  @blue.method
+
   @meta.adapted
   GetPrimitivesToRender()
   {
@@ -343,7 +343,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
   }
 
   /** Restores Carbon's authored axis and ring colours. */
-  @blue.method
+
   @meta.implemented
   ResetPrimitiveColors()
   {

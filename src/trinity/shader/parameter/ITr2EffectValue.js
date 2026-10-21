@@ -42,7 +42,7 @@ export class ITr2EffectValue
    * @param {object} _renderContext Binding context.
    * @returns {void} No operation.
    */
-  @meta.noop
+  @meta.adapted
   CopyValueToEffect(_inputType, _destination, _size, _renderContext)
   {
   }
@@ -79,7 +79,7 @@ export class ITr2EffectValue
    * @param {object} _usedTextures Bindless texture collection.
    * @returns {void} No operation.
    */
-  @meta.noop
+  @meta.adapted
   AddUsedTexture(_usedTextures)
   {
   }

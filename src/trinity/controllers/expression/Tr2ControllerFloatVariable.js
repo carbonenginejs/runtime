@@ -80,7 +80,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -97,7 +97,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {string|null} _propertyName Unused modified member name.
    * @returns {boolean} Always true after both operations succeed.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(_propertyName)
   {
@@ -111,7 +111,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {string} Name used by the controller to expose this expression slot.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -123,7 +123,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {number} Current value, without reading the destination back.
    */
-  @blue.method
+
   @meta.implemented
   GetValue()
   {
@@ -139,7 +139,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {number} value New value for the float32 schema field.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetValue(value)
   {
@@ -160,7 +160,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {number} [index=0] Slot used only for an indexed destination.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetDestinationBuffer(buffer, index = 0)
   {
@@ -182,7 +182,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {void}
    * @throws {RangeError|TypeError} If mask cannot be converted to BigInt.
    */
-  @blue.method
+
   @meta.adapted
   SetDirtyMask(maskDestination, mask)
   {

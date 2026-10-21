@@ -171,7 +171,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * state. Native Initialize instantiates Python but has no ordinary state field.
    * @returns {boolean} True after successful initialization.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -186,7 +186,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {string} propertyName Modified authored member name.
    * @returns {boolean} True after successful notification.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -221,7 +221,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Adapted: first use may create/load the host.
    * @param {ITr2ActionController} controller The linked controller.
    */
-  @blue.method
+
   @meta.adapted
   Link(controller)
   {
@@ -236,7 +236,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Adapted: clears linkage before invoking the optional JS hook; host errors
    * propagate instead of native BlueScriptCallback exception handling.
    */
-  @blue.method
+
   @meta.adapted
   Unlink()
   {
@@ -254,7 +254,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * callback table. Host errors can abort the queue's current batch.
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller = this._controller)
   {
@@ -289,7 +289,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * are retained; host errors propagate from the queue instead of native reporting.
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
-  @blue.method
+
   @meta.adapted
   Stop(controller = this._controller)
   {
@@ -320,7 +320,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {number} realTime Actual time in Blue ticks.
    * @param {number} simTime Simulation time in Blue ticks.
    */
-  @blue.method
+
   @meta.adapted
   Update(realTime, simTime)
   {
@@ -361,7 +361,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {string} [_memberName="state"] Ignored native member selector.
    * @returns {Uint8Array|null} Copied host bytes, or null.
    */
-  @blue.method
+
   @meta.adapted
   GetWriteBufferAndSize(_memberName = "state")
   {
@@ -378,7 +378,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Adapted: JavaScript owns the returned byte buffer; no delete[] is required.
    * @param {Uint8Array} _buffer Caller-owned buffer.
    */
-  @blue.method
+
   @meta.adapted
   ReleaseWriteBuffer(_buffer)
   {
@@ -391,7 +391,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {number} bufferSize Requested byte count.
    * @returns {Uint8Array} New zero-filled read buffer.
    */
-  @blue.method
+
   @meta.adapted
   AllocateReadBuffer(_memberName, bufferSize)
   {
@@ -406,7 +406,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {Uint8Array} buffer Input bytes.
    * @param {number} [bufferSize=buffer.byteLength] Number of bytes to copy.
    */
-  @blue.method
+
   @meta.adapted
   SetBufferAndSize(_memberName, buffer, bufferSize = buffer.byteLength)
   {

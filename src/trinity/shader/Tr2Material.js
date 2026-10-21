@@ -76,7 +76,7 @@ export class Tr2Material
    * The resource-set hash, which doubles as the material's draw-sort key; 0
    * whenever the resource sets have been invalidated.
    */
-  @blue.method
+
   GetSortValue()
   {
     return this.resourceSetHash;
@@ -86,7 +86,7 @@ export class Tr2Material
    * The Tr2Shader supplying reflection and render state for this material, or
    * null before one is resolved.
    */
-  @blue.method
+
   GetShaderStateInterface()
   {
     return this.shader;
@@ -101,7 +101,7 @@ export class Tr2Material
    * @param {number} [passIndex=0] Pass index within the technique.
    * @returns {Tr2EffectPassParameters} The pass parameters.
    */
-  @blue.method
+
   GetPassDescription(techniqueIndex = 0, passIndex = 0)
   {
     return this.parametersForPasses[techniqueIndex].passes[passIndex];
@@ -126,7 +126,7 @@ export class Tr2Material
    * @param {object} renderContext The context to bind against.
    * @returns {boolean} Whether the pass was applied.
    */
-  @blue.method
+
   ApplyMaterialDataForPass(techniqueIndex, passIndex, renderContext)
   {
     if (!this.shader) return false;
@@ -203,7 +203,7 @@ export class Tr2Material
    * @param {object} renderContext The context to bind against.
    * @returns {boolean} Whether the description changed.
    */
-  @blue.method
+
   ApplyShaderInputs(pass, shaderType, renderContext)
   {
     const input = pass.stageInput[shaderType];
@@ -230,7 +230,7 @@ export class Tr2Material
    * @param {object} desc A `Tr2ResourceSetDescriptionAL`.
    * @returns {boolean} Whether any binding changed the description.
    */
-  @blue.method
+
   UpdateResourceSetDesc(shaderType, input, desc, renderContext = null)
   {
     let descChanged = false;
@@ -269,7 +269,7 @@ export class Tr2Material
    * @param {object} renderContext The context to bind against.
    * @returns {boolean} Whether a buffer was bound.
    */
-  @blue.method
+
   ApplyConstants(shaderType, input, hasReroutables, renderContext)
   {
     const mirror = input.constantMirror;
@@ -333,7 +333,7 @@ export class Tr2Material
    * @param {object} renderContext The context to copy against.
    * @returns {boolean} Whether the mirror was refilled.
    */
-  @blue.method
+
   UpdateConstants(shaderType, input, hasReroutables, renderContext)
   {
     // Carbon's test is `cb.GetSize()` (cpp:318).
@@ -460,7 +460,7 @@ export class Tr2Material
    * Marks every pass's resource set and used-texture list stale and clears the
    * material sort hash, so they are rebuilt before the next draw.
    */
-  @blue.method
+
   InvalidateResourceSets()
   {
     for (const technique of this.parametersForPasses)
@@ -501,7 +501,7 @@ export class Tr2Material
    * Same invalidation as InvalidateResourceSets, raised when a bound resource
    * itself changed rather than the set layout.
    */
-  @blue.method
+
   ResourceChanged()
   {
     for (const technique of this.parametersForPasses)
@@ -525,7 +525,7 @@ export class Tr2Material
    * parameters - pass stages plus each library's global and local input - and
    * clears the sort hash.
    */
-  @blue.method
+
   MarkConstantBuffersDirty()
   {
     for (const technique of this.parametersForPasses)
@@ -559,7 +559,7 @@ export class Tr2Material
    * Forwards a screen-size/world-radius LOD query to every texture parameter
    * registered as LOD-driven during the last cached-data rebuild.
    */
-  @blue.method
+
   UsedWithScreenSize(screenSize, worldRadius, uvDensities = [])
   {
     for (const value of this.lodTextureParameters)
@@ -575,7 +575,7 @@ export class Tr2Material
    * @returns {boolean}
    */
   @meta.implemented
-  @blue.method
+
   CompatibleWithGdr()
   {
     return this.compatibleWithGdr;
@@ -589,7 +589,7 @@ export class Tr2Material
    * @returns {boolean}
    */
   @meta.implemented
-  @blue.method
+
   CompatibleWithGdr__TechniqueName(techniqueName)
   {
     if (this.shader !== null && !(this.shader instanceof Tr2Shader))

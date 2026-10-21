@@ -215,7 +215,7 @@ export class EveChildLineSet extends EveChildTransform
    * replaced defaults until final destruction can account for shared graphs;
    * unlike BluePtr, assignment cannot tell whether another owner still uses one.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -231,7 +231,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Updates additive selection immediately and defers regeneration until collection. */
-  @blue.method
+
   @meta.implemented
   OnModified(name)
   {
@@ -241,7 +241,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Regenerates every path beneath the current world transform, then bounds. */
-  @blue.method
+
   @meta.implemented
   GenerateManagedPoints()
   {
@@ -250,7 +250,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Empty path lists intentionally retain old line geometry (native cpp:149-165). */
-  @blue.method
+
   @meta.implemented
   InitializeLineSet()
   {
@@ -269,7 +269,7 @@ export class EveChildLineSet extends EveChildTransform
    * previous bound; native's helper leaves an uninitialized local output there.
    * The resource's existing sphere accessor replaces its native inline field.
    */
-  @blue.method
+
   @meta.adapted
   UpdateBoundingSphere(reCalculateChildren = true)
   {
@@ -288,7 +288,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Uses gl-matrix sphere transformation for Carbon's world cull and local pixel-size threshold. */
-  @blue.method
+
   @meta.adapted
   UpdateVisibility(updateContext, _parentTransform, parentLod)
   {
@@ -307,7 +307,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Consumes pending regeneration only once an update and visibility allow collection. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -323,7 +323,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Writes the aggregate bound transformed into world space using gl-matrix layout. */
-  @blue.method
+
   @meta.adapted
   GetBoundingSphere(out, _query = 0)
   {
@@ -332,7 +332,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Updates every path before visibility gates, then fills the selected render modes. */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -355,7 +355,7 @@ export class EveChildLineSet extends EveChildTransform
    * inverse-of-transpose is encoded as transpose-of-inverse. A singular JS
    * inverse writes nonfinite data instead of reusing an unrelated scratch value.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {
@@ -382,7 +382,7 @@ export class EveChildLineSet extends EveChildTransform
    * Maps the owned AL buffer and passes one advancing DataView cursor through
    * all paths. The cursor replaces uint8_t*&; finally unmaps if a JS path throws.
    */
-  @blue.method
+
   @meta.adapted
   UpdateBuffer(renderContext)
   {
@@ -417,7 +417,7 @@ export class EveChildLineSet extends EveChildTransform
    * JS prepares the lazy geometry allocations here so its declaration exists;
    * Carbon already has that storage when UpdateSyncronous runs.
    */
-  @blue.method
+
   @meta.adapted
   CreateSpriteVertexDeclaration()
   {
@@ -457,7 +457,7 @@ export class EveChildLineSet extends EveChildTransform
    * JS realizes its geometry descriptor before setting stream 1 and instance
    * count, otherwise deferred preparation would overwrite those native fields.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -482,7 +482,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Borrows persistent owner constants; JS constructs the native pooled wrapper. */
-  @blue.method
+
   @meta.adapted
   GetPerObjectData(_accumulator)
   {
@@ -493,7 +493,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Reports transparent mesh areas only when display is enabled. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -501,7 +501,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Creates Carbon's initial instance capacity using the AL description overload. */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources()
   {
@@ -511,7 +511,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native ReleaseResources resets declaration caches, retaining the buffer. */
-  @blue.method
+
   @meta.implemented
   ReleaseResources()
   {
@@ -519,7 +519,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Copies the child's current world transform into caller-owned storage. */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -527,7 +527,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns Carbon's authored activation bypass. */
-  @blue.method
+
   @meta.implemented
   IsAlwaysOn()
   {
@@ -543,7 +543,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns whether both display and the last visibility test allow updates. */
-  @blue.method
+
   @meta.implemented
   IsUpdating()
   {
@@ -551,7 +551,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns the mesh assigned to object rendering. */
-  @blue.method
+
   @meta.implemented
   GetMesh()
   {
@@ -559,7 +559,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns the owner's most recently supplied speed. */
-  @blue.method
+
   @meta.implemented
   GetOwnerMaxSpeed()
   {
@@ -567,7 +567,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Copies the native world velocity (zero until another owner changes it). */
-  @blue.method
+
   @meta.implemented
   GetWorldVelocity(out)
   {
@@ -575,7 +575,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native child-line objects have a constant sort value. */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -583,15 +583,15 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native shader-option hook is empty. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   SetShaderOption(_name, _value)
   {
   }
 
   /** Native child-line LOD hook is empty. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   ChangeLOD(_lod)
   {
   }
@@ -600,7 +600,7 @@ export class EveChildLineSet extends EveChildTransform
    * Carbon EveChildLineSet::GetDebugOptions (cpp:511-514).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -614,7 +614,7 @@ export class EveChildLineSet extends EveChildTransform
    * "Bounding Sphere".
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {

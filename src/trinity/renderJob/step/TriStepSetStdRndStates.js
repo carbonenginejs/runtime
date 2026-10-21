@@ -54,7 +54,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
   }
 
   /** Sets the rendering mode, silently ignoring values at or above RM_COUNT. */
-  @blue.method
+
   SetState(state)
   {
     const value = Number(state) >>> 0;
@@ -68,7 +68,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
    * Asks the render context to apply the standard state block for the selected
    * rendering mode; which states that block contains is the render context's concern.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

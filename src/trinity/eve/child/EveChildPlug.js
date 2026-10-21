@@ -69,7 +69,7 @@ export class EveChildPlug extends EveChildTransform
   controllers = [];
 
   /** Registers hydrated children and links hydrated controllers. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -88,7 +88,7 @@ export class EveChildPlug extends EveChildTransform
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -108,7 +108,7 @@ export class EveChildPlug extends EveChildTransform
    * child-registration helper and, while this plug is in a registry, register
    * or unregister as entities.
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -176,7 +176,7 @@ export class EveChildPlug extends EveChildTransform
    * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
    * through the shared child service rather than the list driving it.
    */
-  @blue.method
+
   @meta.adapted
   AddToEffectChildrenList(child)
   {
@@ -190,7 +190,7 @@ export class EveChildPlug extends EveChildTransform
    * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
    * through the shared child service rather than the list driving it.
    */
-  @blue.method
+
   @meta.adapted
   RemoveFromEffectChildrenList(child)
   {
@@ -198,7 +198,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Propagates the owning space object through the plugged subtree. */
-  @blue.method
+
   @meta.implemented
   SetOwner(owner)
   {
@@ -208,7 +208,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Propagates a modular part tag through the plugged subtree. */
-  @blue.method
+
   @meta.implemented
   SetPartTag(tag)
   {
@@ -247,7 +247,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::PlayAllCurveSets (cpp:272-281): forwards to the curve-set-owning objects. */
-  @blue.method
+
   @meta.implemented
   PlayAllCurveSets()
   {
@@ -259,7 +259,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::StopAllCurveSets (cpp:283-292). */
-  @blue.method
+
   @meta.implemented
   StopAllCurveSets()
   {
@@ -271,7 +271,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::PlayCurveSet (cpp:294-303). */
-  @blue.method
+
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -283,7 +283,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::StopCurveSet (cpp:305-314). */
-  @blue.method
+
   @meta.implemented
   StopCurveSet(name)
   {
@@ -295,7 +295,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::UpdateCurveSet (cpp:316-325). */
-  @blue.method
+
   @meta.implemented
   UpdateCurveSet(name, time)
   {
@@ -307,7 +307,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::GetCurveSetDuration (cpp:327-339): the longest over the curve-set-owning objects. */
-  @blue.method
+
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -321,7 +321,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::GetRangeDuration (cpp:341-353): the longest over the curve-set-owning objects. */
-  @blue.method
+
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -336,7 +336,7 @@ export class EveChildPlug extends EveChildTransform
 
   /** Carbon EveChildPlug::RegisterComponents (cpp:122-135): forward-only to
    * the plugged objects. Gate m_display. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -352,7 +352,7 @@ export class EveChildPlug extends EveChildTransform
 
   /** Carbon EveChildPlug::UnRegisterComponents (cpp:141-154): forwards to the
    * plugged objects; no display re-check. */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -367,7 +367,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon GetEffectChildByName (EveChildPlug.cpp:422-433): the first object with that name. */
-  @blue.method
+
   @meta.implemented
   GetEffectChildByName(name)
   {
@@ -433,7 +433,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::FindSoundEmitter (cpp:486-500): the first child emitter of that name. */
-  @blue.method
+
   @meta.implemented
   FindSoundEmitter(name)
   {

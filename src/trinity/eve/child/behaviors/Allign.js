@@ -67,7 +67,7 @@ export class Allign
   _returnForces = [];
 
   /** Carbon Allign::GetProcessPriority (cpp:22-25). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -90,7 +90,7 @@ export class Allign
    * @param {Array} dronesInSearchRadius - per-agent neighbour lists
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, dronesInSearchRadius)
   {
@@ -180,7 +180,7 @@ export class Allign
   }
 
   /** Carbon Allign::GetBehaviorSearchRadius (cpp:104-116). */
-  @blue.method
+
   @meta.implemented
   GetBehaviorSearchRadius()
   {
@@ -197,7 +197,7 @@ export class Allign
    * Carbon Allign::GetDebugOptions (cpp:118-121).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -212,7 +212,7 @@ export class Allign
    * @param {Array} agents DroneAgent records.
    * @param {mat4} parentWorldLocation Places the agents in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, agents, parentWorldLocation)
   {

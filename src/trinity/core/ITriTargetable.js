@@ -79,7 +79,7 @@ export class ITriTargetable
   UpdateImpact(_out, _direction, _impactIndex) {}
 
   /** Carbon's default (ITriTargetable.h:23-26): no impact configuration. @returns {number} */
-  @blue.method
+
   @meta.implemented
   GetImpactConfiguration()
   {
@@ -103,7 +103,7 @@ export class ITriTargetable
   HasImpactConfigurationShield() {}
 
   /** Carbon's default (ITriTargetable.h:32-34) ignores the locator. @param {number} _locator */
-  @blue.method
+
   @meta.implemented
   SetLastDamageLocatorHit(_locator)
   {

@@ -21,7 +21,7 @@ export class Tr2PostProcess
   /**
    * Accepts the authored stage graph; Carbon performs no additional setup.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {

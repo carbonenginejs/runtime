@@ -50,7 +50,7 @@ export class EveSOFDataParameter
    * @returns {Float32Array} Independent vector, matching native return-by-value.
    */
   @meta.implemented
-  @blue.method
+
   GetValue()
   {
     return vec4.clone(this.value);

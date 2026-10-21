@@ -48,7 +48,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: BeResMan is be.resMan; its LoadObject completes asynchronously.
    * @returns {boolean} True after requesting any authored load.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -69,7 +69,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {string} propertyName Native exposed member name.
    * @returns {boolean} True after handling the notification.
    */
-  @blue.method
+
   @meta.adapted
   OnModified(propertyName)
   {
@@ -89,7 +89,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {object} owner Owner forwarded to the loaded controller.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Link(owner)
   {
@@ -109,7 +109,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Unlink(reason = UnlinkReason.UNLINKING)
   {
@@ -123,7 +123,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Checks whether this reference is linked to an owner.
    * @returns {boolean} Whether an owner is retained.
    */
-  @blue.method
+
   @meta.implemented
   IsLinked()
   {
@@ -161,7 +161,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} [normalizedUpdateFrequency=0] Update frequency forwarded unchanged.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Update(normalizedUpdateFrequency = 0)
   {
@@ -176,7 +176,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} value Latest value to forward or replay.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetVariable(name, value)
   {

@@ -50,7 +50,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm.cpp:70: only instance-source edits rebuild the swarm. */
-  @blue.method
+
   @meta.implemented
   OnModified(names)
   {
@@ -165,7 +165,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm::Initialize (cpp:60-64): a loaded storm prepares its resources. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -182,7 +182,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm::ReleaseResources (cpp:98-103). Adapted: the buffers are destroyed explicitly. */
-  @blue.method
+
   @meta.adapted
   ReleaseResources()
   {
@@ -209,7 +209,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * PerInstanceVertex on stream 1), the four-corner buffer, the per-instance buffer, and two quads of the shared
    * quad-list index buffer. Adapted: the AL description replaces the native stride/count overload.
    */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources()
   {
@@ -279,7 +279,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm::GetRenderables (cpp:84-91): once updated and displayed. Adapted: returns the array. */
-  @blue.method
+
   @meta.adapted
   GetRenderables(renderables = [])
   {
@@ -288,7 +288,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm::GetBoundingSphere (cpp:209-212): reports a sphere without writing one - the storm may be huge. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
   {
@@ -300,7 +300,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -328,7 +328,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm::HasTransparentBatches is always false. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -336,7 +336,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm::GetSortValue is the constant zero. */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -348,7 +348,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * instance from stream 1 over the shared quad-list index buffer. Adapted: the effect is asked IsGood before drawing,
    * as the other instanced draws do.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -376,7 +376,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * sourceRadius + range, clipSphere, speed), then targetPositionsWS[i] per
    * target blob. Slots past targetBlobs.length are NEVER written - the
    * per-element writes keep Carbon's arena-garbage tail. VS-only payload. */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {
@@ -405,7 +405,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * sphere is still animating - advances it at the storm's travel speed over the
    * total reach, clamped to -1..1.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(updateContext, params = {})
   {

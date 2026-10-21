@@ -27,7 +27,7 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
   /**
    * Selects the upscaling context subsequent steps resolve against.
    */
-  @blue.method
+
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

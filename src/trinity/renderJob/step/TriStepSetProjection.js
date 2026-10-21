@@ -40,7 +40,7 @@ export class TriStepSetProjection extends TriRenderStep
    * Sets the authored projection on the renderer, leaving the current
    * projection untouched when there is none (TriStepSetProjection.cpp:20-27).
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

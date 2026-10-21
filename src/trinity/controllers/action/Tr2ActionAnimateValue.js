@@ -88,7 +88,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Adapted: retains the shared AST compiler and flattened binding adapter
    * instead of native bytecode and embedded binding-point storage.
    */
-  @blue.method
+
   @meta.adapted
   Link(controller)
   {
@@ -105,7 +105,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Adapted: resets the shared AST runtime record, including its times; native
    * clears the evaluator/controller while retaining the two time fields.
    */
-  @blue.method
+
   @meta.adapted
   Unlink()
   {
@@ -120,7 +120,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Native Start only rebinds delayed destinations and sets startTime before
    * registering; those existing non-update adapter differences remain deferred.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller = this._runtime.controller)
   {
@@ -148,7 +148,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Adapted: retains optional linked-controller invocation and unlinked no-op;
    * native requires a controller reference and directly unregisters the action.
    */
-  @blue.method
+
   @meta.adapted
   Stop(controller = this._runtime.controller)
   {
@@ -158,7 +158,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   /**
    * Rebases stored simulation time.
    */
-  @blue.method
+
   @meta.implemented
   RebaseSimTime(diff)
   {
@@ -172,7 +172,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * evaluation skips the write; binding write errors remain observable. Updates
    * never recompile unnotified source edits (native cpp:90-104).
    */
-  @blue.method
+
   @meta.adapted
   Update(_realTime, simTime)
   {
@@ -208,7 +208,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * controller and its extra functions; ours drops the compiled program and
    * recompiles through CjsControllerExpressionProgram with a Curve function.
    */
-  @blue.method
+
   @meta.adapted
   OnModified(propertyName)
   {
@@ -228,7 +228,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   /**
    * Checks whether the binding currently resolves.
    */
-  @blue.method
+
   @meta.implemented
   IsBindingValid()
   {
@@ -266,7 +266,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Adapted: retains shared JS curve-shape coercion and fallback behavior;
    * native calls ITriScalarFunction.GetValueAt directly, returning zero if null.
    */
-  @blue.method
+
   @meta.adapted
   GetCurveValue(time)
   {
@@ -360,7 +360,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   /**
    * Carbon LinkDestination (Tr2ActionAnimateValue.cpp:168-171): link against the controller's roots.
    */
-  @blue.method
+
   @meta.implemented
   LinkDestination(controller = this._runtime.controller)
   {
@@ -371,7 +371,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Checks whether binding is deferred to Start, which requires both the
    * delayBinding flag and an authored path.
    */
-  @blue.method
+
   @meta.implemented
   HasDelayedBinding()
   {

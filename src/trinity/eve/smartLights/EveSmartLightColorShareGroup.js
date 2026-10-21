@@ -117,7 +117,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /**
    * display edits re-register the shared groups (EveSmartLightColorShareGroup.cpp:17-24).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -130,7 +130,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * set; inserted light groups register while this entity is registered
    * (EveSmartLightColorShareGroup.cpp:26-82).
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
@@ -174,7 +174,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Registers the shared groups while displayed (EveSmartLightColorShareGroup.cpp:84-97). */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -192,7 +192,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Unregisters the shared groups (EveSmartLightColorShareGroup.cpp:99-112). */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -210,7 +210,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Quad fan-out, gated on display (EveSmartLightColorShareGroup.cpp:114-125). */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {
@@ -226,7 +226,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Renderable fan-out, gated on display (EveSmartLightColorShareGroup.cpp:127-138). */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables = [])
   {
@@ -247,7 +247,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * full strength (EveSmartLightColorShareGroup.cpp:140-151).
    */
   @meta.implemented
-  @blue.method
+
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
     for (const group of this.lightGroups)
@@ -268,7 +268,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * (EveSmartLightColorShareGroup.cpp:153-168).
    */
   @meta.implemented
-  @blue.method
+
   UpdateAsyncronous__Distribution(updateContext, params, distribution)
   {
     const statics = EveSmartLightColorShareGroup;
@@ -300,7 +300,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Fans a controller variable to the group's own modifiers, then to the
    * shared groups (EveSmartLightColorShareGroup.cpp:170-178).
    */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -320,7 +320,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * groups; a null set is ignored entirely
    * (EveSmartLightColorShareGroup.cpp:180-190).
    */
-  @blue.method
+
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -339,7 +339,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Effect-registration fan-out (EveSmartLightColorShareGroup.cpp:192-198). */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -350,7 +350,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Carbon debug-render fan-out, gated by this group's display flag. */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, placements, size)
   {
@@ -365,7 +365,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Visibility fan-out (EveSmartLightColorShareGroup.cpp:213-219). */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {

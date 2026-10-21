@@ -78,7 +78,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Adapted: Volume bounds use { center, radius } records instead of CcpMath::Sphere values;
    * missing centres and negative or invalid radii are skipped.
    */
-  @blue.method
+
   @meta.adapted
   RebuildBoundingSphere()
   {
@@ -143,7 +143,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
   /** Carbon's visibility pass is empty (EveChildPostProcessVolume.cpp:84-86). */
   @blue.method
-  @meta.noop
+  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
@@ -157,7 +157,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Copies the object-space bound (EveChildPostProcessVolume.cpp:88-94). */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -167,7 +167,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
   /** Carbon's synchronous pass is empty (EveChildPostProcessVolume.cpp:96-98). */
   @blue.method
-  @meta.noop
+  @meta.adapted
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -180,7 +180,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Adapted: a singular world transform keeps the volume off for the frame,
    * where Carbon inverts unconditionally (cpp:100).
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -243,14 +243,14 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Carbon's implementation is empty (EveChildPostProcessVolume.cpp:143-145): the argument is left as it was. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   GetLocalToWorldTransform(_out = null)
   {
   }
 
   /** Forwards to the base transform setup (EveChildPostProcessVolume.cpp:164-168). */
-  @blue.method
+
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
@@ -260,7 +260,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /**
    * Always true: the volume stays active regardless of where the camera is.
    */
-  @blue.method
+
   @meta.implemented
   IsAlwaysOn()
   {
@@ -273,7 +273,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Adapted: The Carbon constructor's attribute-instance creation (cpp:11-18) is deferred to
    * first use because the generated field default stays null.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -286,7 +286,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Carbon EveChildPostProcessVolume::GetDebugOptions (cpp:169-174).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -305,7 +305,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * as converted Colors.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -341,7 +341,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
   /** Carbon EveChildPostProcessVolume::RegisterComponents (cpp:62-65):
    * unconditional PostProcessOwner leaf self-registration. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -358,7 +358,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * (EveEntity.cpp:81-94) after UnRegisterAllComponents has already removed
    * it, so there the removal finds nothing; Carbon does it anyway.
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -366,7 +366,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Returns the owned attribute record (EveChildPostProcessVolume.cpp:217-220). */
-  @blue.method
+
   @meta.implemented
   GetPostProcessAttributes()
   {

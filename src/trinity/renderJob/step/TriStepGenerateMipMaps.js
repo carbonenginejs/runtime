@@ -29,7 +29,7 @@ export class TriStepGenerateMipMaps extends TriRenderStep
    * Carbon Execute (TriStepGenerateMipMaps.cpp:15-22): regenerate the render
    * target texture's mip chain; with no target set the step is a no-op.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

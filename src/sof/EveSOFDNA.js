@@ -104,7 +104,7 @@ export class EveSOFDNA
    * @param {string} dnaString
    * @param {EveSOFDataMgr} dataMgr
    */
-  @blue.method
+
   @meta.implemented
   Setup(dnaString, dataMgr)
   {
@@ -128,7 +128,7 @@ export class EveSOFDNA
   }
 
   /** Returns whether the three required catalog selections resolved. */
-  @blue.method
+
   @meta.implemented
   IsValid()
   {
@@ -142,7 +142,7 @@ export class EveSOFDNA
   }
 
   /** Performs Carbon's slow command validation with unsafe C++ cases guarded. */
-  @blue.method
+
   @meta.implemented
   ValidateContent()
   {
@@ -194,7 +194,7 @@ export class EveSOFDNA
   }
 
   /** Returns the normalized DNA text stored for the resolved selection. */
-  @blue.method
+
   @meta.implemented
   GetDnaString()
   {
@@ -202,7 +202,7 @@ export class EveSOFDNA
   }
 
   /** Returns the number of hull records composing this selection. */
-  @blue.method
+
   @meta.implemented
   GetMultiHullCount()
   {
@@ -210,7 +210,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolver's live hull-name array in composition order. */
-  @blue.method
+
   @meta.implemented
   GetHullNames()
   {
@@ -221,7 +221,7 @@ export class EveSOFDNA
    * Returns the explicit DNA build-class index when valid, otherwise the first
    * hull's default.
    */
-  @blue.method
+
   @meta.implemented
   GetBuildClass()
   {
@@ -238,7 +238,7 @@ export class EveSOFDNA
    * Returns the first hull's geometry path, rewritten to Carbon's combined path
    * convention for a multi-hull selection.
    */
-  @blue.method
+
   @meta.implemented
   GetHullGeometryResPath()
   {
@@ -261,7 +261,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live mesh-area list for a supported batch
    * type, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetHullMeshAreas(batchType, hullIndex = 0)
   {
@@ -282,7 +282,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live decal-set list, or an empty list
    * when that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullDecalSets(hullIndex = 0)
   {
@@ -293,7 +293,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live light-set list, or an empty list
    * when that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullLightSets(hullIndex = 0)
   {
@@ -304,7 +304,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live sprite-set list, or an empty list
    * when that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullSpriteSets(hullIndex = 0)
   {
@@ -315,7 +315,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live spotlight-set list, or an empty list
    * when that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullSpotlightSets(hullIndex = 0)
   {
@@ -326,7 +326,7 @@ export class EveSOFDNA
    * Returns the faction's catalog-owned spotlight colors for the numeric group,
    * treating -1 or a missing group as absent.
    */
-  @blue.method
+
   @meta.implemented
   GetFactionSpotlightSetData(groupIndex)
   {
@@ -338,7 +338,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live plane-set list, or an empty list
    * when that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullPlaneSets(hullIndex = 0)
   {
@@ -349,7 +349,7 @@ export class EveSOFDNA
    * Returns the faction's catalog-owned plane-set colors for the numeric group,
    * treating -1 or a missing group as absent.
    */
-  @blue.method
+
   @meta.implemented
   GetFactionPlaneSetData(groupIndex)
   {
@@ -361,7 +361,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live sprite-line-set list, or an empty
    * list when that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullSpriteLineSets(hullIndex = 0)
   {
@@ -372,7 +372,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live haze-set list, or an empty list when
    * that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullHazeSets(hullIndex = 0)
   {
@@ -383,7 +383,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live banner list, or an empty list when
    * that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullBanners(hullIndex = 0)
   {
@@ -394,7 +394,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live banner-set list, or an empty list
    * when that hull is unavailable.
    */
-  @blue.method
+
   @meta.implemented
   GetHullBannerSets(hullIndex = 0)
   {
@@ -402,7 +402,7 @@ export class EveSOFDNA
   }
 
   /** Returns legacy hull children from Carbon's first-hull-only path. */
-  @blue.method
+
   @meta.implemented
   GetHullChildren()
   {
@@ -410,7 +410,7 @@ export class EveSOFDNA
   }
 
   /** Returns SOF6 child sets from Carbon's first-hull-only path. */
-  @blue.method
+
   @meta.implemented
   GetHullChildSets()
   {
@@ -418,7 +418,7 @@ export class EveSOFDNA
   }
 
   /** Returns instanced attachments from Carbon's first-hull-only path. */
-  @blue.method
+
   @meta.implemented
   GetHullInstancedMeshes()
   {
@@ -426,7 +426,7 @@ export class EveSOFDNA
   }
 
   /** Returns legacy animation declarations from Carbon's first hull. */
-  @blue.method
+
   @meta.implemented
   GetHullAnimations()
   {
@@ -437,7 +437,7 @@ export class EveSOFDNA
    * Returns the first hull record's live sound-emitter declarations, or an empty
    * list.
    */
-  @blue.method
+
   @meta.implemented
   GetHullSoundEmitters()
   {
@@ -448,7 +448,7 @@ export class EveSOFDNA
    * Returns the first hull record's live controller declarations, or an empty
    * list.
    */
-  @blue.method
+
   @meta.implemented
   GetHullControllers()
   {
@@ -456,7 +456,7 @@ export class EveSOFDNA
   }
 
   /** Returns the first hull's non-empty model-rotation curve path, or null. */
-  @blue.method
+
   @meta.implemented
   GetModelRotationCurvePath()
   {
@@ -464,7 +464,7 @@ export class EveSOFDNA
   }
 
   /** Returns the first hull's non-empty model-translation curve path, or null. */
-  @blue.method
+
   @meta.implemented
   GetModelTranslationCurvePath()
   {
@@ -472,7 +472,7 @@ export class EveSOFDNA
   }
 
   /** Gets the faction visibility override for one legacy child group. */
-  @blue.method
+
   @meta.implemented
   GetFactionChildData(groupIndex)
   {
@@ -482,7 +482,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolved generic catalog's banner-shader data, or null. */
-  @blue.method
+
   @meta.implemented
   GetGenericBannerShaderData()
   {
@@ -490,7 +490,7 @@ export class EveSOFDNA
   }
 
   /** Returns Carbon's decal minimum screen size for one HullDecalSetItem Usage. */
-  @blue.method
+
   @meta.implemented
   GetDecalMinScreenSize(usage)
   {
@@ -501,7 +501,7 @@ export class EveSOFDNA
    * Returns the greatest opaque area index for the selected hull, using zero for
    * non-opaque batches or an empty area list.
    */
-  @blue.method
+
   @meta.implemented
   GetHighestMeshAreaIndex(batchType, hullIndex = 0)
   {
@@ -518,7 +518,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live turret-locator list, or an empty
    * list.
    */
-  @blue.method
+
   @meta.implemented
   GetHullTurretLocators(hullIndex = 0)
   {
@@ -526,7 +526,7 @@ export class EveSOFDNA
   }
 
   /** Returns a new sorted snapshot of the selected hull's locator-set names. */
-  @blue.method
+
   @meta.implemented
   GetHullLocatorSetNames(hullIndex = 0)
   {
@@ -538,7 +538,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live locator list for a named set, or
    * null.
    */
-  @blue.method
+
   @meta.implemented
   GetHullLocators(setName, hullIndex = 0)
   {
@@ -550,7 +550,7 @@ export class EveSOFDNA
    * Returns the live locator list used to place a named layout set on the
    * selected hull, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetPlacementLocators(hullIndex, locatorSetName)
   {
@@ -558,7 +558,7 @@ export class EveSOFDNA
   }
 
   /** Returns the number of layout catalog records selected by the DNA. */
-  @blue.method
+
   @meta.implemented
   GetLayoutCount()
   {
@@ -566,7 +566,7 @@ export class EveSOFDNA
   }
 
   /** Returns the catalog-owned selected layout at the numeric index, or null. */
-  @blue.method
+
   @meta.implemented
   GetLayoutData(index)
   {
@@ -577,7 +577,7 @@ export class EveSOFDNA
    * Returns the total number of locators in the named set across every selected
    * hull.
    */
-  @blue.method
+
   @meta.implemented
   GetLocatorCount(setName)
   {
@@ -593,7 +593,7 @@ export class EveSOFDNA
    * Returns the first next-subsystem locator position for the selected hull, or
    * null.
    */
-  @blue.method
+
   @meta.implemented
   GetHullNextSubsystemOffset(hullIndex = 0)
   {
@@ -604,7 +604,7 @@ export class EveSOFDNA
    * Returns the selected hull record's live audio position only when it is the
    * final hull in the composition.
    */
-  @blue.method
+
   @meta.implemented
   GetHullAudioPosition(hullIndex = 0)
   {
@@ -616,7 +616,7 @@ export class EveSOFDNA
    * Returns the generic catalog's base resource path for area shaders, or an
    * empty string.
    */
-  @blue.method
+
   @meta.implemented
   GetAreaShaderLocationResPath()
   {
@@ -627,7 +627,7 @@ export class EveSOFDNA
    * Returns the generic catalog's base resource path for decal shaders, or an
    * empty string.
    */
-  @blue.method
+
   @meta.implemented
   GetDecalShaderLocationResPath()
   {
@@ -635,7 +635,7 @@ export class EveSOFDNA
   }
 
   /** Carbon returns constant decal shader 0. */
-  @blue.method
+
   @meta.implemented
   GetDecalShader()
   {
@@ -643,7 +643,7 @@ export class EveSOFDNA
   }
 
   /** Reports whether the first selected hull explicitly enables decal sets. */
-  @blue.method
+
   @meta.implemented
   IsHullUsingDecalSets()
   {
@@ -654,7 +654,7 @@ export class EveSOFDNA
    * Returns the generic animated or static shader prefix requested by the
    * caller.
    */
-  @blue.method
+
   @meta.implemented
   GetShaderPrefix(isAnimated)
   {
@@ -665,7 +665,7 @@ export class EveSOFDNA
    * Builds an area-shader resource path from the generic base path, the current
    * hull animation prefix, and the supplied suffix.
    */
-  @blue.method
+
   @meta.implemented
   GetCompleteShaderPath(path)
   {
@@ -680,7 +680,7 @@ export class EveSOFDNA
    * Returns the generic catalog's area-shader definition with the requested
    * name, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetGenericAreaShaderData(shaderName)
   {
@@ -691,7 +691,7 @@ export class EveSOFDNA
    * Returns the generic catalog's decal-shader definition with the requested
    * name, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetGenericDecalShaderData(shaderName)
   {
@@ -699,7 +699,7 @@ export class EveSOFDNA
   }
 
   /** Returns a hull-local texture path for a projected opaque mesh index. */
-  @blue.method
+
   @meta.adapted
   GetHullTextureWithMeshIndex(textureName, meshIndex, hullIndex = 0, resourceExists = null, cache = null)
   {
@@ -712,7 +712,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolved generic catalog's damage settings, or null. */
-  @blue.method
+
   @meta.implemented
   GetGenericDamageData()
   {
@@ -720,7 +720,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolved generic catalog's hull-damage settings, or null. */
-  @blue.method
+
   @meta.implemented
   GetGenericHullDamageData()
   {
@@ -728,7 +728,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolved generic catalog's swarm behavior properties, or null. */
-  @blue.method
+
   @meta.implemented
   GetGenericSwarmProperties()
   {
@@ -736,7 +736,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolved race catalog's damage settings, or null. */
-  @blue.method
+
   @meta.implemented
   GetRaceDamageData()
   {
@@ -744,7 +744,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolved race catalog's booster settings, or null. */
-  @blue.method
+
   @meta.implemented
   GetRaceBoosterData()
   {
@@ -752,7 +752,7 @@ export class EveSOFDNA
   }
 
   /** Returns the selected hull record's live booster settings, or null. */
-  @blue.method
+
   @meta.implemented
   GetHullBoosterData(hullIndex = 0)
   {
@@ -763,7 +763,7 @@ export class EveSOFDNA
    * Returns the combined number of authored booster items across all selected
    * hulls.
    */
-  @blue.method
+
   @meta.implemented
   GetHullBoosterCount()
   {
@@ -777,7 +777,7 @@ export class EveSOFDNA
    * Returns the first hull's numeric impact-effect type, defaulting to no impact
    * effect.
    */
-  @blue.method
+
   @meta.implemented
   GetImpactEffectType()
   {
@@ -788,7 +788,7 @@ export class EveSOFDNA
    * Returns the generic shield-shader path selected by the hull's impact-effect
    * type, or null when no supported shield effect applies.
    */
-  @blue.method
+
   @meta.implemented
   GetImpactShieldShader()
   {
@@ -803,7 +803,7 @@ export class EveSOFDNA
   }
 
   /** Applies Carbon's optional faction/DNA texture path insertion. */
-  @blue.method
+
   @meta.implemented
   ModifyTextureResPath(resourcePath, resourceExists = null, cache = null)
   {
@@ -826,7 +826,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolved faction's catalog-owned color array, or an empty list. */
-  @blue.method
+
   @meta.implemented
   GetColorSet()
   {
@@ -837,7 +837,7 @@ export class EveSOFDNA
    * Returns the resolved faction's catalog-owned logo at the numeric index, or
    * null.
    */
-  @blue.method
+
   @meta.implemented
   GetLogo(index)
   {
@@ -848,7 +848,7 @@ export class EveSOFDNA
    * Reports whether the indexed faction logo exists and declares at least one
    * texture.
    */
-  @blue.method
+
   @meta.implemented
   HasLogoSet(index)
   {
@@ -859,7 +859,7 @@ export class EveSOFDNA
    * Reports whether the faction visibility set contains the supplied value after
    * unsigned 32-bit normalization.
    */
-  @blue.method
+
   @meta.implemented
   IsInVisibilityData(hash)
   {
@@ -867,7 +867,7 @@ export class EveSOFDNA
   }
 
   /** Resolves one mesh parameter using Carbon's ordered material fallbacks. */
-  @blue.method
+
   @meta.implemented
   GetMeshAreaParameter(areaType, parameterName, hullParameters = null, blockedMaterials = 0)
   {
@@ -939,7 +939,7 @@ export class EveSOFDNA
   }
 
   /** Resolves a turret shader parameter after applying the faction's material-usage remap. */
-  @blue.method
+
   @meta.implemented
   GetFactionTurretParameters(parameterName)
   {
@@ -965,7 +965,7 @@ export class EveSOFDNA
    * Returns the active pattern's layer count, selecting explicit, SOF6
    * faction-default, or legacy hull-default data as appropriate.
    */
-  @blue.method
+
   @meta.implemented
   GetPatternLayerCount()
   {
@@ -985,7 +985,7 @@ export class EveSOFDNA
    * Returns the faction-default pattern's catalog-owned application for the
    * first hull, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetFactionalPatternApplicationData()
   {
@@ -997,7 +997,7 @@ export class EveSOFDNA
    * Returns the selected pattern's SOF6 or legacy catalog application for the
    * first hull, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetHullPatternApplicationData()
   {
@@ -1012,7 +1012,7 @@ export class EveSOFDNA
    * Resolves explicit or SOF6 faction pattern applications and otherwise
    * synthesizes a fresh legacy default wrapper.
    */
-  @blue.method
+
   @meta.adapted
   GetPatternApplicationData()
   {
@@ -1030,7 +1030,7 @@ export class EveSOFDNA
    * Returns the catalog-owned projection for a valid active pattern layer, or
    * null.
    */
-  @blue.method
+
   @meta.implemented
   GetPatternProjectionData(application, layer)
   {
@@ -1043,7 +1043,7 @@ export class EveSOFDNA
    * Returns the catalog-owned settings for a valid active pattern layer, or
    * null.
    */
-  @blue.method
+
   @meta.implemented
   GetPatternLayerData(application, layer)
   {
@@ -1056,7 +1056,7 @@ export class EveSOFDNA
    * Returns a shallow copy of the pattern layer's material-target array, or
    * null.
    */
-  @blue.method
+
   @meta.implemented
   GetMaterialTargets(layerData)
   {
@@ -1067,7 +1067,7 @@ export class EveSOFDNA
    * Reports whether the pattern layer explicitly enables the numeric hull-area
    * type.
    */
-  @blue.method
+
   @meta.implemented
   IsPatternLayerApplicableToArea(layerData, areaType)
   {
@@ -1078,7 +1078,7 @@ export class EveSOFDNA
    * Returns the first hull category's configured reflection mode, falling back
    * to Carbon's built-in category rules.
    */
-  @blue.method
+
   @meta.implemented
   GetReflectionMode()
   {
@@ -1100,7 +1100,7 @@ export class EveSOFDNA
    * Returns a newly allocated sphere enclosing every selected hull after
    * applying chained next-subsystem offsets, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetHullBoundingSphere()
   {
@@ -1133,7 +1133,7 @@ export class EveSOFDNA
    * Returns a fresh descriptor referencing the first resolved hull's live
    * ellipsoid vectors, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetHullShapeEllipsoid()
   {
@@ -1149,7 +1149,7 @@ export class EveSOFDNA
    * Returns a defensive copy of the resolver-owned parent bounding sphere, or
    * null.
    */
-  @blue.method
+
   @meta.implemented
   GetParentBoundingSphere()
   {
@@ -1157,7 +1157,7 @@ export class EveSOFDNA
   }
 
   /** Returns the resolver-owned parent hull-shape ellipsoid descriptor, or null. */
-  @blue.method
+
   @meta.implemented
   GetParentHullShapeEllipsoid()
   {
@@ -1168,7 +1168,7 @@ export class EveSOFDNA
    * Replaces the parent bounding sphere with a defensive copy of the supplied
    * coordinates.
    */
-  @blue.method
+
   @meta.implemented
   SetParentBoundingSphere(boundingSphere)
   {
@@ -1179,7 +1179,7 @@ export class EveSOFDNA
    * Replaces the parent hull-shape ellipsoid with a deep copy of the supplied
    * center and radius vectors.
    */
-  @blue.method
+
   @meta.implemented
   SetParentShapeEllipsoidInfo(ellipsoid)
   {
@@ -1212,7 +1212,7 @@ export class EveSOFDNA
    * Reports the resolver's current skinned-animation flag, which layouts may
    * disable independently of catalog data.
    */
-  @blue.method
+
   @meta.implemented
   IsHullAnimated()
   {
@@ -1223,7 +1223,7 @@ export class EveSOFDNA
    * Disables skinned animation for this resolved DNA without modifying the
    * source hull record.
    */
-  @blue.method
+
   @meta.implemented
   DisableAnimation()
   {
@@ -1234,7 +1234,7 @@ export class EveSOFDNA
    * Reports whether multi-hull composition or the first hull's flag requires
    * dynamic bounds.
    */
-  @blue.method
+
   @meta.implemented
   DynamicBoundingSphereEnabled()
   {
@@ -1242,7 +1242,7 @@ export class EveSOFDNA
   }
 
   /** Reports whether the first selected hull is authored to cast shadows. */
-  @blue.method
+
   @meta.implemented
   CastShadow()
   {
@@ -1255,7 +1255,7 @@ export class EveSOFDNA
    * Reports whether the parsed command map contains the supplied command name or
    * valid numeric command.
    */
-  @blue.method
+
   @meta.implemented
   HasDnaCommand(command)
   {
@@ -1267,7 +1267,7 @@ export class EveSOFDNA
    * Returns a defensive copy of the supplied DNA command's parsed arguments, or
    * null.
    */
-  @blue.method
+
   @meta.implemented
   GetDnaCommandArgs(command)
   {
@@ -1277,7 +1277,7 @@ export class EveSOFDNA
   }
 
   /** Reports whether the first selected hull uses the SOF6 data model. */
-  @blue.method
+
   @meta.implemented
   UsingSof6()
   {
@@ -1285,7 +1285,7 @@ export class EveSOFDNA
   }
 
   /** Returns the faction catalog name resolved for this DNA. */
-  @blue.method
+
   @meta.implemented
   GetFactionName()
   {
@@ -1293,7 +1293,7 @@ export class EveSOFDNA
   }
 
   /** Returns the race catalog name resolved for this DNA. */
-  @blue.method
+
   @meta.implemented
   GetRaceName()
   {
@@ -1490,7 +1490,7 @@ export class EveSOFDNA
    * Replaces the resolved hull references with resolver-owned variant hull
    * snapshots when a variant command is active.
    */
-  @blue.method
+
   _SetupCustomData()
   {
     const args = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_VARIANT);

@@ -29,7 +29,7 @@ export class AudMusicPlayer extends AudEmitter
   }
 
   /** The music player has no world placement. Source: AudMusicPlayer.cpp:17-20 (commit 2756050). */
-  @blue.method
+
   @meta.implemented
   HasUsableWorldPosition()
   {

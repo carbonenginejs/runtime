@@ -276,7 +276,7 @@ export class EveImpactOverlay
   _getOwnerDamageLocatorPositionOS = (index, out) => this._ownerParent.GetDamageLocatorBindPosition(index, out);
 
   /** Carbon Initialize (cpp:87-90): nothing to set up. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -287,7 +287,7 @@ export class EveImpactOverlay
    * Carbon Set (cpp:51-59): assigns the shield shape flag, impact emitters and shield mesh, and hands the hull
    * flicker curve and armour damage shader to the damage overlay.
    */
-  @blue.method
+
   @meta.implemented
   Set(hullDamageFlickerCurve, armorDamageEmitter, hullImpactEmitter, armorDamageShader, shieldImpactMesh, shieldIsEllipsoid)
   {
@@ -303,7 +303,7 @@ export class EveImpactOverlay
    * Sets the per-ship random seed that varies impact placement between otherwise
    * identical hulls.
    */
-  @blue.method
+
   @meta.implemented
   SetSeed(seed)
   {
@@ -315,7 +315,7 @@ export class EveImpactOverlay
    * owner at lifecycle time, so it is deliberately kept out of the values
    * interchange.
    */
-  @blue.method
+
   @meta.implemented
   SetDamageLocatorCount(count)
   {
@@ -346,7 +346,7 @@ export class EveImpactOverlay
    * Row offset of this overlay's block in the shared impact data texture, or -1
    * while it has no block.
    */
-  @blue.method
+
   @meta.adapted
   GetDataTextureOffset()
   {
@@ -354,7 +354,7 @@ export class EveImpactOverlay
   }
 
   /** Which ImpactConfiguration this overlay was authored for. */
-  @blue.method
+
   @meta.adapted
   GetImpactConfiguration()
   {
@@ -365,7 +365,7 @@ export class EveImpactOverlay
    * Whether the shield is presented as a generated ellipsoid rather than the
    * authored shield impact mesh.
    */
-  @blue.method
+
   @meta.adapted
   HasShieldEllipsoid()
   {
@@ -379,7 +379,7 @@ export class EveImpactOverlay
    * @param {boolean} on Fade in or out.
    * @param {number} duration Seconds.
    */
-  @blue.method
+
   @meta.implemented
   ToggleEffect(name, on, duration)
   {
@@ -398,7 +398,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the owned armour and hull damage overlay. */
-  @blue.method
+
   @meta.implemented
   GetDamageOverlay()
   {
@@ -406,7 +406,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the next shared impact index. */
-  @blue.method
+
   @meta.implemented
   GetImpactDataNextIdx()
   {
@@ -414,7 +414,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the deterministic damage seed. */
-  @blue.method
+
   @meta.implemented
   GetSeed()
   {
@@ -422,7 +422,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the target number of live armour impacts. */
-  @blue.method
+
   @meta.implemented
   GetArmorImpactGoalCount()
   {
@@ -430,7 +430,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the parent size used to scale armour impacts. */
-  @blue.method
+
   @meta.implemented
   GetArmorImpactParentSize()
   {
@@ -438,7 +438,7 @@ export class EveImpactOverlay
   }
 
   /** Returns whether debris is forced for every armour impact. */
-  @blue.method
+
   @meta.implemented
   GetDebugForceSpawnDebris()
   {
@@ -446,7 +446,7 @@ export class EveImpactOverlay
   }
 
   /** Sets whether every armour impact requests debris. */
-  @blue.method
+
   @meta.implemented
   SetDebugForceSpawnDebris(value)
   {
@@ -454,7 +454,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the damage overlay render priority. */
-  @blue.method
+
   @meta.implemented
   GetRenderPriority()
   {
@@ -462,7 +462,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the shared data-texture block identifier. */
-  @blue.method
+
   @meta.implemented
   GetDataTextureBlockID()
   {
@@ -470,7 +470,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the hull-damage multiplier. */
-  @blue.method
+
   @meta.implemented
   GetHullDamageFactor()
   {
@@ -478,7 +478,7 @@ export class EveImpactOverlay
   }
 
   /** Sets the hull-damage multiplier. */
-  @blue.method
+
   @meta.implemented
   SetHullDamageFactor(value)
   {
@@ -486,7 +486,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the armour-damage material. */
-  @blue.method
+
   @meta.implemented
   GetArmorDamageShaderEffect()
   {
@@ -494,7 +494,7 @@ export class EveImpactOverlay
   }
 
   /** Sets the armour-damage material. */
-  @blue.method
+
   @meta.implemented
   SetArmorDamageShaderEffect(value)
   {
@@ -502,7 +502,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the hull-damage flicker curve. */
-  @blue.method
+
   @meta.implemented
   GetHullDamageFlickerCurve()
   {
@@ -510,7 +510,7 @@ export class EveImpactOverlay
   }
 
   /** Sets the hull-damage flicker curve. */
-  @blue.method
+
   @meta.implemented
   SetHullDamageFlickerCurve(value)
   {
@@ -518,7 +518,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the armour-repair fader. */
-  @blue.method
+
   @meta.implemented
   GetArmorRepairing()
   {
@@ -526,7 +526,7 @@ export class EveImpactOverlay
   }
 
   /** Replaces the armour-repair fader. */
-  @blue.method
+
   @meta.implemented
   SetArmorRepairing(value)
   {
@@ -534,7 +534,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the armour-hardening fader. */
-  @blue.method
+
   @meta.implemented
   GetArmorHardening()
   {
@@ -542,7 +542,7 @@ export class EveImpactOverlay
   }
 
   /** Replaces the armour-hardening fader. */
-  @blue.method
+
   @meta.implemented
   SetArmorHardening(value)
   {
@@ -550,7 +550,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the hull-repair fader. */
-  @blue.method
+
   @meta.implemented
   GetHullRepairing()
   {
@@ -558,7 +558,7 @@ export class EveImpactOverlay
   }
 
   /** Replaces the hull-repair fader. */
-  @blue.method
+
   @meta.implemented
   SetHullRepairing(value)
   {
@@ -569,7 +569,7 @@ export class EveImpactOverlay
    * Carbon SetDamageState (cpp:534-540): the shield colour fade is (1 - shield)^2 clamped to [0, 1]; the damage
    * overlay derives the configuration.
    */
-  @blue.method
+
   @meta.implemented
   SetDamageState(shield, armor, hull, doCreateArmorImpacts)
   {
@@ -578,7 +578,7 @@ export class EveImpactOverlay
   }
 
   /** Removes every live shield and armour impact. */
-  @blue.method
+
   @meta.implemented
   Clear()
   {
@@ -587,7 +587,7 @@ export class EveImpactOverlay
   }
 
   /** Creates a shield impact or forwards an armour/hull impact. */
-  @blue.method
+
   @meta.adapted
   CreateImpact(damageLocatorIndex, direction, lifeTime, size, intensity = 1, lod = Tr2Lod.TR2_LOD_HIGH, parent = null)
   {
@@ -616,7 +616,7 @@ export class EveImpactOverlay
    * the shield ellipsoid and allocate a new record. Extracted from
    * CreateImpact so the surface matches Carbon's; behaviour unchanged.
    */
-  @blue.method
+
   _CreateShieldImpact(damageLocatorIndex, direction, lifeTime, size, intensity, parent)
   {
     {
@@ -697,7 +697,7 @@ export class EveImpactOverlay
    * object space. Reads shieldIsEllipsoid off the instance exactly as
    * Carbon does; the module-level helper carries the math.
    */
-  @blue.method
+
   _GetShieldImpactPosition(parentInverseWorldTransform, damageLocatorPositionWorld, impactDirection, ellipsoidCenter, ellipsoidRadii, out = vec3.create())
   {
     return getShieldImpactPosition(
@@ -706,7 +706,7 @@ export class EveImpactOverlay
   }
 
   /** Resolves a live impact's current position and direction. */
-  @blue.method
+
   @meta.implemented
   UpdateImpact(out, direction, impactIndex)
   {
@@ -719,7 +719,7 @@ export class EveImpactOverlay
   }
 
   /** Reports whether any shield impact or shield fader is active. */
-  @blue.method
+
   HasShieldActivity()
   {
     return EveDamageOverlay.impactEffectEnabled &&
@@ -728,28 +728,28 @@ export class EveImpactOverlay
   }
 
   /** Reports whether armour damage or its faders are active. */
-  @blue.method
+
   HasArmorActivity()
   {
     return this.damageOverlay.HasArmorActivity();
   }
 
   /** Reports whether hull damage or its fader is active. */
-  @blue.method
+
   HasHullActivity()
   {
     return this.damageOverlay.HasHullActivity();
   }
 
   /** Reports whether any shield, armour or hull effect is active. */
-  @blue.method
+
   HasGeneralActivity()
   {
     return this.HasShieldActivity() || this.damageOverlay.HasGeneralActivity();
   }
 
   /** Returns the current hull-flicker activation strength. */
-  @blue.method
+
   @meta.implemented
   GetActivationStrength(updateContext)
   {
@@ -757,7 +757,7 @@ export class EveImpactOverlay
   }
 
   /** Advances shield faders and publishes the shared damage block. */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext, parent)
   {
@@ -778,7 +778,7 @@ export class EveImpactOverlay
    * The hull-emitter test reads the SHIP's impact configuration even for a
    * part overlay; ported as written.
    */
-  @blue.method
+
   @meta.implemented
   SpawnImpactDebris(updateContext, parent)
   {
@@ -830,7 +830,7 @@ export class EveImpactOverlay
   }
 
   /** Ages shield impacts and rebuilds the shared damage rows. */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(updateContext, parent)
   {
@@ -897,7 +897,7 @@ export class EveImpactOverlay
   }
 
   /** Emits the active shield-impact mesh batches. */
-  @blue.method
+
   @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, screenSize)
   {
@@ -910,7 +910,7 @@ export class EveImpactOverlay
   }
 
   /** Returns the active armour-damage material for a batch type. */
-  @blue.method
+
   @meta.implemented
   GetArmorDamageShader(batchType)
   {

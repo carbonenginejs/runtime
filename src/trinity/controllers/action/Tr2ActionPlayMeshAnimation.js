@@ -148,7 +148,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: preserves the flattened JavaScript destination/cache adapter
    * instead of Carbon's embedded Tr2BindingPoint.
    */
-  @blue.method
+
   @meta.adapted
   Link(controller)
   {
@@ -162,7 +162,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   /**
    * Clears the resolved destination.
    */
-  @blue.method
+
   @meta.implemented
   Unlink()
   {
@@ -178,7 +178,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Native Start only rebinds delayed destinations; this adapter retains lazy
    * resolution and optional linked-controller invocation.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller = this._controller)
   {
@@ -217,7 +217,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Native Stop observes the already-bound child and does not rebind it. A
    * returned animation layer supplies its required ClearAnimations/EndAnimation.
    */
-  @blue.method
+
   @meta.adapted
   Stop(controller = this._controller)
   {
@@ -266,7 +266,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   /**
    * Relinks after authored destination changes.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -284,7 +284,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: stores the JavaScript resolved object instead of the native embedded
    * binding. OWNER also retains this adapter's resolution rather than unlinking.
    */
-  @blue.method
+
   @meta.adapted
   LinkDestination(controller = this._controller)
   {
@@ -315,7 +315,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   }
 
   /** Reports whether a nonempty binding path defers destination resolution. */
-  @blue.method
+
   @meta.implemented
   HasDelayedBinding()
   {
@@ -328,7 +328,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Adapted: the legacy method may resolve the child; the native READ property
    * above observes only the cached destination and never triggers binding.
    */
-  @blue.method
+
   @meta.adapted
   IsBindingValid()
   {

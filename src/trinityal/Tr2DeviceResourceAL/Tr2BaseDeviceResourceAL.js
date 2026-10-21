@@ -72,7 +72,7 @@ export class Tr2BaseDeviceResourceAL
    *
    * @returns {boolean} True when live.
    */
-  @blue.abstract
+  @meta.abstract
   IsResourceValid() {}
 
   /**
@@ -81,7 +81,7 @@ export class Tr2BaseDeviceResourceAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.abstract
+  @meta.abstract
   GetResourceMemoryClass() {}
 
   /**

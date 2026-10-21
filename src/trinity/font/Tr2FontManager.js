@@ -115,8 +115,8 @@ export class Tr2FontManager
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
-  @meta.renamed("Initialize")
+
+
   static initialize()
   {
     g_fontManager = new Tr2FontManager();
@@ -135,8 +135,8 @@ export class Tr2FontManager
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
-  @meta.renamed("Shutdown")
+
+
   static shutdown()
   {
     if (g_fontManager)
@@ -224,7 +224,7 @@ export class Tr2FontManager
    * @returns {number} The face ID.
    */
   @meta.adapted
-  @blue.method
+
   GetFaceID(font)
   {
     if (this._faceMap.has(font)) return this._faceMap.get(font);
@@ -321,7 +321,7 @@ export class Tr2FontManager
    * @returns {string|null} The family, or null.
    */
   @meta.adapted
-  @blue.method
+
   LookupFace(faceID)
   {
     return this._IsValidFace(faceID) ? this._reverseFaceMap[faceID] : null;
@@ -329,7 +329,7 @@ export class Tr2FontManager
 
   /** Carbon `GetLoadFlag` (Tr2FontManager.h:84-87). @returns {number} The load flag. */
   @meta.implemented
-  @blue.method
+
   GetLoadFlag()
   {
     return this.loadFlag;
@@ -834,7 +834,7 @@ export class Tr2FontManager
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   OnTick(_realTime, _simTime, _cookie)
   {
     this.TrimGlyphCache(this.glyphCacheBudget);
@@ -895,7 +895,7 @@ export class Tr2FontManager
    * @returns {object|null} The glyph's atlas texture, or null.
    */
   @meta.adapted
-  @blue.method
+
   GetAtlasTextureForSbit(sbit)
   {
     const existing = this._sbitToTextureMap.get(sbit.key)?.deref();
@@ -941,7 +941,7 @@ export class Tr2FontManager
    * @returns {number} Glyphs in use.
    */
   @meta.adapted
-  @blue.method
+
   GetNumGlyphsInUse()
   {
     let count = 0;
@@ -958,7 +958,7 @@ export class Tr2FontManager
    * @returns {number} Glyphs cached.
    */
   @meta.adapted
-  @blue.method
+
   GetNumGlyphsCached()
   {
     return this._glyphs.size;
@@ -993,7 +993,7 @@ export class Tr2FontManager
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   ReleaseResources(storage)
   {
     if (!(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return;
@@ -1013,8 +1013,8 @@ export class Tr2FontManager
    * @throws {Error} Always.
    */
   @meta.notImplemented
-  @blue.method
-  @meta.renamed("FaceRequester")
+
+
   static faceRequester(_faceID, _library, _requestData, _face)
   {
     throw new Error("Tr2FontManager.FaceRequester is not implemented: no FreeType cache manager; LoadFont opens faces.");
@@ -1030,7 +1030,7 @@ export class Tr2FontManager
    * @throws {Error} Always.
    */
   @meta.notImplemented
-  @blue.method
+
   _LoadFromDisk(_faceID)
   {
     throw new Error("Tr2FontManager.LoadFromDisk is not implemented: no synchronous file read or FreeType; use LoadFont.");
@@ -1045,7 +1045,7 @@ export class Tr2FontManager
    * @throws {Error} Always.
    */
   @meta.notImplemented
-  @blue.method
+
   GetManager()
   {
     throw new Error("Tr2FontManager.GetManager is not implemented: no FreeType cache manager in the browser.");
@@ -1059,7 +1059,7 @@ export class Tr2FontManager
    * @throws {Error} Always.
    */
   @meta.notImplemented
-  @blue.method
+
   GetCmCache()
   {
     throw new Error("Tr2FontManager.GetCmCache is not implemented: no FreeType charmap cache in the browser.");
@@ -1074,7 +1074,7 @@ export class Tr2FontManager
    * @throws {Error} Always.
    */
   @meta.notImplemented
-  @blue.method
+
   GetSbitCache()
   {
     throw new Error("Tr2FontManager.GetSbitCache is not implemented: no FreeType sbit cache in the browser.");
@@ -1082,7 +1082,7 @@ export class Tr2FontManager
 
   /** Carbon `OnPrepareResources` (Tr2FontManager.cpp:606-609): nothing to prepare. */
   @meta.implemented
-  @blue.method
+
   _OnPrepareResources()
   {
     return true;
@@ -1099,7 +1099,7 @@ export class Tr2FontManager
    * @throws {Error} Always.
    */
   @meta.notImplemented
-  @blue.method
+
   WeakRefNotify(_object)
   {
     throw new Error("Tr2FontManager.WeakRefNotify is not implemented: JS cannot resurrect a collected texture.");

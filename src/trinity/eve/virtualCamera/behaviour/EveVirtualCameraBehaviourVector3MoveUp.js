@@ -29,7 +29,7 @@ export class EveVirtualCameraBehaviourVector3MoveUp extends EveVirtualCameraBeha
    * Returns the camera's up direction scaled by the current distance; the up
    * axis already includes the camera roll.
    */
-  @blue.method
+
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out = vec3.create())
   {

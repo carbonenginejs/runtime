@@ -315,7 +315,7 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /** Carbon Initialize (EveSmartLightPointLight.cpp:18-27): resolve the profile. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -346,7 +346,7 @@ export class EveSmartLightPointLight extends EveEntity
    * A lightProfilePath edit re-resolves the profile
    * (EveSmartLightPointLight.cpp:29-41).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -359,7 +359,7 @@ export class EveSmartLightPointLight extends EveEntity
    * strength (EveSmartLightPointLight.cpp:43-54).
    */
   @meta.implemented
-  @blue.method
+
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
     this._activationStrength = params?.activationStrength ?? 1;
@@ -380,7 +380,7 @@ export class EveSmartLightPointLight extends EveEntity
    * registry's explicit component-name signature (verbatim "LightOwner",
    * Lights/ITr2LightOwner.h:18).
    */
-  @blue.method
+
   @meta.adapted
   RegisterComponents()
   {
@@ -404,7 +404,7 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Physical per-light packing (half words, profile-index flag bits) moves to the
    * renderer backend; Trinity submits the typed CPU record per placement.
    */
-  @blue.method
+
   @meta.adapted
   GetLights(lightManager)
   {
@@ -517,7 +517,7 @@ export class EveSmartLightPointLight extends EveEntity
    * @param {Array<object>} placements Placement data with identifiers.
    * @param {number} size Number of placements to draw.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, placements, size)
   {

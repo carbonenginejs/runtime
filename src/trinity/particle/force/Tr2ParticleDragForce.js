@@ -18,7 +18,7 @@ export class Tr2ParticleDragForce extends ITr2ParticleForce
   drag = 0.1;
 
   /** Carbon's drag force is proportional and opposite to velocity. */
-  @blue.method
+
   @meta.adapted
   GetForce(_position, velocity, _dt, _mass, out = vec3.create())
   {
@@ -29,8 +29,8 @@ export class Tr2ParticleDragForce extends ITr2ParticleForce
    * Nothing to advance per frame: drag is computed from each particle's current
    * velocity.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   Update(_dt)
   {
   }

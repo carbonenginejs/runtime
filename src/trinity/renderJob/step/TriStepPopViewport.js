@@ -18,7 +18,7 @@ import { TriRenderJob } from "../TriRenderJob.js";
 export class TriStepPopViewport extends TriRenderStep
 {
   /** Restores the viewport saved by the matching push step. */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

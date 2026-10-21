@@ -52,7 +52,7 @@ export class Tr2ScalarFader
    * @param {EveUpdateContext} updateContext Update context supplying GetDeltaT().
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Update(updateContext)
   {
@@ -86,7 +86,7 @@ export class Tr2ScalarFader
    * @param {number} fadeLength Fade duration in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   StartFade(isFadeIn, fadeLength)
   {
@@ -102,7 +102,7 @@ export class Tr2ScalarFader
    * Checks whether the fader is inactive and contributes no value.
    * @returns {boolean}
    */
-  @blue.method
+
   @meta.implemented
   IsZero()
   {
@@ -113,7 +113,7 @@ export class Tr2ScalarFader
    * Gets the current linear fade value.
    * @returns {number}
    */
-  @blue.method
+
   @meta.implemented
   GetFaderValue()
   {
@@ -124,7 +124,7 @@ export class Tr2ScalarFader
    * Checks whether the kick-in envelope is inactive or at its start.
    * @returns {boolean}
    */
-  @blue.method
+
   @meta.implemented
   IsKickInZero()
   {
@@ -135,7 +135,7 @@ export class Tr2ScalarFader
    * Gets Carbon's non-linear kick-in envelope value.
    * @returns {number}
    */
-  @blue.method
+
   @meta.implemented
   GetKickInValue()
   {

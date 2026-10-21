@@ -46,7 +46,7 @@ export class EveVirtualCameraBehaviourVector3Offset extends EveVirtualCameraBeha
    * set and multiplied by the anchor radius when proportional is set; it ignores
    * time and delta time entirely.
    */
-  @blue.method
+
   @meta.adapted
   Update(_camera, _current, _deltaTime, _localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {

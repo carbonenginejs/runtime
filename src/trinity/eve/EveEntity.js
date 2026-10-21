@@ -30,7 +30,7 @@ export class EveEntity
   indexInRegistry = -1;
 
   /** Whether this entity currently belongs to a component registry. */
-  @blue.method
+
   @meta.implemented
   IsInRegistry()
   {
@@ -43,7 +43,7 @@ export class EveEntity
    * nothing only leaves the current registry; re-registering with the same
    * registry is a no-op.
    */
-  @blue.method
+
   @meta.implemented
   Register(registry)
   {
@@ -67,7 +67,7 @@ export class EveEntity
    * Leaves the given registry, dropping every component it holds for this
    * entity, but only when it is the registry this entity is actually in.
    */
-  @blue.method
+
   @meta.implemented
   UnRegister(registry)
   {
@@ -84,7 +84,7 @@ export class EveEntity
    * Asks the current registry to re-evaluate this entity's component
    * registrations, for use after state that gates them changes.
    */
-  @blue.method
+
   @meta.implemented
   ReRegister()
   {
@@ -95,7 +95,7 @@ export class EveEntity
    * The registry this entity belongs to, or null; subclasses read it in
    * RegisterComponents to decide what to publish.
    */
-  @blue.method
+
   @meta.implemented
   GetComponentRegistry()
   {
@@ -106,7 +106,7 @@ export class EveEntity
    * The registry slot index recorded for a component bit, or undefined when this
    * entity has no component of that type.
    */
-  @blue.method
+
   @meta.implemented
   GetComponentIndex(componentBit)
   {
@@ -117,7 +117,7 @@ export class EveEntity
    * Records the slot index a registry assigned for a component bit; called by
    * the registry, not by entities.
    */
-  @blue.method
+
   @meta.implemented
   SetComponentState(componentBit, index)
   {
@@ -128,7 +128,7 @@ export class EveEntity
    * Drops the recorded slot index for a component bit; called by the registry
    * when that component is released.
    */
-  @blue.method
+
   @meta.implemented
   RemoveComponentState(componentBit)
   {
@@ -136,7 +136,8 @@ export class EveEntity
   }
 
   /** Drops every recorded component slot index without touching the registry. */
-  @meta.implemented
+  @meta.cjs
+    @meta.implemented
   ClearComponentState()
   {
     this._componentIndexLookup.clear();
@@ -146,7 +147,7 @@ export class EveEntity
    * Override point where a subclass publishes the components it owns; called
    * after joining a registry, and again on ReRegister.
    */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -157,7 +158,7 @@ export class EveEntity
    * called while leaving a registry, after the registry has dropped its own
    * records.
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {

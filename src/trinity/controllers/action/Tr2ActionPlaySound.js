@@ -47,7 +47,7 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    * strings replace the native narrow-to-wide conversion, and absent owners
    * remain silent rather than emitting the native diagnostic.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller)
   {

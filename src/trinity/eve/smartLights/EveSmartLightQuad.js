@@ -218,7 +218,7 @@ export class EveSmartLightQuad extends EveChildTransform
   /**
    * softQuad edits swap the flare-quad effect path (EveSmartLightQuad.cpp:36-54).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -234,7 +234,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Caches the effect key here; registration with the supplied quad renderer occurs
    * through RegisterWithQuadRenderer.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -253,7 +253,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Uses the supplied quad renderer rather than Carbon's singleton, with
    * EveChildQuad's shared vertex definition.
    */
-  @blue.method
+
   @meta.adapted
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -277,7 +277,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * GetQuadRenderer contract.
    */
   @meta.implemented
-  @blue.method
+
   UpdateSyncronous__Distribution(updateContext, params, _distribution)
   {
     this._activationStrength = params.activationStrength;
@@ -311,7 +311,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * space object parent.
    */
   @meta.implemented
-  @blue.method
+
   UpdateAsyncronous__Distribution(_updateContext, params, _distribution)
   {
     // Carbon cpp:100-114 copies the supplied matrix, then lets the parent fill it.
@@ -337,7 +337,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Packs each logical instance into the JavaScript byte buffer and submits it
    * through the supplied quad renderer.
    */
-  @blue.method
+
   @meta.adapted
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {

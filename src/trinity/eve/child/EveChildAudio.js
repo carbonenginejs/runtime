@@ -47,7 +47,7 @@ export class EveChildAudio extends EveChildTransform
    * initializes it at the current world position; returns false when no
    * AudEmitter class is registered, and true when an emitter already exists.
    */
-  @blue.method
+
   Initialize()
   {
     if (this.audioEmitter) return true;
@@ -98,7 +98,7 @@ export class EveChildAudio extends EveChildTransform
    * value argument follows the repo's OnModified duck of field name or field
    * value.
    */
-  @blue.method
+
   OnModified(value = null)
   {
     if (IsMatch(value, "mute"))
@@ -118,7 +118,7 @@ export class EveChildAudio extends EveChildTransform
    * parent takes precedence. While unmuted, updates the emitter's position and
    * orientation from that transform; the parent's return value is unused.
    */
-  @blue.method
+
   UpdateSyncronous(_updateContext, params = {})
   {
     const parent = params.childParent ?? params.spaceObjectParent ?? null;
@@ -171,7 +171,7 @@ export class EveChildAudio extends EveChildTransform
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
-  @blue.method
+
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.worldTransform);
@@ -197,7 +197,7 @@ export class EveChildAudio extends EveChildTransform
    * audio emitter when it is debug-renderable.
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -213,7 +213,7 @@ export class EveChildAudio extends EveChildTransform
    * audio emitter when it is debug-renderable.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {

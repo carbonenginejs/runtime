@@ -93,7 +93,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Links actions, variables, and event handlers to an owner.
    */
-  @blue.method
+
   @meta.adapted
   Link(owner)
   {
@@ -125,7 +125,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Unlinks runtime children and clears owner state.
    */
-  @blue.method
+
   @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
@@ -157,7 +157,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Checks whether this timeline is linked.
    */
-  @blue.method
+
   @meta.implemented
   IsLinked()
   {
@@ -218,7 +218,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Adapted: the action range toggling runs through `_SetTime`, and the
    * controller mutex and stats scopes are omitted (one JavaScript thread).
    */
-  @blue.method
+
   @meta.adapted
   Update(normalizedUpdateFrequency = 0.5)
   {
@@ -250,7 +250,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Sets a named variable.
    */
-  @blue.method
+
   @meta.implemented
   SetVariable(name, value)
   {
@@ -294,7 +294,7 @@ export class Tr2TimelineController extends EveThrottleable
    * CcpLog, preserving Carbon's continuation after a failed callback.
    * Returns whether a matching callback was invoked; native returns void.
    */
-  @blue.method
+
   @meta.adapted
   Callback(callbackName)
   {
@@ -325,7 +325,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Registers an updateable object.
    */
-  @blue.method
+
   @meta.implemented
   RegisterUpdateable(updateable)
   {
@@ -335,7 +335,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Unregisters an updateable object.
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterUpdateable(updateable)
   {
@@ -345,7 +345,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets named roots for controller binding paths.
    */
-  @blue.method
+
   @meta.adapted
   GetBindingPathRoots()
   {
@@ -366,7 +366,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets a float variable by name.
    */
-  @blue.method
+
   @meta.implemented
   GetFloatVariableByName(name)
   {
@@ -376,7 +376,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Appends expression metadata for variables.
    */
-  @blue.method
+
   @meta.implemented
   GetExpressionTermInfo(out)
   {
@@ -394,7 +394,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets expression variable metadata.
    */
-  @blue.method
+
   @meta.implemented
   GetVariableView()
   {
@@ -404,7 +404,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets expression variable data.
    */
-  @blue.method
+
   @meta.implemented
   GetVariableBuffer()
   {
@@ -414,7 +414,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Ensures the expression temporary arena is large enough.
    */
-  @blue.method
+
   @meta.implemented
   EnsureTempArenaSize(size)
   {
@@ -427,7 +427,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets the expression temporary arena.
    */
-  @blue.method
+
   @meta.implemented
   GetTempArena()
   {
@@ -439,7 +439,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Source: trinity/trinity/Controllers/Tr2TimelineController.cpp:366-375
    * Adapted: JavaScript numeric timestamps represent native Be::Time values.
    */
-  @blue.method
+
   @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
@@ -730,7 +730,7 @@ export class Tr2TimelineController extends EveThrottleable
    * @returns {boolean} Whether the entry's track is enabled.
    * @throws {RangeError} When no entry exists at index (ruling 11).
    */
-  @blue.method
+
   @meta.implemented
   IsActionEnabled(index)
   {
@@ -809,7 +809,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Gets current timeline time.
    */
-  @blue.method
+
   @meta.implemented
   GetTime()
   {
@@ -819,7 +819,7 @@ export class Tr2TimelineController extends EveThrottleable
   /**
    * Sets current timeline time and toggles action activity.
    */
-  @blue.method
+
   @meta.adapted
   SetTime(time)
   {

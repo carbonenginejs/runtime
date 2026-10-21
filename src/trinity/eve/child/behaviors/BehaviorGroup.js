@@ -251,7 +251,7 @@ export class BehaviorGroup extends EveEntity
    * Adapted: the vertex declaration comes through the effect-state manager, and the agent scratch and flare storage
    * are the group's own arrays.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -271,7 +271,7 @@ export class BehaviorGroup extends EveEntity
    * Carbon BehaviorGroup::OnModified (cpp:59-71): a mesh change refreshes the vertex declaration and a booster change
    * re-syncs the flare count.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -329,7 +329,7 @@ export class BehaviorGroup extends EveEntity
    * indexes, and re-adds m_count agents (Carbon InitializeGeometryResource,
    * cpp:126-140). Behaviors like SpawnDrones use this as a full reset.
    */
-  @blue.method
+
   @meta.implemented
   InitializeGeometryResource()
   {
@@ -350,7 +350,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::SetVertexFunctionReferance (cpp:142-145). */
-  @blue.method
+
   @meta.implemented
   SetVertexFunctionReferance(callback)
   {
@@ -358,7 +358,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetSize (cpp:151-154). */
-  @blue.method
+
   @meta.implemented
   GetSize()
   {
@@ -366,7 +366,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetCount (cpp:160-163). */
-  @blue.method
+
   @meta.implemented
   GetCount()
   {
@@ -384,7 +384,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetBehaviorByName (cpp:187-197). */
-  @blue.method
+
   @meta.implemented
   GetBehaviorByName(name)
   {
@@ -400,7 +400,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::SortBehaviorIndexes (cpp:206-221). */
-  @blue.method
+
   @meta.implemented
   SortBehaviorIndexes()
   {
@@ -418,7 +418,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetMesh (cpp:227-230). */
-  @blue.method
+
   @meta.implemented
   GetMesh()
   {
@@ -426,7 +426,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetMaxVelocity (cpp:236-239). */
-  @blue.method
+
   @meta.implemented
   GetMaxVelocity()
   {
@@ -434,7 +434,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::SetGroupIndexIndicator (cpp:254-257). */
-  @blue.method
+
   @meta.implemented
   SetGroupIndexIndicator(index)
   {
@@ -442,7 +442,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetGroupIndexIndicator (cpp:263-266). */
-  @blue.method
+
   @meta.implemented
   GetGroupIndexIndicator()
   {
@@ -463,7 +463,7 @@ export class BehaviorGroup extends EveEntity
    * records (Carbon AddAgents, cpp:280-310).
    * @param {Array<Float32Array>} positions
    */
-  @blue.method
+
   @meta.implemented
   AddAgents(positions)
   {
@@ -513,7 +513,7 @@ export class BehaviorGroup extends EveEntity
    * record aligned (Carbon RemoveSpecificAgent, cpp:432-452).
    * @param {Number} index
    */
-  @blue.method
+
   @meta.implemented
   RemoveSpecificAgent(index)
   {
@@ -575,7 +575,7 @@ export class BehaviorGroup extends EveEntity
    * @param {Number} dt - delta time in seconds
    * @param {Object} system - owning EveChildBehaviorSystem
    */
-  @blue.method
+
   @meta.implemented
   UpdateAgents(dt, system)
   {
@@ -683,7 +683,7 @@ export class BehaviorGroup extends EveEntity
    * @param {EveUpdateContext} updateContext - frame context
    * @param {Float32Array} worldTransform - owning system's world transform
    */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, worldTransform)
   {
@@ -729,7 +729,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::IsGroupVisible (cpp:683-686). */
-  @blue.method
+
   @meta.implemented
   IsGroupVisible()
   {
@@ -740,7 +740,7 @@ export class BehaviorGroup extends EveEntity
    * 1 if every agent lodded out to a sprite, 0 if every agent is a mesh,
    * -1 when mixed or empty (Carbon AllTheSame, cpp:397-409).
    */
-  @blue.method
+
   @meta.implemented
   AllTheSame()
   {
@@ -764,7 +764,7 @@ export class BehaviorGroup extends EveEntity
    * as three float4 rows. The optional float offset replaces a native pointer.
    * Parent placement is deliberately left to the per-object constants.
    */
-  @blue.method
+
   @meta.adapted
   GetShipInfoForBuffer(data, _parentWorldLocation, offset = 0)
   {
@@ -802,7 +802,7 @@ export class BehaviorGroup extends EveEntity
    * uses Carbon's shared CRT stream and preserves srand's effect on later callers.
    * A float offset replaces native byte-pointer arithmetic.
    */
-  @blue.method
+
   @meta.adapted
   GetBoosterInfoForBuffer(data, parentWorldLocation, offset = 0)
   {
@@ -853,7 +853,7 @@ export class BehaviorGroup extends EveEntity
    * Adapted: the resource's stable decoded elements identify the cached layout;
    * the existing CarbonVertexElements bridge translates its CMF vocabulary.
    */
-  @blue.method
+
   @meta.adapted
   CreateVertexDeclaration()
   {
@@ -876,7 +876,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup.h returns the merged vertex declaration handle. */
-  @blue.method
+
   @meta.implemented
   GetVertexDeclarationHandle()
   {
@@ -884,7 +884,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetRenderables (cpp:871-877): PlayFX effects only. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables = [])
   {
@@ -896,7 +896,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::UpdateAsyncronous (cpp:883-894): PlayFX fan-out. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext)
   {
@@ -913,7 +913,7 @@ export class BehaviorGroup extends EveEntity
 
   /** Carbon BehaviorGroup::UpdateSyncronous (cpp:901-925): deferred tree
    * rebuild, PlayFX sync update, and parent capture. */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -939,7 +939,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetParent (cpp:927-930). */
-  @blue.method
+
   @meta.implemented
   GetParent()
   {
@@ -951,7 +951,7 @@ export class BehaviorGroup extends EveEntity
    * options, the booster ones when it has a booster, then every behavior's.
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -973,7 +973,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetBoundingSphereRadius (cpp:953-956). */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphereRadius()
   {
@@ -981,7 +981,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetKDTree (cpp:958-961). */
-  @blue.method
+
   @meta.implemented
   GetKDTree()
   {
@@ -989,7 +989,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::GetBooster (cpp:963-966). */
-  @blue.method
+
   @meta.implemented
   GetBooster()
   {
@@ -1001,7 +1001,7 @@ export class BehaviorGroup extends EveEntity
    * dynamic_cast<PlayFX*> (cpp:973): the behaviors list is typed
    * IBehavior and resolved by string name, so a mis-named behavior of another
    * class must never land in the PlayFX slot. */
-  @blue.method
+
   @meta.implemented
   SetPlayFXBehavior()
   {
@@ -1029,7 +1029,7 @@ export class BehaviorGroup extends EveEntity
    * the map stays empty and no lights register.
    * @param {Object} lightManager
    */
-  @blue.method
+
   @meta.implemented
   GetLights(lightManager)
   {
@@ -1043,15 +1043,15 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** ITr2LightOwner::AddLight - intentionally empty in Carbon (h:116). */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   AddLight(_light)
   {
   }
 
   /** ITr2LightOwner::ClearLights - intentionally empty in Carbon (h:117). */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   ClearLights()
   {
   }
@@ -1059,7 +1059,7 @@ export class BehaviorGroup extends EveEntity
   /** Carbon BehaviorGroup::RegisterComponents (cpp:1003-1015): unconditional
    * LightOwner (Carbon's verbatim "LightOwner" component name,
    * Lights/ITr2LightOwner.h:18), then forwards the PlayFX behavior. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -1075,7 +1075,7 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::UnRegisterComponents (cpp:1017-1027). */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -1091,7 +1091,7 @@ export class BehaviorGroup extends EveEntity
 
   /** Carbon BehaviorGroup::RegisterWithQuadRenderer (cpp:1029-1040): CPU
    * fan-out to the booster and PlayFX quad owners. */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -1108,7 +1108,7 @@ export class BehaviorGroup extends EveEntity
 
   /** Carbon BehaviorGroup::AddQuadsToQuadRenderer (cpp:1043-1059): CPU
    * fan-out, gated on display and group visibility. */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -1135,7 +1135,7 @@ export class BehaviorGroup extends EveEntity
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentWorldLocation Places the agents in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentWorldLocation)
   {
@@ -1248,14 +1248,16 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Returns the portable DroneAgent records in stable instance order. */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetAgents()
   {
     return this._agents;
   }
 
   /** Returns the collected debug force pairs (Carbon m_forces). */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetForces()
   {
     return this._forces;
@@ -1265,7 +1267,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * The reciprocal of the mesh-to-sprite blend screen-size range, used to interpolate an agent's crossfade.
    */
-  @blue.method
+
   _GetBlendModifier()
   {
     return 1 / Math.max(0.0001, this.blendScreenSizeMax - this.blendScreenSizeMin);
@@ -1339,7 +1341,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Creates and appends one agent, initialises its scratch records, and increments the live agent count.
    */
-  @blue.method
+
   _AddAgentPrivate()
   {
     const agent = this._createAgent();
@@ -1353,7 +1355,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Appends agents until the group reaches the requested count, initialising scratch records for each.
    */
-  @blue.method
+
   _AddAgentsByCount(count)
   {
     const sizeBeforeResize = this._agents.length;
@@ -1373,7 +1375,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Truncates the agent list and every behaviour's scratch array down to the requested count.
    */
-  @blue.method
+
   _RemoveAgentsByCount(count)
   {
     this._agents.length = count;
@@ -1419,7 +1421,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Flags the agent tree for rebuild, notifies the owner's buffer-resize callback, and resyncs the booster flare count.
    */
-  @blue.method
+
   _OnAgentCountChanged()
   {
     this._createAgentTree = true;

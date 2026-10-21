@@ -171,7 +171,7 @@ export class Tr2ShLightingManager
    * @param {Float32Array} position - the vector passed to the register call
    * @returns {Boolean} false when no source holds that vector
    */
-  @blue.method
+
   @meta.implemented
   UnregisterSecondaryLightSource(position)
   {
@@ -192,7 +192,7 @@ export class Tr2ShLightingManager
    * @param {Float32Array} color - primary light colour
    * @returns {Boolean} true
    */
-  @blue.method
+
   @meta.implemented
   UpdateWithDirectionalLight(direction, color)
   {
@@ -210,7 +210,7 @@ export class Tr2ShLightingManager
    * never culled by the caller's cutoff radius.
    * @returns {Number} the processed source count
    */
-  @blue.method
+
   @meta.implemented
   UpdateSourceData()
   {
@@ -269,7 +269,7 @@ export class Tr2ShLightingManager
    * @param {Float32Array} out - seven packed vec4s, 28 floats
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.implemented
   GetLighting(position, intensity, cutoffRadius, out)
   {
@@ -289,7 +289,7 @@ export class Tr2ShLightingManager
    * @param {Number} order - 2 for L1, 3 for L2
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.renamed("CalculateSecondaryLighting")
   #CalculateSecondaryLighting(position, intensity, cutoffRadius, out, order)
   {

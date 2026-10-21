@@ -46,7 +46,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplay.
    * @returns {boolean} Whether the sprite is displayed.
    */
-  @blue.method
+
   @meta.implemented
   GetDisplay()
   {
@@ -62,7 +62,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {boolean} value Display state.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetDisplay(value)
   {
@@ -77,7 +77,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplayX.
    * @returns {number} Display x.
    */
-  @blue.method
+
   @meta.implemented
   GetDisplayX()
   {
@@ -93,7 +93,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value Display x.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetDisplayX(value)
   {
@@ -103,7 +103,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplayY.
    * @returns {number} Display y.
    */
-  @blue.method
+
   @meta.implemented
   GetDisplayY()
   {
@@ -119,7 +119,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value Display y.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetDisplayY(value)
   {
@@ -129,7 +129,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplayWidth.
    * @returns {number} Display width.
    */
-  @blue.method
+
   @meta.implemented
   GetDisplayWidth()
   {
@@ -145,7 +145,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value Display width.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetDisplayWidth(value)
   {
@@ -155,7 +155,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon method GetDisplayHeight.
    * @returns {number} Display height.
    */
-  @blue.method
+
   @meta.implemented
   GetDisplayHeight()
   {
@@ -171,7 +171,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value Display height.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetDisplayHeight(value)
   {
@@ -182,7 +182,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {ITr2SpriteObject|null} parent New parent.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetParent(parent)
   {
@@ -208,8 +208,8 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {ITr2SpriteObject|null} _child Changed child.
    * @returns {void}
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   SetChildDirty(_child)
   {
   }
@@ -217,7 +217,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Carbon's base object is never an auxiliary mouse-over result.
    * @returns {boolean} Always false for the base object.
    */
-  @blue.method
+
   @meta.implemented
   IsAuxMouseover()
   {
@@ -228,7 +228,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {string|null} _value Changed declaration name.
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(_value)
   {

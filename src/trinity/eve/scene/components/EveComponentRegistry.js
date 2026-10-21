@@ -32,7 +32,7 @@ export class EveComponentRegistry
    * Empties every component collection and detaches all registered entities,
    * resetting their registry link and component state.
    */
-  @blue.method
+
   @meta.implemented
   Clear()
   {
@@ -63,7 +63,7 @@ export class EveComponentRegistry
    * loop guard has no counterpart without threads.
    * @param {string} componentName The component type's registered name.
    */
-  @blue.method
+
   @meta.adapted
   Clear__Component(componentName)
   {
@@ -83,7 +83,7 @@ export class EveComponentRegistry
    * Removes the entity from this registry and adds it back, moving it to the end
    * of the registration order.
    */
-  @blue.method
+
   @meta.implemented
   ReRegister(entity)
   {
@@ -95,7 +95,7 @@ export class EveComponentRegistry
    * Adds an entity to the registry and records its index, returning false if the
    * entity is already registered anywhere.
    */
-  @blue.method
+
   @meta.implemented
   Register(entity)
   {
@@ -114,7 +114,7 @@ export class EveComponentRegistry
    * keeping the entity list dense, and returns false if the entity is not
    * registered here.
    */
-  @blue.method
+
   @meta.implemented
   UnRegister(entity)
   {
@@ -140,7 +140,7 @@ export class EveComponentRegistry
    * Drops the entity from every component collection while leaving it registered
    * in the entity list.
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterAllComponents(entity)
   {
@@ -154,7 +154,7 @@ export class EveComponentRegistry
    * Returns the collection for a component name, or null when no collection has
    * been created for it yet.
    */
-  @blue.method
+
   @meta.implemented
   GetComponentCollection(componentName)
   {
@@ -176,7 +176,7 @@ export class EveComponentRegistry
    * Adapted: JavaScript passes Carbon's compile-time component name explicitly because it
    * has no C++ template specialization.
    */
-  @blue.method
+
   @meta.adapted
   RegisterComponent(componentName, entity)
   {
@@ -241,7 +241,7 @@ export class EveComponentRegistry
    * Adapted: JavaScript passes Carbon's compile-time component name explicitly because it
    * has no C++ template specialization.
    */
-  @blue.method
+
   @meta.adapted
   UnRegisterComponent(componentName, entity)
   {
@@ -254,7 +254,7 @@ export class EveComponentRegistry
    * throws once 32 collections exist because the entity component mask is 32
    * bits wide.
    */
-  @blue.method
+
   @meta.implemented
   AddCollection(componentName)
   {
@@ -274,7 +274,7 @@ export class EveComponentRegistry
    * entity under the collection's bit, returning false if it is already a
    * member.
    */
-  @blue.method
+
   @meta.implemented
   AddToCollection(collection, entity)
   {
@@ -292,7 +292,7 @@ export class EveComponentRegistry
    * slot and fixing up the moved entity's stored index, returning false if it
    * was not a member.
    */
-  @blue.method
+
   @meta.implemented
   RemoveFromCollection(collection, entity)
   {
@@ -316,7 +316,7 @@ export class EveComponentRegistry
    * empty array when the collection does not exist; the array is borrowed and
    * changes as entities register.
    */
-  @blue.method
+
   @meta.implemented
   GetComponents(componentName)
   {
@@ -327,7 +327,7 @@ export class EveComponentRegistry
    * Returns how many entities are in the named component collection, or 0 when
    * the collection does not exist.
    */
-  @blue.method
+
   @meta.implemented
   ComponentCount(componentName)
   {
@@ -341,7 +341,7 @@ export class EveComponentRegistry
    * name from the template type and holds a shared_lock; single-threaded JS
    * takes the name directly and needs no lock.
    */
-  @blue.method
+
   @meta.implemented
   ProcessComponents(componentName, processor)
   {
@@ -357,7 +357,7 @@ export class EveComponentRegistry
    * Carbon ProcessComponentsUntil (h:270-290): identical to ProcessComponents
    * except it stops at the first processor call that returns true.
    */
-  @blue.method
+
   @meta.implemented
   ProcessComponentsUntil(componentName, processor)
   {
@@ -373,7 +373,7 @@ export class EveComponentRegistry
    * Carbon RemoveCollectionFromEntityState (EveComponentRegistry.cpp:147-150):
    * clears the collection's bit from the entity's component mask.
    */
-  @blue.method
+
   @meta.implemented
   RemoveCollectionFromEntityState(collection, entity)
   {

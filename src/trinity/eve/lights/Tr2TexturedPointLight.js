@@ -52,7 +52,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   _saturation = 1;
 
   /** Carbon SetSaturation (cpp:37-40); consumed by Update below. */
-  @blue.method
+
   @meta.implemented
   SetSaturation(saturation)
   {
@@ -64,7 +64,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * authored, then the point-light base. The reach is the process-wide
    * manager read at call time, which is what BeResMan is (be.resMan).
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -80,7 +80,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * is refetched from the new data's path.
    * @param {LightData} lightData
    */
-  @blue.method
+
   @meta.implemented
   SetLightData(lightData)
   {
@@ -91,7 +91,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon OnModified (cpp:42–49): texture changes refetch, then forward base.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -104,7 +104,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    *
    * @param {string} path Texture resource path.
    */
-  @blue.method
+
   @meta.implemented
   SetTexturePath(path)
   {
@@ -121,7 +121,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Update()
   {

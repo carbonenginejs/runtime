@@ -33,7 +33,7 @@ export class AudPosition extends IBluePlacementObserver
    * @param {ArrayLike<number>} position Position.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   UpdatePlacement(front, top, position)
   {
@@ -49,7 +49,7 @@ export class AudPosition extends IBluePlacementObserver
    *
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   OnModified()
   {

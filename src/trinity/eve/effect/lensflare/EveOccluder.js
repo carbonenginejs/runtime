@@ -61,7 +61,7 @@ export class EveOccluder
    * @param {number} fogWeight 1 for foreground occluders, 0 for background.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RunQuery(renderContext, updateContext, transform, bufferOffset, fogWeight)
   {

@@ -140,7 +140,8 @@ export class CjsWebgpuResourceSetAL
    * Adapted: Resolves dense native records to WebGPU views and buffers; a pending resource
    * or empty slot uses the context dummy, following Metal.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   _Resolve(description, binding, renderContext, storage)
   {
     if (binding.sampler)

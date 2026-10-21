@@ -63,7 +63,7 @@ export class InclusionVolume
   _returnForces = [];
 
   /** Carbon InclusionVolume::GetProcessPriority (cpp:21-24). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -87,7 +87,7 @@ export class InclusionVolume
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, _dronesInSearchRadius)
   {
@@ -145,7 +145,7 @@ export class InclusionVolume
    * Carbon InclusionVolume::GetDebugOptions (cpp:71-74).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -159,7 +159,7 @@ export class InclusionVolume
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {

@@ -248,7 +248,7 @@ export class Tr2VolumetricsRenderer
    * Adapted: each attribute is selected by an accessor function where Carbon's
    * FROXEL_ACCUMULATE macro passes a member pointer.
    */
-  @blue.method
+
   @meta.adapted
   UpdateFogSettings(registry, updateContext)
   {
@@ -293,7 +293,7 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Reports whether the blended fog thickness is strictly positive. */
-  @blue.method
+
   @meta.implemented
   HasFog()
   {
@@ -308,7 +308,7 @@ export class Tr2VolumetricsRenderer
    * @param {RawData} out The per-frame record.
    * @returns {RawData} out
    */
-  @blue.method
+
   @meta.adapted
   PopulatePerFrameData(out)
   {
@@ -334,14 +334,14 @@ export class Tr2VolumetricsRenderer
    * @param {boolean} isReflectionProbe Whether a reflection probe is rendering.
    */
   @meta.implemented
-  @blue.method
+
   SetIsReflectionProbe(isReflectionProbe)
   {
     this._isReflectionProbe = isReflectionProbe;
   }
 
   /** Applies Carbon's four quality presets. */
-  @blue.method
+
   @meta.implemented
   SetQuality(quality)
   {
@@ -377,7 +377,7 @@ export class Tr2VolumetricsRenderer
    * Adapted: Carbon asserts a two-sphere span and copies it whole; this throws a RangeError for any other count and
    * copies the two vec4 records.
    */
-  @blue.method
+
   @meta.adapted
   SetPlanets(planets)
   {
@@ -390,7 +390,7 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Stores the sun angle consumed by later fog constant production. */
-  @blue.method
+
   @meta.implemented
   SetSunAngle(angle)
   {
@@ -527,8 +527,8 @@ export class Tr2VolumetricsRenderer
 
   /** Native four transparent slices (cpp:125-150); options combine the pool overloads. */
   @meta.adapted
-  @blue.method
-  @meta.renamed("GetEmptyVolumetricTexture")
+
+
   static getEmptyVolumetricTexture(gpuResourcePool)
   {
     const initialData = Array.from({ length: 4 }, () => new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4));
@@ -574,8 +574,8 @@ export class Tr2VolumetricsRenderer
 
   /** Native transparent 3D fog texel (cpp:536-553). */
   @meta.implemented
-  @blue.method
-  @meta.renamed("GetEmptyFogTexture")
+
+
   static getEmptyFogTexture(gpuResourcePool)
   {
     const dimensions = Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1, 1);
@@ -778,7 +778,7 @@ export class Tr2VolumetricsRenderer
    * and restarts the blend.
    * @param {object} renderContext The frame's Tr2RenderContext.
    */
-  @blue.method
+
   @meta.implemented
   UpdateFogEnvironmentMap(renderContext)
   {
@@ -868,7 +868,7 @@ export class Tr2VolumetricsRenderer
    */
   @meta.adapted
   @blue.method
-  @meta.renamed("UpdatePerObjectData")
+
   _UpdatePerObjectData(data, view, projection, viewLast, projectionLast, origin, originShift, sunDirection, sunColor,
     width, height, depth, jitter, cascadedShadowMap)
   {
@@ -1074,7 +1074,7 @@ export class Tr2VolumetricsRenderer
    * (`Tr2VolumetricsRenderer.cpp`, one line). The port had grown a
    * `renderContext` parameter that existed only to reach an executor.
    */
-  @blue.method
+
   @meta.implemented
   UpdateVariableStore()
   {

@@ -52,7 +52,7 @@ export class Tr2InteriorScene
    * Carbon Tr2InteriorScene.cpp:229-284 updates lights and dynamic membership.
    * Adapted: array identity search replaces FindKey; JS has no QI reference unlock.
    */
-  @blue.method
+
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -320,7 +320,7 @@ export class Tr2InteriorScene
   _perFrameVSBuffer = new Tr2ConstantBufferAL();
 
   /** Native initialization acquires the background, without allocating shadows. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -332,7 +332,7 @@ export class Tr2InteriorScene
    * Applies the native background and shadow member branches. JS coalesces
    * changed names, so a size/count batch rebuilds once using both final values.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(name)
   {
@@ -346,7 +346,7 @@ export class Tr2InteriorScene
    * An empty native path clears the pointer; JS omits that request because its
    * resource manager rejects empty paths. The background effect is unchanged.
    */
-  @blue.method
+
   @meta.adapted
   SetBackgroundCubemapResPath(resMan = be.resMan)
   {
@@ -466,7 +466,7 @@ export class Tr2InteriorScene
    * argument and throws when it is neither (rule 11).
    * @param {Tr2RenderContext|ITr2DebugRenderer2} contextOrRenderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(contextOrRenderer)
   {
@@ -485,7 +485,7 @@ export class Tr2InteriorScene
    * Carbon GetDebugOptions (Tr2InteriorScene.cpp:1428-1431).
    * @param {Set<string>} options
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {

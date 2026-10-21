@@ -109,7 +109,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Loads the instance path before base geometry (Tr2InstancedMesh.cpp:57-69). */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -121,7 +121,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Resource path the instance data is loaded from. */
-  @blue.method
+
   @meta.implemented
   GetInstanceMeshResPath()
   {
@@ -129,7 +129,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Sets the instance-data resource path; schedules the instanceBuffer rebuild. */
-  @blue.method
+
   @meta.adapted
   SetInstanceMeshResPath(path)
   {
@@ -138,7 +138,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Index of the instance buffer within the instance geometry resource. */
-  @blue.method
+
   @meta.implemented
   GetInstanceMeshIndex()
   {
@@ -149,7 +149,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * The bound instance-data provider (an ITr2InstanceData), or null when none is
    * set.
    */
-  @blue.method
+
   @meta.implemented
   GetInstanceGeometryResource()
   {
@@ -157,7 +157,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Binds the instance provider and rebuilds declarations (cpp:198-208). */
-  @blue.method
+
   @meta.implemented
   SetInstanceGeometryRes(resource)
   {
@@ -168,7 +168,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Invalidates both cached declarations (Tr2InstancedMesh.cpp:78-82). */
-  @blue.method
+
   @meta.implemented
   ReleaseResources()
   {
@@ -177,7 +177,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Recreates declarations when the device can prepare resources (cpp:89-93). */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -186,7 +186,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Rebuilds the declaration before the base geometry caches (cpp:160-164). */
-  @blue.method
+
   @meta.implemented
   RebuildCachedData(resource)
   {
@@ -198,7 +198,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Loads changed instance paths, releases deferred loading and refreshes
    * declarations (Tr2InstancedMesh.cpp:105-138).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -292,7 +292,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Carbon prepares at resource load; our resource layer cannot import Trinity,
    * so preparation happens at first use, for loaded and assigned providers.
    */
-  @blue.method
+
   @meta.adapted
   CreateVertexDeclaration()
   {
@@ -324,7 +324,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Returns the combined declaration handle (Tr2InstancedMesh.cpp:531-534). */
-  @blue.method
+
   @meta.implemented
   GetVertexDeclaration()
   {
@@ -335,7 +335,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Sets the static bounds used when boundsMethod is STATIC; a missing vector is
    * treated as the origin.
    */
-  @blue.method
+
   @meta.adapted
   SetBoundingBox(minBounds, maxBounds)
   {
@@ -347,7 +347,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Switches to DYNAMIC bounds, where the instance stream's box is expanded by a
    * fixed instance size in world units.
    */
-  @blue.method
+
   @meta.adapted
   SetDynamicBounds(maxInstanceSize)
   {
@@ -359,7 +359,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Switches to DYNAMIC_SCALED bounds, where the instance stream's box is
    * expanded by maxScale multiplied by the mesh geometry's own radius.
    */
-  @blue.method
+
   @meta.adapted
   SetDynamicScaledBounds(maxScale)
   {
@@ -373,7 +373,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * DYNAMIC_SCALED); a zero box when no instance bounds are available. Always a
    * freshly allocated pair.
    */
-  @blue.method
+
   @meta.adapted
   GetBounds()
   {
@@ -422,7 +422,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Overrides Tr2MeshBase - instanced areas share the whole-mesh bounds. */
-  @blue.method
+
   @meta.implemented
   GetAreaBounds(_areaIndex, _boneTransforms)
   {
@@ -430,7 +430,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Bounding box of a single instance - the mesh's own geometry bounds. */
-  @blue.method
+
   @meta.adapted
   GetInstanceBounds()
   {
@@ -453,7 +453,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Returns null for the STATIC bounds method, matching Carbon's empty
    * sphere.
    */
-  @blue.method
+
   @meta.adapted
   GetInstanceBoundsClosestToPoint(point)
   {
@@ -488,7 +488,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * not offer the base "Mesh Bounds" option.
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -521,7 +521,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @param {{ index: number, weight: number }[]|null} [_morphTargets]
    * @param {number} [_morphTargetsCount]
    */
-  @blue.method
+
   @meta.adapted
   RenderDebugInfo(worldTransform, renderer, _boneTransforms = null, _meshBindingIndices = null, _boneCount = 0, _morphTargets = null, _morphTargetsCount = 0)
   {

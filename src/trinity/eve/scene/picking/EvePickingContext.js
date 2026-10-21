@@ -35,7 +35,7 @@ export class EvePickingContext
    * Records the outcome of a resolved pick: the sampled screen coordinates, the
    * object hit (null for none) and its area index.
    */
-  @blue.method
+
   @meta.implemented
   UpdateResult(x, y, object, extraData1, extraData2)
   {
@@ -50,7 +50,7 @@ export class EvePickingContext
    * Returns the object from the last resolved pick, or null if nothing was hit;
    * the reference is borrowed and replaced by the next pick.
    */
-  @blue.method
+
   @meta.implemented
   GetObject()
   {
@@ -58,7 +58,7 @@ export class EvePickingContext
   }
 
   /** Returns the area index from the last resolved pick. */
-  @blue.method
+
   @meta.implemented
   GetExtraData1()
   {
@@ -66,7 +66,7 @@ export class EvePickingContext
   }
 
   /** Returns the second extra-data word from the last resolved pick. */
-  @blue.method
+
   @meta.implemented
   GetExtraData2()
   {

@@ -104,7 +104,7 @@ export class EveEllipsoidVolume extends IEveVolume
   _outerIntersection = vec3.create();
 
   /** Carbon Initialize (EveEllipsoidVolume.cpp:29-33): runs Setup. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -118,7 +118,7 @@ export class EveEllipsoidVolume extends IEveVolume
    *
    * @returns {{center: vec3, radius: number}}
    */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere()
   {
@@ -147,7 +147,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * @param {vec3} position Point in the volume's parent space; not modified.
    * @returns {number} The intensity.
    */
-  @blue.method
+
   @meta.implemented
   GetIntensity(position)
   {
@@ -187,7 +187,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Keeps every point in the shell between the inner and outer shapes.
    */
-  @blue.method
+
   @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
@@ -240,7 +240,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
    */
-  @blue.method
+
   @meta.adapted
   RegisterForChanges(callback)
   {
@@ -250,7 +250,7 @@ export class EveEllipsoidVolume extends IEveVolume
   }
 
   /** Drops a change callback by the id RegisterForChanges returned. */
-  @blue.method
+
   @meta.implemented
   UnregisterForChanges(callbackId)
   {
@@ -261,7 +261,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * Carbon OnModified (EveEllipsoidVolume.cpp:148-152): re-runs Setup, which
    * also notifies every registered listener.
    */
-  @blue.method
+
   @meta.implemented
   OnModified()
   {
@@ -286,7 +286,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * @param {mat4} parentTransform The parent's world transform.
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentTransform, baseColor = DEFAULT_BASE_COLOR)
   {
@@ -328,7 +328,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * EVERY change callback - the ellipsoid's callback fan-out lives INSIDE
    * Setup, opposite to the box's, whose OnModified fires them.
    */
-  @blue.method
+
   @meta.implemented
   Setup()
   {

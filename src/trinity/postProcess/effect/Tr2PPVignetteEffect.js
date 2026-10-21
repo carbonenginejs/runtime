@@ -86,7 +86,7 @@ export class Tr2PPVignetteEffect extends Tr2PPEffect
   sineMinimum = 0;
 
   /** Carbon Tr2PPVignetteEffect::IsActive override. */
-  @blue.method
+
   IsActive()
   {
     return this.display && this.intensity > 0 && this.opacity > 0;

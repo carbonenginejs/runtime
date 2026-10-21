@@ -53,7 +53,7 @@ export class Tr2BoundingLineSet extends Tr2LineSet
   /**
    * Appends the twelve edges of an axis-aligned box.
    */
-  @blue.method
+
   @meta.renamed("AddBox")
   #AddBox(min, max, color)
   {
@@ -72,7 +72,7 @@ export class Tr2BoundingLineSet extends Tr2LineSet
   /**
    * Appends the box's triangles so it can be picked as a solid volume.
    */
-  @blue.method
+
   @meta.renamed("AddPickingBox")
   #AddPickingBox(min, max)
   {

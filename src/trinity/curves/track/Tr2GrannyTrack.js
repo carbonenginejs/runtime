@@ -52,7 +52,7 @@ export class Tr2GrannyTrack
   /**
    * Initializes the resource-backed track.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -65,7 +65,7 @@ export class Tr2GrannyTrack
    * the resource; a new name or group rebuilds the curves. The two checks are
    * independent, so a batched change runs both.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -82,7 +82,7 @@ export class Tr2GrannyTrack
   /**
    * Relinks the authored Granny resource path.
    */
-  @blue.method
+
   @meta.adapted
   SetGrannyResource()
   {
@@ -99,7 +99,7 @@ export class Tr2GrannyTrack
   /**
    * Updates the track value.
    */
-  @blue.method
+
   @meta.adapted
   UpdateValue(time)
   {
@@ -118,7 +118,7 @@ export class Tr2GrannyTrack
   /**
    * Gets track duration.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {
@@ -128,7 +128,7 @@ export class Tr2GrannyTrack
   /**
    * Locates resource curves.
    */
-  @blue.method
+
   @meta.adapted
   SetCurves()
   {

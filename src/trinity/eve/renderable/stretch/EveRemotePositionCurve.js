@@ -60,7 +60,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * advances only through Update__Ticks.
    * @param {number} time Seconds.
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -74,7 +74,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3, returned unchanged.
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.implemented
   Update(_time, out)
   {
@@ -91,7 +91,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @returns {Float32Array} out
    */
   @meta.adapted
-  @blue.method
+
   Update__Ticks(time, out)
   {
     if (!this.startPositionCurve)
@@ -125,7 +125,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * Reports the value computed by the last Update; the time argument is ignored
    * and nothing is re-evaluated.
    */
-  @blue.method
+
   @meta.implemented
   GetValueAt(_time, out)
   {
@@ -136,7 +136,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * The first derivative is not modelled for this curve; out is returned
    * untouched.
    */
-  @blue.method
+
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -147,7 +147,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * The second derivative is not modelled for this curve; out is returned
    * untouched.
    */
-  @blue.method
+
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -158,7 +158,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * Copies the value computed by the last Update; the time argument is ignored
    * and nothing is re-evaluated.
    */
-  @blue.method
+
   @meta.implemented
   InterpolatedPosition(_time, out)
   {

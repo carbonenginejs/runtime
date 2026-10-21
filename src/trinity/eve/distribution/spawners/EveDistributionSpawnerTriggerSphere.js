@@ -59,7 +59,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
    * normalizes those distances into the 0..1 expansion order the update walks,
    * then restarts.
    */
-  @blue.method
+
   @meta.adapted
   Reset(placements)
   {
@@ -89,7 +89,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
    * Rewinds the expansion to its first placement, or its last when the animation
    * is reversed, and clears the play time.
    */
-  @blue.method
+
   @meta.implemented
   Restart()
   {
@@ -102,7 +102,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
    * reached, each subject to triggerChance, ending once the sorted order is
    * exhausted or the play duration elapses.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {

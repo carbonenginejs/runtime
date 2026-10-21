@@ -41,7 +41,7 @@ export class Tr2RenderJobs
    * The whole pass is bracketed by a render-target/depth-stencil batch so no job can leak a binding past the frame.
    * @param {object} [executor] performs the work the jobs describe; defaults to the shared Tr2RenderContext
    */
-  @blue.method
+
   @meta.adapted
   Run(realTime, simTime, executor = null)
   {
@@ -90,7 +90,7 @@ export class Tr2RenderJobs
    * jobs only; unlike Run this pass reschedules nothing and is not bracketed by
    * a batch.
    */
-  @blue.method
+
   @meta.adapted
   RunUpdate(realTime, simTime, executor = null)
   {

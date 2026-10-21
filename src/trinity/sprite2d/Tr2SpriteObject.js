@@ -108,7 +108,7 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
 
   /** Sets the regular draw state for this sprite. */
   @meta.implemented
-  @blue.method
+
   _SetRegularRenderState(renderer)
   {
     renderer.SetBlendmode(this.blendMode);
@@ -120,7 +120,7 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
 
   /** Sets additive glow state without mutating the authored tint. */
   @meta.implemented
-  @blue.method
+
   _SetGlowRenderState(renderer)
   {
     const tint = vec4.alloc();
@@ -139,7 +139,7 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
 
   /** Sets shadow state, combining shadow and sprite opacity. */
   @meta.implemented
-  @blue.method
+
   _SetShadowRenderState(renderer)
   {
     const tint = vec4.alloc();
@@ -158,7 +158,7 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
 
   /** Supplies the outline tint and alpha threshold. */
   @meta.implemented
-  @blue.method
+
   _SetOutlineRenderState(renderer)
   {
     const tint = vec4.alloc();
@@ -174,7 +174,7 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
 
   /** Returns the native color value by copy. */
   @meta.implemented
-  @blue.method
+
   GetColor()
   {
     return vec4.clone(this.color); // alloc: native value return belongs to the caller
@@ -182,7 +182,7 @@ export class Tr2SpriteObject extends Tr2SpriteObjectBase
 
   /** Copies a changed color and invalidates ancestors. */
   @meta.implemented
-  @blue.method
+
   SetColor(value)
   {
     if (this.color[0] === value[0] && this.color[1] === value[1] && this.color[2] === value[2] && this.color[3] === value[3]) return;

@@ -136,7 +136,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native initialization resets slots and prepares resources; creation failures remain on the wrappers. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -146,7 +146,7 @@ export class Tr2ImpostorManager
   }
 
   /** Every native member notification performs one complete initialization. */
-  @blue.method
+
   @meta.implemented
   OnModified()
   {
@@ -155,7 +155,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native ReleaseResources is empty; wrapper owners retain their resources until recreation or destruction. */
-  @blue.method
+
   @meta.implemented
   ReleaseResources()
   {
@@ -170,7 +170,7 @@ export class Tr2ImpostorManager
   }
 
   /** Recreates native atlas/capture surfaces through existing wrappers and an explicit JS context. */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -205,7 +205,7 @@ export class Tr2ImpostorManager
   }
 
   /** Reinitializes only when the native billboard dimensions change. */
-  @blue.method
+
   @meta.implemented
   SetItemSize(width, height)
   {
@@ -218,7 +218,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native Reset clears objects and rebuilds slots; the render queue survives until BeginUpdate. */
-  @blue.method
+
   @meta.implemented
   Reset()
   {
@@ -227,7 +227,7 @@ export class Tr2ImpostorManager
   }
 
   /** Registers an object or updates its value-copied hash, respecting new-object capture and atlas capacity. */
-  @blue.method
+
   @meta.implemented
   Add(object, hash)
   {
@@ -253,7 +253,7 @@ export class Tr2ImpostorManager
   }
 
   /** Clears this frame's queue and marks existing objects unused until Add. */
-  @blue.method
+
   @meta.implemented
   BeginUpdate()
   {
@@ -270,7 +270,7 @@ export class Tr2ImpostorManager
    * highest-priority recaptures. JS Map order breaks equal-priority ties;
    * native unordered-map iteration does not promise an ordering.
    */
-  @blue.method
+
   @meta.adapted
   EndUpdate()
   {
@@ -310,7 +310,7 @@ export class Tr2ImpostorManager
   }
 
   /** Returns the current native capture queue length. */
-  @blue.method
+
   @meta.implemented
   GetRenderQueueLength()
   {
@@ -318,7 +318,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native comparison is descending despite its ascending-order comment. */
-  @blue.method
+
   @meta.implemented
   static compareImpostors(first, second)
   {
@@ -329,7 +329,7 @@ export class Tr2ImpostorManager
    * Clears a dirty atlas only with queued captures, then binds and clears the
    * capture strip. JS context options replace native Clear bit flags.
    */
-  @blue.method
+
   @meta.adapted
   BeginUpdateAtlas(renderContext)
   {
@@ -355,7 +355,7 @@ export class Tr2ImpostorManager
    * before each copy, including failed copies, as in Carbon. A failed JS
    * wrapper has null storage, represented by the native empty AL value here.
    */
-  @blue.method
+
   @meta.adapted
   EndUpdateAtlas(renderContext)
   {
@@ -377,7 +377,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native viewport selection; rejects index equal to length instead of native out-of-bounds access. */
-  @blue.method
+
   @meta.adapted
   BeginImpostorUpdate(index, renderContext)
   {
@@ -387,14 +387,14 @@ export class Tr2ImpostorManager
   }
 
   /** Native EndImpostorUpdate is intentionally empty. */
-  @blue.method
+
   @meta.implemented
   EndImpostorUpdate()
   {
   }
 
   /** Native live count. */
-  @blue.method
+
   @meta.implemented
   GetImpostorCount()
   {
@@ -402,7 +402,7 @@ export class Tr2ImpostorManager
   }
 
   /** Returns the native capture depth owner. */
-  @blue.method
+
   @meta.implemented
   GetItemDepthStencil()
   {
@@ -410,7 +410,7 @@ export class Tr2ImpostorManager
   }
 
   /** Declared without a native definition; billboard draws belong to Tr2QuadRenderer. */
-  @blue.method
+
   @meta.notImplemented
   Render()
   {

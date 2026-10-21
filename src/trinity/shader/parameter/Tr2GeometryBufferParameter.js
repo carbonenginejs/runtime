@@ -53,7 +53,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   cachedEffect = null;
 
   /** The shader resource name this buffer binds to. */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -61,7 +61,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   }
 
   /** Content hash: resource path (when set) then name. */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -82,7 +82,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    *
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -98,7 +98,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Consumes the `resource` dirty flag by re-initializing and re-resolving
    * handles against the cached shader.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -115,7 +115,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Caches the shader and records whether it reflects a resource of this name;
    * no GPU buffer is bound.
    */
-  @blue.method
+
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -174,7 +174,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Whether a buffer object has actually been attached; an authored resourcePath
    * alone does not make the parameter valid.
    */
-  @blue.method
+
   @meta.implemented
   IsValid()
   {
@@ -185,7 +185,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Attaches a buffer object directly and clears the authored resource path, so
    * the path can no longer override it.
    */
-  @blue.method
+
   @meta.implemented
   SetGpuBuffer(buffer)
   {
@@ -197,7 +197,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * The attached buffer object, or null; held by reference and never created
    * here.
    */
-  @blue.method
+
   @meta.implemented
   GetGpuBuffer()
   {

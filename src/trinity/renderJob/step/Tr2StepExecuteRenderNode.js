@@ -41,7 +41,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
    * profile timer is null. The destination is the underlying texture, as in
    * Tr2StepExecuteRenderNode.cpp:35-49.
    */
-  @blue.method
+
   @meta.adapted
   Execute(realTime, simTime, renderContext)
   {
@@ -88,7 +88,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
   }
 
   /** Records Carbon's black target-only clear after a recoverable failure. */
-  @blue.method
+
   _ClearOnFailure(renderContext)
   {
     renderContext.SetRenderTarget(0, this.destinationTarget);

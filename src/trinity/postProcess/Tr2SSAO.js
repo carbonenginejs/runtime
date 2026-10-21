@@ -143,7 +143,7 @@ export class Tr2SSAO
   radius = 6;
 
   /** Enables or disables Carbon's detail SSAO layer. */
-  @blue.method
+
   @meta.implemented
   Enable(enable)
   {
@@ -151,7 +151,7 @@ export class Tr2SSAO
   }
 
   /** Selects the detail-layer quality and resolution policy. */
-  @blue.method
+
   @meta.implemented
   SetQuality(quality, downsampled)
   {
@@ -196,7 +196,7 @@ export class Tr2SSAO
    * @returns {GpuResourceHandle} The SSAO texture, or an empty handle.
    * @throws {Error} When CORTAO is off: the CACAO path is not ported.
    */
-  @blue.method
+
   @meta.adapted
   Filter(depthBuffer, normalBuffer, gpuResourcePool, renderContext, temporal)
   {
@@ -244,7 +244,7 @@ export class Tr2SSAO
    * @param {boolean} temporal Whether to reseed and blur temporally.
    * @returns {GpuResourceHandle} The SSAO texture, or an empty handle.
    */
-  @blue.method
+
   @meta.adapted
   ComputeCORTAO(depthBuffer, normalBuffer, gpuResourcePool, renderContext, temporal)
   {
@@ -455,8 +455,8 @@ export class Tr2SSAO
    * Carbon (a file-local-style helper on the class), uint32 wrap preserved
    * with imul.
    */
-  @blue.method
-  @meta.renamed("Hash")
+
+
   static hash(n)
   {
     const value = n >>> 0;

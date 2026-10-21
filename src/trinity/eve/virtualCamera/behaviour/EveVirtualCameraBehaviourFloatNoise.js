@@ -58,7 +58,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * Sets the behaviour name and renames the owned magnitude curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:164-167
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -73,7 +73,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:170-181
    * Adapted: the existing Perlin implementation and allocated instance phase replace native noise and pointer-derived phase.
    */
-  @blue.method
+
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime)
   {

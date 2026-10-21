@@ -109,7 +109,7 @@ export class Tr2DataTextureManager
   }
 
   /** Nothing to do after loading (Carbon cpp:31-34). */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -138,7 +138,7 @@ export class Tr2DataTextureManager
    * Carbon creates in place on the by-value Tr2TextureAL; JS textures come from the
    * render-context factory and are installed on the reference, which broadcasts.
    */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources()
   {
@@ -171,7 +171,7 @@ export class Tr2DataTextureManager
    * Carbon resets the by-value texture to an empty Tr2TextureAL; JS destroys the
    * texture and installs null.
    */
-  @blue.method
+
   @meta.adapted
   ReleaseResources(_storage)
   {
@@ -179,7 +179,7 @@ export class Tr2DataTextureManager
   }
 
   /** Republishes the data texture as ImpactShieldDataMap (Carbon cpp:84-87). */
-  @blue.method
+
   @meta.implemented
   SetVariables()
   {
@@ -192,7 +192,7 @@ export class Tr2DataTextureManager
    * queued the previous offsets survive, as in Carbon; offsets are recorded
    * only when the texture maps.
    */
-  @blue.method
+
   @meta.implemented
   Update(_updateContext)
   {
@@ -258,7 +258,7 @@ export class Tr2DataTextureManager
    * @param {Float32Array[][]} data - blockLength columns of textureHeight vec4s
    * @param {Number} priority - higher packs first
    */
-  @blue.method
+
   @meta.adapted
   RequestBlockData(header, blockLength, data, priority)
   {
@@ -280,7 +280,7 @@ export class Tr2DataTextureManager
   }
 
   /** Returns a block's pixel offset from the last packing Update, or -1 (Carbon cpp:211-220). */
-  @blue.method
+
   @meta.implemented
   GetTextureOffset(blockID)
   {

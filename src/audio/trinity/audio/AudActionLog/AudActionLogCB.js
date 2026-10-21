@@ -54,7 +54,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} name Event name.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
@@ -72,7 +72,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} action Action name.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
@@ -90,7 +90,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} state Selected state.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   LogSetSwitch(emitterID, group, state)
   {
@@ -107,7 +107,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} state Selected state.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   LogSetState(group, state)
   {
@@ -126,7 +126,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {number} [playID=0] Playing identifier.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
@@ -144,7 +144,7 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    * @throws {*} Propagates callback exceptions without removing the current record.
    */
-  @blue.method
+
   @meta.adapted
   Flush()
   {

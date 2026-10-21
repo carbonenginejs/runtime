@@ -25,7 +25,7 @@ export class EveStation2 extends EveSpaceObject2
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   PrepareShaderData(updateContext)
   {
     super.PrepareShaderData(updateContext);

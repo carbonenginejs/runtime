@@ -248,7 +248,7 @@ export class AudGameObjResource
    *
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -273,7 +273,7 @@ export class AudGameObjResource
    * @param {ArrayLike<number>} position World position.
    */
   @meta.adapted
-  @meta.renamed("Initialize")
+
   Initialize__WithParameters(name, prefix, position)
   {
     this.name = name;
@@ -283,7 +283,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method PostEvent: returns a playing id, or 0 when queued/culled/failed. */
-  @blue.method
+
   @meta.implemented
   PostEvent(eventName, bypassPrefix = false, additionalFlags = 0)
   {
@@ -395,7 +395,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method BreakSound: loops stop, one-shots play out. */
-  @blue.method
+
   @meta.implemented
   BreakSound(playingID, fadeOutDuration = 1000)
   {
@@ -445,7 +445,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method ExecuteActionOnPlayingID: backend stop/break when the id is tracked. */
-  @blue.method
+
   @meta.implemented
   ExecuteActionOnPlayingID(playingID, action, fadeOutDuration = 1000)
   {
@@ -460,7 +460,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method MarkPlayingIDStoppedByRequest: a stopped loop must not resume on wake. */
-  @blue.method
+
   @meta.implemented
   MarkPlayingIDStoppedByRequest(playingID)
   {
@@ -474,7 +474,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method EventFinishedCallback: the only place playing entries are removed (backend end-of-event). */
-  @blue.method
+
   @meta.implemented
   EventFinishedCallback(playingID)
   {
@@ -685,7 +685,7 @@ export class AudGameObjResource
    * Forces an orientation to unit-length, mutually perpendicular axes while
    * preserving the supplied front direction.
    */
-  @blue.method
+
   @meta.implemented
   static Orthonormalize(outFront, outTop, front, top, normalizedTop, cross)
   {
@@ -702,7 +702,7 @@ export class AudGameObjResource
    * Adapted: The RH->LH conversion and Wwise SetPosition happen in the backend seam; the
    * headless graph stores the position.
    */
-  @blue.method
+
   @meta.adapted
   SetPlacementFromParent(front, top, positionValue)
   {
@@ -718,7 +718,7 @@ export class AudGameObjResource
    * Adapted: The RH->LH conversion and Wwise call remain in the backend seam; the runtime
    * owns the effective orientation buffers.
    */
-  @blue.method
+
   @meta.adapted
   ApplyEffectivePlacement(front, top, positionValue)
   {
@@ -757,7 +757,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method HasAuthoredRotation (cpp:415-418): the authored rotation is not identity. */
-  @blue.method
+
   @meta.implemented
   HasAuthoredRotation()
   {
@@ -773,7 +773,7 @@ export class AudGameObjResource
    * Adapted: Carbon returns a value struct; CarbonEngineJS returns a stable object backed by
    * owned buffers to avoid placement-path allocations.
    */
-  @blue.method
+
   @meta.adapted
   GetEffectiveOrientation()
   {
@@ -791,7 +791,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method RefreshPlacementFromRotation. */
-  @blue.method
+
   @meta.implemented
   RefreshPlacementFromRotation()
   {
@@ -817,7 +817,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetEventName: replays the event when the name changes. */
-  @blue.method
+
   @meta.implemented
   SetEventName(eventName)
   {
@@ -830,7 +830,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetEventName. */
-  @blue.method
+
   @meta.implemented
   GetEventName()
   {
@@ -843,7 +843,7 @@ export class AudGameObjResource
    * Adapted: Carbon relies on Wwise to execute the posted Stop action; the portable backend
    * executes an installed authored program or falls back to the equivalent metadata stop.
    */
-  @blue.method
+
   @meta.adapted
   ApplyEventStopRelationships(stoppingEventName)
   {
@@ -889,7 +889,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method RegisterWwiseObject. */
-  @blue.method
+
   @meta.implemented
   RegisterWwiseObject()
   {
@@ -901,7 +901,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method UnregisterWwiseObject (cpp:134-146): any state but uninitialized. */
-  @blue.method
+
   @meta.implemented
   UnregisterWwiseObject()
   {
@@ -913,7 +913,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method UpdateMaxAttenuationRadiusForEvent. */
-  @blue.method
+
   @meta.implemented
   UpdateMaxAttenuationRadiusForEvent(eventName)
   {
@@ -933,7 +933,7 @@ export class AudGameObjResource
    * be culled before its distance curve reaches its endpoint; the quirk is
    * kept as shipped.
    */
-  @blue.method
+
   @meta.implemented
   GetMaxAttenuationRadius()
   {
@@ -946,7 +946,7 @@ export class AudGameObjResource
    * attenuation radius only GROWS here (through UpdateMaxAttenuationRadiusForEvent)
    * and resets to zero only when nothing plays or waits, as in Carbon.
    */
-  @blue.method
+
   @meta.implemented
   UpdateEventSoundPrioritizationAttributes()
   {
@@ -984,7 +984,7 @@ export class AudGameObjResource
    * CarbonEngineJS reads the manager's SoundPrioritization directly and treats a nonpositive
    * radius as unknown/unbounded so optional metadata cannot make an event inaudible.
    */
-  @blue.method
+
   @meta.adapted
   CalculateCullingWeight(now = NowMs())
   {
@@ -1025,7 +1025,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetCullingWeight. */
-  @blue.method
+
   @meta.implemented
   GetCullingWeight()
   {
@@ -1033,7 +1033,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetID. */
-  @blue.method
+
   @meta.implemented
   GetID()
   {
@@ -1041,7 +1041,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetPosition. */
-  @blue.method
+
   @meta.implemented
   GetPosition()
   {
@@ -1049,7 +1049,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetFront. */
-  @blue.method
+
   @meta.implemented
   GetFront()
   {
@@ -1057,7 +1057,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method GetTop. */
-  @blue.method
+
   @meta.implemented
   GetTop()
   {
@@ -1065,7 +1065,7 @@ export class AudGameObjResource
   }
 
   /** Carbon method SetDistanceSqFromListener. */
-  @blue.method
+
   @meta.implemented
   SetDistanceSqFromListener(distanceSq)
   {
@@ -1126,7 +1126,7 @@ export class AudGameObjResource
   /**
    * Values settle hook: refresh notified event-name and rotation consequences.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -1148,7 +1148,7 @@ export class AudGameObjResource
    * Adapted: Carbon friendship assigning AudParameter::m_ID uses the class-owned
    * SetGameObjectID seam.
    */
-  @blue.method
+
   @meta.adapted
   OnListModified(event, _key, _key2, value, list = this.parameters)
   {
@@ -1165,7 +1165,7 @@ export class AudGameObjResource
    * below carries the logic so the two internal call sites (cpp:184, cpp:311
    * equivalents) can use it without an instance.
    */
-  @blue.method
+
   @meta.implemented
   PrepareEvent(event, bypassPrefix = false)
   {

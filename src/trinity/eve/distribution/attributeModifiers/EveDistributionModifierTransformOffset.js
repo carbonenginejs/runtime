@@ -52,7 +52,7 @@ export class EveDistributionModifierTransformOffset extends IEveDistributionModi
    * Always reports a transform effect, which puts the distribution into its
    * per-frame reset-and-reaccumulate mode.
    */
-  @blue.method
+
   @meta.implemented
   AffectsTransform()
   {
@@ -64,7 +64,7 @@ export class EveDistributionModifierTransformOffset extends IEveDistributionModi
    *
    * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
    */
-  @blue.method
+
   @meta.adapted
   ProcessDistributionModifier(placement, _deltaTime, _params)
   {

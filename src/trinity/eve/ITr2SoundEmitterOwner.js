@@ -11,7 +11,7 @@ export class ITr2SoundEmitterOwner
    * @param {string} _name The emitter name.
    * @returns {object|null} The named ITr2AudEmitter, or null when absent.
    */
-  @blue.method
+
   FindSoundEmitter(_name) {}
 
   /**
@@ -19,7 +19,7 @@ export class ITr2SoundEmitterOwner
    * @param {object} _observer The TriObserverLocal supplied by the caller.
    * @returns {void}
    */
-  @blue.method
+
   AddObserver(_observer)
   {
   }

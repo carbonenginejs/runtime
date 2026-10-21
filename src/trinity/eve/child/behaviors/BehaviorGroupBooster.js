@@ -308,7 +308,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetDisplay (cpp:254-257). */
-  @blue.method
+
   @meta.implemented
   GetDisplay()
   {
@@ -316,7 +316,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetLightSize (cpp:259-266). */
-  @blue.method
+
   @meta.implemented
   GetLightSize()
   {
@@ -328,7 +328,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetOffset (cpp:268-271). */
-  @blue.method
+
   @meta.implemented
   GetOffset()
   {
@@ -336,7 +336,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetAtlasIndex0 (cpp:273-276). */
-  @blue.method
+
   @meta.implemented
   GetAtlasIndex0()
   {
@@ -344,7 +344,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetAtlasIndex1 (cpp:278-281). */
-  @blue.method
+
   @meta.implemented
   GetAtlasIndex1()
   {
@@ -352,7 +352,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetEffect (cpp:365-368). */
-  @blue.method
+
   @meta.implemented
   GetEffect()
   {
@@ -360,7 +360,7 @@ export class BehaviorGroupBooster
   }
 
   /** Resizes the authored flare lists after an agent-count change. */
-  @blue.method
+
   @meta.implemented
   RebuildFlareBuffer(count)
   {
@@ -372,7 +372,7 @@ export class BehaviorGroupBooster
    * Carbon SetupQuads updates the templates, retaining already-sized flare
    * records as native vector::resize does. JavaScript stores explicit row fields.
    */
-  @blue.method
+
   @meta.adapted
   SetupQuads()
   {
@@ -404,7 +404,7 @@ export class BehaviorGroupBooster
    * This is a potential lifecycle hazard, not a confirmed native execution bug.
    * See BehaviorGroupBooster.cpp:177-215 and BlackReader.cpp:394-405.
    */
-  @blue.method
+
   @meta.adapted
   AdjustFlareLists()
   {
@@ -439,7 +439,7 @@ export class BehaviorGroupBooster
    * Adapted: JavaScript coalesces changed names into one call, so each name
    * takes Carbon's branch and the batch rebuilds once, before the clears.
    */
-  @blue.method
+
   @meta.adapted
   OnModified(value)
   {
@@ -486,7 +486,7 @@ export class BehaviorGroupBooster
    * @param {Number} agentIndex - phase-offsets the noise
    * @param {Float32Array} _parentTransform - unused (as Carbon)
    */
-  @blue.method
+
   @meta.adapted
   AddLight(lightManager, position, radiusModifier, agentIndex, _parentTransform)
   {
@@ -506,7 +506,7 @@ export class BehaviorGroupBooster
    * rebuilds the flare templates, then builds the booster declaration and
    * reserves the shared quad indices.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -527,7 +527,7 @@ export class BehaviorGroupBooster
    * Existing quad packing handles float16 storage; Blue ticks convert once to
    * seconds for noise. The halo modifier receives the owning render context.
    */
-  @blue.method
+
   @meta.adapted
   AddFlare(agentTransform, lod, intensity, agentIndex, shipBoundingSphereRadius, groupScale)
   {
@@ -584,7 +584,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon GetVertexDeclaration returns the combined box/instance declaration. */
-  @blue.method
+
   @meta.implemented
   GetVertexDeclaration()
   {
@@ -592,7 +592,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon GetBatch binds the shared box and the owning system's instance stream. */
-  @blue.method
+
   @meta.adapted
   GetBatch(instanceBuffer, startInstance, instanceDataStride, count)
   {
@@ -614,7 +614,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon CreateBuffer selects the shared box for high shader quality. */
-  @blue.method
+
   @meta.implemented
   CreateBuffer()
   {
@@ -626,7 +626,7 @@ export class BehaviorGroupBooster
    * by its hash and registers it, in the child-quad layout, with the given
    * quad renderer.
    */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -659,7 +659,7 @@ export class BehaviorGroupBooster
    * packs each Quad record into its instance bytes and adds them one at a
    * time, which accumulates the same bytes.
    */
-  @blue.method
+
   @meta.adapted
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
@@ -685,7 +685,7 @@ export class BehaviorGroupBooster
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} agentTransform The agent's world transform.
    */
-  @blue.method
+
   @meta.implemented
   RenderBoosterDebug(renderer, owner, agentTransform)
   {
@@ -710,7 +710,7 @@ export class BehaviorGroupBooster
    * @param {Tr2DebugObjectReference} owner
    * @param {mat4} agentTransform The light's world transform.
    */
-  @blue.method
+
   @meta.implemented
   RenderLightDebug(renderer, owner, agentTransform)
   {

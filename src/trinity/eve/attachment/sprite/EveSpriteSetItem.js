@@ -77,7 +77,7 @@ export class EveSpriteSetItem
    * Adapted: Carbon returns Sphere by value; JavaScript follows the runtime sphere
    * out-parameter convention.
    */
-  @blue.method
+
   @meta.adapted
   GetBounds(out)
   {
@@ -85,7 +85,7 @@ export class EveSpriteSetItem
   }
 
   /** The parent bone this sprite rides. */
-  @blue.method
+
   @meta.implemented
   GetBoneIndex()
   {

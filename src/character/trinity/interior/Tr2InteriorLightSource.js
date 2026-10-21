@@ -131,7 +131,7 @@ export class Tr2InteriorLightSource
   }
 
   /** Carbon Initialize (cpp:59-63): derive the world box from position ± radius. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -147,7 +147,7 @@ export class Tr2InteriorLightSource
    * @param {string|null} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -171,7 +171,7 @@ export class Tr2InteriorLightSource
    * @param {object} lightData Tr2InteriorPerObjectLightData-shaped record.
    * @returns {object} lightData
    */
-  @blue.method
+
   @meta.implemented
   PopulateLightData(lightData)
   {
@@ -221,7 +221,7 @@ export class Tr2InteriorLightSource
    *
    * @param {number} time Seconds.
    */
-  @blue.method
+
   @meta.implemented
   Update(time)
   {
@@ -240,7 +240,7 @@ export class Tr2InteriorLightSource
    * @param {Float32Array} [outObjectToWorld] Receives the translation matrix.
    * @returns {boolean}
    */
-  @blue.method
+
   @meta.implemented
   IsInFrustum(frustum, outObjectToWorld = null)
   {

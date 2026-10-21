@@ -88,7 +88,7 @@ export class AudEventCurve
   }
 
   /** Carbon method InsertKey (not Blue-mapped): insert, sort, reset cursor, refresh length. */
-  @blue.method
+
   @meta.implemented
   InsertKey(key)
   {
@@ -167,7 +167,7 @@ export class AudEventCurve
   }
 
   /** Carbon method Initialize (IInitialize): sort persisted keys, refresh length and attach an emitter. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -196,7 +196,7 @@ export class AudEventCurve
    * Adapted: Declared but never defined in Carbon; the body is the shared key sort every
    * mutating call site runs.
    */
-  @blue.method
+
   @meta.adapted
   Sort()
   {
@@ -213,7 +213,7 @@ export class AudEventCurve
   }
 
   /** Carbon method Reset (ITriFunction, not Blue-mapped): rewind the playback cursor. */
-  @blue.method
+
   @meta.implemented
   Reset()
   {
@@ -244,7 +244,7 @@ export class AudEventCurve
    * combined runtime has a nominal multi-interface representation for the cross-layer Carbon
    * contract.
    */
-  @blue.method
+
   @meta.adapted
   CreateAudioEmitter()
   {
@@ -270,7 +270,7 @@ export class AudEventCurve
   }
 
   /** Carbon method UpdateValue (ITriFunction): fires keyed events as time advances. */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {

@@ -83,7 +83,7 @@ export class EveChildLightingOverride extends EveChildTransform
 
   /** Carbon EveChildLightingOverride::RegisterComponents (cpp:47-50):
    * unconditional EveLightingOverride leaf self-registration. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -101,7 +101,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * has already removed it, so there the removal finds nothing; Carbon does it
    * anyway.
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -113,7 +113,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * blend intensity resolved by the last async update, and the sun
    * colour/intensity plus background and reflection intensities to blend toward.
    */
-  @blue.method
+
   @meta.implemented
   GetOverrides()
   {
@@ -151,7 +151,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * @param {Float32Array} [out] - caller-owned; receives (x, y, z, radius)
    * @returns {Boolean} always true
    */
-  @blue.method
+
   @meta.adapted
   GetBoundingSphere(out = vec4.create())
   {
@@ -173,7 +173,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * (short-circuiting at 1) is scaled by the authored intensity - a camera
    * outside leaves the strength at zero.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(updateContext, params = {})
   {
@@ -207,7 +207,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
-  @blue.method
+
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.worldTransform);
@@ -217,7 +217,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * Applies the authored scale/rotation/translation through the shared child
    * transform setup.
    */
-  @blue.method
+
   Setup(scale, rotation, translation, lowestLodVisible)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
@@ -227,7 +227,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * Returns true unconditionally - a lighting override reports itself as always
    * on.
    */
-  @blue.method
+
   IsAlwaysOn()
   {
     return true;
@@ -237,7 +237,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * Builds the initial bounding sphere from the authored volumes so the first
    * frame can already reject an outside camera.
    */
-  @blue.method
+
   Initialize()
   {
     this._RebuildBoundingSphere();
@@ -248,7 +248,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * Carbon EveChildLightingOverride::GetDebugOptions (cpp:157-161).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -262,7 +262,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * placed at its centre under the world transform with "Bounding Sphere".
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -313,7 +313,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * spheres, skipping volumes with a missing centre or a non-finite/negative
    * radius, and records whether any volume contributed.
    */
-  @blue.method
+
   _RebuildBoundingSphere()
   {
     const target = this._boundingSphere;

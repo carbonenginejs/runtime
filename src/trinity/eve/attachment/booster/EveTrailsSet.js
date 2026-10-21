@@ -88,7 +88,7 @@ export class EveTrailsSet
   }
 
   /** Carbon Initialize (cpp:38-43): load the trail mesh. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -102,7 +102,7 @@ export class EveTrailsSet
    *
    * The set is the resource's notify target (AddNotifyTarget), as in Carbon.
    */
-  @blue.method
+
   @meta.implemented
   InitializeGeometryResource()
   {
@@ -117,7 +117,7 @@ export class EveTrailsSet
   }
 
   /** Carbon Cleanup (cpp:78-82): the declaration elements are no longer valid. */
-  @blue.method
+
   @meta.implemented
   Cleanup()
   {
@@ -125,7 +125,7 @@ export class EveTrailsSet
   }
 
   /** Sets the effect that draws the trails. */
-  @blue.method
+
   @meta.implemented
   SetEffect(effect)
   {
@@ -133,7 +133,7 @@ export class EveTrailsSet
   }
 
   /** Carbon SetMeshResPath (cpp:96-101): set the path and fire its notification by hand. */
-  @blue.method
+
   @meta.implemented
   SetMeshResPath(path)
   {
@@ -149,7 +149,7 @@ export class EveTrailsSet
    * Adapted: the decoded mesh keeps no declaration handle, so its elements
    * are read directly, as EveSpaceObjectDecal does.
    */
-  @blue.method
+
   @meta.adapted
   RebuildCachedData(resource)
   {
@@ -168,7 +168,7 @@ export class EveTrailsSet
   }
 
   /** Carbon ReleaseCachedData (cpp:144-148). */
-  @blue.method
+
   @meta.implemented
   ReleaseCachedData(_resource)
   {
@@ -176,7 +176,7 @@ export class EveTrailsSet
   }
 
   /** Carbon OnModified (cpp:175-183): a new mesh path reloads. */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -185,14 +185,14 @@ export class EveTrailsSet
   }
 
   /** Carbon Update (cpp:169-171): nothing; the motion lives on the booster renderables' splines. */
-  @blue.method
+
   @meta.implemented
   Update(_time)
   {
   }
 
   /** Carbon Clear (cpp:177-184): drop the trails and the device half. */
-  @blue.method
+
   @meta.implemented
   Clear()
   {
@@ -201,7 +201,7 @@ export class EveTrailsSet
   }
 
   /** Carbon Add (cpp:198-206): one trail at a booster's transform, with its size. */
-  @blue.method
+
   @meta.implemented
   Add(localMatrix, size)
   {
@@ -221,7 +221,7 @@ export class EveTrailsSet
    * Adapted: Tr2SuballocatedBuffer has no Free, so the allocation is dropped
    * rather than returned.
    */
-  @blue.method
+
   @meta.adapted
   ReleaseResources(_storage)
   {
@@ -230,7 +230,7 @@ export class EveTrailsSet
   }
 
   /** Carbon OnPrepareResources (cpp:224-242): the declaration once the mesh is in, then the instances. */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -247,7 +247,7 @@ export class EveTrailsSet
    * Carbon InitializeInstanceBuffer (cpp:249-272): each trail's position
    * (_41, _42, _43 of its transform) and size as one float4.
    */
-  @blue.method
+
   @meta.implemented
   InitializeInstanceBuffer()
   {
@@ -276,7 +276,7 @@ export class EveTrailsSet
    * @param {object} accumulator The batches.
    * @param {object} perObjectData The booster renderable's per-object data.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(accumulator, perObjectData)
   {
@@ -314,7 +314,7 @@ export class EveTrailsSet
   }
 
   /** The authored rate at which a trail fades out behind its booster. */
-  @blue.method
+
   @meta.implemented
   GetFadeSpeed()
   {

@@ -36,7 +36,7 @@ export class Tr2SyncToAnimation
    * @param {Tr2Controller} controller Controller owning the animated object.
    * @returns {boolean} Whether the layer is absent or complete.
    */
-  @blue.method
+
   @meta.adapted
   CanTransition(controller)
   {

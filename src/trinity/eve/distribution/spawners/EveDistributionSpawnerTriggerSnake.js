@@ -60,7 +60,7 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * Picks a random pooled placement as the first target of the walk and
    * restarts.
    */
-  @blue.method
+
   @meta.adapted
   Reset(placements)
   {
@@ -81,7 +81,7 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * Clears the travel timers and the destination count, leaving a zero travel
    * duration so the next update triggers the current target immediately.
    */
-  @blue.method
+
   @meta.implemented
   Restart()
   {
@@ -96,7 +96,7 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
    * extra travel time for the distance covered; stops after totalDestinations,
    * which -1 makes unlimited.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {

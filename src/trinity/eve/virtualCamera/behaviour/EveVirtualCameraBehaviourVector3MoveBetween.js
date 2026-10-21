@@ -56,7 +56,7 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
    * Sets the behaviour name and renames the owned interpolation curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:271-274
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -73,7 +73,7 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:277-305
    * Adapted: gl-matrix writes the output vector and the existing anchor-rotation helper supplies the native rotation.
    */
-  @blue.method
+
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {

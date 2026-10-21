@@ -48,7 +48,7 @@ export class EveMultiEffectParameter
   }
 
   /** Binds an object to this slot, or clears it when given nothing. */
-  @blue.method
+
   @meta.implemented
   SetParameterObject(object)
   {
@@ -60,7 +60,7 @@ export class EveMultiEffectParameter
    * accepts any non-null object, and an unrecognised type accepts none
    * (Carbon's BlueCastPtr to the concrete class).
    */
-  @blue.method
+
   @meta.implemented
   IsValid()
   {
@@ -82,7 +82,7 @@ export class EveMultiEffectParameter
    * Sets the effect rebound when this slot's object changes; passing nothing
    * detaches the slot.
    */
-  @blue.method
+
   @meta.implemented
   SetOwner(owner)
   {
@@ -90,7 +90,7 @@ export class EveMultiEffectParameter
   }
 
   /** The object bound to this slot, or null. */
-  @blue.method
+
   @meta.implemented
   GetParameterObject()
   {
@@ -98,7 +98,7 @@ export class EveMultiEffectParameter
   }
 
   /** The name bindings and controllers use to reach this slot. */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -109,7 +109,7 @@ export class EveMultiEffectParameter
    * Rebinds the owning effect after a model update, since the bound object is
    * the slot's only notifying field.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {

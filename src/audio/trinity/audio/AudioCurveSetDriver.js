@@ -84,7 +84,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @param {number} time Time forwarded unchanged to the fallback function.
    * @returns {number} Fallback sample or cached audio parameter value.
    */
-  @blue.method
+
   @meta.adapted
   GetCurveSetTime(time)
   {
@@ -103,7 +103,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** @returns {boolean} Whether audio is enabled and the named parameter exists. */
-  @blue.method
+
   @meta.implemented
   IsValid()
   {
@@ -112,7 +112,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** @returns {string} The stored global audio parameter name. */
-  @blue.method
+
   @meta.implemented
   GetAudioParameterName()
   {
@@ -129,7 +129,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    *
    * @returns {boolean} Always true; a silent uncomposed driver remains usable.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -159,7 +159,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @param {string} name New global parameter name; an empty string detaches it.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetAudioParameterName(name)
   {

@@ -54,7 +54,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
    * Returns the shader define name for the selected bokeh shape, falling back to
    * the disk shape for an unknown value.
    */
-  @blue.method
+
   GetBokehShapeString()
   {
     return Tr2PPDepthOfFieldEffect.BokehShapeStrings[this.bokehShape]
@@ -65,7 +65,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
    * Reports depth of field as contributing only when the process-wide switch is
    * on, the effect is displayed, and its blur scale is positive.
    */
-  @blue.method
+
   IsActive()
   {
     return Tr2PPDepthOfFieldEffect.PostProcessDofEnabled && this.display !== false && Number(this.scale) > 0;

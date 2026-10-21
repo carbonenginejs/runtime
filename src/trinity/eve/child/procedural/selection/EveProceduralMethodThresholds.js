@@ -59,7 +59,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   seed_temp = -1;
 
   /** Carbon EveProceduralMethodThresholds::Initialize (cpp:20-24). */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -69,7 +69,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodThresholds::OnModified (cpp:26-34): a seed
    * change reselects. */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -83,7 +83,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodThresholds::OnListModified (cpp:36-42): a
    * non-loading change to the parameter list re-sorts. */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
@@ -97,7 +97,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * first threshold at or above the seed wins (the list is sorted ascending);
    * a changed index flags the selected child as modified. Carbon leaves the
    * index untouched when the seed exceeds every threshold. */
-  @blue.method
+
   @meta.implemented
   SelectParameter()
   {
@@ -121,7 +121,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodThresholds::SortParameters (cpp:74-82):
    * ascending threshold sort (JS Array.sort is stable, matching std::sort's
    * observable order for distinct thresholds). */
-  @blue.method
+
   @meta.implemented
   SortParameters()
   {
@@ -135,7 +135,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodThresholds::IsSelectedChildModified
    * (cpp:84-87). */
-  @blue.method
+
   @meta.implemented
   IsSelectedChildModified()
   {
@@ -146,7 +146,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @blue.method
+
   @meta.implemented
   GetSelectedChild()
   {
@@ -173,7 +173,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodThresholds::UpdateAsyncronous (cpp:111-127):
    * re-sort and reselect once any parameter reports itself modified, clearing
    * the flags on the way. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -194,7 +194,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:129-132). */
-  @blue.method
+
   @meta.implemented
   GetDebugVolumes()
   {
@@ -204,7 +204,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodThresholds::SetProceduralMethodVariable
    * (cpp:134-144): only the named threshold attribute is accepted; a changed
    * value reselects. */
-  @blue.method
+
   @meta.implemented
   SetProceduralMethodVariable(name, value)
   {

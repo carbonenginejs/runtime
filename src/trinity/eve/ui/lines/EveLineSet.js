@@ -125,7 +125,7 @@ export class EveLineSet
    * Carbon Initialize (cpp:35-42): seeds the line capacity at 100 and prepares the resources. Carbon also reserves
    * the line vector; a JavaScript array needs no reserve.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -136,7 +136,7 @@ export class EveLineSet
 
   /** Carbon ReleaseResources (cpp:45-50). Adapted: the buffer is destroyed explicitly. */
   @meta.adapted
-  @blue.method
+
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -163,7 +163,7 @@ export class EveLineSet
    * Adapted: the AL description replaces the native stride/count overload.
    */
   @meta.adapted
-  @blue.method
+
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -189,7 +189,7 @@ export class EveLineSet
    * Carbon UpdateSyncronous (cpp:97-114): samples the position and rotation curves, then m_worldTransform =
    * TransformationMatrix( scaling, rotation, translation ), which is gl's fromRotationTranslationScale( r, t, s ).
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -205,14 +205,14 @@ export class EveLineSet
   }
 
   /** Carbon UpdateAsyncronous (cpp:117-119): nothing to do. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
-  @blue.method
+
   @meta.implemented
   Update__UpdateContext(updateContext)
   {
@@ -220,7 +220,7 @@ export class EveLineSet
   }
 
   /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
-  @blue.method
+
   @meta.implemented
   Update(updateContext)
   {
@@ -228,14 +228,14 @@ export class EveLineSet
   }
 
   /** Carbon UpdateViewDependentData (cpp:130-132): nothing to do. */
-  @blue.method
+
   @meta.implemented
   UpdateViewDependentData(_frustum, _parentTransform)
   {
   }
 
   /** Carbon UpdateVisibility (cpp:134-136): nothing to do; a line set is never culled. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform)
   {
@@ -243,7 +243,7 @@ export class EveLineSet
 
   /** Carbon's GetRenderables( renderables, impostors ) (cpp:138-146): the set itself while displayed. */
   @meta.implemented
-  @blue.method
+
   GetRenderables__Impostors(out = [], _impostors = null)
   {
     if (!this.display) return out;
@@ -252,7 +252,7 @@ export class EveLineSet
   }
 
   /** Carbon's GetRenderables( renderables ) (cpp:148-151): forwards with no impostor manager. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(out = [])
   {
@@ -260,7 +260,7 @@ export class EveLineSet
   }
 
   /** Carbon GetBoundingSphere (cpp:153-157): the sphere SubmitChanges last built; always valid. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -377,7 +377,7 @@ export class EveLineSet
   }
 
   /** Carbon EveLineSet::HasTransparentBatches is always true (cpp:161-164). */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -388,7 +388,7 @@ export class EveLineSet
    * Carbon GetBatches (cpp:166-201): transparent when renderTransparent, otherwise additive; while displayed, with a
    * vertex buffer and a declaration, one line-list draw of the submitted lines' vertices.
    */
-  @blue.method
+
   @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
@@ -412,7 +412,7 @@ export class EveLineSet
   /**
    * Carbon GetSortValue (cpp:203-208): the distance from the view position to the world translation.
    */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -435,7 +435,7 @@ export class EveLineSet
    * layouts, so the writes below land where the copy would have put them.
    * SetAndTranspose is Carbon's `Transpose( m_worldTransform )`.
    */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {

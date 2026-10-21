@@ -78,14 +78,14 @@ export class EveChildSmartLightSet extends EveChildTransform
 
   /** Carbon declares Setup inline empty (EveChildSmartLightSet.h:48). */
   @blue.method
-  @meta.noop
+  @meta.adapted
   Setup(_scale = null, _rotation = null, _translation = null, _lowestLodVisible = null)
   {
   }
 
   /** Carbon declares ChangeLOD inline empty (EveChildSmartLightSet.h:49). */
   @blue.method
-  @meta.noop
+  @meta.adapted
   ChangeLOD(_lod)
   {
   }
@@ -102,7 +102,7 @@ export class EveChildSmartLightSet extends EveChildTransform
    * Rebuilds the world transform, then updates the distribution and every
    * light group (EveChildSmartLightSet.cpp:73-86).
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -120,7 +120,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Asynchronous fan-out to the distribution and light groups (EveChildSmartLightSet.cpp:88-99). */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
@@ -136,7 +136,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Visibility fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:101-110). */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
@@ -153,7 +153,7 @@ export class EveChildSmartLightSet extends EveChildTransform
    * display/distribution edits re-register the entity components
    * (EveChildSmartLightSet.cpp:112-119).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -168,7 +168,7 @@ export class EveChildSmartLightSet extends EveChildTransform
    * stays a follow-up (registration is one-shot via
    * EveSpaceScene.ReregisterEntities in this pass).
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
@@ -213,7 +213,7 @@ export class EveChildSmartLightSet extends EveChildTransform
 
   /** Carbon EveChildSmartLightSet::RegisterComponents (cpp:121-134):
    * forward-only to the light groups. Gate m_distribution && m_display. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -232,7 +232,7 @@ export class EveChildSmartLightSet extends EveChildTransform
 
   /** Carbon EveChildSmartLightSet::UnRegisterComponents (cpp:136-149):
    * forwards to the light groups; no distribution/display re-check. */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -250,7 +250,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Renderable fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:151-160). */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables = [])
   {
@@ -269,7 +269,7 @@ export class EveChildSmartLightSet extends EveChildTransform
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -277,7 +277,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Fans a controller variable to the distribution and light groups (EveChildSmartLightSet.cpp:167-178). */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -293,7 +293,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Carbon debug-render fan-out for every light group at every placement. */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -313,7 +313,7 @@ export class EveChildSmartLightSet extends EveChildTransform
    *
    * Adapted: The caller supplies a JavaScript Set for native debug-option strings.
    */
-  @blue.method
+
   @meta.adapted
   GetDebugOptions(options)
   {
@@ -324,7 +324,7 @@ export class EveChildSmartLightSet extends EveChildTransform
    * Quad fan-out with the distribution's placement data
    * (EveChildSmartLightSet.cpp:191-200).
    */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -340,7 +340,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Effect-registration fan-out (EveChildSmartLightSet.cpp:202-208). */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -354,7 +354,7 @@ export class EveChildSmartLightSet extends EveChildTransform
    * Lazily creates the property holder, stores the color set, and fans it out
    * to every light group (EveChildSmartLightSet.cpp:215-227).
    */
-  @blue.method
+
   @meta.implemented
   SetInheritProperties(colorSet)
   {

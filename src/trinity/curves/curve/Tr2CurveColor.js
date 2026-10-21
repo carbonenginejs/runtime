@@ -101,7 +101,7 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   UpdateValue(time)
   {
@@ -124,7 +124,7 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -162,7 +162,7 @@ export class Tr2CurveColor extends ITriColorFunction
    *
    * @returns {number} Longest scalar component length.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {

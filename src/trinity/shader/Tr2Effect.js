@@ -309,7 +309,7 @@ export class Tr2Effect extends Tr2Material
    * Overrides the store this effect's TriVariableParameter values resolve
    * against; passing null restores the fallback to the global store.
    */
-  @blue.method
+
   @meta.implemented
   SetVariableStore(store)
   {
@@ -334,7 +334,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** The effect's store, falling back to the global store at call time. */
-  @blue.method
+
   @meta.implemented
   GetVariableStore()
   {
@@ -345,7 +345,7 @@ export class Tr2Effect extends Tr2Material
    * The authored constant-parameter list itself, not a copy - callers that
    * mutate it mutate the effect.
    */
-  @blue.method
+
   @meta.implemented
   GetConstParameters()
   {
@@ -358,7 +358,7 @@ export class Tr2Effect extends Tr2Material
    * hashes authored content; values coming from a variable store are not
    * included. Not lightweight - do not call every frame.
    */
-  @blue.method
+
   @meta.adapted
   GetHashValue()
   {
@@ -488,7 +488,7 @@ export class Tr2Effect extends Tr2Material
    * @param {object} renderContext The context to draw on.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Render(callback, renderContext)
   {
@@ -518,7 +518,7 @@ export class Tr2Effect extends Tr2Material
    * Attaches every resource to this material, derives actualEffectFilePath from
    * the authored path, and rebuilds cached shader data.
    */
-  @blue.method
+
   Initialize()
   {
     for (const resource of this.resources)
@@ -554,7 +554,8 @@ export class Tr2Effect extends Tr2Material
    *
    * @returns {void}
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   #BuildParametersForPasses()
   {
     this._ClearPassBindings();
@@ -851,7 +852,8 @@ export class Tr2Effect extends Tr2Material
    *
    * @returns {void}
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   #AcquireEffectResource()
   {
     const acquired = this._acquiredEffectResource;
@@ -880,7 +882,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Re-runs Initialize after notified fields change; always returns true. */
-  @blue.method
+
   OnModified()
   {
     this.Initialize();
@@ -1000,7 +1002,8 @@ export class Tr2Effect extends Tr2Material
    *
    * @returns {boolean} Whether the effect can be drawn now.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   IsGood()
   {
     for (const parameter of this.resources) parameter.KeepAlive();
@@ -1021,7 +1024,7 @@ export class Tr2Effect extends Tr2Material
    *
    * @param {object} [resource] Resource that released its payload.
    */
-  @blue.method
+
   ReleaseCachedData(resource)
   {
     if (resource !== undefined && resource !== this.effectResource) return;
@@ -1045,7 +1048,7 @@ export class Tr2Effect extends Tr2Material
    * @param {string} path The authored effect path, or empty to clear it.
    */
   @meta.implemented
-  @blue.method
+
   SetEffectPathName(path)
   {
     this.effectFilePath = path ? String(path) : "";
@@ -1056,7 +1059,7 @@ export class Tr2Effect extends Tr2Material
    * The authored path, not the slash-normalized actualEffectFilePath that
    * Initialize derives from it.
    */
-  @blue.method
+
   GetEffectPathName()
   {
     return this.effectFilePath;
@@ -1066,14 +1069,14 @@ export class Tr2Effect extends Tr2Material
    * The effect resource the shader is resolved from, or null before one has been
    * assigned.
    */
-  @blue.method
+
   GetEffectRes()
   {
     return this.effectResource;
   }
 
   /** The authored effect name, which is independent of the effect file path. */
-  @blue.method
+
   GetName()
   {
     return this.name;
@@ -1083,7 +1086,7 @@ export class Tr2Effect extends Tr2Material
    * Appends a resource parameter, attaches it to this material and rebuilds
    * cached data; does not check for a duplicate name and always returns true.
    */
-  @blue.method
+
   AddResource(parameter)
   {
     // Carbon's signature takes ITriEffectParameter* (h:84) but appends to a
@@ -1108,7 +1111,7 @@ export class Tr2Effect extends Tr2Material
    * Creates and attaches a TriTextureParameter for the name, returning false
    * when a resource already uses that name.
    */
-  @blue.method
+
   AddResourceTexture2D(name, resourcePath = "")
   {
     if (this.GetResourceByName(name))
@@ -1125,7 +1128,7 @@ export class Tr2Effect extends Tr2Material
    * Carbon's SetResourceTexture2D - assigns the texture path on the named
    * resource, creating the TriTextureParameter when absent.
    */
-  @blue.method
+
   @meta.adapted
   SetResourceTexture2D(name, resourcePath = "")
   {
@@ -1142,7 +1145,7 @@ export class Tr2Effect extends Tr2Material
    * defaults for the fields not passed in (addressW 1, filter 3, mipFilter 2);
    * returns false when an override of that name already exists.
    */
-  @blue.method
+
   AddSamplerOverride(name, addressU = 1, addressV = addressU)
   {
     if (this.HasSamplerOverride(name))
@@ -1166,7 +1169,7 @@ export class Tr2Effect extends Tr2Material
    * vector is not aliased; returns false when a constant of that name already
    * exists.
    */
-  @blue.method
+
   AddParameterVector4(name, value = vec4.create())
   {
     if (this.HasParameter(name))
@@ -1185,7 +1188,7 @@ export class Tr2Effect extends Tr2Material
    * Adds a constant parameter with the scalar splatted across all four
    * components, matching Carbon's float authoring.
    */
-  @blue.method
+
   AddParameterFloat(name, value = 0)
   {
     return this.AddParameterVector4(name, vec4.fromValues(value, value, value, value));
@@ -1195,7 +1198,7 @@ export class Tr2Effect extends Tr2Material
    * Adds a constant parameter from a colour vector; behaviourally identical to
    * AddParameterVector4.
    */
-  @blue.method
+
   AddParameterColor(name, value)
   {
     return this.AddParameterVector4(name, value);
@@ -1216,7 +1219,8 @@ export class Tr2Effect extends Tr2Material
    * @param {object|null} [values={}] Parameter names mapped to values, descriptors or null.
    * @returns {boolean} Whether any parameter or resource was added, updated or removed.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   SetParameters(values = {})
   {
     let updated = false;
@@ -1251,7 +1255,7 @@ export class Tr2Effect extends Tr2Material
    * @param {number} value Float value.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetParameter(name, value)
   {
@@ -1267,7 +1271,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetParameter__UInt32(name, value)
   {
     this.#SetValueParameter(name, Tr2FloatParameter, float32FromBits(value));
@@ -1282,7 +1286,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetParameter__Vector2(name, value)
   {
     this.SetParameter__Vector4(name, vec4.set(VECTOR4_PAD, value[0], value[1], 0, 0));
@@ -1296,7 +1300,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetParameter__Vector3(name, value)
   {
     this.SetParameter__Vector4(name, vec4.set(VECTOR4_PAD, value[0], value[1], value[2], 0));
@@ -1310,7 +1314,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetParameter__Vector4(name, value)
   {
     this.#SetValueParameter(name, Tr2Vector4Parameter, value);
@@ -1324,7 +1328,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetParameter__Matrix(name, value)
   {
     this.#SetValueParameter(name, Tr2Matrix4Parameter, value);
@@ -1339,7 +1343,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetParameter__GpuBuffer(name, buffer)
   {
     const parameterName = String(name ?? "");
@@ -1364,7 +1368,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   SetParameter__TextureProvider(name, texture, uavMipLevel = 0)
   {
     this.#SetTextureParameter(String(name ?? ""), texture, uavMipLevel);
@@ -1381,7 +1385,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   SetParameter__TextureAL(name, texture, uavMipLevel = 0)
   {
     this.#SetTextureALParameter(String(name ?? ""), texture, uavMipLevel);
@@ -1396,7 +1400,7 @@ export class Tr2Effect extends Tr2Material
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   SetParameter__BufferAL(name, buffer)
   {
     this.#SetBufferParameter(String(name ?? ""), buffer);
@@ -1540,7 +1544,8 @@ export class Tr2Effect extends Tr2Material
    * @param {object|null} [values={}] Resource names mapped to res path strings or null.
    * @returns {boolean} Whether any resource was added, updated or removed.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   SetTextures(values = {})
   {
     let updated = false;
@@ -1577,7 +1582,8 @@ export class Tr2Effect extends Tr2Material
    * @returns {boolean} Whether any constant was added, updated or removed.
    * @throws {TypeError} If a value cannot be read as a vec4.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   SetConstParameters(values = {})
   {
     let updated = false;
@@ -1634,7 +1640,8 @@ export class Tr2Effect extends Tr2Material
    * @returns {boolean} Whether an override was inserted, removed, replaced or changed.
    * @throws {TypeError} If the map, a row or a field is unsupported.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   SetSamplerOverrides(values = {})
   {
     if (values !== null && (typeof values !== "object" || Array.isArray(values) || ArrayBuffer.isView(values)))
@@ -1909,7 +1916,7 @@ export class Tr2Effect extends Tr2Material
    * Empties both the constant and dynamic parameter lists inside one
    * StartUpdate/EndUpdate batch, so cached data rebuilds once at the end.
    */
-  @blue.method
+
   ClearAllParameters()
   {
     this.StartUpdate();
@@ -1922,7 +1929,7 @@ export class Tr2Effect extends Tr2Material
    * Detaches every resource from this material and empties the resource list,
    * then rebuilds cached data.
    */
-  @blue.method
+
   ClearAllResources()
   {
     for (const resource of this.resources)
@@ -1939,7 +1946,7 @@ export class Tr2Effect extends Tr2Material
    * when the value actually changes, since options select the shader
    * permutation.
    */
-  @blue.method
+
   SetOption(name, value)
   {
     const existing = CjsParameter.findByName(this.options, name);
@@ -1963,7 +1970,7 @@ export class Tr2Effect extends Tr2Material
    * Drops the named option so the shader resolves with its default permutation
    * again.
    */
-  @blue.method
+
   ResetOption(name)
   {
     this.options = this.options.filter(option => option?.name !== name);
@@ -1971,7 +1978,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** The option's value, or the empty string when the option is not set. */
-  @blue.method
+
   GetOption(name)
   {
     return CjsParameter.findByName(this.options, name)?.value ?? "";
@@ -1981,7 +1988,7 @@ export class Tr2Effect extends Tr2Material
    * Looks the name up in the dynamic parameters first, then the resources;
    * authored constant parameters are not searched.
    */
-  @blue.method
+
   GetParameterByName(name)
   {
     return this.FindParameterByName(name) ?? this.GetResourceByName(name);
@@ -1991,21 +1998,21 @@ export class Tr2Effect extends Tr2Material
    * The dynamic parameter with this shader name, or null; resources and constant
    * parameters are not consulted.
    */
-  @blue.method
+
   FindParameterByName(name)
   {
     return this.parameters.find(parameter => CjsParameter.getNamedValue(parameter) === name) ?? null;
   }
 
   /** The resource parameter with this shader name, or null. */
-  @blue.method
+
   GetResourceByName(name)
   {
     return this.resources.find(parameter => CjsParameter.getNamedValue(parameter) === name) ?? null;
   }
 
   /** Whether a sampler override is authored for this resource name. */
-  @blue.method
+
   HasSamplerOverride(name)
   {
     return this.samplerOverrides.some(value => value?.name === name);
@@ -2015,7 +2022,7 @@ export class Tr2Effect extends Tr2Material
    * Whether an authored constant parameter uses this name; dynamic parameters
    * and resources do not count.
    */
-  @blue.method
+
   HasParameter(name)
   {
     return this.constParameters.some(value => value?.name === name);

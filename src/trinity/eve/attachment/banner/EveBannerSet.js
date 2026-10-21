@@ -143,7 +143,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon ReleaseResources (cpp:362-364): nothing to release. */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -227,7 +227,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * advancing the ledger - so it reads the normal's z and w, where w carries
    * the bone. The buffers are built if they are missing.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -254,7 +254,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Carbon GetBatches (cpp:185-217): one batch of every banner, additive (or
    * picking when pickable), not until the primary texture has loaded.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -278,7 +278,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateBannerGeometry (cpp:493-513): flat, or curved along one or both axes. */
-  @blue.method
+
   @meta.implemented
   CreateBannerGeometry(vertices, indices, item)
   {
@@ -291,7 +291,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateFlatBannerGeometry (cpp:515-533): one quad. */
-  @blue.method
+
   @meta.implemented
   CreateFlatBannerGeometry(vertices, indices, item)
   {
@@ -308,7 +308,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateVerticalCurvedBannerGeometry (cpp:535-583): bent around X, a segment per 5 degrees. */
-  @blue.method
+
   @meta.implemented
   CreateVerticalCurvedBannerGeometry(vertices, indices, item)
   {
@@ -347,7 +347,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateHorizontalCurvedBannerGeometry (cpp:585-634): bent around Y. */
-  @blue.method
+
   @meta.implemented
   CreateHorizontalCurvedBannerGeometry(vertices, indices, item)
   {
@@ -387,7 +387,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon CreateCurvedBannerGeometry (cpp:636-693): bent around both axes. */
-  @blue.method
+
   @meta.implemented
   CreateCurvedBannerGeometry(vertices, indices, item)
   {
@@ -451,7 +451,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveBannerSet::GetAabb (cpp:392-395): the item-set bounds. The bone
    * count is forwarded ungated - a banner set has no skinned flag. */
-  @blue.method
+
   @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
@@ -464,7 +464,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it
    * through an accessor.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetMaxBannerRadius()
   {
     return this._maxBannerRadius;
@@ -476,7 +477,8 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: Carbon reads the m_isVisible member directly; JavaScript exposes it through an
    * accessor.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetVisibility()
   {
     return this._isVisible;
@@ -496,7 +498,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * The effect is told the screen size on EVERY path, culled or not, because it
    * drives texture streaming rather than drawing.
    */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
@@ -557,7 +559,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Carbon EveBannerSet::GetDebugOptions (cpp:218-223).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -585,7 +587,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
    * @param {number} boneCount
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
@@ -694,7 +696,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * banners use authored X/Y scale, while curved banners sum the same
    * approximately five-degree transformed arc chords used by geometry
    * generation. */
-  @blue.method
+
   @meta.implemented
   static GetBannerAspectRatio(banner)
   {
@@ -747,7 +749,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: a JS object is usually constructed before the device exists, so
    * the declaration is prepared here, after the first Rebuild.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -760,7 +762,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Copies a loose banner description into a stored EveBannerItem, appends it
    * and returns the copy; the source object is not retained.
    */
-  @blue.method
+
   @meta.implemented
   AddBanner(banner)
   {
@@ -771,7 +773,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon structure-list observer, EveBannerSet.cpp:357–360. */
-  @blue.method
+
   @meta.implemented
   OnStructureListModified()
   {
@@ -802,7 +804,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Sets the effect that draws the banners; without one Rebuild produces no
    * bounds and the set never draws.
    */
-  @blue.method
+
   @meta.implemented
   SetEffect(effect)
   {
@@ -810,7 +812,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the banner key that the set's picking id is derived from. */
-  @blue.method
+
   @meta.implemented
   SetKey(key)
   {
@@ -818,7 +820,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** The picking id this set writes, which is 101 plus the authored key. */
-  @blue.method
+
   @meta.implemented
   GetPickingID()
   {
@@ -829,7 +831,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Carbon SetShaderOption (EveBannerSet.cpp:314-320): sets a shader option on
    * the banner effect when one is attached.
    */
-  @blue.method
+
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -843,7 +845,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Sets the texture parameter whose average colour replaces the authored colour
    * of every banner light.
    */
-  @blue.method
+
   @meta.adapted
   SetPrimaryTextureParameter(parameter)
   {
@@ -854,7 +856,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveBannerLight and appends
    * it to the set.
    */
-  @blue.method
+
   @meta.adapted
   AddLightFromSOF(light)
   {
@@ -864,7 +866,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /** Carbon EveBannerSet::RegisterComponents (cpp:457-464): LightOwner
    * UNCONDITIONAL (no lights-empty check, unlike the other packed sets -
    * GetLights self-gates on display/lights instead, cpp:468). */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -885,7 +887,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * gets only the parent transform. Binding 0 is a mesh bone binding and can
    * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
    * Normal2Warp - so ours applies bone 0 like any other. */
-  @blue.method
+
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
@@ -920,7 +922,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * @param {vec4} [out] Destination colour.
    * @returns {vec4} The destination colour.
    */
-  @blue.method
+
   @meta.adapted
   GetAverageColor(out = new Float32Array(4))
   {
@@ -957,7 +959,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: The light manager receives a JavaScript light record carrying the profile
    * reference; average colour is read through the texture resource contract.
    */
-  @blue.method
+
   @meta.adapted
   GetLights(lightManager)
   {

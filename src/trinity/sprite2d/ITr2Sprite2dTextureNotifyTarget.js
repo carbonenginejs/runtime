@@ -1,3 +1,4 @@
+import { meta } from "#schema";
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dTexture.h:14-18
 //
 //     class ITr2Sprite2dTextureNotifyTarget
@@ -23,6 +24,6 @@ export class ITr2Sprite2dTextureNotifyTarget
    * @param {import("./ITr2Sprite2dTexture.js").ITr2Sprite2dTexture} _texture The texture that changed.
    * @returns {void}
    */
-  @blue.abstract
+  @meta.abstract
   Sprite2dTextureChanged(_texture) {}
 }

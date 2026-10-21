@@ -21,7 +21,7 @@ export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
   drag = 1;
 
   /** Applies quadratic drag and Carbon's one-frame velocity reversal clamp. */
-  @blue.method
+
   @meta.adapted
   GetForce(_position, velocity, dt, mass, out = vec3.create())
   {
@@ -46,8 +46,8 @@ export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
    * Nothing to advance per frame: the drag term is derived from the particle's
    * current velocity and the step it is being integrated over.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   Update(_dt)
   {
   }

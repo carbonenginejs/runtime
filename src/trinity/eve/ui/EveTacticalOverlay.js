@@ -102,7 +102,7 @@ export class EveTacticalOverlay
   }
 
   /** Attaches the owned variable store to every authored effect. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -115,7 +115,7 @@ export class EveTacticalOverlay
   /**
    * Reattaches only effect references that changed since the prior settle.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -131,7 +131,7 @@ export class EveTacticalOverlay
    * Adapted: Carbon vector-function output pointers use the runtime's established
    * time-first, out-last JavaScript contract.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext)
   {
@@ -149,8 +149,8 @@ export class EveTacticalOverlay
   }
 
   /** Carbon's asynchronous overlay update is intentionally empty. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -161,7 +161,7 @@ export class EveTacticalOverlay
    * Adapted: Carbon's typed vertex vectors are represented by flat Float32Array-compatible
    * number buffers consumed by Tr2QuadRenderer.
    */
-  @blue.method
+
   @meta.adapted
   UpdateVisibility(updateContext, _parentTransform)
   {
@@ -316,13 +316,13 @@ export class EveTacticalOverlay
 
   /** Carbon's tactical overlay has no ordinary renderable children. */
   @meta.noop
-  @blue.method
+
   GetRenderables__Impostors(_renderables, _impostors)
   {
   }
 
   /** The overlay supplies no spatial bounds. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(_sphere, _query)
   {
@@ -330,7 +330,7 @@ export class EveTacticalOverlay
   }
 
   /** The overlay's model center is always the world origin. */
-  @blue.method
+
   @meta.implemented
   UpdateModelCenterWorldPosition(out, _time)
   {
@@ -338,7 +338,7 @@ export class EveTacticalOverlay
   }
 
   /** The overlay's model center is always the world origin. */
-  @blue.method
+
   @meta.implemented
   GetModelCenterWorldPosition(out)
   {
@@ -346,7 +346,7 @@ export class EveTacticalOverlay
   }
 
   /** The overlay supplies no local box. */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
@@ -354,7 +354,7 @@ export class EveTacticalOverlay
   }
 
   /** The overlay has no authored object transform. */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -367,7 +367,7 @@ export class EveTacticalOverlay
    * Adapted: Carbon combines an effect content hash with its native pointer; JavaScript
    * combines it with a stable WeakMap identity.
    */
-  @blue.method
+
   @meta.adapted
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -410,7 +410,7 @@ export class EveTacticalOverlay
   }
 
   /** Adds all three instance streams once their effect registrations exist. */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
@@ -421,7 +421,7 @@ export class EveTacticalOverlay
   }
 
   /** Refreshes the variable-store values exposed to tactical effects. */
-  @blue.method
+
   _RegisterVariables()
   {
     vec4.set(
@@ -437,7 +437,7 @@ export class EveTacticalOverlay
   }
 
   /** Attaches the local variable store to one nullable effect. */
-  @blue.method
+
   _SetVariableStore(effect)
   {
     if (!effect) return;

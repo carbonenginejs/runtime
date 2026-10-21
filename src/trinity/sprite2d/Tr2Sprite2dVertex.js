@@ -65,7 +65,7 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetColor(c)
   {
     vec4.copy(this.color, c);
@@ -76,7 +76,7 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @returns {Float32Array} A copy of the colour.
    */
   @meta.implemented
-  @blue.method
+
   GetColor()
   {
     return vec4.clone(this.color); // alloc: native value return belongs to the caller

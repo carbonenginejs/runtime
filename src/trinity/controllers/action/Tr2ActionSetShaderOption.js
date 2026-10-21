@@ -37,7 +37,7 @@ export class Tr2ActionSetShaderOption extends ITr2ControllerAction
    * Adapted: preserves the existing owner adapter until the native
    * IShaderConfigurer contract is ported; this is not a native BlueCast check.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller)
   {

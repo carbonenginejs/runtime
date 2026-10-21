@@ -42,8 +42,8 @@ export class ITr2ParticleForce
    * @param {mat4} _worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   RenderDebugInfo(_renderer, _worldTransform, _aabb)
   {
   }

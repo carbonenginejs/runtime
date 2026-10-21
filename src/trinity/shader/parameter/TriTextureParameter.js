@@ -99,7 +99,7 @@ export class TriTextureParameter extends CjsParameter
   _textureLodEnabled = false;
 
   /** The shader resource name this texture binds to. */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -107,7 +107,7 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /** Content hash: resource path (when set) then name. */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -124,7 +124,7 @@ export class TriTextureParameter extends CjsParameter
    *
    * @param {string} name The parameter name.
    */
-  @blue.method
+
   @meta.implemented
   SetParameterName(name)
   {
@@ -151,7 +151,7 @@ export class TriTextureParameter extends CjsParameter
    *
    * @param {string} resourcePath The authored texture path.
    */
-  @blue.method
+
   @meta.implemented
   SetResourcePath(resourcePath)
   {
@@ -199,7 +199,7 @@ export class TriTextureParameter extends CjsParameter
    * creates in DoPrepare. Ours is created at first bind, which never happens
    * while the stand-in is the one bound, so readiness is asked as IsPrepared.
    */
-  @blue.method
+
   @meta.adapted
   GetResource()
   {
@@ -321,7 +321,7 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /** Always true - a texture swap must dirty the owning materials' resource sets. */
-  @blue.method
+
   @meta.implemented
   SupportsDirtyNotification()
   {
@@ -332,7 +332,7 @@ export class TriTextureParameter extends CjsParameter
    * Turns on screen-size-driven mip selection and stores the density scales; Carbon's spelling of the method name is kept.
    * @param uvDensityScale five scales: the world-position scale first, then the four UV-set scales
    */
-  @blue.method
+
   @meta.adapted
   EnableTextureLoding(uvDensityScale)
   {
@@ -345,7 +345,7 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /** Turns mip selection off, so UsedWithScreenSize then always requests LOD 0. */
-  @blue.method
+
   @meta.implemented
   DisableTextureLoding()
   {
@@ -356,7 +356,7 @@ export class TriTextureParameter extends CjsParameter
    * Carbon TriTextureParameter::UsedWithScreenSize (cpp:53-97): takes the largest resolution demanded by the world-position and per-UV-set densities, compares it against the texture's native resolution, and asks the resource for the resulting mip level.
    * @returns {number} the requested LOD, 0 when LOD is disabled or no density applies
    */
-  @blue.method
+
   @meta.adapted
   UsedWithScreenSize(screenSize, worldRadius, uvDensities = [])
   {
@@ -403,7 +403,7 @@ export class TriTextureParameter extends CjsParameter
    * subscriptions and resources on every notification, then reinitializes
    * and rebuilds effect handles.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(_propertyName)
   {
@@ -422,7 +422,7 @@ export class TriTextureParameter extends CjsParameter
    * local but its `<base>_lowdetail<ext>` sibling is, the sibling is fetched
    * too and renders until the authored one is ready (see GetResource).
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -473,7 +473,7 @@ export class TriTextureParameter extends CjsParameter
    * bindless constant has no BindlessHandleType (cpp:351); release keeps 2D,
    * and so does this.
    */
-  @blue.method
+
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -517,7 +517,7 @@ export class TriTextureParameter extends CjsParameter
    * Registers a material to be notified when the texture changes; duplicates are
    * ignored.
    */
-  @blue.method
+
   @meta.implemented
   OnAddedToMaterial(material)
   {
@@ -531,7 +531,7 @@ export class TriTextureParameter extends CjsParameter
    * Stops notifying a material; the material reference is dropped, not the
    * texture.
    */
-  @blue.method
+
   @meta.implemented
   OnRemovedFromMaterial(material)
   {
@@ -552,7 +552,8 @@ export class TriTextureParameter extends CjsParameter
    * resource - a `Tr2TextureReference` is not one - and then there is nothing
    * to renew.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   KeepAlive()
   {
     const resource = CjsSchema.cast(this.resource, CjsResource);
@@ -565,7 +566,7 @@ export class TriTextureParameter extends CjsParameter
    * Tells every owning material that its resource sets and constant buffers are
    * stale.
    */
-  @blue.method
+
   @meta.adapted
   OnTextureChanged()
   {

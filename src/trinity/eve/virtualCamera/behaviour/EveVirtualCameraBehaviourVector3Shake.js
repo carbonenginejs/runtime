@@ -63,7 +63,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * Sets the behaviour name and renames the owned magnitude curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:504-507
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -80,7 +80,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:510-530
    * Adapted: gl-matrix writes the output vector; existing noise and allocated phase replace native noise and pointer-derived phase.
    */
-  @blue.method
+
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
   {

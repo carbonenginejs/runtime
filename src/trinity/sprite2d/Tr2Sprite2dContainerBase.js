@@ -32,7 +32,7 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
    * @param {ITr2SpriteObject} _child The child that changed.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetChildDirty(_child)
   {

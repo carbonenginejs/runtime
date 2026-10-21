@@ -108,7 +108,7 @@ export class Tr2ManipulationTool
    * @param {Float32Array} [outZ]
    * @returns {[Float32Array, Float32Array, Float32Array]} The three axes.
    */
-  @blue.method
+
   @meta.implemented
   GetBaseVectors(outX = vec3.create(), outY = vec3.create(), outZ = vec3.create())
   {

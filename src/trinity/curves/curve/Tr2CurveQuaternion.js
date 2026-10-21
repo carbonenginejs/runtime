@@ -78,7 +78,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -92,7 +92,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -121,7 +121,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @blue.method
+
   @meta.implemented
   GetValueDotAt(_time, out)
   {
@@ -135,7 +135,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @blue.method
+
   @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
@@ -147,7 +147,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {number} The curve result.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {
@@ -194,7 +194,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {Float32Array|number[]} The live cached quaternion storage.
    */
-  @blue.method
+
   @meta.adapted
   GetCurrentValue()
   {
@@ -254,7 +254,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @blue.method
+
   @meta.adapted
   GetLocalTime(time)
   {
@@ -392,7 +392,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Tr2CurveQuaternionKey} k1 Segment end key.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @blue.method
+
   @meta.adapted
   GetSegmentValue(out, time, k0, k1)
   {

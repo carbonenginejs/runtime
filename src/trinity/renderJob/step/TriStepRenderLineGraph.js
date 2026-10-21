@@ -81,7 +81,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
    * TriStepRenderLineGraph.cpp:98-106 calls a present Blue callback directly.
    * Adapted: A supplied JavaScript function is also accepted as a callback.
    */
-  @blue.method
+
   @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {

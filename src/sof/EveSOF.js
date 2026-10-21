@@ -727,7 +727,7 @@ export class EveSOF
    * Adapted: Carbon loads synchronously; public JS acquisition returns a promise
    * so explicit reloads cannot bypass pending reads or source-replacement checks.
    */
-  @blue.method
+
   @meta.adapted
   async LoadData(filePath = this._dataPath)
   {
@@ -790,7 +790,7 @@ export class EveSOF
    * Creates a DNA selection after acquiring its catalog closure.
    * Adapted: Carbon starts with a monolithic catalog; JS callers await readiness.
    */
-  @blue.method
+
   @meta.adapted
   async CreateDna(dnaString, options = {})
   {
@@ -800,7 +800,7 @@ export class EveSOF
 
   /** Resolves Carbon's DNA against prepared data during synchronous assembly. */
   @meta.adapted
-  @blue.method
+
   _CreateDna(dnaString)
   {
     const dna = new EveSOFDNA();
@@ -1010,7 +1010,7 @@ export class EveSOF
    * @returns {Promise<boolean>} Whether the composed values were applied.
    * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build and hydration errors also propagate.
    */
-  @blue.method
+
   @meta.adapted
   async BuildChild(owner, dnaString, partTag, transform = identityMatrix(), options = {})
   {
@@ -1028,7 +1028,7 @@ export class EveSOF
    * Adapted: JS values composition replaces native in-place object assembly.
    */
   @meta.adapted
-  @blue.method
+
   _BuildChild(owner, dnaString, partTag, transform, options, collectOnly = false)
   {
     const isModel = owner != null && CjsSchema.getConstructor(CjsSchema.getClassName(owner.constructor)) === owner.constructor;
@@ -1682,7 +1682,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   CreateMesh(dna, document)
   {
     const fields = {
@@ -1710,7 +1710,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupShaders(dna, document, meshFields, transparent)
   {
     let meshIndexOffset = 0;
@@ -1744,7 +1744,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   FillMeshAreaVector(target, batchType, dna, hullIndex, meshIndexOffset, document)
   {
     // A missing source vector cannot occur in Carbon (hull area vectors always
@@ -1799,7 +1799,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   GenerateDepthFromAreaVector(document, depthAreas, transparentAreas, dna)
   {
     const depthShader = dna.GetGenericAreaShaderData("depthonlyv5.fx");
@@ -1833,7 +1833,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupCustomMask(document, rootFields, dna)
   {
     const application = dna.GetPatternApplicationData();
@@ -1867,7 +1867,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupDecalSets(document, rootFields, dna, stampOrigins = false)
   {
     const hullOffset = [0, 0, 0];
@@ -1989,7 +1989,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupImpactEffects(document, rootFields, dna)
   {
     const impactType = dna.GetImpactEffectType();
@@ -2073,7 +2073,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupEffects(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
     if (dna.UsingSof6())
@@ -2096,7 +2096,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupChildrenAndAnimations(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
     const emitterTargetsById = new Map();
@@ -2201,7 +2201,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupEffectChildren(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
     for (const childSet of dna.GetHullChildSets())
@@ -2372,7 +2372,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupAudio(document, rootFields, dna, parentOffset = identityMatrix())
   {
     const ignoredScale = vec3.create();
@@ -2432,7 +2432,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupControllers(document, rootFields, dna, buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
   {
     for (const controller of dna.GetHullControllers())
@@ -2452,7 +2452,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupModelCurves(document, rootFields, dna)
   {
     const rotationPath = dna.GetModelRotationCurvePath();
@@ -2478,7 +2478,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupInstancedMeshes(document, rootFields, dna, offsets = [identityMatrix()])
   {
     const hullInstanced = dna.GetHullInstancedMeshes();
@@ -2562,7 +2562,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   CreateInstancedMesh(document, instances, resourcePath)
   {
     if (!Array.isArray(instances) || instances.length === 0) return null;
@@ -2603,7 +2603,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupLayout(document, rootFields, dna, options = {}, targetFields = null, buildContext = {})
   {
     const plan = planSofLayouts(dna, options ?? {});
@@ -2944,7 +2944,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupBoosters(document, rootFields, dna)
   {
     if (dna.GetHullBoosterCount() === 0) return null;
@@ -3126,7 +3126,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupChildBoosters(document, placementFields, dna)
   {
     if (dna.GetHullBoosterCount() === 0) return null;
@@ -3342,7 +3342,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupAttachments(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     // Carbon caches this effect on the EveSOF instance. Document-local sharing
@@ -3373,7 +3373,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupSpriteSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
   {
     const hullOffset = [0, 0, 0];
@@ -3481,7 +3481,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupSpotlightSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     const hullOffset = [0, 0, 0];
@@ -3632,7 +3632,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupPlaneSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     const hullOffset = [0, 0, 0];
@@ -3823,7 +3823,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupSpriteLineSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
   {
     const hullOffset = [0, 0, 0];
@@ -3953,7 +3953,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupHazeSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     const hullOffset = [0, 0, 0];
@@ -4102,7 +4102,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupBanners(document, rootFields, dna, offsets = [identityMatrix()])
   {
     const hullOffset = [0, 0, 0];
@@ -4166,7 +4166,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupBannerSets(document, rootFields, dna, offsets = [identityMatrix()])
   {
     const hullOffset = [0, 0, 0];
@@ -4250,7 +4250,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupLights(document, rootFields, dna, offsets = [identityMatrix()])
   {
     const hullOffset = [0, 0, 0];
@@ -4334,7 +4334,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupLocators(document, rootFields, dna)
   {
     const hullOffset = [0, 0, 0];
@@ -4408,7 +4408,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   BuildHullLocalLocatorSets(document, dna)
   {
     const bySetName = new Map();
@@ -4455,7 +4455,7 @@ export class EveSOF
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
-  @blue.method
+
   SetupLocatorSets(document, rootFields, dna, offsets = [identityMatrix()], partTag = null)
   {
     const transforms = Array.isArray(offsets) && offsets.length !== 0
@@ -4632,7 +4632,7 @@ export class EveSOF
    * @param {object} factionData Faction material and color configuration.
    * @returns {Promise<void>} Resolves after materials have been applied.
    */
-  @blue.method
+
   @meta.adapted
   async ApplyFactionToTurretShader(turret, genericData, factionData, options = {})
   {
@@ -4646,7 +4646,7 @@ export class EveSOF
 
   /** Applies already-resolved native faction material parameters synchronously. */
   @meta.adapted
-  @blue.method
+
   _ApplyFactionToTurretShader(turret, genericData, factionData)
   {
     turret.ApplySofTurretMaterial(parameterName => findTurretFactionParameter(

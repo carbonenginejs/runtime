@@ -67,7 +67,7 @@ export class EveRootTransform extends EveTransform
    *
    * Adapted: Curve outputs use CarbonEngineJS's time-first, output-second convention.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext = null)
   {
@@ -99,14 +99,14 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Carbon advances inherited async content from UpdateSyncronous for this root. */
-  @blue.method
+
   @meta.noop
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Advances this detached root in Carbon's synchronous/asynchronous order. */
-  @blue.method
+
   @meta.implemented
   Update__UpdateContext(updateContext)
   {
@@ -115,7 +115,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Applies the detached root matrix as the inherited transform parent (EveRootTransform.cpp:70-74). */
-  @blue.method
+
   @meta.implemented
   UpdateViewDependentData(frustum, _parentTransform)
   {
@@ -123,7 +123,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Root transforms have no damage locators. */
-  @blue.method
+
   @meta.noop
   GetDamageLocatorCount()
   {
@@ -136,7 +136,7 @@ export class EveRootTransform extends EveTransform
    * Adapted: CarbonEngineJS uses output parameters last and returns the targetable validity
    * flag.
    */
-  @blue.method
+
   @meta.adapted
   GetDamageLocatorPosition(_index, _inWorldSpace, out = vec3.create())
   {
@@ -150,7 +150,7 @@ export class EveRootTransform extends EveTransform
    * Adapted: CarbonEngineJS uses output parameters last and returns the targetable validity
    * flag.
    */
-  @blue.method
+
   @meta.adapted
   GetDamageLocatorDirection(_index, _inWorldSpace, out = vec3.create())
   {
@@ -163,7 +163,7 @@ export class EveRootTransform extends EveTransform
    *
    * Adapted: CarbonEngineJS uses an out-last signature for output parameters.
    */
-  @blue.method
+
   @meta.adapted
   GetImpactPosition(locator, _posPrev, posNow, epsilon, out = vec3.create())
   {
@@ -172,7 +172,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Root transforms never use shield impact geometry. */
-  @blue.method
+
   @meta.noop
   HasImpactConfigurationShield()
   {
@@ -180,7 +180,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Root transforms use their only target point. */
-  @blue.method
+
   @meta.noop
   GetClosestDamageLocatorIndex(_position)
   {
@@ -188,7 +188,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Root transforms use their only target point. */
-  @blue.method
+
   @meta.noop
   GetGoodDamageLocatorIndex(_position)
   {
@@ -196,7 +196,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Returns the authored target radius. */
-  @blue.method
+
   @meta.implemented
   GetRadius()
   {
@@ -204,7 +204,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Root transforms do not create attached impact overlays. */
-  @blue.method
+
   @meta.noop
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
@@ -212,7 +212,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Root transforms do not update attached impact overlays. */
-  @blue.method
+
   @meta.noop
   UpdateImpact(_out, _direction, _impactIndex)
   {
@@ -220,7 +220,7 @@ export class EveRootTransform extends EveTransform
   }
 
   /** Computes a miss point just outside the root's spherical silhouette. */
-  @blue.method
+
   @meta.implemented
   GetMissPosition(hit, source, out = vec3.create())
   {

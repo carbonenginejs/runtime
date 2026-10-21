@@ -115,7 +115,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   GatherSprites(renderer)
   {
     if (!this.display) return;
@@ -194,7 +194,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * @returns {Tr2Sprite2dFrame|null} This frame when hit, otherwise null.
    */
   @meta.implemented
-  @blue.method
+
   PickPoint(x, y, renderer)
   {
     if (!this.display) return null;
@@ -218,7 +218,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * @returns {number} 48.
    */
   @meta.implemented
-  @blue.method
+
   GetVertexCount()
   {
     return 16 * 3;
@@ -242,7 +242,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _PrepareVertices(v, srcWidth, srcHeight, vertOffset, scale)
   {
     const cs = Math.floor(0.5 + this.cornerScale * this.cornerSize);

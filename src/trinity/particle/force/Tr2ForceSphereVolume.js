@@ -48,8 +48,8 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
   /**
    * Does nothing: the contained forces are not updated through the volume.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   Update(_dt)
   {
   }
@@ -58,7 +58,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * Child-force aggregation with (1 - d/r)^exponent falloff inside the sphere
    * (Tr2ForceSphereVolume.cpp:38-59).
    */
-  @blue.method
+
   @meta.adapted
   GetForce(position, velocity, dt, mass, out = vec3.create())
   {
@@ -87,7 +87,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} aabb The particle system's bounds, packed min/max.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, worldTransform, aabb)
   {

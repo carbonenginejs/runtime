@@ -33,7 +33,7 @@ export class Tr2Model
   static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create() };
 
   /** Returns the authored mesh count. */
-  @blue.method
+
   @meta.implemented
   GetNumOfMeshes()
   {
@@ -41,7 +41,7 @@ export class Tr2Model
   }
 
   /** Returns the mesh at the requested index. */
-  @blue.method
+
   @meta.implemented
   GetMesh(index)
   {
@@ -49,7 +49,7 @@ export class Tr2Model
   }
 
   /** Returns the live mesh collection. */
-  @blue.method
+
   @meta.implemented
   GetMeshes()
   {
@@ -57,7 +57,7 @@ export class Tr2Model
   }
 
   /** Appends a mesh to the authored collection. */
-  @blue.method
+
   @meta.implemented
   AddMesh(mesh)
   {
@@ -65,7 +65,7 @@ export class Tr2Model
   }
 
   /** Includes hidden meshes, matching Carbon's area-list test. */
-  @blue.method
+
   @meta.implemented
   HasTransparency()
   {
@@ -73,7 +73,7 @@ export class Tr2Model
   }
 
   /** Reports pending preparation in any mesh. */
-  @blue.method
+
   @meta.implemented
   IsLoading()
   {
@@ -81,7 +81,7 @@ export class Tr2Model
   }
 
   /** Copies aggregate bounds only when every mesh has finished and has bounds. */
-  @blue.method
+
   @meta.implemented
   GetBoundingBox(min, max)
   {

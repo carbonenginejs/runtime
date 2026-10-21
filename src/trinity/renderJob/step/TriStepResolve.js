@@ -42,7 +42,7 @@ export class TriStepResolve extends TriRenderStep
    * into the destination's and, when asked, regenerate the destination's mips.
    * Missing or invalid operands are a no-op; a failed resolve is RS_FAILED.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

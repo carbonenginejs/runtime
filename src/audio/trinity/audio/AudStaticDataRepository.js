@@ -90,7 +90,7 @@ export class AudStaticDataRepository
    *
    * @returns {boolean} Whether initialization completed.
    */
-  @blue.method
+
   @meta.implemented
   IsInitialized()
   {
@@ -102,7 +102,7 @@ export class AudStaticDataRepository
   // JS's no-op, and C++ pointer-to-member projection is a keyed read.
 
   /** Carbon GetData<DataType> (h:68-78): the named record, or null. */
-  @meta.renamed("GetData")
+
   @meta.adapted
   _GetData(map, name)
   {
@@ -111,7 +111,7 @@ export class AudStaticDataRepository
 
   /** Carbon GetAttribute<DataType, AttrType> (h:82-91): one field of the
    *  named record, or the default when the record is absent. */
-  @meta.renamed("GetAttribute")
+
   @meta.adapted
   _GetAttribute(map, name, attribute, defaultValue)
   {
@@ -125,7 +125,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {number} Event ID or zero.
    */
-  @blue.method
+
   @meta.implemented
   GetEventID(eventName)
   {
@@ -141,7 +141,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {number} Squared attenuation radius.
    */
-  @blue.method
+
   @meta.adapted
   GetEventRadiusSq(eventName)
   {
@@ -159,7 +159,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event loops.
    */
-  @blue.method
+
   @meta.implemented
   EventIsLoop(eventName)
   {
@@ -172,7 +172,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event is 2D.
    */
-  @blue.method
+
   @meta.implemented
   EventIs2D(eventName)
   {
@@ -185,7 +185,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event is vital.
    */
-  @blue.method
+
   @meta.implemented
   EventIsVital(eventName)
   {
@@ -199,7 +199,7 @@ export class AudStaticDataRepository
    * @param {string} eventPotentiallyStopping Potential stopping event.
    * @returns {boolean} Whether the second event stops the first; false if the first is unknown.
    */
-  @blue.method
+
   @meta.implemented
   EventIsStopped(eventPotentiallyStopped, eventPotentiallyStopping)
   {
@@ -213,7 +213,7 @@ export class AudStaticDataRepository
    * @param {number} sourceID WEM source ID.
    * @returns {boolean} Whether the source is essential.
    */
-  @blue.method
+
   @meta.implemented
   SourceIsEssential(sourceID)
   {
@@ -226,7 +226,7 @@ export class AudStaticDataRepository
    * @param {string} soundBankName Sound-bank name.
    * @returns {boolean} Whether the bank is essential.
    */
-  @blue.method
+
   @meta.implemented
   SoundBankIsEssential(soundBankName)
   {
@@ -240,7 +240,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {ReadonlyArray<string>} Required sound-bank names.
    */
-  @blue.method
+
   @meta.implemented
   SoundBanksRequiredForEvent(eventName)
   {

@@ -97,7 +97,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Updates the cached vector value for the supplied time.
    * Adapted: the existing JS vector output buffer replaces native value assignment.
    */
-  @blue.method
+
   @meta.adapted
   UpdateValue(time)
   {
@@ -111,7 +111,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * does (cpp:110-115).
    * Adapted: JS time-first/output-last arguments, output returned.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -125,7 +125,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * which converts with TimeAsDouble and calls this, as Carbon's does (cpp:124-127).
    * Adapted: JS time-first/output-last arguments, output returned.
    */
-  @blue.method
+
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -135,8 +135,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
   /**
    * Native first-derivative no-op leaves output untouched; JS keeps time first.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -145,8 +145,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
   /**
    * Native second-derivative no-op leaves output untouched; JS keeps time first.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -157,8 +157,8 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Carbon declares only the Be::Time overload (Tr2FollowCurve.h:34, cpp:155-158), so
    * the bare name takes Blue 100ns ticks.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;
@@ -169,7 +169,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Adapted: retains JS time-first/output-last arguments, numeric seconds and
    * caller-owned vectors instead of native overloads/value returns.
    */
-  @blue.method
+
   @meta.adapted
   GetValue(time, out)
   {
@@ -208,7 +208,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
   /**
    * Handles a Carbon list-modified notification.
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
@@ -229,7 +229,7 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * Adapted: caller-owned vectors and JS Number arithmetic replace native vector
    * returns/float temporaries; direct key contract calls remain required.
    */
-  @blue.method
+
   @meta.adapted
   GetSegmentValue(out, time, k0, k1)
   {

@@ -32,7 +32,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * Toggles the bucket, resetting the children only on an actual state change
    * (EveSmartLightAttributeModifierBucket.cpp:13-21).
    */
-  @blue.method
+
   @meta.implemented
   SetActive(isActive)
   {
@@ -49,7 +49,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * touching the bucket's own timers
    * (EveSmartLightAttributeModifierBucket.cpp:23-26).
    */
-  @blue.method
+
   @meta.implemented
   ResetPlayTime(active)
   {
@@ -57,7 +57,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
   }
 
   /** Fans the inherited color set out to the child modifiers (EveSmartLightAttributeModifierBucket.cpp:28-34). */
-  @blue.method
+
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -71,7 +71,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * Advances the bucket's crossfade, then updates the children with the
    * compounded multiplier (EveSmartLightAttributeModifierBucket.cpp:36-45).
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {
@@ -88,7 +88,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * Runs the child modifiers with the bucket's per-placement activation
    * strength folded in (EveSmartLightAttributeModifierBucket.cpp:47-55).
    */
-  @blue.method
+
   @meta.implemented
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength)
   {
@@ -106,7 +106,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * (EveSmartLightAttributeModifierBucket.cpp:57-67). Carbon BlueCasts to
    * EveSmartLightBaseAttributeModifier; the JS children share that nominal base.
    */
-  @blue.method
+
   @meta.implemented
   ResetChildren(parentActive = true)
   {

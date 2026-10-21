@@ -45,7 +45,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
   _controller = null;
 
   /** @param {ITr2ActionController} controller Controller supplying the multiplier. */
-  @blue.method
+
   @meta.implemented
   Link(controller)
   {
@@ -53,7 +53,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
   }
 
   /** Releases the linked controller pointer. */
-  @blue.method
+
   @meta.implemented
   Unlink()
   {
@@ -66,7 +66,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * (Tr2ActionSetAttenuationScaling.cpp:28-37,53-77).
    * @param {ITr2ActionController} controller The invoking controller.
    */
-  @blue.method
+
   @meta.implemented
   Start(controller)
   {
@@ -94,7 +94,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * Native zero means no multiplier; negative and nonfinite values are not clamped.
    * @returns {number} The attenuation scaling factor.
    */
-  @blue.method
+
   @meta.adapted
   GetScalingFactor()
   {

@@ -96,7 +96,7 @@ export class PlayFX extends EveEntity
   _stop = false;
 
   /** Carbon PlayFX::GetProcessPriority (cpp:25-28). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -104,7 +104,7 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::GetBehaviorName (cpp:30-33). */
-  @blue.method
+
   @meta.implemented
   GetBehaviorName()
   {
@@ -117,7 +117,7 @@ export class PlayFX extends EveEntity
    * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per
    * agent, so any non-zero value means 'has scratch'.
    */
-  @blue.method
+
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -130,7 +130,7 @@ export class PlayFX extends EveEntity
    * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh
    * record instead.
    */
-  @blue.method
+
   @meta.adapted
   InitializeScratch()
   {
@@ -142,7 +142,7 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon IBehavior::UpdateState override (h:55-58). */
-  @blue.method
+
   @meta.implemented
   UpdateState(state)
   {
@@ -164,7 +164,7 @@ export class PlayFX extends EveEntity
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
@@ -268,7 +268,7 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::UpdateAsyncronous (cpp:141-148). */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext, parentTransform)
   {
@@ -280,7 +280,7 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::UpdateSyncronous (cpp:150-156). */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -291,7 +291,7 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::GetRenderables (cpp:158-164). */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables = [])
   {
@@ -303,7 +303,7 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::RegisterComponents (cpp:202-215). */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -319,7 +319,7 @@ export class PlayFX extends EveEntity
   }
 
   /** Carbon PlayFX::UnRegisterComponents (cpp:217-230). */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -336,7 +336,7 @@ export class PlayFX extends EveEntity
 
   /** Carbon method RegisterWithQuadRenderer (cpp:239-245) - quad renderer
    * registration seam; the firing effect elements own the real quads. */
-  @blue.method
+
   @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
@@ -344,7 +344,7 @@ export class PlayFX extends EveEntity
 
   /** Carbon method AddQuadsToQuadRenderer (cpp:253-259) - quad renderer
    * submission seam; the firing effect elements own the real quads. */
-  @blue.method
+
   @meta.noop
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
@@ -356,7 +356,7 @@ export class PlayFX extends EveEntity
    * method on the authored effect. A failed clone leaves the count unchanged.
    * Adapted: CloneTo returns the copy or null instead of bool plus an out pointer.
    */
-  @blue.method
+
   _CheckCount(agentSize)
   {
     if (this._count > agentSize)

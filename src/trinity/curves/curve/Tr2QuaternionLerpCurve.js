@@ -86,7 +86,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -100,7 +100,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -175,7 +175,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @returns {Float32Array} The unchanged destination.
    */
   @blue.method
-  @meta.noop
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -188,7 +188,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @returns {Float32Array} The unchanged destination.
    */
   @blue.method
-  @meta.noop
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -198,7 +198,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * Gets the authored blend duration.
    * @returns {number} Duration in seconds.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {

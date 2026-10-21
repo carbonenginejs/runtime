@@ -271,7 +271,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -284,7 +284,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @blue.method
+
   @meta.implemented
   Update(time)
   {
@@ -311,7 +311,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} scale Curve parameter.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   ScaleTime(scale)
   {
@@ -323,7 +323,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    *
    * @returns {number} The curve result.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {
@@ -335,7 +335,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    *
    * @returns {string} The curve result.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -348,7 +348,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {string} name Authored curve name.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -459,7 +459,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    *
    * @returns {number} The curve result.
    */
-  @blue.method
+
   @meta.implemented
   GetCurrentValue()
   {
@@ -521,7 +521,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    *
    * @returns {boolean} Whether the curve has no keys.
    */
-  @blue.method
+
   @meta.implemented
   IsEmpty()
   {
@@ -622,7 +622,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    *
    * @returns {Tr2CurveScalarKey[]} The curve result.
    */
-  @blue.method
+
   @meta.implemented
   GetKeys()
   {
@@ -635,7 +635,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} definition Authored key range and extrapolation.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetDefinition(definition)
   {
@@ -663,7 +663,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    *
    * @returns {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} The curve result.
    */
-  @blue.method
+
   @meta.adapted
   GetDefinition()
   {
@@ -681,7 +681,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {{width: number, stride: number, data: Float32Array|number[]}} destination Raster output and stride.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Rasterize(destination)
   {
@@ -710,7 +710,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @blue.method
+
   @meta.adapted
   GetLocalTime(time)
   {
@@ -798,7 +798,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} definition Authored key range and extrapolation.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   static Rasterize(destination, definition)
   {

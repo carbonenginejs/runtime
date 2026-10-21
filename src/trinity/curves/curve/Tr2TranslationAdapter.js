@@ -91,7 +91,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -108,7 +108,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -131,7 +131,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -149,7 +149,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   GetValueDotAt(time, out)
   {
@@ -193,7 +193,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
@@ -207,7 +207,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   InterpolatedPosition(_time, out)
   {
@@ -257,7 +257,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {number} Scaled time in seconds.
    */
-  @blue.method
+
   @meta.implemented
   GetLocalTime(time)
   {

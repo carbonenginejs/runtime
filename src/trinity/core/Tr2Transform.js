@@ -83,7 +83,7 @@ export class Tr2Transform
    * enabled, advances every curve set at the Blue ticks converted to seconds.
    * @param {number} time Blue 100ns ticks.
    */
-  @blue.method
+
   @meta.implemented
   Update__Time(time)
   {
@@ -103,7 +103,7 @@ export class Tr2Transform
    * overrides this to route between its two overloads.
    * @param {number} time Blue 100ns ticks.
    */
-  @blue.method
+
   @meta.implemented
   Update(time)
   {
@@ -120,7 +120,7 @@ export class Tr2Transform
    * @param {mat4} [parentTransform] The parent's world transform.
    * @returns {mat4} The world transform.
    */
-  @blue.method
+
   @meta.implemented
   UpdateViewDependentData(_frustum, parentTransform = Tr2Transform.#identity)
   {
@@ -187,7 +187,7 @@ export class Tr2Transform
   }
 
   /** Copies a new authored scale into the stable schema vector. */
-  @blue.method
+
   @meta.implemented
   SetScaling(value)
   {
@@ -195,7 +195,7 @@ export class Tr2Transform
   }
 
   /** Copies a new authored rotation into the stable schema quaternion. */
-  @blue.method
+
   @meta.implemented
   SetRotation(value)
   {
@@ -203,7 +203,7 @@ export class Tr2Transform
   }
 
   /** Copies a new authored translation into the stable schema vector. */
-  @blue.method
+
   @meta.implemented
   SetTranslation(value)
   {
@@ -231,7 +231,7 @@ export class Tr2Transform
   GetPerObjectData(_accumulator) {}
 
   /** Returns whether the displayed mesh has transparent areas. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -248,7 +248,7 @@ export class Tr2Transform
    * Adapted: Returns whether JavaScript mesh delegation committed a batch; Carbon's void
    * method exposes no result.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -264,7 +264,7 @@ export class Tr2Transform
   }
 
   /** Returns camera distance times the authored sort multiplier (Tr2Transform.cpp:271-276). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -276,7 +276,7 @@ export class Tr2Transform
   }
 
   /** Returns the authored mesh reference. */
-  @blue.method
+
   @meta.implemented
   GetMesh()
   {

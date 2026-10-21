@@ -43,7 +43,7 @@ export class TriStepSetViewport extends TriRenderStep
    * Sets the authored viewport, or asks the render context for its full-screen
    * viewport when none is set.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

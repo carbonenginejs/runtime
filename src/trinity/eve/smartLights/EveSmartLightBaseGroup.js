@@ -123,7 +123,7 @@ export class EveSmartLightBaseGroup
   }
 
   /** Faction-aware group color (EveSmartLightBaseGroup.cpp:43-53). */
-  @blue.method
+
   @meta.implemented
   GetGroupColor()
   {
@@ -140,7 +140,7 @@ export class EveSmartLightBaseGroup
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (EveSmartLightBaseGroup.cpp:30-41).
    */
-  @blue.method
+
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -156,7 +156,7 @@ export class EveSmartLightBaseGroup
   }
 
   /** Overwrites the custom color (EveSmartLightBaseGroup.cpp:55-58). */
-  @blue.method
+
   @meta.implemented
   SetColor(color)
   {
@@ -164,7 +164,7 @@ export class EveSmartLightBaseGroup
   }
 
   /** Fans a controller variable out to the attribute modifiers (EveSmartLightBaseGroup.cpp:60-66). */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -178,7 +178,7 @@ export class EveSmartLightBaseGroup
    * Newly inserted attribute modifiers inherit the parent color set
    * (EveSmartLightBaseGroup.cpp:16-28).
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {

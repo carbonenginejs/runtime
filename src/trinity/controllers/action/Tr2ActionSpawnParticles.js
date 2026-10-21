@@ -38,7 +38,7 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    * Adapted: a fresh JavaScript update-arguments object represents the native
    * temporary value; the emitter owns all particle allocation and algorithms.
    */
-  @blue.method
+
   @meta.adapted
   Start(_controller)
   {

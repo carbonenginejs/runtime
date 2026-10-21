@@ -46,7 +46,7 @@ export class EveThrottleable
    * @param {number} [normalizedUpdateFrequency=0.5] 0..1 detail level between the min and max frequency.
    * @returns {boolean} True to skip this update.
    */
-  @blue.method
+
   @meta.implemented
   ShouldSkipUpdate(normalizedUpdateFrequency = 0.5)
   {

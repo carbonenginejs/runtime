@@ -42,7 +42,7 @@ export class EveVirtualCameraBehaviourVector3Inertia extends EveVirtualCameraBeh
    * it and returns the offset from the incoming position; the first update seeds
    * position and velocity and returns zero.
    */
-  @blue.method
+
   @meta.adapted
   Update(_camera, current, deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
   {

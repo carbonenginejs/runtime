@@ -66,7 +66,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
    * @returns {Uint32Array} The backing storage, reused or new.
    */
-  @blue.method
+
   @meta.adapted
   AllocateReadBuffer(_memberName, byteSize)
   {
@@ -86,7 +86,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {string} [_propertyName] Ignored, as in Carbon.
    * @returns {{buffer: Uint32Array, byteSize: number}} Storage and byte count.
    */
-  @blue.method
+
   @meta.adapted
   GetWriteBufferAndSize(_propertyName)
   {
@@ -100,8 +100,8 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    *
    * @returns {void}
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   ReleaseWriteBuffer()
   {
   }
@@ -120,7 +120,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetBufferAndSize(_propertyName, _buffer, byteSize)
   {

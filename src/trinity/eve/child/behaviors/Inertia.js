@@ -67,7 +67,7 @@ export class Inertia
   _returnForces = [];
 
   /** Carbon Inertia::GetProcessPriority (cpp:20-23). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -80,7 +80,7 @@ export class Inertia
    * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per
    * agent, so any non-zero value means 'has scratch'.
    */
-  @blue.method
+
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -93,7 +93,7 @@ export class Inertia
    * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh
    * record instead.
    */
-  @blue.method
+
   @meta.adapted
   InitializeScratch()
   {
@@ -120,7 +120,7 @@ export class Inertia
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug forces when group.collectForces is on
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
@@ -192,7 +192,7 @@ export class Inertia
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} _parentWorldLocation
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(_renderer, _agents, _parentWorldLocation)
   {

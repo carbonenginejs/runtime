@@ -82,7 +82,7 @@ export class EveSOFDataHullChild
    * Extracts the final path component without its extension when the resource
    * path contains a forward slash; otherwise returns empty.
    */
-  @blue.method
+
   GetName()
   {
     const slash = this.redFilePath.lastIndexOf("/");

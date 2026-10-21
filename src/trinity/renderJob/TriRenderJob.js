@@ -59,7 +59,7 @@ export class TriRenderJob
    * Run snapshots the list precisely BECAUSE a step may mutate it mid-run
    * through this accessor ("lists can change when executed").
    */
-  @blue.method
+
   @meta.implemented
   Steps()
   {
@@ -74,7 +74,7 @@ export class TriRenderJob
    * @param {Tr2RenderContext|null} [executor] the render context the steps run against; null selects the main-thread render context, and anything that is not a Tr2RenderContext throws. Step dispatch is taken over through that context's SetStepExecutor. Nested jobs receive the same context.
    * @returns {number} the resulting TriRenderJob.Status
    */
-  @blue.method
+
   @meta.adapted
   Run(realTime, simTime, executor = null)
   {

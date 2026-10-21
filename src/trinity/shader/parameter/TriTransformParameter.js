@@ -60,14 +60,14 @@ export class TriTransformParameter extends CjsParameter
   worldTransform = mat4.create();
 
   /** Native legacy-scene hook is empty (TriTransformParameter.h:42). */
-  @blue.method
+
   @meta.implemented
   RebuildEffectHandles(_effectRes)
   {
   }
 
   /** The shader constant name the composed transform matrix is uploaded to. */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -78,7 +78,7 @@ export class TriTransformParameter extends CjsParameter
    * Content hash: transform base + translation/scaling/rotation bytes, then
    * name (Carbon hashes the contiguous transform-state struct region).
    */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {

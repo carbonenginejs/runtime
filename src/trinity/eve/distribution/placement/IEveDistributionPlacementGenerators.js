@@ -19,7 +19,7 @@ export class IEveDistributionPlacementGenerators
   IsRequestingRegeneration() {}
 
   /** Runs the optional synchronous placement-generator update hook. */
-  @blue.method
+
   @meta.noop
   UpdateSyncronous(_updateContext)
   {

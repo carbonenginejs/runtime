@@ -30,7 +30,7 @@ export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
    * Sets the prefix when the controller owner exposes a named sound emitter.
    * @param {ITr2ActionController} controller The invoking controller.
    */
-  @blue.method
+
   @meta.implemented
   Start(controller)
   {

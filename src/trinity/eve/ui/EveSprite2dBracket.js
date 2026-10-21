@@ -35,7 +35,7 @@ export class EveSprite2dBracket
   /**
    * Copies the bracket translation into caller-provided storage.
    */
-  @blue.method
+
   @meta.adapted
   GetTranslation(out)
   {
@@ -45,7 +45,7 @@ export class EveSprite2dBracket
   /**
    * Replaces the bracket translation while preserving field identity.
    */
-  @blue.method
+
   @meta.adapted
   SetTranslation(value)
   {
@@ -55,7 +55,7 @@ export class EveSprite2dBracket
   /**
    * Gets the authored atlas icon.
    */
-  @blue.method
+
   @meta.implemented
   GetIcon()
   {
@@ -65,7 +65,7 @@ export class EveSprite2dBracket
   /**
    * Gets the mutable authored color container.
    */
-  @blue.method
+
   @meta.implemented
   GetColor()
   {
@@ -75,7 +75,7 @@ export class EveSprite2dBracket
   /**
    * Sets whether the bracket is displayed.
    */
-  @blue.method
+
   @meta.implemented
   SetDisplay(display)
   {
@@ -85,7 +85,7 @@ export class EveSprite2dBracket
   /**
    * Gets whether the bracket is displayed.
    */
-  @blue.method
+
   @meta.implemented
   IsDisplay()
   {

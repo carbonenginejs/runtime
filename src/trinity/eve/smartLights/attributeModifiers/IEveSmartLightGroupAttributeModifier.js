@@ -18,14 +18,14 @@ export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttri
   ProcessAttributeModifier(_attribute, _placement, _entityPosition, _entityDirection, _modifierStrength) {}
 
   /** Accepts an optional controller variable. */
-  @blue.method
+
   @meta.noop
   SetControllerVariable(_name, _value)
   {
   }
 
   /** Accepts optional inherited colour properties. */
-  @blue.method
+
   @meta.noop
   SetInheritProperties(_colorSet)
   {

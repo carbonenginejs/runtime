@@ -52,7 +52,7 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
    * Reseeds the random stream from the wall clock, so offsets differ between
    * runs unless consistentRandom pins them to the placement id.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -66,7 +66,7 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
    * range across the pool, otherwise it adds a random offset in that range plus
    * a per-placement cascade.
    */
-  @blue.method
+
   @meta.adapted
   ProcessSpawnModifier(placement, numPlacements)
   {

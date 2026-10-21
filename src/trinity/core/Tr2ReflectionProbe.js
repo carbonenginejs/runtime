@@ -174,7 +174,7 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} True when prepared.
    */
-  @blue.method
+
   @meta.implemented
   IsValid(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -182,7 +182,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `HasData` (`cpp:68-71`): whether a filter has written the reflection. */
-  @blue.method
+
   @meta.implemented
   HasData()
   {
@@ -190,7 +190,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetReflection` (`cpp:206-209`): the filtered cube. */
-  @blue.method
+
   @meta.implemented
   GetReflection()
   {
@@ -198,7 +198,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `SetBackLightColor` (`cpp:211-214`). */
-  @blue.method
+
   @meta.implemented
   SetBackLightColor(color)
   {
@@ -206,7 +206,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `SetBackLightContrast` (`cpp:216-219`). */
-  @blue.method
+
   @meta.implemented
   SetBackLightContrast(contrast)
   {
@@ -214,7 +214,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `ReleaseResources` (`cpp:221-224`). */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -229,7 +229,7 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} Whether the resources are ready.
    */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -248,7 +248,7 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} Whether every target was created.
    */
-  @blue.method
+
   @meta.implemented
   DoPrepareResources(rtFormat, renderContext)
   {
@@ -328,7 +328,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `OnModified` (`cpp:323-329`): rebuild everything on any change. */
-  @blue.method
+
   @meta.implemented
   OnModified(_value)
   {
@@ -337,7 +337,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `DestroyRenderTargets` (`cpp:331-345`). */
-  @blue.method
+
   @meta.implemented
   DestroyRenderTargets()
   {
@@ -362,7 +362,7 @@ export class Tr2ReflectionProbe
    * and copy the source into mip 0 - the last two with Hollywood backlighting
    * seen from the current view.
    */
-  @blue.method
+
   @meta.implemented
   Filter(renderContext)
   {
@@ -404,7 +404,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `IsHollyWoodModeOn` (`cpp:391-394`). */
-  @blue.method
+
   @meta.implemented
   IsHollyWoodModeOn()
   {
@@ -412,7 +412,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `ReadyForDynamicObjectReflections` (`cpp:396-400`). */
-  @blue.method
+
   @meta.implemented
   ReadyForDynamicObjectReflections()
   {
@@ -420,7 +420,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetStartFace` (`cpp:80-87`). */
-  @blue.method
+
   @meta.implemented
   GetStartFace()
   {
@@ -430,7 +430,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetEndFace` (`cpp:89-96`). */
-  @blue.method
+
   @meta.implemented
   GetEndFace()
   {
@@ -446,7 +446,7 @@ export class Tr2ReflectionProbe
    * current near/far terms, and inverts culling (the cube target is
    * left-handed). Without render-pass hints the faces are cleared here.
    */
-  @blue.method
+
   @meta.implemented
   InitRenderPass(renderContext)
   {
@@ -492,7 +492,7 @@ export class Tr2ReflectionProbe
    * (row-vector) is `xInverter` applied after the look-at, so in gl order the
    * inverter is the left operand.
    */
-  @blue.method
+
   @meta.implemented
   StartRenderFace(face, renderContext)
   {
@@ -516,7 +516,7 @@ export class Tr2ReflectionProbe
    * cube, restores culling and the saved state, filters, and advances the face
    * when only one side renders per frame.
    */
-  @blue.method
+
   @meta.implemented
   EndRenderPass(renderContext)
   {
@@ -550,7 +550,7 @@ export class Tr2ReflectionProbe
    * Carbon `GetFrustum` (`cpp:73-78`): the frustum of the current view and
    * projection from the probe position, over the current viewport.
    */
-  @blue.method
+
   @meta.implemented
   GetFrustum(_face, renderContext)
   {
@@ -561,7 +561,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetDepthBuffer` (`h:59`): face `face`'s depth buffer. */
-  @blue.method
+
   @meta.implemented
   GetDepthBuffer(face)
   {

@@ -88,7 +88,7 @@ export class EvePlaneSetItem
    * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
    * box3.
    */
-  @blue.method
+
   @meta.adapted
   GetBounds(out)
   {
@@ -103,7 +103,7 @@ export class EvePlaneSetItem
   }
 
   /** The parent bone this plane rides. */
-  @blue.method
+
   @meta.implemented
   GetBoneIndex()
   {

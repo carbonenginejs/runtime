@@ -46,7 +46,7 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
    * Reseeds the random stream from the wall clock, so rotations differ between
    * runs unless consistentRandom pins them to the placement id.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -59,7 +59,7 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
    * maxRotation, then either replaces the placement's initial rotation or
    * combines it with the authored one.
    */
-  @blue.method
+
   @meta.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {

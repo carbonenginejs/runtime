@@ -151,7 +151,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Carbon Initialize (cpp:96-100): prepares the device half. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -164,7 +164,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * CCP_ASSERT on more than MAX_QUAD_COUNT quads (cpp:106) is compiled out of
    * shipping builds, so nothing stops the count there.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -185,7 +185,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Carbon ReleaseResources (cpp:371-374): forgets the declaration. */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(_storage = null)
   {
@@ -196,7 +196,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Carbon OnPrepareResources (cpp:376-386): the FLOAT32_2 POSITION
    * declaration, and the quad-list index buffer reserved for quadCount.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -209,7 +209,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Sets the destination-end scale and adopts it as the current one, undoing any
    * hidden-destination override left by DisplayEndPoints.
    */
-  @blue.method
+
   @meta.implemented
   SetDestObjectScale(scale)
   {
@@ -217,14 +217,14 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** IEveFiringEffectElement move hook; EveStretch2 has no travelling child. */
-  @blue.method
+
   @meta.noop
   StartMoving()
   {
   }
 
   /** Longer of the start and loop curve-set durations. */
-  @blue.method
+
   @meta.implemented
   GetCurveDuration()
   {
@@ -240,7 +240,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Uses the shared CRT rand()/RAND_MAX stream (EveStretch2.cpp:137-152).
    * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
    */
-  @blue.method
+
   @meta.adapted
   StartFiring(delay = 0)
   {
@@ -251,7 +251,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Ends a shot: stops the start and loop sets and plays the end set. */
-  @blue.method
+
   @meta.implemented
   StopFiring()
   {
@@ -265,7 +265,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * which only the translation is kept, since the span orientation is rebuilt
    * each update - or a source position.
    */
-  @blue.method
+
   @meta.implemented
   SetFiringTransform(source, destination)
   {
@@ -278,7 +278,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Hides the destination end by zeroing its current scale; the source end is
    * always drawn, so the source flag is ignored.
    */
-  @blue.method
+
   @meta.implemented
   DisplayEndPoints(_displaySource, displayDestination)
   {
@@ -289,7 +289,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Shows or hides the stretch, gating visibility, renderable collection and
    * light contribution; a change re-registers its components (EveStretch2.cpp:187-195).
    */
-  @blue.method
+
   @meta.implemented
   SetDisplay(display)
   {
@@ -303,7 +303,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * direction re-registers its components (EveStretch2.cpp:197-206); a zero
    * intensity also suppresses visibility, renderables and lights.
    */
-  @blue.method
+
   @meta.implemented
   SetIntensity(intensity)
   {
@@ -316,7 +316,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * IEveFiringEffectElement synchronous hook; EveStretch2 does all of its work
    * in the asynchronous phase.
    */
-  @blue.method
+
   @meta.noop
   UpdateEffectSync(_context)
   {
@@ -324,7 +324,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** IEveFiringEffectElement asynchronous hook; runs Update. */
-  @blue.method
+
   @meta.implemented
   UpdateEffectAsync(context)
   {
@@ -340,7 +340,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * Adapted: the emitters receive the JavaScript mirror of Carbon's ITr2GenericEmitter::UpdateArguments, one reused
    * object per end, rather than a stack-constructed structure.
    */
-  @blue.method
+
   @meta.adapted
   Update(context)
   {
@@ -400,7 +400,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @param {EveUpdateContext} context Update context carrying the frustum.
    * @returns {boolean} Whether the stretch is in the frustum.
    */
-  @blue.method
+
   @meta.adapted
   UpdateVisibility(context)
   {
@@ -429,7 +429,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @param {mat4} destination Receives the destination basis, translated to the destination.
    */
   @meta.implemented
-  @blue.method
+
   GetEndPointTransforms(source, destination)
   {
     // vec3_0 is the direction (Z), vec3_1 the up reference, vec3_2 the X axis and vec3_3 the Y axis.
@@ -468,7 +468,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * its batch comes from GetBatches.
    * @returns {Array} out
    */
-  @blue.method
+
   @meta.implemented
   GetRenderables(out = [])
   {
@@ -480,7 +480,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * m_effectData[1].x = m_intensity, then uploads the contiguous member run
    * m_source..m_effectData[2] (EveStretch2.h:105-109) - 4 vec4s - to BOTH
    * per-object slots (cpp:23-39). One payload, stages ["vs", "ps"]. */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {
@@ -506,7 +506,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * based at the allocation's first vertex.
    * @returns {Boolean} whether the batch was committed
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -533,7 +533,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Carbon EveStretch2::HasTransparentBatches: the strip is additive. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -541,7 +541,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Carbon EveStretch2::GetSortValue: additive batches are unsorted. */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -553,7 +553,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * destination scaled by its current scale; nothing is offered while hidden or
    * at exactly zero intensity (EveStretch2.cpp:400-418).
    */
-  @blue.method
+
   @meta.implemented
   GetLights(lightManager)
   {
@@ -565,7 +565,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   /** Carbon EveStretch2::RegisterComponents (cpp:389-398): LightOwner leaf
    * self-registration. Gate (m_visible && m_intensity > 0) && a source or
    * destination light. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -613,7 +613,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
    * @returns {Array} out
    */
-  @blue.method
+
   GetDestinationTransform(out = mat4.create())
   {
     return mat4.copy(out, this._destinationTransform);

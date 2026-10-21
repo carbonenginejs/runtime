@@ -48,7 +48,7 @@ export class EveMobile extends EveSpaceObject2
    * Runs the base initialization, then seeds the turret locator counters from
    * the current locators and binds every turret set to them.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -63,7 +63,7 @@ export class EveMobile extends EveSpaceObject2
    * multiplies shipData.y by the authored activationStrength. Recomputing the
    * base first prevents repeated frames from compounding the multiplication.
    */
-  @blue.method
+
   @meta.implemented
   PrepareShaderData(updateContext)
   {
@@ -76,7 +76,7 @@ export class EveMobile extends EveSpaceObject2
    * registration on live insertion/removal; unload unregisters mapped entities.
    * Carbon EveMobile.cpp:56-100 keeps insertion independent of display.
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, key = 0, key2 = 0, value = null, list = null)
   {
@@ -104,7 +104,7 @@ export class EveMobile extends EveSpaceObject2
 
   /** Carbon EveMobile::RegisterComponents (cpp:109-120): base registration,
    * then forwards the turret sets. Gate m_display. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -121,7 +121,7 @@ export class EveMobile extends EveSpaceObject2
 
   /** Carbon EveMobile::UnRegisterComponents (cpp:126-138): base, then forwards
    * the turret sets without re-checking display. */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -256,7 +256,7 @@ export class EveMobile extends EveSpaceObject2
    * Returns how many turret sets were past the targeting state at the last
    * synchronous update.
    */
-  @blue.method
+
   @meta.implemented
   GetActiveTurretCount()
   {
@@ -269,7 +269,7 @@ export class EveMobile extends EveSpaceObject2
    * Adapted: base typed locator lookup copies into a reusable output matrix
    * and the existing JS update returns completion.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(context)
   {
@@ -299,7 +299,7 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Runs the base asynchronous update and then the turret sets. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(context)
   {
@@ -312,7 +312,7 @@ export class EveMobile extends EveSpaceObject2
    * turret set (EveMobile.cpp:213-231). JS retains the native stack record for
    * reuse; GetTurretTransform(0) supplies the same placement to all sets.
    */
-  @blue.method
+
   @meta.adapted
   UpdateTurretsAsyncronous(context)
   {
@@ -332,7 +332,7 @@ export class EveMobile extends EveSpaceObject2
    * Runs the base visibility pass and, while display is on, forwards visibility
    * to the turret sets.
    */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(context, _parentTransform = EveMobile._identity)
   {
@@ -348,7 +348,7 @@ export class EveMobile extends EveSpaceObject2
    * accepts one output array; native impostor output remains unported.
    */
   @meta.adapted
-  @blue.method
+
   GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this.display) return out;
@@ -362,7 +362,7 @@ export class EveMobile extends EveSpaceObject2
    * box. Adapted: with out parameters it fills them and returns true; without it
    * returns a { min, max } object.
    */
-  @blue.method
+
   @meta.adapted
   GetLocalBoundingBox(outMin, outMax)
   {
@@ -383,7 +383,7 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Sets a controller variable on the hull and forwards it to every turret set. */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -392,7 +392,7 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Raises a controller event on the hull and forwards it to every turret set. */
-  @blue.method
+
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -401,7 +401,7 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Starts the hull's controllers and every turret set's controllers. */
-  @blue.method
+
   @meta.implemented
   StartControllers()
   {
@@ -413,7 +413,7 @@ export class EveMobile extends EveSpaceObject2
    * Children, turret sets and boosters are shown only while activation strength
    * is above 0.5.
    */
-  @blue.method
+
   @meta.implemented
   DisplayChildren()
   {
@@ -421,7 +421,7 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Forwards shader options to the hull and every turret (EveMobile.cpp:238-245). */
-  @blue.method
+
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -430,7 +430,7 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Registers hull content and every turret's quad content (EveMobile.cpp:681-688). */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -439,7 +439,7 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /** Collects hull and turret quad content (EveMobile.cpp:690-697). */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -451,7 +451,7 @@ export class EveMobile extends EveSpaceObject2
    * Returns the parent transform turret sets are placed against - the live hull
    * world transform, regardless of swarm index.
    */
-  @blue.method
+
   @meta.implemented
   GetTurretTransform(_turretSetIndex = 0)
   {
@@ -463,7 +463,7 @@ export class EveMobile extends EveSpaceObject2
    * locators, resetting each prefix's running count and, when asked, recomputing
    * its total from the digit that follows the prefix.
    */
-  @blue.method
+
   _ResetTurretLocatorCounter(updateTotal)
   {
     for (const locator of this.locators)
@@ -491,7 +491,7 @@ export class EveMobile extends EveSpaceObject2
    * Returns the next locator number to allocate for a name prefix together with
    * that prefix's total, or null when the prefix is unknown.
    */
-  @blue.method
+
   _GetTurretLocatorCountingInfo(name)
   {
     const info = this._turretLocatorCountingInfo.get(name);

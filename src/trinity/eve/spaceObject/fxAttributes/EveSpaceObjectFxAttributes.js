@@ -141,7 +141,7 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
    * Adapted: Carbon BlueCastPtr checks become JavaScript instanceof checks; native out
    * parameters are typed-array copy-outs.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {

@@ -30,7 +30,7 @@ export class TriStepToggleCubemap extends TriRenderStep
   }
 
   /** Enables or disables the interior scene's background cubemap. */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, _renderContext)
   {

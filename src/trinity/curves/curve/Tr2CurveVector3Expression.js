@@ -154,7 +154,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * Adapted: uses the existing JavaScript expression program.
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -173,7 +173,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Updates the cached vector value.
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -183,7 +183,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Updates and returns the vector value.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -224,7 +224,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Derivatives are not represented by Carbon expression curves.
    */
-  @blue.method
+
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -234,7 +234,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Derivatives are not represented by Carbon expression curves.
    */
-  @blue.method
+
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -269,7 +269,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Expression curves do not have segment interpolation state.
    */
-  @blue.method
+
   @meta.noop
   InterpolatedPosition(_time, out)
   {
@@ -281,7 +281,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {number} index Native component index.
    * @returns {string} Stored source text.
    */
-  @blue.method
+
   @meta.implemented
   GetExpression(index)
   {
@@ -296,7 +296,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetExpression(index, expression)
   {
@@ -313,7 +313,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Gets the authored x-component expression source. */
-  @blue.method
+
   @meta.implemented
   GetExpressionX()
   {
@@ -321,7 +321,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Gets the authored y-component expression source. */
-  @blue.method
+
   @meta.implemented
   GetExpressionY()
   {
@@ -329,7 +329,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Gets the authored z-component expression source. */
-  @blue.method
+
   @meta.implemented
   GetExpressionZ()
   {
@@ -342,7 +342,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetExpressionX(expression)
   {
@@ -355,7 +355,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetExpressionY(expression)
   {
@@ -368,7 +368,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetExpressionZ(expression)
   {
@@ -381,7 +381,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {number} index Input index.
    * @returns {number}
    */
-  @blue.method
+
   @meta.implemented
   GetInputValue(index)
   {
@@ -410,7 +410,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * ResetRandomConstant is called so `randomConstant` expressions are stable
    * over time.
    */
-  @blue.method
+
   @meta.implemented
   GetRandomConstant()
   {

@@ -216,7 +216,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @returns {number} The vertex capacity the next dirty gather allocates.
    */
   @meta.adapted
-  @blue.method
+
   GetVertexCount()
   {
     let numVerts = 0;
@@ -262,7 +262,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   GatherSprites(renderer)
   {
     const effects = Tr2SpriteObjectEffect;
@@ -431,7 +431,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @returns {null} Always null.
    */
   @meta.implemented
-  @blue.method
+
   PickPoint(_x, _y, _renderer)
   {
     return null;
@@ -444,7 +444,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _ClearVertices()
   {
     this._renderVertices = null;

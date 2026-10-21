@@ -25,7 +25,7 @@ export class Tr2PPFadeEffect extends Tr2PPEffect
   intensity = 0;
 
   /** Carbon Tr2PPFadeEffect::IsActive override. */
-  @blue.method
+
   IsActive()
   {
     return this.display && this.intensity > 0;

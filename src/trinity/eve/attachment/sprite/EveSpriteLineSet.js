@@ -121,7 +121,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    *
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   ReallocateResources()
   {
@@ -163,7 +163,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon RegisterWithQuadRenderer (cpp:186-190): additive, one quad per sprite. */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -175,7 +175,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * through their bone when skinned and the bone exists; activation stamped
    * unscaled (unlike EveSpriteSet, no intensity).
    */
-  @blue.method
+
   @meta.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain, bones, boneCount)
   {
@@ -220,7 +220,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Runs the first Rebuild so the set has bounds before its first visibility
    * test.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -230,7 +230,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpriteLineSet::GetAabb (cpp:177-180): the item-set bounds, with the bone
    * list forwarded only when the set is skinned. */
-  @blue.method
+
   @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
@@ -246,7 +246,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /** Carbon EveSpriteLineSet::UpdateVisibility (cpp:140-150): an uninitialized set is
    * NOT visible; otherwise the bounds move into world space and take the
    * frustum box test. No LOD and no display gate. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
@@ -261,7 +261,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the drawing effect and the skinned flag in one call. */
-  @blue.method
+
   @meta.implemented
   Setup(effect, isSkinned)
   {
@@ -273,7 +273,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Appends an authored sprite line item; the bounds only pick it up on the next
    * Rebuild.
    */
-  @blue.method
+
   @meta.implemented
   Add(item)
   {
@@ -283,7 +283,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /**
    * Sets a shader option on the sprite line effect, doing nothing when no effect is attached.
    */
-  @blue.method
+
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -297,7 +297,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Carbon EveSpriteLineSet::GetDebugOptions (cpp:249-253).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -321,7 +321,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
    * @param {number} boneCount
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
@@ -425,7 +425,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveSpriteLight and appends
    * it to the set.
    */
-  @blue.method
+
   @meta.adapted
   AddLightFromSOF(light)
   {
@@ -434,7 +434,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpriteLineSet::RegisterComponents (cpp:349-356): LightOwner
    * when lights are authored. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -455,7 +455,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * gets only the parent transform. Binding 0 is a mesh bone binding and can
    * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
    * Normal2Warp - so ours applies bone 0 like any other. */
-  @blue.method
+
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
@@ -487,7 +487,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    *
    * Adapted: Profile-index packing is by-reference per lightConversion.js.
    */
-  @blue.method
+
   @meta.adapted
   GetLights(lightManager)
   {

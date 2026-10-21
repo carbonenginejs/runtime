@@ -46,7 +46,7 @@ export class AudUIPlayer extends AudEmitter
   }
 
   /** The UI player has no world placement. Source: AudUIPlayer.cpp:20-23 (commit 2756050). */
-  @blue.method
+
   @meta.implemented
   HasUsableWorldPosition()
   {
@@ -132,7 +132,7 @@ export class AudUIPlayer extends AudEmitter
    * @param {number} playingID Completed event identifier.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   EventFinishedCallback(playingID)
   {

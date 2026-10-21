@@ -340,7 +340,7 @@ export class EveSpaceSceneRenderDriver
    * @param {EveSpaceSceneRenderDriverSettings} settings The settings to render with.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetSettings(settings)
   {
@@ -368,7 +368,7 @@ export class EveSpaceSceneRenderDriver
    * @param {boolean} enable Whether temporary GPU resources stop being shared.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetDebugMode(enable)
   {
@@ -383,7 +383,7 @@ export class EveSpaceSceneRenderDriver
    *
    * @returns {boolean} The pool's debug mode.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugMode()
   {
@@ -395,7 +395,7 @@ export class EveSpaceSceneRenderDriver
    *
    * @returns {EveSpaceScene|null} The scene this driver renders.
    */
-  @blue.method
+
   @meta.implemented
   GetScene()
   {
@@ -409,7 +409,7 @@ export class EveSpaceSceneRenderDriver
    * @param {EveSpaceScene|null} scene The scene to render.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetScene(scene)
   {
@@ -433,7 +433,7 @@ export class EveSpaceSceneRenderDriver
    * @param {number} s TriStorageFlags.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(s)
   {
@@ -450,7 +450,7 @@ export class EveSpaceSceneRenderDriver
    *
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -498,7 +498,7 @@ export class EveSpaceSceneRenderDriver
    * @param {TextureSize2D} displaySize The destination size.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   _SetupUpscaling(displaySize)
   {
@@ -545,7 +545,7 @@ export class EveSpaceSceneRenderDriver
    * @param {TextureSize2D} displaySize The destination size.
    * @returns {TextureSize2D} The size the scene renders at.
    */
-  @blue.method
+
   @meta.adapted
   _GetRenderSize(displaySize)
   {
@@ -721,7 +721,7 @@ export class EveSpaceSceneRenderDriver
    * @param {number} simTime Simulation time in Blue ticks.
    * @returns {boolean} Whether the render-job step may execute this frame.
    */
-  @blue.method
+
   @meta.adapted
   Validate(destinationDimensions = [], _outputs = [], realTime = 0, simTime = 0)
   {
@@ -772,7 +772,7 @@ export class EveSpaceSceneRenderDriver
    * sections are not timed; see EveSpaceSceneRenderDriverTimers.
    * @returns {boolean} Whether anything was submitted.
    */
-  @blue.method
+
   @meta.adapted
   Execute(destinations = null, _outputs = null, realTime = 0, simTime = 0, rootTimer = null, renderContext = null)
   {
@@ -1069,7 +1069,8 @@ export class EveSpaceSceneRenderDriver
    * @param {object|null} offscreen The scene's borrowed targets, if any.
    * @returns {boolean} Whether anything was submitted.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   _RenderMainPass(renderContext, offscreen)
   {
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
@@ -1377,7 +1378,7 @@ export class EveSpaceSceneRenderDriver
    *
    * @returns {void}
    */
-  @blue.method
+
   _PropagateSettings()
   {
     const postprocess = this.scene.postprocess;
@@ -1449,7 +1450,7 @@ export class EveSpaceSceneRenderDriver
    * @param {object} renderContext The frame's context.
    * @returns {GpuResourceHandle} The SSAO texture.
    */
-  @blue.method
+
   _RenderSSAO(depthMap, normalMap, renderContext)
   {
     let ssao = new GpuResourceHandle();
@@ -1480,7 +1481,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
-  @blue.method
+
   _GetNormalMapIfNeeded(size)
   {
     const wanted = (this.aoQuality !== AmbientOcclusionQuality.Disabled || this.shadowQuality === ShadowQuality.SHADOW_RAYTRACED)
@@ -1502,7 +1503,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
-  @blue.method
+
   @meta.adapted
   _GetVelocityMapIfNeeded(size)
   {
@@ -1527,7 +1528,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
-  @blue.method
+
   @meta.adapted
   _GetCustomStencilMapIfNeeded(size)
   {
@@ -1549,7 +1550,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The copy, or null.
    */
-  @blue.method
+
   @meta.adapted
   _GetOpaqueColorMapIfNeeded(size)
   {
@@ -1567,7 +1568,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
-  @blue.method
+
   _GetDistortionMapIfNeeded(size)
   {
     if (!this.enableDistortion) return null;
@@ -1797,7 +1798,7 @@ export class EveSpaceSceneRenderDriver
    * @param {object} renderContext The Tr2RenderContext.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   UpdateGpuParticleSystem(renderContext)
   {
@@ -1820,7 +1821,7 @@ export class EveSpaceSceneRenderDriver
    * @param {object} renderContext Recording render context.
    * @returns {void}
    */
-  @blue.method
+
   _SetCameraToRenderer(renderContext)
   {
     // Carbon (cpp:384-391): the camera's TriProjection and TriView when there

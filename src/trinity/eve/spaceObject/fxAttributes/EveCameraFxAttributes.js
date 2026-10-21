@@ -62,7 +62,7 @@ export class EveCameraFxAttributes extends IEveFxAttribute
    * return their result rather than filling a reference, and a missing
    * localToWorldTransform reads as the identity.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {

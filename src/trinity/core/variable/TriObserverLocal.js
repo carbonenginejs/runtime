@@ -85,7 +85,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array} worldTransform World matrix.
    * @returns {boolean} Whether an observer was updated.
    */
-  @blue.method
+
   @meta.adapted
   Update(worldTransform)
   {
@@ -124,7 +124,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * observer when it is debug-renderable.
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -140,7 +140,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * observer when it is debug-renderable.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -152,7 +152,7 @@ export class TriObserverLocal extends ITriObserverLocal
   }
 
   /** Gets the bound placement observer. @returns {object|null} Observer. */
-  @blue.method
+
   @meta.implemented
   GetObserver()
   {
@@ -165,7 +165,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {object|null} observer Placement observer.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetObserver(observer)
   {
@@ -178,7 +178,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array|number[]} position Local position.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetPosition(position)
   {
@@ -191,7 +191,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array|number[]} front Local facing vector.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetFront(front)
   {
@@ -199,7 +199,7 @@ export class TriObserverLocal extends ITriObserverLocal
   }
 
   /** Gets mute state. @returns {boolean} Whether the observer is muted. */
-  @blue.method
+
   @meta.implemented
   GetMute()
   {
@@ -214,7 +214,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {boolean} mute Desired state.
    * @returns {boolean} Whether the stored state changed.
    */
-  @blue.method
+
   @meta.adapted
   SetMute(mute)
   {
@@ -236,8 +236,8 @@ export class TriObserverLocal extends ITriObserverLocal
   }
 
   /** Native no-op callback. @returns {boolean} True. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   OnModified()
   {
     return true;

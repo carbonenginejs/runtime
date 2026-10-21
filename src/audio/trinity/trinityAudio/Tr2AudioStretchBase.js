@@ -48,7 +48,7 @@ export class Tr2AudioStretchBase
   }
 
   /** Carbon method Initialize: create the three standard emitters when absent. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -78,7 +78,7 @@ export class Tr2AudioStretchBase
    * is registered. Present listeners must supply GetPosition. Carbon Update is
    * Tr2AudioStretchBase.cpp:38-62.
    */
-  @blue.method
+
   @meta.adapted
   Update(sourcePosition, destPosition)
   {
@@ -100,7 +100,7 @@ export class Tr2AudioStretchBase
    * @param {string} name Emitter name.
    * @returns {ITr2AudEmitter|null} Matching emitter, or null.
    */
-  @blue.method
+
   @meta.implemented
   FindEmitterByName(name)
   {
@@ -115,7 +115,7 @@ export class Tr2AudioStretchBase
   }
 
   /** Forwards supported debug options to the three nominal emitter interfaces. */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -127,7 +127,7 @@ export class Tr2AudioStretchBase
   }
 
   /** Forwards debug drawing to the three nominal emitter interfaces. */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {

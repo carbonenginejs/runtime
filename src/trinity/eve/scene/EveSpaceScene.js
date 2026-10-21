@@ -767,7 +767,7 @@ export class EveSpaceScene
    *
    * @returns {object|null} The Tr2GpuParticleSystem, or null.
    */
-  @blue.method
+
   @meta.implemented
   GetGpuParticleSystem()
   {
@@ -781,7 +781,7 @@ export class EveSpaceScene
    *
    * @param {object|null} ps The Tr2GpuParticleSystem, or null.
    */
-  @blue.method
+
   @meta.adapted
   SetGpuParticleSystem(ps)
   {
@@ -895,7 +895,7 @@ export class EveSpaceScene
    * @param {Number} realTime
    * @param {Number} simTime
    */
-  @blue.method
+
   @meta.adapted
   Update(realTime, simTime)
   {
@@ -1095,7 +1095,7 @@ export class EveSpaceScene
    * variables, and on a full release drops the per-frame constant buffers.
    * @param {number} s TriStorageFlags.
    */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(s)
   {
@@ -1122,7 +1122,7 @@ export class EveSpaceScene
    * target and its depth buffer.
    * @returns {boolean} False when either cannot be created.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -1148,7 +1148,7 @@ export class EveSpaceScene
    * Clears environment publications (EveSpaceScene.cpp:3018-3026). The native
    * shared-index and baked-morph handles are not owned by this scene port.
    */
-  @blue.method
+
   @meta.adapted
   ClearVariableStore()
   {
@@ -1205,7 +1205,7 @@ export class EveSpaceScene
    * Our wrapper selecting one Carbon picking revision. Each request retains
    * its framework so changing the setting cannot reinterpret queued results.
    */
-  @blue.method
+
   PerformPicking(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -1499,7 +1499,7 @@ export class EveSpaceScene
    * the viewport and centred on the pick point, then the pick's per-frame
    * records.
    */
-  @blue.method
+
   @meta.adapted
   SetupTransformsForPicking(fx, fy, projection, view, viewport, renderContext)
   {
@@ -1524,7 +1524,7 @@ export class EveSpaceScene
   }
 
   /** Native one-pixel frustum visibility gather, with the previous frustum restored. */
-  @blue.method
+
   @meta.adapted
   GetPickingObjectsToRender(renderContext)
   {
@@ -1701,7 +1701,7 @@ export class EveSpaceScene
    * Adapted: the debug payload is a plain object, null while the
    * enablePostProcessDebugging setting is off.
    */
-  @blue.method
+
   @meta.adapted
   UpdatePostProcessAttributes()
   {
@@ -1779,7 +1779,7 @@ export class EveSpaceScene
 
   /** Carbon method GetPostProcess (EveSpaceScene.cpp:420-427): the combined
    * post-process, or null while the scene is not displayed. */
-  @blue.method
+
   @meta.implemented
   GetPostProcess()
   {
@@ -1971,7 +1971,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   RunLensflareOcclusionQueries(_depthMap, renderContext)
   {
@@ -1980,14 +1980,14 @@ export class EveSpaceScene
   }
 
   /** Native scene Render entry point is intentionally empty (EveSpaceScene.cpp:2950). */
-  @blue.method
+
   @meta.implemented
   Render(_renderContext)
   {
   }
 
   /** Scene debugging requires the pending debug renderer and global flush port. */
-  @blue.method
+
   @meta.notImplemented
   RenderDebugInfo(_renderContext)
   {
@@ -1998,7 +1998,7 @@ export class EveSpaceScene
   /**
    * Updates only the notified scene property (EveSpaceScene.cpp:3279-3366).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(property, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -2178,7 +2178,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} [renderContext] The frame's context.
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.adapted
   Initialize(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -2248,7 +2248,7 @@ export class EveSpaceScene
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   UpdateVariableStore()
   {
@@ -2333,7 +2333,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Jitter(renderContext)
   {
@@ -2376,7 +2376,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   EndRender(renderContext)
   {
@@ -2547,7 +2547,7 @@ export class EveSpaceScene
    * @param {Tr2Renderer} renderer The renderer that draws screen quads.
    * @returns {boolean} Whether any background distortion batches were drawn.
    */
-  @blue.method
+
   @meta.adapted
   RenderBackgroundPass(depthMap, distortionMap, velocityMap, renderContext, renderer)
   {
@@ -2642,7 +2642,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   UpdateImpostors(renderContext)
   {
@@ -2747,7 +2747,7 @@ export class EveSpaceScene
   };
 
   /** Carbon HasReflectionProbe (cpp:4106-4109). */
-  @blue.method
+
   @meta.implemented
   HasReflectionProbe()
   {
@@ -2801,7 +2801,7 @@ export class EveSpaceScene
    * @param {Tr2Renderer} renderer The renderer that draws screen quads.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderReflectionPass(gpuResourcePool, renderContext, renderer)
   {
@@ -3007,7 +3007,7 @@ export class EveSpaceScene
    * @param {number} reason An EveSpaceScene.BackgroundRenderingReason value.
    * @returns {boolean} Whether any background distortion batches were drawn.
    */
-  @blue.method
+
   @meta.adapted
   RenderBackgroundPassObjects(depthMap, distortionMap, renderContext, renderer, reason)
   {
@@ -3077,7 +3077,7 @@ export class EveSpaceScene
    * Scales view translation only (EveSpaceScene.cpp:3908-3915).
    * Adapted: the output is caller-owned instead of returned by value.
    */
-  @blue.method
+
   @meta.adapted
   CreatePlanetViewMatrix(original, out)
   {
@@ -3092,7 +3092,7 @@ export class EveSpaceScene
    * Updates planet children with the scaled camera required by child modifiers
    * (cpp:3828-3841).
    */
-  @blue.method
+
   @meta.implemented
   UpdatePlanets(updateContext)
   {
@@ -3116,7 +3116,7 @@ export class EveSpaceScene
    * Collects native opaque/decal/additive/depth batches plus the transparency list
    * (cpp:856-876,956-981). Adapted: no parallel tasks; the context carries the pool.
    */
-  @blue.method
+
   @meta.adapted
   GetAllBatchesFromRenderables(renderables, transparent, includeDistortions, batches, context, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -3134,7 +3134,7 @@ export class EveSpaceScene
   }
 
   /** Stable front-to-back sort, visited backwards, as cpp:838-852. */
-  @blue.method
+
   @meta.implemented
   PrepareTransparentBatch(transparent, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -3148,7 +3148,7 @@ export class EveSpaceScene
   }
 
   /** Finalizes every accumulator in the native BatchMap (cpp:2974-2982). */
-  @blue.method
+
   @meta.implemented
   FinalizeBatches(batches)
   {
@@ -3156,7 +3156,7 @@ export class EveSpaceScene
   }
 
   /** Clears every accumulator in the native BatchMap (cpp:2960-2966). */
-  @blue.method
+
   @meta.implemented
   ClearBatches(batches)
   {
@@ -3167,7 +3167,7 @@ export class EveSpaceScene
    * Carbon RenderOpaqueBatches (cpp:1130-1156): opaque then decal batches,
    * through the current visualizer as RenderBatch does.
    */
-  @blue.method
+
   @meta.implemented
   RenderOpaqueBatches(batches, context)
   {
@@ -3197,7 +3197,7 @@ export class EveSpaceScene
    * Carbon RenderTransparentBatches (cpp:1163-1185): transparent then
    * additive batches, through the current visualizer as RenderBatch does.
    */
-  @blue.method
+
   @meta.implemented
   RenderTransparentBatches(batches, context)
   {
@@ -3229,7 +3229,7 @@ export class EveSpaceScene
    * native scope guards. The background caller queries occlusion before clearing
    * this pass's depth. Per-frame constants are refilled for both camera spaces.
    */
-  @blue.method
+
   @meta.adapted
   RenderPlanets(context)
   {
@@ -3336,7 +3336,7 @@ export class EveSpaceScene
    * @param {object} batchMap The frame's batch map.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName, batchMap)
   {
@@ -3533,7 +3533,7 @@ export class EveSpaceScene
    * @param {object} renderContext The frame's context.
    * @returns {boolean} Whether any distortion batch was drawn.
    */
-  @blue.method
+
   @meta.implemented
   RenderDistortionBatches(batches, distortionMap, depthMap, renderContext)
   {
@@ -3598,7 +3598,7 @@ export class EveSpaceScene
    *   `pointLightShadowMap`, `pointLightShadowDepth`, each a GpuResourceHandle,
    *   empty when absent.
    */
-  @blue.method
+
   @meta.adapted
   RenderShadows(depthMap, normalMap, gpuResourcePool, renderContext, renderer)
   {
@@ -3656,7 +3656,7 @@ export class EveSpaceScene
    * @param {object} renderer The renderer owning the blitter.
    * @returns {object} ShadowResources, as RenderShadows.
    */
-  @blue.method
+
   @meta.adapted
   SetupCascadedShadows(renderReason, shadowMap, viewFrustum, depthMap, gpuResourcePool, renderContext, renderer)
   {
@@ -3834,7 +3834,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderVolumetricShadowMap(renderContext)
   {
@@ -3875,7 +3875,7 @@ export class EveSpaceScene
    * @param {Array<IEveShadowCaster>} shadowCasters The registry's shadow casters.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderIntoCloudShadowMap(renderContext, cloudShadowInformation, shadowCasters)
   {
@@ -3994,7 +3994,7 @@ export class EveSpaceScene
    * @param {object} shadowMap The light shadow atlas.
    * @returns {boolean} True, as Carbon's.
    */
-  @blue.method
+
   @meta.implemented
   PrepareShadowMapForLights(renderContext, shadowMap)
   {
@@ -4144,7 +4144,7 @@ export class EveSpaceScene
    * @param {object} shadowMap The light shadow atlas.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   RenderShadowMapForLight(renderContext, shadowCasters, lightData, shadowMap)
   {
@@ -4197,7 +4197,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   FinishRenderingShadowMapForLights(renderContext)
   {
@@ -4223,7 +4223,7 @@ export class EveSpaceScene
    * @param {{projection: mat4, view: mat4}} out Receives the matrices.
    * @returns {{projection: mat4, view: mat4}} out
    */
-  @blue.method
+
   @meta.adapted
   GetLightMatrices(lightData, out)
   {
@@ -4255,7 +4255,7 @@ export class EveSpaceScene
    * Adapted: context transforms replace the renderer's pending view statics;
    * returned pool handles require explicit release by the caller.
    */
-  @blue.method
+
   @meta.adapted
   RenderVolumetrics(depthMap, gpuResourcePool, renderContext)
   {
@@ -4295,7 +4295,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The context to bind on.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   PopulateAndApplyPerFrameData(renderContext)
   {
@@ -4319,7 +4319,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The context to bind on.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   ApplyPerFrameData(renderContext)
   {
@@ -4373,7 +4373,7 @@ export class EveSpaceScene
    * @param {Object} renderContext - the frame's Tr2RenderContext
    * @returns {Object} data
    */
-  @blue.method
+
   @meta.adapted
   PopulatePerFrameVSData(data, renderContext)
   {
@@ -4465,7 +4465,7 @@ export class EveSpaceScene
    * @param {Object} renderContext - the frame's Tr2RenderContext
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   BeginRender(_enableDistortion, renderContext)
   {
@@ -4503,7 +4503,7 @@ export class EveSpaceScene
    * @param {Object} renderContext - the frame's Tr2RenderContext
    * @returns {Object} data
    */
-  @blue.method
+
   @meta.implemented
   PopulatePerFramePSData(data, renderContext)
   {
@@ -4817,7 +4817,7 @@ export class EveSpaceScene
    * (entities go too) or entities move to another scene and re-register there.
    * The JS registry Clear() additionally detaches entity.registry when it
    * points at this registry - strictly more hygienic than Carbon; kept. */
-  @blue.method
+
   @meta.implemented
   ClearComponentRegistry()
   {

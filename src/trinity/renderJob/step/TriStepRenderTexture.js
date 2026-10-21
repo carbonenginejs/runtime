@@ -72,7 +72,7 @@ export class TriStepRenderTexture extends TriRenderStep
    * @param {object} renderContext The context to clear through.
    * @returns {number} Always `RS_OK`; a failed blit is not a failed step.
    */
-  @blue.method
+
   ClearIfFail(result, renderContext)
   {
     if (!result) renderContext.Clear({ clearColor: true, color: this.failClearColor });
@@ -96,7 +96,7 @@ export class TriStepRenderTexture extends TriRenderStep
    * dereference on the only path that reaches it - so there is nothing here
    * worth transcribing until the atlas type exists.
    */
-  @blue.method
+
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

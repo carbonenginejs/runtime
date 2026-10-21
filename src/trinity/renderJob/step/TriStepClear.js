@@ -68,7 +68,7 @@ export class TriStepClear extends TriRenderStep
    * one enable flag per channel; which attachments those apply to is the
    * render context's decision.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

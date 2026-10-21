@@ -40,7 +40,7 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
    * passes lifetimeDuration, and DO_NOTHING otherwise or when no positive
    * duration is authored.
    */
-  @blue.method
+
   @meta.implemented
   ProcessDistributionModifier(placement, _deltaTime, _params)
   {

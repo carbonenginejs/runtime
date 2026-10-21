@@ -48,7 +48,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Adapted: JS exposes the native protected LOD member as lod; the owner model accessors
    * alias its proxy storage.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -59,7 +59,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   /**
    * Carbon INotify hook delegates to Tr2SkinnedObject and accepts all changes.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -69,7 +69,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   }
 
   /** Carbon override delegates LOD selection to Tr2SkinnedObject. */
-  @blue.method
+
   @meta.implemented
   SetLOD(frustum)
   {

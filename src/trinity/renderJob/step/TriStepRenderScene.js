@@ -29,7 +29,7 @@ export class TriStepRenderScene extends TriRenderStep
    * Renders a present scene directly and reports the step complete.
    * Carbon TriStepRenderScene.cpp:19-26 retains the nullable scene branch.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

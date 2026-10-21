@@ -55,7 +55,7 @@ export class TriStepRenderEffect extends TriRenderStep
    * draw, because the draw runs every pass of the effect and each pass reads
    * whatever the buffer bound.
    */
-  @blue.method
+
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

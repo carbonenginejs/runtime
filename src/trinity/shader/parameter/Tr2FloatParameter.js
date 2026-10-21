@@ -39,7 +39,7 @@ export class Tr2FloatParameter extends CjsParameter
   #valueRef = {  value: this.value };
 
   /** The shader constant name this value binds to; empty until authored. */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -47,7 +47,7 @@ export class Tr2FloatParameter extends CjsParameter
   }
 
   /** Content hash: value bytes then name (Carbon hashes the interned name pointer). */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -58,7 +58,7 @@ export class Tr2FloatParameter extends CjsParameter
    * Reads back through the reroute destination when one is set, so the result
    * reflects writes made by whoever owns that destination.
    */
-  @blue.method
+
   @meta.implemented
   GetValue()
   {
@@ -74,7 +74,7 @@ export class Tr2FloatParameter extends CjsParameter
    * Coerces to a number, refreshes the boxed reference GetDestination hands out,
    * and writes through to the reroute destination when one is set.
    */
-  @blue.method
+
   @meta.implemented
   SetValue(value)
   {
@@ -87,7 +87,7 @@ export class Tr2FloatParameter extends CjsParameter
   }
 
   /** Whether reads and writes currently go through an external destination. */
-  @blue.method
+
   @meta.implemented
   IsRerouted()
   {
@@ -98,7 +98,7 @@ export class Tr2FloatParameter extends CjsParameter
    * Points the parameter at an external scalar destination and seeds it with the current value; a target under 4 bytes or of an unusable shape clears the reroute instead. Bindings are notified of the effective destination either way.
    * @param size destination capacity in bytes
    */
-  @blue.method
+
   @meta.adapted
   SetDestination(dest, size = 4)
   {
@@ -119,7 +119,7 @@ export class Tr2FloatParameter extends CjsParameter
    * own boxed `{ value }` holder - with its 4-byte size. The boxed holder is a
    * stable object that survives SetValue calls.
    */
-  @blue.method
+
   @meta.adapted
   GetDestination()
   {
@@ -133,7 +133,7 @@ export class Tr2FloatParameter extends CjsParameter
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
    */
-  @blue.method
+
   @meta.adapted
   RegisterBinding(binding)
   {
@@ -141,7 +141,7 @@ export class Tr2FloatParameter extends CjsParameter
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
-  @blue.method
+
   @meta.adapted
   UnregisterBinding(binding)
   {
@@ -153,7 +153,7 @@ export class Tr2FloatParameter extends CjsParameter
    * stale reroute when the shader is gone; reflection metadata only, no GPU
    * handle.
    */
-  @blue.method
+
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -168,7 +168,7 @@ export class Tr2FloatParameter extends CjsParameter
    * Syncs the boxed reference and any reroute destination with the current
    * value; always returns true.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {

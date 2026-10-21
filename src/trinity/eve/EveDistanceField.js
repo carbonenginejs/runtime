@@ -143,7 +143,7 @@ export class EveDistanceField
    * moves, and drives the curve set. The distance is the curve set's time axis,
    * not a delta.
    */
-  @blue.method
+
   @meta.adapted
   Update(updateContext)
   {
@@ -218,7 +218,7 @@ export class EveDistanceField
    * Defers a distance-curve rebuild to the next update when the minimum or
    * maximum distance changed.
    */
-  @blue.method
+
   @meta.implemented
   @meta.invalidates("#updateDistanceCurve")
   OnModified(propertyName)
@@ -235,7 +235,7 @@ export class EveDistanceField
    * midpoint and extent once the last one is removed; events for other lists are
    * ignored.
    */
-  @blue.method
+
   @meta.adapted
   @meta.invalidates("#dirty")
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = this.objects)
@@ -262,7 +262,7 @@ export class EveDistanceField
    * Carbon EveDistanceField::GetDebugOptions (EveDistanceField.cpp:297-300).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -281,7 +281,7 @@ export class EveDistanceField
    * decides whether it can draw it.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -342,7 +342,7 @@ export class EveDistanceField
    * Builds the curve set the field drives: a single named scalar curve falling
    * linearly from 1 to 0 across the distance range.
    */
-  @blue.method
+
   _CreateCurveSet()
   {
     this.curveSet = new TriCurveSet();
@@ -358,7 +358,7 @@ export class EveDistanceField
    * Moves the distance curve's two keys onto the current minimum and maximum
    * distance and clears the pending-rebuild flag.
    */
-  @blue.method
+
   _UpdateDistanceCurveSize()
   {
     // Carbon retains the resize request until the curve exists.
@@ -375,7 +375,7 @@ export class EveDistanceField
   }
 
   /** Zeroes the midpoint and extent once nothing is being tracked. */
-  @blue.method
+
   _SetNeutralValues()
   {
     vec3.zero(this.midpoint);
@@ -389,7 +389,7 @@ export class EveDistanceField
    * distanceThreshold of the mean spread, enforcing the maximum X/Z ratio and
    * the minimum Y ratio.
    */
-  @blue.method
+
   _CalculateFieldCoverageAndDistance(time, cameraPosition, originShift)
   {
     if (this.objects.length === 0)

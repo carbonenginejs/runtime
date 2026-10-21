@@ -125,7 +125,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   /**
    * Propagates the thread-safe flag to the on-collision emitters.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -139,7 +139,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   /**
    * Resolves the position, velocity and radius elements and binds the attached generators, marking the constraint valid only when all of them resolve.
    */
-  @blue.method
+
   @meta.adapted
   Bind(particleSystem)
   {
@@ -176,7 +176,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    *
    * Adapted: Runs single-threaded against CPU element views, using the shared particle RNG.
    */
-  @blue.method
+
   @meta.adapted
   ApplyConstraint(arguments_, _buffers, _strides, count, dt)
   {
@@ -270,7 +270,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, worldTransform, _aabb)
   {

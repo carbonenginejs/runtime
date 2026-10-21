@@ -75,7 +75,7 @@ export class Tr2VariableStore
    * which is the root.
    * @returns {Tr2VariableStore|null} Current parent.
    */
-  @blue.method
+
   @meta.implemented
   GetParentVariableStore()
   {
@@ -90,7 +90,7 @@ export class Tr2VariableStore
    * @param {Tr2VariableStore|null} variableStore Next store searched.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetParentVariableStore(variableStore)
   {
@@ -121,7 +121,7 @@ export class Tr2VariableStore
    * @returns {TriVariable|null} Registered variable, or null on a type conflict.
    */
   @meta.adapted
-  @blue.method
+
   RegisterVariableInternal(name, contentType, value)
   {
     const variable = this.RegisterVariableType(name, contentType);
@@ -142,7 +142,7 @@ export class Tr2VariableStore
    * @returns {TriVariable|null} Registered variable, or null on a type conflict.
    */
   @meta.adapted
-  @meta.renamed("RegisterVariable")
+
   RegisterVariable__TextureAL(name, texture)
   {
     const variable = Tr2VariableStore.globalStore().GetVariable(name);
@@ -315,7 +315,7 @@ export class Tr2VariableStore
    * @returns {TriVariable|null} Reused or created variable, or type conflict.
    */
   @meta.adapted
-  @blue.method
+
   RegisterVariableType(name, contentType)
   {
     const existing = this.FindLocalVariable(name);

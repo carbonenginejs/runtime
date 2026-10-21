@@ -107,7 +107,7 @@ export class Tr2PrimitiveSet
    * Adapted: the effect is asked `IsGood()` first, which renews what it holds
    * and skips it while its resource is not good (Tr2Effect.IsGood).
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
@@ -122,7 +122,7 @@ export class Tr2PrimitiveSet
   GetBatchesImpl(_accumulator, _perObjectData, _effect, _reason) {}
 
   /** Native primitive sets participate in transparent sorting (cpp:47). */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -130,7 +130,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Distance from the view to the bounding sphere's surface (cpp:67-75). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -140,7 +140,7 @@ export class Tr2PrimitiveSet
   }
 
   /** An optional output replaces Carbon's value-returned world sphere (cpp:82). */
-  @blue.method
+
   @meta.adapted
   GetBoundingSphere(out = vec4.create()) // alloc: value-returned sphere belongs to the caller.
   {
@@ -150,7 +150,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Native transform reference (header:29). */
-  @blue.method
+
   @meta.implemented
   GetWorldTransform()
   {
@@ -161,7 +161,7 @@ export class Tr2PrimitiveSet
    * The JS object is Carbon's raw-root picking identity (header:39).
    * GetID/GetPickingBatches implement the native ITr2Pickable contract.
    */
-  @blue.method
+
   @meta.adapted
   GetID(_areaId)
   {
@@ -169,7 +169,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Both cpp-local native structs contain exactly one WorldMat (cpp:93-114). */
-  @blue.method
+
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -190,7 +190,7 @@ export class Tr2PrimitiveSet
    * Native view-facing and distance-scaled transform (cpp:109-167), from the
    * renderer's current view; matrix composition reverses Carbon order.
    */
-  @blue.method
+
   @meta.implemented
   UpdateTransform()
   {
@@ -221,7 +221,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Native bit-mask dispatch through the regular batch gates (cpp:182). */
-  @blue.method
+
   @meta.implemented
   GetPickingBatches(accumulator, pickTypes, perObjectData)
   {

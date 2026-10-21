@@ -143,7 +143,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    *
    * @returns {boolean} True after calculating the camera box.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -157,7 +157,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @param {string|null} [propertyName=null] Changed field name.
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -185,7 +185,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   CalculateBoxPosition()
   {
@@ -240,7 +240,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
-  @blue.method
+
   @meta.adapted
   GetValue(out)
   {
@@ -252,7 +252,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * Gets key time.
    * @returns {number} Authored key time.
    */
-  @blue.method
+
   @meta.implemented
   GetTime()
   {
@@ -263,7 +263,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * Gets key interpolation.
    * @returns {number} Native follow-key interpolation enum value.
    */
-  @blue.method
+
   @meta.implemented
   GetInterpolationType()
   {
@@ -278,7 +278,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
-  @blue.method
+
   @meta.adapted
   GetLeftTangent(out)
   {
@@ -293,7 +293,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
-  @blue.method
+
   @meta.adapted
   GetRightTangent(out)
   {

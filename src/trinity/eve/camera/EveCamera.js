@@ -391,7 +391,7 @@ export class EveCamera
   idleMove = false;
 
   /** Builds Carbon's aspect-clamped, off-centre projection matrix. */
-  @blue.method
+
   @meta.implemented
   static CalculateProjectionMatrix(
     out,
@@ -430,7 +430,7 @@ export class EveCamera
    * produced by CalculateProjectionMatrix, undoing the aspect clamp that method
    * applies above 1.6.
    */
-  @blue.method
+
   @meta.implemented
   static CalculateFovFromProjection(transform)
   {
@@ -444,7 +444,7 @@ export class EveCamera
    * preserving the field of view, aspect ratio and centre offsets recovered from
    * the original.
    */
-  @blue.method
+
   @meta.implemented
   static ModifyClipPlanes(original, nearClip, farClip, out = mat4.create())
   {
@@ -466,7 +466,7 @@ export class EveCamera
    * added to those the original already carries, used to shift the view frustum
    * without moving the camera.
    */
-  @blue.method
+
   @meta.implemented
   static AddCenterOffset(original, xOffset, yOffset, nearClip, farClip, out = mat4.create())
   {
@@ -487,7 +487,7 @@ export class EveCamera
    * Returns the camera's TriView wrapper, whose transform is rewritten by each
    * successful update; it is live storage, not a copy.
    */
-  @blue.method
+
   @meta.implemented
   GetViewMatrix()
   {
@@ -498,7 +498,7 @@ export class EveCamera
    * Returns the camera's TriProjection wrapper, whose transform is rebuilt from
    * the field of view and clip planes on each update.
    */
-  @blue.method
+
   @meta.implemented
   GetProjection()
   {
@@ -509,7 +509,7 @@ export class EveCamera
    * Returns the world position resolved by the last update; the vector is the
    * camera's own storage and is overwritten next update.
    */
-  @blue.method
+
   @meta.implemented
   GetPosition()
   {
@@ -644,7 +644,7 @@ export class EveCamera
    * Adapted: Receives Carbon's global device aspect ratio and real clock as optional
    * arguments so the camera remains GPU- and platform-free.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, aspectRatio = 1, realTime = time)
   {
@@ -939,7 +939,7 @@ export class EveCamera
    * and re-evaluates interest tracking (clearing the interest orbit speeds) when
    * the interest object changes.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -999,7 +999,7 @@ export class EveCamera
    * Clamps pitch into the authored min/max range, and yaw as well but only when
    * a yaw range is configured, that is when minYaw and maxYaw differ.
    */
-  @blue.method
+
   _CapPitchAndYaw()
   {
     this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));

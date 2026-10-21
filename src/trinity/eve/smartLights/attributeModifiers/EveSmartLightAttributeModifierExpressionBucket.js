@@ -95,7 +95,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: CcpParser is replaced by the shared CjsControllerExpressionProgram VM, matching
    * the Tr2CurveScalarExpression consumer pattern.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -113,7 +113,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @param {number} index Input index.
    * @returns {number}
    */
-  @blue.method
+
   @meta.implemented
   GetInputValue(index)
   {
@@ -127,7 +127,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @returns {number}
    */
   @meta.implemented
-  @blue.method
+
   GetInputValue__Time(index, time)
   {
     const i = index | 0;
@@ -140,7 +140,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Gets this bucket's random constant (cpp:123-126). */
-  @blue.method
+
   @meta.implemented
   GetRandomConstant()
   {
@@ -148,7 +148,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Gets the authored expression (cpp:128-131). */
-  @blue.method
+
   @meta.implemented
   GetExpression()
   {
@@ -166,7 +166,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: the shared CjsControllerExpressionProgram VM replaces CcpParser,
    * and its temp arena (cpp:162) has no counterpart.
    */
-  @blue.method
+
   @meta.adapted
   SetExpression(expression)
   {
@@ -188,7 +188,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Regenerates the random constant (Carbon jessica hook, h:34). */
-  @blue.method
+
   @meta.implemented
   ResetRandomConstant()
   {
@@ -202,7 +202,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: Returns the term list in the CjsControllerExpressionProgram term-info shape
    * instead of Tr2ExpressionTermInfo instances.
    */
-  @blue.method
+
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -231,7 +231,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: Returns the numeric value directly (0 when the expression does not compile)
    * instead of Carbon's BlueStdResult out-parameter pair.
    */
-  @blue.method
+
   @meta.adapted
   EvaluateExpression(expression)
   {
@@ -248,7 +248,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * expression-variable hookup as a todo
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:215-223).
    */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -265,7 +265,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * updates the children with the UNSCALED parent multiplier, then evaluates
    * the expression into the attribute multiplier for the next fold.
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {

@@ -31,21 +31,21 @@ export class IEveDistributionMethod
   GetHasDynamicMovement() {}
 
   /** Runs the optional synchronous distribution update hook. */
-  @blue.method
+
   @meta.noop
   UpdateSyncronous(_updateContext)
   {
   }
 
   /** Runs the optional asynchronous distribution update hook. */
-  @blue.method
+
   @meta.noop
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Accepts an optional controller variable. */
-  @blue.method
+
   @meta.noop
   SetControllerVariable(_name, _value)
   {

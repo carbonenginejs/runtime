@@ -65,7 +65,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
   brackets = [];
 
   /** Carbon submits its own buffers directly rather than joining sprite vertices. */
-  @blue.method
+
   @meta.implemented
   GetVertexCount()
   {
@@ -79,7 +79,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /** Native atlas batch. DataView replaces writes through C++ vertex pointers.
    * Resource release is explicit until Tr2DeviceResource registration is ported. */
-  @blue.method
+
   @meta.adapted
   GatherSprites(renderer)
   {
@@ -188,7 +188,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /** Native device-resource release; callers also use this for explicit teardown. */
   @meta.implemented
-  @blue.method
+
   ReleaseResources(_storage)
   {
     this._vertexBuffer.Destroy();
@@ -198,14 +198,14 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /** Native resource preparation requires no additional work. */
   @meta.implemented
-  @blue.method
+
   OnPrepareResources()
   {
     return true;
   }
 
   /** Carbon's bracket renderer is deliberately not point-pickable. */
-  @blue.method
+
   @meta.implemented
   PickPoint(_x, _y, _renderer)
   {

@@ -36,7 +36,7 @@ export class EveSocketParameterString extends IEveSocketParameter
   defaults = [];
 
   /** Returns the name an external parameter has to match before it can bind here. */
-  @blue.method
+
   GetName()
   {
     return this.name;
@@ -46,7 +46,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Sets the name external parameters must match to bind, coercing null to an
    * empty string.
    */
-  @blue.method
+
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -56,7 +56,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Creates the `valueExposure` external parameter pointing at this object's
    * `value` attribute on first call; later calls leave the existing one alone.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -75,7 +75,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Drops the bound external parameters; unlike the typed socket parameters, the
    * captured defaults are kept.
    */
-  @blue.method
+
   @meta.implemented
   ClearBindings()
   {
@@ -87,7 +87,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    *
    * @returns {boolean} True when the external parameter was valid, name-matched and stored.
    */
-  @blue.method
+
   @meta.adapted
   BindToExternalParameter(externalParameter)
   {
@@ -102,7 +102,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Captures the external parameter's current value as a string default,
    * substituting an empty string when the read throws; always succeeds.
    */
-  @blue.method
+
   ExtractDefault(externalParameter)
   {
     let value = "";
@@ -141,7 +141,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Reads the current value through `valueExposure` and writes it into every
    * bound external parameter.
    */
-  @blue.method
+
   @meta.adapted
   Propagate()
   {

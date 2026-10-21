@@ -51,7 +51,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
    * Reseeds the random stream from the wall clock, so scales differ between runs
    * unless consistentRandom pins them to the placement id.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -64,7 +64,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
    * shared factor when uniformScale is set - and either replaces the placement's
    * initial scale or multiplies into it.
    */
-  @blue.method
+
   @meta.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {

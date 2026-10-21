@@ -73,7 +73,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   }
 
   /** The shader resource name this texture binds to. */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -81,7 +81,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   }
 
   /** Content hash: the texture provider's identity (Carbon hashes its pointer). */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -92,7 +92,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Invalidates the resource sets of every material this parameter is attached
    * to.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -104,7 +104,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Deliberately does nothing: Carbon caches the effect resource type here for
    * later resource-set binding, which the Trinity layer leaves to engine adapters.
    */
-  @blue.method
+
   @meta.adapted
   RebuildEffectHandles(_effectRes)
   {
@@ -184,7 +184,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Swaps the texture provider and notifies owners; returns false when it is
    * already the same object.
    */
-  @blue.method
+
   @meta.implemented
   SetTextureProvider(texture)
   {
@@ -201,7 +201,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * The attached provider, or null; this package holds the reference but never
    * resolves or uploads it.
    */
-  @blue.method
+
   @meta.implemented
   GetTextureProvider()
   {
@@ -212,7 +212,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Sets the mip level to use when this texture is bound as an unordered-access
    * view, coerced to uint32.
    */
-  @blue.method
+
   @meta.implemented
   SetUavMipLevel(mipLevel)
   {
@@ -223,7 +223,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Registers a material to be invalidated when this parameter changes;
    * duplicates are ignored.
    */
-  @blue.method
+
   @meta.implemented
   OnAddedToMaterial(material)
   {
@@ -246,7 +246,8 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * The cast is to a resource as Carbon's `BlueCastPtr` does; a texture
    * reference or render target is not one, and holds nothing to renew.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   KeepAlive()
   {
     const resource = CjsSchema.cast(this.texture, CjsResource);
@@ -254,7 +255,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   }
 
   /** Stops tracking a material so later texture changes no longer invalidate its resource sets. */
-  @blue.method
+
   @meta.implemented
   OnRemovedFromMaterial(material)
   {

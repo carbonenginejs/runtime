@@ -60,7 +60,7 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * normalizes those distances into the 0..1 sweep order the update walks, then
    * restarts.
    */
-  @blue.method
+
   @meta.adapted
   Reset(placements)
   {
@@ -91,7 +91,7 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * Rewinds the sweep to its first placement, or its last when the animation is
    * reversed, and clears the play time.
    */
-  @blue.method
+
   @meta.implemented
   Restart()
   {
@@ -104,7 +104,7 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
    * passed, each subject to triggerChance, ending once the sorted order is
    * exhausted or the play duration elapses.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {

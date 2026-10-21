@@ -37,7 +37,7 @@ export class Tr2PPGodRaysEffect extends Tr2PPEffect
   grFactors = vec4.fromValues(1000, 0.2, 128, 2);
 
   /** Carbon Tr2PPGodRaysEffect::IsActive override. */
-  @blue.method
+
   IsActive()
   {
     return this.display && this.intensity > 0;

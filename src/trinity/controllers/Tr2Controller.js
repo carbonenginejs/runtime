@@ -124,7 +124,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {IList|null} [list=null] Emitting list identity.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -149,7 +149,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {object} owner Object controlled by this instance.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Link(owner)
   {
@@ -190,7 +190,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
@@ -238,7 +238,7 @@ export class Tr2Controller extends EveThrottleable
    * Reports whether an owner is retained.
    * @returns {boolean} Whether Link has run without a following Unlink.
    */
-  @blue.method
+
   @meta.implemented
   IsLinked()
   {
@@ -292,7 +292,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} [normalizedUpdateFrequency=0.5] Normalized throttle detail.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Update(normalizedUpdateFrequency = 0.5)
   {
@@ -330,7 +330,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} value New value.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetVariable(name, value)
   {
@@ -375,7 +375,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {string} name Variable name.
    * @returns {Tr2ControllerFloatVariable|null} Matching variable or null.
    */
-  @blue.method
+
   @meta.implemented
   GetVariableByName(name)
   {
@@ -388,7 +388,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {string} name Variable name.
    * @returns {number|undefined} Value, or undefined when absent.
    */
-  @blue.method
+
   @meta.adapted
   GetFloatVariableByName(name)
   {
@@ -436,7 +436,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {Array<object>} out Caller-owned term collection.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   GetExpressionTermInfo(out)
   {
@@ -455,7 +455,7 @@ export class Tr2Controller extends EveThrottleable
    * Returns the owned variable list as borrowed storage.
    * @returns {BlueList} Configured variable list.
    */
-  @blue.method
+
   @meta.implemented
   GetVariables()
   {
@@ -467,7 +467,7 @@ export class Tr2Controller extends EveThrottleable
    * Adapted: JS records expose both element index and byte offset.
    * @returns {Array<object>} Borrowed variable layout records.
    */
-  @blue.method
+
   @meta.adapted
   GetVariableView()
   {
@@ -479,7 +479,7 @@ export class Tr2Controller extends EveThrottleable
    * Adapted: Float32Array replaces the native untyped buffer pointer.
    * @returns {Float32Array} Borrowed variable storage.
    */
-  @blue.method
+
   @meta.adapted
   GetVariableBuffer()
   {
@@ -492,7 +492,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} size Required byte capacity.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   EnsureTempArenaSize(size)
   {
@@ -507,7 +507,7 @@ export class Tr2Controller extends EveThrottleable
    * Adapted: ArrayBuffer replaces the native untyped arena pointer.
    * @returns {ArrayBuffer} Borrowed scratch storage.
    */
-  @blue.method
+
   @meta.adapted
   GetTempArena()
   {
@@ -519,7 +519,7 @@ export class Tr2Controller extends EveThrottleable
    * Adapted: JS references and two-item arrays replace native IRoot pointers/pairs.
    * @returns {Array<Array>} Borrowed name/object pairs.
    */
-  @blue.method
+
   @meta.adapted
   GetBindingPathRoots()
   {
@@ -542,7 +542,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {ITr2Updateable} updateable Object updated after state machines.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   RegisterUpdateable(updateable)
   {
@@ -554,7 +554,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {ITr2Updateable} updateable Previously registered object.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterUpdateable(updateable)
   {
@@ -568,7 +568,7 @@ export class Tr2Controller extends EveThrottleable
    * @param {string} callbackName Callback name.
    * @returns {boolean} Whether a matching callback was invoked.
    */
-  @blue.method
+
   @meta.adapted
   Callback(callbackName)
   {

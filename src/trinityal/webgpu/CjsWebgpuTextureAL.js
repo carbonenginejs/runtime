@@ -362,7 +362,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * bytes; refuse a whole-mip staging footprint beyond the negotiated buffer
    * ceiling before writeTexture can poison subsequent command submissions.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   _Upload(initialData, mipCount, type, convert = null)
   {
     const desc = this._desc;

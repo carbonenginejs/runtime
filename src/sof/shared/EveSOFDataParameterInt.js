@@ -25,7 +25,7 @@ export class EveSOFDataParameterInt extends EveSOFDataParameter
 
   /** Returns a new vector containing the numeric value in all four components. */
   @meta.implemented
-  @blue.method
+
   GetValue()
   {
     const scalar = Number(this.value);

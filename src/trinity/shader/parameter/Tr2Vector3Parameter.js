@@ -148,7 +148,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   }
 
   /** The shader constant name this value binds to; empty until authored. */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -156,7 +156,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   }
 
   /** Content hash: authored value bytes then name. */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsVectorParameter.FNV1_INITIAL)
   {
@@ -177,7 +177,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
    * Adapted: Carbon returns a const reference to its own value; JavaScript cannot express
    * that, so this copies rather than exposing internal state.
    */
-  @blue.method
+
   @meta.adapted
   GetValue(out = vec3.create())
   {
@@ -199,7 +199,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
    * Copies three components in, refreshes the linear mirror and writes through
    * to the reroute destination when one is set.
    */
-  @blue.method
+
   @meta.implemented
   SetValue(value)
   {
@@ -216,7 +216,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
    * constant is never rerouted, because its value must be gamma-converted before
    * upload.
    */
-  @blue.method
+
   @meta.implemented
   IsRerouted()
   {
@@ -227,7 +227,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
    * Points the parameter at an external destination and seeds it with the current value; a target smaller than 12 bytes, not writable as three components, or belonging to an sRGB constant clears the reroute instead. Registered bindings are notified of the effective destination either way.
    * @param size destination capacity in bytes, not components
    */
-  @blue.method
+
   @meta.adapted
   SetDestination(dest, size = 12)
   {
@@ -249,7 +249,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
    * parameter's own value - paired with its 12-byte size. The array is borrowed,
    * not copied.
    */
-  @blue.method
+
   @meta.adapted
   GetDestination()
   {
@@ -263,7 +263,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
    */
-  @blue.method
+
   @meta.adapted
   RegisterBinding(binding)
   {
@@ -271,7 +271,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
-  @blue.method
+
   @meta.adapted
   UnregisterBinding(binding)
   {
@@ -283,7 +283,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
    * dropping the reroute when the shader is gone or the constant turns out to be
    * sRGB. Reads reflection metadata only; no GPU handle is bound.
    */
-  @blue.method
+
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -308,7 +308,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
    * Seeds an existing reroute destination with the current value and refreshes
    * the linear mirror; always returns true.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {

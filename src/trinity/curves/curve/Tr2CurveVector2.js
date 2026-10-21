@@ -60,7 +60,7 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -73,7 +73,7 @@ export class Tr2CurveVector2 extends ITriFunction
    *
    * @returns {number} Longest scalar component length.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {

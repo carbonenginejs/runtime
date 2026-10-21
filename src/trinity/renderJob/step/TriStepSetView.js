@@ -52,7 +52,7 @@ export class TriStepSetView extends TriRenderStep
    * ratio (1 when the viewport is missing or has no height) and sets the
    * resulting view matrix (TriStepSetView.cpp:21-33).
    */
-  @blue.method
+
   @meta.implemented
   Execute(realTime, simTime, renderContext)
   {

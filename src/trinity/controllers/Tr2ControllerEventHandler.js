@@ -62,7 +62,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @param {BlueList} [list=this.actions] List that emitted the notification.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.actions)
   {
@@ -94,7 +94,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @param {ITr2ActionController} controller Controller used to resolve bindings.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Link(controller)
   {
@@ -115,7 +115,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Unlink()
   {
@@ -134,7 +134,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    *
    * @returns {string} Name compared with incoming controller event names.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -151,7 +151,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @param {ITr2ActionController} controller Controller passed to Start and Stop.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Execute(controller)
   {

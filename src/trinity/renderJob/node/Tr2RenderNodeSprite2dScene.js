@@ -41,7 +41,7 @@ export class Tr2RenderNodeSprite2dScene
    * Adapted: Carbon asserts before returning false on an empty destination list; the port
    * returns false without asserting and lets the caller decide.
    */
-  @blue.method
+
   @meta.adapted
   Validate(destinationDimensions, outputs, realTime, simTime)
   {

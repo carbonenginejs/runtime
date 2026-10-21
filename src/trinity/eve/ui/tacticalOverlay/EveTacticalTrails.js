@@ -96,7 +96,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon ReleaseResources (cpp:73-76): drops the interned declaration; the buffer is kept. */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -105,7 +105,7 @@ export class EveTacticalTrails
 
   /** Carbon OnPrepareResources (cpp:78-81): nothing to prepare; the buffer is built on demand. */
   @meta.implemented
-  @blue.method
+
   OnPrepareResources()
   {
     return true;
@@ -163,7 +163,7 @@ export class EveTacticalTrails
    * back, or the last segment is over 10 km long; otherwise it moves the last point. Finally it samples the ego ball
    * and rebuilds the vertices.
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -234,7 +234,7 @@ export class EveTacticalTrails
    * @param {number} now Scene time in Blue ticks.
    */
   @meta.implemented
-  @blue.method
+
   UpdateGraphicsState(now)
   {
     this.segments = this.trackedObjects.reduce((sum, object) => sum + Math.max(object.positions.length, 1) - 1, 0);
@@ -303,14 +303,14 @@ export class EveTacticalTrails
   }
 
   /** Carbon UpdateAsyncronous (cpp:261-263): nothing to do. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Carbon UpdateVisibility (cpp:265-267): nothing to do; the trails are never culled. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform)
   {
@@ -318,7 +318,7 @@ export class EveTacticalTrails
 
   /** Carbon's GetRenderables( renderables, impostors ) (cpp:269-272): always the trails themselves. */
   @meta.implemented
-  @blue.method
+
   GetRenderables__Impostors(out = [], _impostors = null)
   {
     out.push(this);
@@ -326,7 +326,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon GetBoundingSphere (cpp:274-277): the trails have none. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
   {
@@ -334,7 +334,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon UpdateModelCenterWorldPosition (cpp:279-282): the origin. */
-  @blue.method
+
   @meta.implemented
   UpdateModelCenterWorldPosition(position, _time)
   {
@@ -342,7 +342,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon GetModelCenterWorldPosition (cpp:284-287): the origin. */
-  @blue.method
+
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
@@ -350,7 +350,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon GetLocalBoundingBox (cpp:289-292): the trails have none. */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
@@ -358,7 +358,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon GetLocalToWorldTransform (cpp:294-297): the identity. */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {
@@ -369,7 +369,7 @@ export class EveTacticalTrails
    * Carbon GetBatches (cpp:299-317): transparent only; with segments, a vertex buffer and a declaration, one draw of
    * twelve vertices per segment under RM_ALPHA.
    */
-  @blue.method
+
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -386,7 +386,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon EveTacticalTrails::HasTransparentBatches is always true (cpp:319-322). */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -394,7 +394,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon EveTacticalTrails::GetSortValue is zero (cpp:324-327). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -402,7 +402,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon EveTacticalTrails::GetPerObjectData returns null (cpp:329-332). */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(_accumulator)
   {

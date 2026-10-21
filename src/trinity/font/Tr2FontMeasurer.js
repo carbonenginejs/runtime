@@ -150,7 +150,7 @@ export class Tr2FontMeasurer
 
   /** Selects the CSS family for subsequently added text. */
   @meta.adapted
-  @blue.method
+
   SetFont(value)
   {
     if (value === this._font) return;
@@ -161,7 +161,7 @@ export class Tr2FontMeasurer
 
   /** Returns the selected CSS family. */
   @meta.implemented
-  @blue.method
+
   GetFont()
   {
     return this._font;
@@ -169,7 +169,7 @@ export class Tr2FontMeasurer
 
   /** Selects the pixel size for subsequently added text. */
   @meta.implemented
-  @blue.method
+
   SetFontSize(value)
   {
     if (value === this._fontSize) return;
@@ -180,7 +180,7 @@ export class Tr2FontMeasurer
 
   /** Returns the selected pixel size. */
   @meta.implemented
-  @blue.method
+
   GetFontSize()
   {
     return this._fontSize;
@@ -188,7 +188,7 @@ export class Tr2FontMeasurer
 
   /** Carbon `GetColor` (protected, Tr2FontMeasurer.h:142): the native signed packed color. */
   @meta.implemented
-  @blue.method
+
   _GetColor()
   {
     return this._color | 0;
@@ -196,7 +196,7 @@ export class Tr2FontMeasurer
 
   /** Carbon `SetColor` (protected, Tr2FontMeasurer.h:143): the packed color for subsequently added segments. */
   @meta.implemented
-  @blue.method
+
   _SetColor(value)
   {
     this._color = value >>> 0;
@@ -347,7 +347,8 @@ export class Tr2FontMeasurer
    * @param {number} glyphIndex Glyph index.
    * @returns {import("./Tr2SBitWrapper.js").Tr2SBitWrapper|null} The sbit, or null.
    */
-  @meta.implemented
+  @meta.cjs
+    @meta.implemented
   _LookupSBit(face, size, glyphIndex)
   {
     try
@@ -451,7 +452,7 @@ export class Tr2FontMeasurer
 
   /** Returns the native pre-preparation sprite vertex budget. */
   @meta.implemented
-  @blue.method
+
   GetVertexCount()
   {
     if (this._vertices) return this._vertices.length;
@@ -462,7 +463,7 @@ export class Tr2FontMeasurer
 
   /** Registers a text-sprite invalidation listener. */
   @meta.implemented
-  @blue.method
+
   RegisterForChangeNotification(target)
   {
     this._changeListeners.add(target);
@@ -470,7 +471,7 @@ export class Tr2FontMeasurer
 
   /** Removes a text-sprite invalidation listener. */
   @meta.implemented
-  @blue.method
+
   UnregisterForChangeNotification(target)
   {
     this._changeListeners.delete(target);
@@ -478,7 +479,7 @@ export class Tr2FontMeasurer
 
   /** Notifies each native font-measurer target. */
   @meta.implemented
-  @blue.method
+
   _NotifyListenersOfChange()
   {
     for (const target of this._changeListeners) target.FontMeasurerChanged(this);
@@ -489,7 +490,7 @@ export class Tr2FontMeasurer
    * Adapted: writable byte views replace raw pointers; only grayscale browser sbits exist.
    */
   @meta.adapted
-  @blue.method
+
   _DrawToBuffer(width, height, buffer, pitch)
   {
     g_fontManager.ClearBuffer(buffer, width, height, pitch);
@@ -575,7 +576,7 @@ export class Tr2FontMeasurer
 
   /** Reads the fade boundary. */
   @meta.implemented
-  @blue.method
+
   GetFadeLeftStart()
   {
     return this._fadeLeftStart;
@@ -583,7 +584,7 @@ export class Tr2FontMeasurer
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
-  @blue.method
+
   SetFadeLeftStart(value)
   {
     this._fadeLeftStart = value;
@@ -607,7 +608,7 @@ export class Tr2FontMeasurer
 
   /** Reads the fade boundary. */
   @meta.implemented
-  @blue.method
+
   GetFadeLeftEnd()
   {
     return this._fadeLeftEnd;
@@ -615,7 +616,7 @@ export class Tr2FontMeasurer
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
-  @blue.method
+
   SetFadeLeftEnd(value)
   {
     this._fadeLeftEnd = value;
@@ -639,7 +640,7 @@ export class Tr2FontMeasurer
 
   /** Reads the fade boundary. */
   @meta.implemented
-  @blue.method
+
   GetFadeRightStart()
   {
     return this._fadeRightStart;
@@ -647,7 +648,7 @@ export class Tr2FontMeasurer
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
-  @blue.method
+
   SetFadeRightStart(value)
   {
     this._fadeRightStart = value;
@@ -671,7 +672,7 @@ export class Tr2FontMeasurer
 
   /** Reads the fade boundary. */
   @meta.implemented
-  @blue.method
+
   GetFadeRightEnd()
   {
     return this._fadeRightEnd;
@@ -679,7 +680,7 @@ export class Tr2FontMeasurer
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
-  @blue.method
+
   SetFadeRightEnd(value)
   {
     this._fadeRightEnd = value;
@@ -703,7 +704,7 @@ export class Tr2FontMeasurer
 
   /** Reads the fade boundary. */
   @meta.implemented
-  @blue.method
+
   GetFadeTopStart()
   {
     return this._fadeTopStart;
@@ -711,7 +712,7 @@ export class Tr2FontMeasurer
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
-  @blue.method
+
   SetFadeTopStart(value)
   {
     this._fadeTopStart = value;
@@ -735,7 +736,7 @@ export class Tr2FontMeasurer
 
   /** Reads the fade boundary. */
   @meta.implemented
-  @blue.method
+
   GetFadeTopEnd()
   {
     return this._fadeTopEnd;
@@ -743,7 +744,7 @@ export class Tr2FontMeasurer
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
-  @blue.method
+
   SetFadeTopEnd(value)
   {
     this._fadeTopEnd = value;
@@ -767,7 +768,7 @@ export class Tr2FontMeasurer
 
   /** Reads the fade boundary. */
   @meta.implemented
-  @blue.method
+
   GetFadeBottomStart()
   {
     return this._fadeBottomStart;
@@ -775,7 +776,7 @@ export class Tr2FontMeasurer
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
-  @blue.method
+
   SetFadeBottomStart(value)
   {
     this._fadeBottomStart = value;
@@ -799,7 +800,7 @@ export class Tr2FontMeasurer
 
   /** Reads the fade boundary. */
   @meta.implemented
-  @blue.method
+
   GetFadeBottomEnd()
   {
     return this._fadeBottomEnd;
@@ -807,7 +808,7 @@ export class Tr2FontMeasurer
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
-  @blue.method
+
   SetFadeBottomEnd(value)
   {
     this._fadeBottomEnd = value;
@@ -816,7 +817,7 @@ export class Tr2FontMeasurer
 
   /** Computes native horizontal edge fading, including the left-start exception. */
   @meta.implemented
-  @blue.method
+
   _CalcAlphaForHorizontal(x)
   {
     if (this._fadeLeftStart > 0 && x < this._fadeLeftStart) return 0;
@@ -829,7 +830,7 @@ export class Tr2FontMeasurer
 
   /** Computes native vertical edge fading. */
   @meta.implemented
-  @blue.method
+
   _CalcAlphaForVertical(y)
   {
     if (y < this._fadeTopStart || y > this._fadeBottomEnd) return 0;
@@ -845,7 +846,7 @@ export class Tr2FontMeasurer
 
   /** Releases prepared geometry and each committed glyph's atlas reference. */
   @meta.implemented
-  @blue.method
+
   ClearSprites()
   {
     this._vertices = this._indices = null;
@@ -862,7 +863,7 @@ export class Tr2FontMeasurer
    * remain zero. Atlas identity still determines draw-call boundaries.
    */
   @meta.adapted
-  @blue.method
+
   PrepareSprites(renderer, translation, color, sfx, blendMode, target, glowBrightness, dropShadow, shadowOffset, shadowColor, shadowSfx)
   {
     this._vertices = [];
@@ -968,7 +969,7 @@ export class Tr2FontMeasurer
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   SubmitSprites(renderer)
   {
     if (!this._indices?.length) return;
@@ -1001,7 +1002,7 @@ export class Tr2FontMeasurer
    * @returns {number[]} The batch's indices.
    */
   @meta.adapted
-  @blue.method
+
   _AdjustIndicesIfNeeded(startSprite, indexCount, vertexOffset)
   {
     const indices = this._indices.slice(startSprite * 6, startSprite * 6 + indexCount);

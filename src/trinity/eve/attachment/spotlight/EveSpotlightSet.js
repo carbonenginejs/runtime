@@ -200,7 +200,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon Initialize (cpp:106-122): the effect keys, then the first Rebuild. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -211,7 +211,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon RegisterWithQuadRenderer (cpp:194-198): the cone, then the glow. */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -225,7 +225,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * vertices as its three columns, with activation * intensity and the booster
    * gain influence as halves; the glows, then the cones, go to the renderer.
    */
-  @blue.method
+
   @meta.implemented
   AddToQuadRenderer(quadRenderer, world, activation, boosterGain, bones, boneCount)
   {
@@ -282,7 +282,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   static _boneScratch = mat4.create();
 
   /** The effect that draws the light cones. */
-  @blue.method
+
   @meta.implemented
   GetConeEffect()
   {
@@ -290,7 +290,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the effect that draws the light cones. */
-  @blue.method
+
   @meta.implemented
   SetConeEffect(effect)
   {
@@ -299,7 +299,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** The effect that draws the glow sprite at each cone's source. */
-  @blue.method
+
   @meta.implemented
   GetGlowEffect()
   {
@@ -307,7 +307,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the effect that draws the glow sprite at each cone's source. */
-  @blue.method
+
   @meta.implemented
   SetGlowEffect(effect)
   {
@@ -321,7 +321,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * registers through its cached m_coneEffectHash; the key is read from the
    * effect here, exactly as EveSpriteSet's registration seam does.
    */
-  @blue.method
+
   @meta.implemented
   RegisterQuadRendererCone(quadRenderer)
   {
@@ -339,7 +339,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * Carbon RegisterQuadRendererGlow (cpp:129-132): the glow twin, two quads
    * per sprite.
    */
-  @blue.method
+
   @meta.implemented
   RegisterQuadRendererGlow(quadRenderer)
   {
@@ -367,7 +367,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpotlightSet::GetAabb (cpp:176-179): the item-set bounds, with the bone
    * list forwarded only when the set is skinned. */
-  @blue.method
+
   @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
@@ -383,7 +383,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   /** Carbon EveSpotlightSet::UpdateVisibility (cpp:138-148): an uninitialized set is
    * NOT visible; otherwise the bounds move into world space and take the
    * frustum box test. No LOD and no display gate. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
@@ -401,7 +401,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * Sets whether the spotlights ride skeleton bones, which is what decides if
    * GetAabb consults the caller's bone list at all.
    */
-  @blue.method
+
   @meta.implemented
   SetSkinned(skinned)
   {
@@ -409,7 +409,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** The authored set name, which SOF uses to match this set to its DNA entry. */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -417,7 +417,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the authored set name, coercing null or undefined to an empty string. */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -425,7 +425,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** The live spotlight item list, not a copy. */
-  @blue.method
+
   @meta.implemented
   GetSpotlightItems()
   {
@@ -436,7 +436,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * Appends an authored spotlight item; the bounds only pick it up on the next
    * Rebuild.
    */
-  @blue.method
+
   @meta.implemented
   AddSpotlightItem(item)
   {
@@ -447,7 +447,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * Carbon SetShaderOption (cpp:405-420): the option changes the effect's
    * permutation and so its hash, and the set registers again under it.
    */
-  @blue.method
+
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -469,7 +469,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * Carbon EveSpotlightSet::GetDebugOptions (cpp:440-445).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -496,7 +496,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
    * @param {number} boneCount
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
@@ -591,7 +591,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveSpotlightLight and
    * appends it to the set.
    */
-  @blue.method
+
   @meta.adapted
   AddLightFromSOF(light)
   {
@@ -600,7 +600,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpotlightSet::RegisterComponents (cpp:527-534): LightOwner
    * when lights are authored. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -621,7 +621,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    * gets only the parent transform. Binding 0 is a mesh bone binding and can
    * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
    * Normal2Warp - so ours applies bone 0 like any other. */
-  @blue.method
+
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
   {
@@ -656,7 +656,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
    *
    * Adapted: Profile-index packing is by-reference per lightConversion.js conventions.
    */
-  @blue.method
+
   @meta.adapted
   GetLights(lightManager)
   {

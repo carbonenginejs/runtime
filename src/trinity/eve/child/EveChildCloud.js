@@ -147,7 +147,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Recreates native geometry; explicit destruction replaces C++ buffer assignment. */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -161,7 +161,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Carbon OnModified (cpp:200-209): a new tessellation level drops the vertex
    * and index buffers and prepares them again. The vertex declaration is kept.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -177,7 +177,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Explicit buffer destruction replaces native index-vector clear (cpp:275-279). */
-  @blue.method
+
   @meta.adapted
   ReleaseResources()
   {
@@ -205,7 +205,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Adapted: the AL description replaces the native stride/count overload.
    * Native quirks retained: LODs stop ABOVE 16, and uint16 indices wrap.
    */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources()
   {
@@ -268,7 +268,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Collects only visible, updated clouds with prepared geometry (cpp:218-230). */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -278,7 +278,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Distance from the renderer's view, less the scaled sorting radius (cpp:247-252). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -292,7 +292,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Carbon creates a local batch and Commit copies it (TriRenderBatch.h:333-349).
    * The JS accumulator retains ownership, so each submission needs a fresh batch.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData)
   {
@@ -315,7 +315,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Adapted: RawData owns the single GPU transpose. Empty clipped bounds use a zero-area rectangle,
    * replacing the donor's uninitialized points[0] read when every point is clipped.
    */
-  @blue.method
+
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -366,7 +366,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * then the editable volume's.
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -383,7 +383,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * info under the same transform.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -406,7 +406,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Advances the editable volume, composes local SRT with its live parent and refreshes bounds. */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -426,7 +426,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Refreshes bounds from the transform finalized by the sync pass. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -434,7 +434,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Applies Carbon's display, frustum and minimum-screen-size visibility gate. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
@@ -447,7 +447,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Copies the current world-space sphere and always reports it available. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -456,7 +456,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Copies the transform composed during the last sync pass. */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out = mat4.create())
   {
@@ -464,7 +464,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Carbon always routes this legacy cloud through transparent rendering. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {

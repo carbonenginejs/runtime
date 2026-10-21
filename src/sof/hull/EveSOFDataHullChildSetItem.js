@@ -70,7 +70,7 @@ export class EveSOFDataHullChildSetItem
    * Derives a child-set item's basename without its extension only from resource
    * paths containing a forward slash.
    */
-  @blue.method
+
   GetName()
   {
     const slash = this.redFilePath.lastIndexOf("/");

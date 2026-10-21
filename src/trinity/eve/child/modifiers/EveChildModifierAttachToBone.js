@@ -32,7 +32,7 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.implemented
   ApplyTransform(transform, boneCount, bones, out)
   {
@@ -66,7 +66,7 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * index, or one past the palette length, leaves the incoming transform
    * untouched.
    */
-  @blue.method
+
   @meta.implemented
   SetBoneIndex(index)
   {

@@ -157,7 +157,7 @@ export class Tr2Denoiser
    * @param {object} renderer Legacy argument; fullscreen draws use the native static renderer.
    * @returns {object|null} The result handle, or null.
    */
-  @blue.method
+
   @meta.adapted
   Apply(source, depth, normals, projection, upscaling, gpuResourcePool, renderContext, renderer)
   {
@@ -292,7 +292,7 @@ export class Tr2Denoiser
    * @param {number} value The new radius.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetRadius(value)
   {
@@ -306,7 +306,7 @@ export class Tr2Denoiser
    *
    * @returns {boolean} True, as Carbon's does.
    */
-  @blue.method
+
   @meta.implemented
   OnModified()
   {

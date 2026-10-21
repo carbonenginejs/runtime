@@ -117,7 +117,7 @@ export class EveBoxVolume extends IEveVolume
   static _MIN_AABB = vec3.fromValues(-0.5, -0.5, -0.5);
 
   /** Carbon Initialize (EveBoxVolume.cpp:35-39): runs Setup. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -131,7 +131,7 @@ export class EveBoxVolume extends IEveVolume
    *
    * @returns {{center: vec3, radius: number}}
    */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere()
   {
@@ -163,7 +163,7 @@ export class EveBoxVolume extends IEveVolume
    * @param {vec3} position Point in the volume's parent space; not modified.
    * @returns {number} The intensity.
    */
-  @blue.method
+
   @meta.implemented
   GetIntensity(position)
   {
@@ -206,7 +206,7 @@ export class EveBoxVolume extends IEveVolume
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Drops the inner box from the choice, keeping every point in the shell.
    */
-  @blue.method
+
   @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
@@ -292,7 +292,7 @@ export class EveBoxVolume extends IEveVolume
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
    */
-  @blue.method
+
   @meta.adapted
   RegisterForChanges(callback)
   {
@@ -302,7 +302,7 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /** Drops a change callback by the id RegisterForChanges returned. */
-  @blue.method
+
   @meta.implemented
   UnregisterForChanges(callbackId)
   {
@@ -313,7 +313,7 @@ export class EveBoxVolume extends IEveVolume
    * Re-runs Setup after an authored change to position, scaling, rotation or
    * inner scaling, then notifies every registered listener.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -341,7 +341,7 @@ export class EveBoxVolume extends IEveVolume
    * @param {mat4} parentTransform The parent's world transform.
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentTransform, baseColor = DEFAULT_BASE_COLOR)
   {
@@ -382,7 +382,7 @@ export class EveBoxVolume extends IEveVolume
    * change callbacks - OnModified does (cpp:194-215), unlike the ellipsoid,
    * whose Setup fires them itself.
    */
-  @blue.method
+
   @meta.implemented
   Setup()
   {

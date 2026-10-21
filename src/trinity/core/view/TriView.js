@@ -20,7 +20,7 @@ export class TriView
   transform = mat4.create();
 
   /** Copies a view matrix in; the caller's buffer is not retained. */
-  @blue.method
+
   @meta.implemented
   SetTransform(value)
   {
@@ -34,7 +34,7 @@ export class TriView
    * Adapted: Copies the transform into the caller's output matrix instead of returning
    * Carbon's const Matrix reference.
    */
-  @blue.method
+
   @meta.adapted
   GetTransform(out = mat4.create())
   {

@@ -48,7 +48,7 @@ export class EveMissile extends EveSpaceObject2
   _lastValidSpeed = 0;
 
   /** Registers each warhead's sprites; Carbon does not register the missile base. */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -56,7 +56,7 @@ export class EveMissile extends EveSpaceObject2
   }
 
   /** Forwards quad submission to each warhead with the caller's frustum and renderer. */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -67,7 +67,7 @@ export class EveMissile extends EveSpaceObject2
    * Runs the base initialization and silences all warhead particle emitting
    * until launch.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -102,7 +102,7 @@ export class EveMissile extends EveSpaceObject2
    *
    * Adapted: Target and curve output parameters are out-last; the optional script callback uses the existing JavaScript callback adapter at invocation.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(context)
   {
@@ -173,7 +173,7 @@ export class EveMissile extends EveSpaceObject2
    * composed with that warhead's offset, and merges the warheads' LOD levels
    * into the missile's.
    */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(context, parentTransform = EveMissile._identity)
   {
@@ -193,7 +193,7 @@ export class EveMissile extends EveSpaceObject2
    * represent Carbon's impostor-manager argument.
    */
   @meta.adapted
-  @blue.method
+
   GetRenderables__Impostors(out = [], _impostors)
   {
     super.GetRenderables__Impostors(out, null);
@@ -205,7 +205,7 @@ export class EveMissile extends EveSpaceObject2
    * Writes the missile's world-space bounding sphere, built from the
    * warhead-derived local sphere and the missile world transform.
    */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out = vec4.create())
   {
@@ -239,7 +239,7 @@ export class EveMissile extends EveSpaceObject2
    *
    * Adapted: The missile owns no renderable; its warheads publish their own backend-neutral records.
    */
-  @blue.method
+
   @meta.adapted
   GetPerObjectData()
   {

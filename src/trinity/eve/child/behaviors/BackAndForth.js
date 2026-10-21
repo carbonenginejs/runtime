@@ -125,7 +125,7 @@ export class BackAndForth
   _arrivalPoint = vec3.create();
 
   /** Carbon BackAndForth::GetProcessPriority (cpp:31-34). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -133,7 +133,7 @@ export class BackAndForth
   }
 
   /** Carbon BackAndForth::GetBehaviorName (cpp:36-39). */
-  @blue.method
+
   @meta.implemented
   GetBehaviorName()
   {
@@ -146,7 +146,7 @@ export class BackAndForth
    * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
    * value means 'has scratch'.
    */
-  @blue.method
+
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -158,7 +158,7 @@ export class BackAndForth
    *
    * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
    */
-  @blue.method
+
   @meta.adapted
   InitializeScratch()
   {
@@ -187,7 +187,7 @@ export class BackAndForth
    *
    * Random draws delegate to the matching generator in global/math/random.js.
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
@@ -339,7 +339,7 @@ export class BackAndForth
    * Carbon BackAndForth::GetDebugOptions (cpp:196-200).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -356,7 +356,7 @@ export class BackAndForth
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation Places the locators in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
@@ -512,7 +512,7 @@ export class BackAndForth
   }
 
   /** Carbon BackAndForth::SetParent (cpp:348-354). */
-  @blue.method
+
   @meta.implemented
   SetParent(parent)
   {
@@ -523,7 +523,7 @@ export class BackAndForth
   /**
    * The locators of the first locator set matching a name, or null when none matches.
    */
-  @blue.method
+
   _GetLocatorsForSet(setName)
   {
     for (const set of this.locatorSet)
@@ -541,7 +541,7 @@ export class BackAndForth
    * the parent, then the world position and direction of its indexed locator
    * from the behaviour's named set, into the caller's two out-vectors.
    */
-  @blue.method
+
   @meta.implemented
   GetParentLocatorPosition(locatorIndex, outPosition, outDirection)
   {
@@ -549,7 +549,7 @@ export class BackAndForth
   }
 
   /** Carbon GetTargetLocatorPosition (cpp:365-372): the target twin. */
-  @blue.method
+
   @meta.implemented
   GetTargetLocatorPosition(locatorIndex, outPosition, outDirection)
   {

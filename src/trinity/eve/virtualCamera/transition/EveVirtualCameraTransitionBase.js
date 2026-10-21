@@ -28,7 +28,7 @@ export class EveVirtualCameraTransitionBase
    * Returns the camera to render from: the target once the transition has
    * completed, otherwise the temporary transition camera.
    */
-  @blue.method
+
   @meta.implemented
   GetCamera()
   {
@@ -39,7 +39,7 @@ export class EveVirtualCameraTransitionBase
    * Sets the camera the transition starts from; it is paused when the transition
    * stops.
    */
-  @blue.method
+
   @meta.implemented
   SetSource(camera)
   {
@@ -50,7 +50,7 @@ export class EveVirtualCameraTransitionBase
    * Sets the camera the transition hands control to; its timeline is reset on
    * Play and it is resumed on Stop.
    */
-  @blue.method
+
   @meta.implemented
   SetTarget(camera)
   {
@@ -62,7 +62,7 @@ export class EveVirtualCameraTransitionBase
    * the source camera's transform, rewinds the target camera's timeline, and
    * starts the transition camera running.
    */
-  @blue.method
+
   @meta.implemented
   Play()
   {
@@ -80,7 +80,7 @@ export class EveVirtualCameraTransitionBase
    * Ends the transition by resuming the target camera and pausing the source and
    * transition cameras.
    */
-  @blue.method
+
   @meta.implemented
   Stop()
   {
@@ -93,7 +93,7 @@ export class EveVirtualCameraTransitionBase
    * Advances the transition camera and stops the transition as soon as the
    * subclass reports it complete.
    */
-  @blue.method
+
   @meta.implemented
   Update(deltaTime)
   {

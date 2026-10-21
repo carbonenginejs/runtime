@@ -95,7 +95,7 @@ export class TriStepRenderObject extends TriRenderStep
    * The accumulators are cleared at the end of the call exactly as Carbon does
    * (cpp:65-68), so the step holds no batches between frames.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

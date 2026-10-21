@@ -94,7 +94,7 @@ export class SpawnDrones
    *
    * @param {Object} group - owning BehaviorGroup
    */
-  @blue.method
+
   @meta.adapted
   UpdateGrid(group)
   {
@@ -173,7 +173,7 @@ export class SpawnDrones
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(_agents, _scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {

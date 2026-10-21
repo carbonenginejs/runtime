@@ -118,7 +118,7 @@ export class EveKDdroneManagementTree
    * @param {Array} agents - DroneAgent records
    * @param {Number} numberOfBehaviors
    */
-  @blue.method
+
   @meta.implemented
   CreateTree(agents, numberOfBehaviors)
   {
@@ -150,7 +150,7 @@ export class EveKDdroneManagementTree
    * invariant broke (Carbon UpdateTree, cpp:44-55).
    * @param {Number} dt - delta time in seconds
    */
-  @blue.method
+
   @meta.implemented
   UpdateTree(dt)
   {
@@ -172,7 +172,7 @@ export class EveKDdroneManagementTree
    * @param {Float32Array} pos
    * @returns {Object|null} the closest DroneAgent record
    */
-  @blue.method
+
   @meta.implemented
   FindClosestAgent(pos)
   {
@@ -247,7 +247,7 @@ export class EveKDdroneManagementTree
    * active range for each agent and run the recursive helper with the
    * agent's running index into the neighbour buckets.
    */
-  @blue.method
+
   _SearchThroughTree(infoBlock, node, agents, searchRanges)
   {
     for (let c = 0; c < agents.length; c++)
@@ -262,7 +262,7 @@ export class EveKDdroneManagementTree
   /**
    * Rebuilds the node shells, with default plane, bounds and null children, over the current live agents.
    */
-  @blue.method
+
   _ChangeAgentsIntoAgentRefs(agents)
   {
     const refs = this.agentRefs;
@@ -285,7 +285,7 @@ export class EveKDdroneManagementTree
   /**
    * Recursively median-splits a range of agent references along an axis, building the tree node by node and cycling the split axis at each level.
    */
-  @blue.method
+
   _SplitSort(b, e, planeType)
   {
     const refs = this.agentRefs;
@@ -323,7 +323,7 @@ export class EveKDdroneManagementTree
   /**
    * Stamps the given split plane on a subrange of agent references and sorts that subrange along that axis.
    */
-  @blue.method
+
   _SortByAxis(refs, b, endExclusive, planeType)
   {
     for (let i = b; i < endExclusive; i++)
@@ -345,7 +345,7 @@ export class EveKDdroneManagementTree
   /**
    * Recursively checks a node's split invariant against its children and re-splits that subtree from scratch when it no longer holds.
    */
-  @blue.method
+
   _CompareNodeToChildren(node)
   {
     if (node === null)
@@ -374,7 +374,7 @@ export class EveKDdroneManagementTree
   /**
    * Whether a node and its relevant subtree all sit at or below a coordinate on an axis.
    */
-  @blue.method
+
   _IsBiggestOnAxis(node, n, planeType)
   {
     if (node === null)
@@ -396,7 +396,7 @@ export class EveKDdroneManagementTree
   /**
    * Whether a node and its relevant subtree all sit at or above a coordinate on an axis.
    */
-  @blue.method
+
   _IsSmallestOnAxis(node, n, planeType)
   {
     if (node === null)
@@ -419,7 +419,7 @@ export class EveKDdroneManagementTree
   /**
    * Recursively searches for the agent closest to a position, pruning subtrees that cannot beat the current best distance.
    */
-  @blue.method
+
   _FindClosestAgentRecursive(pos, node, closest)
   {
     if (node === null)
@@ -460,7 +460,7 @@ export class EveKDdroneManagementTree
   /**
    * Recursively collects one agent's neighbours into the per-behaviour result lists for each configured radius, narrowing the active range as the widest one fills.
    */
-  @blue.method
+
   _SearchThroughTreeHelperFunction(closeAgents, node, agent, ranges, c)
   {
     if (node === null)
@@ -523,7 +523,7 @@ export class EveKDdroneManagementTree
   /**
    * Appends a found neighbour to every behaviour's result list whose radius it still falls within, stopping at the first it falls outside.
    */
-  @blue.method
+
   static _AddAgentToSearchLists(closeAgents, node, dist, ranges, activeRange, agentNbr)
   {
     for (let i = activeRange; i < ranges.length; i++)
@@ -545,7 +545,7 @@ export class EveKDdroneManagementTree
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentWorldLocation Only its translation offsets the split planes.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentWorldLocation)
   {
@@ -569,7 +569,7 @@ export class EveKDdroneManagementTree
    * @param {vec3} debugSquareCorner2
    * @param {vec3} pwt The parent world translation.
    */
-  @blue.method
+
   @meta.implemented
   _DrawDebugTree(renderer, tree, debugSquareCorner1, debugSquareCorner2, pwt)
   {
@@ -635,7 +635,7 @@ export class EveKDdroneManagementTree
    * @param {number} pt A PlaneType.
    * @param {vec3} pwt The parent world translation.
    */
-  @blue.method
+
   @meta.implemented
   _DrawSquareInnerLines(renderer, agentPos, P1, P2, C, pt, pwt)
   {
@@ -666,7 +666,7 @@ export class EveKDdroneManagementTree
   /**
    * Cycles the split axis in the order X, Y, Z and back to X.
    */
-  @blue.method
+
   static _FindNextSplitAxis(planeType)
   {
     switch (planeType)

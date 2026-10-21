@@ -38,7 +38,7 @@ export class EveLineContainer
   display = true;
 
   /** Rebuilds the complete logical line set from the authored connectors. */
-  @blue.method
+
   @meta.implemented
   Update(context)
   {
@@ -57,7 +57,7 @@ export class EveLineContainer
   }
 
   /** Carbon's synchronous phase owns the connector rebuild. */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -65,14 +65,14 @@ export class EveLineContainer
   }
 
   /** Carbon performs no asynchronous work for this container. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Delegates transformed visibility only while this container is displayed. */
-  @blue.method
+
   @blue.contextual(["camera"])
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
@@ -85,7 +85,7 @@ export class EveLineContainer
 
   /** Collects the concrete line set only while this container is displayed. */
   @meta.implemented
-  @blue.method
+
   GetRenderables__Impostors(renderables, impostors)
   {
     if (this.display && this.lineSet)
@@ -95,7 +95,7 @@ export class EveLineContainer
   }
 
   /** Delegates the line set's local bound when one is authored. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
@@ -103,7 +103,7 @@ export class EveLineContainer
   }
 
   /** Delegates Carbon's model-center update hook. */
-  @blue.method
+
   @meta.implemented
   UpdateModelCenterWorldPosition(position, time)
   {
@@ -114,7 +114,7 @@ export class EveLineContainer
   }
 
   /** Delegates Carbon's non-updating model-center query. */
-  @blue.method
+
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
@@ -125,7 +125,7 @@ export class EveLineContainer
   }
 
   /** Delegates a local AABB query when the line set can supply one. */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(minBounds, maxBounds)
   {
@@ -133,7 +133,7 @@ export class EveLineContainer
   }
 
   /** Delegates Carbon's local-to-world query without inventing a fallback. */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {

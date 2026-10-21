@@ -69,7 +69,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * Sets the behaviour name and renames both owned curves to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:364-368
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -87,7 +87,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:371-404
    * Adapted: gl-matrix writes the output vector. Carbon retains the normalized zero direction; glMatrix arithmetic parity remains pending.
    */
-  @blue.method
+
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {

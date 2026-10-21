@@ -52,7 +52,7 @@ export class EveProceduralMethodCyclingParameter
 
   /** Carbon EveProceduralMethodCyclingParameter::Initialize (cpp:19-26):
    * lazily create the child ref. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -68,7 +68,7 @@ export class EveProceduralMethodCyclingParameter
    * child assignment blocks its auto-load until the cycle selects it. The
    * value argument follows the repo's OnModified duck.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -84,7 +84,7 @@ export class EveProceduralMethodCyclingParameter
   }
 
   /** Carbon method SetModified (cpp:41-44). */
-  @blue.method
+
   @meta.implemented
   SetModified(isModified)
   {
@@ -92,7 +92,7 @@ export class EveProceduralMethodCyclingParameter
   }
 
   /** Carbon method IsModified (cpp:46-49). */
-  @blue.method
+
   @meta.implemented
   IsModified()
   {
@@ -100,7 +100,7 @@ export class EveProceduralMethodCyclingParameter
   }
 
   /** Carbon method GetName (cpp:51-54). */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -108,7 +108,7 @@ export class EveProceduralMethodCyclingParameter
   }
 
   /** Carbon method GetChild (cpp:56-59). */
-  @blue.method
+
   @meta.implemented
   GetChild()
   {
@@ -116,7 +116,7 @@ export class EveProceduralMethodCyclingParameter
   }
 
   /** Carbon method GetDuration (cpp:61-64). */
-  @blue.method
+
   @meta.implemented
   GetDuration()
   {
@@ -127,7 +127,7 @@ export class EveProceduralMethodCyclingParameter
    * already-loaded parameter that needs no reload only restarts its
    * controllers/curve sets when required; otherwise the child ref reloads
    * with the auto-load blocker bypassed. */
-  @blue.method
+
   @meta.implemented
   Load()
   {

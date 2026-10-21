@@ -90,7 +90,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Adapted: the load is asynchronous (see LoadOverlay), so a redirected
    * owner is rebound once it settles.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller)
   {
@@ -115,7 +115,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    *
    * Adapted: also discards a load still in flight.
    */
-  @blue.method
+
   @meta.adapted
   Stop(controller)
   {
@@ -141,7 +141,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * @param {object} owner The EveSpaceObject2.
    * @returns {Promise<void>|null} The pending load, or null when none started.
    */
-  @blue.method
+
   @meta.adapted
   LoadOverlay(owner)
   {

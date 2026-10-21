@@ -93,7 +93,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * ITr2ControllerOwner on the owner, GetRootObject result and selected target;
    * those nominal owner declarations are incomplete in the current domain.
    */
-  @blue.method
+
   @meta.adapted
   Link(controller)
   {
@@ -104,7 +104,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   /**
    * Clears the destination owner.
    */
-  @blue.method
+
   @meta.implemented
   Unlink()
   {
@@ -121,7 +121,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Native Start keeps Link's controller rather than replacing it. That existing
    * no-argument/refresh convenience remains outside this model-base removal.
    */
-  @blue.method
+
   @meta.adapted
   Start(controller = this._controller)
   {
@@ -149,7 +149,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   /**
    * Relinks the destination on the native destinationOwner notification.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -160,7 +160,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   /**
    * Checks whether the destination owner resolved.
    */
-  @blue.method
+
   @meta.implemented
   IsDestinationValid()
   {
@@ -171,7 +171,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Checks whether a target variable name is authored.
    * Custom: native declares this method but provides no body or Blue exposure.
    */
-  @blue.method
+
   @meta.adapted
   IsVariableValid()
   {
@@ -182,7 +182,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Resolves `destination` by case-insensitively matching destinationOwner
    * against the owner's binding roots.
    */
-  @meta.renamed("LinkToDestinationOwner")
+
   @meta.adapted
   _LinkToDestinationOwner()
   {

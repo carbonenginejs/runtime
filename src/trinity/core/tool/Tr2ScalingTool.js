@@ -277,7 +277,7 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
    * visible-object vector.
    */
-  @blue.method
+
   @meta.adapted
   GetPrimitivesToRender()
   {
@@ -292,7 +292,7 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   }
 
   /** Restores Carbon's authored axis and centre colours. */
-  @blue.method
+
   @meta.implemented
   ResetPrimitiveColors()
   {

@@ -72,7 +72,7 @@ export class Tr2StateMachineTransition
    * @param {Tr2StateMachineState} state Source state whose machine owns the transition.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Link(state)
   {
@@ -88,7 +88,7 @@ export class Tr2StateMachineTransition
    * Unlinks this transition from its source state.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Unlink()
   {
@@ -110,7 +110,7 @@ export class Tr2StateMachineTransition
    * @param {string} propertyName Exposed authored member name.
    * @returns {boolean} True after the notification is handled.
    */
-  @blue.method
+
   @meta.adapted
   OnModified(propertyName)
   {
@@ -156,7 +156,7 @@ export class Tr2StateMachineTransition
    * @param {bigint|number} [variableDirtyMask=0] Changed controller variable bits.
    * @returns {boolean} Whether the current linked condition activates.
    */
-  @blue.method
+
   @meta.adapted
   CanActivate(variableDirtyMask = 0)
   {
@@ -186,7 +186,7 @@ export class Tr2StateMachineTransition
    * Gets the cached destination last resolved by Link or a name notification.
    * @returns {Tr2StateMachineState|null} Cached destination, or null when unresolved.
    */
-  @blue.method
+
   @meta.adapted
   GetDestination()
   {
@@ -223,7 +223,7 @@ export class Tr2StateMachineTransition
    * missing or beyond the 64-bit mask.
    * @returns {bigint} Relevant variable bits, or zero when evaluation cannot be skipped.
    */
-  @blue.method
+
   @meta.adapted
   GetVariableMask()
   {
@@ -259,7 +259,7 @@ export class Tr2StateMachineTransition
    * inspection, rather than introducing native eager evaluator lifetime here.
    * @returns {boolean} Whether the authored condition compiles successfully.
    */
-  @blue.method
+
   @meta.adapted
   IsConditionValid()
   {
@@ -378,7 +378,7 @@ export class Tr2StateMachineTransition
    * Adapted: native UpdateDestination retains its private JavaScript name.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   _UpdateDestination()
   {

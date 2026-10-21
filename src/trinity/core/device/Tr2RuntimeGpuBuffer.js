@@ -24,7 +24,7 @@ export class Tr2RuntimeGpuBuffer
    * @param {number} [_index] Unused.
    * @returns {object|null} The AL buffer.
    */
-  @blue.method
+
   @meta.implemented
   GetGpuBuffer(_index = 0)
   {
@@ -37,7 +37,7 @@ export class Tr2RuntimeGpuBuffer
    * @param {object|null} buffer The AL buffer.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetGpuBuffer(buffer)
   {

@@ -27,7 +27,7 @@ export class TriStepEnableWireframeMode extends TriRenderStep
    * Forwards the flag to the render context; nothing restores the previous mode, so a
    * matching step is needed to turn wireframe back off.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

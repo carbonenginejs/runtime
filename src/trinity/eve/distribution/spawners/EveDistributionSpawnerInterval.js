@@ -46,7 +46,7 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   delayBeforeInitialSpawn = 0;
 
   /** Restarts the interval timer; the placement pool is not used by this spawner. */
-  @blue.method
+
   @meta.implemented
   Reset(_placements)
   {
@@ -58,7 +58,7 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * random point inside one interval and backing the timer off by the initial
    * spawn delay.
    */
-  @blue.method
+
   @meta.adapted
   Restart()
   {
@@ -72,7 +72,7 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * numberOfRepeats (unlimited when it is zero), reseeding the timer with a
    * randomized interval delta.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {

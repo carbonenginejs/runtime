@@ -69,7 +69,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   seed_temp = -1;
 
   /** Carbon EveProceduralMethodRandom::Initialize (cpp:21-25). */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -80,7 +80,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodRandom::OnModified (cpp:27-35): a seed change
    * reselects. The value argument follows the repo's OnModified duck.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -95,7 +95,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodRandom::OnListModified (cpp:37-43): a
    * non-loading change to the parameter list regenerates the weight map.
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
@@ -107,7 +107,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodRandom::GenerateParameterMapping (cpp:45-55):
    * cumulative weight thresholds over the parameter list. */
-  @blue.method
+
   @meta.implemented
   GenerateParameterMapping()
   {
@@ -125,7 +125,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * and pick the first cumulative threshold above it. Carbon uses
    * srand((int)m_seed) + rand() % totalWeight on the shared CRT stream.
    */
-  @blue.method
+
   @meta.adapted
   SelectARandomParameter()
   {
@@ -155,7 +155,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   }
 
   /** Carbon EveProceduralMethodRandom::IsSelectedChildModified (cpp:84-87). */
-  @blue.method
+
   @meta.implemented
   IsSelectedChildModified()
   {
@@ -166,7 +166,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @blue.method
+
   @meta.implemented
   GetSelectedChild()
   {
@@ -193,7 +193,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodRandom::UpdateAsyncronous (cpp:111-127):
    * regenerate the weight map and reselect once any parameter reports itself
    * modified, clearing the flags on the way. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -214,7 +214,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:129-132). */
-  @blue.method
+
   @meta.implemented
   GetDebugVolumes()
   {
@@ -224,7 +224,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodRandom::SetProceduralMethodVariable
    * (cpp:134-144): only the named seed variable is accepted; a changed value
    * reselects. */
-  @blue.method
+
   @meta.implemented
   SetProceduralMethodVariable(name, value)
   {
@@ -241,7 +241,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodRandom::GetProceduralMethodVariable
    * (cpp:146-154). */
-  @blue.method
+
   @meta.implemented
   GetProceduralMethodVariable()
   {

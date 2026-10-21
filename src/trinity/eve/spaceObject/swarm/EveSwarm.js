@@ -261,7 +261,7 @@ export class EveSwarm extends EveShip2
    * registration "to register all the turrets and things", then
    * UnRegisterAllComponents(this) because the swarm itself is container-only,
    * then forwards the per-swarmer renderables. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -279,7 +279,7 @@ export class EveSwarm extends EveShip2
 
   /** Carbon EveSwarm::UnRegisterComponents (EveSwarm.cpp:1019-1030): base,
    * then forwards the renderables. */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -302,7 +302,7 @@ export class EveSwarm extends EveShip2
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @blue.method
+
   @meta.adapted
   GetObserverTransform(out)
   {
@@ -319,7 +319,7 @@ export class EveSwarm extends EveShip2
    * @param {number} swarmID - the turret set's GetSwarmID()
    * @returns {mat4} the live transform, not a copy
    */
-  @blue.method
+
   @meta.implemented
   GetTurretTransform(swarmID)
   {
@@ -331,7 +331,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon RebuildCachedData (EveSwarm.cpp:371-378): the base, then every fighter rebinds to the rebuilt mesh. */
-  @blue.method
+
   @meta.implemented
   RebuildCachedData(asyncRes)
   {
@@ -343,7 +343,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon UpdateSyncronous (EveSwarm.cpp:384-391): the swarm steps before the ship. */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -360,7 +360,7 @@ export class EveSwarm extends EveShip2
    * @param {number} time - Blue ticks
    * @returns {boolean} the base's result
    */
-  @blue.method
+
   @meta.implemented
   UpdateWorldTransform(time)
   {
@@ -382,7 +382,7 @@ export class EveSwarm extends EveShip2
    * @param {number} timeDiff - seconds
    */
   @meta.adapted
-  @blue.method
+
   UpdateOrientation(vehicle, timeDiff)
   {
     // vec3_21 is dir, vec3_22 side, vec3_23 upDir; quat_0 the rotation.
@@ -409,7 +409,7 @@ export class EveSwarm extends EveShip2
    *
    * Adapted: EveMobile's reusable parent-data record is refilled per set instead of a fresh zeroed stack record.
    */
-  @blue.method
+
   @meta.adapted
   UpdateTurretsAsyncronous(updateContext)
   {
@@ -433,7 +433,7 @@ export class EveSwarm extends EveShip2
    * the ship's boosters; with it, each fighter takes its vehicle's rotation and position, and drives its own booster
    * instance. Then the base update, whose UpdateBoosters call this class leaves empty.
    */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext)
   {
@@ -487,7 +487,7 @@ export class EveSwarm extends EveShip2
    * Carbon UpdateBoosters (EveSwarm.h:261-263): empty. UpdateAsyncronous drives the boosters per fighter instead.
    * @param {EveUpdateContext} _updateContext
    */
-  @blue.method
+
   @meta.implemented
   UpdateBoosters(_updateContext)
   {
@@ -504,7 +504,7 @@ export class EveSwarm extends EveShip2
    * @param {number} t - Blue ticks
    */
   @meta.adapted
-  @blue.method
+
   UpdateSwarm(t)
   {
     if (t === this._timeLast)
@@ -669,7 +669,7 @@ export class EveSwarm extends EveShip2
    * Carbon RegisterWithQuadRenderer (EveSwarm.cpp:651-661): the attachments' sprites and spotlights, then the booster
    * glows. Carbon does not call the base, so turret quads are not registered.
    */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -688,7 +688,7 @@ export class EveSwarm extends EveShip2
    * transform, at full activation and booster gain; then the booster glows, whose instances carry their own
    * fighters' transforms, so the world passed is the identity.
    */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -715,7 +715,7 @@ export class EveSwarm extends EveShip2
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
-  @blue.method
+
   PushRenderables(out)
   {
     if (this.mesh && this._isMeshVisible)
@@ -729,7 +729,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon UpdateVisibility (EveSwarm.cpp:754-770): the base, then each fighter places its own decals. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
@@ -750,7 +750,7 @@ export class EveSwarm extends EveShip2
    * root of the fighter count while swarming, roughly one fighter's share.
    * @returns {number} the estimate
    */
-  @blue.method
+
   @meta.implemented
   EstimatePixelDiameter(frustum)
   {
@@ -765,7 +765,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon UpdateWorldBounds (EveSwarm.cpp:787-795): the squad box's sphere, grown by the model's own radius. */
-  @blue.method
+
   @meta.implemented
   UpdateWorldBounds()
   {
@@ -783,7 +783,7 @@ export class EveSwarm extends EveShip2
    * sphere's RADIUS added on top (the ship sphere's center is discarded).
    * Always returns true. Feeds EveSwarmRenderable.IsCastingShadow's
    * squad-radius-at-the-fighter cull sphere. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
@@ -802,7 +802,7 @@ export class EveSwarm extends EveShip2
    * @param {number} t - Blue ticks
    */
   @meta.implemented
-  @blue.method
+
   UpdateModelCenterWorldPosition(position, t)
   {
     if (this.swarmingEnabled)
@@ -818,7 +818,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon GetModelCenterWorldPosition (EveSwarm.cpp:833-843): the squad box's centre while swarming. */
-  @blue.method
+
   @meta.implemented
   GetModelCenterWorldPosition(out)
   {
@@ -841,7 +841,7 @@ export class EveSwarm extends EveShip2
    * @param {vec3} max - receives the box maximum
    * @returns {boolean} true
    */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(min, max)
   {
@@ -880,7 +880,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon Initialize (EveSwarm.cpp:883-891): the base, then the persisted count of fighters is created. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -893,7 +893,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon OnModified (EveSwarm.cpp:897-906): the base, then debugShowForces resizes the force record. */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -1055,7 +1055,7 @@ export class EveSwarm extends EveShip2
    * @param {boolean} enable
    */
   @meta.implemented
-  @blue.method
+
   EnableSwarmForceDebug(enable)
   {
     this._debugInfo.length = 0;
@@ -1077,7 +1077,7 @@ export class EveSwarm extends EveShip2
    * invisible aggregate hull. Row-vector renderableWorld * invWorld maps to
    * gl multiply(out, inverseWorldTransform, renderableWorld).
    */
-  @blue.method
+
   @meta.implemented
   GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
   {
@@ -1106,7 +1106,7 @@ export class EveSwarm extends EveShip2
    * @param {vec3} out - receives the position
    * @returns {boolean} whether a locator was found
    */
-  @blue.method
+
   @meta.adapted
   GetDamageLocatorPosition(index, inWorldSpace, out = vec3.create())
   {
@@ -1158,7 +1158,7 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} out
    */
   @meta.adapted
-  @blue.method
+
   CalculateForces(i0, swarmers, followPosition, centerOfMass, alignment, formationDirection, formationSide, timeSeconds, out)
   {
     // vec3_0 is wander, vec3_1 cohesion, vec3_2 anchor, vec3_3 align, vec3_4 decelerate, vec3_5 separation,
@@ -1233,7 +1233,7 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} out
    */
   @meta.adapted
-  @blue.method
+
   Calculate_Cohesion(p0, p1, out)
   {
     return vec3.subtract(out, p1, p0);
@@ -1247,7 +1247,7 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} out
    */
   @meta.adapted
-  @blue.method
+
   Calculate_Separation(p0, p1, out)
   {
     vec3.subtract(out, p0, p1);
@@ -1273,7 +1273,7 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} out
    */
   @meta.adapted
-  @blue.method
+
   Calculate_Wander(s, wanderDistance, radius, fluctuation, t, out)
   {
     // Evolve the target point on the 'sphere' around a point wanderDistance in front of our swarmer.

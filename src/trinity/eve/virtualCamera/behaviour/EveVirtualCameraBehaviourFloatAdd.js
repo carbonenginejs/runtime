@@ -45,7 +45,7 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
    * Sets the behaviour name and renames the owned scale curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:119-122
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -58,7 +58,7 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
    * time when one is set, and returned as-is when it is not.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:125-134
    */
-  @blue.method
+
   @meta.implemented
   Update(camera, _current, _deltaTime, localElapsedTime)
   {

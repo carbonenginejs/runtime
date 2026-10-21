@@ -41,21 +41,21 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   isVisible = false;
 
   /** Carbon performs no synchronous work for this leaf. */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(_updateContext)
   {
   }
 
   /** Carbon performs no asynchronous work for this leaf. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Carbon's IEveTransform update is intentionally empty. */
-  @blue.method
+
   @meta.implemented
   Update__UpdateContext(updateContext)
   {
@@ -63,7 +63,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
-  @blue.method
+
   @meta.implemented
   Update(updateContext)
   {
@@ -71,7 +71,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Composes local SRT with the parent and culls the transformed local sphere. */
-  @blue.method
+
   @blue.contextual(["camera"])
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
@@ -95,7 +95,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -104,7 +104,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
 
   /** Appends this renderable only when the last cull passed. */
   @meta.implemented
-  @blue.method
+
   GetRenderables__Impostors(renderables, _impostors)
   {
     if (this.isVisible)
@@ -115,7 +115,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Copies Carbon's local-space bound. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -127,7 +127,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
    * Carbon EveCurveLineSet::GetPerObjectData (cpp:106-125): the same standard
    * pair as EveLineSet, each with a transposed WorldMat.
    */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {
@@ -140,7 +140,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Carbon always reports the high LOD for this UI renderable. */
-  @blue.method
+
   @meta.implemented
   GetLODLevel()
   {
@@ -148,21 +148,21 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Carbon provides no model-center update for this object. */
-  @blue.method
+
   @meta.implemented
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
 
   /** Carbon provides no model-center result for this object. */
-  @blue.method
+
   @meta.implemented
   GetModelCenterWorldPosition(_position)
   {
   }
 
   /** Carbon provides no local box for this object. */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(_minBounds, _maxBounds)
   {
@@ -170,7 +170,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   }
 
   /** Carbon's IEveTransform implementation deliberately returns identity. */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out = mat4.create())
   {

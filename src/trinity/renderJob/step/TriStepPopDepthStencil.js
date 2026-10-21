@@ -16,7 +16,7 @@ export class TriStepPopDepthStencil extends TriRenderStep
    * Pops the depth-stencil pushed earlier in the job; popping more than was
    * pushed trips the job's stack guard.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

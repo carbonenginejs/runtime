@@ -34,7 +34,7 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
    * Restarts the burst timer; the placement pool is not sorted or otherwise used
    * by this spawner.
    */
-  @blue.method
+
   @meta.implemented
   Reset(_placements)
   {
@@ -45,7 +45,7 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
    * Rearms the spawner by clearing the timer, allowing the one-shot burst to
    * fire again.
    */
-  @blue.method
+
   @meta.implemented
   Restart()
   {
@@ -57,7 +57,7 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
    * currently free placements plus the extra per-burst triggers in one go, and
    * disarms itself until restarted.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {

@@ -105,7 +105,7 @@ export class FollowASpline
   _returnForces = [];
 
   /** Carbon FollowASpline::GetProcessPriority (cpp:32-35). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -113,7 +113,7 @@ export class FollowASpline
   }
 
   /** Carbon FollowASpline::OnModified (cpp:26-30). */
-  @blue.method
+
   @meta.implemented
   OnModified(_value = null)
   {
@@ -128,7 +128,7 @@ export class FollowASpline
    * UpdateTunnelRegistry callback with debug colour 0xff5555aa. One body
    * here; the duplication is the donor's, not three behaviours.
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key, _key2, value, theList)
   {
@@ -151,7 +151,7 @@ export class FollowASpline
    * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
    * value means 'has scratch'.
    */
-  @blue.method
+
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -163,7 +163,7 @@ export class FollowASpline
    *
    * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
    */
-  @blue.method
+
   @meta.adapted
   InitializeScratch()
   {
@@ -188,7 +188,7 @@ export class FollowASpline
    * Adapted: Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop
    * allocation-free.
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
@@ -343,7 +343,7 @@ export class FollowASpline
   /**
    * Prepends the system-wide tunnels to the private tunnel list and reassigns every tunnel a sequential identifier.
    */
-  @blue.method
+
   _ReassignTunnelIDsAndAddSystemTunnels(system)
   {
     const tunnels = system.GetTunnels();
@@ -381,7 +381,7 @@ export class FollowASpline
   /**
    * Tests an unassigned agent against each tunnel's entrance sphere, locking it to a tunnel once inside the point-of-no-return radius and otherwise building a pull force as it nears.
    */
-  @blue.method
+
   _ProcessTunnelEntrances(agent, tunnels, data)
   {
     // not associated with a tunnel
@@ -428,7 +428,7 @@ export class FollowASpline
   /**
    * Steers a locked agent toward its current spline point, blending toward the next for smooth cornering, and advances or releases the lock as it arrives or drifts away.
    */
-  @blue.method
+
   _ProcessAssignedTunnel(agent, tunnels, group, data)
   {
     if (data.tunnelLock > tunnels.length)
@@ -543,7 +543,7 @@ export class FollowASpline
   /**
    * Locks every agent to the same tunnel and tunnel point while the group's formation behaviour is active, so the group advances as a unit.
    */
-  @blue.method
+
   _CheckForAndUpdateFormation(agents, group, scratchData, tunnel, tunnelPoint)
   {
     // Carbon dynamic_cast<Formation*>( group.GetBehaviorByName( "Formation" ) ) (FollowASpline.cpp:297-304).
@@ -569,7 +569,7 @@ export class FollowASpline
    * Carbon FollowASpline::GetDebugOptions (cpp:372-375).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -585,7 +585,7 @@ export class FollowASpline
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation Places the target points in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {

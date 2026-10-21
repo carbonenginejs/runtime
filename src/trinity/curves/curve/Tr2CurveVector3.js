@@ -70,7 +70,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -84,7 +84,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    *
    * @returns {number} Longest scalar component length.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {
@@ -150,7 +150,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -182,7 +182,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -196,7 +196,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -210,7 +210,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+
   @meta.noop
   InterpolatedPosition(_time, out)
   {

@@ -57,7 +57,7 @@ export class Tr2PyValueBinding extends INotify
    * Native private helper; deliberately does not expose IInitialize.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -74,7 +74,7 @@ export class Tr2PyValueBinding extends INotify
    * @param {string|null} [_value=null] Changed member name.
    * @returns {boolean} True after revalidation.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(_value = null)
   {
@@ -88,7 +88,7 @@ export class Tr2PyValueBinding extends INotify
    * Adapted: Copies JavaScript object attributes in place of Carbon's Python C-API get/set calls.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   CopyValue()
   {

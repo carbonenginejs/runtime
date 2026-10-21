@@ -17,7 +17,7 @@ export class IEveShadowFrustum
    * @param {vec4} _boundingSphere
    * @returns {boolean}
    */
-  @blue.abstract
+  @meta.abstract
   IsVisible(_camera, _boundingSphere) {}
 
   /**
@@ -25,14 +25,14 @@ export class IEveShadowFrustum
    * @param {vec4} _boundingSphere
    * @returns {number}
    */
-  @blue.abstract
+  @meta.abstract
   GetSizeInShadow(_boundingSphere) {}
 
   /**
    * Carbon's `const Vector3& GetEyePos() const`.
    * @returns {vec3}
    */
-  @blue.abstract
+  @meta.abstract
   GetEyePos() {}
 
   /**
@@ -41,7 +41,7 @@ export class IEveShadowFrustum
    * @param {sph3} _sphere
    * @returns {number} A TriFrustumTestResult value.
    */
-  @blue.abstract
+  @meta.abstract
   SphereTest(_camera, _sphere) {}
 
 }

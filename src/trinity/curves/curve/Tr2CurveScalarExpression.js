@@ -109,7 +109,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Adapted: uses the existing JavaScript expression program.
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -125,7 +125,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Updates the cached scalar value.
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -135,7 +135,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Updates and returns the scalar value.
    */
-  @blue.method
+
   @meta.implemented
   Update(time)
   {
@@ -156,7 +156,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Scales expression time.
    */
-  @blue.method
+
   @meta.implemented
   ScaleTime(scale)
   {
@@ -199,7 +199,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets the authored expression.
    */
-  @blue.method
+
   @meta.implemented
   GetExpression()
   {
@@ -213,7 +213,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetExpression(expression)
   {
@@ -232,7 +232,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets this curve's random constant.
    */
-  @blue.method
+
   @meta.implemented
   GetRandomConstant()
   {
@@ -245,7 +245,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @param {number} index Input index.
    * @returns {number}
    */
-  @blue.method
+
   @meta.implemented
   GetInputValue(index)
   {

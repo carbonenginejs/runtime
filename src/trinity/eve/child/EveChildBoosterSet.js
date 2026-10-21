@@ -314,7 +314,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * derives what Add derives from them: the flares, the bounding sphere and
    * the max size.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -361,7 +361,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Carbon OnPrepareResources (cpp:267-286): the box's one-position vertex declaration. */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -370,7 +370,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Carbon ReleaseResources (cpp:258-261): forget the declaration. */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -399,7 +399,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -418,7 +418,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Collects this booster's glow and halo settings for flare creation. */
-  @blue.method
+
   _GetFlareParams()
   {
     return {
@@ -478,7 +478,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Adapted: Ring-buffer AdvanceFrame/UploadTransforms are the AL backend's; the CPU packs the rows and the offset
    * stays INVALID (Carbon's own no-draw state) until a ring buffer is installed.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(_updateContext = null, params = null)
   {
@@ -548,7 +548,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Clears every booster, the glows and the bounds (Carbon cpp:142-157). */
-  @blue.method
+
   @meta.implemented
   Clear()
   {
@@ -569,7 +569,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * glow set exists, and bounds/max-size growth. SetLightData and SetGlow
    * must run before Add - SOF respects that order.
    */
-  @blue.method
+
   @meta.implemented
   Add(localMatrix, atlasIndex0, atlasIndex1, lightScale = 1)
   {
@@ -628,7 +628,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the point-light description in one call (Carbon cpp:222-231). */
-  @blue.method
+
   @meta.implemented
   SetLightData(offset, flickerAmplitude, flickerFrequency, radius, color, warpRadius, warpColor)
   {
@@ -642,7 +642,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the near and far booster effects (Carbon cpp:237-241). */
-  @blue.method
+
   @meta.implemented
   SetEffect(effect, effectFar)
   {
@@ -651,7 +651,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the glow sprite set (Carbon cpp:247-250). */
-  @blue.method
+
   @meta.implemented
   SetGlow(glow)
   {
@@ -659,7 +659,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the controller name observed for the thrust value (Carbon cpp:396-399). */
-  @blue.method
+
   @meta.implemented
   SetDriveName(driveName)
   {
@@ -671,7 +671,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * from the async update, not the passed one - booster LOD from twice the
    * padded sphere's pixel size, plus the glow set's own visibility pass.
    */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform = null, _parentLod = 0)
   {
@@ -701,7 +701,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Adds this set as a renderable when displayed, lit and visible (Carbon cpp:330-343). */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -718,7 +718,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * helper, then - unlike EveBoosterSet2 - the radius multiplies by the
    * parent scale. False before the first async update.
    */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(sphere = vec4.create(), _query = 0)
   {
@@ -729,7 +729,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Forwards quad registration to the glow set (Carbon cpp:368-374). */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -740,7 +740,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Forwards glow quads when visible and past flare LOD (Carbon cpp:383-394). */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
@@ -756,7 +756,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * first update, a usable radius and positive thrust; radii pre-multiplied
    * by the parent scale - EveBoosterSet2 deliberately does NOT.
    */
-  @blue.method
+
   @meta.implemented
   GetLights(lightManager)
   {
@@ -780,7 +780,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Thrust from the observed drive controller, warp from WarpState (Carbon cpp:442-452). */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -795,7 +795,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** The booster pass is additive-only (Carbon cpp:458-461). */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -803,7 +803,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Fixed additive sort value (Carbon cpp:522-525). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -814,7 +814,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Carbon EveChildBoosterSet::GetDebugOptions (cpp:565-568).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -829,7 +829,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * set's debug info under the parent transform with no bones.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -873,7 +873,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Adapted: The procedural box vertex buffer and quad-list index buffer are not ported yet; the batch carries the
    * material, per-object data, vertex declaration, draw arguments and the shared buffer name.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData = null)
   {
@@ -904,7 +904,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Adapted: Carbon's struct fill becomes the registered EveChildBoosterSet RawData layouts; the instanceOffset lane
    * carries the AL ring offset when one is installed.
    */
-  @blue.method
+
   @meta.adapted
   GetPerObjectData(accumulator = null)
   {

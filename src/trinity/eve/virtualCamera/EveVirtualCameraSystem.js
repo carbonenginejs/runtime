@@ -55,7 +55,7 @@ export class EveVirtualCameraSystem
    * Reports the system ready; the port has no device state to acquire, so this
    * always succeeds.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -77,7 +77,7 @@ export class EveVirtualCameraSystem
    * Registers a camera for updating and name lookup, refusing the external
    * camera and duplicates; returns whether it was added.
    */
-  @blue.method
+
   @meta.implemented
   AddCamera(camera)
   {
@@ -165,7 +165,7 @@ export class EveVirtualCameraSystem
    * timestamps before mutation: native Be::Time cannot carry NaN or infinity.
    * @throws {TypeError} If simTime is not a finite number.
    */
-  @blue.method
+
   @meta.adapted
   Update(simTime)
   {
@@ -196,7 +196,7 @@ export class EveVirtualCameraSystem
    * running transition, makes the camera the main one and registers it.
    * @param {EveVirtualCamera} camera
    */
-  @blue.method
+
   @meta.implemented
   SetMainCamera(camera)
   {
@@ -213,7 +213,7 @@ export class EveVirtualCameraSystem
    * @param {EveVirtualCameraTransitionBase} transition
    */
   @meta.implemented
-  @blue.method
+
   SetMainCamera__Transition(camera, transition)
   {
     const current = this.GetMainCamera();

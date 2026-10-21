@@ -688,7 +688,7 @@ export class EveChildInheritProperties
    * property order; a nullish set is ignored, and the set must hold at least as
    * many entries as there are properties.
    */
-  @blue.method
+
   @meta.implemented
   SetProperties(colorSet)
   {
@@ -704,7 +704,7 @@ export class EveChildInheritProperties
    * are this object's live storage, not copies, so writes through it change the
    * inherited colours.
    */
-  @blue.method
+
   @meta.implemented
   GetProperties()
   {

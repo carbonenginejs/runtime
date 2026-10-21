@@ -89,7 +89,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::OnModified (cpp:23-26) is an
    * intentional no-op notify. */
-  @blue.method
+
   @meta.implemented
   OnModified(_value = null)
   {
@@ -99,7 +99,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodCycling::OnListModified (cpp:28-34): a
    * non-loading change to the parameter list reselects.
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
@@ -111,7 +111,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::IsSelectedChildModified
    * (cpp:62-65). */
-  @blue.method
+
   @meta.implemented
   IsSelectedChildModified()
   {
@@ -122,7 +122,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @blue.method
+
   @meta.implemented
   GetSelectedChild()
   {
@@ -150,7 +150,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * reselect when no valid index exists or the current parameter's play
    * duration has elapsed on the frame clock: TimeAsFloat of
    * BeOS->GetCurrentFrameTime() less the start (cpp:100). */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -173,7 +173,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:108-111). */
-  @blue.method
+
   @meta.implemented
   GetDebugVolumes()
   {

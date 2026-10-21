@@ -38,7 +38,7 @@ export class TriStepRunJob extends TriRenderStep
    * step result, so a nested job that is still in progress leaves the owning job
    * in progress too and resumes at this same step next frame.
    */
-  @blue.method
+
   @meta.implemented
   Execute(realTime, simTime, renderContext)
   {

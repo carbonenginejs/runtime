@@ -38,7 +38,7 @@ export class EveProceduralMethodRandomParameter
 
   /** Carbon EveProceduralMethodRandomParameter::Initialize (cpp:26-33):
    * lazily create the child ref. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -55,7 +55,7 @@ export class EveProceduralMethodRandomParameter
    * assignment blocks its auto-load. The value argument follows the repo's
    * OnModified duck.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -77,7 +77,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method GetName (cpp:16-19). */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -85,7 +85,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method SetName (cpp:21-24). */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -93,7 +93,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method SetModified (cpp:54-57). */
-  @blue.method
+
   @meta.implemented
   SetModified(isModified)
   {
@@ -101,7 +101,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method IsModified (cpp:59-62). */
-  @blue.method
+
   @meta.implemented
   IsModified()
   {
@@ -109,7 +109,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method GetWeighting (cpp:64-67). */
-  @blue.method
+
   @meta.implemented
   GetWeighting()
   {
@@ -117,7 +117,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method GetChild (cpp:69-72). */
-  @blue.method
+
   @meta.implemented
   GetChild()
   {
@@ -126,7 +126,7 @@ export class EveProceduralMethodRandomParameter
 
   /** Carbon EveProceduralMethodRandomParameter::Load (cpp:74-80): one-line
    * bypass-blocker reload delegate. */
-  @blue.method
+
   @meta.implemented
   Load()
   {

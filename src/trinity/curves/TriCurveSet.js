@@ -132,7 +132,7 @@ export class TriCurveSet extends IInitialize
    * @param {number} newTime New simulation time in Blue ticks.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
@@ -215,7 +215,7 @@ export class TriCurveSet extends IInitialize
    * @param {number} time Scaled sample time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   ApplyTime(time)
   {
@@ -228,7 +228,7 @@ export class TriCurveSet extends IInitialize
    * Adapted: repeated reader/copy initialization acquires at most one OS subscription; Dispose releases that owner because JavaScript has no deterministic destructor. The current OS retains listeners but does not dispatch rebases.
    * @returns {boolean} True after playback initialization.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -262,7 +262,7 @@ export class TriCurveSet extends IInitialize
    * @param {string} name Authored range name.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   PlayTimeRange(name)
   {
@@ -356,7 +356,7 @@ export class TriCurveSet extends IInitialize
    * Gets the time scale.
    * @returns {number} Authored time multiplier.
    */
-  @blue.method
+
   @meta.implemented
   GetTimeScale()
   {
@@ -367,7 +367,7 @@ export class TriCurveSet extends IInitialize
    * Gets the current scaled time.
    * @returns {number} Current sample time in seconds.
    */
-  @blue.method
+
   @meta.implemented
   GetScaledTime()
   {
@@ -379,7 +379,7 @@ export class TriCurveSet extends IInitialize
    * @param {string} name Authored curve-set name.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -390,7 +390,7 @@ export class TriCurveSet extends IInitialize
    * Gets the authored curve-set name.
    * @returns {string} Authored curve-set name.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -401,7 +401,7 @@ export class TriCurveSet extends IInitialize
    * Gets the number of curves.
    * @returns {number} Number of stored functions.
    */
-  @blue.method
+
   @meta.implemented
   GetCurvesCount()
   {
@@ -413,7 +413,7 @@ export class TriCurveSet extends IInitialize
    * @param {number} index Stored function index.
    * @returns {ITriFunction} Stored function.
    */
-  @blue.method
+
   @meta.implemented
   GetCurve(index)
   {
@@ -425,7 +425,7 @@ export class TriCurveSet extends IInitialize
    * @param {ITriFunction} curve Function to append.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   AddCurve(curve)
   {
@@ -436,7 +436,7 @@ export class TriCurveSet extends IInitialize
    * Gets the number of bindings.
    * @returns {number} Number of stored bindings.
    */
-  @blue.method
+
   @meta.implemented
   GetBindingsCount()
   {
@@ -448,7 +448,7 @@ export class TriCurveSet extends IInitialize
    * @param {number} index Stored binding index.
    * @returns {ITr2ValueBinding} Stored binding.
    */
-  @blue.method
+
   @meta.implemented
   GetBinding(index)
   {
@@ -460,7 +460,7 @@ export class TriCurveSet extends IInitialize
    * @param {ITr2ValueBinding} binding Binding to append.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   AddBinding(binding)
   {
@@ -495,7 +495,7 @@ export class TriCurveSet extends IInitialize
    * @param {string} rangeName Authored interval name.
    * @returns {number} End minus start, or zero when absent.
    */
-  @blue.method
+
   @meta.implemented
   GetRangeDuration(rangeName)
   {
@@ -507,7 +507,7 @@ export class TriCurveSet extends IInitialize
    * Gets whether playback is active.
    * @returns {boolean} Whether playback is active.
    */
-  @blue.method
+
   @meta.implemented
   IsPlaying()
   {

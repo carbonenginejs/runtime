@@ -116,7 +116,7 @@ export class TriStepRenderDebug extends TriRenderStep
    * frame. Not ported: Carbon draws through its debug resource helper and
    * fonts (TriStepRenderDebug.cpp:57-64).
    */
-  @blue.method
+
   @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {

@@ -377,7 +377,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Carbon SetBone (Tr2BoneMatrixCurve.cpp:51-55): the bone name, and the joint caches reset. */
-  @blue.method
+
   @meta.implemented
   SetBone(bone)
   {
@@ -388,7 +388,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   /**
    * Gets the source bone name.
    */
-  @blue.method
+
   @meta.implemented
   GetBone()
   {

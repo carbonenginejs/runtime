@@ -65,7 +65,7 @@ export class EveSpotlightSetItem
    * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
    * box3.
    */
-  @blue.method
+
   @meta.adapted
   GetBounds(out)
   {
@@ -73,7 +73,7 @@ export class EveSpotlightSetItem
   }
 
   /** The parent bone this spotlight rides. */
-  @blue.method
+
   @meta.implemented
   GetBoneIndex()
   {

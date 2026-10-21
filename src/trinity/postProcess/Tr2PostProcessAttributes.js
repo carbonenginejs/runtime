@@ -1080,7 +1080,7 @@ export class Tr2PostProcessAttributes
    * deliberately re-enables the colour-correction attributes so entering a
    * volume does not interpolate white balance and grading up from zero.
    */
-  @blue.method
+
   @meta.implemented
   Reset()
   {
@@ -1113,7 +1113,7 @@ export class Tr2PostProcessAttributes
    * @param {number} priority the priority band this volume competes in
    * @param {number} intensity this volume's weight within its band
    */
-  @blue.method
+
   @meta.adapted
   FromPostProcess(postProcess, priority, intensity)
   {
@@ -1596,7 +1596,7 @@ export class Tr2PostProcessAttributes
    * @param {Array} sources attribute sets ordered by priority, as Accumulate requires
    * @returns {object} the same post-process instance that was passed in
    */
-  @blue.method
+
   @meta.adapted
   static MergeInto(postProcess, sources, debugObserver = null)
   {

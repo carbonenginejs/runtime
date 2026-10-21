@@ -64,7 +64,8 @@ export class TriStepRenderFps extends TriRenderStep
    * debug renderer; both are host concerns, so the sample and time are supplied and the text
    * is the caller's.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   Sample(framesPerSecond, nowSeconds)
   {
     this.#fpsValuesCount += 1;
@@ -86,7 +87,8 @@ export class TriStepRenderFps extends TriRenderStep
    * The text colour for the current average: green above sixty, orange down to
    * thirty, red below that.
    */
-  @meta.implemented
+  @meta.cjs
+    @meta.implemented
   GetTextColor()
   {
     if (this.averageFPS > 59.9) return TriStepRenderFps.Color.GOOD;
@@ -98,7 +100,8 @@ export class TriStepRenderFps extends TriRenderStep
    * The screen rectangle the text occupies within a viewport, inset by the
    * configured display offsets.
    */
-  @meta.implemented
+  @meta.cjs
+    @meta.implemented
   GetDisplayRect(viewport, out = {})
   {
     const x = viewport?.x ?? 0;

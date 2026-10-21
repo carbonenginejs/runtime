@@ -37,7 +37,7 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   /**
    * Installs the bound debug renderer on the render context.
    */
-  @blue.method
+
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

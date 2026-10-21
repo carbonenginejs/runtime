@@ -149,7 +149,8 @@ export class EveBoosterSet2Renderable
    * Binds this instance to the booster set whose booster records, colours
    * and light data it draws.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   SetBoosterSet(boosterSet)
   {
     this._boosterSet = boosterSet ?? null;
@@ -161,7 +162,7 @@ export class EveBoosterSet2Renderable
    * previous frame and the result clamped to 2; an always-on set returns its
    * authored intensity instead.
    */
-  @blue.method
+
   @meta.implemented
   CalculateIntensity(acceleration)
   {
@@ -194,7 +195,7 @@ export class EveBoosterSet2Renderable
    * speed from the transform delta when the set is not destiny-driven - and
    * recomputes the overall intensity, which it returns.
    */
-  @blue.method
+
   @meta.implemented
   Update(deltaTime, _time, parentMatrix, parentSpeed, parentAcceleration, parentRotation)
   {
@@ -229,7 +230,7 @@ export class EveBoosterSet2Renderable
    * maximum, with nothing drawn outside that band; an always-on set is pinned to
    * full intensity.
    */
-  @blue.method
+
   @meta.adapted
   UpdateTrails(deltaTime, _time = 0)
   {
@@ -281,7 +282,8 @@ export class EveBoosterSet2Renderable
    * their normalized segment lengths, control normals carrying their length
    * factors, plus total length, intensity and world bounds.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetTrailSplineData()
   {
     return {
@@ -305,7 +307,7 @@ export class EveBoosterSet2Renderable
   }
 
   /** The overall booster intensity computed by the last Update. */
-  @blue.method
+
   @meta.implemented
   GetIntensity()
   {
@@ -314,7 +316,7 @@ export class EveBoosterSet2Renderable
 
   /** Carbon EveBoosterSet2Renderable::HasTransparentBatches is always false
    * (additive batches only, via the instanced geometry provider). */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -322,7 +324,7 @@ export class EveBoosterSet2Renderable
   }
 
   /** Carbon EveBoosterSet2Renderable::GetSortValue is the constant one. */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -335,7 +337,7 @@ export class EveBoosterSet2Renderable
    * stream 0, its instance buffer on stream 1, the shared quad-list index
    * buffer, 3 * 2 * planes indices per booster instance.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -407,7 +409,7 @@ export class EveBoosterSet2Renderable
    * `Transpose(m_parentTransform)`; both 5-slot trail arrays are fully
    * written, exactly as Carbon's loop. The padding scalars are never written
    * (Carbon leaves them uninitialized). */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {
@@ -453,7 +455,7 @@ export class EveBoosterSet2Renderable
    * The sphere is passed as a packed vec4, which is Carbon's `Vector4*` overload
    * and therefore the DEPTH pixel-size formula, not the Est one.
    * No lodFactor is applied anywhere here; Carbon does not apply one either. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext)
   {
@@ -502,7 +504,7 @@ export class EveBoosterSet2Renderable
 
   /** Carbon EveBoosterSet2Renderable::GetRenderables (cpp:349-356): submits
    * itself only when UpdateVisibility left it visible. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(out = [])
   {
@@ -522,7 +524,8 @@ export class EveBoosterSet2Renderable
    * Adapted: Exposes the stored parent transform through an accessor where Carbon reads the
    * member directly.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetParentTransform()
   {
     return this._parentTransform;
@@ -536,7 +539,7 @@ export class EveBoosterSet2Renderable
    *
    * `out` is required, as in Carbon (`Vector4&`) - this is called per frame and
    * must not allocate. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out)
   {
@@ -559,7 +562,7 @@ export class EveBoosterSet2Renderable
    * offsets rotated into parent space - then recomputes the spline metrics;
    * returns false for a non-positive delta.
    */
-  @blue.method
+
   CalculateSplineData(deltaTime)
   {
     const elapsed = Number(deltaTime);

@@ -31,7 +31,7 @@ export class TriStepPopRenderTarget extends TriRenderStep
    * Pops the recorded slot; the matching push must occur earlier in the same job
    * or the job's stack guard reports an underflow.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

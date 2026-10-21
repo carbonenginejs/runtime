@@ -81,7 +81,7 @@ export class SplineTunnelGroup
   _creatingTunnels = false;
 
   /** Carbon SplineTunnelGroup::GetTunnelGroupType (cpp:24-27). */
-  @blue.method
+
   @meta.implemented
   GetTunnelGroupType()
   {
@@ -95,7 +95,7 @@ export class SplineTunnelGroup
    * @param {Function} callback
    * @param {Number} color - debug color (retained for parity; debug rendering is omitted)
    */
-  @blue.method
+
   @meta.implemented
   SetSystemTunnelFunctionReferenceAndColor(callback, color = 0xffffff00)
   {
@@ -164,7 +164,7 @@ export class SplineTunnelGroup
   }
 
   /** Carbon SplineTunnelGroup::OnListModified. */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = null)
   {
@@ -182,7 +182,7 @@ export class SplineTunnelGroup
    * Adapted: builds them on first access when curves are present, since the JS load path raises no curve-set list
    * notify to trigger the first CreateSplineTunnels.
    */
-  @blue.method
+
   @meta.adapted
   GetTunnels()
   {
@@ -194,7 +194,7 @@ export class SplineTunnelGroup
   }
 
   /** Carbon SplineTunnelGroup::GetCurveSets (cpp:86-89). */
-  @blue.method
+
   @meta.implemented
   GetCurveSets()
   {
@@ -202,7 +202,7 @@ export class SplineTunnelGroup
   }
 
   /** Carbon SplineTunnelGroup::SetNumBreakPoints (cpp:91-94). */
-  @blue.method
+
   @meta.implemented
   SetNumBreakPoints(value)
   {
@@ -210,7 +210,7 @@ export class SplineTunnelGroup
   }
 
   /** Carbon SplineTunnelGroup::GetNumBreakPoints (cpp:96-99). */
-  @blue.method
+
   @meta.implemented
   GetNumBreakPoints()
   {
@@ -218,7 +218,7 @@ export class SplineTunnelGroup
   }
 
   /** Carbon SplineTunnelGroup::Initialize (cpp:104-107). */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -228,7 +228,7 @@ export class SplineTunnelGroup
 
   /** Carbon SplineTunnelGroup::OnModified (cpp:112-117): any property change
    * rebuilds the tunnels. */
-  @blue.method
+
   @meta.implemented
   OnModified(_value = null)
   {
@@ -240,7 +240,7 @@ export class SplineTunnelGroup
    * Carbon SplineTunnelGroup::GetDebugOptions (cpp:143-146).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -255,7 +255,7 @@ export class SplineTunnelGroup
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} parentWorldLocation Places the tunnel geometry in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentWorldLocation)
   {

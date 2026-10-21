@@ -259,7 +259,7 @@ export class AudManager
   // The deferred-event flush: waiting events fire with bypassPrefix=true
   // exactly on the transition to LOADED, then the queue clears.
   /** Carbon method UpdateSoundBankStatus. */
-  @blue.method
+
   @meta.implemented
   UpdateSoundBankStatus(bankID, status)
   {
@@ -280,7 +280,7 @@ export class AudManager
   }
 
   /** Carbon method RegisterEventAfterSoundBankLoad: queue an event on a LOADING bank (matched by name). */
-  @blue.method
+
   @meta.implemented
   RegisterEventAfterSoundBankLoad(soundBankName, eventName, emitter)
   {
@@ -294,7 +294,7 @@ export class AudManager
   }
 
   /** Carbon method GetSoundBankStatus: by name or key; "not_loaded" when unknown. */
-  @blue.method
+
   @meta.implemented
   GetSoundBankStatus(name)
   {
@@ -361,7 +361,7 @@ export class AudManager
   }
 
   /** Carbon method LogPostEvent. */
-  @blue.method
+
   @meta.implemented
   LogPostEvent(emitterID, playID, eventID, name)
   {
@@ -372,7 +372,7 @@ export class AudManager
   }
 
   /** Carbon method LogExecuteActionOnPlayingID. */
-  @blue.method
+
   @meta.implemented
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
@@ -383,7 +383,7 @@ export class AudManager
   }
 
   /** Carbon method LogSetSwitch. */
-  @blue.method
+
   @meta.implemented
   LogSetSwitch(emitterID, group, state)
   {
@@ -394,7 +394,7 @@ export class AudManager
   }
 
   /** Carbon method LogSetState. */
-  @blue.method
+
   @meta.implemented
   LogSetState(group, state)
   {
@@ -405,7 +405,7 @@ export class AudManager
   }
 
   /** Carbon method LogSetRTPC. */
-  @blue.method
+
   @meta.implemented
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
@@ -416,7 +416,7 @@ export class AudManager
   }
 
   /** Carbon method GetSpatialAudioGeometryEnabled. */
-  @blue.method
+
   @meta.implemented
   GetSpatialAudioGeometryEnabled()
   {
@@ -463,7 +463,7 @@ export class AudManager
   }
 
   /** Carbon Blue property getter for game-driven obstruction/occlusion. */
-  @blue.method
+
   @meta.implemented
   GetObstructionOcclusionEnabled()
   {
@@ -471,7 +471,7 @@ export class AudManager
   }
 
   /** Carbon Blue property setter for game-driven obstruction/occlusion. */
-  @blue.method
+
   @meta.implemented
   SetObstructionOcclusionEnabled(value)
   {
@@ -479,7 +479,7 @@ export class AudManager
   }
 
   /** Carbon Blue property getter for the obstruction/occlusion fade rate. */
-  @blue.method
+
   @meta.implemented
   GetObstructionOcclusionFadeRate()
   {
@@ -487,7 +487,7 @@ export class AudManager
   }
 
   /** Carbon Blue property setter for the obstruction/occlusion fade rate. */
-  @blue.method
+
   @meta.implemented
   SetObstructionOcclusionFadeRate(value)
   {
@@ -500,7 +500,7 @@ export class AudManager
    * Adapted: Browser backends may expose InitSpatialAudioGeometry; the setting and geometry lifecycle remain
    * available even though WebAudio has no native diffraction engine.
    */
-  @blue.method
+
   @meta.adapted
   SetSpatialAudioGeometryEnabled(enabled)
   {
@@ -970,7 +970,7 @@ export class AudManager
   }
 
   /** Carbon method RegisterGameObject: callback map + prioritization registration. */
-  @blue.method
+
   @meta.implemented
   RegisterGameObject(gameObjID, gameObject)
   {
@@ -991,7 +991,7 @@ export class AudManager
    * Adapted: Carbon keeps deferred emitters alive through strong pointers; CarbonEngineJS explicit release must
    * prevent a stale post after re-adoption.
    */
-  @blue.method
+
   @meta.adapted
   UnregisterGameObject(gameObjID)
   {
@@ -1006,7 +1006,7 @@ export class AudManager
   }
 
   /** Carbon method RemoveCallbackGameObject. */
-  @blue.method
+
   @meta.implemented
   RemoveCallbackGameObject(gameObjID)
   {
@@ -1026,7 +1026,7 @@ export class AudManager
    *
    * Adapted: The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.
    */
-  @blue.method
+
   @meta.adapted
   WithCallbackGameObject(gameObjID, callback)
   {
@@ -1045,7 +1045,7 @@ export class AudManager
    * Adapted: Carbon dereferences a missing emitter in this debug helper; the JavaScript graph returns an empty name
    * when no emitter is registered.
    */
-  @blue.method
+
   @meta.adapted
   GetEventName(emitterID, playingID)
   {
@@ -1054,7 +1054,7 @@ export class AudManager
   }
 
   /** Carbon method GetListener: the fixed-id listener object. */
-  @blue.method
+
   @meta.implemented
   GetListener()
   {
@@ -1062,7 +1062,7 @@ export class AudManager
   }
 
   /** Carbon method RegisterParameter: watcher refcount, entry created at 1. */
-  @blue.method
+
   @meta.implemented
   RegisterParameter(name)
   {
@@ -1076,7 +1076,7 @@ export class AudManager
   }
 
   /** Carbon method UnregisterParameter: erased when watchers hit 0. */
-  @blue.method
+
   @meta.implemented
   UnregisterParameter(name)
   {
@@ -1092,7 +1092,7 @@ export class AudManager
   }
 
   /** Carbon method GetParameterInfo. */
-  @blue.method
+
   @meta.implemented
   GetParameterInfo(name)
   {
@@ -1100,7 +1100,7 @@ export class AudManager
   }
 
   /** Carbon method UpdateMonitoredParameters: refresh every entry from the backend RTPC query. */
-  @blue.method
+
   @meta.implemented
   UpdateMonitoredParameters()
   {
@@ -1113,7 +1113,7 @@ export class AudManager
   }
 
   /** Carbon method GetAudioCullingEnabled. */
-  @blue.method
+
   @meta.implemented
   GetAudioCullingEnabled()
   {
@@ -1122,7 +1122,7 @@ export class AudManager
   }
 
   /** Carbon Blue property getter GetAudioCullingEnabledProperty. */
-  @blue.method
+
   @meta.implemented
   GetAudioCullingEnabledProperty()
   {
@@ -1130,7 +1130,7 @@ export class AudManager
   }
 
   /** Carbon method Process: cull (when enabled+flagged), render, flush the log. */
-  @blue.method
+
   @meta.implemented
   Process()
   {

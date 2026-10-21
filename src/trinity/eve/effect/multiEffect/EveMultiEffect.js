@@ -71,7 +71,7 @@ export class EveMultiEffect
    *
    * Adapted: Carbon's unordered_map is a prototype-free object, and a curve set is its own raw root.
    */
-  @blue.method
+
   @meta.adapted
   GetParameterMap()
   {
@@ -111,7 +111,7 @@ export class EveMultiEffect
    * Carbon Initialize (EveMultiEffect.cpp:69-82): takes ownership of the parameter slots and dynamic bindings, then
    * links the bindings and controllers.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -126,7 +126,7 @@ export class EveMultiEffect
    * controllers lists - assigning or clearing owners, linking or unlinking controllers, unlinking all of them on
    * unload - then a rebind. Each value is cast to its list's type, as Carbon's BlueCastPtr does.
    */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -198,7 +198,7 @@ export class EveMultiEffect
   }
 
   /** First parameter slot with the given name, or null. */
-  @blue.method
+
   @meta.implemented
   GetParameterByName(parameterName)
   {
@@ -212,7 +212,7 @@ export class EveMultiEffect
    *
    * Adapted: Carbon's unordered_map is a JavaScript object or Map, filled Owner first so a slot named Owner wins.
    */
-  @blue.method
+
   @meta.adapted
   GetBindingRoots(out = {})
   {
@@ -228,7 +228,7 @@ export class EveMultiEffect
    * Plays every curve set with the given name, over a named time range when one
    * is given, otherwise from the start with the range reset.
    */
-  @blue.method
+
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -245,7 +245,7 @@ export class EveMultiEffect
   }
 
   /** Stops every curve set with the given name. */
-  @blue.method
+
   @meta.implemented
   StopCurveSet(name)
   {
@@ -260,7 +260,7 @@ export class EveMultiEffect
    * every curve set with the given name to an explicit time on both clocks,
    * bypassing the effect's own update pass.
    */
-  @blue.method
+
   @meta.implemented
   UpdateCurveSet(name, time)
   {
@@ -274,7 +274,7 @@ export class EveMultiEffect
    * Longest duration among the curve sets with the given name, or 0 when there
    * is no such set.
    */
-  @blue.method
+
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -293,7 +293,7 @@ export class EveMultiEffect
    * Longest duration of a named time range among the curve sets with the given
    * name, or 0 when there is no such range.
    */
-  @blue.method
+
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -312,7 +312,7 @@ export class EveMultiEffect
    * Advances the curve sets, controllers and bindings for the frame; the effect
    * has no geometry, so this is its only update phase.
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -326,15 +326,15 @@ export class EveMultiEffect
    * IEveSpaceObject2 asynchronous phase; the effect does all of its work
    * synchronously.
    */
-  @blue.method
+
   @meta.noop
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** IEveSpaceObject2 hook; the effect has nothing of its own to cull. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
@@ -344,13 +344,13 @@ export class EveMultiEffect
    * objects that are collected by their own owners.
    */
   @meta.noop
-  @blue.method
+
   GetRenderables__Impostors(_renderables, _impostors)
   {
   }
 
   /** The effect has no spatial extent, so it never reports a bounding sphere. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
   {
@@ -361,7 +361,7 @@ export class EveMultiEffect
    * IEveSpaceObject2 hook; the effect contributes no per-object values of its
    * own.
    */
-  @blue.method
+
   @meta.noop
   GetPerObjectStructs(_vsData, _psData)
   {
@@ -371,8 +371,8 @@ export class EveMultiEffect
    * IEveSpaceObject2 hook with nothing to advance: a multi-effect has no model
    * centre, so the call is a no-op.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
@@ -381,14 +381,14 @@ export class EveMultiEffect
    * IEveSpaceObject2 hook that leaves the caller position untouched, since a
    * multi-effect has no model centre to report.
    */
-  @blue.method
+
   @meta.noop
   GetModelCenterWorldPosition(_position)
   {
   }
 
   /** The effect has no local geometry, so it never reports a bounding box. */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
@@ -399,7 +399,7 @@ export class EveMultiEffect
    * IEveSpaceObject2 hook; the effect has no placement of its own, so the
    * caller's matrix is left as it was.
    */
-  @blue.method
+
   @meta.noop
   GetLocalToWorldTransform(_transform)
   {
@@ -409,8 +409,8 @@ export class EveMultiEffect
    * IEveSpaceObject2 hook with nothing to register, since a multi-effect owns no
    * quads.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -419,8 +419,8 @@ export class EveMultiEffect
    * IEveSpaceObject2 hook with nothing to submit: a multi-effect contributes no
    * quads for the frustum.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }

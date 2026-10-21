@@ -36,7 +36,7 @@ export class EveChildPartData extends EveSpaceObjectChild
   parts = [];
 
   /** Returns the first monotonically available positive Carbon part tag. */
-  @blue.method
+
   GetUnusedPartID()
   {
     let nextId = 1;

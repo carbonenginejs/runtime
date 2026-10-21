@@ -19,7 +19,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 export class TriStepPopViewTransform extends TriRenderStep
 {
   /** Restores the view transform saved by the matching push step. */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, _renderContext)
   {

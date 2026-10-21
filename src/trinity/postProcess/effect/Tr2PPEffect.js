@@ -18,7 +18,7 @@ export class Tr2PPEffect
   display = true;
 
   /** Carbon Tr2PPEffect::IsActive - the base activity gate. */
-  @blue.method
+
   IsActive()
   {
     return this.display;

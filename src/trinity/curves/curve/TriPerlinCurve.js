@@ -96,7 +96,7 @@ export class TriPerlinCurve extends ITriScalarFunction
   _startOffset = TriPerlinCurve._nextStartOffset();
 
   /** Updates the cached value for the supplied time. */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -107,7 +107,7 @@ export class TriPerlinCurve extends ITriScalarFunction
    * Updates and returns the cached value, skipping the noise evaluation when the
    * time is unchanged since the last call. This is the native double-seconds overload; Update__Ticks is the Be::Time one.
    */
-  @blue.method
+
   @meta.implemented
   Update(time)
   {
@@ -199,7 +199,8 @@ export class TriPerlinCurve extends ITriScalarFunction
    * linear-congruential TriRand state, reproducing its 32-bit integer truncation
    * so offsets match that sequence. The state is shared with other TriRand callers, as in Carbon.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   static _nextStartOffset()
   {
     return carbonRandom.triRandInt(10000000000 | 0);

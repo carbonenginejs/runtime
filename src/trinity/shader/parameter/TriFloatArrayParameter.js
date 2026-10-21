@@ -39,7 +39,7 @@ export class TriFloatArrayParameter extends CjsParameter
   #cachedEffect = null;
 
   /** The shader constant-array name these rows bind to. */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -47,7 +47,7 @@ export class TriFloatArrayParameter extends CjsParameter
   }
 
   /** Content hash: each row's vec4 bytes, then name. */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -59,7 +59,7 @@ export class TriFloatArrayParameter extends CjsParameter
   }
 
   /** Nothing to resolve - the rows are authored data; returns true. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -70,7 +70,7 @@ export class TriFloatArrayParameter extends CjsParameter
    * Re-resolves effect handles against the cached shader after any notified
    * field changes.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(_options = {})
   {
@@ -82,7 +82,7 @@ export class TriFloatArrayParameter extends CjsParameter
    * Caches the shader and records whether it reflects a constant of this name;
    * no GPU handle is bound.
    */
-  @blue.method
+
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {

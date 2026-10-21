@@ -289,7 +289,7 @@ export class Tr2DynamicRingBuffer
    * @param {number} _size Bytes.
    * @returns {number} An `ALResult`.
    */
-  @blue.abstract
+  @meta.abstract
   CreateBuffer(_size) {}
 
   /**

@@ -191,8 +191,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * empty override (EveSmartLightMesh.h:23); the owning EveChildSmartLightSet
    * drives this mesh through UpdateSyncronous__Distribution instead.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -203,7 +203,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * supplies the distribution.
    */
   @meta.implemented
-  @blue.method
+
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
     EveChildMesh.prototype.UpdateSyncronous.call(this, updateContext, params);
@@ -282,8 +282,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Carbon's EveChildMesh overload UpdateAsyncronous( context, params ): an empty override (EveSmartLightMesh.h:24). */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   UpdateAsyncronous(_updateContext, _params)
   {
   }
@@ -293,14 +293,14 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * distribution ) (EveSmartLightMesh.cpp:139): updates the instance-mesh base.
    */
   @meta.implemented
-  @blue.method
+
   UpdateAsyncronous__Distribution(updateContext, params, _distribution)
   {
     return super.UpdateAsyncronous(updateContext, params);
   }
 
   /** Forward to the instance renderer's two-stage visibility pass. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
@@ -308,7 +308,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Forward renderable collection to the instance renderer. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables = [])
   {
@@ -316,7 +316,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Smart groups report the last set-owned distribution count. */
-  @blue.method
+
   @meta.implemented
   GetNumberOfEntities()
   {
@@ -344,7 +344,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Adapted: TriGeometryRes exposes mesh validity through its maintained count contract
    * instead of Carbon's native GetMeshData pointer.
    */
-  @blue.method
+
   @meta.adapted
   SetMeshColorParameter(meshColor)
   {

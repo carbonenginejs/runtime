@@ -89,7 +89,7 @@ export class Tr2InteriorPlaceable
   _loadRequest = 0;
 
   /** Starts the native resource load after persisted fields have been populated. */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -103,7 +103,7 @@ export class Tr2InteriorPlaceable
    * Adapted: changed declaration names replace native member addresses; the path
    * branch retains precedence when a single notification contains both names.
    */
-  @blue.method
+
   @meta.adapted
   OnModified(propertyName)
   {
@@ -134,7 +134,7 @@ export class Tr2InteriorPlaceable
    * are logged and leave the resource empty, matching failed native loads.
    * @returns {Promise<WodPlaceableRes|null>} The current accepted resource.
    */
-  @blue.method
+
   @meta.adapted
   async LoadPlaceableRes()
   {
@@ -166,7 +166,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Returns the authored resource path. */
-  @blue.method
+
   @meta.implemented
   GetPlaceableResPath()
   {
@@ -174,7 +174,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Assigns the path and starts loading, as the native direct setter does. */
-  @blue.method
+
   @meta.adapted
   SetPlaceableResPath(path)
   {
@@ -184,7 +184,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Reports whether the loaded visual model contains transparent areas. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {

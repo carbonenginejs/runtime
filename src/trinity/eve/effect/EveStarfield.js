@@ -116,7 +116,7 @@ export class EveStarfield
   }
 
   /** Initializes device storage when creation is allowed (cpp:98-102). */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -133,7 +133,7 @@ export class EveStarfield
   }
 
   /** Explicit AL destruction replaces native assignment to an empty buffer. */
-  @blue.method
+
   @meta.adapted
   ReleaseResources()
   {
@@ -146,7 +146,7 @@ export class EveStarfield
    * The AL description replaces the C++ stride/count overload. The local
    * TriRand sequence preserves seeded stars without reseeding unrelated JS code.
    */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources()
   {
@@ -173,7 +173,7 @@ export class EveStarfield
   }
 
   /** All notified changes request a regenerated seeded stream (cpp:176-181). */
-  @blue.method
+
   @meta.implemented
   OnModified(_name)
   {
@@ -182,7 +182,7 @@ export class EveStarfield
   }
 
   /** Regenerates dirty storage, retaining the retry flag after failure (cpp:183-193). */
-  @blue.method
+
   @meta.implemented
   Update(_time)
   {
@@ -192,7 +192,7 @@ export class EveStarfield
   }
 
   /** Returns the assigned star material (header:78-81). */
-  @blue.method
+
   @meta.implemented
   GetEffect()
   {
@@ -200,7 +200,7 @@ export class EveStarfield
   }
 
   /** Assigns the material without regenerating vertices (header:83-86). */
-  @blue.method
+
   @meta.implemented
   SetEffect(effect)
   {
@@ -208,7 +208,7 @@ export class EveStarfield
   }
 
   /** Submits the sprite quads through the existing shared index allocation (cpp:62-95). */
-  @blue.method
+
   @meta.adapted
   GetBatches(accumulator, perObjectData)
   {

@@ -137,7 +137,7 @@ export class TriProjection
    * @param {Tr2RenderContext} renderContext The context whose viewport is read.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetProjection__RenderContext(renderContext)
   {
@@ -188,7 +188,7 @@ export class TriProjection
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetProjection()
   {
@@ -222,7 +222,7 @@ export class TriProjection
    * @param {mat4} [out] Caller-owned destination; a new matrix is allocated when omitted.
    * @returns {mat4} The destination matrix.
    */
-  @blue.method
+
   @meta.adapted
   GetMatrixWithoutViewAdjustment(out = mat4.create())
   {
@@ -245,7 +245,7 @@ export class TriProjection
    * Rebuilds the cached transform field from the current parameters, then copies
    * it into out (a fresh matrix when omitted) and returns it.
    */
-  @blue.method
+
   @meta.adapted
   GetTransform(out = mat4.create())
   {

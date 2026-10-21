@@ -53,7 +53,7 @@ export class TriVariableParameter extends CjsParameter
    * The shader constant or resource name the variable's value is uploaded to;
    * distinct from variableName, which names the store entry.
    */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -61,7 +61,7 @@ export class TriVariableParameter extends CjsParameter
   }
 
   /** Content hash: name only - the variable's value comes from the store. */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -72,7 +72,7 @@ export class TriVariableParameter extends CjsParameter
    * Resolves variableName against a store and caches the variable object; an empty variableName clears the binding. Always returns true.
    * @param variableStore store to bind against; null keeps the store supplied by an earlier call
    */
-  @blue.method
+
   @meta.adapted
   Initialize(variableStore = null)
   {
@@ -95,7 +95,7 @@ export class TriVariableParameter extends CjsParameter
    * Consumes the two dirty flags: `variable` re-resolves the store binding,
    * `effectHandles` re-resolves usage against the cached shader.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -115,7 +115,7 @@ export class TriVariableParameter extends CjsParameter
    * variable is a texture or buffer type and as a shader constant otherwise; an
    * unbound variable always counts as unused.
    */
-  @blue.method
+
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -195,7 +195,7 @@ export class TriVariableParameter extends CjsParameter
    * The bound variable's type tag, which decides whether the name binds as a
    * resource or a constant; `invalid` when nothing is bound.
    */
-  @blue.method
+
   @meta.implemented
   GetVariableType()
   {

@@ -34,7 +34,7 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
    * Reports TAA as contributing whenever it is displayed; unlike the other
    * effects it has no intensity or scale to gate on.
    */
-  @blue.method
+
   IsActive()
   {
     return this.display !== false;

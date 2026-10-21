@@ -27,7 +27,7 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   /**
    * Checks whether event track handles are ready.
    */
-  @blue.method
+
   @meta.implemented
   TracksReady()
   {
@@ -37,7 +37,7 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   /**
    * Clears event track handles.
    */
-  @blue.method
+
   @meta.implemented
   ResetTracks()
   {
@@ -49,7 +49,7 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   /**
    * Applies event track handles.
    */
-  @blue.method
+
   @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
@@ -67,7 +67,7 @@ export class Tr2GrannyEventTrack extends Tr2GrannyTrack
   /**
    * Emits resource events when available.
    */
-  @blue.method
+
   @meta.adapted
   UpdateValueImpl(time)
   {

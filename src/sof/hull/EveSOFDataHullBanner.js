@@ -184,7 +184,7 @@ export class EveSOFDataHullBanner
    * Maps the banner usage to its authored width-to-height target, defaulting
    * unknown usages to square.
    */
-  @blue.method
+
   GetTargetAspectRatio()
   {
     const { Usage } = EveSOFDataHullBanner;
@@ -210,7 +210,7 @@ export class EveSOFDataHullBanner
    * Measures the current width-to-height ratio after scaling and horizontal or
    * vertical curvature are applied.
    */
-  @blue.method
+
   GetAspectRatio()
   {
     return EveSOFDataHullBanner.GetBannerAspectRatio({
@@ -223,7 +223,7 @@ export class EveSOFDataHullBanner
   }
 
   /** Reads the authored horizontal curvature angle in degrees. */
-  @blue.method
+
   GetAngleX()
   {
     return this._angleX;
@@ -233,7 +233,7 @@ export class EveSOFDataHullBanner
    * Stores the horizontal curvature angle and adjusts vertical scale when
    * target-ratio preservation is enabled.
    */
-  @blue.method
+
   SetAngleX(angle)
   {
     this._angleX = angle;
@@ -244,7 +244,7 @@ export class EveSOFDataHullBanner
   }
 
   /** Reads the authored vertical curvature angle in degrees. */
-  @blue.method
+
   GetAngleY()
   {
     return this._angleY;
@@ -254,7 +254,7 @@ export class EveSOFDataHullBanner
    * Stores the vertical curvature angle and adjusts horizontal scale when
    * target-ratio preservation is enabled.
    */
-  @blue.method
+
   SetAngleY(angle)
   {
     this._angleY = angle;
@@ -269,7 +269,7 @@ export class EveSOFDataHullBanner
   }
 
   /** Returns a detached copy of the banner's three-axis scale. */
-  @blue.method
+
   GetScaling()
   {
     return vec3.clone(this._scaling);
@@ -279,7 +279,7 @@ export class EveSOFDataHullBanner
    * Copies a new three-axis scale and corrects one axis to preserve the
    * usage-specific target ratio.
    */
-  @blue.method
+
   SetScaling(scaling)
   {
     vec3.copy(this._scaling, scaling);

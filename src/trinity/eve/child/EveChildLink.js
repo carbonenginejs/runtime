@@ -70,7 +70,7 @@ export class EveChildLink extends EveChildMesh
    * Adapted: Omits the base EveChildMesh::UpdateSyncronous call; only link
    * targeting runs here.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext, params)
   {
@@ -105,7 +105,7 @@ export class EveChildLink extends EveChildMesh
    * Adapted: Per-object GPU buffer invalidation (cpp:143-144) is not ported
    * yet; the vs/ps records are the backend-neutral value classes.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {
@@ -197,7 +197,7 @@ export class EveChildLink extends EveChildMesh
    * HOTFIX visibility from Carbon: never LOD out the tethering effect - a
    * present mesh is always visible (EveChildLink.cpp:154-169).
    */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
@@ -217,7 +217,7 @@ export class EveChildLink extends EveChildMesh
    * Sphere at the center of the link: (direction, 1) * distance / 2
    * transformed by the world matrix (EveChildLink.cpp:171-178).
    */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -234,7 +234,7 @@ export class EveChildLink extends EveChildMesh
   }
 
   /** Links never cast shadows (EveChildLink.cpp:180-183). */
-  @blue.method
+
   @meta.implemented
   IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
   {
@@ -246,7 +246,7 @@ export class EveChildLink extends EveChildMesh
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out)
   {

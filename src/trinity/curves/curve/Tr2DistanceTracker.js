@@ -118,7 +118,7 @@ export class Tr2DistanceTracker extends ITriFunction
    * @param {number} time Sampling time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   UpdateValue(time)
   {
@@ -155,7 +155,7 @@ export class Tr2DistanceTracker extends ITriFunction
    * @param {string|null} [_value=null] Unused notified member identity.
    * @returns {boolean} True after updating the stored value.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(_value = null)
   {

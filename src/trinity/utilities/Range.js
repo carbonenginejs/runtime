@@ -64,7 +64,7 @@ export class Range
   _sliderRangeMax = 0;
 
   /** Moves the range while preserving both distances from its center. */
-  @blue.method
+
   @meta.adapted
   SetCenterPoint(value)
   {
@@ -76,7 +76,7 @@ export class Range
   }
 
   /** Configures the symmetric range and its slider bounds. */
-  @blue.method
+
   @meta.adapted
   Setup(rangeCenterPoint, rangeDeltaFromCenter, sliderMin, sliderMax)
   {
@@ -89,7 +89,7 @@ export class Range
   }
 
   /** Sets the lower range point and mirrors it when uniform. */
-  @blue.method
+
   @meta.adapted
   SetMinRangePoint(value)
   {
@@ -102,7 +102,7 @@ export class Range
   }
 
   /** Sets the upper range point and mirrors it when uniform. */
-  @blue.method
+
   @meta.adapted
   SetMaxRangePoint(value)
   {
@@ -115,7 +115,7 @@ export class Range
   }
 
   /** Returns the point both range points are measured from. */
-  @blue.method
+
   @meta.implemented
   GetCenterPoint()
   {
@@ -123,7 +123,7 @@ export class Range
   }
 
   /** Preserves Carbon's exact lower-bound comparison behavior. */
-  @blue.method
+
   @meta.adapted
   GetMinRangePoint()
   {
@@ -134,7 +134,7 @@ export class Range
    * Returns the upper range point after Carbon's clamp, which is a min against
    * the slider maximum, not a max (Range.cpp:68-71).
    */
-  @blue.method
+
   @meta.adapted
   GetMaxRangePoint()
   {
@@ -145,7 +145,7 @@ export class Range
    * Flips symmetric mode, and when turning it on collapses both sides to the
    * smaller of the two distances from the center.
    */
-  @blue.method
+
   @meta.implemented
   ToggleIsUniform()
   {
@@ -160,7 +160,7 @@ export class Range
    * Sets symmetric mode, fixing up the range points immediately when enabling
    * it.
    */
-  @blue.method
+
   @meta.implemented
   SetIsUniform(value)
   {
@@ -175,7 +175,7 @@ export class Range
    * Makes the range symmetric by adopting the smaller of the two distances from
    * the center on both sides, so uniformity narrows rather than widens.
    */
-  @blue.method
+
   @meta.implemented
   FixUniformity()
   {
@@ -190,7 +190,7 @@ export class Range
    * Reports whether the two range points are being kept symmetric about the
    * center.
    */
-  @blue.method
+
   @meta.implemented
   GetIsUniform()
   {
@@ -201,7 +201,7 @@ export class Range
    * Sets the lower slider bound the exposed range points are clamped against,
    * and re-clamps them.
    */
-  @blue.method
+
   @meta.adapted
   SetSliderMin(value)
   {
@@ -213,7 +213,7 @@ export class Range
    * Sets the upper slider bound the exposed range points are clamped against,
    * and re-clamps them.
    */
-  @blue.method
+
   @meta.adapted
   SetSliderMax(value)
   {
@@ -222,7 +222,7 @@ export class Range
   }
 
   /** Returns the lower slider bound used when clamping the exposed range points. */
-  @blue.method
+
   @meta.implemented
   GetSliderMin()
   {
@@ -230,7 +230,7 @@ export class Range
   }
 
   /** Returns the upper slider bound used when clamping the exposed range points. */
-  @blue.method
+
   @meta.implemented
   GetSliderMax()
   {

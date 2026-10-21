@@ -111,7 +111,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -155,7 +155,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -197,7 +197,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Returns the native zero mixer duration.
    * @returns {number} Duration in seconds.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {

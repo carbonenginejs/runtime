@@ -59,7 +59,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * Adapted: the existing resource manager completes LoadObject asynchronously.
    * @returns {boolean} True after starting or clearing the parent request.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -72,7 +72,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @param {string|null} propertyName Changed declaration name.
    * @returns {boolean} True after handling the notification.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -88,7 +88,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @returns {Promise<Tr2MaterialParameterStore|null>} Accepted current parent.
    */
   @meta.adapted
-  @meta.renamed("LoadParentResource")
+
   async _LoadParentResource()
   {
     const path = this.parentPath;

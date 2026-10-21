@@ -107,7 +107,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Rebuilds the authored placement pool from every Carbon placement generator. */
-  @blue.method
+
   @meta.adapted
   RegeneratePlacementData()
   {
@@ -133,7 +133,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns how many entities are currently live, not how many placements the
    * generators authored.
    */
-  @blue.method
+
   @meta.implemented
   GetNumberOfPlacements()
   {
@@ -144,7 +144,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns the live list of spawned placements; entries are mutated in place
    * each update and removed as entities are killed.
    */
-  @blue.method
+
   @meta.adapted
   GetPlacementData()
   {
@@ -155,7 +155,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns a copy of the mean initial-plus-additional translation of the live
    * placements, recomputed on every synchronous update.
    */
-  @blue.method
+
   @meta.adapted
   GetPlacementDataCenter()
   {
@@ -167,7 +167,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * the per-entity additional transform is cleared and re-accumulated every
    * update.
    */
-  @blue.method
+
   @meta.implemented
   GetHasDynamicMovement()
   {
@@ -175,7 +175,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Brings the distribution into its start state by running a full restart. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -188,7 +188,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * changes, and re-evaluates dynamic movement when the lifetime modifier list
    * changes.
    */
-  @blue.method
+
   @meta.adapted
   OnListModified(_event, _key, _key2, _value, list)
   {
@@ -230,7 +230,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    *
    * @param params Supplies the bone array and the space-object parent read by the bone transform and the lifetime modifiers.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(updateContext, params = new EveChildUpdateParams())
   {
@@ -312,7 +312,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * No asynchronous work; the distribution is driven entirely from the
    * synchronous update.
    */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -345,7 +345,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    *
    * @returns {number} The index the placement ends up at, or -1 when nothing is free, the id is unknown, or the placement is still timing out.
    */
-  @blue.method
+
   @meta.adapted
   TriggerEntityByID(entityID)
   {
@@ -379,7 +379,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Returns how many pooled placements are currently free to be triggered. */
-  @blue.method
+
   @meta.implemented
   GetFreePlacementCount()
   {
@@ -390,7 +390,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns the unique id of the free placement whose initial translation is
    * nearest the given position, or -1 when none are free.
    */
-  @blue.method
+
   @meta.adapted
   GetClosestFreePlacement(position)
   {
@@ -417,7 +417,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Returns the pooled placement carrying this unique id, or null when the id is
    * unknown; this is the pool entry itself, not a copy.
    */
-  @blue.method
+
   @meta.adapted
   GetInitialPlacementData(uniqueID)
   {
@@ -431,7 +431,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Forwards a named controller value to every spawner so controller-driven
    * triggers can react to it.
    */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -459,7 +459,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Maps a placement unique id to its current index in the pool, or -1 when the
    * id is unknown.
    */
-  @blue.method
+
   _GetInitialPlacementIndexByID(entityID)
   {
     return this._uniqueIDIndices.get(entityID) ?? -1;
@@ -469,7 +469,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Swaps two pool entries and updates the id-to-index map; this is how
    * placements move between the free and in-use partitions of the pool.
    */
-  @blue.method
+
   _SwapInitialPlacements(indexA, indexB)
   {
     if (indexA === indexB)
@@ -491,7 +491,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * lifetime modifier pass over the clone; returns null when that placement is
    * not free.
    */
-  @blue.method
+
   _GetPlacement(entityID)
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
@@ -526,7 +526,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Takes a uniformly chosen free placement out of the pool. */
-  @blue.method
+
   _GetRandomPlacement()
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
@@ -592,7 +592,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * the spawn modifiers reapplied, returning identity when that origin placement
    * no longer exists.
    */
-  @blue.method
+
   @meta.renamed("GetInitialPlacementMatrixForPlacement")
   _getInitialPlacementMatrix(placement)
   {
@@ -616,7 +616,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * placement drawn from the distribution, from its initial position, or from
    * its current position.
    */
-  @blue.method
+
   _HandleDistributionEntityLifetimeEvent(index, event)
   {
     if (event === DistributionEntityLifeTimeEvent.KILL_ENTITY)

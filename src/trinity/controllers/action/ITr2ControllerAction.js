@@ -29,14 +29,14 @@ export class ITr2ControllerAction
    *
    * @param {object} _controller The driving action controller.
    */
-  @blue.method
+
   @meta.noop
   Link(_controller)
   {
   }
 
   /** Detaches this action, dropping every reference to the controller. */
-  @blue.method
+
   @meta.noop
   Unlink()
   {
@@ -47,7 +47,7 @@ export class ITr2ControllerAction
    *
    * @param {object} _controller The driving action controller.
    */
-  @blue.method
+
   @meta.noop
   Start(_controller)
   {
@@ -58,7 +58,7 @@ export class ITr2ControllerAction
    *
    * @param {object} _controller The driving action controller.
    */
-  @blue.method
+
   @meta.noop
   Stop(_controller)
   {
@@ -69,7 +69,7 @@ export class ITr2ControllerAction
    *
    * @param {number} _diff Seconds added to the sim clock.
    */
-  @blue.method
+
   @meta.noop
   RebaseSimTime(_diff)
   {
@@ -83,7 +83,7 @@ export class ITr2ControllerAction
    *
    * @returns {boolean} True unless the action needs to finish first.
    */
-  @blue.method
+
   CanTransition()
   {
     return true;

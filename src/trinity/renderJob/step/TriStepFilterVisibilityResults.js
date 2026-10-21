@@ -55,7 +55,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   }
 
   /** Carbon SetEventFilter (cpp:98): the event-type bitfield Execute masks by. */
-  @blue.method
+
   @meta.implemented
   SetEventFilter(eventFilter)
   {
@@ -63,7 +63,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   }
 
   /** Carbon SetFilterType (cpp:112): ONLY_ vs EXCLUDE_OBJECTS_IN_LIST. */
-  @blue.method
+
   @meta.implemented
   SetFilterType(filterType)
   {
@@ -71,7 +71,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   }
 
   /** Carbon SetInputResults (h:49-52): the non-owning source result set. */
-  @blue.method
+
   @meta.implemented
   SetInputResults(results)
   {
@@ -79,7 +79,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   }
 
   /** Carbon SetOutputResults (h:53-56): the non-owning destination set. */
-  @blue.method
+
   @meta.implemented
   SetOutputResults(results)
   {
@@ -89,7 +89,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   /**
    * Filters the input visibility results into the output set using the event and object masks.
    */
-  @blue.method
+
   @meta.adapted
   Execute()
   {

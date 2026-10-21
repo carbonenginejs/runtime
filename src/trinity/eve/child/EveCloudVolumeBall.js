@@ -53,7 +53,7 @@ export class EveCloudVolumeBall
   _owner = null;
 
   /** Native cpp:26-33 forwards every edit; JavaScript WeakRef replaces BlueWeakRef ownership. */
-  @blue.method
+
   @meta.implemented
   OnModified(_names)
   {

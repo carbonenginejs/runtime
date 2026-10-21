@@ -11,7 +11,7 @@ export class IEveSocketParameter
 {
 
   /** Returns Carbon's default empty socket-parameter name. */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -19,14 +19,14 @@ export class IEveSocketParameter
   }
 
   /** Applies an optional socket-parameter name. */
-  @blue.method
+
   @meta.noop
   SetName(_name)
   {
   }
 
   /** Initializes the socket parameter and reports success. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -34,14 +34,14 @@ export class IEveSocketParameter
   }
 
   /** Clears any bindings owned by the socket parameter. */
-  @blue.method
+
   @meta.noop
   ClearBindings()
   {
   }
 
   /** Binds an external parameter and reports success. */
-  @blue.method
+
   @meta.implemented
   BindToExternalParameter(_externalParameter)
   {
@@ -49,21 +49,21 @@ export class IEveSocketParameter
   }
 
   /** Resets the socket parameter. */
-  @blue.method
+
   @meta.noop
   Reset()
   {
   }
 
   /** Restores the socket parameter's default value. */
-  @blue.method
+
   @meta.noop
   SetValueToDefault()
   {
   }
 
   /** Reports whether Carbon considers the socket parameter used. */
-  @blue.method
+
   @meta.implemented
   Used()
   {
@@ -71,7 +71,7 @@ export class IEveSocketParameter
   }
 
   /** Propagates the current value to owned bindings. */
-  @blue.method
+
   @meta.noop
   Propagate()
   {

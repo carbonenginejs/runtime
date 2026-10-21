@@ -63,7 +63,7 @@ export class WodBakingScene
    * Adapted: Requires a Tr2RenderContext, effect-state manager, constant buffers, and GPU
    * batch rendering owned by an engine adapter.
    */
-  @blue.method
+
   @meta.notImplemented
   Render()
   {
@@ -76,7 +76,7 @@ export class WodBakingScene
    * Adapted: Carbon leaves this hook empty; the JavaScript hook throws its explicit
    * unimplemented error instead.
    */
-  @blue.method
+
   @meta.notImplemented
   RenderDebugInfo()
   {
@@ -89,7 +89,7 @@ export class WodBakingScene
    * Adapted: The native method calls PrePhysicsUpdate and PostPhysicsUpdate on the skinned
    * object; frame ownership stays with the outer runtime adapter.
    */
-  @blue.method
+
   @meta.notImplemented
   Update()
   {

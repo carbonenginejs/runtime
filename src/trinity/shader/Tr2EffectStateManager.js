@@ -479,7 +479,7 @@ export class Tr2EffectStateManager
    * @returns {number} Stable handle, or `Unknown` when the body is absent.
    */
   @blue.method
-  @meta.renamed("RegisterShader")
+
   static registerShader(stageType, bytecode, signature = null)
   {
     if (!bytecode || bytecode.length === 0) return Tr2EffectStateManager.Unknown;
@@ -523,7 +523,7 @@ export class Tr2EffectStateManager
    * @returns {number} Stable handle, or `Unknown` for an empty or stale list.
    */
   @blue.method
-  @meta.renamed("RegisterShaderProgram")
+
   static registerShaderProgram(shaderHandles)
   {
     const handles = [ ...(shaderHandles ?? []) ].map(Number);
@@ -563,7 +563,7 @@ export class Tr2EffectStateManager
    * @returns {number} Stable handle. This one never fails.
    */
   @blue.method
-  @meta.renamed("RegisterRenderStateSetup")
+
   static registerRenderStateSetup(pass)
   {
     const authored = new Map();
@@ -679,7 +679,7 @@ export class Tr2EffectStateManager
    * @returns {number} Stable handle.
    */
   @blue.method
-  @meta.renamed("GetVertexDeclarationHandle")
+
   static getVertexDeclarationHandle(elements)
   {
     const key = elements?.items ?? elements ?? [];
@@ -710,7 +710,7 @@ export class Tr2EffectStateManager
    * @returns {Array|Tr2VertexDefinition|null} The interned declaration.
    */
   @blue.method
-  @meta.renamed("GetVertexDeclarationElements")
+
   static getVertexDeclarationElements(handle)
   {
     return vertexLayouts[handle] ?? null;

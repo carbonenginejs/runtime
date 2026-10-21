@@ -54,35 +54,35 @@ export class IEveFiringEffectElement extends EveEntity
   GetRenderables(_renderables) {}
 
   /** Runs the optional general update hook. */
-  @blue.method
+
   @meta.noop
   Update(_updateContext)
   {
   }
 
   /** Registers optional content with a quad renderer. */
-  @blue.method
+
   @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
   /** Adds optional quad records to a quad renderer. */
-  @blue.method
+
   @meta.noop
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }
 
   /** Applies an optional intensity multiplier. */
-  @blue.method
+
   @meta.noop
   SetIntensity(_intensity)
   {
   }
 
   /** Applies an optional display state. */
-  @blue.method
+
   @meta.noop
   SetDisplay(_display)
   {

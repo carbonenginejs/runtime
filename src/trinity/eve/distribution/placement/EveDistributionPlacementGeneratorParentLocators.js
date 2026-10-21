@@ -40,7 +40,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
-  @blue.method
+
   @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
@@ -70,7 +70,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Reports whether a locator set has just been resolved from the parent and the
    * pool therefore needs rebuilding.
    */
-  @blue.method
+
   @meta.implemented
   IsRequestingRegeneration()
   {
@@ -82,7 +82,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * update params, re-resolving whenever the parent or the set name changes, and
    * requests regeneration once locators are found.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(_updateContext, params, _owner)
   {
@@ -112,7 +112,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Invalidates the resolved locator set after an authored change so the next
    * update re-reads it.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -127,7 +127,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Adapted: JavaScript retains explicit invalidation state in place of native
    * structure-list notifier ownership.
    */
-  @blue.method
+
   @meta.adapted
   OnStructureListModified(_event, _item, _index, _list)
   {

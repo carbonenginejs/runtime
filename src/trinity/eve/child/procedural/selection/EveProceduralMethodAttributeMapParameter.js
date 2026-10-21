@@ -31,7 +31,7 @@ export class EveProceduralMethodAttributeMapParameter
 
   /** Carbon EveProceduralMethodAttributeMapParameter::Initialize (cpp:15-22):
    * lazily create the child ref. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -47,7 +47,7 @@ export class EveProceduralMethodAttributeMapParameter
    * a child assignment blocks its auto-load until the map selects it. The
    * value argument follows the repo's OnModified duck.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -63,7 +63,7 @@ export class EveProceduralMethodAttributeMapParameter
   }
 
   /** Carbon method SetModified (cpp:37-40). */
-  @blue.method
+
   @meta.implemented
   SetModified(isModified)
   {
@@ -71,7 +71,7 @@ export class EveProceduralMethodAttributeMapParameter
   }
 
   /** Carbon method IsModified (cpp:42-45). */
-  @blue.method
+
   @meta.implemented
   IsModified()
   {
@@ -79,7 +79,7 @@ export class EveProceduralMethodAttributeMapParameter
   }
 
   /** Carbon method GetName (cpp:47-50). */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -87,7 +87,7 @@ export class EveProceduralMethodAttributeMapParameter
   }
 
   /** Carbon method GetChild (cpp:52-55). */
-  @blue.method
+
   @meta.implemented
   GetChild()
   {
@@ -96,7 +96,7 @@ export class EveProceduralMethodAttributeMapParameter
 
   /** Carbon EveProceduralMethodAttributeMapParameter::Load (cpp:57-63):
    * one-line bypass-blocker reload delegate. */
-  @blue.method
+
   @meta.implemented
   Load()
   {

@@ -64,7 +64,8 @@ export class EveBannerItem
    * Adapted: Carbon inlines the per-banner box inside the set rebuild; the port moves it
    * onto the item so the shared item-set builder can read it.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetBounds(out)
   {
     const transform = mat4.fromRotationTranslationScale(
@@ -83,7 +84,8 @@ export class EveBannerItem
    * Adapted: Accessor for the shared item-set bounds builder; Carbon reads jt->bone
    * directly.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetBoneIndex()
   {
     return this.bone;

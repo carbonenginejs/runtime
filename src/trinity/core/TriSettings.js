@@ -38,7 +38,7 @@ export class TriSettings
    * @param {{ applies?: string, enum?: object|string|null, values?: Array|null, carbon?: boolean }} [options] See meta.setting.
    * @returns {TriSettings} This registry.
    */
-  @blue.method
+
   @meta.adapted
   RegisterSetting(name, ownerOrValue, key, { applies = "always", enum: enumType = null, values = null, carbon = false } = {})
   {
@@ -70,7 +70,7 @@ export class TriSettings
    * @param {string} name The setting's name.
    * @returns {{ valueType: string, owner: object, key: string, applies: string, enum: object|string|null, values: Array|null, carbon: boolean }|null} The entry.
    */
-  @blue.method
+
   @meta.implemented
   FindSetting(name)
   {
@@ -120,7 +120,7 @@ export class TriSettings
   }
 
   /** Carbon GetReprString (TriSettings.h:44-57): a Python dict literal of every setting, in name order. */
-  @blue.method
+
   @meta.implemented
   GetReprString()
   {
@@ -139,7 +139,7 @@ export class TriSettings
    * Adapted: Carbon formats by Be::VARTYPE (%d for integers, %f for floats);
    * JavaScript has one number type, so numbers format as JavaScript does.
    */
-  @blue.method
+
   @meta.adapted
   GetSettingReprString(setting)
   {

@@ -140,7 +140,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket.cpp:174-183 propagates each bound parameter. */
-  @blue.method
+
   @meta.implemented
   Propogate()
   {
@@ -151,7 +151,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon Initialize (cpp:185-191) always succeeds. Adapted: binding,
    * propagation, and deferred forwarding follow asynchronous LoadChild.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -170,7 +170,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket.cpp:28-31 returns the authored plug path. */
-  @blue.method
+
   @meta.implemented
   GetPlugResPath()
   {
@@ -182,7 +182,7 @@ export class EveChildSocket extends EveChildTransform
    * Adapted: forward calls made during the asynchronous load after arrival;
    * unlike Initialize, this setter does not bind or propagate parameters.
    */
-  @blue.method
+
   @meta.adapted
   SetPlugResPath(path)
   {
@@ -208,7 +208,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket.cpp:194-206 reacts to path and display changes. */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -223,7 +223,7 @@ export class EveChildSocket extends EveChildTransform
    * let the caller finish native binding and deferred forwarding. The promise
    * resolves to the native success boolean; failure logs and leaves no plug.
    */
-  @blue.method
+
   @meta.adapted
   async LoadChild()
   {
@@ -259,7 +259,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Propagates the owning space object to the loaded plug. */
-  @blue.method
+
   @meta.implemented
   SetOwner(owner)
   {
@@ -269,7 +269,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Propagates a modular part tag to the loaded plug. */
-  @blue.method
+
   @meta.implemented
   SetPartTag(tag)
   {
@@ -307,7 +307,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon cpp:344-350 forwards to the plug. Adapted: queued while the plug is
    * still loading, as SetControllerVariable is.
    */
-  @blue.method
+
   @meta.adapted
   PlayAllCurveSets()
   {
@@ -316,7 +316,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:352-358 forwards to the plug. Adapted: queued while loading. */
-  @blue.method
+
   @meta.adapted
   StopAllCurveSets()
   {
@@ -325,7 +325,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:360-366 forwards to the plug. Adapted: queued while loading. */
-  @blue.method
+
   @meta.adapted
   PlayCurveSet(name, rangeName = "")
   {
@@ -334,7 +334,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:368-374 forwards to the plug. Adapted: queued while loading. */
-  @blue.method
+
   @meta.adapted
   StopCurveSet(name)
   {
@@ -343,7 +343,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:376-382 forwards a sample to the plug; while it loads there is no plug and the sample is dropped. */
-  @blue.method
+
   @meta.implemented
   UpdateCurveSet(name, time)
   {
@@ -351,7 +351,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:384-391: the plug's duration, 0 without one. */
-  @blue.method
+
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -359,7 +359,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:393-400: the plug's range duration, 0 without one. */
-  @blue.method
+
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -368,7 +368,7 @@ export class EveChildSocket extends EveChildTransform
 
   /** Carbon EveChildSocket::RegisterComponents (cpp:212-221): forward-only to
    * the plug. Gate IsInRegistry() && plug && m_display. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -380,7 +380,7 @@ export class EveChildSocket extends EveChildTransform
 
   /** Carbon EveChildSocket::UnRegisterComponents (cpp:227-236): forwards to
    * the plug; no display re-check. */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -392,7 +392,7 @@ export class EveChildSocket extends EveChildTransform
 
 
   /** Carbon GetEffectChildByName (EveChildSocket.cpp:239-246): asks the plug. */
-  @blue.method
+
   @meta.implemented
   GetEffectChildByName(name)
   {
@@ -401,14 +401,14 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon AddToEffectChildrenList (EveChildSocket.cpp:248-250): does nothing. */
-  @blue.method
+
   @meta.implemented
   AddToEffectChildrenList(_child)
   {
   }
 
   /** Carbon RemoveFromEffectChildrenList (EveChildSocket.cpp:252-254): does nothing. */
-  @blue.method
+
   @meta.implemented
   RemoveFromEffectChildrenList(_child)
   {
@@ -465,7 +465,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket::FindSoundEmitter (cpp:499-506): the plug's emitter. */
-  @blue.method
+
   @meta.implemented
   FindSoundEmitter(name)
   {

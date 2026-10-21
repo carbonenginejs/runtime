@@ -61,7 +61,7 @@ export class EveHazeSetItem
    * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
    * box3.
    */
-  @blue.method
+
   @meta.adapted
   GetBounds(out)
   {
@@ -76,7 +76,7 @@ export class EveHazeSetItem
   }
 
   /** The parent bone this haze volume rides. */
-  @blue.method
+
   @meta.implemented
   GetBoneIndex()
   {

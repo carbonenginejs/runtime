@@ -152,7 +152,7 @@ export class Tr2StaticEmitter
    *
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -171,7 +171,7 @@ export class Tr2StaticEmitter
    * @param {string|null} [propertyName=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -193,7 +193,7 @@ export class Tr2StaticEmitter
    * Adapted: JavaScript updates are single-threaded; the flag is retained and propagated
    * only for Carbon contract parity.
    */
-  @blue.method
+
   @meta.adapted
   SetThreadSafeFlag()
   {
@@ -206,14 +206,14 @@ export class Tr2StaticEmitter
    * it only spawns once from Update (Tr2StaticEmitter.cpp:293-308).
    */
   @blue.method
-  @meta.noop
+  @meta.adapted
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
   }
 
   /** Carbon's start/end SpawnParticles overload; empty, as above. */
   @blue.method
-  @meta.noop
+  @meta.adapted
   SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
   }
@@ -223,7 +223,7 @@ export class Tr2StaticEmitter
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Update(_updateArguments)
   {

@@ -93,7 +93,7 @@ export class EveChildRef extends EveChildTransform
   _loadRequest = 0;
 
   /** Carbon EveChildRef::GetResPath (cpp:22-25). */
-  @blue.method
+
   @meta.implemented
   GetResPath()
   {
@@ -101,7 +101,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::SetResPath (cpp:27-37): set, then load when automatic. */
-  @blue.method
+
   @meta.implemented
   SetResPath(resPath)
   {
@@ -118,7 +118,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::SetAutoLoadBlocker (cpp:47-50). */
-  @blue.method
+
   @meta.implemented
   SetAutoLoadBlocker(shouldBlockAutoLoad)
   {
@@ -126,7 +126,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::Initialize (cpp:52-60). */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -135,7 +135,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::OnModified (cpp:62-76). */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -151,7 +151,7 @@ export class EveChildRef extends EveChildTransform
    * Adapted: the load resolves later (see the class note). Returns whether a
    * load was started; a failure logs as Carbon's does.
    */
-  @blue.method
+
   @meta.adapted
   LoadChild()
   {
@@ -183,7 +183,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::RegisterComponents (cpp:78-87). */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -194,7 +194,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::UnRegisterComponents (cpp:89-98). */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -205,7 +205,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::GetEffectChildByName (cpp:100-107). */
-  @blue.method
+
   @meta.implemented
   GetEffectChildByName(name)
   {
@@ -214,7 +214,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::AddToEffectChildrenList (cpp:109-115). */
-  @blue.method
+
   @meta.implemented
   AddToEffectChildrenList(child)
   {
@@ -222,7 +222,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::RemoveFromEffectChildrenList (cpp:117-123). */
-  @blue.method
+
   @meta.implemented
   RemoveFromEffectChildrenList(child)
   {
@@ -230,7 +230,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::SetProceduralContainerVariable (cpp:125-131). */
-  @blue.method
+
   @meta.implemented
   SetProceduralContainerVariable(name, value)
   {
@@ -238,7 +238,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::UpdateVisibility (cpp:133-143). */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
@@ -247,7 +247,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::GetRenderables (cpp:145-151). */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -258,7 +258,7 @@ export class EveChildRef extends EveChildTransform
    * Carbon EveChildRef::GetBoundingSphere (cpp:153-163): the child's normal
    * bounds, whatever query was asked.
    */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(sphere, _query)
   {
@@ -266,7 +266,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::RegisterWithQuadRenderer (cpp:165-171). */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -274,7 +274,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::AddQuadsToQuadRenderer (cpp:173-179). */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -282,7 +282,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::UpdateSyncronous (cpp:181-192). */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -291,7 +291,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::UpdateAsyncronous (cpp:194-209): the transform first, then the child. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
@@ -311,7 +311,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::GetLocalToWorldTransform (cpp:211-214). */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {
@@ -320,7 +320,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::PlayCurveSet (cpp:216-222). */
-  @blue.method
+
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -329,7 +329,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::StopCurveSet (cpp:224-230). */
-  @blue.method
+
   @meta.implemented
   StopCurveSet(name)
   {
@@ -338,7 +338,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::UpdateCurveSet (cpp:232-238). */
-  @blue.method
+
   @meta.implemented
   UpdateCurveSet(name, time)
   {
@@ -351,7 +351,7 @@ export class EveChildRef extends EveChildTransform
    * written: Carbon calls the child and discards its result, so this is
    * always 0.
    */
-  @blue.method
+
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -361,7 +361,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::GetRangeDuration (cpp:249-256). Same quirk: always 0. */
-  @blue.method
+
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -371,7 +371,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::PlayAllCurveSets (cpp:258-264). */
-  @blue.method
+
   @meta.implemented
   PlayAllCurveSets()
   {
@@ -380,7 +380,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::SetShaderOption (cpp:266-272). */
-  @blue.method
+
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -388,7 +388,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::ChangeLOD (cpp:279-285). */
-  @blue.method
+
   @meta.implemented
   ChangeLOD(lod)
   {
@@ -412,7 +412,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::SetInheritProperties (cpp:303-312). */
-  @blue.method
+
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -429,7 +429,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::FindSoundEmitter (cpp:362-369). */
-  @blue.method
+
   @meta.implemented
   FindSoundEmitter(name)
   {
@@ -438,7 +438,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::SetOwner (cpp:371-381). */
-  @blue.method
+
   @meta.implemented
   SetOwner(owner)
   {
@@ -448,7 +448,7 @@ export class EveChildRef extends EveChildTransform
   }
 
   /** Carbon EveChildRef::SetPartTag (cpp:383-393). */
-  @blue.method
+
   @meta.implemented
   SetPartTag(tag)
   {

@@ -103,7 +103,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Resolves the current locator cache.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -117,7 +117,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @param {string|null} propertyName Changed member name.
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -131,7 +131,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Gets the key time.
    */
-  @blue.method
+
   @meta.implemented
   GetTime()
   {
@@ -141,7 +141,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Gets the segment interpolation mode starting at this key.
    */
-  @blue.method
+
   @meta.implemented
   GetInterpolationType()
   {
@@ -152,7 +152,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Gets the rotated left tangent into `out`.
    * The caller's output buffer replaces the native vector value return.
    */
-  @blue.method
+
   @meta.adapted
   GetLeftTangent(out)
   {
@@ -163,7 +163,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Gets the rotated right tangent into `out`.
    * The caller's output buffer replaces the native vector value return.
    */
-  @blue.method
+
   @meta.adapted
   GetRightTangent(out)
   {
@@ -175,7 +175,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * The caller's output buffer and quaternion transform replace native values
    * and rotation matrices while preserving the native sampling order.
    */
-  @blue.method
+
   @meta.adapted
   GetValue(out)
   {
@@ -204,7 +204,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Finds the first locator in the requested Carbon locator set.
    * Mapped constructor identities implement the native BlueCastPtr query.
    */
-  @blue.method
+
   @meta.adapted
   GetLocator()
   {

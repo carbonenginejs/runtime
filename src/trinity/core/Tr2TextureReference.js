@@ -131,7 +131,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Returns the borrowed native by-value texture (Tr2TextureReference.cpp:11-14). */
-  @blue.method
+
   @meta.implemented
   GetTexture()
   {
@@ -139,7 +139,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Returns the owned native change event (Tr2TextureReference.cpp:16-19). */
-  @blue.method
+
   @meta.implemented
   OnTextureChange()
   {
@@ -160,7 +160,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture width, or 0 with no texture (Carbon GetWidth, cpp:65-68). */
-  @blue.method
+
   @meta.implemented
   GetWidth()
   {
@@ -168,7 +168,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture height, or 0 with no texture (Carbon GetHeight, cpp:70-73). */
-  @blue.method
+
   @meta.implemented
   GetHeight()
   {
@@ -176,7 +176,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture depth, or 0 with no texture (Carbon GetDepth, cpp:75-78). */
-  @blue.method
+
   @meta.implemented
   GetDepth()
   {
@@ -184,7 +184,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture type, or 0 with no texture (Carbon GetType, cpp:80-83). */
-  @blue.method
+
   @meta.implemented
   GetType()
   {
@@ -192,7 +192,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Mip level count, or 0 with no texture (Carbon GetMipCount, cpp:85-88). */
-  @blue.method
+
   @meta.implemented
   GetMipCount()
   {
@@ -200,7 +200,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Array size, or 0 with no texture (Carbon GetArraySize, cpp:90-93). */
-  @blue.method
+
   @meta.implemented
   GetArraySize()
   {
@@ -208,7 +208,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Pixel format, or 0 with no texture (Carbon GetFormat, cpp:95-98). */
-  @blue.method
+
   @meta.implemented
   GetFormat()
   {
@@ -216,7 +216,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture debug name, or "" with no texture (Carbon GetName, cpp:100-104). */
-  @blue.method
+
   @meta.implemented
   GetName()
   {

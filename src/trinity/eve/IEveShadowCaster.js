@@ -38,7 +38,7 @@ export class IEveShadowCaster
    *
    * @returns {boolean}
    */
-  @blue.method
+
   IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow) {}
 
   /**
@@ -47,34 +47,34 @@ export class IEveShadowCaster
    *
    * @returns {boolean}
    */
-  @blue.method
+
   IsCastingShadow__PositionRadius(_cameraFrustum, _position, _radius, _renderReason)
   {
     return false;
   }
 
   /** Carbon's GetShadowBatches (h:149). Pure virtual. */
-  @blue.method
+
   GetShadowBatches(_batches, _perObjectData, _shadowPixelSize) {}
 
   /** Carbon's GetShadowPerObjectData (h:150). Pure virtual. */
-  @blue.method
+
   GetShadowPerObjectData(_accumulator) {}
 
   /** Carbon's PushRtGeometry (h:152): raytraced shadows; empty by default. */
-  @blue.method
+
   PushRtGeometry(_raytracingManager)
   {
   }
 
   /** Carbon's MarkRtDirty (h:155): empty by default. */
-  @blue.method
+
   MarkRtDirty()
   {
   }
 
   /** Carbon's IsShadowCastingDirty (h:158): false by default. */
-  @blue.method
+
   IsShadowCastingDirty()
   {
     return false;

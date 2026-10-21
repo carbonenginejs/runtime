@@ -71,7 +71,7 @@ export class EveTurretTarget
    * The targetable record this tracker is following, or null when it has no
    * target.
    */
-  @blue.method
+
   @meta.implemented
   GetTargetable()
   {
@@ -84,7 +84,7 @@ export class EveTurretTarget
    * object seeds the position blend so tracking eases off the previous target.
    * Null clears the target (cpp:62-67). Returns whether the object was accepted.
    */
-  @blue.method
+
   @meta.implemented
   SetTargetable(object)
   {
@@ -109,7 +109,7 @@ export class EveTurretTarget
   }
 
   /** The damage locator index currently being fired at, or -1 when not firing. */
-  @blue.method
+
   @meta.implemented
   GetLocator()
   {
@@ -121,7 +121,7 @@ export class EveTurretTarget
    * EveTurretTarget.cpp:104-111): firing at or leaving a locator seeds the
    * position blend from the current tracking position.
    */
-  @blue.method
+
   @meta.implemented
   SetFadeOnLocatorChange(fade)
   {
@@ -137,7 +137,7 @@ export class EveTurretTarget
    * Random draws delegate to the matching generator in global/math/random.js.
    * Vector outputs use the org-standard out-last convention.
    */
-  @blue.method
+
   @meta.adapted
   StartFireAtLocator(locator, delay, length, source = EveTurretTarget._zero)
   {
@@ -179,7 +179,7 @@ export class EveTurretTarget
    * Ends firing: clears the locator, the position blend, the current miss state
    * and every queued shot result.
    */
-  @blue.method
+
   @meta.implemented
   StopFireAtLocator()
   {
@@ -207,7 +207,7 @@ export class EveTurretTarget
    *
    * Adapted: Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
-  @blue.method
+
   @meta.adapted
   GetImpactPosition(source, out)
   {
@@ -244,7 +244,7 @@ export class EveTurretTarget
    *
    * Adapted: Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
-  @blue.method
+
   @meta.adapted
   Update(deltaTime, source = EveTurretTarget._zero)
   {
@@ -296,7 +296,7 @@ export class EveTurretTarget
    * otherwise the blended target position. Copies into out when one is given,
    * otherwise returns the live buffer.
    */
-  @blue.method
+
   @meta.implemented
   GetTrackingPosition(out)
   {
@@ -308,7 +308,7 @@ export class EveTurretTarget
    * shot missed, otherwise the resolved impact point. Copies into out when one
    * is given, otherwise returns the live buffer.
    */
-  @blue.method
+
   @meta.implemented
   GetTargetPosition(out)
   {
@@ -322,7 +322,7 @@ export class EveTurretTarget
    *
    * Adapted: Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
-  @blue.method
+
   @meta.adapted
   FindClosestLocator(source, out = vec3.create())
   {
@@ -339,7 +339,7 @@ export class EveTurretTarget
    *
    * Adapted: Targetable output parameters use CarbonEngineJS's out-last calling convention.
    */
-  @blue.method
+
   @meta.adapted
   FindRandomValidLocator(source, out = vec3.create())
   {
@@ -357,7 +357,7 @@ export class EveTurretTarget
    * behaviour, the impact size (zero suppresses impacts entirely) and the
    * impact-position behaviour.
    */
-  @blue.method
+
   @meta.implemented
   SetBehaviour(laserMiss, projectileMiss, impactSize, impactBehaviour)
   {
@@ -370,7 +370,7 @@ export class EveTurretTarget
    * Sets only the impact configuration, leaving miss behaviour untouched
    * (Carbon EveTurretTarget.cpp:371-375, split out for EveChildTurret).
    */
-  @blue.method
+
   @meta.implemented
   SetImpactBehaviour(impactSize, impactBehaviour)
   {
@@ -382,7 +382,7 @@ export class EveTurretTarget
    * Takes the next queued shot result and makes it the current miss state; an
    * empty queue counts as a hit.
    */
-  @blue.method
+
   @meta.implemented
   PopShotMissed()
   {
@@ -394,7 +394,7 @@ export class EveTurretTarget
    * Whether the most recently popped shot result was a miss, which is what
    * selects the miss position for tracking and targeting.
    */
-  @blue.method
+
   @meta.implemented
   GetShotMissed()
   {
@@ -443,7 +443,7 @@ export class EveTurretTarget
    * The target's radius, which scales the firing effect; -1 when there is no
    * target.
    */
-  @blue.method
+
   @meta.implemented
   GetRadius()
   {
@@ -455,7 +455,7 @@ export class EveTurretTarget
    * The surface the target currently presents - shield, armor or hull -
    * IMPACT_INVALID when the target does not report one.
    */
-  @blue.method
+
   @meta.implemented
   GetImpactConfiguration()
   {
@@ -467,7 +467,7 @@ export class EveTurretTarget
    * Whether the firing effect should draw its impact end: false only when the
    * shot missed and projectile miss behaviour is set.
    */
-  @blue.method
+
   @meta.implemented
   ShowDestObject()
   {

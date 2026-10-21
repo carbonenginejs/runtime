@@ -42,7 +42,7 @@ export class EveLensflare
   }
 
   /** Links loaded controllers once (EveLensflare.cpp:78-88). */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -54,7 +54,7 @@ export class EveLensflare
   }
 
   /** Native controller insertion, removal and unload (cpp:91-122). */
-  @blue.method
+
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -86,7 +86,7 @@ export class EveLensflare
   }
 
   /** Plays all matching curve sets, with an optional named range (cpp:414-431). */
-  @blue.method
+
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -103,7 +103,7 @@ export class EveLensflare
   }
 
   /** Stops all matching curve sets (cpp:433-442). */
-  @blue.method
+
   @meta.implemented
   StopCurveSet(name)
   {
@@ -111,7 +111,7 @@ export class EveLensflare
   }
 
   /** Supplies the same time to both native clock inputs (cpp:444-453). */
-  @blue.method
+
   @meta.implemented
   UpdateCurveSet(name, time)
   {
@@ -119,7 +119,7 @@ export class EveLensflare
   }
 
   /** Longest duration among matching curve sets (cpp:455-466). */
-  @blue.method
+
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -132,7 +132,7 @@ export class EveLensflare
   }
 
   /** Longest named-range duration among matching curve sets (cpp:468-479). */
-  @blue.method
+
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -297,7 +297,7 @@ export class EveLensflare
    * rays read this GLOBAL, and until 2026-09-26 it was never written. The curve is
    * called out-last (Update(simTime, position)) per the org convention -
    * Carbon's is out-first. */
-  @blue.method
+
   @meta.implemented
   Update(realTime, simTime)
   {
@@ -340,7 +340,7 @@ export class EveLensflare
    * PrepareRender, so the dot uses the PREVIOUS frame's direction and
    * forwards the previous frame's transform - do not "fix" the order. Scene
    * call site: EveSpaceScene.cpp:1462-1466 (sequential, single-lensflare). */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext)
   {
@@ -364,7 +364,7 @@ export class EveLensflare
    * @param {EveUpdateContext} updateContext The occluders' context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   RunOcclusionQueries(renderContext, updateContext)
   {
@@ -390,7 +390,7 @@ export class EveLensflare
    * @param {EveUpdateContext} updateContext The occluders' context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   RunBackgroundOcclusionQueries(renderContext, updateContext)
   {
@@ -427,7 +427,7 @@ export class EveLensflare
    * hedge at every call site meant a lens flare silently ignored every
    * controller event rather than failing.
    */
-  @blue.method
+
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -458,7 +458,7 @@ export class EveLensflare
    * @param {TriFrustum} frustum This frame's frustum.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   PrepareRender(frustum)
   {
@@ -503,7 +503,7 @@ export class EveLensflare
    * @param {Array} renderables Out: the renderables.
    * @returns {Array} `renderables`.
    */
-  @blue.method
+
   @meta.implemented
   GetRenderables(_frustum, renderables = [])
   {
@@ -515,7 +515,7 @@ export class EveLensflare
   }
 
   /** Carbon EveLensflare::GetBatches delegates the selected mesh areas (cpp:381-387). */
-  @blue.method
+
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -526,7 +526,7 @@ export class EveLensflare
   }
 
   /** Carbon EveLensflare::HasTransparentBatches is always false (cpp:389-392). */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -534,7 +534,7 @@ export class EveLensflare
   }
 
   /** Carbon EveLensflare::GetSortValue is the constant one (cpp:394-397). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -547,7 +547,7 @@ export class EveLensflare
    * per-element writes keep that arena-garbage parity. The struct registers
    * with stages ["vs", "ps"]: one payload, same bytes bound to both slots
    * (cpp:24-38). */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {

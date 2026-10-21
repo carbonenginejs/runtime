@@ -19,7 +19,7 @@ export class TriStepPushViewTransform extends TriRenderStep
    * Pushes the render context's current view transform; the value is not supplied by
    * the step, only the intent to save it.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, _renderContext)
   {

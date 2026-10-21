@@ -88,7 +88,7 @@ export class Tr2MeshArea
   #jointMappingAnimRig = null;
 
   /** First geometry group of the area's range. */
-  @blue.method
+
   @meta.adapted
   GetIndex()
   {
@@ -99,7 +99,7 @@ export class Tr2MeshArea
    * Sets the first geometry group, coerced to a signed integer; schedules the
    * batches rebuild.
    */
-  @blue.method
+
   @meta.adapted
   SetIndex(value)
   {
@@ -107,7 +107,7 @@ export class Tr2MeshArea
   }
 
   /** Number of geometry groups in the area's range. */
-  @blue.method
+
   @meta.adapted
   GetCount()
   {
@@ -118,7 +118,7 @@ export class Tr2MeshArea
    * Sets the group count, coerced to a signed integer; schedules the batches
    * rebuild.
    */
-  @blue.method
+
   @meta.adapted
   SetCount(value)
   {
@@ -126,7 +126,7 @@ export class Tr2MeshArea
   }
 
   /** Whether the area is drawn; a hidden area emits no batch. */
-  @blue.method
+
   @meta.adapted
   GetDisplay()
   {
@@ -134,7 +134,7 @@ export class Tr2MeshArea
   }
 
   /** Shows or hides the area. */
-  @blue.method
+
   @meta.adapted
   SetDisplay(value)
   {
@@ -142,7 +142,7 @@ export class Tr2MeshArea
   }
 
   /** Whether the area is drawn with reversed winding. */
-  @blue.method
+
   @meta.adapted
   GetReversed()
   {
@@ -150,7 +150,7 @@ export class Tr2MeshArea
   }
 
   /** Carbon's second name for GetReversed. */
-  @blue.method
+
   @meta.adapted
   IsReversed()
   {
@@ -158,7 +158,7 @@ export class Tr2MeshArea
   }
 
   /** Sets the reversed-winding flag; schedules the batches rebuild. */
-  @blue.method
+
   @meta.adapted
   SetReversed(value)
   {
@@ -166,7 +166,7 @@ export class Tr2MeshArea
   }
 
   /** Whether the area is lit with spherical-harmonic lighting. */
-  @blue.method
+
   @meta.adapted
   GetUseSHLighting()
   {
@@ -185,7 +185,7 @@ export class Tr2MeshArea
    * The area's effect, which serves as its material and shader key during batch
    * collection; null areas produce no batch.
    */
-  @blue.method
+
   @meta.adapted
   GetMaterialInterface()
   {
@@ -193,7 +193,7 @@ export class Tr2MeshArea
   }
 
   /** Binds the effect used as this area's material. */
-  @blue.method
+
   @meta.adapted
   SetMaterial(value)
   {
@@ -204,7 +204,7 @@ export class Tr2MeshArea
    * The authored area name, which SOF and effect bindings use to address this
    * area of the mesh.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -212,7 +212,7 @@ export class Tr2MeshArea
   }
 
   /** Sets the area name, coercing null to an empty string. */
-  @blue.method
+
   @meta.adapted
   SetName(value)
   {
@@ -223,7 +223,7 @@ export class Tr2MeshArea
    * Whether the area takes part in shadow and overlay area-block collection; SOF
    * stamps this per batch type and it defaults to true.
    */
-  @blue.method
+
   @meta.adapted
   IsCastingShadows()
   {
@@ -231,7 +231,7 @@ export class Tr2MeshArea
   }
 
   /** Sets shadow participation; schedules the batches rebuild. */
-  @blue.method
+
   @meta.adapted
   SetCastsShadows(value)
   {
@@ -239,7 +239,7 @@ export class Tr2MeshArea
   }
 
   /** Whether ray intersection treats this area as an alpha-cutout surface. */
-  @blue.method
+
   @meta.implemented
   IsAlphaCutout()
   {
@@ -247,7 +247,7 @@ export class Tr2MeshArea
   }
 
   /** Sets alpha-cutout participation; SOF stamps decal areas through this. */
-  @blue.method
+
   @meta.implemented
   SetAlphaCutout(value)
   {
@@ -255,7 +255,7 @@ export class Tr2MeshArea
   }
 
   /** Whether the authored area participates in depth-area generation. */
-  @blue.method
+
   @meta.adapted
   GetGenerateDepthArea()
   {
@@ -263,7 +263,7 @@ export class Tr2MeshArea
   }
 
   /** Sets depth-area participation; schedules the batches rebuild. */
-  @blue.method
+
   @meta.adapted
   SetGenerateDepthArea(value)
   {
@@ -274,7 +274,7 @@ export class Tr2MeshArea
    * Lowest LOD at which the area is visible; -1 (TR2_LOD_UNSPECIFIED) means
    * unrestricted.
    */
-  @blue.method
+
   @meta.implemented
   GetMinLod()
   {
@@ -282,7 +282,7 @@ export class Tr2MeshArea
   }
 
   /** Sets the minimum visible LOD, coerced to a signed integer. */
-  @blue.method
+
   @meta.implemented
   SetMinLod(lod)
   {
@@ -290,7 +290,7 @@ export class Tr2MeshArea
   }
 
   /** Skinning joint count, filled in when the parent mesh binds to a rig. */
-  @blue.method
+
   @meta.implemented
   GetJointCount()
   {
@@ -301,7 +301,7 @@ export class Tr2MeshArea
    * Sets the skinning joint count; CopyFrom deliberately resets it to zero for a
    * new owner.
    */
-  @blue.method
+
   @meta.implemented
   SetJointCount(value)
   {
@@ -312,7 +312,7 @@ export class Tr2MeshArea
    * The joint mapping array; it is owned by the parent mesh and shared by every
    * area, so it must not be mutated here.
    */
-  @blue.method
+
   @meta.implemented
   GetJointMappingAnimRig()
   {
@@ -323,7 +323,7 @@ export class Tr2MeshArea
    * The provided array is NOT owned by this instance, it is owned by the
    * parent mesh; each mesh area shares the same array.
    */
-  @blue.method
+
   @meta.implemented
   SetJointMappingAnimRig(value)
   {
@@ -362,7 +362,7 @@ export class Tr2MeshArea
    * JavaScript reference does. With no reader in the donor that retention is the only
    * observable difference, and it is recorded rather than worked around.
    */
-  @blue.method
+
   @meta.adapted
   AddOwnerMesh(mesh)
   {
@@ -376,7 +376,7 @@ export class Tr2MeshArea
    * it throws, since unregistering from an area a mesh never took is a caller defect either
    * way.
    */
-  @blue.method
+
   @meta.adapted
   RemoveOwnerMesh(mesh)
   {

@@ -148,7 +148,7 @@ export class Tr2MeshBase
   }
 
   /** Whether this mesh participates in rendering. */
-  @blue.method
+
   @meta.implemented
   GetDisplay()
   {
@@ -156,7 +156,7 @@ export class Tr2MeshBase
   }
 
   /** Index of this mesh inside its geometry resource. */
-  @blue.method
+
   @meta.implemented
   GetMeshIndex()
   {
@@ -289,7 +289,7 @@ export class Tr2MeshBase
    * @param {number} [morphTargetsCount]
    * @returns {{ min: vec3, max: vec3 }|null}
    */
-  @blue.method
+
   @meta.adapted
   GetBounds(boneTransforms = null, meshBindingIndices = null, boneCount = 0, morphTargets = null, morphTargetsCount = 0)
   {
@@ -388,7 +388,7 @@ export class Tr2MeshBase
   }
 
   /** Writes the adjusted mesh bounds into caller-owned minimum and maximum vectors. */
-  @blue.method
+
   @meta.implemented
   GetBoundingBox(min, max)
   {
@@ -418,7 +418,7 @@ export class Tr2MeshBase
    * The live area list for a TriBatchType, or null for a non-integer or unmapped
    * type.
    */
-  @blue.method
+
   @meta.implemented
   GetAreas(areaType)
   {
@@ -502,7 +502,7 @@ export class Tr2MeshBase
    * Carbon Tr2MeshBase::GetDebugOptions (Tr2MeshBase.cpp:540-543).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -526,7 +526,7 @@ export class Tr2MeshBase
    * @param {{ index: number, weight: number }[]|null} [morphTargets]
    * @param {number} [morphTargetsCount]
    */
-  @blue.method
+
   @meta.adapted
   RenderDebugInfo(worldTransform, renderer, boneTransforms = null, meshBindingIndices = null, boneCount = 0, morphTargets = null, morphTargetsCount = 0)
   {
@@ -569,7 +569,7 @@ export class Tr2MeshBase
    * Callers pass a screen size already scaled by the LOD factor
    * (EveSpaceObject2, EveTransform, EveChildMesh, BehaviorGroup).
    */
-  @blue.method
+
   @meta.implemented
   UseWithScreenSize(screenSize, worldRadius)
   {
@@ -603,7 +603,7 @@ export class Tr2MeshBase
    * Source: trinity/trinity/Tr2MeshBase.cpp:521-538
    * Adapted: returns whether any material was updated; Carbon returns void.
    */
-  @blue.method
+
   @meta.adapted
   SetShaderOption(name, value)
   {
@@ -787,7 +787,7 @@ export class Tr2MeshBase
    * to the caller's collector, skipping non-shadow-casting OPAQUE areas as
    * Carbon does because overlay rendering over build effects misbehaves.
    */
-  @blue.method
+
   @meta.implemented
   CollectAreaBlocks(collector, areaType)
   {
@@ -814,7 +814,7 @@ export class Tr2MeshBase
    *
    * Adapted: Material grouping uses reference identity in place of Carbon's effect hash values.
    */
-  @blue.method
+
   @meta.adapted
   CollectAreaBlocksWithSharedMaterials(collectors, areaType)
   {

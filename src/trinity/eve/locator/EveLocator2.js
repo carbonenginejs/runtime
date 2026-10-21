@@ -25,7 +25,7 @@ export class EveLocator2
   transform = mat4.create();
 
   /** Returns the name consumers select this locator by. */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -36,7 +36,7 @@ export class EveLocator2
    * Sets the name consumers select this locator by, coercing the value to a
    * string.
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -47,7 +47,7 @@ export class EveLocator2
    * Returns the locator's live transform matrix, not a copy; writes through it
    * change the locator.
    */
-  @blue.method
+
   @meta.implemented
   GetTransform()
   {
@@ -55,7 +55,7 @@ export class EveLocator2
   }
 
   /** Copies a matrix into the locator's own transform storage. */
-  @blue.method
+
   @meta.implemented
   SetTransform(value)
   {

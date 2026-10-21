@@ -19,7 +19,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 export class TriStepPopProjection extends TriRenderStep
 {
   /** Restores the projection saved by the matching push step. */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, _renderContext)
   {

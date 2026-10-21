@@ -113,7 +113,8 @@ export class YamlWriter extends IRootWriter
    * @param {object|null} type Schema descriptor.
    * @returns {void}
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   WriteNestedValue(value, type = null)
   {
     const kind = type?.kind;
@@ -184,57 +185,57 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Writes an unquoted member name; yaml may quote syntactically ambiguous names. */
-  @blue.method
+
   @meta.adapted
   _WriteMemberName(key) { this._AddScalarEvent(key); }
 
   /** Emits a signed byte after C++ argument conversion. */
-  @blue.method
+
   @meta.implemented
   _WriteInt8(value) { this._WriteInt32((Number(value) << 24) >> 24); }
 
   /** Emits a signed short after C++ argument conversion. */
-  @blue.method
+
   @meta.implemented
   _WriteInt16(value) { this._WriteInt32((Number(value) << 16) >> 16); }
 
   /** Emits signed decimal int32. */
-  @blue.method
+
   @meta.implemented
   _WriteInt32(value) { this._AddScalarEvent(Number(value) | 0); }
 
   /** Emits unsigned decimal uint32. */
-  @blue.method
+
   @meta.implemented
   _WriteUInt32(value) { this._AddScalarEvent(Number(value) >>> 0); }
 
   /** BigInt replaces native int64 storage without passing through Number. */
-  @blue.method
+
   @meta.adapted
   _WriteInt64(value) { this._AddScalarEvent(BigInt.asIntN(64, BigInt(value))); }
 
   /** BigInt replaces native uint64 storage without passing through Number. */
-  @blue.method
+
   @meta.adapted
   _WriteUInt64(value) { this._AddScalarEvent(BigInt.asUintN(64, BigInt(value))); }
 
   /** Emits %.7f, retaining one fraction digit; BigInt arithmetic replaces printf. */
-  @blue.method
+
   @meta.adapted
   _WriteFloat(value) { this._AddScalarEvent(Math.fround(value), "number", Fixed(Math.fround(value), 7)); }
 
   /** Emits %.12f, retaining one fraction digit; BigInt arithmetic replaces printf. */
-  @blue.method
+
   @meta.adapted
   _WriteDouble(value) { this._AddScalarEvent(value, "number", Fixed(value, 12)); }
 
   /** JS strings already hold Unicode; output is quoted and non-ASCII escaped. */
-  @blue.method
+
   @meta.adapted
   _WriteChar(value) { this._AddScalarEvent(String(value).split("\0", 1)[0], "quoted"); }
 
   /** A native null wide pointer becomes null; JS strings replace wchar_t storage. */
-  @blue.method
+
   @meta.adapted
   _WriteWChar(value)
   {
@@ -248,7 +249,7 @@ export class YamlWriter extends IRootWriter
    * A one-byte block cannot form a yaml AST: report that native malformed-event
    * bug as an error instead of silently producing a repaired block.
    */
-  @blue.method
+
   @meta.adapted
   _WriteBinaryBlock(persist, propertyName)
   {
@@ -275,7 +276,7 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Begins a block sequence using an AST node in place of a sequence-start event. */
-  @blue.method
+
   @meta.adapted
   _WriteVectorBegin(_size)
   {
@@ -285,12 +286,12 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Ends the current sequence; AST ownership replaces the native end event. */
-  @blue.method
+
   @meta.adapted
   _WriteVectorEnd(_size) { this._events.pop(); }
 
   /** Flow scalar sequence, with each value rounded as a native float. */
-  @blue.method
+
   @meta.adapted
   _WriteFloatArray(values, numValues)
   {
@@ -301,7 +302,7 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Emits rows without allocating numeric scratch; JS indexes replace pointer increments. */
-  @blue.method
+
   @meta.adapted
   _WriteFloatMatrix(values, numRows, numColumns)
   {
@@ -317,7 +318,7 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Native %g six-significant-digit spelling for packed FLOAT32x4 values. */
-  @blue.method
+
   @meta.adapted
   _WriteFloatSequence(values, count)
   {
@@ -337,7 +338,7 @@ export class YamlWriter extends IRootWriter
    * Adapted: metadata output is restricted to YAML_WRITER_METADATA_KEYS to
    * avoid publishing machine-identifying authoring paths.
    */
-  @blue.method
+
   @meta.adapted
   _WriteIRoot__Reference(instance, defaultInstance)
   {
@@ -367,7 +368,7 @@ export class YamlWriter extends IRootWriter
   }
 
   /** JS object identity replaces QueryInterface(IRoot); anchors are retrofitted on second sight. */
-  @blue.method
+
   @meta.adapted
   _WriteIRoot__Pointer(instance)
   {
@@ -386,7 +387,7 @@ export class YamlWriter extends IRootWriter
    * fields replace native byte offsets; offsets/type codes remain on the wire.
    * Only layouts supported by the runtime's meta.struct can be instantiated.
    */
-  @blue.method
+
   @meta.adapted
   _WriteStructureList(list, type)
   {
@@ -423,7 +424,7 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Releases AST and reference state; garbage collection replaces event deletion. */
-  @blue.method
+
   @meta.adapted
   _Cleanup()
   {
@@ -437,7 +438,7 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Appends a node; AST parent/key state replaces libyaml's event stream. */
-  @blue.method
+
   @meta.adapted
   _AddEvent(node)
   {
@@ -454,7 +455,7 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Scalar AST node; custom formats preserve printf lexemes and forced quoting. */
-  @blue.method
+
   @meta.adapted
   _AddScalarEvent(value, style = "plain", source = null)
   {
@@ -470,7 +471,7 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Begins a block mapping; AST node replaces the native event pointer. */
-  @blue.method
+
   @meta.adapted
   _AddMappingStartEvent()
   {
@@ -480,27 +481,27 @@ export class YamlWriter extends IRootWriter
   }
 
   /** Ends a mapping; AST ownership replaces the native event. */
-  @blue.method
+
   @meta.adapted
   _AddMappingEndEvent() { this._events.pop(); }
 
   /** Emits an alias AST node in place of a native alias event. */
-  @blue.method
+
   @meta.adapted
   _AddAliasEvent(anchor) { this._AddEvent(new Alias(anchor)); }
 
   /** Routes the native callback shape to the member using a JS receiver. */
-  @blue.method
+
   @meta.adapted
   static _writeToStreamStatic(data, buffer, size) { return data._WriteToStream(buffer, size); }
 
   /** The host supplies IBlueStream.Write; no filesystem policy is introduced. */
-  @blue.method
+
   @meta.adapted
   _WriteToStream(buffer, size) { return Number(this._dataStream.Write(buffer, size) === size); }
 
   /** Logs through the runtime's Carbon logging port; filenames are not held by this base yet. */
-  @blue.method
+
   @meta.adapted
   _ReportError(message) { CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "%s", message); }
 }

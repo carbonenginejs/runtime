@@ -155,7 +155,7 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -175,7 +175,7 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {string} propertyName Modified property name; unused.
    * @returns {boolean} True after evaluation completes.
    */
-  @blue.method
+
   @meta.adapted
   OnModified(propertyName)
   {
@@ -213,7 +213,7 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {Tr2ScalarExprKey|null} previousKey Previous key, or null for the first key.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   UpdateValues(previousKey)
   {

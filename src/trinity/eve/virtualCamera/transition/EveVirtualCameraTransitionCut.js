@@ -14,7 +14,7 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
 export class EveVirtualCameraTransitionCut extends EveVirtualCameraTransitionBase
 {
   /** Always reports complete, which is what makes the hand-over a cut. */
-  @blue.method
+
   @meta.implemented
   IsComplete()
   {
@@ -25,7 +25,7 @@ export class EveVirtualCameraTransitionCut extends EveVirtualCameraTransitionBas
    * Defers to the base update, which immediately stops the transition because a
    * cut is already complete.
    */
-  @blue.method
+
   @meta.implemented
   Update(deltaTime)
   {

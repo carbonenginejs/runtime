@@ -85,7 +85,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -112,7 +112,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -148,8 +148,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -161,8 +161,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -174,8 +174,8 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The unchanged destination.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;
@@ -188,7 +188,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   LerpToFirstKey(out, time)
   {

@@ -33,7 +33,7 @@ export class EveChildModifierHalo extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.implemented
   ApplyTransform(transform, boneCount, bones, out)
   {

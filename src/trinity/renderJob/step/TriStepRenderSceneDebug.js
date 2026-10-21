@@ -27,7 +27,7 @@ export class TriStepRenderSceneDebug extends TriRenderStep
   /**
    * Renders the bound scene through its debug representation and reports the step complete.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

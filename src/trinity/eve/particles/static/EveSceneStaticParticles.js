@@ -101,7 +101,7 @@ export class EveSceneStaticParticles
   center = vec3.create();
 
   /** Carbon's post-hydration initializer has no additional work. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -114,7 +114,7 @@ export class EveSceneStaticParticles
    * the DOUBLE-precision offset centerOfClusters - origin (narrowed to
    * float32 per component only when it enters the matrix, Carbon's
    * float(offset.x) casts), and stamps the world-space sphere center. */
-  @blue.method
+
   @meta.implemented
   Update(updateContext)
   {
@@ -146,7 +146,7 @@ export class EveSceneStaticParticles
    * and the size gate; the size gate is strict > against
    * PARTICLE_CLUSTER_MIN_SIZE * lodFactor. estimatedSize is stamped even
    * when invisible - GetBatches consumes it as the LOD size (cpp:139). */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext)
   {
@@ -172,7 +172,7 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::IsVisible (cpp:170-174): the world-space
    * center with the local radius through the ONE-ARG IsSphereVisible - the
    * back-plane-ignored TriFrustum quirk applies (cullBackPlane false). */
-  @blue.method
+
   @meta.implemented
   IsVisible(updateContext)
   {
@@ -183,7 +183,7 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::GetRenderables (cpp:129-135): pushes the
    * object ITSELF when visible; the frustum parameter is deliberately unused
    * (kept for the scene call-site contract, EveSpaceScene.cpp:1504-1507). */
-  @blue.method
+
   @meta.implemented
   GetRenderables(_frustum, out = [])
   {
@@ -197,7 +197,7 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::GetBatches (cpp:137-140): the mesh's
    * areas of the requested type with the stamped estimatedSize as the LOD
    * screen size. */
-  @blue.method
+
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -206,7 +206,7 @@ export class EveSceneStaticParticles
 
   /** Carbon EveSceneStaticParticles::GetShadowBatches (cpp:142-145): the
    * particle clusters never cast shadows. */
-  @blue.method
+
   @meta.implemented
   GetShadowBatches(_batches, _perObjectData, _shadowPixelSize)
   {
@@ -219,7 +219,7 @@ export class EveSceneStaticParticles
    *
    * Adapted: the accumulator allocates the catalogued record by name, and
    * SetAndTranspose writes the stored layout. */
-  @blue.method
+
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -234,7 +234,7 @@ export class EveSceneStaticParticles
   }
 
   /** Carbon EveSceneStaticParticles::HasTransparentBatches (cpp:160-163). */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -242,7 +242,7 @@ export class EveSceneStaticParticles
   }
 
   /** Carbon EveSceneStaticParticles::GetSortValue (cpp:165-168). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -253,7 +253,7 @@ export class EveSceneStaticParticles
    * Carbon EveSceneStaticParticles::GetDebugOptions (cpp:176-179).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -265,7 +265,7 @@ export class EveSceneStaticParticles
    * cluster bounding sphere, centre transformed into world space.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -434,7 +434,7 @@ export class EveSceneStaticParticles
    * @returns {Tr2RuntimeInstanceData|null} The accepted instance-data receiver.
    */
   @meta.adapted
-  @blue.method
+
   _GetInstanceDataObject()
   {
     if (!this.mesh) return null;

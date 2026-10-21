@@ -1570,7 +1570,7 @@ export class Tr2RenderContext
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   static DestroyMainThreadRenderContext()
   {

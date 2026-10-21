@@ -65,7 +65,7 @@ export class EveSphereVolume extends IEveVolume
   _nextCallbackId = 1;
 
   /** Returns a fresh sphere centred on the volume position with its outer radius. */
-  @blue.method
+
   @meta.adapted
   GetBoundingSphere()
   {
@@ -80,7 +80,7 @@ export class EveSphereVolume extends IEveVolume
    * within the inner radius, 0 past the outer radius, and a ramp that is linear
    * in squared distance between them.
    */
-  @blue.method
+
   @meta.implemented
   GetIntensity(position)
   {
@@ -105,7 +105,7 @@ export class EveSphereVolume extends IEveVolume
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Keeps every point outside the inner radius.
    */
-  @blue.method
+
   @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
@@ -149,7 +149,7 @@ export class EveSphereVolume extends IEveVolume
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
    */
-  @blue.method
+
   @meta.adapted
   RegisterForChanges(callback)
   {
@@ -159,7 +159,7 @@ export class EveSphereVolume extends IEveVolume
   }
 
   /** Drops a change callback by the id RegisterForChanges returned. */
-  @blue.method
+
   @meta.implemented
   UnregisterForChanges(callbackId)
   {
@@ -170,7 +170,7 @@ export class EveSphereVolume extends IEveVolume
    * Clamps the radii so the outer radius stays non-negative and never smaller
    * than the inner one, then notifies every registered listener.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -211,7 +211,7 @@ export class EveSphereVolume extends IEveVolume
    * @param {mat4} parentTransform The parent's world transform.
    * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, parentTransform, baseColor = DEFAULT_BASE_COLOR)
   {

@@ -187,7 +187,7 @@ export class Tr2CurveLineSet
   }
 
   /** Explicit AL release replaces assigning the native empty buffer value. */
-  @blue.method
+
   @meta.adapted
   ReleaseResources()
   {
@@ -196,7 +196,7 @@ export class Tr2CurveLineSet
   }
 
   /** Registers Carbon's 80-byte LineVertex declaration, then fills the stream. */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -219,7 +219,7 @@ export class Tr2CurveLineSet
   }
 
   /** Only the mapped width factor requires a vertex refill (cpp:50-58). */
-  @blue.method
+
   @meta.implemented
   OnModified(name)
   {
@@ -228,7 +228,7 @@ export class Tr2CurveLineSet
   }
 
   /** Counts all live segments while retaining stable line identifiers. */
-  @blue.method
+
   @meta.implemented
   GetNumOfLines()
   {
@@ -519,7 +519,7 @@ export class Tr2CurveLineSet
    * bytes on this owner replace its native untyped allocation. Unused capacity
    * retains earlier bytes (initially zero), rather than unspecified pool memory.
    */
-  @blue.method
+
   @meta.adapted
   FillVertexBuffer()
   {
@@ -683,7 +683,7 @@ export class Tr2CurveLineSet
    * Uses the shared CRT stream. DataView replaces the native pointer; the native
    * unwritten nextLineDir bytes are zeroed deterministically.
    */
-  @blue.method
+
   @meta.adapted
   WriteParticleVerticesToBuffer(pos1, col1, length1, pos2, col2, length2, lineID, buffer, offset = 0)
   {
@@ -713,7 +713,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon's line sets participate in transparent sorting. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -721,7 +721,7 @@ export class Tr2CurveLineSet
   }
 
   /** Collects transparent, additive, or picking lines through the native gates. */
-  @blue.method
+
   @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
@@ -742,7 +742,7 @@ export class Tr2CurveLineSet
    * on the main context in JS. Native cpp:1117 uses the LOCAL sphere center for
    * packed depth, unlike GetSortValue's transformed center; preserve that quirk.
    */
-  @blue.method
+
   @meta.adapted
   GetBatchImpl(accumulator, perObjectData, effect)
   {
@@ -764,7 +764,7 @@ export class Tr2CurveLineSet
   }
 
   /** Assigns the native line material without refilling the vertex stream. */
-  @blue.method
+
   @meta.implemented
   SetLineEffect(effect)
   {
@@ -772,7 +772,7 @@ export class Tr2CurveLineSet
   }
 
   /** Assigns the native picking material without refilling the vertex stream. */
-  @blue.method
+
   @meta.implemented
   SetPickEffect(effect)
   {
@@ -780,7 +780,7 @@ export class Tr2CurveLineSet
   }
 
   /** Distance from the transformed local bound to the renderer's view (cpp:648-657). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -797,7 +797,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon's base intentionally supplies no scene-specific constants. */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(_accumulator)
   {
@@ -805,7 +805,7 @@ export class Tr2CurveLineSet
   }
 
   /** Carbon ITr2Pickable identity for every line primitive. */
-  @blue.method
+
   @meta.implemented
   GetID(_areaId)
   {
@@ -813,7 +813,7 @@ export class Tr2CurveLineSet
   }
 
   /** Dispatches the selected pick categories through the same batch contract. */
-  @blue.method
+
   @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
@@ -833,7 +833,7 @@ export class Tr2CurveLineSet
   }
 
   /** Sets Carbon's additive-pass selector. */
-  @blue.method
+
   @meta.implemented
   SetAdditiveFlag(value)
   {
@@ -841,7 +841,7 @@ export class Tr2CurveLineSet
   }
 
   /** Sets Carbon's dynamic CPU-update policy. */
-  @blue.method
+
   @meta.implemented
   SetDynamicFlag(value)
   {
@@ -851,7 +851,7 @@ export class Tr2CurveLineSet
   /**
    * Appends one tessellated segment's vertices to the line buffer.
    */
-  @blue.method
+
   @meta.renamed("addLineData")
   #addLineData(line)
   {
@@ -890,7 +890,7 @@ export class Tr2CurveLineSet
   /**
    * Whether a line identifier still refers to a live line.
    */
-  @blue.method
+
   @meta.renamed("isValidLineID")
   #isValidLineID(id)
   {

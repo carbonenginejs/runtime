@@ -59,7 +59,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} out Destination vector; defaults to shared scratch.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.implemented
   GetOffsetPosition(out = OFFSET_SCRATCH)
   {
@@ -82,7 +82,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Position to transform.
    * @returns {Float32Array} The position buffer.
    */
-  @blue.method
+
   @meta.implemented
   GetTransformedPosition(inOut)
   {
@@ -99,7 +99,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.implemented
   Update(_time, inOut)
   {
@@ -113,7 +113,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.implemented
   GetValueAt(_time, inOut)
   {
@@ -127,7 +127,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.implemented
   GetValueDotAt(_time, inOut)
   {
@@ -141,7 +141,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.implemented
   GetValueDoubleDotAt(_time, inOut)
   {
@@ -226,7 +226,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   InterpolatedPosition(time, out)
   {
@@ -242,8 +242,8 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {number} _time Unused time.
    * @returns {void}
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   UpdateValue(_time)
   {
   }

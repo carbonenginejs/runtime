@@ -539,7 +539,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Array<number[]>|null} value Three 3-item rows, or null.
    * @returns {Float32Array} `transform`.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   static readPositionTransform(transform, value)
   {
     mat4.identity(transform);
@@ -576,7 +577,8 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Float32Array} transform Matrix from readPositionTransform.
    * @returns {Float32Array} `out`.
    */
-  @meta.implemented
+  @meta.cjs
+    @meta.implemented
   static transformPosition(out, position, transform)
   {
     return vec3.transformMat4(out, [position[0], position[1], 0], transform);

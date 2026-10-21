@@ -62,7 +62,7 @@ export class Tr2ParticleElementDeclaration
    * @returns {number} Two for lifetime, three for position or velocity, one for mass,
    * or the custom dimension.
    */
-  @blue.method
+
   @meta.implemented
   GetSize()
   {
@@ -79,7 +79,7 @@ export class Tr2ParticleElementDeclaration
    * Returns the authored custom name for CUSTOM elements, and the semantic's
    * enum name for the built-in types.
    */
-  @blue.method
+
   GetName()
   {
     return this.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM

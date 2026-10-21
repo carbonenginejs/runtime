@@ -209,7 +209,7 @@ export class Tr2GpuSharedEmitter
   /**
    * Hashes the native parameter bytes and selects the shared parameter ID.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -226,7 +226,7 @@ export class Tr2GpuSharedEmitter
    * Adapted: the Blue members are separate JS fields, so they are first copied
    * into the packed parameter block Carbon maps them onto directly.
    */
-  @blue.method
+
   @meta.adapted
   OnModified()
   {
@@ -240,7 +240,7 @@ export class Tr2GpuSharedEmitter
    * Turns emission on or off; disabling also clears the spawn-time cursor so
    * re-enabling restarts timing instead of catching up on the idle interval.
    */
-  @blue.method
+
   @meta.adapted
   Enable(value)
   {
@@ -250,14 +250,15 @@ export class Tr2GpuSharedEmitter
 
   /** Reports whether this emitter is currently emitting. */
 
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   IsEnabled()
   {
     return this._enabled;
   }
 
   /** Sets the emission cone axis in place, treating a missing value as zero. */
-  @blue.method
+
   @meta.adapted
   SetDirection(value)
   {
@@ -265,7 +266,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Sets the emitter origin in place, treating a missing value as zero. */
-  @blue.method
+
   @meta.adapted
   SetPosition(value)
   {
@@ -277,7 +278,7 @@ export class Tr2GpuSharedEmitter
    * delta is TimeAsFloat of the Be::Time tick difference.
    * Adapted: authored schema fields are projected onto the native structs at entry.
    */
-  @blue.method
+
   @meta.adapted
   Update(arguments_)
   {
@@ -414,7 +415,7 @@ export class Tr2GpuSharedEmitter
    * Emits one scaled burst (cpp:236-276). Reusable scratch replaces native
    * stack value copies; the supplied velocity is already in world coordinates.
    */
-  @blue.method
+
   @meta.adapted
   SpawnOnce(arguments_, velocity, scale = 1, rateModifier = 1)
   {
@@ -448,7 +449,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Selects the parameter-sharing ID from the current native-byte hash. */
-  @blue.method
+
   @meta.implemented
   GenerateID()
   {
@@ -460,7 +461,7 @@ export class Tr2GpuSharedEmitter
    * cpp:74 uses sizeof(uintptr_t)-1, so the cleared bit is 7, not 63.
    * JS hashes are uint32; the unused high native bits are zero.
    */
-  @blue.method
+
   @meta.adapted
   GetID(hash)
   {
@@ -468,7 +469,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Hashes the current CPU parameters without changing the stable ID. */
-  @blue.method
+
   @meta.implemented
   UpdateHash()
   {
@@ -481,7 +482,7 @@ export class Tr2GpuSharedEmitter
    * native struct memory to hash; integer fields retain their uint32 bit patterns.
    * All bytes in the module scratch buffer are overwritten before each hash.
    */
-  @blue.method
+
   @meta.adapted
   GetHash(params)
   {
@@ -556,7 +557,7 @@ export class Tr2GpuSharedEmitter
    * @param {object} paramsData per-particle parameters; colors may be supplied either as a colors array or as color0..color3
    * attractorStrength is only forwarded on subclasses that declare it.
    */
-  @blue.method
+
   @meta.adapted
   Setup(rate, emitterData, paramsData)
   {
@@ -615,8 +616,8 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Carbon's GPU emitter thread-safety hook is intentionally empty. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   SetThreadSafeFlag()
   {
   }

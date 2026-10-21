@@ -225,7 +225,7 @@ export class EveSpherePin
   }
 
   /** Native initialization requests geometry and refreshes bounds, not the draw effect path. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -238,7 +238,7 @@ export class EveSpherePin
    * Applies native notification branches in order. JS coalesces changed names
    * into one call, so independent branches handle every field in that call.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(name)
   {
@@ -259,7 +259,7 @@ export class EveSpherePin
    * Requests the decoded geometry resource. Native notification callbacks are
    * both empty; JS polls its readiness without installing inert subscriptions.
    */
-  @blue.method
+
   @meta.adapted
   InitializeGeometryResource()
   {
@@ -270,14 +270,14 @@ export class EveSpherePin
   }
 
   /** Native ReleaseResources is empty; final destruction releases the index buffer. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   ReleaseResources(_storage)
   {
   }
 
   /** Requests index regeneration when initialized geometry outlives its AL buffer. */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -286,15 +286,15 @@ export class EveSpherePin
   }
 
   /** The native resource completion callback is empty. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   RebuildCachedData(_resource)
   {
   }
 
   /** The native resource release callback is empty. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   ReleaseCachedData(_resource)
   {
   }
@@ -304,7 +304,7 @@ export class EveSpherePin
    * references, and AL Create takes the existing JS description overload.
    * Empty selections destroy the old buffer but retain the native rebuild flag.
    */
-  @blue.method
+
   @meta.adapted
   CreateIndexBuffer()
   {
@@ -328,7 +328,7 @@ export class EveSpherePin
    * JS geometry already retains decoded CPU channels, so the same resource
    * replaces Carbon's separate "raw" TriGrannyRes request.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(_updateContext)
   {
@@ -351,7 +351,7 @@ export class EveSpherePin
   }
 
   /** Advances curves using native TimeAsDouble conversion from 100 ns ticks. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext)
   {
@@ -359,7 +359,7 @@ export class EveSpherePin
   }
 
   /** Native update orders synchronous geometry publication before curve updates. */
-  @blue.method
+
   @meta.implemented
   Update__UpdateContext(updateContext)
   {
@@ -368,7 +368,7 @@ export class EveSpherePin
   }
 
   /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
-  @blue.method
+
   @meta.implemented
   Update(updateContext)
   {
@@ -376,7 +376,7 @@ export class EveSpherePin
   }
 
   /** Native visibility updates placement but performs no frustum cull. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
@@ -385,7 +385,7 @@ export class EveSpherePin
   }
 
   /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -394,14 +394,14 @@ export class EveSpherePin
 
   /** Native collection checks display only; the optional impostor manager is unused. */
   @meta.implemented
-  @blue.method
+
   GetRenderables__Impostors(renderables, _impostors)
   {
     if (this.display) renderables.push(this);
   }
 
   /** Native query returns the local sphere, without applying the world matrix. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
@@ -410,7 +410,7 @@ export class EveSpherePin
   }
 
   /** Native bounds are the center normal and authored pin radius. */
-  @blue.method
+
   @meta.implemented
   BuildBoundingSphere()
   {
@@ -418,7 +418,7 @@ export class EveSpherePin
   }
 
   /** Native sphere pins always use high LOD. */
-  @blue.method
+
   @meta.implemented
   GetLODLevel()
   {
@@ -426,21 +426,21 @@ export class EveSpherePin
   }
 
   /** Native model-center update is empty. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
 
   /** Native model-center query leaves its output untouched. */
-  @blue.method
+
   @meta.noop
   GetModelCenterWorldPosition(_position)
   {
   }
 
   /** Native pins do not provide a local bounding box. */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
@@ -448,7 +448,7 @@ export class EveSpherePin
   }
 
   /** Native IEveTransform query deliberately returns identity. */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -457,7 +457,7 @@ export class EveSpherePin
 
 
   /** Carbon EveSpherePin::HasTransparentBatches is always true. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -465,7 +465,7 @@ export class EveSpherePin
   }
 
   /** Distance from the renderer's view, without per-frame vector allocation. */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -475,7 +475,7 @@ export class EveSpherePin
   }
 
   /** Routes transparent and picking passes through the corresponding native effect. */
-  @blue.method
+
   @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
@@ -493,7 +493,7 @@ export class EveSpherePin
    * Binds selected pin indices beside shared mesh-zero / LOD-zero vertices.
    * JS realizes geometry lazily here because its resource layer cannot use AL.
    */
-  @blue.method
+
   @meta.adapted
   GetBatchWithEffect(accumulator, perObjectData, effect)
   {
@@ -516,7 +516,7 @@ export class EveSpherePin
   }
 
   /** Native picking-mask routing, including transparent and additive requests. */
-  @blue.method
+
   @meta.implemented
   GetPickingBatches(accumulator, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
@@ -531,7 +531,7 @@ export class EveSpherePin
 
 
   /** Carbon EveSpherePin::GetID uses the pin itself as its picking identity. */
-  @blue.method
+
   @meta.implemented
   GetID()
   {
@@ -544,7 +544,7 @@ export class EveSpherePin
    * gl multiply(world, parent, local); Carbon (s, r, t) is gl
    * fromRotationTranslationScale (r, t, s). The frustum argument is unused
    * in Carbon's body and kept for signature parity. */
-  @blue.method
+
   @meta.implemented
   UpdateViewDependentData(_frustum, parentTransform)
   {
@@ -558,7 +558,7 @@ export class EveSpherePin
    * payload; SetAndTranspose performs Carbon's `Transpose(m_worldTransform)`.
    * The struct registers with stages ["vs", "ps"]: the SAME bytes are bound
    * to both per-object slots (cpp:415-425). */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {

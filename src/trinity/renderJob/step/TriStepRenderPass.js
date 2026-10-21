@@ -38,7 +38,7 @@ export class TriStepRenderPass extends TriRenderStep
    * Renders a present multi-pass scene directly and observes its terminate result.
    * Carbon TriStepRenderPass.cpp:16-27 retains the nullable scene branch.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

@@ -46,7 +46,7 @@ export class EveCloudVolumeTextureParameter
    * Adapted: Carbon hashes the volume pointer's bytes; the parameter library's identity hash
    * gives the same same-object-same-hash contract.
    */
-  @blue.method
+
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -54,7 +54,7 @@ export class EveCloudVolumeTextureParameter
   }
 
   /** Carbon GetParameterName (cpp:394-397). */
-  @blue.method
+
   @meta.implemented
   GetParameterName()
   {
@@ -69,7 +69,7 @@ export class EveCloudVolumeTextureParameter
    * TriTextureParameter convention (donor checks resources only, not
    * constants).
    */
-  @blue.method
+
   @meta.implemented
   RebuildEffectHandles(effectRes)
   {

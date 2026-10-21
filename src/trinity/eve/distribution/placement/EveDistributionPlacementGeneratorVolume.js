@@ -83,7 +83,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
-  @blue.method
+
   @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
@@ -116,7 +116,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   }
 
   /** Carbon GetVolume (EveDistributionPlacementGeneratorVolume.cpp:21). */
-  @blue.method
+
   @meta.implemented
   GetVolume()
   {
@@ -127,7 +127,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Carbon SetVolume (cpp:26): the ORDERED swap - the old volume is
    * unsubscribed before the new one subscribes.
    */
-  @blue.method
+
   @meta.implemented
   SetVolume(volume)
   {
@@ -141,7 +141,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Carbon AddVolumeCallbacks (cpp:76): subscribe RequestRegeneration to the
    * assigned volume and keep the token. Also runs from Initialize (cpp:98).
    */
-  @blue.method
+
   @meta.implemented
   AddVolumeCallbacks()
   {
@@ -157,7 +157,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * The donor does NOT zero the token afterwards; callers that need a fresh
    * token zero it themselves, exactly as SetVolume above does.
    */
-  @blue.method
+
   @meta.implemented
   RemoveVolumeCallbacks()
   {
@@ -168,7 +168,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   }
 
   /** Marks the placement pool as stale so the owning distribution rebuilds it. */
-  @blue.method
+
   @meta.implemented
   RequestRegeneration()
   {
@@ -179,7 +179,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * Reports whether the pool is stale; the owning distribution restarts while
    * this is true, and it clears once new placements are generated.
    */
-  @blue.method
+
   @meta.implemented
   IsRequestingRegeneration()
   {
@@ -187,7 +187,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   }
 
   /** Carbon Initialize (cpp:98-102): subscribe to the assigned volume's changes. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -196,7 +196,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   }
 
   /** Carbon OnModified (cpp:106-110): any authored change requests regeneration. */
-  @blue.method
+
   @meta.implemented
   OnModified(_value = null)
   {

@@ -482,7 +482,8 @@ export class EveTriggerVolume
    * Whether the tracked position currently counts as inside; mirrors the
    * READ-only Blue attribute for programmatic consumers.
    */
-  @meta.implemented
+  @meta.cjs
+    @meta.implemented
   IsInside()
   {
     return this.isInside;

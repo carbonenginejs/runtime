@@ -294,7 +294,7 @@ export class SeekTarget
    * bucket lists fall out of step and UpdateAgents' bucketId = id % boxes.size() can index past the buckets
    * (undefined behaviour in C++, a throw here); the matching box is dropped too.
    */
-  @blue.method
+
   @meta.adapted
   SortLocators()
   {
@@ -339,14 +339,15 @@ export class SeekTarget
   /**
    * A shallow copy of the locator index buckets produced by splitting the target's bounding box, one array per slice.
    */
-  @meta.implemented
+  @meta.cjs
+    @meta.implemented
   GetLocatorBucketIndices()
   {
     return this._locatorBucketIndices.map(bucket => [...bucket]);
   }
 
   /** Carbon SeekTarget::GetProcessPriority (cpp:37-40). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -357,7 +358,7 @@ export class SeekTarget
    * Carbon SeekTarget::GetScratchMemorySize (cpp:43-46). Adapted: scratch is one plain record per agent, so any
    * non-zero answer means "has scratch", as for the other behaviors.
    */
-  @blue.method
+
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -365,7 +366,7 @@ export class SeekTarget
   }
 
   /** Carbon SeekTarget::InitializeScratch (cpp:48-51) and SeekTargetData's defaults (SeekTarget.h:13-34). Adapted: returns the record. */
-  @blue.method
+
   @meta.adapted
   InitializeScratch()
   {
@@ -388,7 +389,7 @@ export class SeekTarget
    * weight; the force applies behaviorWeight on top of that.
    * Random draws delegate to the matching generator in global/math/random.js.
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
@@ -549,7 +550,7 @@ export class SeekTarget
    * Carbon SeekTarget::GetDebugOptions (cpp:448-452).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -565,7 +566,7 @@ export class SeekTarget
    * @param {Array} _agents DroneAgent records (unused, as in Carbon).
    * @param {mat4} parentWorldLocation Places the locators in world space.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
@@ -621,14 +622,14 @@ export class SeekTarget
   }
 
   /** Carbon SeekTarget::GetLocatorsForSet (cpp:283-290): this behavior's own set when its name matches. */
-  @blue.method
+
   _GetLocatorsForSet(setName)
   {
     return this.locatorSet !== null && this.locatorSet.HasName(setName) ? this.locatorSet.GetLocators() : null;
   }
 
   /** Carbon SeekTarget::FindSpawnPoint (cpp:337-355): a random locator from the own set, else from the group's space object. */
-  @blue.method
+
   _FindSpawnPoint(out)
   {
     const seekLocators = this._GetLocatorsForSet(this.locatorSetName);

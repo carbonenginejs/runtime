@@ -27,14 +27,14 @@ export class IEveProceduralSelectionMethod
   GetSelectedChild() {}
 
   /** Accepts an optional procedural-selection variable. */
-  @blue.method
+
   @meta.noop
   SetProceduralMethodVariable(_name, _value)
   {
   }
 
   /** Returns Carbon's default procedural-selection variable result. */
-  @blue.method
+
   @meta.implemented
   GetProceduralMethodVariable(_name)
   {

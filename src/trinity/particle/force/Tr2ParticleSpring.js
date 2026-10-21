@@ -32,7 +32,7 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
   springConstant = 0;
 
   /** Applies Carbon's linear spring force toward the configured origin. */
-  @blue.method
+
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
@@ -44,8 +44,8 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
    * Nothing to advance per frame: the spring force depends only on each
    * particle's current position.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   Update(_dt)
   {
   }
@@ -57,7 +57,7 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
    * @param {mat4} worldTransform The owning particle system's world transform.
    * @param {box3} _aabb The particle system's bounds, packed min/max.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, worldTransform, _aabb)
   {

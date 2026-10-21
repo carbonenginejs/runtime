@@ -160,7 +160,7 @@ export class EveConnector
    * Adapted: JavaScript vector functions use GetValueAt(time, out); Carbon's pointer-first
    * spelling is a native calling convention.
    */
-  @blue.method
+
   @meta.adapted
   Update(context)
   {
@@ -176,7 +176,7 @@ export class EveConnector
   }
 
   /** Adds the connector's selected logical line records to an owned line set. */
-  @blue.method
+
   @meta.implemented
   AddLine(lineSet)
   {
@@ -255,7 +255,7 @@ export class EveConnector
   }
 
   /** Applies authored animation settings to one emitted line segment (EveConnector.cpp:111-129). */
-  @blue.method
+
   _AnimateSegment(lineSet, lineId)
   {
     if (!this.isAnimated)
@@ -277,7 +277,7 @@ export class EveConnector
   }
 
   /** Emits an XZ-aligned circle as four spherical arcs (EveConnector.cpp:131-137, the overload without a normal). */
-  @blue.method
+
   _AddCircle(lineSet, center, radius)
   {
     vec3.set(POINT_1, center[0], center[1], center[2] + radius);
@@ -295,7 +295,7 @@ export class EveConnector
   }
 
   /** Emits a circle around an arbitrary plane normal as four spherical arcs (EveConnector.cpp:139-150). */
-  @blue.method
+
   _AddCircle__PlaneNormal(lineSet, center, radius, planeNormal)
   {
     this._CalculateSideAndFront(planeNormal, SIDE, FRONT);
@@ -317,7 +317,7 @@ export class EveConnector
   }
 
   /** Emits an orbit and the connector from its source to that orbit (EveConnector.cpp:152-173). */
-  @blue.method
+
   _AddOrbit(lineSet, center, radius, planeNormal)
   {
     vec3.normalize(NORMAL, planeNormal);
@@ -348,7 +348,7 @@ export class EveConnector
   }
 
   /** Emits one straight connector segment (EveConnector.cpp:175-184). */
-  @blue.method
+
   _AddStraightLine(lineSet, source, destination, fadeEnd = false)
   {
     vec4.copy(END_COLOR, this.color);
@@ -361,7 +361,7 @@ export class EveConnector
   }
 
   /** Emits one spherical-curve connector segment (EveConnector.cpp:186-190). */
-  @blue.method
+
   _AddSpheredSegment(lineSet, point0, point1, center)
   {
     const id = lineSet.AddSpheredLineCrt(point0, this.color, point1, this.color, center, this.lineWidth);
@@ -369,7 +369,7 @@ export class EveConnector
   }
 
   /** Emits a rotated ellipse as 32 curved line segments of 5 subdivisions each (EveConnector.cpp:192-223). */
-  @blue.method
+
   _AddEllipse(lineSet, center, radiusX, radiusY, rotation, normal)
   {
     this._CalculateSideAndFront(normal, SIDE, FRONT);
@@ -405,7 +405,7 @@ export class EveConnector
   }
 
   /** Emits one curved line segment and applies connector animation (EveConnector.cpp:225-231). */
-  @blue.method
+
   _AddCurvedLine(lineSet, point1, point2, middle, segments)
   {
     const id = lineSet.AddCurvedLineCrt(point1, this.color, point2, this.color, middle,
@@ -414,7 +414,7 @@ export class EveConnector
   }
 
   /** Derives orthonormal side and front axes for a plane normal (EveConnector.cpp:233-248). */
-  @blue.method
+
   _CalculateSideAndFront(upDirection, outSide, outFront)
   {
     vec3.normalize(NORMAL, upDirection);

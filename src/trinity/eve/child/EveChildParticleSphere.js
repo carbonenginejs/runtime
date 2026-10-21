@@ -210,7 +210,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildParticleSphere::CheckBinding (cpp:233-240): binds on first use. */
-  @blue.method
+
   @meta.implemented
   CheckBinding()
   {
@@ -222,7 +222,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * Carbon EveChildParticleSphere::GetRenderables (cpp:72-79): sorts and publishes once updated; no frustum gate.
    * Adapted: returns the caller-owned array, as the sibling EveChildParticleSystem does.
    */
-  @blue.method
+
   @meta.adapted
   GetRenderables(renderables = [])
   {
@@ -235,7 +235,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildParticleSphere::UpdateVisibility (cpp:82-90): view-dependent particle data only while the sphere is in view. */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
@@ -247,7 +247,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildParticleSphere::GetBoundingSphere (cpp:93-97). */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out, _query = 0)
   {
@@ -256,7 +256,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildParticleSphere::UpdateSyncronous (cpp:100-112): binds, then reads the ego velocity from the ballpark. */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, _params)
   {
@@ -271,7 +271,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * Carbon EveChildParticleSphere::UpdateAsyncronous (cpp:115-127): the sphere follows the parent's translation only,
    * never its rotation or scale.
    */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
@@ -288,7 +288,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -296,14 +296,14 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildParticleSphere::Setup (cpp:136-138) is empty. */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   Setup(_scale = null, _rotation = null, _translation = null, _lowestLodVisible = null)
   {
   }
 
   /** Carbon EveChildParticleSphere::GetBatches (cpp:141-152). */
-  @blue.method
+
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -313,7 +313,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildParticleSphere::HasTransparentBatches (cpp:155-163). */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -322,7 +322,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildParticleSphere::GetSortValue (cpp:166-169). */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -333,7 +333,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * Carbon EveChildParticleSphere::GetPerObjectData (cpp:172-186): the vertex record holds the transposed world matrix
    * and the untransposed inverse, which the shader's row-major read sees as the inverse transpose.
    */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {
@@ -348,7 +348,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * Carbon EveChildParticleSphere::Update (cpp:189-230): moves the particles against the clamped, scaled origin shift,
    * tracks the normalized position shift, refills particles that left the sphere and tops it up, then steps the system.
    */
-  @blue.method
+
   _Update(updateContext)
   {
     const { vec3_0, vec3_1, vec3_2, vec3_3, mat4_0 } = EveChildParticleSphere.scratch;
@@ -401,7 +401,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * takes its squared distance over the squared radius as its age and the ego direction as its velocity, and is
    * regenerated once it reaches the sphere's edge. Adapted: an element the system does not declare is skipped.
    */
-  @blue.method
+
   _ApplyConstraint(previousReferencePosition, velocityDirection)
   {
     if (!this.particleSystem) return;
@@ -442,7 +442,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * kept out of the volume the previous frame's sphere already covered when it can be (ten tries).
    * Random draws delegate to the matching generator in global/math/random.js.
    */
-  @blue.method
+
   _FillParticleData(index, previousReferencePosition, velocityDirection)
   {
     const { vec3_4 } = EveChildParticleSphere.scratch;
@@ -500,7 +500,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildParticleSphere::AddParticles (cpp:402-421): fills every free slot. */
-  @blue.method
+
   _AddParticles(previousReferencePosition, velocityDirection)
   {
     if (!this.particleSystem) return;

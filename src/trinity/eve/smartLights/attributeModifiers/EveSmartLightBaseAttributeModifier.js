@@ -112,7 +112,7 @@ export class EveSmartLightBaseAttributeModifier
    * starting active animates into its active state
    * (EveSmartLightBaseAttributeModifier.cpp:27-33).
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -126,7 +126,7 @@ export class EveSmartLightBaseAttributeModifier
    * Reacts to an `active` edit by restarting the crossfade from the current
    * (unmapped) position (EveSmartLightBaseAttributeModifier.cpp:35-48).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -146,7 +146,7 @@ export class EveSmartLightBaseAttributeModifier
    * Applies an activation state, optionally restarting the play time
    * (EveSmartLightBaseAttributeModifier.cpp:50-63).
    */
-  @blue.method
+
   @meta.implemented
   ResetPlayTime(active)
   {
@@ -168,7 +168,7 @@ export class EveSmartLightBaseAttributeModifier
    * mirrored around the deactivating direction
    * (EveSmartLightBaseAttributeModifier.cpp:65-70).
    */
-  @blue.method
+
   @meta.implemented
   MapActivationValue()
   {
@@ -182,7 +182,7 @@ export class EveSmartLightBaseAttributeModifier
    * parent multiplier into the final activation strength
    * (EveSmartLightBaseAttributeModifier.cpp:72-125).
    */
-  @blue.method
+
   @meta.implemented
   UpdateActivationStrength(parentActivationMultiplier, deltaTime)
   {
@@ -241,7 +241,7 @@ export class EveSmartLightBaseAttributeModifier
    * lifetime curve sampled per the lifetime formula
    * (EveSmartLightBaseAttributeModifier.cpp:127-151).
    */
-  @blue.method
+
   @meta.implemented
   GetActivationStrength(placement)
   {
@@ -272,8 +272,8 @@ export class EveSmartLightBaseAttributeModifier
   }
 
   /** Carbon declares ResetChildren inline empty on the base (EveSmartLightBaseAttributeModifier.h:41). */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   ResetChildren(_parentActive)
   {
   }

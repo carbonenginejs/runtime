@@ -284,7 +284,7 @@ export class Tr2DebugRenderer
    * @param {string} option
    * @returns {boolean}
    */
-  @blue.method
+
   @meta.implemented
   HasOption(owner, option)
   {
@@ -302,7 +302,7 @@ export class Tr2DebugRenderer
    * @param {object} owner
    * @returns {boolean}
    */
-  @blue.method
+
   @meta.implemented
   IsSelected__Root(owner)
   {
@@ -314,7 +314,7 @@ export class Tr2DebugRenderer
    * @param {Tr2DebugObjectReference} owner
    * @returns {boolean}
    */
-  @blue.method
+
   @meta.implemented
   IsSelected__Reference(owner)
   {
@@ -341,7 +341,7 @@ export class Tr2DebugRenderer
    * @param {vec3} to
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawLine(owner, from, to, color)
   {
@@ -407,7 +407,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawBox__MinMax(owner, min, max, effect, color)
   {
@@ -425,7 +425,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawBox__Transform(owner, transform, min, max, effect, color)
   {
@@ -500,7 +500,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawSphere__Sphere(owner, sphere, segments, effect, color)
   {
@@ -516,7 +516,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawSphere__CenterRadius(owner, center, radius, segments, effect, color)
   {
@@ -531,7 +531,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawSphere__Transform(owner, transform, segments, effect, color)
   {
@@ -547,7 +547,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawSphere__TransformRadius(owner, transform, radius, segments, effect, color)
   {
@@ -567,7 +567,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawSphere__TransformCenterRadius(owner, transform, center, radius, segments, effect, color)
   {
@@ -629,7 +629,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawCylinder__TransformHeight(owner, transform, radius, height, segments, effect, color)
   {
@@ -648,7 +648,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawCylinder__Caps(owner, cap0, cap1, radius, segments, effect, color)
   {
@@ -666,7 +666,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawCylinder__TransformCaps(owner, transform, cap0, cap1, radius, segments, effect, color)
   {
@@ -685,7 +685,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawCone__TransformRadius(owner, transform, radius, height, segments, effect, color)
   {
@@ -705,7 +705,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawCone__BaseFocal(owner, base, focal, radius, segments, effect, color)
   {
@@ -726,7 +726,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawCone__TransformAngle(owner, transform, height, angle, segments, coneSegments, effect, color)
   {
@@ -765,7 +765,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawCapsule__TransformHeight(owner, transform, radius, height, segments, effect, color)
   {
@@ -811,7 +811,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawCapsule__Caps(owner, cap0, cap1, radius, segments, effect, color)
   {
@@ -832,7 +832,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawArrow(owner, start, end, radius, pointerLength, segments, effect, color)
   {
@@ -888,7 +888,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawDoubleArrow(owner, start, end, radius, pointerLength, segments, effect, color)
   {
@@ -956,7 +956,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawSphereArrow(owner, center, direction, radius, segments, effect, color)
   {
@@ -1019,7 +1019,7 @@ export class Tr2DebugRenderer
    * @param {mat4} transform
    * @param {number} effect An Effect value.
    */
-  @blue.method
+
   @meta.implemented
   DrawAxis(owner, transform, effect)
   {
@@ -1045,7 +1045,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawExtrusionShape(owner, transform, vertices, normals, vertexCount, segments, effect, color)
   {
@@ -1111,7 +1111,7 @@ export class Tr2DebugRenderer
    * @param {number} effect An Effect value.
    * @param {Tr2DebugColor} color
    */
-  @blue.method
+
   @meta.implemented
   DrawAudioSpeaker(owner, transform, size, segments, effect, color)
   {
@@ -1171,7 +1171,7 @@ export class Tr2DebugRenderer
    * Carbon BeginRender (cpp:819-825): call every frame before any Draw
    * method; drops last frame's primitives.
    */
-  @blue.method
+
   @meta.implemented
   BeginRender()
   {
@@ -1187,7 +1187,7 @@ export class Tr2DebugRenderer
    * draws each with every pass of DebugPrimitive.fx under alpha blending.
    * @param {Tr2RenderContext} renderContext
    */
-  @blue.method
+
   @meta.implemented
   EndRender(renderContext)
   {
@@ -1257,7 +1257,7 @@ export class Tr2DebugRenderer
    * @param {string} msg printf format.
    * @param {...*} args Format arguments.
    */
-  @blue.method
+
   @meta.implemented
   DrawText(font, pos, color, msg, ...args)
   {
@@ -1284,7 +1284,7 @@ export class Tr2DebugRenderer
    * Not supported: JavaScript objects have no address to encode into the
    * picking target.
    */
-  @blue.method
+
   @meta.notImplemented
   Pick(_readback, _renderContext)
   {

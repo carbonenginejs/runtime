@@ -42,7 +42,7 @@ export class TriVariable extends ITr2EffectValue
    * The registered variable name, which the store also uses as its key.
    * @returns {string} Variable result.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -73,7 +73,7 @@ export class TriVariable extends ITr2EffectValue
    * @param {*} value Portable value payload.
    * @returns {boolean} Variable result.
    */
-  @blue.method
+
   @meta.adapted
   SetValue(value)
   {
@@ -104,7 +104,7 @@ export class TriVariable extends ITr2EffectValue
    * @param {ArrayLike|undefined} [out] Optional destination for array components.
    * @returns {*} Variable result.
    */
-  @blue.method
+
   @meta.adapted
   GetValue(out = undefined)
   {
@@ -127,7 +127,7 @@ export class TriVariable extends ITr2EffectValue
    * Adapted: Releases the single JavaScript payload and invalidates its type; native Clear separately releases resource fields and clears union storage.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   Invalidate()
   {
@@ -142,7 +142,7 @@ export class TriVariable extends ITr2EffectValue
    * Adapted: Preserves the portable array/scalar/reference clearing rules instead of zeroing the native union and separate resource pointers.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   Clear()
   {
@@ -274,7 +274,7 @@ export class TriVariable extends ITr2EffectValue
    * name. The static ( t ) form is TriVariable.getTypeName.
    * @returns {string}
    */
-  @blue.method
+
   @meta.implemented
   GetTypeName()
   {
@@ -286,7 +286,7 @@ export class TriVariable extends ITr2EffectValue
    * constant-buffer byte size. The static ( t ) form is TriVariable.getTypeSize.
    * @returns {number}
    */
-  @blue.method
+
   @meta.implemented
   GetTypeSize()
   {
@@ -297,7 +297,7 @@ export class TriVariable extends ITr2EffectValue
    * Native constant-buffer value size.
    * @returns {number} Byte size for this variable's registered type.
    */
-  @blue.method
+
   @meta.implemented
   GetValueSize()
   {
@@ -426,8 +426,8 @@ export class TriVariable extends ITr2EffectValue
    * @returns {string} Variable result.
    */
   @meta.adapted
-  @blue.method
-  @meta.renamed("GetTypeName")
+
+
   static getTypeName(contentType)
   {
     return TriVariable._typeNames[contentType] ?? TriVariable._typeNames[0];
@@ -444,8 +444,8 @@ export class TriVariable extends ITr2EffectValue
    * @returns {number} Variable result.
    */
   @meta.adapted
-  @blue.method
-  @meta.renamed("GetTypeSize")
+
+
   static getTypeSize(contentType)
   {
     return TriVariable._typeSizes[contentType] ?? 0;

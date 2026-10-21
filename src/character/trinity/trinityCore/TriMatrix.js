@@ -38,7 +38,7 @@ export class TriMatrix
    * @returns {mat4} The stored matrix.
    */
   @meta.implemented
-  @blue.method
+
   GetMatrix()
   {
     return this._matrix;

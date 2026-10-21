@@ -46,7 +46,7 @@ export class ITr2Controller
    *
    * @param {object} _owner The object being controlled.
    */
-  @blue.method
+
   @meta.noop
   Link(_owner)
   {
@@ -57,7 +57,7 @@ export class ITr2Controller
    *
    * @param {number} [_reason] An `UnlinkReason`; DELETING means the owner is going away.
    */
-  @blue.method
+
   @meta.noop
   Unlink(_reason = UnlinkReason.UNLINKING)
   {
@@ -76,14 +76,14 @@ export class ITr2Controller
   IsLinked() {}
 
   /** Begins controlling the owner. */
-  @blue.method
+
   @meta.noop
   Start()
   {
   }
 
   /** Stops controlling the owner. */
-  @blue.method
+
   @meta.noop
   Stop()
   {
@@ -94,7 +94,7 @@ export class ITr2Controller
    *
    * @param {number} _normalizedUpdateFrequency Carbon's normalised frame delta.
    */
-  @blue.method
+
   @meta.noop
   Update(_normalizedUpdateFrequency)
   {
@@ -106,7 +106,7 @@ export class ITr2Controller
    * @param {string} _name The variable's name.
    * @param {number} _value Its new value.
    */
-  @blue.method
+
   @meta.noop
   SetVariable(_name, _value)
   {
@@ -117,7 +117,7 @@ export class ITr2Controller
    *
    * @param {string} _eventName The event's name.
    */
-  @blue.method
+
   @meta.noop
   HandleEvent(_eventName)
   {

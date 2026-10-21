@@ -32,7 +32,7 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
   stretchEvent = "";
 
   /** Carbon method TriggerOutburstEvent. */
-  @blue.method
+
   @meta.implemented
   TriggerOutburstEvent()
   {
@@ -40,7 +40,7 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
   }
 
   /** Carbon method TriggerImpactEvent. */
-  @blue.method
+
   @meta.implemented
   TriggerImpactEvent()
   {
@@ -48,7 +48,7 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
   }
 
   /** Carbon method TriggerStretchEvent. */
-  @blue.method
+
   @meta.implemented
   TriggerStretchEvent()
   {

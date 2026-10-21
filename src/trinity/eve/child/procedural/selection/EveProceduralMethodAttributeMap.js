@@ -50,7 +50,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * change reselects. The value argument follows the repo's OnModified duck
    * (field name or field value).
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -66,7 +66,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * first parameter whose name equals the seed string wins; a changed index
    * flags the selected child as modified. Carbon leaves the index untouched
    * when no name matches. */
-  @blue.method
+
   @meta.implemented
   SelectParameter()
   {
@@ -89,7 +89,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
 
   /** Carbon EveProceduralMethodAttributeMap::IsSelectedChildModified
    * (cpp:49-52). */
-  @blue.method
+
   @meta.implemented
   IsSelectedChildModified()
   {
@@ -100,7 +100,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @blue.method
+
   @meta.implemented
   GetSelectedChild()
   {
@@ -127,7 +127,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   /** Carbon EveProceduralMethodAttributeMap::UpdateAsyncronous (cpp:76-91):
    * reselect once any parameter reports itself modified, clearing the flags
    * on the way. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -147,7 +147,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:93-96). */
-  @blue.method
+
   @meta.implemented
   GetDebugVolumes()
   {

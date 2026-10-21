@@ -67,7 +67,7 @@ export class EveProjectBracket
    * CjsScriptCallback; Carbon's optional global debug-text side effect is not
    * ported yet (Waiting: g_debugRenderer).
    */
-  @blue.method
+
   @meta.adapted
   UpdateValue(_time)
   {
@@ -212,7 +212,7 @@ export class EveProjectBracket
    * Adapted: the callback member is wrapped as a CjsScriptCallback at the
    * call, which takes exactly a function or a CjsScriptCallback.
    */
-  @blue.method
+
   @meta.adapted
   SetBracketDisplayState(state)
   {

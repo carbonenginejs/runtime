@@ -19,7 +19,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   bindings = [];
 
   /** Returns the name an external parameter has to match before it can bind here. */
-  @blue.method
+
   GetName()
   {
     return this.name;
@@ -29,14 +29,14 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    * Sets the name external parameters must match to bind, coercing null to an
    * empty string.
    */
-  @blue.method
+
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
   /** Drops every value binding, leaving the current value in place. */
-  @blue.method
+
   @meta.implemented
   ClearBindings()
   {
@@ -51,7 +51,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    *
    * @returns {boolean} True when the binding was created and stored.
    */
-  @blue.method
+
   @meta.implemented
   BindToExternalParameter(externalParameter)
   {
@@ -69,7 +69,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   ExtractDefault(_externalParameter) {}
 
   /** Reports whether anything is bound to this parameter. */
-  @blue.method
+
   @meta.implemented
   Used()
   {
@@ -77,7 +77,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   }
 
   /** Pushes the current value out through every binding. */
-  @blue.method
+
   @meta.implemented
   Propagate()
   {

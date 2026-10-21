@@ -81,7 +81,7 @@ export class EveMeshOverlayEffect
    * Adapted: Carbon reports success through a bool out-parameter; JavaScript returns null
    * for unsupported or hidden batches.
    */
-  @blue.method
+
   @meta.adapted
   GetEffects(batchType)
   {
@@ -102,7 +102,7 @@ export class EveMeshOverlayEffect
    * Reports whether the overlay applies to the opaque batch alone or to all
    * batches, given the batch type being queried.
    */
-  @blue.method
+
   @meta.implemented
   GetType(batchType)
   {
@@ -115,7 +115,7 @@ export class EveMeshOverlayEffect
    * Reports whether the overlay contributes any transparent effects, which
    * decides whether it needs a transparent pass.
    */
-  @blue.method
+
   @meta.implemented
   HasTransparentArea()
   {
@@ -123,7 +123,7 @@ export class EveMeshOverlayEffect
   }
 
   /** Sets a shader option on every effect across all five batch lists. */
-  @blue.method
+
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -139,7 +139,7 @@ export class EveMeshOverlayEffect
    *
    * Adapted: Blue root locking is represented by the hydrated JavaScript object identity.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -158,7 +158,7 @@ export class EveMeshOverlayEffect
    * Adapted: Plain JavaScript arrays do not raise Blue IList notifications; callers forward
    * the equivalent event explicitly.
    */
-  @blue.method
+
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.controllers)
   {
@@ -179,7 +179,7 @@ export class EveMeshOverlayEffect
   }
 
   /** Forwards a named variable value to every controller. */
-  @blue.method
+
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -187,7 +187,7 @@ export class EveMeshOverlayEffect
   }
 
   /** Forwards a named event to every controller. */
-  @blue.method
+
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -195,7 +195,7 @@ export class EveMeshOverlayEffect
   }
 
   /** Starts every controller attached to the overlay. */
-  @blue.method
+
   @meta.implemented
   StartControllers()
   {
@@ -207,7 +207,7 @@ export class EveMeshOverlayEffect
    * plays that range, otherwise the range is reset and the set plays from the
    * start; a name that does not match is ignored.
    */
-  @blue.method
+
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -225,7 +225,7 @@ export class EveMeshOverlayEffect
    * Stops the overlay's curve set when its name matches, and does nothing
    * otherwise.
    */
-  @blue.method
+
   @meta.implemented
   StopCurveSet(name)
   {
@@ -236,7 +236,7 @@ export class EveMeshOverlayEffect
    * Returns the longest curve duration in the named curve set, or 0 when the
    * name does not match the overlay's set.
    */
-  @blue.method
+
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -249,7 +249,7 @@ export class EveMeshOverlayEffect
    * Returns the duration of a named time range within the named curve set, or 0
    * when either name does not match.
    */
-  @blue.method
+
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -263,7 +263,7 @@ export class EveMeshOverlayEffect
    * every controller, matching Carbon's fixed 0.5 controller step; skipped
    * entirely when updates are disabled or no curve set is assigned.
    */
-  @blue.method
+
   @meta.implemented
   Update(realTime, simTime)
   {

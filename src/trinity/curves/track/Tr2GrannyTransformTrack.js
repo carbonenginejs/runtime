@@ -44,7 +44,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Checks whether transform track handles are ready.
    */
-  @blue.method
+
   @meta.implemented
   TracksReady()
   {
@@ -54,7 +54,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Clears transform track handles.
    */
-  @blue.method
+
   @meta.implemented
   ResetTracks()
   {
@@ -66,7 +66,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Applies transform track handles.
    */
-  @blue.method
+
   @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
@@ -95,7 +95,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
    * evaluator stand-in; the scale curve always uses the evaluator
    * (Tr2GrannyTransformTrack.cpp:27-53).
    */
-  @blue.method
+
   @meta.adapted
   UpdateValueImpl(time)
   {

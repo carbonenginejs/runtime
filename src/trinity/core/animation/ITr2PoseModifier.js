@@ -19,7 +19,7 @@ export class ITr2PoseModifier
    * @param {Object} _skeleton - the mesh skeleton (cmf.Skeleton shape)
    * @param {Object} _pose - the sampled pose to modify in place
    */
-  @blue.abstract
+  @meta.abstract
   ModifyPose(_skeleton, _pose) {}
 
 }

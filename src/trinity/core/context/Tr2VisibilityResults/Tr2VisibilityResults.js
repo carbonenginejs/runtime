@@ -17,7 +17,7 @@ export class Tr2VisibilityResults
   #events = [];
 
   /** Adds the value-like visibility event emitted by a visibility executor. */
-  @blue.method
+
   @meta.adapted
   AddVisibilityEvent(event)
   {
@@ -25,7 +25,7 @@ export class Tr2VisibilityResults
   }
 
   /** Returns a detached container view of the current visibility events. */
-  @blue.method
+
   @meta.adapted
   GetEvents()
   {

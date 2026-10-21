@@ -42,7 +42,7 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * empty texture. A false from the texture push is RS_FAILED. Every push needs
    * a matching pop in the same job or the job's stack guard unwinds it.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

@@ -183,7 +183,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {number} _s TriStorageFlags; Carbon releases everything regardless.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   ReleaseResources(_s)
   {
@@ -227,7 +227,7 @@ export class EveEllipseSet extends EveChildTransform
    *
    * @returns {boolean} Whether the declaration handle is valid.
    */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -333,7 +333,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {*} [_value] The modified member.
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(_value = null)
   {
@@ -354,7 +354,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {Array} list The list that changed.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   @meta.invalidates("#geometryDirty")
   OnListModified(event, _key, _key2, value, list)
@@ -396,7 +396,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {EveChildUpdateParams} _params Unused, as in Carbon.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, _params)
   {
@@ -415,7 +415,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {EveChildUpdateParams} params Carries the parent's local-to-world transform.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(_updateContext, params)
   {
@@ -432,7 +432,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {number} parentLod The parent's Tr2Lod.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, parentLod)
   {
@@ -455,7 +455,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {ITr2Renderable[]} renderables Receives the set.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -476,7 +476,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {number} [_query] BoundingSphereQuery; unused, as in Carbon.
    * @returns {boolean} Always true.
    */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(sphere, _query = BoundingSphereQuery.EVE_BOUNDS_NORMAL)
   {
@@ -497,7 +497,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {mat4} transform Receives the transform.
    * @returns {mat4} transform
    */
-  @blue.method
+
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {
@@ -514,7 +514,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {number} lowestLodVisible A Tr2Lod.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Setup(scale, rotation, translation, lowestLodVisible)
   {
@@ -532,7 +532,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {number} _areaId Unused, as in Carbon.
    * @returns {EveEllipseSet} this
    */
-  @blue.method
+
   @meta.implemented
   GetID(_areaId)
   {
@@ -551,7 +551,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {number} [_reason] Tr2RenderReason; unused, as in Carbon.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -594,7 +594,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {Tr2PerObjectData|null} perObjectData The set's per-object data.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   GetPickingBatches(batches, pickTypes, perObjectData)
   {
@@ -614,7 +614,7 @@ export class EveEllipseSet extends EveChildTransform
    *
    * @returns {boolean}
    */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -627,7 +627,7 @@ export class EveEllipseSet extends EveChildTransform
    *
    * @returns {number}
    */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -651,7 +651,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {ITriRenderBatchAccumulator} accumulator Leases the data.
    * @returns {Tr2PerObjectDataStandard}
    */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {
@@ -679,7 +679,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {Tr2Effect} effect The material.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   _CommitRibbonBatch(accumulator, perObjectData, effect)
   {
@@ -715,7 +715,7 @@ export class EveEllipseSet extends EveChildTransform
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   _MarkGeometryDirty()
   {
@@ -730,7 +730,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {EveUpdateContext} updateContext The frame context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   _RefreshGeometryIfNeeded(updateContext)
   {
@@ -764,7 +764,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {EveUpdateContext} _updateContext Unused, as in Carbon.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   _RebuildGeometry(_updateContext)
   {

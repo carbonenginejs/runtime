@@ -103,7 +103,7 @@ export class EveSpriteLineSetItem
    * around the position at the larger of the two radii; for a line, a box
    * centred on the run covering its full spaced length.
    */
-  @blue.method
+
   @meta.adapted
   GetBounds(out)
   {
@@ -120,7 +120,7 @@ export class EveSpriteLineSetItem
   }
 
   /** The parent bone this sprite run rides. */
-  @blue.method
+
   @meta.implemented
   GetBoneIndex()
   {
@@ -132,7 +132,7 @@ export class EveSpriteLineSetItem
    * stepped around the rotated ellipse for a circle, or spaced along the rotated
    * X axis for a line - as freshly allocated vectors.
    */
-  @blue.method
+
   @meta.adapted
   GetPositions()
   {

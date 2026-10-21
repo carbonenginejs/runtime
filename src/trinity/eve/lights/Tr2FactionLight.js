@@ -331,7 +331,7 @@ export class Tr2FactionLight extends Tr2Light
    * Stores an inherited faction colour palette and recomputes the light's colour from it.
    */
   @meta.implemented
-  @blue.method
+
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -345,7 +345,7 @@ export class Tr2FactionLight extends Tr2Light
    * Recolours the light by blending its palette entry's luminance with the full palette colour by the saturation factor, reporting false when no palette entry is available.
    */
   @meta.implemented
-  @blue.method
+
   SetLightColorFromFactionColor()
   {
     if (!hasFactionColor(this._parentColorSet, this.factionColor))
@@ -383,7 +383,7 @@ export class Tr2FactionLight extends Tr2Light
    * The light's current colour.
    */
   @meta.implemented
-  @blue.method
+
   GetSelectedColor()
   {
     return this._lightData.color;
@@ -392,7 +392,7 @@ export class Tr2FactionLight extends Tr2Light
   /**
    * Switches the light between spot and point when the spotlight flag is edited, and recomputes the faction-derived colour when the faction colour or saturation changes.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -421,7 +421,7 @@ export class Tr2FactionLight extends Tr2Light
    * @param {Float32Array|null} [bones] Packed Float4x3 bone matrices.
    * @param {number} [boneCount] Number of bones in `bones`.
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, worldMatrix, bones = null, boneCount = 0)
   {

@@ -80,7 +80,7 @@ export class TriStepClearUav extends TriRenderStep
   /**
    * Clears the bound unordered-access buffer to its configured value.
    */
-  @blue.method
+
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

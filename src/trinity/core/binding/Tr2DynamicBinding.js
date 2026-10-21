@@ -203,7 +203,7 @@ export class Tr2DynamicBinding extends INotify
    * and returns whether both endpoints resolved where native Link is void.
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.adapted
   Link()
   {
@@ -246,7 +246,7 @@ export class Tr2DynamicBinding extends INotify
    * Adapted: Explicitly detaches the held JavaScript binding destination before dropping it, replacing native reference-counted cleanup.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   Unlink()
   {
@@ -266,7 +266,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {object|null} owner Owner supplying GetParameterMap.
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.adapted
   SetOwner(owner)
   {
@@ -280,7 +280,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {number} time Frame time (Be::Time, Blue 100ns ticks).
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.adapted
   Update(time)
   {
@@ -298,7 +298,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {number} newTime New simulation time (Be::Time, Blue 100ns ticks).
    * @returns {void} No return value.
    */
-  @blue.method
+
   @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
@@ -310,7 +310,7 @@ export class Tr2DynamicBinding extends INotify
    * read-only flag.
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   IsDestinationValid()
   {
@@ -323,7 +323,7 @@ export class Tr2DynamicBinding extends INotify
    * read-only flag.
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   IsSourceValid()
   {
@@ -336,7 +336,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {string|null} propertyName Changed member name.
    * @returns {boolean} Binding result.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {

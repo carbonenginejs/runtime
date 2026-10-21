@@ -142,7 +142,7 @@ export class Tr2RingBuffer
    * @param {object} renderContext The context to create the buffer through.
    * @returns {Tr2RingBuffer} The arena.
    */
-  @blue.method
+
   @meta.adapted
   static GetInstance(key, stride, renderContext)
   {
@@ -224,7 +224,7 @@ export class Tr2RingBuffer
    * @param {string} name The debug label.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -238,7 +238,7 @@ export class Tr2RingBuffer
    *
    * @returns {object|null} The buffer, or null until backend creation succeeds.
    */
-  @blue.method
+
   @meta.implemented
   GetGpuBuffer()
   {
@@ -257,7 +257,7 @@ export class Tr2RingBuffer
    * @param {number} count How many rows.
    * @returns {number} The element offset the rows landed at.
    */
-  @blue.method
+
   @meta.implemented
   UploadTransforms(data, count)
   {
@@ -304,7 +304,7 @@ export class Tr2RingBuffer
    * @param {object} renderContext The context to update through.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   PrepareBuffer(renderContext)
   {
@@ -338,7 +338,7 @@ export class Tr2RingBuffer
    * @param {number} completedFrame The frame the device reports finished.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetFrameNumbers(recordingFrame, completedFrame)
   {
@@ -375,7 +375,7 @@ export class Tr2RingBuffer
    * @param {number} size The new capacity, in elements.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Resize(size)
   {
@@ -417,7 +417,7 @@ export class Tr2RingBuffer
    * @param {number} _storage Storage mask.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -436,7 +436,7 @@ export class Tr2RingBuffer
    *
    * @returns {boolean} True, matching Carbon even if allocation fails.
    */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources()
   {

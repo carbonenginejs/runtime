@@ -30,27 +30,27 @@ export class Tr2SkinnedObject
 {
 
   /** Native base list observer intentionally does nothing (Tr2SkinnedObject.cpp:743). */
-  @blue.method
+
   @meta.implemented
   OnListModified(_event, _key, _key2, _value, _theList) {}
 
   /** Native base has no transparent-sort offset. */
-  @blue.method
+
   @meta.implemented
   GetSortValue() { return 0; }
 
   /** Native base supplies no per-object render data. */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(_accumulator) { return null; }
 
   /** World position awaits the maintained TriMatrix storage conversion contract. */
-  @blue.method
+
   @meta.notImplemented
   GetWorldPosition(_out) { throw new Error("Tr2SkinnedObject.GetWorldPosition requires the TriMatrix conversion port."); }
 
   /** World rotation awaits the maintained TriMatrix storage conversion contract. */
-  @blue.method
+
   @meta.notImplemented
   GetWorldRotation() { throw new Error("Tr2SkinnedObject.GetWorldRotation requires the TriMatrix conversion port."); }
 
@@ -114,7 +114,7 @@ export class Tr2SkinnedObject
    * @returns {mat4} out
    */
   @meta.implemented
-  @blue.method
+
   GetTransform(out)
   {
     return mat4.copy(out, this.transform);
@@ -250,7 +250,7 @@ export class Tr2SkinnedObject
   /**
    * Carbon INotify hook: retains active model changes in the selected proxy.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -263,7 +263,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method GetCurrentLod. */
-  @blue.method
+
   @meta.implemented
   GetCurrentLod()
   {
@@ -276,7 +276,7 @@ export class Tr2SkinnedObject
    * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
    * already supplied proxy.
    */
-  @blue.method
+
   @meta.adapted
   SetHighDetailModel(model)
   {
@@ -289,7 +289,7 @@ export class Tr2SkinnedObject
    * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
    * already supplied proxy.
    */
-  @blue.method
+
   @meta.adapted
   SetMediumDetailModel(model)
   {
@@ -302,7 +302,7 @@ export class Tr2SkinnedObject
    * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
    * already supplied proxy.
    */
-  @blue.method
+
   @meta.adapted
   SetLowDetailModel(model)
   {
@@ -310,7 +310,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon's base bounds implementation is deliberately an inline false stub. */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(_out)
   {
@@ -318,7 +318,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon's base world-bounds implementation is deliberately an inline false stub. */
-  @blue.method
+
   @meta.implemented
   GetWorldBoundingBox(_min, _max)
   {
@@ -331,7 +331,7 @@ export class Tr2SkinnedObject
    * Adapted: The caller supplies the frustum and the LOD proxy. A changed visual model is
    * posed immediately through this class's CPU UpdateBones implementation.
    */
-  @blue.method
+
   @meta.adapted
   SetLOD(frustum)
   {
@@ -395,7 +395,7 @@ export class Tr2SkinnedObject
    * synchronization, delayed queues, dynamic bounds, and backend upload remain outside the
    * character layer.
    */
-  @blue.method
+
   @meta.adapted
   UpdateBones(_time = 0, _apexScene = null)
   {
@@ -471,7 +471,7 @@ export class Tr2SkinnedObject
    * Adapted: Returns a detached immediate CPU palette rather than a pointer into the native
    * delayed skinning queue.
    */
-  @blue.method
+
   @meta.adapted
   GetSkinningMatrices()
   {
@@ -526,7 +526,7 @@ export class Tr2SkinnedObject
    * Adapted: Returns a matrix from the CarbonEngineJS animation updater's transform array
    * rather than a native pointer.
    */
-  @blue.method
+
   @meta.adapted
   GetBoneTransform(joint)
   {

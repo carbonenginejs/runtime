@@ -47,7 +47,7 @@ export class EveUiObject extends EveSpaceObject2
    * @param {number} time Frame time in Blue ticks.
    * @returns {boolean} False when the base had already built the transform for this time.
    */
-  @blue.method
+
   @meta.adapted
   UpdateWorldTransform(time)
   {
@@ -86,7 +86,7 @@ export class EveUiObject extends EveSpaceObject2
    * @param {mat4} parentTransform The parent's transform.
    * @returns {boolean} isVisible, always true.
    */
-  @blue.method
+
   @meta.adapted
   UpdateVisibility(updateContext, parentTransform)
   {

@@ -73,7 +73,7 @@ export class EveChildSpherePin extends EveChildMesh
 
   /** Carbon EveChildSpherePin.cpp:30-38 updates the mesh first, then reads the
    * required context clock and advances every attached curve set. */
-  @blue.method
+
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
@@ -91,7 +91,7 @@ export class EveChildSpherePin extends EveChildMesh
    * The struct registers with stages ["vs", "ps"]: the SAME bytes are bound
    * to both per-object slots (cpp:68-75).
    */
-  @blue.method
+
   @meta.implemented
   GetPerObjectData(accumulator)
   {

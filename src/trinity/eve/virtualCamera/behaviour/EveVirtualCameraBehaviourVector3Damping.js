@@ -41,7 +41,7 @@ export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBeh
    * first update (local time at or below zero) seeds the retained position and
    * returns zero.
    */
-  @blue.method
+
   @meta.adapted
   Update(_camera, current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
   {

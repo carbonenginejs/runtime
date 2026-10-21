@@ -71,7 +71,7 @@ export class Wander
   _returnForces = [];
 
   /** Carbon Wander::GetProcessPriority (cpp:23-26). */
-  @blue.method
+
   @meta.implemented
   GetProcessPriority()
   {
@@ -94,7 +94,7 @@ export class Wander
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @blue.method
+
   @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, _dronesInSearchRadius)
   {

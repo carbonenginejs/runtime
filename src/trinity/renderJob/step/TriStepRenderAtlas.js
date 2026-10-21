@@ -69,7 +69,7 @@ export class TriStepRenderAtlas extends TriRenderStep
   }
 
   /** Carbon SetAtlas (TriStepRenderAtlas.cpp:104): selects the atlas the step draws. */
-  @blue.method
+
   @meta.implemented
   SetAtlas(atlas)
   {
@@ -77,7 +77,7 @@ export class TriStepRenderAtlas extends TriRenderStep
   }
 
   /** Carbon SetFocus (TriStepRenderAtlas.cpp:109): the highlighted atlas entry. */
-  @blue.method
+
   @meta.implemented
   SetFocus(texture)
   {
@@ -88,7 +88,7 @@ export class TriStepRenderAtlas extends TriRenderStep
    * Draws the bound texture atlas for inspection. Not ported: Carbon draws it
    * itself from Tr2TextureAtlas's free and used areas, which are unported.
    */
-  @blue.method
+
   @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {

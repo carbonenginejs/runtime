@@ -52,7 +52,7 @@ export class EveEllipseDefinition
    * Invokes the bound dirty callback so the owning set regenerates its geometry
    * after any authored field changes.
    */
-  @blue.method
+
   OnModified(_value = null)
   {
     this._dirtyFlag?.();
@@ -63,7 +63,7 @@ export class EveEllipseDefinition
    * Installs the callback invoked whenever this definition is modified; pass
    * null to unbind, and anything that is neither a function nor null throws.
    */
-  @blue.method
+
   SetDirtyFlag(dirtyFlag)
   {
     if (dirtyFlag !== null && typeof dirtyFlag !== "function")

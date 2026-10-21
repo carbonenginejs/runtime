@@ -112,7 +112,7 @@ export class Tr2SwapChain
    * @param {Tr2RenderContext} renderContext The context to create against.
    * @returns {boolean} Whether the AL chain came up.
    */
-  @blue.method
+
   @meta.adapted
   OnPrepareResources(renderContext)
   {
@@ -135,7 +135,7 @@ export class Tr2SwapChain
    * @param {object} renderContext The context presenting the frame.
    * @returns {boolean} Carbon's `SUCCEEDED( m_swapChain.Present(...) )`.
    */
-  @blue.method
+
   @meta.implemented
   Present(renderContext)
   {
@@ -147,7 +147,7 @@ export class Tr2SwapChain
    *
    * @returns {number} Width in pixels.
    */
-  @blue.method
+
   @meta.implemented
   GetWidth()
   {
@@ -159,7 +159,7 @@ export class Tr2SwapChain
    *
    * @returns {number} Height in pixels.
    */
-  @blue.method
+
   @meta.implemented
   GetHeight()
   {
@@ -174,7 +174,7 @@ export class Tr2SwapChain
    * @param {number} _storage Carbon's `TriStorage` mask; every AL surface here
    *   belongs to video memory, so there is nothing to select between.
    */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(_storage)
   {

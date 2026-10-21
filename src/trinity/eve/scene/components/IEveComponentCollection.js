@@ -18,7 +18,7 @@ export class IEveComponentCollection
    * @param {EveEntity} _entity
    * @returns {number} The index the entity was stored at.
    */
-  @blue.abstract
+  @meta.abstract
   Add(_entity) {}
 
   /**
@@ -26,25 +26,25 @@ export class IEveComponentCollection
    * @param {number} _index
    * @returns {EveEntity|null} The entity moved into the slot.
    */
-  @blue.abstract
+  @meta.abstract
   SwapWithBack(_index) {}
 
   /** Carbon's `void Clear()`. */
-  @blue.abstract
+  @meta.abstract
   Clear() {}
 
   /**
    * Carbon's `uint32_t GetBit() const`.
    * @returns {number}
    */
-  @blue.abstract
+  @meta.abstract
   GetBit() {}
 
   /**
    * Carbon's `size_t Size() const`.
    * @returns {number}
    */
-  @blue.abstract
+  @meta.abstract
   Size() {}
 
 }

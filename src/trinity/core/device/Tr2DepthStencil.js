@@ -153,7 +153,7 @@ export class Tr2DepthStencil
    *
    * @returns {object|null} The `Tr2TextureAL`, or null when it is not readable.
    */
-  @blue.method
+
   @meta.implemented
   GetTexture()
   {
@@ -191,7 +191,7 @@ export class Tr2DepthStencil
    *
    * @returns {Tr2Event} m_onTextureChange.
    */
-  @blue.method
+
   @meta.implemented
   OnTextureChange()
   {
@@ -199,7 +199,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `IsValid` (`cpp:95-98`): whether the texture exists. */
-  @blue.method
+
   @meta.implemented
   IsValid()
   {
@@ -207,7 +207,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `IsReadable` (`cpp:90-93`): whether the surface carries SHADER_RESOURCE. */
-  @blue.method
+
   @meta.implemented
   IsReadable()
   {
@@ -223,7 +223,7 @@ export class Tr2DepthStencil
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Destroy()
   {
@@ -237,7 +237,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetWidth` (`cpp:141-144`), read off the texture. */
-  @blue.method
+
   @meta.implemented
   GetWidth()
   {
@@ -245,7 +245,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetHeight` (`cpp:147-150`), read off the texture. */
-  @blue.method
+
   @meta.implemented
   GetHeight()
   {
@@ -253,7 +253,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetMsaaSamples` (`cpp:153-156`). */
-  @blue.method
+
   @meta.implemented
   GetMsaaSamples()
   {
@@ -261,7 +261,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetMsaaQuality` (`cpp:159-162`). */
-  @blue.method
+
   @meta.implemented
   GetMsaaQuality()
   {
@@ -269,7 +269,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetMipCount` (`cpp:164-167`) returns a literal 1. */
-  @blue.method
+
   @meta.implemented
   GetMipCount()
   {
@@ -277,7 +277,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetFormat` (`cpp:170-173`), the format asked for rather than the texture's. */
-  @blue.method
+
   @meta.implemented
   GetFormat()
   {
@@ -285,7 +285,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `SetName` (`cpp:20-24`), which names the texture too. */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -294,7 +294,7 @@ export class Tr2DepthStencil
   }
 
   /** Carbon `GetName` (`cpp:26-29`). */
-  @blue.method
+
   @meta.implemented
   GetName()
   {

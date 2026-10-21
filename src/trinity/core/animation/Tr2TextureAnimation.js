@@ -66,7 +66,7 @@ export class Tr2TextureAnimation
    * Adapted: Schedules promise-based reads and decoding instead of native queues.
    * @returns {boolean} True; asynchronous failures are reported by the load task.
    */
-  @blue.method
+
   @meta.adapted
   Initialize()
   {
@@ -78,7 +78,7 @@ export class Tr2TextureAnimation
    * Reloads after a notification, matching Carbon's unconditional reload hook.
    * @returns {boolean} True.
    */
-  @blue.method
+
   @meta.implemented
   OnModified()
   {
@@ -96,7 +96,7 @@ export class Tr2TextureAnimation
    * still bind one, since the parameter invalidates only on an `animation` edit.
    * @returns {Promise<boolean>} Whether the initial frame decoded successfully.
    */
-  @blue.method
+
   @meta.adapted
   ReadData()
   {
@@ -118,7 +118,7 @@ export class Tr2TextureAnimation
    * because files are always fetched and never limited to a local low-detail install.
    * @returns {object} Request record.
    */
-  @blue.method
+
   @meta.adapted
   MakeRequest()
   {
@@ -135,7 +135,7 @@ export class Tr2TextureAnimation
    * @param {number} dt Elapsed seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   AdvanceTime(dt)
   {
@@ -223,7 +223,7 @@ export class Tr2TextureAnimation
    * Adapted: Calls the active AL backend through the ambient render context.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   UpdateGrids()
   {
@@ -297,7 +297,7 @@ export class Tr2TextureAnimation
    * @param {string} channel Channel name.
    * @returns {object|null} Texture handle.
    */
-  @blue.method
+
   @meta.adapted
   GetTexture(channel)
   {
@@ -310,7 +310,7 @@ export class Tr2TextureAnimation
   }
 
   /** @returns {boolean} Whether the owner should advance only when rendered. */
-  @blue.method
+
   @meta.implemented
   UpdateOnlyWhenRendered()
   {
@@ -398,8 +398,8 @@ export class Tr2TextureAnimation
    * @returns {Promise<void>} Completion of the first decode.
    */
   @meta.adapted
-  @blue.method
-  @meta.renamed("ReadFile")
+
+
   static async readFile(request)
   {
     const bytes = await be.resMan.ReadResource(request.filename);
@@ -415,8 +415,8 @@ export class Tr2TextureAnimation
    * @returns {Promise<void>} Decode completion.
    */
   @meta.adapted
-  @blue.method
-  @meta.renamed("DecodeFirstFrame")
+
+
   static async decodeFirstFrame(request)
   {
     request.state.decoder = CjsVtaFormat.readFrames(request.state.bytes);
@@ -430,8 +430,8 @@ export class Tr2TextureAnimation
    * @returns {Promise<void>} Decode completion.
    */
   @meta.adapted
-  @blue.method
-  @meta.renamed("DecodeNextFrame")
+
+
   static async decodeNextFrame(request)
   {
     const state = request.state;
@@ -455,8 +455,8 @@ export class Tr2TextureAnimation
    * @returns {Promise<void>} Decode completion.
    */
   @meta.adapted
-  @blue.method
-  @meta.renamed("RestartAndDecodeFrame")
+
+
   static async restartAndDecodeFrame(request)
   {
     await this.decodeFirstFrame(request);

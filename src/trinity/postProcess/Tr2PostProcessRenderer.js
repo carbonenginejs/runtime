@@ -216,7 +216,7 @@ export class Tr2PostProcessRenderer
   _bokehFrameCounter = 0;
 
   /** Returns the active Carbon post-process quality. */
-  @blue.method
+
   @meta.implemented
   GetPostProcessingQuality()
   {
@@ -224,7 +224,7 @@ export class Tr2PostProcessRenderer
   }
 
   /** Selects the active Carbon post-process quality. */
-  @blue.method
+
   @meta.implemented
   SetPostProcessingQuality(quality)
   {
@@ -463,7 +463,7 @@ export class Tr2PostProcessRenderer
    * @param {number} middleValue The exposure middle value.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   SetupExposureConversion(enable, middleValue)
   {
@@ -480,7 +480,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2RenderContext} renderContext The context to render with.
    * @returns {GpuResourceHandle} The sharpened texture, or `input`.
    */
-  @blue.method
+
   @meta.implemented
   RenderSharpening(enable, input, gpuResourcePool, renderContext)
   {
@@ -575,7 +575,7 @@ export class Tr2PostProcessRenderer
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderGenericEffect(dest, src, renderContext, genericEffect, renderer)
   {
@@ -599,7 +599,7 @@ export class Tr2PostProcessRenderer
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderFilmGrain(dest, renderContext, filmGrain, renderer)
   {
@@ -621,7 +621,7 @@ export class Tr2PostProcessRenderer
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderSignalLoss(dest, renderContext, signalLoss, renderer)
   {
@@ -635,7 +635,7 @@ export class Tr2PostProcessRenderer
    *
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   RenderDynamicExposureDebug(_gpuResourcePool, _renderContext, dynamicExposure, _histogramBuffer)
   {
@@ -654,7 +654,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2GpuResourcePool} gpuResourcePool The pool.
    * @returns {GpuResourceHandle} The buffer.
    */
-  @blue.method
+
   @meta.implemented
   GetExposureBuffer(gpuResourcePool)
   {
@@ -676,7 +676,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2GpuResourcePool} gpuResourcePool The pool.
    * @returns {GpuResourceHandle} The texture.
    */
-  @blue.method
+
   @meta.implemented
   GetBlackTexture(gpuResourcePool)
   {
@@ -700,7 +700,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {GpuResourceHandle} The blurred texture.
    */
-  @blue.method
+
   @meta.adapted
   Blur(src, gpuResourcePool, renderContext, blurContext, renderer)
   {
@@ -791,7 +791,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {GpuResourceHandle} The bloom texture, owned by the caller.
    */
-  @blue.method
+
   @meta.adapted
   RenderBloom(dest, gpuResourcePool, renderContext, bloom, dynamicExposure, renderer)
   {
@@ -975,7 +975,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderGodRays(dest, depth, gpuResourcePool, renderContext, godrays, renderer)
   {
@@ -1028,7 +1028,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {GpuResourceHandle} The down-sampled depth; the caller frees it.
    */
-  @blue.method
+
   @meta.adapted
   DownSampleDepth(depth, gpuResourcePool, renderContext, renderer)
   {
@@ -1065,7 +1065,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2PPDynamicExposureEffect} dynamicExposure The exposure settings.
    * @returns {GpuResourceHandle} The merged histogram, owned by the caller.
    */
-  @blue.method
+
   @meta.adapted
   RenderDynamicExposure(source, gpuResourcePool, renderContext, dynamicExposure)
   {
@@ -1163,7 +1163,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderFog(dest, source, gpuResourcePool, renderContext, fog, renderer)
   {
@@ -1246,7 +1246,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderTaa(dest, velocity, opaqueColor, gpuResourcePool, renderContext, taa, dynamicExposure, renderer)
   {
@@ -1350,7 +1350,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   RenderDepthOfField(dest, gpuResourcePool, renderContext, depthOfField, temporal, upscalingAmount, renderer)
   {

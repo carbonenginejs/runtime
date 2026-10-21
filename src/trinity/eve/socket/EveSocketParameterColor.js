@@ -29,7 +29,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @blue.method
+
   @meta.implemented
   ClearBindings()
   {
@@ -38,7 +38,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @blue.method
+
   @meta.implemented
   Reset()
   {
@@ -55,7 +55,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
    * keeping it at zero unless the source is a four-component value; always
    * succeeds, so a bind is never refused on its account.
    */
-  @blue.method
+
   ExtractDefault(externalParameter)
   {
     const value = vec4.create();

@@ -55,7 +55,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} time Source time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -74,7 +74,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -105,7 +105,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @blue.method
+
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -119,7 +119,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @blue.method
+
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -131,7 +131,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    *
    * @returns {number} Duration in seconds.
    */
-  @blue.method
+
   @meta.implemented
   Length()
   {

@@ -85,7 +85,7 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -107,7 +107,7 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -197,7 +197,7 @@ export class TriColorSequencer extends ITriColorFunction
    * JavaScript queries exact native ITriDuration before ITriCurveLength; an advertised method is required.
    * @returns {number} Greatest child duration.
    */
-  @blue.method
+
   @meta.adapted
   Length()
   {

@@ -48,7 +48,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 
   /** Invalidates prepared vertices after a texture changes. */
   @meta.implemented
-  @blue.method
+
   Sprite2dTextureChanged(_texture)
   {
     this.SetDirty();
@@ -56,7 +56,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 
   /** Replaces the primary subscription and invalidates prepared vertices. */
   @meta.implemented
-  @blue.method
+
   SetTexturePrimary(texture)
   {
     if (texture === this._texturePrimary) return;
@@ -69,7 +69,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 
   /** Returns the current primary texture. */
   @meta.implemented
-  @blue.method
+
   GetTexturePrimary()
   {
     return this._texturePrimary;
@@ -77,7 +77,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 
   /** Replaces the secondary subscription and invalidates prepared vertices. */
   @meta.implemented
-  @blue.method
+
   SetTextureSecondary(texture)
   {
     if (texture === this._textureSecondary) return;
@@ -90,7 +90,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 
   /** Returns the current secondary texture. */
   @meta.implemented
-  @blue.method
+
   GetTextureSecondary()
   {
     return this._textureSecondary;
@@ -98,7 +98,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 
   /** Validates required textures and applies their current renderer settings. */
   @meta.implemented
-  @blue.method
+
   _ValidateAndSetTextures(renderer)
   {
     if (this.spriteEffect >= Tr2SpriteObjectEffect.TR2_SFX_ONE_TEXTURE)
@@ -119,7 +119,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 
   /** Reapplies bindings for vertices already validated while dirty. */
   @meta.implemented
-  @blue.method
+
   _SetValidatedTextures(renderer)
   {
     if (this.spriteEffect < Tr2SpriteObjectEffect.TR2_SFX_ONE_TEXTURE) return;

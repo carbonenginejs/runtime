@@ -31,7 +31,7 @@ export class TriStepSetDepthStencil extends TriRenderStep
    * Binds the depth-stencil, including null to unbind; an explicit false from
    * the render context is RS_FAILED.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

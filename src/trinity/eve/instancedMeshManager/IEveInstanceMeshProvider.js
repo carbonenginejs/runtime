@@ -17,7 +17,7 @@ export class IEveInstanceMeshProvider
    * Carbon's `virtual void AddMeshesToManager( EveInstancedMeshManager& manager ) = 0`.
    * @param {EveInstancedMeshManager} _manager The manager collecting this frame.
    */
-  @blue.abstract
+  @meta.abstract
   AddMeshesToManager(_manager) {}
 
 }

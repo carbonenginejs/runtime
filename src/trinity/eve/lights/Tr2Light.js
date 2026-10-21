@@ -90,7 +90,7 @@ export class Tr2Light
    *
    * @param {LightData} lightData The light data to copy.
    */
-  @blue.method
+
   @meta.implemented
   SetLightData(lightData)
   {
@@ -101,7 +101,7 @@ export class Tr2Light
    * Sets the parent brightness factor, which scales the authored brightness only
    * when the light record is built for submission.
    */
-  @blue.method
+
   @meta.implemented
   SetBrightnessMultiplier(multiplier)
   {
@@ -113,7 +113,7 @@ export class Tr2Light
    *
    * @param {Float32Array|number[]} value The new colour.
    */
-  @blue.method
+
   @meta.implemented
   ChangeLightColor(value)
   {
@@ -126,7 +126,7 @@ export class Tr2Light
    *
    * @returns {LightData}
    */
-  @blue.method
+
   @meta.implemented
   GetLightData()
   {
@@ -137,7 +137,7 @@ export class Tr2Light
    * Returns the parent brightness factor applied at submission time, not the
    * authored brightness.
    */
-  @blue.method
+
   @meta.implemented
   GetBrightnessMultiplier()
   {
@@ -150,7 +150,7 @@ export class Tr2Light
    * identity (column-stride, MatrixUtils.cpp:81-96). QUIRK: on a non-match
    * the previous boneTransform STAYS (sticky, identity initially) - it is
    * not reset per call. `bones` is a flat Float32Array, stride 12. */
-  @blue.method
+
   @meta.implemented
   SetBoneMatrix(bones, boneCount)
   {
@@ -189,8 +189,8 @@ export class Tr2Light
    * cannot be ported until `TriTextureRes.GetAverageColor` is, which Carbon
    * declares and we do not. Registered rather than guessed at.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   Update()
   {
   }
@@ -204,7 +204,7 @@ export class Tr2Light
    * the frame-clock seam (see lightConversion.js).
    */
   @meta.adapted
-  @blue.method
+
   AddLight(lightManager, transform, scale, bones = null, boneCount = 0)
   {
     if (this.isDynamic)
@@ -257,7 +257,7 @@ export class Tr2Light
    * Adapted: The Perlin noise flicker (cpp:157-161) reads the global frame clock (BeOS
    * GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.
    */
-  @blue.method
+
   @meta.adapted
   GetLight(out = { position: vec3.create(), radius: 0, color: vec3.create() })
   {
@@ -272,7 +272,7 @@ export class Tr2Light
   }
 
   /** Carbon Initialize (Tr2Light.cpp:165-174): resolve the authored profile path. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -284,7 +284,7 @@ export class Tr2Light
    * Carbon OnModified (Tr2Light.cpp:177-189): a lightProfilePath change
    * re-resolves the profile.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -323,8 +323,8 @@ export class Tr2Light
    * @param {Float32Array|null} [_bones] Packed Float4x3 bone matrices.
    * @param {number} [_boneCount] Number of bones in `_bones`.
    */
-  @blue.method
-  @meta.noop
+
+  @meta.adapted
   RenderDebugInfo(_renderer, _worldMatrix, _bones = null, _boneCount = 0)
   {
   }

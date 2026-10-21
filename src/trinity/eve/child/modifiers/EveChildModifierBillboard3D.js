@@ -35,7 +35,7 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.implemented
   ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {

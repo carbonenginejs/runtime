@@ -285,7 +285,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {boolean} Whether the scene renders in linear colour space.
    */
   @meta.implemented
-  @blue.method
+
   _IsUsingLinearColorSpace()
   {
     return this._useLinearColorSpace;
@@ -303,7 +303,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _SetUseLinearColorSpace(use)
   {
     this._useLinearColorSpace = use;
@@ -320,7 +320,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _SetGammaCorrectText(use)
   {
     this._isGammaCorrectingText = use;
@@ -333,7 +333,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {boolean} Whether font output is gamma corrected.
    */
   @meta.implemented
-  @blue.method
+
   _IsGammaCorrectingText()
   {
     return this._isGammaCorrectingText;
@@ -366,7 +366,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Combines a translation with the current parent without promoting translation-only paths. */
   @meta.implemented
-  @blue.method
+
   PushTranslation(translation)
   {
     const parent = this._transformStack.at(-1);
@@ -387,7 +387,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Removes the current translation scope. */
   @meta.implemented
-  @blue.method
+
   PopTranslation()
   {
     this._transformStack.pop();
@@ -395,7 +395,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Returns the current native translation slot, or zero outside traversal. */
   @meta.adapted
-  @blue.method
+
   GetTranslation()
   {
     return this._transformStack.at(-1)?.translation ?? [0, 0];
@@ -403,7 +403,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Composes local then parent using reversed gl-matrix multiplication order. */
   @meta.adapted
-  @blue.method
+
   PushTransform(matrix)
   {
     const parent = this._transformStack.at(-1);
@@ -424,7 +424,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Removes the current matrix scope. */
   @meta.implemented
-  @blue.method
+
   PopTransform()
   {
     this._transformStack.pop();
@@ -432,7 +432,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Temporarily ignores inherited transforms for absolute-coordinate containers. */
   @meta.implemented
-  @blue.method
+
   PushTransformAbsolute()
   {
     this._transformStack.push({ isTranslationOnly: true, isTranslationOnlySet: true, translation: [0, 0], transform: null });
@@ -440,7 +440,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Restores the parent after an absolute-coordinate scope. */
   @meta.implemented
-  @blue.method
+
   PopTransformAbsolute()
   {
     this._transformStack.pop();
@@ -448,7 +448,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Returns a point in local coordinates; matrices use the native non-perspective transform. */
   @meta.adapted
-  @blue.method
+
   InverseTransformPoint(point)
   {
     const parent = this._transformStack.at(-1);
@@ -477,7 +477,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _TransformPoint(result, point, matrix)
   {
     const x = point[0], y = point[1];
@@ -487,7 +487,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Pushes the transformed axis-aligned bounds intersected with the parent clip. */
   @meta.implemented
-  @blue.method
+
   PushClipRectangle(x, y, width, height)
   {
     if (this.ignoreClip || !this.is2dRender) return;
@@ -537,7 +537,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Restores the parent clip; native 3D clipping remains disabled. */
   @meta.implemented
-  @blue.method
+
   PopClipRectangle()
   {
     if (this.ignoreClip || !this.is2dRender) return;
@@ -547,7 +547,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Returns the active absolute clipping bounds. */
   @meta.implemented
-  @blue.method
+
   GetClipRectangle()
   {
     return this._clipStack.at(-1);
@@ -555,7 +555,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Tests inclusive absolute clip bounds before local-coordinate hit testing. */
   @meta.implemented
-  @blue.method
+
   IsInsideClipRect(point)
   {
     const clip = this._clipStack.at(-1);
@@ -564,7 +564,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Native rectangular, circular or radius=-1 elliptical hit test. */
   @meta.implemented
-  @blue.method
+
   IsInside(point, topLeft, width, height, radius)
   {
     if (!this.IsInsideClipRect(point)) return false;
@@ -589,7 +589,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Tests Carbon's finite line band and midpoint-radius endpoint bound in screen space. */
   @meta.implemented
-  @blue.method
+
   IsInsideLineSegment(point, start, end, lineWidth)
   {
     if (!this.IsInsideClipRect(point)) return false;
@@ -620,7 +620,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Tests native triangle winding after transforming vertices, including native degeneracy gates. */
   @meta.implemented
-  @blue.method
+
   IsInsideTriangle(point, v0, v1, v2)
   {
     if (!this.IsInsideClipRect(point)) return false;
@@ -679,7 +679,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Copies the current vertex tint. */
   @meta.implemented
-  @blue.method
+
   SetColor(value)
   {
     vec4.copy(this._color, value);
@@ -687,7 +687,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Copies the outline tint. */
   @meta.implemented
-  @blue.method
+
   SetOutlineColor(value)
   {
     vec4.copy(this._outlineColor, value);
@@ -695,7 +695,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Sets the outline alpha threshold. */
   @meta.implemented
-  @blue.method
+
   SetOutlineThreshold(value)
   {
     this._outlineThreshold = value;
@@ -703,7 +703,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Sets the sprite blend code. */
   @meta.implemented
-  @blue.method
+
   SetBlendmode(value)
   {
     this._blendMode = value;
@@ -711,7 +711,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Selects color, glow, or both render outputs. */
   @meta.implemented
-  @blue.method
+
   SetSpriteTarget(value)
   {
     this._spriteTarget = value;
@@ -719,7 +719,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Sets glow output intensity. */
   @meta.implemented
-  @blue.method
+
   SetGlowBrightness(value)
   {
     this._glowBrightness = value;
@@ -727,7 +727,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Retains only the native horizontal and vertical tiling bits. */
   @meta.implemented
-  @blue.method
+
   SetTileMode(value)
   {
     this._tileMode = value & (Tr2Sprite2dTextureSettings.S2D_TS_TILE_X | Tr2Sprite2dTextureSettings.S2D_TS_TILE_Y);
@@ -735,7 +735,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Selects the vertex effect and its required texture count. */
   @meta.implemented
-  @blue.method
+
   SetSpriteEffect(value)
   {
     if (this._spriteEffect === value) return;
@@ -752,7 +752,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Selects a subrectangle within the current atlas input. */
   @meta.implemented
-  @blue.method
+
   SetTextureWindow(index, x, y, width, height)
   {
     if (this._texture[index]) this._texture[index].CalcSubTextureWindow(this._textureSettings[index].textureWindow, x, y, width, height);
@@ -760,7 +760,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Copies the texture transform, or disables it for a null matrix. */
   @meta.implemented
-  @blue.method
+
   SetTextureTransform(index, matrix)
   {
     const setting = this._textureSettings[index];
@@ -770,7 +770,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Checks every texture required by the active effect. */
   @meta.implemented
-  @blue.method
+
   _TexturesReady()
   {
     for (let i = 0; i < this._numTexturesUsed; i++)
@@ -791,7 +791,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetSpriteVerticesUVs(uv, width, height)
   {
     const corners = [[0, 0], [1, 0], [1, 1], [0, 1]];
@@ -948,7 +948,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Stores inherited opacity for the next gathered elements. */
   @meta.implemented
-  @blue.method
+
   SetAccumulatedAlpha(value)
   {
     this._accumulatedAlpha = value;
@@ -956,7 +956,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Returns inherited opacity. */
   @meta.implemented
-  @blue.method
+
   GetAccumulatedAlpha()
   {
     return this._accumulatedAlpha;
@@ -964,7 +964,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Seeds the native root depth and unclipped bounds before gathering. */
   @meta.implemented
-  @blue.method
+
   _PrepareStacksBeforeRender()
   {
     const maximum = 3.4028234663852886e38;
@@ -975,7 +975,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Removes the root stack entries after balanced traversal. */
   @meta.implemented
-  @blue.method
+
   _CleanUpStacksAfterRender()
   {
     this._depthStack.pop();
@@ -984,7 +984,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Maps a child [-1,1] depth interval into its parent's interval in 3D mode. */
   @meta.implemented
-  @blue.method
+
   PushDepthRange(min, max)
   {
     if (this._is2dRenderContext) return;
@@ -995,7 +995,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Restores the parent 3D depth interval. */
   @meta.implemented
-  @blue.method
+
   PopDepthRange()
   {
     if (!this._is2dRenderContext) this._depthStack.pop();
@@ -1003,7 +1003,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Maps a relative depth into the active 3D interval. */
   @meta.implemented
-  @blue.method
+
   SetDepth(depth)
   {
     if (this._is2dRenderContext) return;
@@ -1033,7 +1033,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   Update(realTime, simTime)
   {
     this._realTime = realTime;
@@ -1070,7 +1070,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _RemoveFinishedCurveSets()
   {
     for (let index = 0; index < this.curveSets.length;)
@@ -1088,7 +1088,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {boolean} Always true.
    */
   @meta.implemented
-  @blue.method
+
   OnModified(value)
   {
     if (IsMatch(value, "maxSpriteCount"))
@@ -1101,7 +1101,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Native scene resource release; explicit Destroy replaces AL value destruction. */
   @meta.adapted
-  @blue.method
+
   ReleaseResources(storage)
   {
     // m_uiTransformsCb = Tr2ConstantBufferAL() (Tr2Sprite2dScene.cpp:1201).
@@ -1150,7 +1150,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   Render(renderContext)
   {
     if (!this.display || !renderContext.IsValid()) return;
@@ -1200,7 +1200,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _DetermineWorldTransform()
   {
     this._is2dRenderContext = this.is2dRender;
@@ -1218,7 +1218,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _DetermineViewportSize()
   {
     if (this.isFullscreen)
@@ -1239,7 +1239,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _SetViewportSizeToVariableStore(displayWidth, displayHeight)
   {
     this._viewportSizeValue.set([displayWidth, displayHeight, this.is2dRender ? 1 : 0, 1]);
@@ -1253,7 +1253,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _PrepareRenderContextForRendering(renderContext)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -1276,7 +1276,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _PrepareRenderContextAfterRendering(renderContext)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -1296,7 +1296,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _FlashDefaultTexture()
   {
     if (!this.defaultTextureUpdates) return;
@@ -1321,8 +1321,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
   }
 
   /** Native scene debug rendering is empty. @param {Tr2RenderContext} _renderContext Active context. @returns {void} */
-  @meta.noop
-  @blue.method
+  @meta.adapted
+
   RenderDebugInfo(_renderContext)
   {
   }
@@ -1441,7 +1441,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {boolean} Whether rendering can go forward.
    */
   @meta.adapted
-  @blue.method
+
   _PrepareResourcesForRender()
   {
     // Prepare resources if we don't have valid index or vertex buffers.
@@ -1473,7 +1473,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Creates native ring buffers, the 88-byte vertex declaration and diagnostic texture. */
   @meta.adapted
-  @blue.method
+
   _OnPrepareResources()
   {
     if (this._vertexDecl === -1)
@@ -1510,7 +1510,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Resolves primary texture registers from the native UI effect reflection. */
   @meta.implemented
-  @blue.method
+
   _SelectEffect()
   {
     const effect = this.is2dRender ? this.ubershader2d : this.ubershader3d;
@@ -1547,7 +1547,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   SetTexture(index, texture, settings)
   {
     const al = texture ? texture.GetTexture() ?? texture.GetRenderTarget() : null;
@@ -1571,7 +1571,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Reports an active native display-list capture. */
   @meta.implemented
-  @blue.method
+
   IsCapturing()
   {
     return this._captureDisplayList !== null;
@@ -1596,7 +1596,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {boolean} Always true; the capture storage always exists here.
    */
   @meta.implemented
-  @blue.method
+
   StartCapture(owner)
   {
     this._IssueDrawCall();
@@ -1607,7 +1607,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Native doubling growth; typed-array allocation/copy replaces aligned realloc. */
   @meta.adapted
-  @blue.method
+
   _GrowCaptureVertexBuffer(vertexCount)
   {
     this._captureVertexDataCapacity = Math.max(this._captureVertexDataCapacity * 2, this._captureVertexDataSize + vertexCount);
@@ -1618,7 +1618,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Native doubling growth; typed-array allocation/copy replaces aligned realloc. */
   @meta.adapted
-  @blue.method
+
   _GrowCaptureIndexBuffer(indexCount)
   {
     this.captureIndexDataCapacity = Math.max(this.captureIndexDataCapacity * 2, this._captureIndexDataSize + indexCount);
@@ -1630,7 +1630,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /** Uploads capture storage, reusing previous native buffers when their size fits.
    * Explicit AL ownership transfer replaces C++ value assignment. */
   @meta.adapted
-  @blue.method
+
   EndCapture(previousDisplayList)
   {
     if (!this._captureDisplayList) return null;
@@ -1674,7 +1674,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Native capture cancellation/restoration; JS keeps direct and capture arrays separately. */
   @meta.adapted
-  @blue.method
+
   _ResetCapture()
   {
     this._captureDisplayList?.Destruct();
@@ -1695,7 +1695,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   ReplayCapture(list)
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext(), esm = context.GetEffectStateManager();
@@ -1748,7 +1748,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   RunJob(job)
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1779,7 +1779,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   RunJobHelper(job)
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext(), esm = context.GetEffectStateManager();
@@ -1820,7 +1820,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   StartLayer(rt)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1876,7 +1876,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   EndLayer(x, y, width, height, secondaryTexture)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -1932,7 +1932,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Carbon GetMaxVertexCountPerDrawCall (Tr2Sprite2dScene.cpp:2183-2186). @returns {number} Vertex capacity of one draw. */
   @meta.implemented
-  @blue.method
+
   GetMaxVertexCountPerDrawCall()
   {
     return this.maxSpriteCount * 4;
@@ -1940,7 +1940,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Carbon GetMaxIndexCountPerDrawCall (Tr2Sprite2dScene.cpp:2188-2191). @returns {number} Index capacity of one draw. */
   @meta.implemented
-  @blue.method
+
   GetMaxIndexCountPerDrawCall()
   {
     return this.maxSpriteCount * 6;
@@ -2093,7 +2093,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _IssueDrawCall()
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext();
@@ -2185,7 +2185,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
+
   SubmitGeometry(context)
   {
     for (let i = 0; i < 32; i++) mat4.transpose(this._transposedTransforms.subarray(i * 16, (i + 1) * 16), this._transformArray[i]);

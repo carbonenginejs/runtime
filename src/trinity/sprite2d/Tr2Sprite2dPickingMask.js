@@ -73,7 +73,7 @@ export class Tr2Sprite2dPickingMask
   mask = null;
 
   /** Carbon GetMaskPath (Tr2Sprite2dPickingMask.cpp:18-21). @returns {string} */
-  @blue.method
+
   @meta.implemented
   GetMaskPath()
   {
@@ -92,7 +92,7 @@ export class Tr2Sprite2dPickingMask
    * @param {string} path Image resource path.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   SetMaskPath(path)
   {
@@ -138,7 +138,7 @@ export class Tr2Sprite2dPickingMask
    * @param {number} height The sprite's height.
    * @returns {boolean} Whether the mask passes at the point.
    */
-  @blue.method
+
   @meta.implemented
   SampleMask(point, topLeft, width, height)
   {

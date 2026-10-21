@@ -26,7 +26,7 @@ export class EveSOFDataParameterVector3 extends EveSOFDataParameter
 
   /** Returns a new four-component vector with a zero-filled w component. */
   @meta.implemented
-  @blue.method
+
   GetValue()
   {
     return vec4.fromValues(this.value[0], this.value[1], this.value[2], 0);

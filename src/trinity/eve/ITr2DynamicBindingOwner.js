@@ -10,7 +10,7 @@ export class ITr2DynamicBindingOwner
    * Returns the named object roots used to resolve dynamic binding paths.
    * @returns {Object<string, object>} The owner's parameter map.
    */
-  @blue.method
+
   GetParameterMap() {}
 }
 

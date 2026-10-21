@@ -32,7 +32,7 @@ export class EveVirtualCameraBehaviourVector3Base
   name = "";
 
   /** Returns the authored behaviour name shown in tooling. */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -43,7 +43,7 @@ export class EveVirtualCameraBehaviourVector3Base
    * Sets the behaviour name, coercing to a string; subclasses override this to
    * rename the curves they own alongside it.
    */
-  @blue.method
+
   @meta.implemented
   SetName(name)
   {
@@ -54,7 +54,7 @@ export class EveVirtualCameraBehaviourVector3Base
    * Re-applies the current name after a field change, which propagates it to any
    * owned curves through the subclass SetName override.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -63,7 +63,7 @@ export class EveVirtualCameraBehaviourVector3Base
   }
 
   /** Reports whether the camera should evaluate this behaviour this update. */
-  @blue.method
+
   @meta.implemented
   IsActive()
   {

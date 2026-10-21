@@ -86,7 +86,7 @@ export class Tr2StateMachineState
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -108,7 +108,7 @@ export class Tr2StateMachineState
    * @param {IList|null} [list=null] Emitting list identity.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -132,7 +132,7 @@ export class Tr2StateMachineState
    * @param {Tr2StateMachine} stateMachine Owning state machine.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Link(stateMachine)
   {
@@ -158,7 +158,7 @@ export class Tr2StateMachineState
    * Recomputes the combined transition variable mask.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateVariableMask()
   {
@@ -187,7 +187,7 @@ export class Tr2StateMachineState
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
@@ -222,7 +222,7 @@ export class Tr2StateMachineState
    * directly, as Carbon did before trinity 85a2b621.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Start()
   {
@@ -252,7 +252,7 @@ export class Tr2StateMachineState
    * before trinity 85a2b621, so the finalizer sees them already stopped.
    * @returns {void}
    */
-  @blue.method
+
   @meta.adapted
   Stop()
   {
@@ -285,7 +285,7 @@ export class Tr2StateMachineState
    * @param {bigint|number} [dirtyVariables=0n] Variables changed by the controller.
    * @returns {Tr2StateMachineState|null} Next state, or null while remaining here.
    */
-  @blue.method
+
   @meta.adapted
   Update(dirtyVariables = 0n)
   {
@@ -343,7 +343,7 @@ export class Tr2StateMachineState
    * @param {number} diff Simulation-time offset in Blue ticks.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   RebaseSimTime(diff)
   {
@@ -368,7 +368,7 @@ export class Tr2StateMachineState
    * Gets the authored state name.
    * @returns {string} Authored state name.
    */
-  @blue.method
+
   @meta.implemented
   GetName()
   {
@@ -401,7 +401,7 @@ export class Tr2StateMachineState
    * BigInt for the native all-bits uint64 mask.
    * @returns {Tr2StateMachineState|null} First active destination, or null.
    */
-  @blue.method
+
   @meta.adapted
   _GetNextState()
   {

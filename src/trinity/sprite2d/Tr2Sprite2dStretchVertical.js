@@ -149,7 +149,7 @@ export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   GatherSprites(renderer)
   {
     if (!this.display) return;
@@ -223,7 +223,7 @@ export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
    * @returns {Tr2Sprite2dStretchVertical|null} This sprite when hit, otherwise null.
    */
   @meta.implemented
-  @blue.method
+
   PickPoint(x, y, renderer)
   {
     if (!this.display) return null;
@@ -246,7 +246,7 @@ export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
    * @returns {number} 0 when hidden, otherwise 24.
    */
   @meta.implemented
-  @blue.method
+
   GetVertexCount()
   {
     if (!this.display) return 0;
@@ -271,7 +271,7 @@ export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _PrepareVertices(v, srcHeight, vertOffset, scale)
   {
     const topEdgeSize = this.topEdgeSize;

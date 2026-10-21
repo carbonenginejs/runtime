@@ -192,7 +192,7 @@ export class EveChildExplosion extends EveChildContainer
   }
 
   /** Carbon RegisterComponents (cpp:45-48): base container registration only. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -203,7 +203,7 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon UnRegisterComponents (cpp:54-65): unregisters the generated global explosion container, then the
    * base container's children. The container is always an EveChildContainer, so Carbon's EveEntity cast holds.
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -275,7 +275,7 @@ export class EveChildExplosion extends EveChildContainer
    * @param {EveUpdateContext} updateContext Frame context; GetDeltaT is in seconds.
    * @param {object} params Child update params from the owner.
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -382,7 +382,7 @@ export class EveChildExplosion extends EveChildContainer
    * not the base container's children. Quirk, reproduced: the singular localExplosion is not registered.
    * @param {Tr2QuadRenderer} quadRenderer Quad renderer.
    */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -399,7 +399,7 @@ export class EveChildExplosion extends EveChildContainer
    * Uses the shared CRT quotient, including the native inclusive upper endpoint.
    * @param {number} localExplosionCount Number of local explosions.
    */
-  @blue.method
+
   @meta.adapted
   CalculateExplosionTimes(localExplosionCount)
   {
@@ -434,7 +434,7 @@ export class EveChildExplosion extends EveChildContainer
    * persisted IROOT/IROOTPTR members, list items and dictionary values. The schema field table stands in for
    * the Blue member table; Carbon's extra push of the current object (cpp:360) is a no-op on the visited set.
    */
-  @blue.method
+
   @meta.implemented
   FindSharedObjects()
   {
@@ -474,7 +474,7 @@ export class EveChildExplosion extends EveChildContainer
    * @param {object} source Object being copied.
    * @returns {{result: number, dest?: object}} Copier override result.
    */
-  @blue.method
+
   @meta.adapted
   CopyElement(source)
   {
@@ -521,7 +521,7 @@ export class EveChildExplosion extends EveChildContainer
    * Uses the native CRT rand() % n selection.
    * @param {mat4} transform Local explosion transform in this child's local frame.
    */
-  @blue.method
+
   @meta.adapted
   SpawnLocalExplosion(transform)
   {

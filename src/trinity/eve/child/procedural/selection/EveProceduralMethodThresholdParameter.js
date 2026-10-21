@@ -38,7 +38,7 @@ export class EveProceduralMethodThresholdParameter
 
   /** Carbon EveProceduralMethodThresholdParameter::Initialize (cpp:16-23):
    * lazily create the child ref. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -55,7 +55,7 @@ export class EveProceduralMethodThresholdParameter
    * assignment blocks its auto-load. The value argument follows the repo's
    * OnModified duck.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(value = null)
   {
@@ -77,7 +77,7 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method SetModified (cpp:44-47). */
-  @blue.method
+
   @meta.implemented
   SetModified(isModified)
   {
@@ -85,7 +85,7 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method IsModified (cpp:49-52). */
-  @blue.method
+
   @meta.implemented
   IsModified()
   {
@@ -93,7 +93,7 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method GetThreshold (cpp:54-57). */
-  @blue.method
+
   @meta.implemented
   GetThreshold()
   {
@@ -101,7 +101,7 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method GetChild (cpp:59-62). */
-  @blue.method
+
   @meta.implemented
   GetChild()
   {
@@ -110,7 +110,7 @@ export class EveProceduralMethodThresholdParameter
 
   /** Carbon EveProceduralMethodThresholdParameter::Load (cpp:64-70): one-line
    * bypass-blocker reload delegate. */
-  @blue.method
+
   @meta.implemented
   Load()
   {

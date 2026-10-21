@@ -51,7 +51,7 @@ export class TriStepSetRenderState extends TriRenderStep
    * Sets the state selector and its value together, both coerced to unsigned
    * 32-bit.
    */
-  @blue.method
+
   SetStateAndValue(state, value)
   {
     this.state = Number(state) >>> 0;
@@ -62,7 +62,7 @@ export class TriStepSetRenderState extends TriRenderStep
    * Forwards the state/value pair to the render context, which owns the mapping onto
    * real pipeline state.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

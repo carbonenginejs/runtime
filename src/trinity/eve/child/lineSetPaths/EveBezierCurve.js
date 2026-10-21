@@ -150,7 +150,7 @@ export class EveBezierCurve extends IEveLineSetPath
   _regeneratePoints = true;
 
   /** Marks the point chain dirty so the first update regenerates it. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -162,7 +162,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * Clamps completeness to 0..2, segments to 1..128 and segmentOffset to 0..1,
    * then marks the point chain dirty.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -178,7 +178,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * (wrapped into 0..1) and, when the points are dirty, regenerates them and the
    * bounding sphere; returns whether a regeneration ran.
    */
-  @blue.method
+
   @meta.adapted
   Update(updateContext, _params = null)
   {
@@ -199,7 +199,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * Samples the quadratic Bezier into the point chain across the sub-range selected by completeness, shifted by segmentOffset, and refreshes the world transform. Does nothing when fewer than two segments are requested.
    * @param {Float32Array} [parentTransform] - a non-identity matrix is used and cached, so later identity calls reuse the last real parent transform
    */
-  @blue.method
+
   @meta.adapted
   GeneratePoints(parentTransform = mat4.create())
   {
@@ -239,7 +239,7 @@ export class EveBezierCurve extends IEveLineSetPath
   }
 
   /** Number of generated points; zero until GeneratePoints has run. */
-  @blue.method
+
   @meta.adapted
   GetPointCount()
   {
@@ -250,7 +250,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * Recomputes the local bounding sphere around the three control points, padded by the mesh size of the billboard objects riding the path.
    * @param {Number} [meshSize] - a non-zero value is remembered and reused on later zero-argument calls
    */
-  @blue.method
+
   @meta.adapted
   CalculateBoundingSphere(meshSize = 0, _reCalculateChildren = true)
   {
@@ -276,7 +276,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.adapted
   GetBoundingSphere(out = vec4.create())
   {
@@ -288,7 +288,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * system location, against the frustum and stores the result in isVisible; a
    * non-displayed path returns early and keeps its previous flag.
    */
-  @blue.method
+
   @meta.adapted
   UpdateVisibility(frustum, _parentLod = null, systemLocation = mat4.create())
   {
@@ -309,7 +309,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * is skipped while completeness is below 1, and the last segment ends exactly
    * on point2 rather than on an interpolated sample.
    */
-  @blue.method
+
   @meta.adapted
   AddLinesToSet(lineSet, color, animColor, scrollSpeed = 0)
   {
@@ -348,7 +348,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * products reverse Carbon's row-vector operands; packing transposes once.
    * JS scalar intermediates are not claimed SIMD/libm byte-identical.
    */
-  @blue.method
+
   @meta.adapted
   UpdateBuffer(renderContext, cursor, systemLocation, stride)
   {
@@ -427,7 +427,7 @@ export class EveBezierCurve extends IEveLineSetPath
   }
 
   /** Carbon declares no Bezier-specific debug options (cpp:292-295). */
-  @blue.method
+
   @meta.noop
   GetDebugOptions(_options)
   {
@@ -442,7 +442,7 @@ export class EveBezierCurve extends IEveLineSetPath
    * @param {ITr2DebugRenderer2} renderer
    * @param {mat4} systemLocation
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer, systemLocation)
   {

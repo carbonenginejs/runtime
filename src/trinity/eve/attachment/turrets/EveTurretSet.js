@@ -580,7 +580,7 @@ export class EveTurretSet extends EveEntity
    * Allocates float IDs0..23 (EveTurretSet.cpp:296-313). JS explicitly frees
    * the previous allocation before replacing the native value-owned handle.
    */
-  @blue.method
+
   @meta.adapted
   InitializeInstanceBuffer()
   {
@@ -597,7 +597,7 @@ export class EveTurretSet extends EveEntity
    * Adapted: the allocation's own parent stands in for g_sharedBuffer, since
    * the shared buffer here is per render context (TriGeometryResAllocations).
    */
-  @blue.method
+
   @meta.adapted
   ReleaseResources(_storage)
   {
@@ -606,7 +606,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Native declaration and instance preparation (cpp:1103-1120). */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -634,7 +634,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the native turret state. */
-  @blue.method
+
   @meta.implemented
   GetState()
   {
@@ -642,7 +642,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the authored mount prefix. */
-  @blue.method
+
   @meta.implemented
   GetLocatorName()
   {
@@ -650,7 +650,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the application-assigned mount slot. */
-  @blue.method
+
   @meta.implemented
   GetSlotNumber()
   {
@@ -658,7 +658,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the transform group index. */
-  @blue.method
+
   @meta.implemented
   GetSwarmID()
   {
@@ -666,7 +666,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the current firing effect. */
-  @blue.method
+
   @meta.implemented
   GetFiringEffect()
   {
@@ -674,7 +674,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the authored ambient effect. */
-  @blue.method
+
   @meta.implemented
   GetAmbientEffect()
   {
@@ -724,7 +724,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Forwards shader options to material and selected ambient content (cpp:3739-3750). */
-  @blue.method
+
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -734,7 +734,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Returns the turret effect Carbon exposes to SOF material setup. */
-  @blue.method
+
   @meta.implemented
   GetShader()
   {
@@ -750,7 +750,8 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: Carbon's by-value embed becomes an accessor because the pose pipeline (the aiming consumer) lives behind the animation seam.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetAiming()
   {
     const aiming = this._aiming;
@@ -1062,7 +1063,7 @@ export class EveTurretSet extends EveEntity
    * branch order; rotationArc is the native math helper, including its quirks.
    * Without an output array, the returned matrix belongs to the caller.
    */
-  @blue.method
+
   @meta.adapted
   GetTurretBoneTransform(turretIndex, boneID, out = mat4.create()) // alloc: returned native matrix value belongs to the caller; hot-path callers provide out
   {
@@ -1133,7 +1134,7 @@ export class EveTurretSet extends EveEntity
    * (EveTurretSet.cpp:152-159). Child initialization belongs to graph construction,
    * not this parent or its live firing-effect setter.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -1149,7 +1150,7 @@ export class EveTurretSet extends EveEntity
    * JS notifications identify the exposed property name in place of Carbon's
    * Be::Var address; each arm retains the donor's single-member semantics.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -1183,7 +1184,7 @@ export class EveTurretSet extends EveEntity
    * Reloads the native LOD-selected geometry (EveTurretSet.cpp:252-290) and registers as its notify target;
    * a resource that has already finished calls RebuildCachedData at once.
    */
-  @blue.method
+
   @meta.adapted
   InitializeGeometryResource()
   {
@@ -1199,7 +1200,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Replaces and redistributes the authored ambient effect (cpp:3554). */
-  @blue.method
+
   @meta.implemented
   SetAmbientEffect(ambientEffect)
   {
@@ -1210,7 +1211,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Creates one Blue-copied ambient instance per current mount (cpp:364-425). */
-  @blue.method
+
   @meta.implemented
   InitializeAmbientEffect()
   {
@@ -1238,7 +1239,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Routes per-mount variables to the source in editing mode or the generated instance (cpp:443). */
-  @blue.method
+
   @meta.implemented
   SetAmbientEffectControllerVariableOnInstance(index, name, value)
   {
@@ -1249,7 +1250,7 @@ export class EveTurretSet extends EveEntity
   /** Caches every mesh on skeleton zero in skeleton-bone order (cpp:524-592).
    * The decoder's plain CMF data replaces native cmf records; corners retain native order.
    */
-  @blue.method
+
   @meta.adapted
   InitializeDynamicBounds(cmfData = null, skeleton = null)
   {
@@ -1294,7 +1295,7 @@ export class EveTurretSet extends EveEntity
    * The GR2 decoder exposes mesh indices, minBounds/maxBounds and plain joint names;
    * the existing CPU sequencer supplies the native model-instance readiness gate.
    */
-  @blue.method
+
   @meta.adapted
   InitializeGrannyDynamicBounds(fi = null, skeleton = null)
   {
@@ -1335,7 +1336,7 @@ export class EveTurretSet extends EveEntity
    * The existing JS sequencer supplies both GR2 and CMF world matrices; GR2 retains
    * model-zero initial-placement translation. No inverse-bind palette or mount transform is applied.
    */
-  @blue.method
+
   @meta.adapted
   GetDynamicBounds(turret, boundingSphere = null, aabbMin = null, aabbMax = null)
   {
@@ -1378,7 +1379,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Unions valid mounts' pose bounds without applying their mount matrices (cpp:1814-1838). */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(aabbMin, aabbMax)
   {
@@ -1412,7 +1413,7 @@ export class EveTurretSet extends EveEntity
    * RenderDynamicBounds nor those statics, so that call is left out.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.adapted
   RenderDebugInfo(renderer)
   {
@@ -1463,7 +1464,7 @@ export class EveTurretSet extends EveEntity
    * gated on movement sound.
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -1493,7 +1494,7 @@ export class EveTurretSet extends EveEntity
   /** Selects EMPTY or HIGHEST at twice the visibility threshold (cpp:1130-1167).
    * The obsolete native macOS Nvidia driver workaround has no JS backend equivalent.
    */
-  @blue.method
+
   @meta.adapted
   UpdateLOD(context)
   {
@@ -1510,7 +1511,7 @@ export class EveTurretSet extends EveEntity
    * (EveTurretSet.cpp:459-521). The JS sampler owns the decoded pose storage
    * in place of native CMF/Granny allocations.
    */
-  @blue.method
+
   @meta.adapted
   Cleanup()
   {
@@ -1542,7 +1543,7 @@ export class EveTurretSet extends EveEntity
    * The shared JS sampler replaces native CMF/Granny allocations. The existing
    * CarbonVertexElements bridge translates decoded CMF usage names for the AL.
    */
-  @blue.method
+
   @meta.adapted
   RebuildCachedData(resource)
   {
@@ -1586,7 +1587,7 @@ export class EveTurretSet extends EveEntity
    * updater's existing modifier phase runs native aiming after sampling and
    * before world composition; current-pitch queries reuse its hierarchy solver.
    */
-  @blue.method
+
   @meta.adapted
   InitializeAnimation()
   {
@@ -1646,7 +1647,7 @@ export class EveTurretSet extends EveEntity
    * on an absolute clock. Both names are resolved before stopping old playback.
    * This models the inspected CMF scheduler, not Granny SDK blend parity.
    */
-  @blue.method
+
   @meta.adapted
   PlayAnimation(turretIndex, animName, animNameIdle = "", delay = 0)
   {
@@ -1682,7 +1683,7 @@ export class EveTurretSet extends EveEntity
    * buffered requests (EveTurretSet.cpp:2657-2700). JS control metadata replaces
    * CMF player handles; a positive delay preserves playback until that time.
    */
-  @blue.method
+
   @meta.adapted
   StopAnimation(turretIndex, delay = 0)
   {
@@ -1697,7 +1698,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Selects the state's native idle clip (EveTurretSet.cpp:3161-3188). */
-  @blue.method
+
   @meta.implemented
   ForceIdleAnimation()
   {
@@ -1717,7 +1718,7 @@ export class EveTurretSet extends EveEntity
    * composes full joint transforms. Its sampled-pose snapshot prevents aiming
    * from accumulating when a stationary frame is repeated.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSingleTurrets()
   {
@@ -1740,7 +1741,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Clears derived state when Blue releases geometry (EveTurretSet.cpp:1081). */
-  @blue.method
+
   @meta.implemented
   ReleaseCachedData(_resource)
   {
@@ -1753,7 +1754,7 @@ export class EveTurretSet extends EveEntity
    * the canonical skeleton owner on decoded records; effect quad registration
    * precedes the geometry/skeleton gates, as in the donor.
    */
-  @blue.method
+
   @meta.adapted
   InitializeFiringEffect()
   {
@@ -1771,7 +1772,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Transfers mapped entity registration and rebinds muzzle joints (cpp:3534-3546). */
-  @blue.method
+
   @meta.implemented
   SetFiringEffect(effect)
   {
@@ -1790,7 +1791,7 @@ export class EveTurretSet extends EveEntity
    * Boolean acceptance return; target admission remains owned by EveTurretTarget.
    * Audio dispatch resolves the native nominal cast through optional registration.
    */
-  @blue.method
+
   @meta.adapted
   SetTargetObject(object)
   {
@@ -1810,7 +1811,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** The object currently being targeted, or null. */
-  @blue.method
+
   @meta.implemented
   GetTargetObject()
   {
@@ -1821,7 +1822,7 @@ export class EveTurretSet extends EveEntity
    * Rescales the firing effect from the target's radius, passing -1 when there
    * is no target.
    */
-  @blue.method
+
   @meta.implemented
   SetTargetScale()
   {
@@ -1843,7 +1844,7 @@ export class EveTurretSet extends EveEntity
    * get their sequencer from InitializeAnimation rather than Carbon's per-branch
    * CMF/Granny allocation; no second transform convention is used.
    */
-  @blue.method
+
   @meta.adapted
   SetLocalTransform(turretIndex, localMatrix)
   {
@@ -1889,7 +1890,7 @@ export class EveTurretSet extends EveEntity
    * Recomputes each turret's world matrix as the parent transform applied to its
    * local matrix and marks the record valid.
    */
-  @blue.method
+
   @meta.implemented
   UpdateTurretTransforms(parentTransform)
   {
@@ -1907,7 +1908,8 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: The closest portable turret is selected from its world up-axis and the target tracking position.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   GetClosestTurret()
   {
     return this._GetClosestTurretAndLocator().turret;
@@ -1934,7 +1936,7 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: The existing sampler and explicit phase calls replace native renderer-clock task dispatch.
    */
-  @blue.method
+
   @meta.adapted
   UpdateSyncronous(context, _parentMatrix)
   {
@@ -1985,7 +1987,7 @@ export class EveTurretSet extends EveEntity
    * world transforms. JS update deltas replace the renderer animation clock;
    * the existing sampler modifier phase owns pose aiming and composition.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(context, parentData)
   {
@@ -2059,7 +2061,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Registers firing and ambient quad content (cpp:3662-3673). */
-  @blue.method
+
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -2069,7 +2071,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Forwards visible turret quad content, applying the ambient clip gate (cpp:3677-3694). */
-  @blue.method
+
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -2083,7 +2085,7 @@ export class EveTurretSet extends EveEntity
    * Collects this visible turret and its effects (cpp:2022-2049). JS returns
    * the supplied array; the borrowed hull SH coefficients retain native lifetime.
    */
-  @blue.method
+
   @meta.adapted
   GetRenderables(out = [], shLighting = null)
   {
@@ -2101,7 +2103,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Native ambient visibility (cpp:428): clipping suppresses the effect. */
-  @blue.method
+
   @meta.implemented
   IsAmbientVisible()
   {
@@ -2113,7 +2115,7 @@ export class EveTurretSet extends EveEntity
    * views (EveTurretSet.cpp:1945-2010). JS forwards effect visibility through
    * existing scene contracts. Raytracing mesh/skeleton updates remain unsupported.
    */
-  @blue.method
+
   @meta.adapted
   UpdateVisibility(context)
   {
@@ -2144,7 +2146,7 @@ export class EveTurretSet extends EveEntity
    * Registers the shadow component, then mapped firing/ambient entities while
    * displayed (EveTurretSet.cpp:208-224).
    */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -2163,7 +2165,7 @@ export class EveTurretSet extends EveEntity
    * Unregisters mapped firing/ambient entities without a display check.
    * EveEntity removes this owner's own components first (cpp:227-243).
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -2178,7 +2180,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Carbon EveTurretSet::HasTransparentBatches: instanced turrets are opaque. */
-  @blue.method
+
   @meta.implemented
   HasTransparentBatches()
   {
@@ -2191,7 +2193,7 @@ export class EveTurretSet extends EveEntity
    * decoding cannot reach the AL. The explicit two-stream batch prevents
    * generic realization from overwriting its instance data. Returns commit status.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -2213,7 +2215,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Carbon EveTurretSet::GetSortValue: opaque turret instances use key one. */
-  @blue.method
+
   @meta.implemented
   GetSortValue()
   {
@@ -2271,7 +2273,7 @@ export class EveTurretSet extends EveEntity
    * size. JS realizes cold geometry through the shared Trinity allocator and
    * returns commit status; native commits without the opaque validity check.
    */
-  @blue.method
+
   @meta.adapted
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
@@ -2300,7 +2302,7 @@ export class EveTurretSet extends EveEntity
    * per-visible turret SRT arrays, and the SH/clip PS block (cpp:2300-2511).
    * JS uses canonical RawData records and concatenates the existing sampler
    * palettes into the shared Float4x3 ring, with one upload per frame. */
-  @blue.method
+
   @meta.adapted
   GetPerObjectData(accumulator = null)
   {
@@ -2397,7 +2399,7 @@ export class EveTurretSet extends EveEntity
 
   /** Carbon EveTurretSet::GetShadowPerObjectData (cpp:2520-2523): pure
    * forward to GetPerObjectData. */
-  @blue.method
+
   @meta.implemented
   GetShadowPerObjectData(accumulator = null)
   {
@@ -2415,7 +2417,7 @@ export class EveTurretSet extends EveEntity
    * false when deactivated. INVALID/default retain the previous active mount;
    * valid predecessor states preserve native target-call/active-assignment order.
    */
-  @blue.method
+
   @meta.adapted
   SetupFiringState()
   {
@@ -2472,7 +2474,7 @@ export class EveTurretSet extends EveEntity
    * @returns {string} The fire animation name.
    */
   @meta.implemented
-  @blue.method
+
   _GetFireAnimationName()
   {
     let name = "Fire";
@@ -2491,7 +2493,7 @@ export class EveTurretSet extends EveEntity
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
+
   _CalcRandomDelay()
   {
     this.randomFiringDelay = this.useRandomFiringDelay ? this.GetShotTimeVariance() * carbonRandom.triFloatRandom01() : 0;
@@ -2515,7 +2517,7 @@ export class EveTurretSet extends EveEntity
    * @returns {{turret: number, locator: number}} The shared pair record.
    */
   @meta.adapted
-  @blue.method
+
   _GetClosestTurretAndLocator()
   {
     const pair = EveTurretSet._closestPair;
@@ -2597,7 +2599,7 @@ export class EveTurretSet extends EveEntity
    * editing mode, otherwise the generated distributed instance container when
    * one exists (cpp:434); no authored fallback outside editing mode.
    */
-  @blue.method
+
   @meta.implemented
   GetAmbientEffectOrGeneratedEffect()
   {

@@ -193,7 +193,7 @@ export class EveTransform extends Tr2Transform
    * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
    * graph that only authored the LOD mesh still renders.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -211,7 +211,7 @@ export class EveTransform extends Tr2Transform
    * @param {mat4} [parentTransform] The parent's world transform.
    * @returns {mat4} The node's live worldTransform, valid until the next update.
   */
-  @blue.method
+
   @meta.implemented
   UpdateViewDependentData(frustum, parentTransform = EveTransform._identity)
   {
@@ -226,7 +226,7 @@ export class EveTransform extends Tr2Transform
    * synchronous pass then the asynchronous pass, in Carbon's order.
    * @param {EveUpdateContext} context
    */
-  @blue.method
+
   @meta.implemented
   Update__UpdateContext(context)
   {
@@ -242,7 +242,7 @@ export class EveTransform extends Tr2Transform
    * context.
    * @param {number|EveUpdateContext} timeOrContext
    */
-  @blue.method
+
   @meta.implemented
   Update(timeOrContext)
   {
@@ -257,7 +257,7 @@ export class EveTransform extends Tr2Transform
    * Does nothing: EveTransform performs all of its per-frame work in
    * UpdateAsyncronous.
    */
-  @blue.method
+
   @meta.implemented
   UpdateSyncronous(_context)
   {
@@ -277,7 +277,7 @@ export class EveTransform extends Tr2Transform
    * of Carbon's ITr2GenericEmitter::UpdateArguments, one reused static object
    * each, rather than stack-constructed structures (cpp:145, 153).
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(context)
   {
@@ -325,7 +325,7 @@ export class EveTransform extends Tr2Transform
    * Refreshes the world transform, then derives visibility and LOD from the mesh bounding sphere: the sphere is frustum-tested and its on-screen size in pixels is compared against the context's medium and low detail thresholds for the LOD level and against visibilityThreshold for visibility; a node with no mesh is always visible, any particle system forces high LOD, and children's LOD levels are merged in.
    * @returns {boolean} Whether this node itself is visible.
    */
-  @blue.method
+
   @meta.implemented
   UpdateVisibility(context, parentTransform = EveTransform._identity)
   {
@@ -365,7 +365,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
-  @blue.method
+
   @meta.implemented
   GetRenderables(out)
   {
@@ -378,7 +378,7 @@ export class EveTransform extends Tr2Transform
    * off.
    */
   @meta.implemented
-  @blue.method
+
   GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this.display) return out;
@@ -402,7 +402,7 @@ export class EveTransform extends Tr2Transform
    * fields into the canonical stored layout; the engine owns GPU allocation,
    * upload, and binding.
    */
-  @blue.method
+
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -447,7 +447,7 @@ export class EveTransform extends Tr2Transform
    * @param {Number} pickTypes - a Tr2PickType mask
    * @param {Object} perObjectData - this transform's per-object record
    */
-  @blue.method
+
   @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
@@ -476,7 +476,7 @@ export class EveTransform extends Tr2Transform
    * @param {Number} [_areaID] - the picked area, unused by this class
    * @returns {EveTransform} this
    */
-  @blue.method
+
   @meta.implemented
   GetID(_areaID = 0)
   {
@@ -484,7 +484,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Writes the override bounds, or the displayed mesh's local bounds when no override exists. */
-  @blue.method
+
   @meta.implemented
   GetLocalBoundingBox(min, max)
   {
@@ -498,7 +498,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Writes the direct local bounds transformed by the current world matrix. */
-  @blue.method
+
   @meta.implemented
   GetWorldBoundingBox(min, max)
   {
@@ -512,7 +512,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Reports whether override or mesh bounds are currently available. */
-  @blue.method
+
   @meta.implemented
   IsBoundingBoxReady()
   {
@@ -524,7 +524,7 @@ export class EveTransform extends Tr2Transform
    * @param {vec4} out Caller-owned sphere; left untouched when no source produced one.
    * @returns {boolean} Whether a sphere was written.
    */
-  @blue.method
+
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), query = 0)
   {
@@ -561,7 +561,7 @@ export class EveTransform extends Tr2Transform
    * @param {Float32Array} out Caller-owned position.
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.implemented
   GetWorldPosition(out)
   {
@@ -572,7 +572,7 @@ export class EveTransform extends Tr2Transform
    * Returns the node's local rotation quaternion; called without an out
    * parameter it returns the live field rather than a copy.
    */
-  @blue.method
+
   @meta.implemented
   GetWorldRotation(out)
   {
@@ -584,7 +584,7 @@ export class EveTransform extends Tr2Transform
    * transform options, then each observer's, then the mesh's.
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -623,7 +623,7 @@ export class EveTransform extends Tr2Transform
    * decides whether it can draw it.
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -715,7 +715,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Returns the LOD level chosen by the last visibility pass. */
-  @blue.method
+
   @meta.implemented
   GetLODLevel()
   {
@@ -723,7 +723,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Turns rendering of this node and its subtree on or off. */
-  @blue.method
+
   @meta.implemented
   SetDisplay(value)
   {
@@ -731,7 +731,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Starts playback on every curve set on this node. */
-  @blue.method
+
   @meta.implemented
   PlayCurveSets()
   {
@@ -742,7 +742,7 @@ export class EveTransform extends Tr2Transform
    * Starts every curve set carrying the given name, playing a named time range
    * when one is supplied and otherwise resetting to the full range first.
    */
-  @blue.method
+
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -762,7 +762,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Stops every curve set carrying the given name. */
-  @blue.method
+
   @meta.implemented
   StopCurveSet(name)
   {
@@ -773,7 +773,7 @@ export class EveTransform extends Tr2Transform
    * Returns the longest curve duration across the curve sets carrying the given
    * name, or 0 when none match.
    */
-  @blue.method
+
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -786,7 +786,7 @@ export class EveTransform extends Tr2Transform
    * Returns the longest duration of a named time range across the curve sets
    * carrying the given name, or 0 when none match.
    */
-  @blue.method
+
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {

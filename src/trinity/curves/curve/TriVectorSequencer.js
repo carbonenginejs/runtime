@@ -80,7 +80,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(time)
   {
@@ -102,7 +102,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   Update(time, out)
   {
@@ -168,7 +168,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   GetValueAtMult(time, out, ticks)
   {
@@ -190,7 +190,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   GetValueAtAdd(time, out, ticks)
   {
@@ -215,7 +215,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.adapted
   GetValueAtAverage(time, out, ticks)
   {
@@ -313,7 +313,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+
   @meta.noop
   InterpolatedPosition(_time, out)
   {

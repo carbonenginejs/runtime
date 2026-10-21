@@ -43,7 +43,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.implemented
   ApplyTransform(transform, _boneCount = 0, _bones = null, out)
   {
@@ -73,7 +73,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * endpoint; a nullish value clears it and leaves the SetDestPosition fallback
    * in effect.
    */
-  @blue.method
+
   @meta.implemented
   SetDest(dest)
   {
@@ -84,7 +84,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * Copies the fallback stretch endpoint used when no destination vector
    * function is bound, or before one yields a value.
    */
-  @blue.method
+
   @meta.implemented
   SetDestPosition(destPosition)
   {

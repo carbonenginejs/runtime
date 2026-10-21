@@ -24,7 +24,7 @@ export class Tr2PPLutEffect extends Tr2PPEffect
   path = "res:/dx9/scene/postprocess/LUTdefault.dds";
 
   /** Carbon Tr2PPLutEffect::IsActive override. */
-  @blue.method
+
   IsActive()
   {
     return this.display && this.influence > 0;

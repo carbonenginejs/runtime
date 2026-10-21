@@ -24,7 +24,7 @@ export class EveSocketParameterFloat extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @blue.method
+
   @meta.implemented
   ClearBindings()
   {
@@ -33,7 +33,7 @@ export class EveSocketParameterFloat extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @blue.method
+
   @meta.implemented
   Reset()
   {
@@ -50,7 +50,7 @@ export class EveSocketParameterFloat extends EveSocketParameterBindingBase
    * substituting 0 when the read throws or is not finite; always succeeds, so a
    * bind is never refused on its account.
    */
-  @blue.method
+
   ExtractDefault(externalParameter)
   {
     let value = 0;

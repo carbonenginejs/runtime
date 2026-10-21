@@ -59,7 +59,7 @@ export class Tr2KelvinColor extends IInitialize
   // tint, so the neutral value is 0.5 and the result is renormalised after.
 
   /** Native initialization has no work and always succeeds. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {

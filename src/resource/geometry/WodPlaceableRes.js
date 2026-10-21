@@ -47,7 +47,7 @@ export class WodPlaceableRes
   _isReady = false;
 
   /** Returns the squared near fade distance. */
-  @blue.method
+
   @meta.implemented
   GetNearFadeDistance()
   {
@@ -55,7 +55,7 @@ export class WodPlaceableRes
   }
 
   /** Returns the squared far fade distance. */
-  @blue.method
+
   @meta.implemented
   GetFarFadeDistance()
   {
@@ -63,7 +63,7 @@ export class WodPlaceableRes
   }
 
   /** Returns the visual model. */
-  @blue.method
+
   @meta.implemented
   GetVisualModel()
   {
@@ -71,7 +71,7 @@ export class WodPlaceableRes
   }
 
   /** Returns the live curve set collection. */
-  @blue.method
+
   @meta.implemented
   GetCurveSets()
   {
@@ -79,7 +79,7 @@ export class WodPlaceableRes
   }
 
   /** Returns the native shadow-caster flag. */
-  @blue.method
+
   @meta.implemented
   IsShadowCaster()
   {
@@ -95,7 +95,7 @@ export class WodPlaceableRes
   }
 
   /** Reports transparent areas, including hidden meshes as Carbon does. */
-  @blue.method
+
   @meta.implemented
   HasTransparency()
   {
@@ -107,7 +107,7 @@ export class WodPlaceableRes
    * here; an incomplete authored graph is a contract error, not a ready resource.
    * Subsequent calls retain the native cache even if visualModel changes.
    */
-  @blue.method
+
   @meta.implemented
   IsReady()
   {
@@ -118,7 +118,7 @@ export class WodPlaceableRes
   }
 
   /** Copies cached bounds, attempting readiness first as in the native header. */
-  @blue.method
+
   @meta.implemented
   GetBoundingBox(min, max)
   {

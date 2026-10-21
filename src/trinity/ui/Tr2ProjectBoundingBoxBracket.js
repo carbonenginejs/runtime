@@ -222,7 +222,7 @@ export class Tr2ProjectBoundingBoxBracket
    * The view position, view, projection and viewport are the Tr2Renderer
    * statics (cpp:329, 339).
    */
-  @blue.method
+
   @meta.implemented
   UpdateValue(_time)
   {
@@ -271,7 +271,7 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Clears every published result and updates the attached bracket. */
-  @blue.method
+
   @meta.implemented
   SetEmptyProjection()
   {
@@ -288,7 +288,7 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Publishes the current rectangle to the attached Sprite2D container. */
-  @blue.method
+
   @meta.implemented
   UpdateBracket()
   {
@@ -300,7 +300,7 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Publishes a projection covering the full active viewport. */
-  @blue.method
+
   @meta.renamed("SetFullViewportProjection")
   #SetFullViewportProjection(viewport)
   {
@@ -322,7 +322,7 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Applies authored size and integer-coordinate constraints. */
-  @blue.method
+
   @meta.renamed("ConstrainProjection")
   #ConstrainProjection(boxCenter, matrix, viewport)
   {
@@ -353,7 +353,7 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Validates and publishes the current projected rectangle. */
-  @blue.method
+
   @meta.renamed("PublishProjection")
   #PublishProjection(viewport)
   {

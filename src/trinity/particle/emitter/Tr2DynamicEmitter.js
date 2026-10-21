@@ -122,7 +122,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * delta (TimeAsFloat of the Be::Time tick difference) to 0.3s and spawn at the
    * constant rate scaled by the LOD emit-count factor.
    */
-  @blue.method
+
   @meta.implemented
   Update(updateArguments)
   {
@@ -143,7 +143,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * Rebinds the attribute generators against the particle system, re-propagating the thread-safe flag when it was already set.
    */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -162,7 +162,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * Rebinds the attribute generators and re-propagates the thread-safe flag whenever the particle-system reference changes.
    */
-  @blue.method
+
   @meta.implemented
   OnModified(propertyName)
   {
@@ -183,7 +183,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * Adapted: JavaScript updates are single-threaded; the flag is retained and propagated
    * only for Carbon contract parity.
    */
-  @blue.method
+
   @meta.adapted
   SetThreadSafeFlag()
   {
@@ -200,7 +200,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * @param {number} [rateModifier]
    * @returns {number} Particles spawned.
    */
-  @blue.method
+
   @meta.implemented
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
@@ -251,7 +251,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * forwards the end-of-frame values, passing deltaTime as the rate modifier as
    * Carbon does.
    */
-  @blue.method
+
   @meta.implemented
   SpawnParticles__StartEnd(arguments_, _positionStart, positionEnd, _velocityStart, velocityEnd, deltaTime)
   {
@@ -263,7 +263,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * to its particle system on the last Rebind.
    * @returns {boolean}
    */
-  @blue.method
+
   @meta.implemented
   IsValid()
   {
@@ -273,7 +273,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * The running count of particles emitted since the last reset.
    */
-  @blue.method
+
   @meta.implemented
   GetEmittedParticleCount()
   {
@@ -283,7 +283,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   /**
    * Resets the running emitted-particle count to zero.
    */
-  @blue.method
+
   @meta.implemented
   ResetEmittedParticleCount()
   {

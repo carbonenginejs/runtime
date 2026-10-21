@@ -80,7 +80,7 @@ export class Tr2QuadRenderer
    * instanceSize is in bytes; the buffer alignment grows to the lcm of all
    * registered instance sizes.
    */
-  @blue.method
+
   @meta.implemented
   RegisterEffect(key, batchType, instanceSize, quadCount, definition, effect)
   {
@@ -106,7 +106,7 @@ export class Tr2QuadRenderer
    * Custom: Carbon declares UnregisterEffect (Tr2QuadRenderer.h) and never
    * defines it; this is the evident intent.
    */
-  @blue.method
+
   UnregisterEffect(key)
   {
     this._effects.delete(key);
@@ -120,7 +120,7 @@ export class Tr2QuadRenderer
    * a number array is packed as float32, so a mixed-width record (float16
    * tails) is packed by its producer first.
    */
-  @blue.method
+
   @meta.adapted
   AddQuads(effectKey, sprites, count = 1)
   {
@@ -146,7 +146,7 @@ export class Tr2QuadRenderer
    * buffer, stamping per-record bufferOffset/count (Carbon cpp:134-170).
    * Returns the largest quadCount among live records.
    */
-  @blue.method
+
   @meta.implemented
   MergeBuffers()
   {
@@ -184,7 +184,7 @@ export class Tr2QuadRenderer
    * Carbon UpdateInstanceBuffer (cpp:178-199): uploads the merged instances
    * into the ring and remembers where they landed.
    */
-  @blue.method
+
   @meta.implemented
   UpdateInstanceBuffer(renderContext)
   {
@@ -208,7 +208,7 @@ export class Tr2QuadRenderer
    * vertex is its own index as a float) and the index list, grown to the
    * largest quad count seen.
    */
-  @blue.method
+
   @meta.implemented
   RecreateQuadBuffers(quadCount)
   {
@@ -242,7 +242,7 @@ export class Tr2QuadRenderer
    * Carbon BeginRendering (cpp:244-253): merge, upload, size the quad
    * buffers, make the declarations.
    */
-  @blue.method
+
   @meta.implemented
   BeginRendering(renderContext)
   {
@@ -253,7 +253,7 @@ export class Tr2QuadRenderer
   }
 
   /** Carbon DoneRendering (cpp:89-93): the ring region is fenced, the size reset. */
-  @blue.method
+
   @meta.implemented
   DoneRendering(renderContext)
   {
@@ -262,7 +262,7 @@ export class Tr2QuadRenderer
   }
 
   /** Carbon ReleaseResources (cpp:262-271): declarations are recreated on prepare. */
-  @blue.method
+
   @meta.implemented
   ReleaseResources(storage)
   {
@@ -284,7 +284,7 @@ export class Tr2QuadRenderer
   }
 
   /** Carbon OnPrepareResources (cpp:279-289): a declaration per registered effect. */
-  @blue.method
+
   @meta.implemented
   OnPrepareResources()
   {
@@ -305,7 +305,7 @@ export class Tr2QuadRenderer
    * Adapted: Carbon commits a stack batch the accumulator copies; the
    * accumulator allocates it here.
    */
-  @blue.method
+
   @meta.adapted
   GetBatches(batchType, accumulator)
   {
@@ -331,7 +331,7 @@ export class Tr2QuadRenderer
   }
 
   /** Carbon GetInstanceBufferSize (cpp:324-327). */
-  @blue.method
+
   @meta.implemented
   GetInstanceBufferSize()
   {
@@ -339,7 +339,7 @@ export class Tr2QuadRenderer
   }
 
   /** Carbon GetInstanceDataSize (cpp:333-336). */
-  @blue.method
+
   @meta.implemented
   GetInstanceDataSize()
   {

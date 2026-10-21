@@ -32,7 +32,7 @@ export class TriStepSetRenderTarget extends TriRenderStep
    * Binds the render target to slot 0; with none set the current binding is left
    * alone rather than cleared.
    */
-  @blue.method
+
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

@@ -228,7 +228,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * spheres, skipping volumes with a missing centre or a non-finite/negative
    * radius; returns whether any volume contributed.
    */
-  @blue.method
+
   @meta.adapted
   RebuildBoundingSphere()
   {
@@ -273,7 +273,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @param {Float32Array} [out] - caller-owned; receives (x, y, z, radius)
    * @returns {Boolean} always true
    */
-  @blue.method
+
   GetBoundingSphere(out = vec4.create())
   {
     vec4.set(out, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
@@ -291,7 +291,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * volume ignores its own local offset chain and adopts the parent's world
    * matrix verbatim - the override that makes fog volumes track parents.
    */
-  @blue.method
+
   @meta.implemented
   UpdateTransformFromParent(params)
   {
@@ -306,7 +306,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * (short-circuiting at 1) is scaled by the authored intensity - a camera
    * outside leaves the intensity at zero.
    */
-  @blue.method
+
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -341,7 +341,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
-  @blue.method
+
   @meta.adapted
   GetLocalToWorldTransform(out = mat4.create())
   {
@@ -352,14 +352,14 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Applies the authored scale/rotation/translation through the shared child
    * transform setup.
    */
-  @blue.method
+
   Setup(scale, rotation, translation, lowestLodVisible)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
   }
 
   /** Returns true unconditionally - a fog volume reports itself as always on. */
-  @blue.method
+
   IsAlwaysOn()
   {
     return true;
@@ -369,7 +369,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Builds the initial bounding sphere from the authored volumes so the first
    * frame can already reject an outside camera.
    */
-  @blue.method
+
   Initialize()
   {
     this.RebuildBoundingSphere();
@@ -380,7 +380,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Carbon EveChildFogVolume::GetDebugOptions (cpp:158-162).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @blue.method
+
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -394,7 +394,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * at its centre under the world transform with "Bounding Sphere".
    * @param {ITr2DebugRenderer2} renderer
    */
-  @blue.method
+
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -422,7 +422,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 
   /** Carbon EveChildFogVolume::RegisterComponents (cpp:71-74): unconditional
    * FroxelFogSettings leaf self-registration. */
-  @blue.method
+
   @meta.implemented
   RegisterComponents()
   {
@@ -439,7 +439,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * (EveEntity.cpp:81-94) after UnRegisterAllComponents has already removed
    * it, so there the removal finds nothing; Carbon does it anyway.
    */
-  @blue.method
+
   @meta.implemented
   UnRegisterComponents()
   {
@@ -451,7 +451,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * place so per-frame fog blending neither allocates nor loses Carbon's
    * `fogNoiseMovementSpeed` and derived `logThickness` attributes.
    */
-  @blue.method
+
   @meta.adapted
   GetFroxelFogSettings()
   {

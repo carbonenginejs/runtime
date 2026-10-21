@@ -80,7 +80,7 @@ export class Tr2StreamingBitmapSaver
    * @param {number} pixelFormat A PixelFormat value.
    * @returns {number} An ALResult value.
    */
-  @blue.method
+
   @meta.adapted
   StartSaving(output, width, height, pixelFormat)
   {
@@ -126,7 +126,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon IsSaving (cpp:282-284): whether an output stream is open. */
-  @blue.method
+
   @meta.implemented
   IsSaving()
   {
@@ -134,7 +134,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon HasStartedBatch (cpp:294-296): whether a batch is in flight. */
-  @blue.method
+
   @meta.implemented
   HasStartedBatch()
   {

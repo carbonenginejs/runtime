@@ -99,7 +99,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * queues an urgent background ResFile open. The JS runtime owns those choices
    * through its callback; this action neither duplicates them nor claims parity.
    */
-  @blue.method
+
   @meta.adapted
   Link(controller)
   {
@@ -113,7 +113,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    *
    * Adapted: the load is asynchronous (see _loadChild).
    */
-  @blue.method
+
   @meta.adapted
   Start(controller)
   {
@@ -188,7 +188,8 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * Adapted: the JS resource manager resolves asynchronously, so this runs
    * when the file arrives, and a Stop or newer load before then discards it.
    */
-  @meta.adapted
+  @meta.cjs
+    @meta.adapted
   _loadChild(owner, controllerOwner, rebind)
   {
     const path = this.path;
@@ -233,7 +234,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * Adapted: invalidates a pending asynchronous load, and releases the device
    * resources of a child this action loaded.
    */
-  @blue.method
+
   @meta.adapted
   Stop(controller)
   {

@@ -44,7 +44,7 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
   /**
    * Sets a Wwise-style switch on a named emitter.
    */
-  @blue.method
+
   @meta.implemented
   Start(controller)
   {

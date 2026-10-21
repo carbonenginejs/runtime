@@ -50,7 +50,7 @@ export class AudParameter extends INotify
    * @param {string|null} propertyName Modified member name.
    * @returns {boolean} Always true when the calls complete.
    */
-  @blue.method
+
   @meta.adapted
   OnModified(propertyName)
   {

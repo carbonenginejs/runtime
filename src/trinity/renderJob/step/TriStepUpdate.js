@@ -33,7 +33,7 @@ export class TriStepUpdate extends TriRenderStep
    * @param {Tr2RenderContext} _renderContext Context supplied by the step executor; unused, as in Carbon.
    * @returns {number} Native render-step success result.
    */
-  @blue.method
+
   @meta.implemented
   Execute(realTime, simTime, _renderContext)
   {

@@ -70,7 +70,7 @@ export class StretchAudio extends IStretchAudio
   _top = vec3.fromValues(0, 0, 1);
 
   /** Carbon method Initialize: create the three named emitters when absent. */
-  @blue.method
+
   @meta.implemented
   Initialize()
   {
@@ -93,7 +93,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method Start: outburst on source, impact on dest, (shot-missed then) stretch on mid. */
-  @blue.method
+
   @meta.implemented
   Start()
   {
@@ -110,7 +110,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method Stop: StopAll on each emitter. */
-  @blue.method
+
   @meta.implemented
   Stop()
   {
@@ -120,7 +120,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method Update: position source/dest, project the listener onto the segment for the mid emitter. Events fire only in Start/Stop. */
-  @blue.method
+
   @meta.implemented
   Update(sourcePosition, destPosition)
   {
@@ -188,7 +188,7 @@ export class StretchAudio extends IStretchAudio
   // t = dot(L-S, D-S) / |D-S|^2 clamped to [0,1]; degenerate segment
   // (|D-S|^2 < 1e-6) returns the source; no listener returns (0,0,0).
   /** Carbon method ProjectListenerOntoSegment. */
-  @blue.method
+
   @meta.implemented
   ProjectListenerOntoSegment(sourcePosition, destPosition)
   {
@@ -226,7 +226,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method FindEmitterByName: source, then dest, then stretch; first name match or null. */
-  @blue.method
+
   @meta.implemented
   FindEmitterByName(name)
   {
