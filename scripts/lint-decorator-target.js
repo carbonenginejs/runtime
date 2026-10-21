@@ -115,7 +115,9 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
                 if(d.args[pos]!==undefined)exposed=d.args[pos];
                 if(category==="attributes")actualFlags=flagMask(d.args[0]);
                 if(key==="mapAttributeWithChooser")chooser=d.args[1];
-                if(mapped.length>1)add("duplicate-exposure",c,m,"Multiple complete exposure declarations on one member.");
+                // Carbon exposes one function under several names (several MAP_METHOD* lines): distinct names are aliases, not duplicates.
+                const aliasLines=mapped.every(x=>x.name.split(".")[1].startsWith("mapMethod"))&&new Set(mapped.map(x=>x.args[0]??"")).size===mapped.length;
+                if(mapped.length>1&&!aliasLines)add("duplicate-exposure",c,m,"Multiple complete exposure declarations on one member.");
             }
             else
             {

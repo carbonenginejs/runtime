@@ -3571,7 +3571,18 @@ function componentIndex(char)
 
 function mergeNamespace(existing, value)
 {
-    if (isPlainObject(existing) && isPlainObject(value)) return { ...existing, ...value };
+    if (isPlainObject(existing) && isPlainObject(value))
+    {
+        // Carbon exposes one function under several names (several MAP_METHOD* lines): the first stays the exposure, the
+        // others are kept as aliases instead of replacing it.
+        if (typeof existing.macro === "string" && typeof value.macro === "string"
+            && existing.macro.startsWith("MAP_METHOD") && value.macro.startsWith("MAP_METHOD"))
+        {
+            if (existing.macro === value.macro && existing.name === value.name) return existing;
+            return { ...existing, aliases: [ ...(existing.aliases ?? []), value ] };
+        }
+        return { ...existing, ...value };
+    }
     return value;
 }
 

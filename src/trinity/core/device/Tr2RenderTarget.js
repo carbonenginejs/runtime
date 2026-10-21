@@ -137,8 +137,12 @@ export class Tr2RenderTarget extends IRoot
   /**
    * Carbon `Create` (`cpp:76-128`): a single render target, 2D by default.
    *
+   * Carbon exposes this function twice, as "Create" and, by mistake, as "CreateArray"; both lines are kept.
+   *
    * @returns {number} An `ALResult` value.
    */
+  // Carbon bug (CE-214): Tr2RenderTarget_Blue.cpp:49-51 binds CreateArray to Create.
+  @be.mapMethodAndWrapOptionalArgs("CreateArray")
   @be.mapMethodAndWrapOptionalArgs()
   @meta.implemented
   Create(width, height, mipLevelCount, format, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D, renderContext = Tr2RenderContext_GetMainThreadRenderContext())

@@ -614,7 +614,11 @@ export class CjsBlueClasses extends IBlueClasses
     {
       for (const method of CjsSchema.getSchema(type).methods || [])
       {
-        if (method.carbon && method.carbon.method === true) methods[method.exposure?.name ?? method.name] = "";
+        if (method.carbon && method.carbon.method === true)
+        {
+          methods[method.exposure?.name ?? method.name] = "";
+          for (const alias of method.exposure?.aliases ?? []) methods[alias.name ?? method.name] = "";
+        }
       }
     }
 

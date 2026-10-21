@@ -410,6 +410,26 @@ test("Stage-3 donor comments coexist with exposure without registering donor ide
     assert.equal(new Sample().Run(), 2);
 });
 
+test("a function exposed under two names keeps the second MAP_METHOD line as an alias (CE-214)", async () =>
+{
+    const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
+    const targetUrl = new URL("../../src/global/schema/be.js", import.meta.url).href;
+    const source = `import { meta } from ${JSON.stringify(schemaUrl)};
+        import { exposure } from ${JSON.stringify(targetUrl)};
+        @exposure.define("TwoNamesStage3")
+        export class Sample {
+            @exposure.mapMethodAndWrap("Wrong") @exposure.mapMethodAndWrap() @meta.implemented Right() {}
+            @exposure.mapMethod() @exposure.mapMethod() @meta.implemented Once() {}
+        }`;
+    const code = transformSync(source, { configFile: false, babelrc: false,
+        plugins: [[decoratorsPlugin, { version: "2023-11" }]] }).code;
+    const { Sample } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    assert.deepEqual(CjsSchema.getMethod(Sample, "Right").exposure,
+        { macro: "MAP_METHOD_AND_WRAP", aliases: [ { macro: "MAP_METHOD_AND_WRAP", name: "Wrong" } ] });
+    assert.deepEqual(CjsSchema.getMethod(Sample, "Once").exposure, { macro: "MAP_METHOD" });
+    unregisterClass("TwoNamesStage3");
+});
+
 test("standalone Stage-3 native identity still registers before its module is consumed", async () =>
 {
     const schemaUrl = new URL("../../src/global/schema/index.js", import.meta.url).href;
