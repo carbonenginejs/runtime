@@ -911,8 +911,7 @@ CjsSchema.decorateMethod(TriTextureRes, "CreateAndCopyFromRenderTarget", be.mapM
 CjsSchema.decorateMethod(TriTextureRes, "CreateFromHostBitmap", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
 CjsSchema.decorateMethod(TriTextureRes, "GetMemoryUsage", blue.method, meta.implemented);
-// A static method has no prototype descriptor, so decorateMethod would record it as a field.
-CjsSchema.defineMethod(TriTextureRes, "EstimateMemoryUse", "impl", { adapted: true, status: "adapted" });
+CjsSchema.decorateMethod(TriTextureRes, "EstimateMemoryUse", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "LoadPipeline", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "IsValid", meta.implemented);
 CjsSchema.decorateMethod(TriTextureRes, "GetWidth", meta.adapted);

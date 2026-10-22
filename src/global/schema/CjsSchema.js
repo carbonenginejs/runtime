@@ -179,9 +179,13 @@ export class CjsSchema
      */
     static decorateMethod(Constructor, methodName, ...decorators)
     {
+        // A static method lives on the constructor, not the prototype: the decorator then takes the constructor as its target.
+        const isStatic = typeof Constructor.prototype?.[methodName] !== "function"
+            && typeof Object.getOwnPropertyDescriptor(Constructor, methodName)?.value === "function";
+        const target = isStatic ? Constructor : Constructor.prototype;
         for (const decorator of decorators)
         {
-            decorator(Constructor.prototype, methodName);
+            decorator(target, methodName);
         }
         return Constructor;
     }
