@@ -12,7 +12,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { color as colorMath } from "#math/color";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 const WORLD_CENTER_SCRATCH = vec3.create();
@@ -143,7 +143,7 @@ export class EveTriggerVolume extends IRoot
   }
 
   /** Invokes the stored callback, isolating the update loop from callback errors. */
-  @blue.method
+  @meta.adapted
   _InvokeCallback(entered)
   {
     const callback = this._callback;
@@ -166,7 +166,7 @@ export class EveTriggerVolume extends IRoot
    * (Carbon EveTriggerVolume.cpp:71-95): row-vector
    * RotationMatrix * TranslationMatrix = rotate about the origin, then place.
    */
-  @blue.method
+  @meta.implemented
   _UpdateWorldTransform(time)
   {
     if (this.translationCurve) this.translationCurve.Update__Ticks(time, CURVE_TRANSLATION_SCRATCH);
@@ -182,7 +182,7 @@ export class EveTriggerVolume extends IRoot
    * EveTriggerVolume.cpp:21-53): volumes with no usable sphere are skipped,
    * contained spheres collapse, and the merge grows the enclosing sphere.
    */
-  @blue.method
+  @meta.implemented
   _RebuildBoundingSphere()
   {
     this._boundingSphereInitialized = false;
@@ -229,7 +229,7 @@ export class EveTriggerVolume extends IRoot
    * Returns the highest intensity any volume in the list gives the
    * object-space position, exiting early at 1 (Carbon cpp:109-122).
    */
-  @blue.method
+  @meta.implemented
   static _GetMaxIntensity(volumes, position)
   {
     let intensity = 0;
@@ -246,7 +246,7 @@ export class EveTriggerVolume extends IRoot
    * the callback on transitions (Carbon cpp:124-158). The intensity resets
    * to 0 every call; the callback fires only on threshold-crossing edges.
    */
-  @blue.method
+  @meta.adapted
   _UpdateTriggerState(time)
   {
     this.intensity = 0;

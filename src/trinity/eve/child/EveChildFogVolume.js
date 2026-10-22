@@ -3,7 +3,7 @@ import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectR
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -257,14 +257,14 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * The authored name, persisted with the volume and used to identify it in the
    * parent graph.
    */
-  @blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
   /** Sets the authored volume name, coercing nullish to the empty string. */
-  @blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -283,7 +283,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   }
 
   /** No-op: a fog volume carries no sync-side frame work. */
-  @blue.method
+  @meta.implemented
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -488,19 +488,19 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   }
 
   /** No-op: a fog volume is not renderable and keeps no visibility state. */
-  @blue.method
+  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** No-op: a fog volume contributes settings, never renderables. */
-  @blue.method
+  @meta.implemented
   GetRenderables(_renderables)
   {
   }
 
   /** No-op: a fog volume has no LOD levels. */
-  @blue.method
+  @meta.implemented
   ChangeLOD(_lod)
   {
   }

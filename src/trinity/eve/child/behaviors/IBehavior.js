@@ -1,6 +1,6 @@
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h:7-79
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ProcessPriority } from "./enums.js";
 
 
@@ -91,16 +91,16 @@ export class IBehavior extends IRoot
 
 CjsSchema.decorateMethod(IBehavior, "CalculateBehavior", meta.abstract);
 
-CjsSchema.decorateMethod(IBehavior, "GetScratchMemorySize", blue.method);
-CjsSchema.decorateMethod(IBehavior, "InitializeScratch", blue.method);
-CjsSchema.decorateMethod(IBehavior, "GetProcessPriority", blue.method);
-CjsSchema.decorateMethod(IBehavior, "GetBehaviorName", blue.method);
-CjsSchema.decorateMethod(IBehavior, "Reset", blue.method);
-CjsSchema.decorateMethod(IBehavior, "CalculateBehavior", blue.method);
-CjsSchema.decorateMethod(IBehavior, "GetDebugOptions", blue.method);
-CjsSchema.decorateMethod(IBehavior, "RenderDebugInfo", blue.method);
-CjsSchema.decorateMethod(IBehavior, "GetBehaviorSearchRadius", blue.method);
-CjsSchema.decorateMethod(IBehavior, "UpdateState", blue.method);
+// States: the defaults are IBehavior.h:29-73 (CalculateBehavior is pure virtual and stays abstract above).
+CjsSchema.decorateMethod(IBehavior, "GetScratchMemorySize", meta.implemented);
+CjsSchema.decorateMethod(IBehavior, "InitializeScratch", meta.implemented);
+CjsSchema.decorateMethod(IBehavior, "GetProcessPriority", meta.implemented);
+CjsSchema.decorateMethod(IBehavior, "GetBehaviorName", meta.implemented);
+CjsSchema.decorateMethod(IBehavior, "Reset", meta.implemented);
+CjsSchema.decorateMethod(IBehavior, "GetDebugOptions", meta.implemented);
+CjsSchema.decorateMethod(IBehavior, "RenderDebugInfo", meta.implemented);
+CjsSchema.decorateMethod(IBehavior, "GetBehaviorSearchRadius", meta.implemented);
+CjsSchema.decorateMethod(IBehavior, "UpdateState", meta.implemented);
 
 CjsSchema.blue.inherit(IRoot)(IBehavior);
 CjsSchema.exposure.interface("IBehavior")(IBehavior);

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.cpp:23-28
-import { blue } from "#schema";
+import { blue, meta } from "#schema";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 
 
@@ -26,7 +26,7 @@ export class EveInstancedMeshManagerPickingPerObjectData extends Tr2PerObjectDat
    * @param {object} _writer
    * @param {object} _renderContext
    */
-  @blue.method
+  @meta.implemented
   ApplyConstantBuffers(_writer, _renderContext)
   {
   }

@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -444,11 +444,11 @@ export class Formation extends IRoot
   }
 
   // Limits the formation's angular speed and rotates the whole grid with it
-  // (Carbon calculateFormationInertia, cpp:296-325).
+  // (Carbon calculateFormationInertia, cpp:296-325). Adapted: an empty grid divides by one where Carbon divides by zero.
   /**
    * Limits the formation's turn rate by rotating its acceleration toward the previous frame's direction, rotating the slot grid with it.
    */
-  @blue.method
+  @meta.adapted
   _CalculateFormationInertia(acceleration, deltaTime)
   {
     vec3.normalize(ACCEL_NORMALIZED, acceleration);

@@ -10,7 +10,7 @@ import { mat4 } from "#math/mat4";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EntityComponents.js";
 import { Priority } from "../../generated/postProcess/enums.js";
@@ -135,14 +135,14 @@ export class EveChildLightingOverride extends EveChildTransform
    * The authored name, persisted with the override and used to identify it in
    * the parent graph.
    */
-  @blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
   }
 
   /** Sets the authored override name, coercing nullish to the empty string. */
-  @blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -162,7 +162,7 @@ export class EveChildLightingOverride extends EveChildTransform
   }
 
   /** No-op: a lighting override carries no sync-side frame work. */
-  @blue.method
+  @meta.implemented
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -291,19 +291,19 @@ export class EveChildLightingOverride extends EveChildTransform
   }
 
   /** No-op: a lighting override is not renderable and keeps no visibility state. */
-  @blue.method
+  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** No-op: a lighting override contributes settings, never renderables. */
-  @blue.method
+  @meta.implemented
   GetRenderables(_renderables)
   {
   }
 
   /** No-op: a lighting override has no LOD levels. */
-  @blue.method
+  @meta.implemented
   ChangeLOD(_lod)
   {
   }

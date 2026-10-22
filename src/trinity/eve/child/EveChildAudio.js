@@ -9,7 +9,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { ITr2DebugRenderable } from "#interfaces";
 
@@ -78,7 +78,7 @@ export class EveChildAudio extends EveChildTransform
   }
 
   /** Returns the authored child name, which is also the emitter's default name. */
-  @blue.method
+  @meta.implemented
   GetName()
   {
     return this.name;
@@ -88,7 +88,7 @@ export class EveChildAudio extends EveChildTransform
    * Sets the authored child name; the emitter only picks it up through
    * OnModified or an explicit SetEmitterName.
    */
-  @blue.method
+  @meta.implemented
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -141,19 +141,19 @@ export class EveChildAudio extends EveChildTransform
    * No-op: the emitter is driven entirely from the sync pass, where the parent
    * transform is already final.
    */
-  @blue.method
+  @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
   }
 
   /** No-op: an audio child is never rendered and keeps no visibility state. */
-  @blue.method
+  @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** No-op: an audio child contributes no renderables. */
-  @blue.method
+  @meta.implemented
   GetRenderables(_renderables)
   {
   }
@@ -162,7 +162,7 @@ export class EveChildAudio extends EveChildTransform
    * Always returns false and leaves out untouched: an emitter has no spatial
    * extent to contribute to the owner's bounds.
    */
-  @blue.method
+  @meta.implemented
   GetBoundingSphere(_out, _query = 0)
   {
     return false;
@@ -183,13 +183,13 @@ export class EveChildAudio extends EveChildTransform
    * No-op override: the audio child never composes a local transform from
    * authored SRT values, so its world transform is the parent's.
    */
-  @blue.method
+  @meta.adapted
   Setup(_scale, _rotation, _translation, _lowestLodVisible)
   {
   }
 
   /** No-op: an audio child has no LOD levels. */
-  @blue.method
+  @meta.implemented
   ChangeLOD(_lod)
   {
   }
