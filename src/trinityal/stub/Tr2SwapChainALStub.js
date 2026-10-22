@@ -13,7 +13,7 @@
 // from the present parameters. Transcribed as it stands, because inventing a
 // size would make a headless test agree with a number nothing chose.
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -137,6 +137,21 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
   }
 
   /**
+   * Describes this resource for a device inventory.
+   *
+   * Carbon: Tr2SwapChainAL::Describe (trinity/trinityal/stub/Tr2SwapChainALStub.cpp:57)
+   *
+   * Carbon's stub leaves the map untouched, so there is nothing to write
+   * here either; it is stated rather than inherited from the base class so
+   * the donor method has a counterpart on this class.
+   *
+   * @param {object} _description Accumulator, keyed by name; left untouched.
+   */
+  Describe(_description)
+  {
+  }
+
+  /**
    * Names the chain for a debugger.
    *
    * @param {string} _name The name Carbon would attach; the stub discards it.
@@ -165,4 +180,5 @@ CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetWidth", blue.method);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetHeight", blue.method);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub" });
