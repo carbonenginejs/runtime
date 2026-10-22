@@ -326,3 +326,38 @@ test("scene and context setters preserve a shared system until its final caller 
   }
   finally {scene.SetGpuParticleSystem(null);context.SetGpuParticleSystem(null);shared.Destruct();replacement.Destruct();}
 });
+
+test("TriDevice.minimumModelLOD is an accessor over Get/SetMinimumModelLOD (TriDevice.cpp:1501-1528)", async () =>
+{
+  const { CjsSchema } = await import("../../npm/dist/global/schema/index.js");
+  const device = new TriDevice();
+  assert.equal(device.GetMinimumModelLOD(), 0, "m_minimumModelLOD starts at 0 (TriDevice.cpp:176)");
+
+  device.minimumModelLOD = 2;
+  assert.equal(device.GetMinimumModelLOD(), 2);
+  assert.equal(device.minimumModelLOD, 2);
+
+  // A changed value reloads every registered geometry resource; an unchanged one does nothing.
+  const { TriGeometryRes } = await import("../../npm/dist/resource/index.js");
+  const geometry = new TriGeometryRes();
+  const reloads = [];
+  geometry.Reload = () => { reloads.push("reload"); return true; };
+  TriDevice.RegisterResource(geometry);
+  try
+  {
+    device.SetMinimumModelLOD(2);
+    assert.deepEqual(reloads, [], "unchanged: no reload");
+    device.SetMinimumModelLOD(1);
+    assert.deepEqual(reloads, [ "reload" ]);
+    assert.equal(device.minimumModelLOD, 1);
+  }
+  finally
+  {
+    TriDevice.UnregisterResource(geometry);
+  }
+
+  const property = CjsSchema.getSchema(TriDevice).properties.find(entry => entry.name === "minimumModelLOD");
+  assert.equal(property.exposure.macro, "MAP_PROPERTY");
+  assert.equal(CjsSchema.getMethod(TriDevice, "GetMinimumModelLOD").impl.status, "implemented");
+  assert.equal(CjsSchema.getMethod(TriDevice, "SetMinimumModelLOD").impl.status, "adapted");
+});

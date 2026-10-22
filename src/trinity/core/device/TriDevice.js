@@ -14,6 +14,7 @@ import {
 } from "../view/pickRay.js";
 import { blue, CjsScriptCallback, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
+import { TriGeometryRes } from "#resource/geometry";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { DestroyDeviceResources } from "../../../trinityal/Tr2DeviceResourceAL/Tr2BaseDeviceResourceAL.js";
 import { TriViewport } from "../view/TriViewport.js";
@@ -255,10 +256,76 @@ export class TriDevice extends IRoot
   @type.boolean
   disableAsyncLoad = false;
 
-  /** Get/SetMinimumModelLOD (MAP_PROPERTY) - prevents the first N model LODs from loading; 0 disables. */
-  @legacyBlue.readwrite
+  /**
+   * m_minimumModelLOD (TriDevice.h:287, initialised to 0 at TriDevice.cpp:176): the first N model LODs
+   * that are not loaded; 0 disables. Read and written through Get/SetMinimumModelLOD.
+   */
+  @meta.implemented
+  _minimumModelLOD = 0;
+
+  /**
+   * Prevents the first N model LODs from loading, reducing VRAM usage; 0 disables.
+   *
+   * Carbon: TriDevice::GetMinimumModelLOD (trinity/trinity/TriDevice.cpp:1501-1504; TriDevice.h:220).
+   *
+   * @returns {number} The minimum model LOD.
+   */
+  @meta.implemented
+  GetMinimumModelLOD()
+  {
+    return this._minimumModelLOD;
+  }
+
+  /**
+   * Sets the minimum model LOD and, when it changed, reloads every registered geometry resource so
+   * it loads without those LODs.
+   *
+   * Carbon: TriDevice::SetMinimumModelLOD (trinity/trinity/TriDevice.cpp:1506-1528; TriDevice.h:290).
+   *
+   * Adapted: Carbon walks the mutex-guarded static registry with a `dynamic_cast<TriGeometryRes*>`;
+   * this walks `GetResourcesRegistered()`'s snapshot with `CjsSchema.cast`, and needs no lock in this
+   * JS realm. `TriGeometryRes` does not register itself with the device yet (it is not a
+   * `Tr2DeviceResource` here), so only geometry a host registers is reloaded, and nothing reads the
+   * value when LODs are created.
+   *
+   * @param {number} minimumModelLOD The first N model LODs to skip.
+   * @returns {void}
+   */
+  @meta.adapted
+  SetMinimumModelLOD(minimumModelLOD)
+  {
+    if (this._minimumModelLOD === minimumModelLOD) return;
+
+    this._minimumModelLOD = minimumModelLOD;
+
+    for (const resource of TriDevice.GetResourcesRegistered())
+    {
+      const geometry = CjsSchema.cast(resource, TriGeometryRes);
+      if (!geometry) continue;
+
+      geometry.Reload();
+    }
+  }
+
+  /**
+   * minimumModelLOD (MAP_PROPERTY): Carbon's property over GetMinimumModelLOD/SetMinimumModelLOD, which the macro calls.
+   * Carbon: MAP_PROPERTY (trinity/trinity/TriDevice_Blue.cpp:285-289).
+   *
+   * @type {number}
+   */
+  @be.mapProperty()
   @type.int32
-  minimumModelLOD = 0;
+  @meta.implemented
+  get minimumModelLOD()
+  {
+    return this.GetMinimumModelLOD();
+  }
+
+  @meta.implemented
+  set minimumModelLOD(value)
+  {
+    this.SetMinimumModelLOD(value);
+  }
 
   /**
    * Width over height of the device viewport in pixels; zero when there is no
