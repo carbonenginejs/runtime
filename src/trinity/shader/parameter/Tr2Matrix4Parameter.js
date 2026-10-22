@@ -59,7 +59,7 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
 
   /**
    * Refreshes from the reroute destination when one is set, then copies 16 components out.
-   * @param out defaults to a freshly allocated matrix the caller owns
+   * @param {Float32Array} out Receives the 16 components.
    */
 
   @meta.implemented
@@ -220,11 +220,7 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {
-    const source = this.GetValue();
-    for (let i = 0; i < 16; i++)
-    {
-      out[i] = source[i];
-    }
+    this.GetValue(out);
   }
 
   /** JS convenience: raw values this parameter class claims for map-form inference. */
