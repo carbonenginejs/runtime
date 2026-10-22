@@ -393,7 +393,7 @@ export class CjsFxOutputWGSL
         }
         const params = [];
         const copies = [];
-        const assigned = assignedSymbols(node.GetChild(1));
+        const assigned = assignedSymbols(node.GetChild(1), new Set());
         for (const param of header.GetChildren())
         {
             const p = param.GetSymbol();
@@ -428,7 +428,7 @@ export class CjsFxOutputWGSL
         const header = node.GetChild(0);
         const params = [];
         const zeros = [];
-        const assigned = assignedSymbols(node.GetChild(1));
+        const assigned = assignedSymbols(node.GetChild(1), new Set());
         for (const param of header.GetChildren())
         {
             const p = param.GetSymbol();
@@ -1559,10 +1559,10 @@ export class CjsFxOutputWGSL
  * variable at the root of the target (`v.x = 1` assigns `v`).
  *
  * @param {import("../ASTNode/ASTNode.js").ASTNode|null} node The tree.
- * @param {Set<object>} [out] Receives the symbols.
+ * @param {Set<object>} out Receives the symbols.
  * @returns {Set<object>} The symbols.
  */
-function assignedSymbols(node, out = new Set())
+function assignedSymbols(node, out)
 {
     if (node === null)
     {
