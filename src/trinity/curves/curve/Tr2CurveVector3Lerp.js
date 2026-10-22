@@ -211,6 +211,21 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
   }
 
   /**
+   * Declared and never defined.
+   *
+   * Carbon: Tr2CurveVector3Lerp::GetAutoTangent (trinity/trinity/Curves/Tr2CurveVector3Lerp.h:46). The header
+   * declares this private const method; no translation unit in the Carbon checkout defines or calls it and no
+   * exposure row names it.
+   *
+   * @throws {Error} Always.
+   */
+  @meta.notUsed
+  _GetAutoTangent()
+  {
+    throw new Error("Tr2CurveVector3Lerp.GetAutoTangent is declared in Carbon (Tr2CurveVector3Lerp.h:46) and never defined.");
+  }
+
+  /**
    * Class-local view of the native initial-blend interpolation chooser.
    * @type {Object<string, number>}
    */
