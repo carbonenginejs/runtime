@@ -837,7 +837,7 @@ export class TriGeometryRes extends CjsResource
   }
 
   /** Public Carbon query; requires a matching active raycast session. */
-  GetIntersectionPoints(position, direction, result = {}, areaIndex = -1, rayLength = Infinity)
+  GetIntersectionPoints(position, direction, result, areaIndex = -1, rayLength = Infinity)
   {
     if (!this._raycastGeometry)
     {
