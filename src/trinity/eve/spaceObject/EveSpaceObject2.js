@@ -67,6 +67,9 @@ import { Copier } from "#blue/Copier";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { IEveEffectChildrenOwner } from "../child/IEveEffectChildrenOwner.js";
+import { ITr2GrannyAnimationOwner } from "../../core/animation/ITr2GrannyAnimationOwner.js";
+import { IEveSpaceObjectDecalOwner } from "../attachment/decal/IEveSpaceObjectDecalOwner.js";
+import { IEveSpaceObjectAttachmentOwner } from "../attachment/IEveSpaceObjectAttachmentOwner.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 // Static scratch for the sorted-transparent area pass (allocation rules: hot
@@ -81,9 +84,29 @@ const TRANSPARENT_CENTER = vec3.create();
  * controllers - together with the curve-driven world transform, visibility, LOD
  * and batch submission that drive them each frame.
  */
-@legacyBlue.define({ className: "EveSpaceObject2" })
-@legacyBlue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, IShaderConfigurer, ITr2LightOwner)
-@legacyBlue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveShadowCaster, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2DebugRenderable, IListNotify, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2LightOwner)
+@be.define("EveSpaceObject2")
+@be.mapInterface(EveEntity)
+@be.mapInterface(IEveShadowCaster)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(ITr2BoundingBox)
+@be.mapInterface(ITriTargetable)
+@be.mapInterface(IWorldPosition)
+@be.mapInterface(ITr2ShLightingReceiver)
+@be.mapInterface(INotify)
+@be.mapInterface(ITr2SecondaryLightSource)
+@be.mapInterface(ITr2ImpostorSource)
+@be.mapInterface(ITr2CurveSetOwner)
+@be.mapInterface(IEveEffectChildrenOwner)
+@be.mapInterface(IShaderConfigurer)
+@be.mapInterface(ITr2SoundEmitterOwner)
+@be.mapInterface(ITr2ControllerOwner)
+@be.mapInterface(ITr2GrannyAnimationOwner)
+@be.mapInterface(IEveInheritPropertiesOwner)
+@be.mapInterface(IEveSpaceObjectDecalOwner)
+@be.mapInterface(ITr2LightOwner)
+@be.mapInterface(IEveSpaceObjectAttachmentOwner)
+@legacyBlue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveShadowCaster, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2DebugRenderable, IListNotify, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2LightOwner, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, IEveSpaceObjectAttachmentOwner)
 @be.abstract
 export class EveSpaceObject2 extends EveEntity
 {
@@ -878,6 +901,7 @@ export class EveSpaceObject2 extends EveEntity
    * @type {Float32Array}
    */
   static _clipSphereCenterScratch = vec3.create();
+  static _boundingCenterScratch = vec3.create();
 
   /**
    * Shared vector scratch for the shape ellipsoid center.
@@ -1463,7 +1487,7 @@ export class EveSpaceObject2 extends EveEntity
     const insideSpherePercentage = Math.min(1, clipOffset / normalizedBoundingRadius);
     const dissolveRadius = this.clipSphereFactor * normalizedBoundingRadius * (1 + insideSpherePercentage);
 
-    const center = this.GetBoundingSphereCenter();
+    const center = this.GetBoundingSphereCenter(EveSpaceObject2._boundingCenterScratch);
     const clipSphereCenter = EveSpaceObject2._clipSphereCenterScratch;
     vec3.add(clipSphereCenter, this.clipSphereCenter, center);
     const clipRadiusSq = Math.sign(dissolveRadius) * dissolveRadius * dissolveRadius;
@@ -1578,10 +1602,10 @@ export class EveSpaceObject2 extends EveEntity
    * attachment needs from its hull. `shLighting` is a LIVE view into the PS
    * record, exactly as Carbon hands out a raw pointer into m_psData - an
    * attachment reading it sees the hull's current coefficients.
-   * @param {Object} [out] - caller-owned record, refreshed in place
+   * @param {Object} out - caller-owned record, refreshed in place
    */
   @meta.implemented
-  GetParentData(out = new IEveSpaceObject2ParentData())
+  GetParentData(out)
   {
     mat4.copy(out.transform, this.worldTransform);
     // Carbon memsets the record and never assigns killCount on this path.
@@ -1984,12 +2008,12 @@ export class EveSpaceObject2 extends EveEntity
    *
    * Adapted: returns `out`; the decal mesh cache is not ported.
    *
-   * @param {ITr2Renderable[]} [out] The frame's renderables.
+   * @param {ITr2Renderable[]} out The frame's renderables.
    * @param {Tr2ImpostorManager|null} impostors The scene's impostor manager, if any.
    * @returns {ITr2Renderable[]} out
    */
   @meta.adapted
-  GetRenderables__Impostors(out = [], impostors)
+  GetRenderables__Impostors(out, impostors)
   {
     this._impostorMode = this._impostorMode && impostors !== null;
     if (!this.display || !this.isVisible) return out;
@@ -2674,11 +2698,11 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Carbon GetLocalToWorldTransform( Matrix& ): copies the world transform effect
    * children are placed against into out, and returns out.
-   * @param {mat4} [out]
+   * @param {mat4} out
    * @returns {mat4} out
    */
   @meta.implemented
-  GetLocalToWorldTransform(out = mat4.create())
+  GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
   }
@@ -2833,11 +2857,11 @@ export class EveSpaceObject2 extends EveEntity
    */
   @be.mapMethodAndWrap()
   @meta.adapted
-  CalculateSkinnedBoundingSphere(out = vec4.create())
+  CalculateSkinnedBoundingSphere(out)
   {
     if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF())
     {
-      const center = this.GetBoundingSphereCenter();
+      const center = this.GetBoundingSphereCenter(EveSpaceObject2._boundingCenterScratch);
       return vec4.set(out, center[0], center[1], center[2], this.GetBoundingSphereRadius());
     }
     return vec4.set(out, 0, 0, 0, -1);
@@ -3401,7 +3425,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @be.mapMethodAndWrap()
   @meta.adapted
-  GetDamageLocatorDirection(index, inWorldSpaceOrOut = vec3.create(), out = vec3.create())
+  GetDamageLocatorDirection(index, inWorldSpaceOrOut, out)
   {
     const targetableCall = typeof inWorldSpaceOrOut === "boolean";
     const inWorldSpace = targetableCall && inWorldSpaceOrOut;
@@ -3425,7 +3449,7 @@ export class EveSpaceObject2 extends EveEntity
    * targetable callers.
    */
   @meta.adapted
-  GetDamageLocatorPosition(index, inWorldSpace, out = vec3.create())
+  GetDamageLocatorPosition(index, inWorldSpace, out)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
@@ -3445,7 +3469,7 @@ export class EveSpaceObject2 extends EveEntity
    * Impact overlays seed decals here so they stay put on animated parts.
    */
   @meta.implemented
-  GetDamageLocatorBindPosition(index, out = vec3.create())
+  GetDamageLocatorBindPosition(index, out)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
@@ -3530,7 +3554,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Computes a miss point just outside the model silhouette. */
   @meta.implemented
-  GetMissPosition(hit, source, out = vec3.create())
+  GetMissPosition(hit, source, out)
   {
     if (this.boundingSphereRadius > 0)
     {
@@ -3592,7 +3616,7 @@ export class EveSpaceObject2 extends EveEntity
    * otherwise source-faithful CPU math.
    */
   @meta.adapted
-  GetImpactPosition(locator, posPrev, posNow, epsilon, out = vec3.create())
+  GetImpactPosition(locator, posPrev, posNow, epsilon, out)
   {
     if (!this.HasImpactConfigurationShield())
     {
@@ -3640,7 +3664,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @be.mapMethodAndWrap()
   @meta.implemented
-  GetDamageLocator(index, out = vec3.create())
+  GetDamageLocator(index, out)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
@@ -3658,7 +3682,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @be.mapMethodAndWrap()
   @meta.implemented
-  GetTransformedDamageLocator(index, out = vec3.create())
+  GetTransformedDamageLocator(index, out)
   {
     const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
@@ -4198,7 +4222,7 @@ export class EveSpaceObject2 extends EveEntity
    * and effect children when query is EVE_BOUNDS_WITH_CHILDREN.
    */
   @meta.implemented
-  GetBoundingSphere(out = sph3.create(), query = 0)
+  GetBoundingSphere(out, query = 0)
   {
     if (this.boundingSphereRadius <= 0 && this._dynamicBoundingSphere[3] <= 0) return false;
     EveSpaceObject2._SetSphere(out, this.modelWorldPosition, this._boundingSphereWorldRadius);
@@ -4268,7 +4292,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @be.mapMethodAndWrap()
   @meta.implemented
-  GetBoundingSphereCenter(out = vec3.create())
+  GetBoundingSphereCenter(out)
   {
     if (this._dynamicBoundingSphere[3] !== -1)
     {
@@ -4300,6 +4324,35 @@ export class EveSpaceObject2 extends EveEntity
   GetAnimationController()
   {
     return this.animationUpdater;
+  }
+
+  /**
+   * IEveSpaceObjectAttachmentOwner::AddAttachment (EveSpaceObject2.cpp:3240-3243): appends to m_attachments.
+   * @param {object} attachment The attachment.
+   */
+  @meta.implemented
+  AddAttachment(attachment)
+  {
+    addChild(this, "attachments", attachment, { listNotify: this });
+  }
+
+  /** IEveSpaceObjectAttachmentOwner::ClearAttachments (EveSpaceObject2.cpp:3245-3248): empties m_attachments. */
+  @meta.implemented
+  ClearAttachments()
+  {
+    clearChildren(this, "attachments", { listNotify: this });
+  }
+
+  /**
+   * IEveSpaceObjectDecalOwner::AddDecal (EveSpaceObject2.cpp:3254-3263). A decal added while the high detail mesh is frozen
+   * is told so; its priority is its index, which the decal list's notification sets on insertion.
+   * @param {object} newDecal The decal.
+   */
+  @meta.implemented
+  AddDecal(newDecal)
+  {
+    if (!this._allowLodSelection) newDecal.SetHighDetailDecalState(true);
+    addChild(this, "decals", newDecal, { listNotify: this });
   }
 
   /**
@@ -4408,7 +4461,7 @@ export class EveSpaceObject2 extends EveEntity
    * EveSpaceObject2.cpp:3561-3574).
    */
   @meta.implemented
-  CollectPartDamageOverlays(out = [])
+  CollectPartDamageOverlays(out)
   {
     this.EnsureChildLocatorMerged();
     for (const range of this._mergedDamageLocatorSources)

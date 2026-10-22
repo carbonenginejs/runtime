@@ -77,7 +77,7 @@ test("Blue shader copy and values preserve model-free string and texture childre
   const texture=new Texture();texture.name="AlbedoMap";texture.resFilePath="res:/a.dds";
   const shader=new EveSOFDataGenericShader();shader.parameters.push(string);shader.defaultTextures.push(texture);
   assert.equal(shader.HasUsage("Paint"),true);
-  assert.deepEqual(shader.AssignTextures(),{AlbedoMap:"res:/a.dds"});
+  assert.deepEqual(shader.AssignTextures({}),{AlbedoMap:"res:/a.dds"});
   const copy=new EveSOFDataGenericShader();new Copier().CopyTo(shader,copy);
   assert.equal(copy.parameters[0].constructor,StringRecord);assert.notEqual(copy.parameters[0],string);
   assert.equal(copy.defaultTextures[0].constructor,Texture);assert.notEqual(copy.defaultTextures[0],texture);

@@ -294,7 +294,7 @@ export class EveShip2 extends EveMobile
    * Carbon EveShip2::GetParentData (cpp:336-342): the base record, plus the
    * kill count the hull's kill-counter decals display.
    *
-   * @param {IEveSpaceObject2ParentData} [out] Caller-owned record, refreshed in place.
+   * @param {IEveSpaceObject2ParentData} out Caller-owned record, refreshed in place.
    * @returns {IEveSpaceObject2ParentData} out
    */
 

@@ -1307,7 +1307,7 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   assert.equal(hydratedOrdinary.ownedLocatorSets.some(set => set.name === "damage"), true);
   const mergedCount = hydrated.root.GetDamageLocatorCount();
   assert.ok(mergedCount > 5, `merged damage count ${mergedCount} should exceed the root's 5`);
-  const mergedOrdinary = hydrated.root.GetDamageLocator(5);
+  const mergedOrdinary = hydrated.root.GetDamageLocator(5, vec3.create());
   [3, 2, 3].forEach((value, index) => {
     assert.ok(Math.abs(mergedOrdinary[index] - value) < 1e-5, `merged position[${index}] ${mergedOrdinary[index]}`);
   });

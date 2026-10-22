@@ -39,7 +39,7 @@ export class EveSOFDataPatternMaterialOverride extends IRoot
    * Writes the four material-target flags into the caller's array and returns
    * that array.
    */
-  GetTargets(out = [])
+  GetTargets(out)
   {
     out[0] = this.isTargetMtl1;
     out[1] = this.isTargetMtl2;

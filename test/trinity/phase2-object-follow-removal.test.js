@@ -74,7 +74,7 @@ test("ObjectFollow exposes only native contracts and separates authored from run
 
 test("real world-position owners map the contract while RootTransform bypasses EveTransform exposure", () =>
 {
-  assert.deepEqual([...mappedInterfaces(EveSpaceObject2)].map(Type => CjsSchema.getClassName(Type)), ["IRoot", "EveSpaceObject2", "EveEntity", "IEveShadowCaster", "IInitialize", "ITr2Pickable", "ITr2BoundingBox", "ITriTargetable", "IWorldPosition", "ITr2ShLightingReceiver", "INotify", "ITr2SecondaryLightSource", "ITr2ImpostorSource", "ITr2CurveSetOwner", "IEveEffectChildrenOwner", "ITr2SoundEmitterOwner", "ITr2ControllerOwner", "IEveInheritPropertiesOwner", "IShaderConfigurer", "ITr2LightOwner"]);
+  assert.deepEqual([...mappedInterfaces(EveSpaceObject2)].map(Type => CjsSchema.getClassName(Type)), ["IRoot", "EveSpaceObject2", "EveEntity", "IEveShadowCaster", "IInitialize", "ITr2Pickable", "ITr2BoundingBox", "ITriTargetable", "IWorldPosition", "ITr2ShLightingReceiver", "INotify", "ITr2SecondaryLightSource", "ITr2ImpostorSource", "ITr2CurveSetOwner", "IEveEffectChildrenOwner", "IShaderConfigurer", "ITr2SoundEmitterOwner", "ITr2ControllerOwner", "ITr2GrannyAnimationOwner", "IEveInheritPropertiesOwner", "IEveSpaceObjectDecalOwner", "ITr2LightOwner", "IEveSpaceObjectAttachmentOwner"]);
   for (const Type of [EveSpaceObject2, EveTransform, EveRootTransform])
   {
     assert.equal(mappedInterfaces(Type).has(IWorldPosition), true);

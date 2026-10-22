@@ -30,6 +30,7 @@ import { ITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controlle
 import { IEveInheritPropertiesOwner } from "../../npm/dist/trinity/eve/IEveInheritPropertiesOwner.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { vec4 } from "../../npm/dist/global/math/vec4.js";
 
 // Test fixture standing in for `@carbon.inherit(X)` as a base-class
 // expression, because these files are plain scripts and carry no decorators.
@@ -682,7 +683,7 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
 
   const identity = mat4.multiply(mat4.create(), object.worldTransform, object.inverseWorldTransform);
   assertVecNear(identity, mat4.create(), 1e-5);
-  assert.notEqual(object.GetLocalToWorldTransform(), object.inverseWorldTransform);
+  assert.notEqual(object.GetLocalToWorldTransform(mat4.create()), object.inverseWorldTransform);
   const observer = mat4.create();
   assert.equal(object.GetObserverTransform(observer), observer, "written to the caller-owned out");
   assert.deepEqual(Array.from(observer), Array.from(object.worldTransform));
@@ -849,20 +850,20 @@ test("EveSpaceObject2 answers Carbon locator set queries in object and world spa
   assert.equal(object.GetLocatorCount("attach"), 1);
   assert.equal(object.GetLocatorCount("missing"), 0);
 
-  assertVecNear(object.GetDamageLocator(0), [1, 0, 0]);
-  assertVecNear(object.GetDamageLocator(1), [0, 0, 5]);
-  assertVecNear(object.GetDamageLocator(7), [0, 0, 0]);
+  assertVecNear(object.GetDamageLocator(0, vec3.create()), [1, 0, 0]);
+  assertVecNear(object.GetDamageLocator(1, vec3.create()), [0, 0, 5]);
+  assertVecNear(object.GetDamageLocator(7, vec3.create()), [0, 0, 0]);
   // Direction is +Y rotated by the authored quaternion: identity keeps +Y,
   // the second rotates +Y onto +Z (90 degrees around +X).
-  assertVecNear(object.GetDamageLocatorDirection(0), [0, 1, 0]);
-  assertVecNear(object.GetDamageLocatorDirection(1), [0, 0, 1]);
-  assertVecNear(object.GetDamageLocatorDirection(-1), [0, 0, 0]);
+  assertVecNear(object.GetDamageLocatorDirection(0, vec3.create()), [0, 1, 0]);
+  assertVecNear(object.GetDamageLocatorDirection(1, vec3.create()), [0, 0, 1]);
+  assertVecNear(object.GetDamageLocatorDirection(-1, vec3.create()), [0, 0, 0]);
 
   mat4.fromTranslation(object.worldTransform, [10, 20, 30]);
   mat4.invert(object.inverseWorldTransform, object.worldTransform);
-  assertVecNear(object.GetTransformedDamageLocator(0), [11, 20, 30]);
+  assertVecNear(object.GetTransformedDamageLocator(0, vec3.create()), [11, 20, 30]);
   // Out-of-range indices return (0,0,0) untransformed, as Carbon does.
-  assertVecNear(object.GetTransformedDamageLocator(9), [0, 0, 0]);
+  assertVecNear(object.GetTransformedDamageLocator(9, vec3.create()), [0, 0, 0]);
 
   assertVecNear(object.GetLocatorPositionFromSet(1, false, "damage"), [0, 0, 5]);
   assertVecNear(object.GetLocatorPositionFromSet(1, true, "damage"), [10, 20, 35]);
@@ -1117,7 +1118,7 @@ test("EveSpaceObject2 bounds follow Carbon dynamic-sphere and cached-box rules",
   object.modelScale = 2;
   object.boundingSphereCenter.set([1, 2, 3]);
   object.boundingSphereRadius = 5;
-  assertVecNear(object.GetBoundingSphereCenter(), [1, 2, 3]);
+  assertVecNear(object.GetBoundingSphereCenter(vec3.create()), [1, 2, 3]);
   assert.equal(object.GetBoundingSphereRadius(), 10);
 
   // Without a mesh the local box answers from the (initially empty) cache.
@@ -1145,7 +1146,7 @@ test("EveSpaceObject2 bounds follow Carbon dynamic-sphere and cached-box rules",
   assertVecNear(cached.max, [4, 5, 6]);
 
   // Skinned bounds report disabled markers until dynamic bounds are enabled.
-  assertVecNear(object.CalculateSkinnedBoundingSphere(), [0, 0, 0, -1]);
+  assertVecNear(object.CalculateSkinnedBoundingSphere(vec4.create()), [0, 0, 0, -1]);
   const box = object.CalculateSkinnedBoundingBoxFromTransform(mat4.create());
   assert.equal(box.min[0], Infinity);
   assert.equal(box.max[0], -Infinity);
@@ -1168,7 +1169,7 @@ test("EveSpaceObject2 bounds follow Carbon dynamic-sphere and cached-box rules",
     }
   };
   object.dynamicBoundingSphereEnabled = true;
-  assertVecNear(object.CalculateSkinnedBoundingSphere(), [1, 2, 3, 10]);
+  assertVecNear(object.CalculateSkinnedBoundingSphere(vec4.create()), [1, 2, 3, 10]);
   const shifted = object.CalculateSkinnedBoundingBoxFromTransform(mat4.fromTranslation(mat4.create(), [10, 0, 0]));
   assertVecNear(shifted.min, [9, -1, -1]);
   assertVecNear(shifted.max, [11, 1, 1]);
@@ -1469,11 +1470,11 @@ test("merged damage locators resolve against the owning child's skeleton, not th
   assert.equal(object.GetDamageLocatorCount(), 3);
   // Bone 0 is assumed unanimated: the merged position is the bind pose
   // lifted by childToObject.
-  assertVecNear(object.GetDamageLocator(1), [ 6, 0, 0 ]);
+  assertVecNear(object.GetDamageLocator(1, vec3.create()), [ 6, 0, 0 ]);
   // Bone 1 poses in the CHILD's skeleton first, then lifts into object
   // space - the parent's own (absent) skeleton never applies.
-  assertVecNear(object.GetDamageLocator(2), [ 6, 2, 0 ]);
-  assertVecNear(object.GetDamageLocatorDirection(2), [ 0, 1, 0 ]);
+  assertVecNear(object.GetDamageLocator(2, vec3.create()), [ 6, 2, 0 ]);
+  assertVecNear(object.GetDamageLocatorDirection(2, vec3.create()), [ 0, 1, 0 ]);
 
   // The bind position ignores the child's animation entirely.
   const bind = new Float32Array(3);

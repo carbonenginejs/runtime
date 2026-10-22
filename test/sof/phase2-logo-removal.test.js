@@ -73,14 +73,14 @@ test("actual Faction parent hydrates shared logo children and copies their named
   assert.notEqual(copy.logoSet.logos[0].textures[0], logos[0].textures[0]);
   assert.equal(copy.logoSet.logos[0], copy.logoSet.logos[1]);
   assert.equal(copy.logoSet.logos[2], null);
-  assert.deepEqual(copy.logoSet.logos[0].AssignTextures(), { LogoMap: "res:/test/logo.dds" });
+  assert.deepEqual(copy.logoSet.logos[0].AssignTextures({}), { LogoMap: "res:/test/logo.dds" });
   const bag = new DictWriter().WriteObject(faction, {}, { persistOnly: true, refs: true });
   // Exported keys are the slot names; empty slots are not written.
   assert.deepEqual(Object.keys(bag.logoSet).filter(key => !key.startsWith("_")), [ "Primary", "Secondary" ]);
   const restored = new DictReader({ declarations: true }).CreateObject({ _type: "EveSOFDataFaction", ...bag });
   assert.equal(restored.logoSet.logos[0], restored.logoSet.logos[1]);
   assert.equal(restored.logoSet.logos[2], null);
-  assert.deepEqual(restored.logoSet.logos[0].AssignTextures(), { LogoMap: "res:/test/logo.dds" });
+  assert.deepEqual(restored.logoSet.logos[0].AssignTextures({}), { LogoMap: "res:/test/logo.dds" });
 });
 
 test("custom composition preserves reusable outputs and empty-base-slot behavior", () =>
@@ -94,13 +94,13 @@ test("custom composition preserves reusable outputs and empty-base-slot behavior
   assert.equal(EveSOFDataLogo.combine(base, override, output), output);
   assert.equal(output.textures, outputList);
   assert.equal(output.textures[0], outputTexture);
-  assert.deepEqual(output.AssignTextures(), { LogoMap: "override" });
+  assert.deepEqual(output.AssignTextures({}), { LogoMap: "override" });
   assert.equal(EveSOFDataLogo.combine(null, base, output), output);
-  assert.deepEqual(output.AssignTextures(), { LogoMap: "override" });
+  assert.deepEqual(output.AssignTextures({}), { LogoMap: "override" });
   const set = new EveSOFDataLogoSet();
   set.logos[EveSOFDataLogoSet.LogoType.TYPE_PRIMARY] = base;
   const result = EveSOFDataLogoSet.combine(set, null);
-  assert.deepEqual(result.logos[0].AssignTextures(), { LogoMap: "base" });
+  assert.deepEqual(result.logos[0].AssignTextures({}), { LogoMap: "base" });
   assert.ok(result.logos[1] instanceof EveSOFDataLogo);
   assert.deepEqual(result.logos[1].textures, []);
 });

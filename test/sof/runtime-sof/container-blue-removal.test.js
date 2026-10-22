@@ -111,7 +111,7 @@ test("Blue copy and persisted roundtrip preserve material parameter types and ar
       assert.equal(copy.constructor, record.constructor);
       if (record.constructor === Material)
       {
-        assert.deepEqual(copy.AssignParameters(), record.AssignParameters());
+        assert.deepEqual(copy.AssignParameters({}), record.AssignParameters({}));
         assert.equal(copy.parameters[1].constructor, Float); assert.equal(copy.parameters[2].constructor, Vector2);
         assert.notEqual(copy.parameters[0], record.parameters[0]); assert.notEqual(copy.parameters[0].value, record.parameters[0].value);
       }

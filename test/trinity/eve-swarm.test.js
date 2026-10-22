@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { EveSwarm } from "../../npm/dist/trinity/index.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 
 test("EveSwarm behavior fields use Carbon BehaviorProperties defaults", () =>
@@ -75,15 +76,15 @@ test("EveSwarm re-bases damage locators into the target swarmer's space", async 
 
   // Zero swarmers: the base ship resolution answers unmodified.
   swarm.count = 0;
-  assert.deepEqual(Array.from(swarm.GetDamageLocator(0)), [ 1, 0, 0 ]);
+  assert.deepEqual(Array.from(swarm.GetDamageLocator(0, vec3.create())), [ 1, 0, 0 ]);
 
   // One swarmer 10 units out: impacts land on the vehicle being shot.
   swarm.AddSwarmer();
   swarm.targetIndex = 0;
   mat4.fromTranslation(swarm.renderables[0].worldTransform, [ 10, 0, 0 ]);
-  const position = swarm.GetDamageLocator(0);
+  const position = swarm.GetDamageLocator(0, vec3.create());
   assert.deepEqual(Array.from(position), [ 11, 0, 0 ]);
-  const direction = swarm.GetDamageLocatorDirection(0);
+  const direction = swarm.GetDamageLocatorDirection(0, vec3.create());
   assert.deepEqual(Array.from(direction), [ 0, 1, 0 ]);
 });
 

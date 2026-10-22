@@ -26,15 +26,15 @@ export class EveSOFDataLogo extends IRoot
    */
   Assign(config = {})
   {
-    config.textures = this.AssignTextures(config.textures);
+    config.textures = this.AssignTextures(config.textures ?? {});
     return config;
   }
 
   /** Writes texture paths keyed by binding name; a JS-only helper.
-   * @param {Object<string, string>} [out={}] Reused texture map.
+   * @param {Object<string, string>} out Reused texture map.
    * @returns {Object<string, string>} The supplied map.
    */
-  AssignTextures(out = {})
+  AssignTextures(out)
   {
     for (const texture of this.textures) texture.Assign(out);
     return out;

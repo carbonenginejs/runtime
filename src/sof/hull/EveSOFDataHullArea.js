@@ -70,20 +70,20 @@ export class EveSOFDataHullArea extends IRoot
    */
   Assign(config = {})
   {
-    config.textures = this.AssignTextures(config.textures);
-    config.parameters = this.AssignParameters(config.parameters);
+    config.textures = this.AssignTextures(config.textures ?? {});
+    config.parameters = this.AssignParameters(config.parameters ?? {});
     return config;
   }
 
   /** Writes every authored mesh-area parameter into the supplied map. */
-  AssignParameters(out = {})
+  AssignParameters(out)
   {
     for (const parameter of this.parameters) parameter.Assign(out);
     return out;
   }
 
   /** Writes every authored mesh-area texture path into the supplied map. */
-  AssignTextures(out = {})
+  AssignTextures(out)
   {
     for (const texture of this.textures) texture.Assign(out);
     return out;

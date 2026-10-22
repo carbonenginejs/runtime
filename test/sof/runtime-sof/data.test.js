@@ -268,7 +268,7 @@ test("SOF logo lookup and authoring helpers produce detached configuration", () 
   const damage = new EveSOFDataRaceDamage();
   damage.armorImpactParameters.push(parameter);
   damage.armorImpactTextures.push(texture);
-  assert.deepEqual(damage.AssignArmor(), {
+  assert.deepEqual(damage.AssignArmor({}), {
     parameters: { DiffuseColor: [1, 2, 3, 4] },
     textures: { AlbedoMap: "res:/albedo.dds" },
   });
@@ -735,7 +735,7 @@ test("SOF pattern catalogs preserve case-insensitive lookup, editing, and packag
 
   const targets = new EveSOFDataPatternMaterialOverride();
   targets.isTargetMtl2 = false;
-  assert.deepEqual(targets.GetTargets(), [true, false, true, true]);
+  assert.deepEqual(targets.GetTargets([]), [true, false, true, true]);
 
   const customMask = {
     targetMaterials: [1, 1, 0, 0],

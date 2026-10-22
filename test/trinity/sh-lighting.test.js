@@ -12,7 +12,7 @@ import {createHash} from "node:crypto";
 import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
-import { EveEffectRoot2, EvePlanet, LightData, EveSpaceObject2, EveSpaceScene, Tr2PointLight, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";
+import { EveEffectRoot2, EvePlanet, IEveSpaceObject2ParentData, LightData, EveSpaceObject2, EveSpaceScene, Tr2PointLight, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";
 
 
 const SQRT_PI = Math.sqrt(Math.PI);
@@ -217,7 +217,7 @@ test("EveSpaceObject2 fades the hull's coefficients in across the low-detail thr
   // Below the low-detail threshold the hull takes no secondary lighting.
   object.estimatedPixelDiameterWithChildren = 5;
   assert.equal(object.UpdateShLighting(manager, context), false, "below the threshold");
-  const parent = object.GetParentData();
+  const parent = object.GetParentData(new IEveSpaceObject2ParentData());
   assert.equal(parent.shLighting[3], 0, "and the coefficients stay clear");
 
   // Past it, the contribution fades in over a quarter of the threshold span.
@@ -249,7 +249,7 @@ test("EveSpaceScene drives every receiver, and does nothing without a manager", 
   scene.updateContext.mediumDetailThreshold = 50;
 
   assert.equal(scene.UpdateShLighting([ lit, notAReceiver ]), 1, "only receivers are updated");
-  assert.ok(Math.abs(lit.GetParentData().shLighting[3]) > 0, "the hull picked up bounce light");
+  assert.ok(Math.abs(lit.GetParentData(new IEveSpaceObject2ParentData()).shLighting[3]) > 0, "the hull picked up bounce light");
 });
 
 
@@ -269,8 +269,8 @@ test("scene SH dispatch uses the receiver contract and absent manager preserves 
   const impostor={UpdateShLighting(){impostorCalls++;}};
   scene.shLightingManager=makeManager();lit.estimatedPixelDiameterWithChildren=10000;
   assert.equal(scene.UpdateShLighting([lit,impostor,null]),1);assert.equal(impostorCalls,0);
-  lit.GetParentData().shLighting.fill(3);scene.shLightingManager=null;
-  assert.equal(scene.UpdateShLighting([lit]),0);assert.ok(lit.GetParentData().shLighting.every(value=>value===3));
+  lit.GetParentData(new IEveSpaceObject2ParentData()).shLighting.fill(3);scene.shLightingManager=null;
+  assert.equal(scene.UpdateShLighting([lit]),0);assert.ok(lit.GetParentData(new IEveSpaceObject2ParentData()).shLighting.every(value=>value===3));
 });
 
 const shCorpus=process.env.SH_CORPUS_DIR;

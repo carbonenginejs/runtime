@@ -41,7 +41,7 @@ export class EveSOFDataRaceDamage extends IRoot
    * Ensures output maps exist and writes the race's armor-impact parameters and
    * texture paths into them.
    */
-  AssignArmor(out = {})
+  AssignArmor(out)
   {
     out.parameters ??= {};
     out.textures ??= {};
@@ -54,7 +54,7 @@ export class EveSOFDataRaceDamage extends IRoot
    * Ensures output maps exist and writes the race's shield-impact parameters and
    * texture paths into them.
    */
-  AssignShield(out = {})
+  AssignShield(out)
   {
     out.parameters ??= {};
     out.textures ??= {};

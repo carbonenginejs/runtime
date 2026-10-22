@@ -92,8 +92,8 @@ export class EveSOFDataGenericDecalShader extends IRoot
   {
     config = config || {};
     provided = provided || {};
-    config.parameters = this.AssignParameters(config.parameters, provided.parameters);
-    config.textures = this.AssignTextures(config.textures, provided.textures);
+    config.parameters = this.AssignParameters(config.parameters ?? {}, provided.parameters);
+    config.textures = this.AssignTextures(config.textures ?? {}, provided.textures);
     return config;
   }
 
@@ -101,13 +101,12 @@ export class EveSOFDataGenericDecalShader extends IRoot
    * Copies provided declared parameters and assigns [0,0,0,1] where neither
    * caller nor output supplied a value.
    * Custom: retained SOF configuration helper; native shader records are data only.
-   * @param {object|null} [out={}] Destination parameter map.
+   * @param {object} out Destination parameter map.
    * @param {object|null} [provided=null] Caller-supplied parameter values.
    * @returns {object} The populated parameter map.
    */
-  AssignParameters(out = {}, provided = null)
+  AssignParameters(out, provided = null)
   {
-    out = out || {};
     for (const value of this.parameters)
     {
       const name = value?.str;
@@ -131,13 +130,12 @@ export class EveSOFDataGenericDecalShader extends IRoot
    * Applies authored defaults, then fills each declared parent texture from
    * provided values or an empty-path fallback.
    * Custom: retained SOF configuration helper; native shader records are data only.
-   * @param {object|null} [out={}] Destination texture map.
+   * @param {object} out Destination texture map.
    * @param {object|null} [provided=null] Caller-supplied texture values.
    * @returns {object} The populated texture map.
    */
-  AssignTextures(out = {}, provided = null)
+  AssignTextures(out, provided = null)
   {
-    out = out || {};
     for (const value of this.defaultTextures)
     {
       if (value) value.Assign(out);

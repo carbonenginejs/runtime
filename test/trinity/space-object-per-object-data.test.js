@@ -240,7 +240,7 @@ test("EveSpaceObject2 hands attachments the typed parent-data record", () =>
   object.customShaderData[0] = 3;
   updated(object);
 
-  const parent = object.GetParentData();
+  const parent = object.GetParentData(new IEveSpaceObject2ParentData());
 
   assertClose(parent.clipFactor, 0.5, "clipFactor comes from the PS record");
   assertClose(parent.customData[0], 3, "customData is copied out");
