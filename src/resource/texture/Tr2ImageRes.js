@@ -148,6 +148,17 @@ export class Tr2ImageRes extends CjsResource
   }
 
   /**
+   * Carbon: Tr2ImageRes::DoPrepare (Tr2ImageRes.cpp:50-53): nothing to prepare. The
+   * decoded bitmap is the whole resource and no device object is made from it.
+   *
+   * @returns {boolean} Always true.
+   */
+  _DoPrepare()
+  {
+    return true;
+  }
+
+  /**
    * Carbon IsMemoryUsageKnown (cpp:14): usage is only trustworthy once the
    * async load has settled.
    *
@@ -188,6 +199,7 @@ CjsSchema.decorateMethod(Tr2ImageRes, "GetHeight", meta.adapted);
 CjsSchema.decorateMethod(Tr2ImageRes, "GetPixelColor", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2ImageRes, "IsPixelOpaque", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2ImageRes, "GetBitmap", meta.adapted);
+CjsSchema.decorateMethod(Tr2ImageRes, "_DoPrepare", meta.implemented);
 CjsSchema.decorateMethod(Tr2ImageRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2ImageRes, "GetMemoryUsage", blue.method, meta.adapted);
 be.define("Tr2ImageRes")(Tr2ImageRes);
