@@ -9,7 +9,7 @@
 // records: WebGPU orders a later `writeBuffer` after every earlier submit, so
 // a region whose frame has been submitted can be rewritten safely. That is
 // what `Tr2DynamicRingBuffer` asks a fence.
-import { CjsSchema, blue, type } from "#schema";
+import { CjsSchema, blue, type, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -151,13 +151,14 @@ CjsSchema.decorateField(CjsWebgpuFenceAL, "_frame", type.uint64);
 CjsSchema.decorateField(CjsWebgpuFenceAL, "_name", type.string);
 CjsSchema.decorateField(CjsWebgpuFenceAL, "_isValid", type.boolean);
 CjsSchema.decorateField(CjsWebgpuFenceAL, "_hasBeenPut", type.boolean);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Create", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Destroy", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "IsValid", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "PutFence", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "IsReached", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Wait", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Describe", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuFenceAL, "SetName", blue.method);
+// Donor: metal/Tr2FenceALMetal.mm (frame-number fence; Wait is E_FAIL there too). IsReached is adapted: the bool& comes back with the result as { result, isReached }. Describe is adapted: it also returns the description.
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Create", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "PutFence", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "IsReached", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Wait", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Describe", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuFenceAL, "SetName", meta.implemented);
 CjsSchema.blue.define(CjsWebgpuFenceAL, { className: "CjsWebgpuFenceAL" });

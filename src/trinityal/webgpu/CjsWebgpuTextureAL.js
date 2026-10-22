@@ -1020,29 +1020,31 @@ CjsSchema.decorateField(CjsWebgpuTextureAL, "_name", type.string);
 CjsSchema.decorateField(CjsWebgpuTextureAL, "_desc", type.rawStruct("Tr2BitmapDimensions"));
 CjsSchema.decorateField(CjsWebgpuTextureAL, "_msaa", type.rawStruct("Tr2MsaaDesc"));
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Create");
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "IsValid", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "OpenShared", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetDesc", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMsaaDesc", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetGpuUsage", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetCpuUsage", blue.method);
+// Donor: metal/Tr2TextureALMetal.mm. OpenShared is E_FAIL as in Metal. CopySubresourceRegion and GenerateMipMaps keep Metal's checks and loops over the work queue. IsValid is adapted (also tracks the video generation). UnmapForReading, MapForWriting (out shape, a single staging array) and UnmapForWriting (uploads through UpdateSubresource) are adapted. SetName stores the name and sets the GPUTexture label.
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "IsValid", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "OpenShared", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetDesc", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMsaaDesc", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetGpuUsage", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetCpuUsage", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "CreateReadback");
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "MapForReading");
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UnmapForReading", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "MapForWriting", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UnmapForWriting", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UnmapForReading", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "MapForWriting", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UnmapForWriting", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UpdateSubresource");
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "CopySubresourceRegion", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GenerateMipMaps", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Resolve", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetSharedHandle", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetSrvIndexInHeap", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetUavIndexInHeap", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Destroy", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Describe", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "SetName", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetName", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "CopySubresourceRegion", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GenerateMipMaps", meta.implemented);
+// Donor: metal/Tr2TextureALMetal.mm (Resolve 1100-1140, GetSharedHandle, heap indices, Describe, memory class). Resolve copies the single-sample case as Metal does and returns E_FAIL for MSAA, which WebGPU resolves through a render-pass resolve target (adapted). GetSharedHandle is notSupported: WebGPU has no shared handle. The heap-index getters return 0xffffffff (WebGPU has no heap). GetMemoryClass is AL_MEMORY_VIDEO where Metal says MANAGED. Describe writes memoryClass only.
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Resolve", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetSharedHandle", meta.notSupported);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetSrvIndexInHeap", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetUavIndexInHeap", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMemoryClass", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Describe", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "SetName", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetName", meta.implemented);
 
 CjsSchema.blue.define(CjsWebgpuTextureAL, {
   className: "CjsWebgpuTextureAL"

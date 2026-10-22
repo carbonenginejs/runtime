@@ -309,9 +309,10 @@ export class CjsWebgpuResourceSetAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Create");
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "IsValid", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Destroy", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Describe", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "SetName", blue.method);
+// Donor: metal/Tr2ResourceSetALMetal.mm (IsValid, Destroy clears the bound resources and validity, memory class AL_MEMORY_MANAGED). Describe writes memoryClass only and SetName does not store the name.
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Describe", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "SetName", meta.adapted);
 CjsSchema.blue.define(CjsWebgpuResourceSetAL, { className: "CjsWebgpuResourceSetAL" });

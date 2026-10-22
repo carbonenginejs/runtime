@@ -230,14 +230,15 @@ export class CjsWebgpuConstantBufferAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(CjsWebgpuConstantBufferAL, "_size", type.uint32);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Create", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Lock", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Unlock", blue.method);
+// Donor: metal/Tr2ConstantBufferALMetal.mm. Create keeps a 256-aligned shadow copy and an id, and copies at most the shadow's length of initialData. Lock returns { result, data } and E_FAIL (Metal E_INVALIDCALL). Unlock does not check validity. Describe writes memoryClass and size, not type, size and name. SetName does not store the name.
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Create", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Lock", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Unlock", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetConstants");
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "IsValid", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetSize", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Destroy", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Describe", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetName", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetSize", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Describe", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetName", meta.adapted);
 CjsSchema.blue.define(CjsWebgpuConstantBufferAL, { className: "CjsWebgpuConstantBufferAL" });

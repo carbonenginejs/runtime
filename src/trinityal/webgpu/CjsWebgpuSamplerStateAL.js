@@ -18,7 +18,7 @@
 // material fills (see the handover's emulation section). The description this
 // state keeps is the AUTHORED one, border included, so the material can read
 // the real modes back.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { NormalizeSamplerDescription } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -166,11 +166,12 @@ export class CjsWebgpuSamplerStateAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Create", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "IsValid", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "GetIndexInHeap", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Destroy", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Describe", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "SetName", blue.method);
+// Donor: metal/Tr2SamplerStateALMetal.mm. Create builds a GPUSampler from the Carbon description (a mode or filter Carbon lacks is E_INVALIDARG, as Metal's mapping failure). GetIndexInHeap is 0xffffffff where Metal returns its heap slot (WebGPU has no heap). Describe writes memoryClass only. SetName does not store the name.
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Create", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "GetIndexInHeap", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Describe", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "SetName", meta.adapted);
 CjsSchema.blue.define(CjsWebgpuSamplerStateAL, { className: "CjsWebgpuSamplerStateAL" });
