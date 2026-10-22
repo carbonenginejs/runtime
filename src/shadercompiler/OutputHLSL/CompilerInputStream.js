@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/OutputHLSL.h
 // Source: trinity/shadercompiler/OutputHLSL.cpp:702-753
 
@@ -76,8 +76,8 @@ export class CompilerInputStream extends CodeStream
     }
 }
 
-CjsSchema.decorateMethod(CompilerInputStream, "Endl", blue.method, meta.noop);
+CjsSchema.decorateMethod(CompilerInputStream, "Endl", meta.adapted);
 CjsSchema.decorateMethod(CompilerInputStream, "ChangeLocation", meta.adapted);
-CjsSchema.decorateMethod(CompilerInputStream, "Indent", blue.method, meta.noop);
-CjsSchema.decorateMethod(CompilerInputStream, "Unindent", blue.method, meta.noop);
+CjsSchema.decorateMethod(CompilerInputStream, "Indent", meta.adapted);
+CjsSchema.decorateMethod(CompilerInputStream, "Unindent", meta.adapted);
 CjsSchema.meta.carbon("CompilerInputStream")(CompilerInputStream);

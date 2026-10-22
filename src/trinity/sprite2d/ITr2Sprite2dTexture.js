@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dTexture.h
-import { blue } from "#schema";
+import { meta } from "#schema";
 
 /** Native nominal contract for Sprite2D texture inputs. */
 @be.interface("ITr2Sprite2dTexture")
@@ -10,39 +10,39 @@ import { blue } from "#schema";
 export class ITr2Sprite2dTexture extends IRoot
 {
   /** Applies the texture and sampling settings. */
-  @blue.abstract
+  @meta.abstract
   Apply(_renderer, _index) {}
 
   /** Returns texture width. */
-  @blue.abstract
+  @meta.abstract
   GetWidth() {}
 
   /** Returns texture height. */
-  @blue.abstract
+  @meta.abstract
   GetHeight() {}
 
   /** Returns the source window width. */
-  @blue.abstract
+  @meta.abstract
   GetSrcWidth() {}
 
   /** Returns the source window height. */
-  @blue.abstract
+  @meta.abstract
   GetSrcHeight() {}
 
   /** Reports asynchronous texture loading. */
-  @blue.abstract
+  @meta.abstract
   IsLoading() {}
 
   /** Reports whether the texture is ready. */
-  @blue.abstract
+  @meta.abstract
   IsGood() {}
 
   /** Registers a change listener. */
-  @blue.abstract
+  @meta.abstract
   RegisterForChangeNotification(_target) {}
 
   /** Removes a change listener. */
-  @blue.abstract
+  @meta.abstract
   UnregisterForChangeNotification(_target) {}
 
 }

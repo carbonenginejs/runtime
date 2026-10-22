@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
 import { IsMatch, INotify, CjsResource } from "#blue";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
@@ -43,7 +43,6 @@ export class Tr2RuntimeTextureParameter extends ITriEffectResourceParameter
    * Blue construction form: forwards the name, provider and UAV mip level to
    * Create.
    */
-  @blue.method
   @meta.adapted
   __init__(name = "", texture = null, uavMipLevel = 0)
   {

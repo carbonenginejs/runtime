@@ -1,6 +1,6 @@
 import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/ICopier.h
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * `ICopierCustomAssignment` - copies data a class holds outside its exposed
@@ -21,6 +21,6 @@ export class ICopierCustomAssignment extends IRoot
   AssignTo(_other, _copier) {}
 }
 
-CjsSchema.decorateMethod(ICopierCustomAssignment, "AssignTo", blue.abstract);
+CjsSchema.decorateMethod(ICopierCustomAssignment, "AssignTo", meta.abstract);
 
 CjsSchema.exposure.interface("ICopierCustomAssignment")(ICopierCustomAssignment);

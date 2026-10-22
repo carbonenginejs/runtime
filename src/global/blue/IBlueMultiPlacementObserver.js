@@ -1,7 +1,7 @@
 import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBluePlacementObserver.h:46-51
 // Source: blue/src/IBluePlacementObserver_Blue.cpp:7
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -21,7 +21,7 @@ export class IBlueMultiPlacementObserver extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(IBlueMultiPlacementObserver, "UpdatePlacements", blue.abstract);
+CjsSchema.decorateMethod(IBlueMultiPlacementObserver, "UpdatePlacements", meta.abstract);
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.
 CjsSchema.exposure.interface("IBlueMultiPlacementObserver")(IBlueMultiPlacementObserver);

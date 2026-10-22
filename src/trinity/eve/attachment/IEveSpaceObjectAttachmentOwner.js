@@ -1,6 +1,6 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/IEveSpaceObjectAttachmentOwner.h
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for an object that owns space-object attachments (h:7-12). */
@@ -21,7 +21,7 @@ export class IEveSpaceObjectAttachmentOwner extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(IEveSpaceObjectAttachmentOwner, "AddAttachment", blue.abstract);
-CjsSchema.decorateMethod(IEveSpaceObjectAttachmentOwner, "ClearAttachments", blue.abstract);
+CjsSchema.decorateMethod(IEveSpaceObjectAttachmentOwner, "AddAttachment", meta.abstract);
+CjsSchema.decorateMethod(IEveSpaceObjectAttachmentOwner, "ClearAttachments", meta.abstract);
 CjsSchema.exposure.inherit(IRoot)(IEveSpaceObjectAttachmentOwner);
 CjsSchema.exposure.interface("IEveSpaceObjectAttachmentOwner")(IEveSpaceObjectAttachmentOwner);

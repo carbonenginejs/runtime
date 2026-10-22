@@ -575,9 +575,9 @@ CjsSchema.decorateMethod(RemoteFileCache, "ListDir", be.mapMethodAndWrap(), meta
 CjsSchema.decorateMethod(RemoteFileCache, "RegisterOnServerFailedCallback", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.exposure.define("RemoteFileCache")(RemoteFileCache);
 
-CjsSchema.decorateMethod(RemoteFileCache, "_CreateFileStreamForCachedFile", meta.renamed("CreateFileStreamForCachedFile"), meta.adapted);
-CjsSchema.decorateMethod(RemoteFileCache, "_GetFileInfo", meta.renamed("GetFileInfo"), meta.adapted);
-CjsSchema.decorateMethod(RemoteFileCache, "_AddFileIndexImpl", meta.renamed("AddFileIndexImpl"), meta.adapted);
-CjsSchema.decorateMethod(RemoteFileCache, "_AddResPathToFolderIndex", meta.renamed("AddResPathToFolderIndex"), meta.adapted);
-CjsSchema.decorateMethod(RemoteFileCache, "_CacheContentsOfRemoteStream", meta.renamed("CacheContentsOfRemoteStream"), meta.adapted);
-CjsSchema.decorateMethod(RemoteFileCache, "_TryDownload", meta.renamed("TryDownload"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_CreateFileStreamForCachedFile", meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_GetFileInfo", meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_AddFileIndexImpl", meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_AddResPathToFolderIndex", meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_CacheContentsOfRemoteStream", meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_TryDownload", meta.adapted);

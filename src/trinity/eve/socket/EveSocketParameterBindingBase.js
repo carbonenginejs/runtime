@@ -67,7 +67,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   }
 
   /** Required hook where a typed subclass records the external parameter's current value as a restore default. */
-  @blue.abstract
+  @meta.abstract
   ExtractDefault(_externalParameter) {}
 
   /** Reports whether anything is bound to this parameter. */

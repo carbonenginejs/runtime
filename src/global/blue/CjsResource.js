@@ -3,7 +3,7 @@ import {
   normalizeResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { CjsFormatRoute } from "./CjsFormatStore.js";
 import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
 
@@ -1138,20 +1138,20 @@ CjsSchema.meta.define(CjsResource, {
     state: type.string
   },
   methods: {
-    DoLoad: [ blue.method, meta.adapted ],
-    Reload: [ blue.method, meta.adapted ],
-    Initialize: [ blue.method, meta.adapted ],
-    GetPath: [ blue.method, meta.adapted ],
-    GetExt: [ blue.method, meta.adapted ],
-    IsLoading: [ blue.method, meta.adapted ],
+    DoLoad: [ meta.adapted ],
+    Reload: [ meta.adapted ],
+    Initialize: [ meta.adapted ],
+    GetPath: [ meta.adapted ],
+    GetExt: [ meta.adapted ],
+    IsLoading: [ meta.adapted ],
     HasLoaded: [ meta.adapted ],
-    IsPrepared: [ blue.method, meta.adapted ],
-    IsGood: [ blue.method, meta.adapted ],
+    IsPrepared: [ meta.adapted ],
+    IsGood: [ meta.adapted ],
     IsFailed: [ meta.adapted ],
-    AddNotifyTarget: [ blue.method, meta.adapted ],
-    RemoveNotifyTarget: [ blue.method, meta.implemented ],
-    NotifyRebuildCachedData: [ blue.method, meta.adapted ],
-    NotifyReleaseCachedData: [ blue.method, meta.adapted ],
+    AddNotifyTarget: [ meta.adapted ],
+    RemoveNotifyTarget: [ meta.implemented ],
+    NotifyRebuildCachedData: [ meta.adapted ],
+    NotifyReleaseCachedData: [ meta.adapted ],
     RecordLateResult: [],
     DestroyAdapterResources: []
   }

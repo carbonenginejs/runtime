@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
 import { ITriScalarFunction, ITriCurveLength, ITriFunction } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { num } from "#math/num";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalarKey } from "../key/Tr2CurveScalarKey.js";
@@ -298,7 +298,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @blue.method
   @meta.implemented
   GetValueAt(time)
   {
@@ -447,7 +446,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @blue.method
   @meta.implemented
   GetTangentAt(time)
   {

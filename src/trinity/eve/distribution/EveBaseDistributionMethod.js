@@ -4,7 +4,7 @@ import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IEveDistributionMethod } from "./IEveDistributionMethod.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -91,7 +91,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   spawnTriggers = [];
 
   /** Carbon method AddEntity -> AddEntities (MAP_METHOD_AND_WRAP). */
-  @blue.method
   @meta.implemented
   AddEntity(howMany = 1)
   {
@@ -99,7 +98,6 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Carbon method Restart -> RestartDistribution (MAP_METHOD_AND_WRAP). */
-  @blue.method
   @meta.implemented
   Restart()
   {

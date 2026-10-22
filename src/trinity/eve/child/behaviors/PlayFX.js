@@ -342,7 +342,7 @@ export class PlayFX extends EveEntity
   /** Carbon method RegisterWithQuadRenderer (cpp:239-245) - quad renderer
    * registration seam; the firing effect elements own the real quads. */
 
-  @meta.noop
+  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -350,7 +350,7 @@ export class PlayFX extends EveEntity
   /** Carbon method AddQuadsToQuadRenderer (cpp:253-259) - quad renderer
    * submission seam; the firing effect elements own the real quads. */
 
-  @meta.noop
+  @meta.adapted
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }

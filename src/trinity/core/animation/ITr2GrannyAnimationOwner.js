@@ -1,6 +1,6 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2GrannyAnimation.h:31-35
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for an object that owns a Granny animation controller. */
@@ -16,6 +16,6 @@ export class ITr2GrannyAnimationOwner extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(ITr2GrannyAnimationOwner, "GetAnimationController", blue.abstract);
+CjsSchema.decorateMethod(ITr2GrannyAnimationOwner, "GetAnimationController", meta.abstract);
 CjsSchema.exposure.inherit(IRoot)(ITr2GrannyAnimationOwner);
 CjsSchema.exposure.interface("ITr2GrannyAnimationOwner")(ITr2GrannyAnimationOwner);

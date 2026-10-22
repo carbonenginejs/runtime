@@ -527,5 +527,5 @@ export class TriPoolAllocator
 // the arena is a Float32Array chunk, not malloc, and a failed allocation has nothing to port (cpp:97-127).
 CjsSchema.decorateMethod(TriPoolAllocator, "Allocate", meta.adapted);
 CjsSchema.decorateMethod(TriPoolAllocator, "Clear", meta.implemented);
-CjsSchema.decorateMethod(TriPoolAllocator, "_GetMoreSystemMemory", meta.adapted, meta.renamed("GetMoreSystemMemory"));
+CjsSchema.decorateMethod(TriPoolAllocator, "_GetMoreSystemMemory", meta.adapted);
 CjsSchema.meta.carbon("TriPoolAllocator")(TriPoolAllocator);

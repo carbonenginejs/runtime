@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression_Blue.cpp
 import { ITriColorFunction, ITriVectorFunction, ITriFunction, IInitialize } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
@@ -196,7 +196,6 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Gets the vector value at a time.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -222,7 +221,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * Derivatives are not represented by Carbon expression curves.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -232,7 +231,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * Derivatives are not represented by Carbon expression curves.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -245,7 +244,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} out
    */
-  @meta.noop
+  @meta.adapted
   GetValueDotAt__Ticks(_time, out)
   {
     return out;
@@ -257,7 +256,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} out
    */
-  @meta.noop
+  @meta.adapted
   GetValueDoubleDotAt__Ticks(_time, out)
   {
     return out;
@@ -267,7 +266,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * Expression curves do not have segment interpolation state.
    */
 
-  @meta.noop
+  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;

@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { IsMatch, INotify } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 
 
@@ -210,7 +210,6 @@ export class Tr2StateMachineTransition extends IRoot
    * Adapted: native Blue exposes GetSource under this wrapper name.
    * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
-  @blue.method
   @meta.adapted
   GetState()
   {

@@ -1,7 +1,7 @@
 import { IRoot } from "../blue/IRoot.js";
 // Source: blue/include/ITr2DebugRenderer2.h:13-14,189-194
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch_Blue.cpp:8
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -34,7 +34,7 @@ export class ITr2DebugRenderable extends IRoot
 
 for (const method of [ "GetDebugOptions", "RenderDebugInfo" ])
 {
-  CjsSchema.decorateMethod(ITr2DebugRenderable, method, blue.abstract);
+  CjsSchema.decorateMethod(ITr2DebugRenderable, method, meta.abstract);
 }
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.

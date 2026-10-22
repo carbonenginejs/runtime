@@ -28,7 +28,7 @@
 // `IRoot`, Carbon's base for both, is not ported: it is Blue's reference-counted
 // object root, which a garbage-collected runtime has no use for.
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITr2Controller } from "./ITr2Controller.js";
 
 /** Contract for a controller that also drives controller actions. */
@@ -40,7 +40,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {object} The owner.
    */
-  @blue.abstract
+  @meta.abstract
   GetOwner() {}
 
   /**
@@ -48,7 +48,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {string} _callbackName The callback's name.
    */
-  @blue.abstract
+  @meta.abstract
   Callback(_callbackName) {}
 
   /**
@@ -56,7 +56,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {object} _updateable The object to update.
    */
-  @blue.abstract
+  @meta.abstract
   RegisterUpdateable(_updateable) {}
 
   /**
@@ -64,7 +64,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {object} _updateable The object to stop updating.
    */
-  @blue.abstract
+  @meta.abstract
   UnRegisterUpdateable(_updateable) {}
 
   /**
@@ -72,7 +72,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {Array} Name and root pairs.
    */
-  @blue.abstract
+  @meta.abstract
   GetBindingPathRoots() {}
 
   /**
@@ -84,7 +84,7 @@ export class ITr2ActionController extends ITr2Controller
    * @param {string} _name The variable's name.
    * @returns {number|null} Its value, or null when there is no such variable.
    */
-  @blue.abstract
+  @meta.abstract
   GetFloatVariableByName(_name) {}
 
   /**
@@ -92,7 +92,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {Array} _out Term info collected from every contributor.
    */
-  @blue.abstract
+  @meta.abstract
   GetExpressionTermInfo(_out) {}
 
   /**
@@ -100,7 +100,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {Array} The variable view.
    */
-  @blue.abstract
+  @meta.abstract
   GetVariableView() {}
 
   /**
@@ -108,7 +108,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {object} The variable buffer.
    */
-  @blue.abstract
+  @meta.abstract
   GetVariableBuffer() {}
 
   /**
@@ -116,7 +116,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {number} _size Bytes required.
    */
-  @blue.abstract
+  @meta.abstract
   EnsureTempArenaSize(_size) {}
 
   /**
@@ -124,7 +124,7 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {object} The arena.
    */
-  @blue.abstract
+  @meta.abstract
   GetTempArena() {}
 }
 

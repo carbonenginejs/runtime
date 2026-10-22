@@ -9,7 +9,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // strides exist because the inputs are separate host bitmaps with their own
 // formats and mip pitches.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { GetBytesPerPixel, PixelFormat, TextureType } from "#consts/render-context";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
@@ -267,8 +267,6 @@ CjsSchema.decorateField(Tr2TexturePipelineStepPack, "g", be.mapAttribute(be.READ
 CjsSchema.decorateField(Tr2TexturePipelineStepPack, "r", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
 CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "GetResourceDependencies", meta.implemented);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "Execute", meta.adapted);
-blue.method(Tr2TexturePipelineStepPack, "swapRedBlue");
 meta.implemented(Tr2TexturePipelineStepPack, "swapRedBlue");
-blue.method(Tr2TexturePipelineStepPack, "pack");
 meta.adapted(Tr2TexturePipelineStepPack, "pack");
 CjsSchema.exposure.define("Tr2TexturePipelineStepPack")(Tr2TexturePipelineStepPack);

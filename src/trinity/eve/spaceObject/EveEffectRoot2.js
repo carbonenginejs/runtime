@@ -840,7 +840,7 @@ export class EveEffectRoot2 extends EveEntity
 
   /** Effect roots have no damage locators. */
 
-  @meta.noop
+  @meta.adapted
   GetDamageLocatorCount()
   {
     return 0;
@@ -889,7 +889,7 @@ export class EveEffectRoot2 extends EveEntity
 
   /** Effect roots never use shield impact geometry. */
 
-  @meta.noop
+  @meta.adapted
   HasImpactConfigurationShield()
   {
     return false;
@@ -897,7 +897,7 @@ export class EveEffectRoot2 extends EveEntity
 
   /** Effect roots use their only target point. */
 
-  @meta.noop
+  @meta.adapted
   GetClosestDamageLocatorIndex(_position)
   {
     return 0;
@@ -905,7 +905,7 @@ export class EveEffectRoot2 extends EveEntity
 
   /** Effect roots use their only target point. */
 
-  @meta.noop
+  @meta.adapted
   GetGoodDamageLocatorIndex(_position)
   {
     return 0;
@@ -921,7 +921,7 @@ export class EveEffectRoot2 extends EveEntity
 
   /** Effect roots do not create attached impact overlays. */
 
-  @meta.noop
+  @meta.adapted
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
     return -1;
@@ -929,7 +929,7 @@ export class EveEffectRoot2 extends EveEntity
 
   /** Effect roots do not update attached impact overlays. */
 
-  @meta.noop
+  @meta.adapted
   UpdateImpact(_out, _direction, _impactIndex)
   {
     return false;

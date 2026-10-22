@@ -1,6 +1,6 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/IEveSmartLightGroup.h
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -50,7 +50,7 @@ for (const method of [
   "SetControllerVariable", "SetInheritProperties", "UpdateVisibility", "RegisterWithQuadRenderer", "RenderDebugInfo"
 ])
 {
-  CjsSchema.decorateMethod(IEveSmartLightGroup, method, blue.method, meta.noop);
+  CjsSchema.decorateMethod(IEveSmartLightGroup, method, meta.adapted);
 }
 CjsSchema.exposure.inherit(IRoot)(IEveSmartLightGroup);
 CjsSchema.exposure.interface("IEveSmartLightGroup")(IEveSmartLightGroup);

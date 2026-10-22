@@ -12,7 +12,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { INotify, IsMatch, CcpTime } from "#blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EntityComponents.js";
@@ -604,8 +604,7 @@ export class EveStretch extends IEveFiringEffectElement
    * IEveFiringEffectElement intensity hook; EveStretch has no intensity term of
    * its own.
    */
-  @blue.method
-  @meta.noop
+  @meta.adapted
   SetIntensity(_intensity)
   {
   }

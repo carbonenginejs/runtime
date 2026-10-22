@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Include/ITr2Interior.h
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Tests interior visibility and provides the object's world transform. */
 export class ITr2InteriorCullable extends IRoot
@@ -9,7 +9,7 @@ export class ITr2InteriorCullable extends IRoot
   /** Tests the frustum and writes the object-to-world matrix. */
   IsInFrustum(_frustum, _objectToWorld) {}
 }
-CjsSchema.decorateMethod(ITr2InteriorCullable, "IsInFrustum", blue.abstract);
+CjsSchema.decorateMethod(ITr2InteriorCullable, "IsInFrustum", meta.abstract);
 CjsSchema.exposure.interface("ITr2InteriorCullable")(ITr2InteriorCullable);
 
 be.inherit(IRoot)(ITr2InteriorCullable);

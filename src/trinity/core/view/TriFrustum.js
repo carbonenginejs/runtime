@@ -481,4 +481,4 @@ export class TriFrustum
 // States: each method is TriFrustum.cpp:26-325 statement for statement (DeconstructProjectionMatrix, MatrixUtils.cpp:48-59, inlined); _CacheTransformationData
 // is adapted: it guards the divisions in DeconstructProjectionMatrix against a zero element. SphereTest is adapted:
 // Carbon takes a CcpMath::Sphere, this also accepts a packed vec4. The matrix products swap operands for gl-matrix, as everywhere here.
-CjsSchema.decorateMethod(TriFrustum, "_CacheTransformationData", meta.adapted, meta.renamed("CacheTransformationData"));
+CjsSchema.decorateMethod(TriFrustum, "_CacheTransformationData", meta.adapted);

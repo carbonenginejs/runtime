@@ -14,6 +14,6 @@ export class ITr2RenderNode extends IRoot
   Execute(_destinations, _outputs, _realTime, _simTime, _rootTimer, _renderContext) {}
 }
 
-CjsSchema.decorateMethod(ITr2RenderNode, "Validate", blue.abstract);
-CjsSchema.decorateMethod(ITr2RenderNode, "Execute", blue.abstract);
+CjsSchema.decorateMethod(ITr2RenderNode, "Validate", meta.abstract);
+CjsSchema.decorateMethod(ITr2RenderNode, "Execute", meta.abstract);
 CjsSchema.exposure.interface("ITr2RenderNode")(ITr2RenderNode);

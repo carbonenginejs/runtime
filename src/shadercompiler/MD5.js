@@ -224,7 +224,7 @@ export class MD5
 CjsSchema.decorateMethod(MD5, "reset", meta.implemented);
 CjsSchema.decorateMethod(MD5, "add", meta.implemented);
 CjsSchema.decorateMethod(MD5, "getHash", meta.implemented);
-CjsSchema.decorateMethod(MD5, "getHash__Bytes", meta.renamed("getHash"));
-CjsSchema.decorateMethod(MD5, "_processBuffer", meta.renamed("processBuffer"));
-CjsSchema.decorateMethod(MD5, "_processBlock", meta.renamed("processBlock"));
+CjsSchema.decorateMethod(MD5, "getHash__Bytes");
+CjsSchema.decorateMethod(MD5, "_processBuffer");
+CjsSchema.decorateMethod(MD5, "_processBlock");
 CjsSchema.meta.carbon("MD5")(MD5);

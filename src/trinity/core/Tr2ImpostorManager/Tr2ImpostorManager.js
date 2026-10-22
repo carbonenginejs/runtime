@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2ImpostorManager.cpp
 // Source: trinity/trinity/Tr2ImpostorManager_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -186,7 +186,6 @@ export class Tr2ImpostorManager
   }
 
   /** Native script constructor alias; its tile default differs from the C++ constructor. */
-  @blue.method
   @meta.implemented
   __init__(width = 1024, height = 1024, itemWidth = 16, itemHeight = 16)
   {

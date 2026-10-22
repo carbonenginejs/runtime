@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetDebugRenderer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that installs the debug renderer subsequent debug drawing routes through. */
@@ -17,7 +17,6 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   renderer = null;
 
   /** Carbon method __init__ -> SetDebugRenderer (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
   @meta.implemented
   __init__(renderer = null)
   {

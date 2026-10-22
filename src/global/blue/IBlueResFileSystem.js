@@ -22,7 +22,7 @@ import { IRoot } from "./IRoot.js";
 //   (`protocols`) and the forms it produces (`forms`). The paths service reads
 //   the declaration and never probes: Carbon asks every file system in turn,
 //   which here would cost a network round trip per miss.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * The forms a file system can answer `GetStreamFromPath` in.
@@ -125,7 +125,7 @@ export class IBlueResFileSystem extends IRoot
 
 for (const method of [ "FileExists", "IsDirectory", "GetDirectoryContents", "GetStreamFromPath", "ResolvePathW" ])
 {
-  CjsSchema.decorateMethod(IBlueResFileSystem, method, blue.abstract);
+  CjsSchema.decorateMethod(IBlueResFileSystem, method, meta.abstract);
 }
 
 // Carbon declares only the wide-character form; a JS string covers both.

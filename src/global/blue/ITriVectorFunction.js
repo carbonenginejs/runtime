@@ -1,5 +1,5 @@
 // Source: blue/include/ITriFunction.h:65-124
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
 import { CcpTime } from "./CcpTime.js";
 
@@ -130,7 +130,7 @@ export class ITriVectorFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ])
 {
-  CjsSchema.decorateMethod(ITriVectorFunction, method, blue.abstract);
+  CjsSchema.decorateMethod(ITriVectorFunction, method, meta.abstract);
 }
 CjsSchema.decorateMethod(ITriVectorFunction, "Update__Ticks", meta.adapted);
 CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt__Ticks", meta.adapted);

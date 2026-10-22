@@ -20,7 +20,7 @@ import { ITr2EffectValue } from "./ITr2EffectValue.js";
 // methods below are ITriEffectParameter's own. `SupportsDirtyNotification` is
 // the one Carbon DEFAULTS rather than leaving pure, so it defaults here too.
 
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for a shader parameter: its name, its effect handles and its content hash. */
@@ -50,8 +50,8 @@ export class ITriEffectParameter extends IRoot
 
 
 CjsSchema.exposure.inherit(ITr2EffectValue)(ITriEffectParameter);
-CjsSchema.decorateMethod(ITriEffectParameter, "GetParameterName", blue.abstract);
-CjsSchema.decorateMethod(ITriEffectParameter, "RebuildEffectHandles", blue.abstract);
-CjsSchema.decorateMethod(ITriEffectParameter, "GetHashValue", blue.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "GetParameterName", meta.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "RebuildEffectHandles", meta.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "GetHashValue", meta.abstract);
 CjsSchema.decorateMethod(ITriEffectParameter, "SupportsDirtyNotification", meta.implemented);
 CjsSchema.exposure.interface("ITriEffectParameter")(ITriEffectParameter);

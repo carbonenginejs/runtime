@@ -5,7 +5,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Formation } from "./Formation.js";
 import { SplineTunnelGroup } from "./tunnels/SplineTunnelGroup.js";
 import { mat4 } from "#math/mat4";
@@ -334,7 +334,6 @@ export class FollowASpline extends IRoot
   }
 
   /** Blue exposure "remapTunnels" of UpdateTunnelRegistry (FollowASpline_Blue.cpp:37). */
-  @blue.method
   @meta.adapted
   remapTunnels()
   {

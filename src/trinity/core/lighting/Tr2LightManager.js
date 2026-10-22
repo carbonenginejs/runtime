@@ -1200,11 +1200,11 @@ export class Tr2LightManager
 // States: _InsertAtlasNode is Tr2LightManager.cpp:719-788 branch for branch and getLightProfileArray is cpp:682-686. _CreateShadowMapAtlas (cpp:442-504) and
 // _GetShadowMapAtlasEntry (cpp:790-808) are adapted: the position comes back through an out object, the records are the flat _records, and the
 // "everything fit" assert is dropped.
-CjsSchema.decorateMethod(Tr2LightManager, "_CreateShadowMapAtlas", meta.adapted, meta.renamed("CreateShadowMapAtlas"));
-CjsSchema.decorateMethod(Tr2LightManager, "_GetShadowMapAtlasEntry", meta.adapted, meta.renamed("GetShadowMapAtlasEntry"));
-CjsSchema.decorateMethod(Tr2LightManager, "_InsertAtlasNode", meta.implemented, meta.renamed("InsertAtlasNode"));
-CjsSchema.decorateMethod(Tr2LightManager, "areLightFlagsValid", meta.renamed("AreLightFlagsValid"));
-CjsSchema.decorateMethod(Tr2LightManager, "getOrCreateInstance", meta.renamed("GetOrCreateInstance"));
-CjsSchema.decorateMethod(Tr2LightManager, "getInstance", meta.renamed("GetInstance"));
-CjsSchema.decorateMethod(Tr2LightManager, "deleteInstance", meta.renamed("DeleteInstance"));
-CjsSchema.decorateMethod(Tr2LightManager, "getLightProfileArray", meta.implemented, meta.renamed("GetLightProfileArray"));
+CjsSchema.decorateMethod(Tr2LightManager, "_CreateShadowMapAtlas", meta.adapted);
+CjsSchema.decorateMethod(Tr2LightManager, "_GetShadowMapAtlasEntry", meta.adapted);
+CjsSchema.decorateMethod(Tr2LightManager, "_InsertAtlasNode", meta.implemented);
+CjsSchema.decorateMethod(Tr2LightManager, "areLightFlagsValid");
+CjsSchema.decorateMethod(Tr2LightManager, "getOrCreateInstance");
+CjsSchema.decorateMethod(Tr2LightManager, "getInstance");
+CjsSchema.decorateMethod(Tr2LightManager, "deleteInstance");
+CjsSchema.decorateMethod(Tr2LightManager, "getLightProfileArray", meta.implemented);

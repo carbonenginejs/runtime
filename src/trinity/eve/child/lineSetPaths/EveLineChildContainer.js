@@ -292,7 +292,7 @@ export class EveLineChildContainer extends IEveLineSetPath
 
   /** Carbon declares no container-specific debug options (cpp:170-173). */
 
-  @meta.noop
+  @meta.adapted
   GetDebugOptions(_options)
   {
   }

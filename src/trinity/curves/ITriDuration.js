@@ -1,6 +1,6 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITriDuration.h:9-28
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -89,7 +89,7 @@ export class ITriDuration extends IRoot
 
 for (const method of [ "Start", "SetStartTime", "Sort", "ScaleTime", "Reverse", "ScaleValue", "Length", "Extrapolation" ])
 {
-  CjsSchema.decorateMethod(ITriDuration, method, blue.abstract);
+  CjsSchema.decorateMethod(ITriDuration, method, meta.abstract);
 }
 CjsSchema.exposure.inherit(IRoot)(ITriDuration);
 CjsSchema.exposure.interface("ITriDuration")(ITriDuration);

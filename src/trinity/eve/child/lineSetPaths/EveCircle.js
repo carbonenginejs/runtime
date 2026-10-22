@@ -10,7 +10,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
@@ -389,7 +389,7 @@ export class EveCircle extends IEveLineSetPath
 
   /** Carbon declares no circle-specific debug options (cpp:269-271). */
 
-  @meta.noop
+  @meta.adapted
   GetDebugOptions(_options)
   {
   }

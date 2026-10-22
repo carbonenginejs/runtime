@@ -82,7 +82,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     {
       assert.equal(CjsSchema.getMethod(Contract, method).impl.status, "abstract", `${name}.${method}`);
     }
-    if (hasReset) assert.equal(CjsSchema.getMethod(Contract, "Reset").impl.status, "noop");
+    if (hasReset) assert.equal(CjsSchema.getMethod(Contract, "Reset").impl.status, "adapted");
     // Carbon's Be::Time overloads: one shared TimeAsDouble forward per interface, overridden where Carbon differs.
     for (const method of ticks)
     {
@@ -123,7 +123,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     {
       assert.equal(CjsSchema.getMethod(Composed, method).impl.status, "abstract");
     }
-    if (hasReset) assert.equal(CjsSchema.getMethod(Composed, "Reset").impl.status, "noop");
+    if (hasReset) assert.equal(CjsSchema.getMethod(Composed, "Reset").impl.status, "adapted");
   });
 
   test(`${name} keeps concrete operations and raw arguments separate from explicit query exposure`, () =>

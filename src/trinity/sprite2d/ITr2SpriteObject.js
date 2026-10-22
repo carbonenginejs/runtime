@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/ITr2SpriteObject.h
-import { blue } from "#schema";
+import { meta } from "#schema";
 
 /** Native IRoot-shaped abstract contract shared by Sprite2D objects. */
 @be.interface("ITr2SpriteObject")
@@ -14,7 +14,7 @@ export class ITr2SpriteObject extends IRoot
    * @param {object} _renderer Sprite scene renderer.
    * @returns {void}
    */
-  @blue.abstract
+  @meta.abstract
   GatherSprites(_renderer) {}
 
   /**
@@ -24,7 +24,7 @@ export class ITr2SpriteObject extends IRoot
    * @param {object} _renderer Sprite scene renderer.
    * @returns {ITr2SpriteObject|null}
    */
-  @blue.abstract
+  @meta.abstract
   PickPoint(_x, _y, _renderer) {}
 
   /**
@@ -32,14 +32,14 @@ export class ITr2SpriteObject extends IRoot
    * @param {ITr2SpriteObject|null} _parent New parent.
    * @returns {void}
    */
-  @blue.abstract
+  @meta.abstract
   SetParent(_parent) {}
 
   /**
    * Required native SetDirty contract.
    * @returns {void}
    */
-  @blue.abstract
+  @meta.abstract
   SetDirty() {}
 
   /**
@@ -47,14 +47,14 @@ export class ITr2SpriteObject extends IRoot
    * @param {ITr2SpriteObject|null} _child Changed child.
    * @returns {void}
    */
-  @blue.abstract
+  @meta.abstract
   SetChildDirty(_child) {}
 
   /**
    * Required native IsAuxMouseover contract.
    * @returns {boolean}
    */
-  @blue.abstract
+  @meta.abstract
   IsAuxMouseover() {}
 
 }

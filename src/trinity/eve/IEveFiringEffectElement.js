@@ -55,35 +55,35 @@ export class IEveFiringEffectElement extends EveEntity
 
   /** Runs the optional general update hook. */
 
-  @meta.noop
+  @meta.adapted
   Update(_updateContext)
   {
   }
 
   /** Registers optional content with a quad renderer. */
 
-  @meta.noop
+  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
   /** Adds optional quad records to a quad renderer. */
 
-  @meta.noop
+  @meta.adapted
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }
 
   /** Applies an optional intensity multiplier. */
 
-  @meta.noop
+  @meta.adapted
   SetIntensity(_intensity)
   {
   }
 
   /** Applies an optional display state. */
 
-  @meta.noop
+  @meta.adapted
   SetDisplay(_display)
   {
   }

@@ -7,7 +7,7 @@ import { ITriFunction } from "../../global/blue/ITriFunction.js";
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { mat4 } from "#math/mat4";
 import { ITr2BoundingBox } from "#interfaces";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 
 
@@ -302,7 +302,6 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
 
   /** Publishes a projection covering the full active viewport. */
 
-  @meta.renamed("SetFullViewportProjection")
   #SetFullViewportProjection(viewport)
   {
     this.projectedX = viewport.x;
@@ -324,7 +323,6 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
 
   /** Applies authored size and integer-coordinate constraints. */
 
-  @meta.renamed("ConstrainProjection")
   #ConstrainProjection(boxCenter, matrix, viewport)
   {
     let centerX = this.projectedX + this.projectedWidth * 0.5;
@@ -355,7 +353,6 @@ export class Tr2ProjectBoundingBoxBracket extends IRoot
 
   /** Validates and publishes the current projected rectangle. */
 
-  @meta.renamed("PublishProjection")
   #PublishProjection(viewport)
   {
     if (this.projectedWidth <= 0 || this.projectedHeight <= 0 || !this.#ClampToScreenMargin(viewport))

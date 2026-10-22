@@ -177,7 +177,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -191,7 +191,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;

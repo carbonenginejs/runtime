@@ -1,6 +1,6 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2Renderable.h
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Native nominal picking contract, independent of the renderable contract. */
 export class ITr2Pickable extends IRoot
@@ -26,6 +26,6 @@ export class ITr2Pickable extends IRoot
   GetPickingBatches(_batches, _pickTypes, _perObjectData) {}
 }
 
-CjsSchema.decorateMethod(ITr2Pickable, "GetID", blue.abstract);
-CjsSchema.decorateMethod(ITr2Pickable, "GetPickingBatches", blue.abstract);
+CjsSchema.decorateMethod(ITr2Pickable, "GetID", meta.abstract);
+CjsSchema.decorateMethod(ITr2Pickable, "GetPickingBatches", meta.abstract);
 CjsSchema.exposure.interface("ITr2Pickable")(ITr2Pickable);

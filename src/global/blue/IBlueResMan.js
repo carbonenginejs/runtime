@@ -15,7 +15,7 @@ import { IRoot } from "./IRoot.js";
 // `SaveObjectW`, and `LoadObject`'s `const char*` / `const wchar_t*`
 // overloads) are identical in JavaScript, whose strings carry no encoding;
 // every one exists, and one forwards to the other.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `BlueResManQueue` - the queues the manager runs work on. */
 export const BlueResManQueue = Object.freeze({
@@ -160,7 +160,7 @@ for (const method of [
   "GetPendingLoads", "GetPendingPrepares", "RegisterResourceConstructor", "UnregisterResourceConstructor"
 ])
 {
-  CjsSchema.decorateMethod(IBlueResMan, method, blue.abstract);
+  CjsSchema.decorateMethod(IBlueResMan, method, meta.abstract);
 }
 
 CjsSchema.exposure.interface("IBlueResMan")(IBlueResMan);

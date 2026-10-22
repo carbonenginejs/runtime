@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/TriRenderStep.h
 // Source: trinity/trinity/RenderJob/TriRenderStep.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -61,7 +61,7 @@ export class TriRenderStep extends IRoot
    * concrete step that omits it is an incomplete implementation and fails
    * loudly when executed.
   */
-  @blue.abstract
+  @meta.abstract
   Execute(_realTime, _simTime, _context) {}
 
   /**

@@ -544,7 +544,7 @@ export class ResourceInfo
     }
 }
 
-CjsSchema.decorateMethod(ResourceInfo, "typeId", meta.renamed("TypeId"), meta.implemented);
+CjsSchema.decorateMethod(ResourceInfo, "typeId", meta.implemented);
 CjsSchema.decorateMethod(ResourceInfo, "GetRelativePath", meta.adapted);
 CjsSchema.decorateMethod(ResourceInfo, "GetType", meta.adapted);
 CjsSchema.decorateMethod(ResourceInfo, "GetChecksum", meta.adapted);

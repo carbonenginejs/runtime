@@ -4,7 +4,7 @@ import { IRoot } from "./IRoot.js";
 // The copier as its CALLERS see it. `Copier` is the one implementation;
 // `be.classes.CopyTo`/`CloneTo` are how most callers reach it. The hook a
 // class implements for state outside its members is ICopierCustomAssignment.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `ICopier` - copies a Blue object through its persisted members, per blueexposure/include/ICopier.h. */
 export class ICopier extends IRoot
@@ -40,7 +40,7 @@ export class ICopier extends IRoot
 
 for (const method of [ "SetCopyOverrideCallback", "SetPostCopyCallback", "CopyTo" ])
 {
-  CjsSchema.decorateMethod(ICopier, method, blue.abstract);
+  CjsSchema.decorateMethod(ICopier, method, meta.abstract);
 }
 
 CjsSchema.exposure.interface("ICopier")(ICopier);

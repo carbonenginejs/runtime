@@ -1,6 +1,6 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveEffectChildrenOwner.h:9-15
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for an object that keeps a named list of effect children, as EveEffectRoot2 does. */
@@ -30,7 +30,7 @@ export class IEveEffectChildrenOwner extends IRoot
 
 for (const method of [ "GetEffectChildByName", "AddToEffectChildrenList", "RemoveFromEffectChildrenList" ])
 {
-  CjsSchema.decorateMethod(IEveEffectChildrenOwner, method, blue.abstract);
+  CjsSchema.decorateMethod(IEveEffectChildrenOwner, method, meta.abstract);
 }
 CjsSchema.exposure.inherit(IRoot)(IEveEffectChildrenOwner);
 CjsSchema.exposure.interface("IEveEffectChildrenOwner")(IEveEffectChildrenOwner);

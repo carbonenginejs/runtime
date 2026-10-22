@@ -20,7 +20,7 @@ import { IRoot } from "#blue/IRoot";
 // - `SendEvent` returns the playing id (Carbon's unsigned int), 0 when
 //   invalid.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 const EMITTER_METHODS = [
@@ -131,7 +131,7 @@ export class ITr2AudEmitter extends IRoot
 }
 
 
-for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, blue.abstract);
-CjsSchema.decorateMethod(ITr2AudEmitter, "Initialize__WithParameters", meta.renamed("Initialize"));
+for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, meta.abstract);
+CjsSchema.decorateMethod(ITr2AudEmitter, "Initialize__WithParameters");
 be.inherit(IRoot)(ITr2AudEmitter);
 CjsSchema.exposure.interface("ITr2AudEmitter")(ITr2AudEmitter);

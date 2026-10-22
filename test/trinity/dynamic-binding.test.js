@@ -451,7 +451,7 @@ test("dynamic graph classes live only in maintained human-readable trees", () =>
     assert.equal(existsSync(new URL(path, import.meta.url)), false, path);
   }
   assert.equal(CjsSchema.getMethod(Tr2DynamicBinding, "Link")?.impl?.status, "adapted");
-  assert.equal(CjsSchema.getMethod(EveMultiEffect, "UpdateAsyncronous")?.impl?.status, "noop");
+  assert.equal(CjsSchema.getMethod(EveMultiEffect, "UpdateAsyncronous")?.impl?.status, "adapted");
   const sourceProperty = CjsSchema.getSchema(TriValueBinding).properties.find(field => field.name === "sourceObject");
   const sourceMember = CjsSchema.getSchema(TriValueBinding).members.find(field => field.name === "sourceObject");
   assert.notEqual(sourceProperty.edit.persist, true);

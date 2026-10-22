@@ -7,7 +7,7 @@
 // virtual, which is why Tr2StateMachineState's calls into its finalizer were
 // hedged: the hedge was emulating the empty bodies one call site at a time.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IRoot } from "../../../global/blue/IRoot.js";
 
 
@@ -21,14 +21,14 @@ export class ITr2StateMachineStateFinalizer extends IRoot
    * @param {object} _controller The owning controller.
    */
 
-  @meta.noop
+  @meta.adapted
   Link(_controller)
   {
   }
 
   /** Detaches this finalizer, dropping every reference to the controller. */
 
-  @meta.noop
+  @meta.adapted
   Unlink()
   {
   }
@@ -42,7 +42,7 @@ export class ITr2StateMachineStateFinalizer extends IRoot
    * @param {object} _controller The owning controller.
    * @returns {boolean} Whether the state machine may leave the current state.
    */
-  @blue.abstract
+  @meta.abstract
   CanTransition(_controller) {}
 }
 

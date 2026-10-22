@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PrimitiveSet.cpp
 // Source: trinity/trinity/Tr2PrimitiveSet_Blue.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -97,7 +97,7 @@ export class Tr2PrimitiveSet extends IRoot
 
   /** Carbon method SetCurrentColor (MAP_METHOD_AND_WRAP). */
   @be.mapMethodAndWrap()
-  @meta.noop
+  @meta.adapted
   SetCurrentColor(_color)
   {
   }
@@ -122,7 +122,7 @@ export class Tr2PrimitiveSet extends IRoot
   }
 
   /** Native subclasses supply their own geometry. */
-  @blue.abstract
+  @meta.abstract
   GetBatchesImpl(_accumulator, _perObjectData, _effect, _reason) {}
 
   /** Native primitive sets participate in transparent sorting (cpp:47). */

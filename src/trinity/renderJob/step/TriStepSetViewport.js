@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.h
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -21,7 +21,6 @@ export class TriStepSetViewport extends TriRenderStep
   viewport = null;
 
   /** Stores the viewport this step installs. */
-  @blue.method
   @meta.adapted
   __init__(viewport = null)
   {

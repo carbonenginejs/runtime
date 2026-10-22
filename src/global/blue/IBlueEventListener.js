@@ -1,7 +1,7 @@
 import { IRoot } from "./IRoot.js";
 // Source: blue/include/IBlueEventListener.h:7-10
 // Source: blue/src/IBlueEventListener_Blue.cpp:6
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -21,7 +21,7 @@ export class IBlueEventListener extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(IBlueEventListener, "HandleEvent", blue.abstract);
+CjsSchema.decorateMethod(IBlueEventListener, "HandleEvent", meta.abstract);
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.
 CjsSchema.exposure.interface("IBlueEventListener")(IBlueEventListener);

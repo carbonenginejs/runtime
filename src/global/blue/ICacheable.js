@@ -4,7 +4,7 @@ import { IRoot } from "./IRoot.js";
 // An object that can say how much memory it holds. MotherLode asks for it when
 // a resource stops being used and keeps the resource in its byte-budgeted cache
 // while it fits (MotherLode.cpp:329-401); a class without it is dropped instead.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `ICacheable` - reports an object's memory use to the cache. */
 export class ICacheable extends IRoot
@@ -26,7 +26,7 @@ export class ICacheable extends IRoot
   GetMemoryUsage() {}
 }
 
-CjsSchema.decorateMethod(ICacheable, "IsMemoryUsageKnown", blue.abstract);
-CjsSchema.decorateMethod(ICacheable, "GetMemoryUsage", blue.abstract);
+CjsSchema.decorateMethod(ICacheable, "IsMemoryUsageKnown", meta.abstract);
+CjsSchema.decorateMethod(ICacheable, "GetMemoryUsage", meta.abstract);
 
 CjsSchema.exposure.interface("ICacheable")(ICacheable);

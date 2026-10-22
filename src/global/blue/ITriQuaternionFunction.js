@@ -1,5 +1,5 @@
 // Source: blue/include/ITriFunction.h:127-184
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
 import { CcpTime } from "./CcpTime.js";
 
@@ -119,7 +119,7 @@ export class ITriQuaternionFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt" ])
 {
-  CjsSchema.decorateMethod(ITriQuaternionFunction, method, blue.abstract);
+  CjsSchema.decorateMethod(ITriQuaternionFunction, method, meta.abstract);
 }
 CjsSchema.decorateMethod(ITriQuaternionFunction, "Update__Ticks", meta.adapted);
 CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAt__Ticks", meta.adapted);

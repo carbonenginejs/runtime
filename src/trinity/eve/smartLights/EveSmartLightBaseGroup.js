@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IEveSmartLightGroup } from "./IEveSmartLightGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { resolveFactionColor } from "../resolveFactionColor.js";
@@ -70,44 +70,38 @@ export class EveSmartLightBaseGroup extends IRoot
   _resolvedGroupColor = color.createLinear();
 
   /** IEveSmartLightGroup default: no asynchronous work. */
-  @meta.noop
-  @blue.method
+  @meta.adapted
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
   /** IEveSmartLightGroup default: no synchronous work. */
-  @meta.noop
-  @blue.method
+  @meta.adapted
   UpdateSyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
   /** IEveSmartLightGroup default: no visibility state. */
-  @blue.method
-  @meta.noop
+  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** IEveSmartLightGroup default: contributes no renderables. */
-  @blue.method
-  @meta.noop
+  @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;
   }
 
   /** IEveSmartLightGroup default: contributes no quads. */
-  @blue.method
-  @meta.noop
+  @meta.adapted
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
 
   /** IEveSmartLightGroup default: registers no quad effect. */
-  @blue.method
-  @meta.noop
+  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }

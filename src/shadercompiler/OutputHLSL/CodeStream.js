@@ -1,4 +1,4 @@
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/OutputHLSL.h
 
 /**
@@ -125,8 +125,8 @@ export class CodeStream
     });
 }
 
-CjsSchema.decorateMethod(CodeStream, "Endl", blue.abstract);
-CjsSchema.decorateMethod(CodeStream, "ChangeLocation", blue.abstract);
-CjsSchema.decorateMethod(CodeStream, "Indent", blue.abstract);
-CjsSchema.decorateMethod(CodeStream, "Unindent", blue.abstract);
+CjsSchema.decorateMethod(CodeStream, "Endl", meta.abstract);
+CjsSchema.decorateMethod(CodeStream, "ChangeLocation", meta.abstract);
+CjsSchema.decorateMethod(CodeStream, "Indent", meta.abstract);
+CjsSchema.decorateMethod(CodeStream, "Unindent", meta.abstract);
 CjsSchema.meta.carbon("CodeStream")(CodeStream);

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.h
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -18,7 +18,6 @@ export class TriStepSetProjection extends TriRenderStep
   projection = null;
 
   /** Stores the projection this step installs. */
-  @blue.method
   @meta.adapted
   __init__(projection = null)
   {

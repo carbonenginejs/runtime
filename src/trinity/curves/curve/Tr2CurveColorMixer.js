@@ -5,7 +5,7 @@ import { color } from "#math/color";
 import { num } from "#math/num";
 import { vec4 } from "#math/vec4";
 import { ITriFunction, ITriColorFunction, ITriCurveLength } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -170,7 +170,6 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {

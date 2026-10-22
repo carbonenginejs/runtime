@@ -9,7 +9,7 @@ import { exposure as be } from "#be";
 // monitored-parameter refcounts, and prioritization wiring are pure logic.
 import { IRoot } from "#blue/IRoot";
 import { IBlueEvents } from "#blue/IBlueEvents";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { AudGeometry } from "./AudGeometry.js";
 import { AudObstructionOcclusion } from "./AudObstructionOcclusion/index.js";
@@ -90,7 +90,6 @@ export class AudManager extends IRoot
   }
 
   /** Carbon method GetState. */
-  @blue.method
   @meta.adapted
   GetState()
   {

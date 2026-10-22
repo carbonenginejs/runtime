@@ -147,5 +147,5 @@ CjsSchema.decorateMethod(ResourceGroup, "ExportToFile", meta.adapted);
 CjsSchema.decorateMethod(ResourceGroup, "CreateBundle", meta.notImplemented);
 CjsSchema.decorateMethod(ResourceGroup, "CreatePatch", meta.notImplemented);
 CjsSchema.decorateMethod(ResourceGroup, "CreateFromDirectory", meta.notImplemented);
-CjsSchema.decorateMethod(ResourceGroup, "createFromFilter", meta.renamed("CreateFromFilter"), meta.notImplemented);
+CjsSchema.decorateMethod(ResourceGroup, "createFromFilter", meta.notImplemented);
 CjsSchema.meta.carbon("ResourceGroup")(ResourceGroup);

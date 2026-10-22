@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation_Blue.cpp
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, ITriCurveLength } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -91,7 +91,6 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -106,7 +105,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -120,7 +119,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;

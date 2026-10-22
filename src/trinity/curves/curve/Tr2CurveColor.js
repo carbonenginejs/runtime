@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { ITriColorFunction, ITriFunction, ITriCurveLength } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -139,7 +139,6 @@ export class Tr2CurveColor extends ITriColorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {

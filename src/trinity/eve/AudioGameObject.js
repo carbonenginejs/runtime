@@ -12,7 +12,7 @@ import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 
@@ -180,7 +180,7 @@ export class AudioGameObject extends IRoot
 
   /** IEveSpaceObject2 hook; an audio object contributes no renderables. */
 
-  @meta.noop
+  @meta.adapted
   GetRenderables__Impostors(_renderables, _impostors)
   {
   }

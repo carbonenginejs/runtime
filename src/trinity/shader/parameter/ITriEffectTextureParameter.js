@@ -10,7 +10,7 @@
 //
 // Carbon's spelling of "Loding" is kept. It is the donor's method name.
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 
@@ -26,15 +26,15 @@ export class ITriEffectTextureParameter extends ITriEffectResourceParameter
 
 
   /** Reports the on-screen size this texture is drawn at, and returns the LOD that demands. */
-  @blue.abstract
+  @meta.abstract
   UsedWithScreenSize(_screenSize, _worldRadius, _uvDensities) {}
 
   /** Turns mip selection on, against one density scale per UV set. */
-  @blue.abstract
+  @meta.abstract
   EnableTextureLoding(_uvDensityScale) {}
 
   /** Turns mip selection off. */
-  @blue.abstract
+  @meta.abstract
   DisableTextureLoding() {}
 }
 

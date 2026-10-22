@@ -27,7 +27,7 @@
 // back what it wrote (operator ruling 2026-09-27; see the research page
 // `blue-values-engine.md`). Selection is owner-first, stored-before-live within
 // an owner, with no flag merging or filter fallback. Selected aliases name it too.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
 import { mappedInterfaces } from "../compose/interface.js";
@@ -352,9 +352,9 @@ CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadStructureList", meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "FindEntry", meta.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadValue", blue.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadIRoot", blue.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootClass", blue.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadList", blue.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadBinaryBlock", blue.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadValue", meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadIRoot", meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootClass", meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadList", meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadBinaryBlock", meta.abstract);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootPtr", meta.renamed("HandlePropertyIRootPtr"), meta.notImplemented);

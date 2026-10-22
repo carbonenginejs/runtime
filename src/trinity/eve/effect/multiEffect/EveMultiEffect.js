@@ -6,7 +6,7 @@ import { exposure as be } from "#be";
 import { IInitialize, IListNotify } from "#blue";
 import { ITr2DynamicBindingOwner } from "../../ITr2DynamicBindingOwner.js";
 import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { EveMultiEffectParameter } from "./EveMultiEffectParameter.js";
 import { Tr2DynamicBinding } from "../../../core/binding/Tr2DynamicBinding.js";
 import { ITr2Controller } from "../../../controllers/ITr2Controller/ITr2Controller.js";
@@ -328,7 +328,7 @@ export class EveMultiEffect extends IRoot
    * synchronously.
    */
 
-  @meta.noop
+  @meta.adapted
   UpdateAsyncronous(_updateContext)
   {
   }
@@ -344,7 +344,7 @@ export class EveMultiEffect extends IRoot
    * IEveSpaceObject2 hook; the effect contributes no renderables - it animates
    * objects that are collected by their own owners.
    */
-  @meta.noop
+  @meta.adapted
 
   GetRenderables__Impostors(_renderables, _impostors)
   {
@@ -363,7 +363,7 @@ export class EveMultiEffect extends IRoot
    * own.
    */
 
-  @meta.noop
+  @meta.adapted
   GetPerObjectStructs(_vsData, _psData)
   {
   }
@@ -383,7 +383,7 @@ export class EveMultiEffect extends IRoot
    * multi-effect has no model centre to report.
    */
 
-  @meta.noop
+  @meta.adapted
   GetModelCenterWorldPosition(_position)
   {
   }
@@ -401,7 +401,7 @@ export class EveMultiEffect extends IRoot
    * caller's matrix is left as it was.
    */
 
-  @meta.noop
+  @meta.adapted
   GetLocalToWorldTransform(_transform)
   {
   }

@@ -10,7 +10,7 @@ import { IRoot } from "./IRoot.js";
 // Two members have bodies in Carbon (`{}`): OnObjectDestroyed and OnSelected.
 // They stay concrete here, so an implementer that does not care about them
 // inherits the empty body, as a C++ subclass does.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IBlueObjectBuilder` - creates the object a proxy stands for, from a marker. */
 export class IBlueObjectBuilder extends IRoot
@@ -66,7 +66,7 @@ export class IBlueObjectBuilder extends IRoot
 
 for (const name of [ "CreateObjectWithYield", "CreateObject", "GetErrorMessage" ])
 {
-  CjsSchema.decorateMethod(IBlueObjectBuilder, name, blue.abstract);
+  CjsSchema.decorateMethod(IBlueObjectBuilder, name, meta.abstract);
 }
 CjsSchema.decorateMethod(IBlueObjectBuilder, "OnObjectDestroyed", meta.implemented);
 CjsSchema.decorateMethod(IBlueObjectBuilder, "OnSelected", meta.implemented);

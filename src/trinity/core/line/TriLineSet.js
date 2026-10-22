@@ -368,6 +368,6 @@ CjsSchema.decorateMethod(TriLineSet, "AddDefaultColor");
 CjsSchema.decorateMethod(TriLineSet, "AddTransformed");
 CjsSchema.decorateMethod(TriLineSet, "AddCylinder");
 CjsSchema.decorateMethod(TriLineSet, "AddCone");
-CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox__MinMax", meta.renamed("AddOrientedBox"));
+CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox__MinMax");
 CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox");
 CjsSchema.decorateMethod(TriLineSet, "SubmitGeometry");

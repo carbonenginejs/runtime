@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepPythonCB.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { CjsScriptCallback } from "#blue";
 
@@ -17,7 +17,6 @@ export class TriStepPythonCB extends TriRenderStep
   callback = null;
 
   /** Carbon method __init__ -> SetCallback (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
   @meta.adapted
   __init__(callback = null)
   {

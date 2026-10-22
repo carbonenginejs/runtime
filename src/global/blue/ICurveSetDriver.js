@@ -1,6 +1,6 @@
 import { IRoot } from "./IRoot.js";
 // Source: blue/include/ICurveSetDriver.h:6-8
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -20,5 +20,5 @@ export class ICurveSetDriver extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(ICurveSetDriver, "GetCurveSetTime", blue.abstract);
+CjsSchema.decorateMethod(ICurveSetDriver, "GetCurveSetTime", meta.abstract);
 CjsSchema.exposure.interface("ICurveSetDriver")(ICurveSetDriver);

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/ITr2Interior.h
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITr2InteriorCullable } from "./ITr2InteriorCullable.js";
 
 /** Carbon's ITr2Interior nominal interior contract. */
@@ -9,5 +9,5 @@ export class ITr2Interior extends ITr2InteriorCullable
   GetPerObjectDataWithPerInstanceLighting(_accumulator, _lightSet, _objectToWorldMatrix) {}
 
 }
-CjsSchema.decorateMethod(ITr2Interior, "GetPerObjectDataWithPerInstanceLighting", blue.abstract);
+CjsSchema.decorateMethod(ITr2Interior, "GetPerObjectDataWithPerInstanceLighting", meta.abstract);
 CjsSchema.exposure.interface("ITr2Interior")(ITr2Interior);

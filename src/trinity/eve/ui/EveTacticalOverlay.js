@@ -9,7 +9,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { num } from "#math/num";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
@@ -315,7 +315,7 @@ export class EveTacticalOverlay
   }
 
   /** Carbon's tactical overlay has no ordinary renderable children. */
-  @meta.noop
+  @meta.adapted
 
   GetRenderables__Impostors(_renderables, _impostors)
   {

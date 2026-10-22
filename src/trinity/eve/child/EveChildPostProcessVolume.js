@@ -6,7 +6,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -148,8 +148,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Post-process volumes publish no renderables (EveChildPostProcessVolume.h:40). */
-  @blue.method
-  @meta.noop
+  @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;

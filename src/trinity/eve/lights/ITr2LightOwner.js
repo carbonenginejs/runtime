@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Carbon also registers this as the "LightOwner" component type (ITr2LightOwner.h:18,
 // REGISTER_COMPONENT_TYPE); the component registry is a separate mechanism and is not
 // declared here.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for an object that owns lights and hands them to a light manager. */
@@ -35,8 +35,8 @@ export class ITr2LightOwner extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(ITr2LightOwner, "GetLights", blue.abstract);
-CjsSchema.decorateMethod(ITr2LightOwner, "AddLight", blue.method, meta.noop);
-CjsSchema.decorateMethod(ITr2LightOwner, "ClearLights", blue.method, meta.noop);
+CjsSchema.decorateMethod(ITr2LightOwner, "GetLights", meta.abstract);
+CjsSchema.decorateMethod(ITr2LightOwner, "AddLight", meta.adapted);
+CjsSchema.decorateMethod(ITr2LightOwner, "ClearLights", meta.adapted);
 CjsSchema.exposure.inherit(IRoot)(ITr2LightOwner);
 CjsSchema.exposure.interface("ITr2LightOwner")(ITr2LightOwner);

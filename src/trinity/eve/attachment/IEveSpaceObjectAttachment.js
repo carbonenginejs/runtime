@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/IEveSpaceObjectAttachment.h
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { EveEntity } from "../EveEntity.js";
 
@@ -22,49 +22,49 @@ export class IEveSpaceObjectAttachment extends EveEntity
 
   /** Contributes renderer-neutral batches when the attachment supports them. */
 
-  @meta.noop
+  @meta.adapted
   GetBatches(_batches, _batchType, _perObjectData, _reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
   }
 
   /** Registers optional attachment content with a quad renderer. */
 
-  @meta.noop
+  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
   /** Adds optional attachment records to a quad renderer. */
 
-  @meta.noop
+  @meta.adapted
   AddToQuadRenderer(_quadRenderer, _parentTransform, _activation, _boosterGain, _bones, _boneCount)
   {
   }
 
   /** Adds attachment-specific debug controls when available. */
 
-  @meta.noop
+  @meta.adapted
   GetDebugOptions(_options)
   {
   }
 
   /** Renders optional attachment debug information. */
 
-  @meta.noop
+  @meta.adapted
   RenderDebugInfo(_renderer, _parentTransform, _bones, _boneCount)
   {
   }
 
   /** Applies an optional shader option to the attachment. */
 
-  @meta.noop
+  @meta.adapted
   SetShaderOption(_name, _value)
   {
   }
 
   /** Updates optional lights owned by the attachment. */
 
-  @meta.noop
+  @meta.adapted
   UpdateLights(_parentTransform, _bones, _boneCount, _parentStrength, _boosterGain)
   {
   }

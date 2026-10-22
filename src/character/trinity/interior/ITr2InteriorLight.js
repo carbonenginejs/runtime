@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/ITr2Interior.h
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITr2InteriorCullable } from "./ITr2InteriorCullable.js";
 
 /** Native interior-light interface identity; it has no persisted model fields. */
@@ -13,6 +13,6 @@ export class ITr2InteriorLight extends ITr2InteriorCullable
 }
 for (const method of [ "PopulateLightData", "Update" ])
 {
-  CjsSchema.decorateMethod(ITr2InteriorLight, method, blue.abstract);
+  CjsSchema.decorateMethod(ITr2InteriorLight, method, meta.abstract);
 }
 CjsSchema.exposure.interface("ITr2InteriorLight")(ITr2InteriorLight);

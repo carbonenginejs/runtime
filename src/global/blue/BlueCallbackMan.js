@@ -769,10 +769,10 @@ CjsSchema.decorateMethod(BlueCallbackMan, "SetThreadCount", meta.implemented);
 CjsSchema.decorateMethod(BlueCallbackMan, "SetName", meta.adapted);
 be.define("BlueCallbackMan")(BlueCallbackMan);
 
-CjsSchema.decorateMethod(BlueCallbackMan, "_AddHelper", meta.renamed("AddHelper"), meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "_UpdateThread", meta.renamed("UpdateThread"), meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "_RemoveFromQueue", meta.renamed("RemoveFromQueue"), meta.adapted);
-CjsSchema.decorateMethod(BlueCallbackMan, "_ExtractFromQueue", meta.renamed("ExtractFromQueue"), meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "_AddHelper", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "_UpdateThread", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "_RemoveFromQueue", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "_ExtractFromQueue", meta.adapted);
 
 /**
  * `BeCallbackMan` (ResourceLoading.cpp:24, :81-91) - the global background

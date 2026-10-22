@@ -19,14 +19,14 @@ export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttri
 
   /** Accepts an optional controller variable. */
 
-  @meta.noop
+  @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }
 
   /** Accepts optional inherited colour properties. */
 
-  @meta.noop
+  @meta.adapted
   SetInheritProperties(_colorSet)
   {
   }

@@ -508,5 +508,5 @@ CjsSchema.decorateMethod(Copier, "SetCopyOverrideCallback", meta.adapted);
 CjsSchema.decorateMethod(Copier, "SetPostCopyCallback", meta.implemented);
 CjsSchema.decorateMethod(Copier, "CopyTo", meta.adapted);
 CjsSchema.decorateMethod(Copier, "CloneTo", meta.adapted);
-CjsSchema.decorateMethod(Copier, "_CopyToInternal", meta.renamed("CopyToInternal"), meta.adapted);
+CjsSchema.decorateMethod(Copier, "_CopyToInternal", meta.adapted);
 CjsSchema.exposure.define("Copier")(Copier);

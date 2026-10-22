@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression_Blue.cpp
 import { ITriScalarFunction, ITriFunction, IInitialize } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -148,7 +148,6 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets the scalar value at a time.
    */
-  @blue.method
   @meta.implemented
   GetValueAt(time)
   {

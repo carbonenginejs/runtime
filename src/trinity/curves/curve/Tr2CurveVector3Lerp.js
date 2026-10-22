@@ -128,7 +128,6 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {

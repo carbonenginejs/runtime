@@ -10,7 +10,7 @@ import { IRoot } from "./IRoot.js";
 // layers that may not import each other; both may import `blue`, so a class
 // one of them owns is reached by the other through this registry. A class
 // nobody registered is simply not found, and the caller fails at the call.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IBlueClasses` - class registration and creation by name, per blueexposure/include/IBlueClasses.h. */
 export class IBlueClasses extends IRoot
@@ -160,7 +160,7 @@ for (const method of [
   "IsPendingDeletesEnabled", "RegisterThunker", "GetRtti"
 ])
 {
-  CjsSchema.decorateMethod(IBlueClasses, method, blue.abstract);
+  CjsSchema.decorateMethod(IBlueClasses, method, meta.abstract);
 }
 
 CjsSchema.exposure.interface("IBlueClasses")(IBlueClasses);

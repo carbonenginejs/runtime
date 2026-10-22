@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/IEveDistributionMethod.h
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 
 /** Required distribution placement contract. */
@@ -32,21 +32,21 @@ export class IEveDistributionMethod extends IRoot
 
   /** Runs the optional synchronous distribution update hook. */
 
-  @meta.noop
+  @meta.adapted
   UpdateSyncronous(_updateContext)
   {
   }
 
   /** Runs the optional asynchronous distribution update hook. */
 
-  @meta.noop
+  @meta.adapted
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Accepts an optional controller variable. */
 
-  @meta.noop
+  @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }

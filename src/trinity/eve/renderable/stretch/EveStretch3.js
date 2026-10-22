@@ -682,7 +682,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * from the moveProgression value instead of a start event.
    */
 
-  @meta.noop
+  @meta.adapted
   StartMoving()
   {
   }
@@ -865,14 +865,14 @@ export class EveStretch3 extends IEveFiringEffectElement
 
   /** Native stretch effects leave the requested model centre untouched. */
 
-  @meta.noop
+  @meta.adapted
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
 
   /** Native stretch effects leave the requested model centre untouched. */
 
-  @meta.noop
+  @meta.adapted
   GetModelCenterWorldPosition(_position)
   {
   }
@@ -887,14 +887,14 @@ export class EveStretch3 extends IEveFiringEffectElement
 
   /** Native stretch effects leave the requested transform untouched. */
 
-  @meta.noop
+  @meta.adapted
   GetLocalToWorldTransform(_transform)
   {
   }
 
   /** IEveFiringEffectElement hook; EveStretch3 cannot hide individual endpoints. */
 
-  @meta.noop
+  @meta.adapted
   DisplayEndPoints(_displaySource, _displayDestination)
   {
   }
@@ -914,7 +914,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * its own.
    */
   @legacyBlue.method
-  @meta.noop
+  @meta.adapted
   SetIntensity(_intensity)
   {
   }

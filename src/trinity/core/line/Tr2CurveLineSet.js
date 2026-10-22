@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Tr2CurveLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 import { INotify, IsMatch } from "#blue";
 import { color } from "#math/color";
@@ -851,7 +851,6 @@ export class Tr2CurveLineSet
    * Appends one tessellated segment's vertices to the line buffer.
    */
 
-  @meta.renamed("addLineData")
   #addLineData(line)
   {
     if (this.emptyLineID.length === 0)
@@ -890,7 +889,6 @@ export class Tr2CurveLineSet
    * Whether a line identifier still refers to a live line.
    */
 
-  @meta.renamed("isValidLineID")
   #isValidLineID(id)
   {
     return Number.isInteger(id) && id >= 0 && id < this.lines.length && this.lines[id].type !== Tr2CurveLineSet.LineType.LINETYPE_INVALID;

@@ -193,7 +193,7 @@ export class EveSmartLightPointLight extends EveEntity
   /** Last lightProfilePath the settle hook applied (JS-only change detection). */
 
   /** IEveSmartLightGroup default: point-light groups have no async work. */
-  @meta.noop
+  @meta.adapted
   @legacyBlue.method
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
@@ -201,14 +201,14 @@ export class EveSmartLightPointLight extends EveEntity
 
   /** IEveSmartLightGroup default: light-manager visibility is handled later. */
   @legacyBlue.method
-  @meta.noop
+  @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** IEveSmartLightGroup default: point lights are components, not renderables. */
   @legacyBlue.method
-  @meta.noop
+  @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;
@@ -216,14 +216,14 @@ export class EveSmartLightPointLight extends EveEntity
 
   /** IEveSmartLightGroup default: point lights contribute no quads. */
   @legacyBlue.method
-  @meta.noop
+  @meta.adapted
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
 
   /** IEveSmartLightGroup default: point lights register no quad effect. */
   @legacyBlue.method
-  @meta.noop
+  @meta.adapted
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }

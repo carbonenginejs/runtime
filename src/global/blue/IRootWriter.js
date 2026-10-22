@@ -14,7 +14,7 @@
 // ruling 2026-09-27; research page `blue-values-engine.md`); YamlWriter opts
 // into Carbon's persisted-only traversal and default comparison.
 import { exposure as be } from "#be";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IRoot } from "./IRoot.js";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
@@ -375,8 +375,8 @@ be.define("IRootWriter")(IRootWriter);
 CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteList", meta.adapted);
-CjsSchema.decorateMethod(IRootWriter, "WriteBinaryBlock", blue.abstract);
-CjsSchema.decorateMethod(IRootWriter, "WriteMemberName", blue.abstract);
-CjsSchema.decorateMethod(IRootWriter, "WriteIRoot", blue.abstract);
-CjsSchema.decorateMethod(IRootWriter, "WriteVectorBegin", blue.abstract);
-CjsSchema.decorateMethod(IRootWriter, "WriteVectorEnd", blue.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteBinaryBlock", meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteMemberName", meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteIRoot", meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteVectorBegin", meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteVectorEnd", meta.abstract);

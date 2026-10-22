@@ -12,7 +12,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { box3 } from "#math/box3";
 import { TriBatchType } from "#consts/graphics";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EntityComponents.js";
@@ -217,7 +217,7 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   /** IEveFiringEffectElement move hook; EveStretch2 has no travelling child. */
 
-  @meta.noop
+  @meta.adapted
   StartMoving()
   {
   }
@@ -316,7 +316,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * in the asynchronous phase.
    */
 
-  @meta.noop
+  @meta.adapted
   UpdateEffectSync(_context)
   {
     return true;

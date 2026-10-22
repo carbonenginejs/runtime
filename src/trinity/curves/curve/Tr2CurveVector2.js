@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveVector2.cpp
 import { vec2 } from "#math/vec2";
 import { ITriFunction, ITriCurveLength } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -137,7 +137,6 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {

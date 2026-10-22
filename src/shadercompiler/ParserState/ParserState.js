@@ -1586,12 +1586,12 @@ function ConvertToPreprocessorToken(type)
     return TO_PREPROCESSOR.get(type) ?? 0;
 }
 
-CjsSchema.decorateMethod(ParserState, "_AddIntrinsics", meta.renamed("AddIntrinsics"));
-CjsSchema.decorateMethod(ParserState, "_ParseMacroArguments", meta.renamed("ParseMacroArguments"));
+CjsSchema.decorateMethod(ParserState, "_AddIntrinsics");
+CjsSchema.decorateMethod(ParserState, "_ParseMacroArguments");
 // States against ParserState.cpp:347-363, 842-1095, 1195-1208, statement for statement. Adapted: AllocateString (the caller passes the text), GetStreamPosition (an offset plus SetStreamPosition stands for the const char*& reference), IncludeFile (the handler is the instance's, buffers are objects), GetPragma (the out string is a { value } object) and GetDX9Functions (keyed by name, where Carbon keys by const char* pointer).
 CjsSchema.decorateMethod(ParserState, "InSkipMode", meta.implemented);
 CjsSchema.decorateMethod(ParserState, "InDiscoverMode", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "_FindConcatOperator", meta.renamed("FindConcatOperator"));
+CjsSchema.decorateMethod(ParserState, "_FindConcatOperator");
 // States against ParserState.cpp:404-840: GetPreprocessorToken (404-509), DiscoverPermutations (632-682) and Parse (684-745) are Carbon's flow including its known defects (CE-71, CE-86, CE-89, CE-92). EvaluatePreprocessorCondition (780-840) is adapted only in that the bool& result is a { value } object.
 CjsSchema.decorateMethod(ParserState, "GetPreprocessorToken", meta.implemented);
 CjsSchema.decorateMethod(ParserState, "DiscoverPermutations", meta.implemented);
@@ -1602,15 +1602,15 @@ CjsSchema.decorateMethod(ParserState, "GetTree", meta.implemented);
 CjsSchema.decorateMethod(ParserState, "GetSymbolTable", meta.implemented);
 CjsSchema.decorateMethod(ParserState, "GetCurrentLocation", meta.implemented);
 CjsSchema.decorateMethod(ParserState, "AllocateName", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "AllocateName__Chars", meta.renamed("AllocateName"));
-CjsSchema.decorateMethod(ParserState, "AllocateName__InlineString", meta.renamed("AllocateName"));
+CjsSchema.decorateMethod(ParserState, "AllocateName__Chars");
+CjsSchema.decorateMethod(ParserState, "AllocateName__InlineString");
 CjsSchema.decorateMethod(ParserState, "AllocateNameWithPrefix", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "AllocateNameWithPrefix__InlineString", meta.renamed("AllocateNameWithPrefix"));
+CjsSchema.decorateMethod(ParserState, "AllocateNameWithPrefix__InlineString");
 CjsSchema.decorateMethod(ParserState, "AllocateString", meta.adapted);
 CjsSchema.decorateMethod(ParserState, "ShowMessage", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "ShowMessage__Location", meta.renamed("ShowMessage"));
-CjsSchema.decorateMethod(ParserState, "ShowMessage__Token", meta.renamed("ShowMessage"));
-CjsSchema.decorateMethod(ParserState, "_ShowMessageImpl", meta.renamed("ShowMessageImpl"));
+CjsSchema.decorateMethod(ParserState, "ShowMessage__Location");
+CjsSchema.decorateMethod(ParserState, "ShowMessage__Token");
+CjsSchema.decorateMethod(ParserState, "_ShowMessageImpl");
 CjsSchema.decorateMethod(ParserState, "AddOfflineStatement", meta.implemented);
 CjsSchema.decorateMethod(ParserState, "MoveOfflineStatements", meta.implemented);
 CjsSchema.decorateMethod(ParserState, "SetTree", meta.implemented);
@@ -1626,6 +1626,6 @@ CjsSchema.decorateMethod(ParserState, "GetPragma", meta.adapted);
 CjsSchema.decorateMethod(ParserState, "GetDX9TextureFunctions", meta.implemented);
 CjsSchema.decorateMethod(ParserState, "GetDX9Functions", meta.adapted);
 CjsSchema.decorateMethod(ParserState, "NewNode", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "NewNode__Token", meta.renamed("NewNode"));
+CjsSchema.decorateMethod(ParserState, "NewNode__Token");
 CjsSchema.decorateMethod(ParserState, "AddBindlessSampler", meta.implemented);
 CjsSchema.meta.carbon("ParserState")(ParserState);

@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
 import { ITriQuaternionFunction, ITriCurveLength, ITriFunction } from "#blue";
 import { quat } from "#math/quat";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "../enums.js";
 import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 
@@ -107,7 +107,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {

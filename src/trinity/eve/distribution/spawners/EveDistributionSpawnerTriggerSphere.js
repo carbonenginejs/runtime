@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSphere.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 import { vec3 } from "#math/vec3";
 
@@ -155,8 +155,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
   }
 
   /** Ignores controller variables; the expansion is purely time-driven. */
-  @blue.method
-  @meta.noop
+  @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }

@@ -4,7 +4,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -218,8 +218,7 @@ export class EveChildQuad extends EveChildTransform
   }
 
   /** Quads render through the quad renderer, never as renderables (EveChildQuad.cpp:103-105). */
-  @blue.method
-  @meta.noop
+  @meta.adapted
   GetRenderables(renderables)
   {
     return renderables;

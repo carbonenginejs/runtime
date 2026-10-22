@@ -4,7 +4,7 @@
 // takes an elapsed SECONDS delta rather than a second absolute time, which is
 // the whole difference: a variable-rate ticker is told how much time passed,
 // a fixed-rate one is told what time it is.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IVariableTicker` - the variable-rate tick callback, per blue/include/IBlueOS.h:246. */
 export class IVariableTicker
@@ -19,6 +19,6 @@ export class IVariableTicker
   OnTick(_timestamp, _deltaTSec, _cookie) {}
 }
 
-CjsSchema.decorateMethod(IVariableTicker, "OnTick", blue.abstract);
+CjsSchema.decorateMethod(IVariableTicker, "OnTick", meta.abstract);
 
 CjsSchema.meta.carbon("IVariableTicker")(IVariableTicker);

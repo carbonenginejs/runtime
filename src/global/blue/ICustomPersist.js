@@ -1,7 +1,7 @@
 import { IRoot } from "./IRoot.js";
 // Source: blueexposure/include/ICustomPersist.h:13-20
 // Source: blueexposure/InterfaceDefinitions.cpp:23
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -69,7 +69,7 @@ export class ICustomPersist extends IRoot
 
 for (const method of [ "GetWriteBufferAndSize", "ReleaseWriteBuffer", "AllocateReadBuffer", "SetBufferAndSize" ])
 {
-  CjsSchema.decorateMethod(ICustomPersist, method, blue.abstract);
+  CjsSchema.decorateMethod(ICustomPersist, method, meta.abstract);
 }
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.

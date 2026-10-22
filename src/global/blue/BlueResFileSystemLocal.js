@@ -14,7 +14,7 @@ import { exposure as be } from "#be";
 //
 // Carbon's paths service creates its local file system itself (BluePaths.cpp:
 // 52-64); here the orchestrator registers one, or none.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { BlueResFileSystemForm, IBlueResFileSystem } from "./IBlueResFileSystem.js";
 
 /** Throws the "no disk" error for one member. */
@@ -252,7 +252,7 @@ CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathForWritingW", be.ma
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathForWriting", meta.cjs, meta.notSupported);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathToRootW", be.mapMethodAndWrap("ResolvePathToRoot"), meta.notSupported);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathToRoot", meta.cjs, meta.notSupported);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths", meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths__Key", meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "LogPaths", meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetInitialWorkingDirectory", meta.notImplemented);

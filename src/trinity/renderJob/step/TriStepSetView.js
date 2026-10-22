@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepSetView.h
 // Source: trinity/trinity/RenderJob/TriStepSetView.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriRenderStep } from "./TriRenderStep.js";
@@ -28,7 +28,6 @@ export class TriStepSetView extends TriRenderStep
   camera = null;
 
   /** Stores the view and camera the step chooses between at execution time. */
-  @blue.method
   @meta.adapted
   __init__(view = null, camera = null)
   {

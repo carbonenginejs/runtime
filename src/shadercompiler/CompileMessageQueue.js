@@ -166,5 +166,5 @@ CjsSchema.decorateMethod(CompileMessageQueue, "AddMessage", meta.adapted);
 CjsSchema.decorateMethod(CompileMessageQueue, "Flush", meta.adapted);
 CjsSchema.decorateMethod(CompileMessageQueue, "SetEntryFileName", meta.implemented);
 CjsSchema.decorateMethod(CompileMessageQueue, "GetEntryFileName", meta.implemented);
-CjsSchema.decorateMethod(CompileMessageQueue, "_OutputMessages", meta.renamed("OutputMessages"));
+CjsSchema.decorateMethod(CompileMessageQueue, "_OutputMessages");
 CjsSchema.meta.carbon("CompileMessageQueue")(CompileMessageQueue);

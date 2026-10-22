@@ -311,7 +311,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @returns {Float32Array} The destination.
    */
 
-  @meta.noop
+  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;

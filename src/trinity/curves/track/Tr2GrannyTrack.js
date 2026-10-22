@@ -164,14 +164,14 @@ export class Tr2GrannyTrack extends IRoot
    *
    * @param {number} _time Local time in seconds.
    */
-  @blue.abstract
+  @meta.abstract
   UpdateValueImpl(_time) {}
 
   /**
    * Carbon's pure virtual `ResetTracks( void )` (Tr2GrannyTrack.h:87): the
    * subclass drops its resource track handles.
    */
-  @blue.abstract
+  @meta.abstract
   ResetTracks() {}
 
   /**
@@ -183,7 +183,7 @@ export class Tr2GrannyTrack extends IRoot
    * @param {number} _duration Animation duration in seconds.
    * @param {number} _timeStep Animation time step in seconds.
    */
-  @blue.abstract
+  @meta.abstract
   ApplyTracks(_group, _duration, _timeStep) {}
 
   /**
@@ -191,6 +191,6 @@ export class Tr2GrannyTrack extends IRoot
    *
    * @returns {boolean} Whether the subclass's track handles are bound.
    */
-  @blue.abstract
+  @meta.abstract
   TracksReady() {}
 }

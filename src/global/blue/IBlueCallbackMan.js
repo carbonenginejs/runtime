@@ -9,7 +9,7 @@ import { IRoot } from "./IRoot.js";
 // The implementation is `BlueCallbackMan`; the browser differences it carries
 // (workers instead of threads, async entries, a cancel that cannot block) are
 // marked there.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IBlueCallbackMan` - a callback queue, per blue/include/IBlueCallbackMan.h. */
 export class IBlueCallbackMan extends IRoot
@@ -118,7 +118,7 @@ for (const method of [
   "SetPriority", "SetThreadCount", "SetName"
 ])
 {
-  CjsSchema.decorateMethod(IBlueCallbackMan, method, blue.abstract);
+  CjsSchema.decorateMethod(IBlueCallbackMan, method, meta.abstract);
 }
 
 CjsSchema.exposure.interface("IBlueCallbackMan")(IBlueCallbackMan);

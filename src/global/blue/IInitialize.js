@@ -22,7 +22,7 @@ import { IRoot } from "./IRoot.js";
 // result. Subclasses chain - `return EveChildMesh::Initialize();` is the
 // donor's own idiom (EveChildTurret.cpp:59).
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IInitialize` - everything has been written; link it up. */
 export class IInitialize extends IRoot
@@ -37,6 +37,6 @@ export class IInitialize extends IRoot
   Initialize() {}
 }
 
-CjsSchema.decorateMethod(IInitialize, "Initialize", blue.abstract);
+CjsSchema.decorateMethod(IInitialize, "Initialize", meta.abstract);
 
 CjsSchema.exposure.interface("IInitialize")(IInitialize);

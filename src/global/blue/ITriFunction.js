@@ -1,6 +1,6 @@
 import { IRoot } from "./IRoot.js";
 // Source: blue/include/ITriFunction.h:30-34
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -30,6 +30,6 @@ export class ITriFunction extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(ITriFunction, "UpdateValue", blue.abstract);
-CjsSchema.decorateMethod(ITriFunction, "Reset", blue.method, meta.noop);
+CjsSchema.decorateMethod(ITriFunction, "UpdateValue", meta.abstract);
+CjsSchema.decorateMethod(ITriFunction, "Reset", meta.adapted);
 CjsSchema.exposure.interface("ITriFunction")(ITriFunction);

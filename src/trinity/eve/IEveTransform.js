@@ -12,7 +12,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // single-overload implementors forward their bare Update to
 // Update__UpdateContext. Children loops call Update__UpdateContext.
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for a child entry a space object drives and renders. */
@@ -25,7 +25,7 @@ export class IEveTransform extends IRoot
    *
    * @param {object} _updateContext The frame's EveUpdateContext.
    */
-  @blue.abstract
+  @meta.abstract
   Update__UpdateContext(_updateContext) {}
 
   /**

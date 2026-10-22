@@ -20,7 +20,7 @@
 //
 // Like Carbon's remote file system, a `.red` path is read as its `.black`
 // twin: the client ships red files compiled.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { normalizePath, normalizeResourcePath } from "#utils/path";
 import { BlueFileUtil } from "./BlueFileUtil.js";
 import { BlueResFileSystemForm, IBlueResFileSystem } from "./IBlueResFileSystem.js";
@@ -482,10 +482,10 @@ CjsSchema.meta.define(CjsBlueResFileSystemFetch, {
     GetPath: [],
     SetPathResolver: [],
     BuildUrl: [],
-    FileExists: [ blue.method, meta.adapted ],
-    IsDirectory: [ blue.method, meta.adapted ],
-    GetDirectoryContents: [ blue.method, meta.adapted ],
-    ResolvePathW: [ blue.method, meta.adapted ],
-    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ]
+    FileExists: [ meta.adapted ],
+    IsDirectory: [ meta.adapted ],
+    GetDirectoryContents: [ meta.adapted ],
+    ResolvePathW: [ meta.adapted ],
+    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });

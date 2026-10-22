@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/IEveDistributionSpawner.h
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 
 /** Distribution spawner contract with Carbon's optional no-op hooks. */
@@ -12,28 +12,28 @@ export class IEveDistributionSpawner extends IRoot
 
   /** Resets the spawner against regenerated placement data. */
 
-  @meta.noop
+  @meta.adapted
   Reset()
   {
   }
 
   /** Restarts spawner state without regenerating placement data. */
 
-  @meta.noop
+  @meta.adapted
   Restart()
   {
   }
 
   /** Runs the optional synchronous spawning update hook. */
 
-  @meta.noop
+  @meta.adapted
   UpdateSyncronous(_updateContext)
   {
   }
 
   /** Accepts an optional controller variable. */
 
-  @meta.noop
+  @meta.adapted
   SetControllerVariable(_name, _value)
   {
   }

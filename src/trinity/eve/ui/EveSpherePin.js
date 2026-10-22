@@ -432,7 +432,7 @@ export class EveSpherePin
 
   /** Native model-center query leaves its output untouched. */
 
-  @meta.noop
+  @meta.adapted
   GetModelCenterWorldPosition(_position)
   {
   }

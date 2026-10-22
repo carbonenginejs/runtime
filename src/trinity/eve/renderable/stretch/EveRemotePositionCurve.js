@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveRemotePositionCurve.cpp
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITriVectorFunction, CcpTime } from "#blue";
 
 
@@ -137,7 +137,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * untouched.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -148,7 +148,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * untouched.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;

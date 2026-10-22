@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRunJob.h
 // Source: trinity/trinity/RenderJob/TriStepRunJob.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -18,7 +18,6 @@ export class TriStepRunJob extends TriRenderStep
   job = null;
 
   /** Stores the nested job this step runs. */
-  @blue.method
   @meta.adapted
   __init__(job = null)
   {

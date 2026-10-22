@@ -30,14 +30,14 @@ export class ITr2ControllerAction extends IRoot
    * @param {object} _controller The driving action controller.
    */
 
-  @meta.noop
+  @meta.adapted
   Link(_controller)
   {
   }
 
   /** Detaches this action, dropping every reference to the controller. */
 
-  @meta.noop
+  @meta.adapted
   Unlink()
   {
   }
@@ -48,7 +48,7 @@ export class ITr2ControllerAction extends IRoot
    * @param {object} _controller The driving action controller.
    */
 
-  @meta.noop
+  @meta.adapted
   Start(_controller)
   {
   }
@@ -59,7 +59,7 @@ export class ITr2ControllerAction extends IRoot
    * @param {object} _controller The driving action controller.
    */
 
-  @meta.noop
+  @meta.adapted
   Stop(_controller)
   {
   }
@@ -70,7 +70,7 @@ export class ITr2ControllerAction extends IRoot
    * @param {number} _diff Seconds added to the sim clock.
    */
 
-  @meta.noop
+  @meta.adapted
   RebaseSimTime(_diff)
   {
   }

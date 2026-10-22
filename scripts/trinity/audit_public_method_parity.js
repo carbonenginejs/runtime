@@ -319,7 +319,7 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
         const name = GetMemberName(member);
         if (!name) continue;
         // `blue.abstract` stamps a Carbon pure virtual as Carbon's, as `blue.method` does.
-        const metadata = { hasCarbon: HasCarbonDecorator(member, "method") || HasCarbonDecorator(member, "abstract"), isStatic: member.static === true };
+        const metadata = { hasCarbon: HasCarbonDecorator(member, "method") || HasCarbonDecorator(member, "abstract") || HasMethodMacro(member), isStatic: member.static === true };
         methods.set(name, metadata);
         // An overload variant `Name__Variant` credits Carbon's `Name`: C++
         // reserves `__`, so everything before it is the donor's name. Like a
@@ -351,6 +351,16 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
           methods.set(original.value, existing ? { ...existing, hasCarbon: existing.hasCarbon || metadata.hasCarbon } : metadata);
         }
       }
+      // A `be.mapMethod*("Name")` on a member exposes Carbon's `Name`, whatever the member is called here.
+      for (const member of declaration.body.body)
+        for (const decorator of member.decorators ?? [])
+        {
+          const call = decorator.expression;
+          const original = call?.type === "CallExpression" && IsMethodMacro(call) ? call.arguments[0] : null;
+          if (original?.type !== "StringLiteral") continue;
+          const existing = methods.get(original.value);
+          methods.set(original.value, existing ? { ...existing, hasCarbon: true } : { hasCarbon: true, isStatic: member.static === true });
+        }
       // A `be.mapMethod*("Name")` above the class maps a method the class inherits (decorator-upgrade.md § 00); that is its exposure of the method.
       for (const inheritedName of ReadClassLevelMethodRows(declaration))
       {
@@ -691,6 +701,34 @@ function ReadClassLevelMethodRows(declaration)
 function HasCarbonDecorator(member, name)
 {
   return (member.decorators ?? []).some(decorator => isCarbonDecorator(decorator.expression, name));
+}
+
+/**
+ * Whether a member carries a `be.mapMethod*` macro, which exposes the method as Carbon does.
+ * @param {object} member
+ */
+function HasMethodMacro(member)
+{
+  return (member.decorators ?? []).some(decorator =>
+  {
+    let callee = decorator.expression;
+    if (callee?.type === "CallExpression") callee = callee.callee;
+    if (callee?.type !== "MemberExpression" || callee.computed || callee.property?.type !== "Identifier") return false;
+    const owner = callee.object?.type === "MemberExpression" ? callee.object.property?.name : callee.object?.name;
+    const name = callee.property.name;
+    return owner === "be" && name.startsWith("mapMethod");
+  });
+}
+
+/**
+ * Whether a call is a `be.mapMethod*` macro, whose first argument names the Carbon method it exposes.
+ * @param {object} call
+ */
+function IsMethodMacro(call)
+{
+  const callee = call.callee;
+  return callee?.type === "MemberExpression" && !callee.computed && callee.property?.type === "Identifier"
+    && callee.property.name.startsWith("mapMethod") && callee.object?.type === "Identifier" && callee.object.name === "be";
 }
 
 /** @param {string} directory @param {string} extension */

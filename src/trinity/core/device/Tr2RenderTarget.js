@@ -17,7 +17,7 @@ import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 //
 // The `@blue.read` properties are the Blue READ projection, refreshed wherever
 // the texture changes.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2Event } from "../Tr2Event.js";
 import { ExFlag, PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult } from "#trinityal";
@@ -120,7 +120,6 @@ export class Tr2RenderTarget extends IRoot
    *
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   CreateArray(width, height, arraySize, mipLevelCount, format, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {

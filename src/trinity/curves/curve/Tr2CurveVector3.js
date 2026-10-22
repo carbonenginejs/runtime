@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveVector3.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, ITriCurveLength } from "#blue";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -165,7 +165,6 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -183,7 +182,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDotAt(_time, out)
   {
     return out;
@@ -197,7 +196,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.noop
+  @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
     return out;
@@ -211,7 +210,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @returns {Float32Array|number[]} The caller-owned output.
    */
 
-  @meta.noop
+  @meta.adapted
   InterpolatedPosition(_time, out)
   {
     return out;

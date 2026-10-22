@@ -1,6 +1,6 @@
 import { IRoot } from "../blue/IRoot.js";
 // Source: blue/include/ITr2DebugRenderer2.h:127-187
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -388,7 +388,7 @@ for (const method of [
   "DrawText", "GetColorForOption", "SetColorForOption", "DrawAudioSpeaker"
 ])
 {
-  CjsSchema.decorateMethod(ITr2DebugRenderer2, method, blue.abstract);
+  CjsSchema.decorateMethod(ITr2DebugRenderer2, method, meta.abstract);
 }
 // This JavaScript registration supplies one nominal interface identity for named
 // declarations and composition. It does not install a renderer implementation.

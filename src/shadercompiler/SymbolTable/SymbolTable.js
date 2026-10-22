@@ -238,7 +238,7 @@ CjsSchema.decorateMethod(SymbolTable, "LookupType", meta.implemented);
 CjsSchema.decorateMethod(SymbolTable, "LookupBuffer", meta.implemented);
 CjsSchema.decorateMethod(SymbolTable, "AddSymbol", meta.implemented);
 CjsSchema.decorateMethod(SymbolTable, "AddTypeSymbol", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "AddSymbol__Symbol", meta.renamed("AddSymbol"));
+CjsSchema.decorateMethod(SymbolTable, "AddSymbol__Symbol");
 CjsSchema.decorateMethod(SymbolTable, "AddBufferSymbol", meta.implemented);
 CjsSchema.decorateMethod(SymbolTable, "EnterScope", meta.implemented);
 CjsSchema.decorateMethod(SymbolTable, "LeaveScope", meta.implemented);

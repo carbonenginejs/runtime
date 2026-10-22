@@ -55,7 +55,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 
   /** Retains the constructor's unique identity when parameters change. */
 
-  @meta.noop
+  @meta.adapted
   GenerateID()
   {
   }

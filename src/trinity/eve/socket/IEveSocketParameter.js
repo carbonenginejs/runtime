@@ -2,7 +2,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/IEveSocketParameter.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 
 /** Carbon socket-parameter contract with its interface defaults. */
@@ -21,7 +21,7 @@ export class IEveSocketParameter extends IRoot
 
   /** Applies an optional socket-parameter name. */
 
-  @meta.noop
+  @meta.adapted
   SetName(_name)
   {
   }
@@ -36,7 +36,7 @@ export class IEveSocketParameter extends IRoot
 
   /** Clears any bindings owned by the socket parameter. */
 
-  @meta.noop
+  @meta.adapted
   ClearBindings()
   {
   }
@@ -51,14 +51,14 @@ export class IEveSocketParameter extends IRoot
 
   /** Resets the socket parameter. */
 
-  @meta.noop
+  @meta.adapted
   Reset()
   {
   }
 
   /** Restores the socket parameter's default value. */
 
-  @meta.noop
+  @meta.adapted
   SetValueToDefault()
   {
   }
@@ -73,7 +73,7 @@ export class IEveSocketParameter extends IRoot
 
   /** Propagates the current value to owned bindings. */
 
-  @meta.noop
+  @meta.adapted
   Propagate()
   {
   }

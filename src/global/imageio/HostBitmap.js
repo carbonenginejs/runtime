@@ -1459,6 +1459,6 @@ CjsSchema.decorateMethod(HostBitmap, "GenerateMipMaps", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "DropMipMaps", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "GetAverageColor", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "GetPixel", meta.adapted);
-CjsSchema.decorateMethod(HostBitmap, "_CheckForMatch", meta.renamed("CheckForMatch"), meta.adapted);
-CjsSchema.decorateMethod(HostBitmap, "_GenerateMipLevel", meta.implemented, meta.renamed("GenerateMipLevel"));
+CjsSchema.decorateMethod(HostBitmap, "_CheckForMatch", meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "_GenerateMipLevel", meta.implemented);
 CjsSchema.meta.carbon("HostBitmap")(HostBitmap);

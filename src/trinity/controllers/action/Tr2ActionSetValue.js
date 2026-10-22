@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue_Blue.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "#blue/INotify";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { CjsControllerExpressionEvaluateError } from "../expression/CjsControllerExpressionEvaluateError.js";
@@ -184,7 +184,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Reports retained compilation validity without compiling or rebinding.
    */
-  @blue.method
   @meta.implemented
   IsExpressionValid()
   {

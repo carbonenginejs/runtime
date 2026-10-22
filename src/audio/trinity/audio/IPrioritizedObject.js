@@ -1,5 +1,5 @@
 // Source: audio/src/IPrioritizedObject.h:13-74.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * Supplies the position, weight, and culling operations used by audio
@@ -41,5 +41,5 @@ for (const method of [
   "GetCullingWeight", "IsCulled", "Wake", "Cull"
 ])
 {
-  CjsSchema.decorateMethod(IPrioritizedObject, method, blue.abstract);
+  CjsSchema.decorateMethod(IPrioritizedObject, method, meta.abstract);
 }

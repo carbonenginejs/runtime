@@ -13,7 +13,7 @@ import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { CjsResource } from "#blue";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 import { CjsCmfFormat } from "#resource/formats/cmf";
@@ -1178,7 +1178,6 @@ export class Tr2GrannyAnimation extends IRoot
   }
 
   /** Carbon method PlayAnimation -> PlayAnimationOnce (MAP_METHOD_AND_WRAP). */
-  @blue.method
   @meta.adapted
   PlayAnimation(animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
@@ -1194,7 +1193,6 @@ export class Tr2GrannyAnimation extends IRoot
   }
 
   /** Carbon method PlayLayerAnimation -> PlayLayerAnimationByName (MAP_METHOD_AND_WRAP). */
-  @blue.method
   @meta.adapted
   PlayLayerAnimation(layerName, animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {

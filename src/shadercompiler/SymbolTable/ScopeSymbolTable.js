@@ -362,7 +362,7 @@ CjsSchema.decorateMethod(ScopeSymbolTable, "Lookup", meta.implemented);
 CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunctionDeclaration", meta.implemented);
 CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunction", meta.adapted);
 CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol", meta.implemented);
-CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol__Symbol", meta.renamed("AddSymbol"));
+CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol__Symbol");
 CjsSchema.decorateMethod(ScopeSymbolTable, "AddScope", meta.implemented);
 CjsSchema.decorateMethod(ScopeSymbolTable, "GetParent", meta.implemented);
 CjsSchema.decorateMethod(ScopeSymbolTable, "ResetUsedFlag", meta.implemented);

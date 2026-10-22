@@ -1,6 +1,6 @@
 import { IRoot } from "./IRoot.js";
 // Source: blue/include/ITriCurveLength.h:8-13
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -19,5 +19,5 @@ export class ITriCurveLength extends IRoot
   }
 }
 
-CjsSchema.decorateMethod(ITriCurveLength, "Length", blue.abstract);
+CjsSchema.decorateMethod(ITriCurveLength, "Length", meta.abstract);
 CjsSchema.exposure.interface("ITriCurveLength")(ITriCurveLength);

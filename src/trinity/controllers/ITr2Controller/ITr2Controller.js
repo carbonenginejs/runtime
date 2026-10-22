@@ -28,7 +28,7 @@
 // `IRoot`, Carbon's base for both, is not ported: it is Blue's reference-counted
 // object root, which a garbage-collected runtime has no use for.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IRoot } from "../../../global/blue/IRoot.js";
 import { UnlinkReason } from "../enums.js";
 
@@ -47,7 +47,7 @@ export class ITr2Controller extends IRoot
    * @param {object} _owner The object being controlled.
    */
 
-  @meta.noop
+  @meta.adapted
   Link(_owner)
   {
   }
@@ -58,7 +58,7 @@ export class ITr2Controller extends IRoot
    * @param {number} [_reason] An `UnlinkReason`; DELETING means the owner is going away.
    */
 
-  @meta.noop
+  @meta.adapted
   Unlink(_reason = UnlinkReason.UNLINKING)
   {
   }
@@ -72,19 +72,19 @@ export class ITr2Controller extends IRoot
    *
    * @returns {boolean} Whether Link has run without a matching Unlink.
    */
-  @blue.abstract
+  @meta.abstract
   IsLinked() {}
 
   /** Begins controlling the owner. */
 
-  @meta.noop
+  @meta.adapted
   Start()
   {
   }
 
   /** Stops controlling the owner. */
 
-  @meta.noop
+  @meta.adapted
   Stop()
   {
   }
@@ -95,7 +95,7 @@ export class ITr2Controller extends IRoot
    * @param {number} _normalizedUpdateFrequency Carbon's normalised frame delta.
    */
 
-  @meta.noop
+  @meta.adapted
   Update(_normalizedUpdateFrequency)
   {
   }
@@ -107,7 +107,7 @@ export class ITr2Controller extends IRoot
    * @param {number} _value Its new value.
    */
 
-  @meta.noop
+  @meta.adapted
   SetVariable(_name, _value)
   {
   }
@@ -118,7 +118,7 @@ export class ITr2Controller extends IRoot
    * @param {string} _eventName The event's name.
    */
 
-  @meta.noop
+  @meta.adapted
   HandleEvent(_eventName)
   {
   }

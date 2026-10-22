@@ -10,7 +10,7 @@ import { IRoot } from "./IRoot.js";
 // Carbon declares only wide-character forms of most methods. The resolve
 // methods keep Carbon's `W` names; `SetSearchPath`, `GetSearchPath` and
 // `GetStreamFromPath` still carry the script spelling, marked `renamed`.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IBluePaths` - search paths, resolution, existence and streams, per blue/include/IBluePaths.h. */
 export class IBluePaths extends IRoot
@@ -84,7 +84,7 @@ for (const method of [
   "FileExistsLocally", "FileNeedsDownload", "GetStreamFromPath", "GetFileContentsWithYield", "LogPaths"
 ])
 {
-  CjsSchema.decorateMethod(IBluePaths, method, blue.abstract);
+  CjsSchema.decorateMethod(IBluePaths, method, meta.abstract);
 }
 
 // Carbon declares only the wide-character forms; a JS string covers both.

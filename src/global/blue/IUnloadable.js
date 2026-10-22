@@ -5,7 +5,7 @@ import { IRoot } from "./IRoot.js";
 // and take it back on next use. BlueObjectProxy casts for it before dropping
 // an unused object (BlueObjectProxy.cpp:84-96) and calls ReloadWhenReferenced
 // on next access (:46-55).
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IUnloadable` - releases and restores an object's state in place. */
 export class IUnloadable extends IRoot
@@ -25,7 +25,7 @@ export class IUnloadable extends IRoot
   ReloadWhenReferenced() {}
 }
 
-CjsSchema.decorateMethod(IUnloadable, "UnloadWhenUnreferenced", blue.abstract);
-CjsSchema.decorateMethod(IUnloadable, "ReloadWhenReferenced", blue.abstract);
+CjsSchema.decorateMethod(IUnloadable, "UnloadWhenUnreferenced", meta.abstract);
+CjsSchema.decorateMethod(IUnloadable, "ReloadWhenReferenced", meta.abstract);
 
 CjsSchema.exposure.interface("IUnloadable")(IUnloadable);
