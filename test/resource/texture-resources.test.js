@@ -251,3 +251,54 @@ test("VTA textures load the first volume frame through the ordinary texture reso
   assert.deepEqual([ resource.width, resource.height, bitmap.GetDepth() ], [ 2, 1, 2 ]);
   assert.deepEqual(Array.from(bitmap.GetRawData()), [ 1, 2, 3, 4 ]);
 });
+
+test("SetTextureFromRT wraps a render target as a live view (TriTextureRes.cpp:871-892)", async () =>
+{
+  const { CjsSchema } = await import("../../npm/dist/global/schema/index.js");
+  const { Tr2Event } = await import("../../npm/dist/trinity/index.js");
+
+  /** A render target with Carbon's IsValid / GetRenderTarget / OnTextureChange. */
+  const makeTarget = valid =>
+  {
+    const texture = { valid, IsValid() { return this.valid; } };
+    const event = new Tr2Event();
+    return { texture, event, IsValid() { return texture.valid; }, GetRenderTarget() { return texture; }, OnTextureChange() { return event; } };
+  };
+
+  const texture = new TriTextureRes();
+  const changes = [];
+  const owner = {};
+  texture.OnTextureChange().RegisterListener(owner, function () { changes.push("changed"); });
+
+  const target = makeTarget(true);
+  assert.equal(texture.SetTextureFromRT(target), true, "Carbon always returns true");
+  assert.equal(texture.wrappedRenderTarget, target);
+  assert.equal(texture.texture, target.texture, "a valid render target supplies the texture");
+
+  // The wrapped render target's change is this resource's change.
+  changes.length = 0;
+  target.event.Broadcast();
+  assert.deepEqual(changes, [ "changed" ]);
+
+  // Re-wrapping stops listening to the previous render target.
+  const next = makeTarget(false);
+  texture.SetTextureFromRT(next);
+  assert.equal(texture.wrappedRenderTarget, next);
+  assert.equal(texture.texture, null, "an invalid render target supplies nothing yet");
+  assert.equal(target.event.listeners.length, 0);
+  assert.equal(next.event.listeners.length, 1);
+
+  // GetTexture picks the texture up once the render target becomes valid (cpp:396-401).
+  next.texture.valid = true;
+  assert.equal(texture.GetTexture(), next.texture);
+
+  // null unwraps.
+  texture.SetTextureFromRT(null);
+  assert.equal(texture.wrappedRenderTarget, null);
+  assert.equal(next.event.listeners.length, 0);
+
+  const row = CjsSchema.getMethod(TriTextureRes, "SetTextureFromRT");
+  assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP");
+  assert.equal(row.exposure.name, "SetFromRenderTarget");
+  assert.equal(row.impl.status, "adapted");
+});

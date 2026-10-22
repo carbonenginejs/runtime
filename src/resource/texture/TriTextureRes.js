@@ -145,6 +145,13 @@ export class TriTextureRes extends CjsResource
    */
   GetTexture() {
     this.KeepAlive();
+
+    // Carbon (cpp:396-401): a wrapped render target that became valid after it was wrapped supplies the texture now.
+    if (this.wrappedRenderTarget && (!this.texture || !this.texture.IsValid()) && this.wrappedRenderTarget.GetRenderTarget()?.IsValid())
+    {
+      this.SetTexture(this.wrappedRenderTarget.GetRenderTarget());
+    }
+
     return this.texture && this.texture.IsValid() ? this.texture : null;
   }
 
@@ -595,12 +602,72 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
-   * Render-target wrapping belongs to engine-gpu.
+   * Makes this resource a live view on a render target. The caller keeps the render
+   * target alive; `OnTextureChange` fires whenever the render target's texture changes.
    *
-   * @throws {Error}
+   * Carbon: TriTextureRes::SetTextureFromRT (trinity/trinity/Resources/TriTextureRes.cpp:871-892;
+   * TriTextureRes.h:79). Exposed as "SetFromRenderTarget"
+   * (TriTextureRes_Blue.cpp:253-258, MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Carbon holds the render target in a counted pointer and registers
+   * `OnWrappedRenderTargetChanged` on its event; the event holds the owner
+   * weakly here, and the resource holds the render target in
+   * `wrappedRenderTarget`. The own texture is dropped through
+   * `_DestroyOwnTexture`, which does not yet notify the texture LOD manager
+   * (`lodEnabled` is never set here, so the case cannot arise).
+   *
+   * @param {Tr2RenderTarget|null} renderTarget The render target to view, or null to unwrap.
+   * @returns {boolean} Always true, as Carbon returns.
    */
-  SetFromRenderTarget() {
-    throw resourceBoundaryError("TriTextureRes", "SetFromRenderTarget", "Runtime-resource does not own render targets.");
+  SetTextureFromRT(renderTarget) {
+    this._DestroyOwnTexture();
+
+    if (this.wrappedRenderTarget)
+    {
+      this.wrappedRenderTarget.OnTextureChange().UnregisterListener(this, TriTextureRes.prototype._OnWrappedRenderTargetChanged);
+    }
+    this.wrappedRenderTarget = renderTarget ?? null;
+
+    if (this.wrappedRenderTarget)
+    {
+      this.wrappedRenderTarget.OnTextureChange().RegisterListener(this, TriTextureRes.prototype._OnWrappedRenderTargetChanged);
+    }
+
+    if (renderTarget && renderTarget.IsValid())
+    {
+      // Carbon also clears m_isTextureResizable here (cpp:887, TriTextureRes.h:178: whether the texture follows the
+      // global mip-skip setting). The member is not ported: its only reader, ComputeMipSkipCount (cpp:170-178), is not either.
+      this.SetTexture(renderTarget.GetRenderTarget());
+    }
+
+    return true;
+  }
+
+  /**
+   * Drops the texture this resource made for itself, and the texture it shows.
+   *
+   * Carbon: TriTextureRes::DestroyOwnTexture (trinity/trinity/Resources/TriTextureRes.cpp:1224-1242;
+   * TriTextureRes.h:212).
+   *
+   * Not implemented: with `lodEnabled` Carbon first tells the texture LOD manager
+   * (`GpuTextureDestroyed`, `CpuTextureDestroyed`, cpp:1226-1239), which are not
+   * ported, so that case throws. Adapted: an explicit Destroy replaces the
+   * owned value's C++ destructor.
+   */
+  _DestroyOwnTexture() {
+    if (this.lodEnabled)
+    {
+      throw new Error("TriTextureRes.DestroyOwnTexture: Tr2TextureLodManager GpuTextureDestroyed and CpuTextureDestroyed are not ported.");
+    }
+
+    if (this._ownTexture) this._ownTexture.Destroy();
+    this._ownTexture = null;
+    this.SetTexture(null);
+  }
+
+  /** OnWrappedRenderTargetChanged (cpp:1266-1269): the wrapped render target's texture changed, so this one's did. */
+  _OnWrappedRenderTargetChanged() {
+    this._onTextureChange.Broadcast();
   }
 
   /**
@@ -690,7 +757,7 @@ export class TriTextureRes extends CjsResource
    * Source: trinity/trinity/Resources/TriTextureRes.cpp:356-392.
    * Adapted: explicit Destroy replaces the owned AL value's C++ destructor;
    * load cancellation remains manager-owned and UNLOADED combines good/prepared.
-   * Wrapped render targets and asynchronous saves are not implemented here.
+   * Asynchronous saves are not implemented here.
    *
    * @param {number} [storage=TriStorageFlags.TRISTORAGE_ALL] Carbon's TriStorage mask.
    * @returns {TriTextureRes} This resource.
@@ -711,6 +778,11 @@ export class TriTextureRes extends CjsResource
       if (owned) owned.Destroy();
       this._ownTexture = null;
       this.texture = null;
+      if (this.wrappedRenderTarget)
+      {
+        // Carbon (cpp:383-386) stops listening before it lets go of the render target.
+        this.wrappedRenderTarget.OnTextureChange().UnregisterListener(this, TriTextureRes.prototype._OnWrappedRenderTargetChanged);
+      }
       this.wrappedRenderTarget = null;
       this._memoryUse = 0;
       this.originalMemoryUsage = 0;
@@ -839,7 +911,9 @@ CjsSchema.blue.define(TriTextureRes, {
     IsSaveSucceeded: [ be.mapMethodAndWrap(), meta.noop ],
     WaitForSave: [ be.mapMethodAndWrap(), meta.noop ],
     CreateEmptyTexture: [ be.mapMethodAndWrap(), meta.notSupported ],
-    SetFromRenderTarget: [ blue.method, meta.notSupported ],
+    SetTextureFromRT: [ be.mapMethodAndWrap("SetFromRenderTarget"), meta.adapted ],
+    _DestroyOwnTexture: [ meta.notImplemented ],
+    _OnWrappedRenderTargetChanged: [ meta.implemented ],
     CreateAndCopyFromRenderTarget: [ be.mapMethodAndWrap(), meta.notSupported ],
     CreateFromHostBitmap: [ be.mapMethodAndWrap(), meta.adapted ],
     IsMemoryUsageKnown: [ blue.method, meta.implemented ],
