@@ -97,7 +97,7 @@ for (const [ className, records ] of schema)
     // Keep the exception tied to that public source identity; any other missing
     // declaration (including future public methods) remains a parity obligation.
     const implementationOnly = {
-      Tr2ReadbackAL: [ "Describe", "GetMemoryClass" ],
+      Tr2ReadbackAL: [ "Describe", "GetMemoryClass", "Destroy" ],
       Tr2ResourceSetAL: [ "Describe", "StageInput", "Destroy" ],
       Tr2BufferAL: [ "CreateStagingBuffer", "Describe", "GetDefaultState", "GetGpuResource", "GetGpuView", "GetMetalBuffer" ],
       Tr2TextureAL: [ "AssignFromSwapChainDx12", "AssignFromTexture", "Attach", "Describe", "GetMetalTexture", "GetRegionSize", "GetResourceDx11", "GetResourceDx12", "GetResourceState", "GetRtvDescriptorHandleDx12", "GetSRGBViewMetalTexture", "GetUAVMetalTexture", "SetSwapChainBufferIndexDx12" ]

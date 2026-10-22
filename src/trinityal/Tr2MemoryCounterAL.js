@@ -287,7 +287,6 @@ export class Tr2MemoryCounterAL
 CjsSchema.decorateMethod(Tr2MemoryCounterAL, "create__Move", meta.adapted);
 CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Destruct", meta.adapted);
 CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Assign__Move", meta.adapted);
-CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Assign__Move", meta.renamed("operator="));
 CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Set", meta.adapted);
 CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Set__Size", meta.implemented);
 CjsSchema.decorateMethod(Tr2MemoryCounterAL, "Set__Bitmap", meta.implemented);
