@@ -38,7 +38,6 @@ const verts = Array.from({ length: 4 }, () => new Tr2Sprite2dVertexBase()); // a
  */
 @be.define("Tr2Sprite2dLine")
 @blue.chainTo(Tr2TexturedSpriteObject)
-@blue.interface()
 export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
 {
 

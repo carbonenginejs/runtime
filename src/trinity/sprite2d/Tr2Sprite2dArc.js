@@ -144,7 +144,6 @@ function prepareEdgeQuad(arc, verts, current, angle, innerRadius)
  */
 @be.define("Tr2Sprite2dArc")
 @blue.chainTo(Tr2SpriteObject)
-@blue.interface()
 export class Tr2Sprite2dArc extends Tr2SpriteObject
 {
 

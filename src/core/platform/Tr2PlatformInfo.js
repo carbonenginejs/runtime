@@ -84,8 +84,7 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 // the backend about the shading language rather than read this name.
 
 /** Browser feature report replacing Carbon's compile-time platform macros. */
-@blue.define({ className: "Tr2PlatformInfo" })
-@blue.interface()
+@be.define("Tr2PlatformInfo")
 @blue.inherit(IRoot)
 export class Tr2PlatformInfo
 {

@@ -58,7 +58,6 @@ const srcVertexSegments = [0, 16, 32].map(start => srcVertices.slice(start, star
  */
 @be.define("Tr2Sprite2dFrame")
 @blue.chainTo(Tr2TexturedSpriteObject)
-@blue.interface()
 export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
 {
 

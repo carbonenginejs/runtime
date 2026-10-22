@@ -40,7 +40,6 @@ function toUint32(value)
 @be.define("Tr2Sprite2dLayer")
 @blue.chainTo(Tr2Sprite2dContainer)
 @blue.inherit(ITr2Sprite2dTextureNotifyTarget)
-@blue.interface()
 export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 {
 

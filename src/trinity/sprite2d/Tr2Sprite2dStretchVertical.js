@@ -76,7 +76,6 @@ function setVertex(vertex, x, y, u, v)
  */
 @be.define("Tr2Sprite2dStretchVertical")
 @blue.chainTo(Tr2TexturedSpriteObject)
-@blue.interface()
 export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
 {
 

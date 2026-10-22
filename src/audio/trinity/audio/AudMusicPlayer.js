@@ -15,7 +15,6 @@ const FLOAT_MAX = 3.4028234663852886e38;
  * behavior is inherited from AudEmitter (SendEvent/SetSwitch/SetRTPC/...).
  */
 @be.define("AudMusicPlayer")
-@blue.interface()
 @blue.chainTo(AudEmitter)
 @be.abstract
 export class AudMusicPlayer extends AudEmitter

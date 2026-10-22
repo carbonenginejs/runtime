@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 
@@ -43,7 +43,6 @@ export function EveCollectAreas(type, mesh, areaPool)
  * plain records; no nominal class declarations exist for those three structs.
  */
 @be.define("EveSpaceObjectChild")
-@blue.interface()
 @be.abstract
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
 {
