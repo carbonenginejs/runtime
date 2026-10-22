@@ -978,7 +978,7 @@ export class EveChildTurret extends EveChildMesh
    */
   @be.mapMethodAndWrap()
   @meta.implemented
-  GetFiringBoneWorldTransform(muzzle, out = mat4.create())
+  GetFiringBoneWorldTransform(muzzle, out)
   {
     if (!this.mesh || !this._firingEffect)
     {
@@ -1109,12 +1109,12 @@ export class EveChildTurret extends EveChildMesh
    */
 
   @meta.implemented
-  GetTurretBoneTransform(boneID, out = mat4.create())
+  GetTurretBoneTransform(boneID, out)
   {
     mat4.copy(out, this.worldTransform);
     if (this.animationUpdater)
     {
-      const boneWorld = this.animationUpdater.GetBoneTransform(boneID);
+      const boneWorld = this.animationUpdater.GetBoneTransform(boneID, mat4.create());
       if (boneWorld)
       {
         mat4.multiply(out, this.worldTransform, boneWorld);

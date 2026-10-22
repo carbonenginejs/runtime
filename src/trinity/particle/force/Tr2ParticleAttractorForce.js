@@ -34,7 +34,7 @@ export class Tr2ParticleAttractorForce extends ITr2ParticleForce
   /** Applies a constant-magnitude force toward the configured origin. */
 
   @meta.adapted
-  GetForce(position, _velocity, _dt, _mass, out = vec3.create())
+  GetForce(position, _velocity, _dt, _mass, out)
   {
     const f = Math.fround;
     let x = f(f(this.position[0]) - f(position[0]));

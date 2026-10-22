@@ -349,7 +349,7 @@ export class Tr2ShadowMap
     invViewTransform,
     lightView,
     corners,
-    out = { min: vec3.create(), max: vec3.create() }
+    out
   )
   {
     mat4.invert(INVERSE_PROJECTION_SCRATCH, projection);
@@ -618,7 +618,7 @@ export class Tr2ShadowMap
           shadowMapResult,
           depthMap,
           null,
-          Tr2Renderer.GetReversedDepthProjectionTransform(),
+          Tr2Renderer.GetReversedDepthProjectionTransform(mat4.create()),
           upscaling,
           gpuResourcePool,
           renderContext,

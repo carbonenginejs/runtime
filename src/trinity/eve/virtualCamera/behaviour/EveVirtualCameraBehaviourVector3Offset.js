@@ -48,7 +48,7 @@ export class EveVirtualCameraBehaviourVector3Offset extends EveVirtualCameraBeha
    */
 
   @meta.adapted
-  Update(_camera, _current, _deltaTime, _localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
+  Update(_camera, _current, _deltaTime, _localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out)
   {
     if (this.world)
     {

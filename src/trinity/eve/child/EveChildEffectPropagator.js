@@ -650,7 +650,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * contributes its instances. */
 
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (this._currentTriggerIndex === 0)
     {

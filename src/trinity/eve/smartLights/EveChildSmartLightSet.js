@@ -249,7 +249,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   /** Renderable fan-out, gated on the distribution and display (EveChildSmartLightSet.cpp:151-160). */
 
   @meta.implemented
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (this.distribution && this.display)
     {

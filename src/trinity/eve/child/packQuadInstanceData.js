@@ -11,7 +11,7 @@ export const QUAD_INSTANCE_SIZE = 108;
  * The six transform rows are float32, followed by a half4 color and half2
  * brightness. The quad renderer copies these bytes without interpreting them.
  */
-export function packQuadInstanceData(record, out = new Uint8Array(QUAD_INSTANCE_SIZE))
+export function packQuadInstanceData(record, out)
 {
   if (!(out instanceof Uint8Array) || out.byteLength < QUAD_INSTANCE_SIZE)
   {

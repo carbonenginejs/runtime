@@ -74,10 +74,10 @@ export class ITr2ControllerOwner extends IRoot
    * Carbon's default contributes the owner itself, and so does this one: an
    * object with no other roots to offer is still a binding root.
    *
-   * @param {object} [out] Caller-owned map, mutated in place.
+   * @param {object} out Caller-owned map, mutated in place.
    * @returns {object} The same map.
    */
-  GetBindingRoots(out = {})
+  GetBindingRoots(out)
   {
     out.Owner = this;
 

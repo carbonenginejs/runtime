@@ -674,7 +674,7 @@ export class EveImpactOverlay extends IRoot
       parent.GetDamageLocatorPosition(damageLocatorIndex, true, locatorPositionWorld);
       const interceptPosition = this._GetShieldImpactPosition(
         parentInverseWorldTransform, locatorPositionWorld,
-        normalizedDirection, ellipsoidCenter, ellipsoidRadii);
+        normalizedDirection, ellipsoidCenter, ellipsoidRadii, vec3.create());
       vec3.transformMat4(interceptPosition, interceptPosition, parentWorldTransform);
 
       const index = this.damageOverlay.AllocateImpactIndex();
@@ -700,7 +700,7 @@ export class EveImpactOverlay extends IRoot
    * Carbon does; the module-level helper carries the math.
    */
 
-  _GetShieldImpactPosition(parentInverseWorldTransform, damageLocatorPositionWorld, impactDirection, ellipsoidCenter, ellipsoidRadii, out = vec3.create())
+  _GetShieldImpactPosition(parentInverseWorldTransform, damageLocatorPositionWorld, impactDirection, ellipsoidCenter, ellipsoidRadii, out)
   {
     return getShieldImpactPosition(
       out, this.shieldIsEllipsoid, parentInverseWorldTransform,

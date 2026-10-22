@@ -24,7 +24,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  * @param {Float32Array} out
  * @returns {Float32Array}
  */
-export function resolveGroupColor(customColor, useFactionColor, factionColor, parentColorSet, out = color.createLinear())
+export function resolveGroupColor(customColor, useFactionColor, factionColor, parentColorSet, out)
 {
   return resolveFactionColor(out, customColor, useFactionColor, factionColor, parentColorSet);
 }
@@ -93,7 +93,7 @@ export class EveSmartLightBaseGroup extends IRoot
   /** IEveSmartLightGroup default: contributes no renderables. */
   @blue.method
   @meta.noop
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     return renderables;
   }

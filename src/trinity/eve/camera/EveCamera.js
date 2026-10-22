@@ -447,7 +447,7 @@ export class EveCamera extends IRoot
    */
 
   @meta.implemented
-  static ModifyClipPlanes(original, nearClip, farClip, out = mat4.create())
+  static ModifyClipPlanes(original, nearClip, farClip, out)
   {
     const aspectRatio = original[0] ? original[5] / original[0] : 0;
     const fieldOfView = EveCamera.CalculateFovFromProjection(original);
@@ -469,7 +469,7 @@ export class EveCamera extends IRoot
    */
 
   @meta.implemented
-  static AddCenterOffset(original, xOffset, yOffset, nearClip, farClip, out = mat4.create())
+  static AddCenterOffset(original, xOffset, yOffset, nearClip, farClip, out)
   {
     const aspectRatio = original[0] ? original[5] / original[0] : 0;
     const fieldOfView = EveCamera.CalculateFovFromProjection(original);

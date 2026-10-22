@@ -49,7 +49,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
       if (!dx && !dy) return;
       const position = vec3.set(vec3_0, this.localTransform[12], this.localTransform[13], this.localTransform[14]);
       const current = this.ScreenCoordinatesToRay(x, y, viewport, view, projection);
-      const normal = this.GetDesiredPlaneNormal(current.ray, view);
+      const normal = this.GetDesiredPlaneNormal(current.ray, view, vec3.create());
       const previous = this.ScreenCoordinatesToRay(x - dx, y - dy, viewport, view, projection);
       const start = this.RayToPlaneIntersection(previous.start, previous.ray, position, normal);
       const end = this.RayToPlaneIntersection(current.start, current.ray, position, normal);
@@ -83,8 +83,8 @@ export class Tr2RotationTool extends Tr2ManipulationTool
       }
       else if (this.selectedAxis === "ww")
       {
-        const currentPoint = this.Hemisphere(x, y, viewport, view, projection);
-        const previousPoint = this.Hemisphere(x - dx, y - dy, viewport, view, projection);
+        const currentPoint = this.Hemisphere(x, y, viewport, view, projection, vec3.create());
+        const previousPoint = this.Hemisphere(x - dx, y - dy, viewport, view, projection, vec3.create());
         const axis = vec3.cross(vec3.zero(vec3_2), previousPoint, currentPoint);
         const inverseView = mat4.invert(mat4.identity(mat4_1), view);
         if (!inverseView) return;
@@ -96,8 +96,8 @@ export class Tr2RotationTool extends Tr2ManipulationTool
       {
         const index = ["x", "y", "z"].indexOf(this.selectedAxis);
         if (index < 0) return;
-        const axis = this.GetBaseVectors()[index];
-        vec3.copy(this._movement, this.GetUnTransformedBaseVectors()[index]);
+        const axis = this.GetBaseVectors(vec3.create(), vec3.create(), vec3.create())[index];
+        vec3.copy(this._movement, this.GetUnTransformedBaseVectors(vec3.create(), vec3.create(), vec3.create())[index]);
         if (vec3.dot(cross, axis) < 0) sign = -1;
       }
       this._angle = Math.acos(Math.max(-1, Math.min(1, dot))) * sign * this.precision;
@@ -230,12 +230,12 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    *
    * @param {Float32Array} _ray Unused by this override, as in Carbon.
    * @param {Float32Array} viewMatrix
-   * @param {Float32Array} [out] Caller-owned; allocated when omitted.
+   * @param {Float32Array} out Caller-owned.
    * @returns {Float32Array} The plane normal.
    */
 
   @meta.implemented
-  GetDesiredPlaneNormal(_ray, viewMatrix, out = vec3.create())
+  GetDesiredPlaneNormal(_ray, viewMatrix, out)
   {
     vec3.set(Tr2RotationTool.#view, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
 
@@ -262,7 +262,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    */
 
   @meta.implemented
-  GetUnTransformedBaseVectors(outX = vec3.create(), outY = vec3.create(), outZ = vec3.create())
+  GetUnTransformedBaseVectors(outX, outY, outZ)
   {
     vec3.set(outX, 1, 0, 0);
     vec3.set(outY, 0, 1, 0);
@@ -288,12 +288,12 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    * @param {{x:number,y:number,width:number,height:number}} viewport Tr2Viewport's m_x/m_y/m_width/m_height.
    * @param {Float32Array} viewMatrix
    * @param {Float32Array} projectionMatrix
-   * @param {Float32Array} [out] Caller-owned; allocated when omitted.
+   * @param {Float32Array} out Caller-owned.
    * @returns {Float32Array} The arcball vector.
    */
 
   @meta.implemented
-  Hemisphere(mouseX, mouseY, viewport, viewMatrix, projectionMatrix, out = vec3.create())
+  Hemisphere(mouseX, mouseY, viewport, viewMatrix, projectionMatrix, out)
   {
     const viewProj = mat4.multiply(Tr2RotationTool.#viewProj, projectionMatrix, viewMatrix);
 

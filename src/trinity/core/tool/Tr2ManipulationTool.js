@@ -104,14 +104,14 @@ export class Tr2ManipulationTool extends IRoot
    * each row of the local transform normalised. Row r maps to gl-matrix
    * indices [(r-1)*4 .. (r-1)*4+2].
    *
-   * @param {Float32Array} [outX] Caller-owned; allocated when omitted.
-   * @param {Float32Array} [outY]
-   * @param {Float32Array} [outZ]
+   * @param {Float32Array} outX Caller-owned.
+   * @param {Float32Array} outY
+   * @param {Float32Array} outZ
    * @returns {[Float32Array, Float32Array, Float32Array]} The three axes.
    */
 
   @meta.implemented
-  GetBaseVectors(outX = vec3.create(), outY = vec3.create(), outZ = vec3.create())
+  GetBaseVectors(outX, outY, outZ)
   {
     const local = this.localTransform;
     vec3.normalize(outX, vec3.set(outX, local[0], local[1], local[2]));
@@ -174,7 +174,7 @@ export class Tr2ManipulationTool extends IRoot
   @meta.implemented
   GetDesiredPlaneNormal(ray, view)
   {
-    const [x, y, z] = this.GetBaseVectors();
+    const [x, y, z] = this.GetBaseVectors(vec3.create(), vec3.create(), vec3.create());
     if (this.selectedAxis === "x") return Math.abs(vec3.dot(ray, z)) > Math.abs(vec3.dot(ray, y)) ? z : y;
     if (this.selectedAxis === "y") return Math.abs(vec3.dot(ray, z)) > Math.abs(vec3.dot(ray, x)) ? z : x;
     if (this.selectedAxis === "z") return Math.abs(vec3.dot(ray, x)) > Math.abs(vec3.dot(ray, y)) ? x : y;

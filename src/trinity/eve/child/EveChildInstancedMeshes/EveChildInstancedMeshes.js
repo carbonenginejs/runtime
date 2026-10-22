@@ -182,7 +182,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    */
 
   @meta.implemented
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (this.hasUpdated &&
       ((this._parentOverlayEffects?.length && this._AnyMeshInheritsOverlayEffects()) ||

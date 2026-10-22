@@ -721,7 +721,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    */
 
   @meta.implemented
-  GetBoundingSphere(sphere = vec4.create(), _query = 0)
+  GetBoundingSphere(sphere, _query = 0)
   {
     if (!this._hasUpdated) return false;
     PadBoosterBoundingSphere(sphere, this._boosterBoundingSphere, this._parentTransform);

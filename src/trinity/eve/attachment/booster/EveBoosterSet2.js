@@ -992,7 +992,7 @@ export class EveBoosterSet2 extends EveEntity
    * visibility. */
 
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (!this.display || !this.effect)
     {

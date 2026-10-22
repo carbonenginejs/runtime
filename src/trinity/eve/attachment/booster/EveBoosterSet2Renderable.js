@@ -506,7 +506,7 @@ export class EveBoosterSet2Renderable
    * itself only when UpdateVisibility left it visible. */
 
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (this.isVisible)
     {

@@ -10,6 +10,7 @@ import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { screenToProjection, convertProjectionCoordToWorldPickRay } from "../view/pickRay.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
+import { mat4 } from "#math/mat4";
 
 /** Native picking algorithm with nested result records and virtual scene hooks. */
 export class ITr2PickableScene
@@ -29,7 +30,7 @@ export class ITr2PickableScene
     results.components = 0;
     if (!context.IsValid()) return;
     const pixel = screenToProjection(x, y, viewport);
-    const ray = convertProjectionCoordToWorldPickRay(pixel.x, pixel.y, projection.GetMatrixWithoutViewAdjustment(), view.GetTransform());
+    const ray = convertProjectionCoordToWorldPickRay(pixel.x, pixel.y, projection.GetMatrixWithoutViewAdjustment(mat4.create()), view.GetTransform(mat4.create()));
     if (!ray) return;
     const start = vec3.clone(ray.start), direction = vec3.clone(ray.direction); // alloc: request-owned ray retained across asynchronous readbacks.
     const esm = context.GetEffectStateManager();
@@ -124,7 +125,7 @@ export class ITr2PickableScene
   @meta.implemented
   SetupTransformsForPicking(fx, fy, projection, view, viewport)
   {
-    Tr2Renderer.SetViewTransform(view.GetTransform());
+    Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
     projection.SetProjection();
 
     // Projection is set up to scale the image such that the viewport is

@@ -310,7 +310,7 @@ export class EveModularObjectModifier extends IRoot
   /** Copies a modular part's authored position. */
   @be.mapMethodAndWrap()
   @meta.implemented
-  GetPosition(partId, out = vec3.create())
+  GetPosition(partId, out)
   {
     return vec3.copy(out, this._GetPart(partId).position);
   }
@@ -318,7 +318,7 @@ export class EveModularObjectModifier extends IRoot
   /** Copies a modular part's authored rotation. */
   @be.mapMethodAndWrap()
   @meta.implemented
-  GetRotation(partId, out = quat.create())
+  GetRotation(partId, out)
   {
     return quat.copy(out, this._GetPart(partId).rotation);
   }
@@ -326,7 +326,7 @@ export class EveModularObjectModifier extends IRoot
   /** Copies a modular part's authored scale. */
   @be.mapMethodAndWrap()
   @meta.implemented
-  GetScale(partId, out = vec3.create())
+  GetScale(partId, out)
   {
     return vec3.copy(out, this._GetPart(partId).scale);
   }

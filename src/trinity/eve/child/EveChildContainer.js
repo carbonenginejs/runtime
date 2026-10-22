@@ -977,7 +977,7 @@ export class EveChildContainer extends EveChildTransform
    * itself renders only when it owns attachments; children always recurse. */
 
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (!this.display || !this._hasUpdated)
     {
@@ -1007,7 +1007,7 @@ export class EveChildContainer extends EveChildTransform
    * levels; this is a bounds query, not the per-frame update hot path. */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     if (!this.IsUpdating())
     {
@@ -1516,7 +1516,7 @@ export class EveChildContainer extends EveChildTransform
   /** Carbon EveChildContainer::GetWorldVelocity (cpp:1012-1015). */
 
   @meta.implemented
-  GetWorldVelocity(out = vec3.create())
+  GetWorldVelocity(out)
   {
     return vec3.copy(out, this._worldVelocity);
   }

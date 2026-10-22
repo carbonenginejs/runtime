@@ -31,7 +31,7 @@ export class EveVirtualCameraBehaviourVector3MoveUp extends EveVirtualCameraBeha
    */
 
   @meta.adapted
-  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out = vec3.create())
+  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out)
   {
     return vec3.scale(out, camera.GetUpDirection(out), this.GetCurrentValue(camera, localElapsedTime, anchorRadius));
   }

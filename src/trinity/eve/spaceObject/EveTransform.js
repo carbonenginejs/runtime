@@ -379,7 +379,7 @@ export class EveTransform extends Tr2Transform
    */
   @meta.implemented
 
-  GetRenderables__Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out, _impostors)
   {
     if (!this.display) return out;
     for (const system of this.particleSystems) system.SortParticles();
@@ -526,7 +526,7 @@ export class EveTransform extends Tr2Transform
    */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), query = 0)
+  GetBoundingSphere(out, query = 0)
   {
     let valid = false;
     if (!vec3.equals(this.overrideBoundsMin, this.overrideBoundsMax))

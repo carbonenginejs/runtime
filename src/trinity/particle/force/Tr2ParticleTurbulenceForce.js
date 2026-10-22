@@ -46,7 +46,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
    */
 
   @meta.adapted
-  GetForce(position, _velocity, _dt, _mass, out = vec3.create())
+  GetForce(position, _velocity, _dt, _mass, out)
   {
     vec3.set(out, 0, 0, 0);
     const levels = Math.max(0, Math.trunc(Number(this.noiseLevel) || 0));

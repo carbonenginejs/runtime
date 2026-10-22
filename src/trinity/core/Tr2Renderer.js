@@ -1055,11 +1055,11 @@ export class Tr2Renderer
    * `_33` negated and offset by one, `_43` negated - indices 10 and 14.
    * Carbon returns by value; the copy goes into `out`.
    *
-   * @param {mat4} [out] Receives the matrix.
+   * @param {mat4} out Receives the matrix.
    * @returns {mat4} out
    */
   @meta.implemented
-  static GetReversedDepthProjectionTransform(out = mat4.create())
+  static GetReversedDepthProjectionTransform(out)
   {
     const proj = mat4.copy(out, Tr2Renderer._projectionTransform);
     proj[10] = -proj[10] - 1;
@@ -1092,11 +1092,11 @@ export class Tr2Renderer
    *
    * @param {ArrayLike<number>} worldPos The world position.
    * @param {{x: number, y: number, width: number, height: number, minZ: number, maxZ: number}} vp The viewport.
-   * @param {vec3} [out] Receives the screen position.
+   * @param {vec3} out Receives the screen position.
    * @returns {vec3} out
    */
   @meta.implemented
-  static ProjectWorldToScreen(worldPos, vp, out = vec3.create())
+  static ProjectWorldToScreen(worldPos, vp, out)
   {
     const p = vec4.set(PROJECT_SCRATCH, worldPos[0], worldPos[1], worldPos[2], 1);
     vec4.transformMat4(p, p, Tr2Renderer.GetViewTransform());
@@ -1166,11 +1166,11 @@ export class Tr2Renderer
    * the return value.
    *
    * @param {number} index The plane, 0 to 5.
-   * @param {Float32Array|number[]} [plane] Receives the plane.
+   * @param {Float32Array|number[]} plane Receives the plane.
    * @returns {Float32Array|number[]} plane
    */
   @meta.implemented
-  static GetFrustumPlane(index, plane = vec4.create())
+  static GetFrustumPlane(index, plane)
   {
     return Tr2Renderer._CameraVariables()[FRUSTUM_PLANES[index]].GetValue(plane);
   }
@@ -1312,11 +1312,11 @@ export class Tr2Renderer
    * `_13 _23 _33` - indices 2, 6 and 10. Carbon returns by value; the copy
    * goes into `out`.
    *
-   * @param {vec3} [out] Receives the direction.
+   * @param {vec3} out Receives the direction.
    * @returns {vec3} out
    */
   @meta.implemented
-  static GetViewLookAt(out = vec3.create())
+  static GetViewLookAt(out)
   {
     const view = Tr2Renderer._viewTransform;
     return vec3.set(out, view[2], view[6], view[10]);

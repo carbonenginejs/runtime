@@ -141,7 +141,7 @@ export class EveRootTransform extends EveTransform
    */
 
   @meta.adapted
-  GetDamageLocatorPosition(_index, _inWorldSpace, out = vec3.create())
+  GetDamageLocatorPosition(_index, _inWorldSpace, out)
   {
     vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
     return true;
@@ -155,7 +155,7 @@ export class EveRootTransform extends EveTransform
    */
 
   @meta.adapted
-  GetDamageLocatorDirection(_index, _inWorldSpace, out = vec3.create())
+  GetDamageLocatorDirection(_index, _inWorldSpace, out)
   {
     vec3.set(out, 0, 1, 0);
     return true;
@@ -168,7 +168,7 @@ export class EveRootTransform extends EveTransform
    */
 
   @meta.adapted
-  GetImpactPosition(locator, _posPrev, posNow, epsilon, out = vec3.create())
+  GetImpactPosition(locator, _posPrev, posNow, epsilon, out)
   {
     this.GetDamageLocatorPosition(locator, true, out);
     return vec3.squaredDistance(posNow, out) < Number(epsilon);
@@ -225,7 +225,7 @@ export class EveRootTransform extends EveTransform
   /** Computes a miss point just outside the root's spherical silhouette. */
 
   @meta.implemented
-  GetMissPosition(hit, source, out = vec3.create())
+  GetMissPosition(hit, source, out)
   {
     this.GetDamageLocatorPosition(-1, true, out);
     if (!hit || !source) return out;

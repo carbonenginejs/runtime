@@ -551,12 +551,12 @@ export class EveTurretFiringFX extends EveEntity
 
   /**
    * Averages the translation of every started muzzle transform, which is the point the shot is heard and seen to leave from.
-   * @param {vec3} [out] Caller-owned vector filled with the averaged position.
+   * @param {vec3} out Caller-owned vector filled with the averaged position.
    * @returns {boolean} False when the effect is not firing or no muzzle has started, in which case out is left untouched.
    */
 
   @meta.implemented
-  GetStartPosition(out = vec3.create())
+  GetStartPosition(out)
   {
     if (!this.isFiring) return false;
     this._ensureMuzzleData();
@@ -792,7 +792,7 @@ export class EveTurretFiringFX extends EveEntity
    */
 
   @meta.adapted
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (!(this.display && this.isFiring)) return out;
     this._ensureMuzzleData();

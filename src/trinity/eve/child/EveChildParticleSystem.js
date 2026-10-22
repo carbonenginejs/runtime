@@ -379,7 +379,7 @@ export class EveChildParticleSystem extends EveChildTransform
    */
 
   @meta.adapted
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (!this._isVisible)
     {
@@ -396,7 +396,7 @@ export class EveChildParticleSystem extends EveChildTransform
   /** Copies the world-space mesh bound when built (EveChildParticleSystem.cpp:145-153). */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     if (this._boundingSphere[3] === -1)
     {

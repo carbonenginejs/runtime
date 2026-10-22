@@ -352,7 +352,7 @@ export class EveMobile extends EveSpaceObject2
    */
   @meta.adapted
 
-  GetRenderables__Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out, _impostors)
   {
     if (!this.display) return out;
     super.GetRenderables__Impostors(out, null);

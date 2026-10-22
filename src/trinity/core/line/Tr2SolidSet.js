@@ -122,7 +122,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
    * The native average of triangle vertices transformed into world space.
    */
   @meta.implemented
-  GetCenterOfMass(out = vec3.create())
+  GetCenterOfMass(out)
   {
     vec3.set(out, 0, 0, 0);
     if (!this.triangles.length) return out;

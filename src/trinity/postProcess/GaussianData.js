@@ -67,10 +67,10 @@ export class GaussianData
    * The struct's bytes as Carbon memcpys them into the constant buffer.
    *
    * @param {GaussianData} data The filled struct.
-   * @param {Uint8Array} [out] Destination, at least `byteSize` long.
+   * @param {Uint8Array} out Destination, at least `byteSize` long.
    * @returns {Uint8Array} `out`.
    */
-  static pack(data, out = new Uint8Array(GaussianData.byteSize))
+  static pack(data, out)
   {
     const view = new DataView(out.buffer, out.byteOffset, GaussianData.byteSize);
 
@@ -119,13 +119,13 @@ export class GaussianData
    * @param {number} normalizingFactor Pixels to texture coordinates.
    * @param {vec3} overallWeight The pass tint.
    * @param {vec2} _direction Unused, as in Carbon.
-   * @param {GaussianData} [out] The struct to fill. Adapted: Carbon returns the
+   * @param {GaussianData} out The struct to fill. Adapted: Carbon returns the
    *   struct by value on the stack; a caller running every frame passes one it
    *   keeps, so a pass allocates nothing. Its previous taps are overwritten.
    * @returns {GaussianData} `out`, filled.
    */
   @meta.adapted
-  static calculateGaussianPassParameters(radius, centerWeight, normalizingFactor, overallWeight, _direction, out = new GaussianData())
+  static calculateGaussianPassParameters(radius, centerWeight, normalizingFactor, overallWeight, _direction, out)
   {
     const clampedRadius = Math.min(Math.max(radius, 0.0001), MAX_FILTER_STEPS - 1);
     const integerRadius = Math.ceil(clampedRadius);

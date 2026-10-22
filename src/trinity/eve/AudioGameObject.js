@@ -190,7 +190,7 @@ export class AudioGameObject extends IRoot
    * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
    */
 
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out)
   {
     const position = this.GetWorldPosition(vec3.create());
     vec4.set(out, position[0], position[1], position[2], 1);
@@ -199,11 +199,11 @@ export class AudioGameObject extends IRoot
 
   /**
    * Copies the transform stamped by the last UpdateWorldTransform.
-   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @param {Array} out - caller-owned mat4
    * @returns {Array} out
    */
 
-  GetLocalToWorldTransform(out = mat4.create())
+  GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this._worldTransform);
   }
@@ -221,11 +221,11 @@ export class AudioGameObject extends IRoot
 
   /**
    * Copies the normalized rotation of the transform stamped by the last UpdateWorldTransform.
-   * @param {Array} [out] - caller-owned quat; a fresh quaternion is allocated when omitted
+   * @param {Array} out - caller-owned quat
    * @returns {Array} out
    */
 
-  GetWorldRotation(out = quat.create())
+  GetWorldRotation(out)
   {
     return quat.normalize(out, mat4.getRotation(out, this._worldTransform));
   }

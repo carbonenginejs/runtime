@@ -34,7 +34,7 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
   /** Applies Carbon's linear spring force toward the configured origin. */
 
   @meta.adapted
-  GetForce(position, _velocity, _dt, _mass, out = vec3.create())
+  GetForce(position, _velocity, _dt, _mass, out)
   {
     vec3.subtract(out, position, this.position);
     return vec3.scale(out, out, -this.springConstant);

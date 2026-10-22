@@ -57,7 +57,7 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
   /** Returns the camera's forward direction scaled by the current distance. */
 
   @meta.adapted
-  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out = vec3.create())
+  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out)
   {
     return vec3.scale(out, camera.GetForwardDirection(out), this.GetCurrentValue(camera, localElapsedTime, anchorRadius));
   }

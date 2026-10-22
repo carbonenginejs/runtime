@@ -83,12 +83,12 @@ export class EveCustomMask extends IRoot
 
   /**
    * Builds the box to draw when visualising this mask: the mask placement with its extents scaled by the owner's radius and flattened along X.
-   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @param {Array} out - caller-owned mat4
    * @returns {Array} out
    */
 
   @meta.adapted
-  GetDebugDrawMatrix(out = mat4.create(), objectRadius = 0)
+  GetDebugDrawMatrix(out, objectRadius = 0)
   {
     const radius = Number(objectRadius) || 0;
     const scale = vec3.fromValues(0.1 * radius, this.scaling[1] * radius, this.scaling[2] * radius);

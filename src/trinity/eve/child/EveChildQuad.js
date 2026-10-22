@@ -220,7 +220,7 @@ export class EveChildQuad extends EveChildTransform
   /** Quads render through the quad renderer, never as renderables (EveChildQuad.cpp:103-105). */
   @blue.method
   @meta.noop
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     return renderables;
   }
@@ -231,7 +231,7 @@ export class EveChildQuad extends EveChildTransform
    */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     vec4.set(out, 0, 0, 0, Math.SQRT2);
     sph3.transformMat4(out, out, this.worldTransform);

@@ -150,12 +150,12 @@ export class EveChildLightingOverride extends EveChildTransform
 
   /**
    * Copies the cached local-space bounding sphere into out and always reports success, even before any volume has contributed.
-   * @param {Float32Array} [out] - caller-owned; receives (x, y, z, radius)
+   * @param {Float32Array} out - caller-owned; receives (x, y, z, radius)
    * @returns {Boolean} always true
    */
 
   @meta.adapted
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out)
   {
     vec4.set(out, this._boundingSphere.center[0], this._boundingSphere.center[1], this._boundingSphere.center[2], this._boundingSphere.radius);
     return true;
@@ -206,11 +206,11 @@ export class EveChildLightingOverride extends EveChildTransform
 
   /**
    * Copies the child's world transform, as rebuilt by the last async update.
-   * @param {Float32Array} [out] - caller-owned; allocated when omitted
+   * @param {Float32Array} out - caller-owned
    * @returns {Float32Array} out
    */
 
-  GetLocalToWorldTransform(out = mat4.create())
+  GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
   }

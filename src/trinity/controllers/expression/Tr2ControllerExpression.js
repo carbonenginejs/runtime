@@ -157,11 +157,11 @@ export class Tr2ControllerExpression
 
   /**
    * Gets expression term metadata from the linked controller.
-   * @param {Array} [out=[]] Output metadata list.
+   * @param {Array} out] Output metadata list.
    * @returns {Array} The supplied list.
    */
   @meta.adapted
-  GetExpressionTermInfo(out = [])
+  GetExpressionTermInfo(out)
   {
     CjsControllerExpressionProgram.addControllerTermInfo(out);
     return out;

@@ -28,7 +28,7 @@ export class TriView extends IRoot
   }
 
   /**
-   * Copies the view matrix into out (a fresh matrix when omitted) and returns
+   * Copies the view matrix into out and returns
    * it, since JS cannot safely hand out Carbon's const matrix reference.
    *
    * Adapted: Copies the transform into the caller's output matrix instead of returning
@@ -36,7 +36,7 @@ export class TriView extends IRoot
    */
 
   @meta.adapted
-  GetTransform(out = mat4.create())
+  GetTransform(out)
   {
     return mat4.copy(out, this.transform);
   }

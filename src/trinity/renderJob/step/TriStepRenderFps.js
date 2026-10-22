@@ -102,7 +102,7 @@ export class TriStepRenderFps extends TriRenderStep
    */
   @meta.cjs
     @meta.implemented
-  GetDisplayRect(viewport, out = {})
+  GetDisplayRect(viewport, out)
   {
     const x = viewport?.x ?? 0;
     const y = viewport?.y ?? 0;

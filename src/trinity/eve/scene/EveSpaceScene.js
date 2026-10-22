@@ -1517,7 +1517,7 @@ export class EveSpaceScene
   @meta.adapted
   SetupTransformsForPicking(fx, fy, projection, view, viewport, renderContext)
   {
-    Tr2Renderer.SetViewTransform(view.GetTransform());
+    Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
     projection.SetProjection();
     // Scale up the projection so we have 1 pixel rendered to the viewport,
     // translated to centre on the pick ray origin.
@@ -1581,13 +1581,13 @@ export class EveSpaceScene
    * @param {Float32Array} view - the view matrix
    * @param {Object} [viewport] - { x, y, width, height }; the frame's render
    *   context supplies one when this is omitted
-   * @param {Float32Array} [out] - caller-owned direction
+   * @param {Float32Array} out - caller-owned direction
    * @returns {Float32Array|null} the normalized world direction, or null when
    *   either matrix cannot be inverted
    */
   @be.mapMethodAndWrap()
   @meta.implemented
-  PickInfinity(x, y, projection, view, viewport = null, out = vec3.create())
+  PickInfinity(x, y, projection, view, viewport = null, out)
   {
     // gTriDev->ScreenToProjection reads the device viewport (TriDevice.cpp:1132-1135).
     const resolved = viewport ?? gTriDev.device.viewport;
@@ -1662,7 +1662,7 @@ export class EveSpaceScene
    * The impostor-manager argument (cpp:1478-1502) is dropped - engine-owned.
    * Gather order matters downstream: the opaque accumulator receives batches
    * in gather order before Finalize sorts. */
-  GetRenderables(out = [], renderContext = Tr2RenderContext_GetMainThreadRenderContext())
+  GetRenderables(out, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (!this.display)
     {
@@ -2986,7 +2986,7 @@ export class EveSpaceScene
       const viewport = esm.GetViewport();
       froxelFog = this.volumetricsRenderer.RenderFogIntoReflectionMap(renderContext, gpuResourcePool, viewport.width, viewport.height,
         this.sunDirection, this.currentSunColor, this.updateContext.GetOrigin(), Tr2Renderer.GetViewTransform(),
-        Tr2Renderer.GetReversedDepthProjectionTransform());
+        Tr2Renderer.GetReversedDepthProjectionTransform(mat4.create()));
     }
     store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", froxelFog ? froxelFog.Get() : new Tr2TextureAL());
 
@@ -4281,7 +4281,7 @@ export class EveSpaceScene
       depthMap.GetWidth(), depthMap.GetHeight(), this.cascadedShadowMap, null,
       this.shadowQualitySetting, this.sunDirection, this.currentSunColor,
       this.updateContext.GetOrigin(), this.updateContext.GetOriginShift(),
-      Tr2Renderer.GetViewTransform(), Tr2Renderer.GetReversedDepthProjectionTransform(),
+      Tr2Renderer.GetViewTransform(), Tr2Renderer.GetReversedDepthProjectionTransform(mat4.create()),
       this.viewLast, this.projectionLast);
     try
     {
@@ -4395,7 +4395,7 @@ export class EveSpaceScene
     // Carbon's frame is reverse-Z: the shaders get the REVERSED-depth
     // projection (cpp:3022), matching the inverted depth test and the clear to
     // 0 the driver sets. The forward one here put depth the other way round.
-    const projection = Tr2Renderer.GetReversedDepthProjectionTransform();
+    const projection = Tr2Renderer.GetReversedDepthProjectionTransform(mat4.create());
 
     // column_major for shaders
     out.SetAndTranspose("ViewMat", view);
@@ -4548,7 +4548,7 @@ export class EveSpaceScene
     const out = data;
     const frame = this._EngineFrameState(renderContext);
     // The reversed-depth projection, as the vertex fill (cpp:3140).
-    const projection = Tr2Renderer.GetReversedDepthProjectionTransform();
+    const projection = Tr2Renderer.GetReversedDepthProjectionTransform(mat4.create());
 
     out.SetAndTranspose("ViewMat", Tr2Renderer.GetViewTransform());
 

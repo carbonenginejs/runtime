@@ -50,7 +50,7 @@ export class Tr2TranslationTool extends Tr2ManipulationTool
       {
         const index = ["x", "y", "z"].indexOf(this.selectedAxis);
         if (index < 0) return;
-        const axis = this.GetBaseVectors()[index];
+        const axis = this.GetBaseVectors(vec3.create(), vec3.create(), vec3.create())[index];
         vec3.scale(delta, axis, vec3.dot(delta, axis));
       }
       vec3.add(this._movement, this._movement, delta);

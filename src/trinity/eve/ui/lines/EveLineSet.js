@@ -244,7 +244,7 @@ export class EveLineSet
   /** Carbon's GetRenderables( renderables, impostors ) (cpp:138-146): the set itself while displayed. */
   @meta.implemented
 
-  GetRenderables__Impostors(out = [], _impostors = null)
+  GetRenderables__Impostors(out, _impostors = null)
   {
     if (!this.display) return out;
     out.push(this);
@@ -254,7 +254,7 @@ export class EveLineSet
   /** Carbon's GetRenderables( renderables ) (cpp:148-151): forwards with no impostor manager. */
 
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     return this.GetRenderables__Impostors(out, null);
   }
@@ -262,7 +262,7 @@ export class EveLineSet
   /** Carbon GetBoundingSphere (cpp:153-157): the sphere SubmitChanges last built; always valid. */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
     return true;

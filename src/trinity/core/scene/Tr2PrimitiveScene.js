@@ -180,7 +180,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   @meta.implemented
   SetupTransformsForPicking(fx, fy, projection, view, viewport)
   {
-    Tr2Renderer.SetViewTransform(view.GetTransform());
+    Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
     projection.SetProjection();
 
     if (Tr2Renderer.GetCurrentProjectionType() === PROJECTION_TYPE.PT_ORTHOGONAL)
@@ -215,7 +215,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
       const data = this._frameData;
       data.GetData().fill(0);
       const view = Tr2Renderer.GetViewTransform();
-      const projection = Tr2Renderer.GetReversedDepthProjectionTransform();
+      const projection = Tr2Renderer.GetReversedDepthProjectionTransform(mat4.create());
       const combined = mat4.multiply(mat4.identity(mat4_0), projection, view);
       data.SetAndTranspose("ViewMat", view);
       data.SetAndTranspose("ProjectionMat", projection);

@@ -194,7 +194,7 @@ export class EveMissile extends EveSpaceObject2
    */
   @meta.adapted
 
-  GetRenderables__Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out, _impostors)
   {
     super.GetRenderables__Impostors(out, null);
     for (const warhead of this.warheads) warhead.GetRenderables__Impostors(out, null);
@@ -207,7 +207,7 @@ export class EveMissile extends EveSpaceObject2
    */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out)
   {
     vec4.set(EveMissile._localSphere, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
     sph3.transformMat4(out, EveMissile._localSphere, this.worldTransform);

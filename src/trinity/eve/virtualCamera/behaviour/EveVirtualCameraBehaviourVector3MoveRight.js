@@ -28,7 +28,7 @@ export class EveVirtualCameraBehaviourVector3MoveRight extends EveVirtualCameraB
   /** Returns the camera's right direction scaled by the current distance. */
 
   @meta.adapted
-  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out = vec3.create())
+  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out)
   {
     return vec3.scale(out, camera.GetRightDirection(out), this.GetCurrentValue(camera, localElapsedTime, anchorRadius));
   }

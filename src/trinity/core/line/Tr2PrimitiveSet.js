@@ -146,7 +146,7 @@ export class Tr2PrimitiveSet extends IRoot
   /** An optional output replaces Carbon's value-returned world sphere (cpp:82). */
 
   @meta.adapted
-  GetBoundingSphere(out = vec4.create()) // alloc: value-returned sphere belongs to the caller.
+  GetBoundingSphere(out) // alloc: value-returned sphere belongs to the caller.
   {
     vec3.transformMat4(out, this.boundingSphere, this.worldTransform);
     out[3] = this.boundingSphere[3] * this.scale;

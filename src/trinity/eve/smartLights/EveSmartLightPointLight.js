@@ -209,7 +209,7 @@ export class EveSmartLightPointLight extends EveEntity
   /** IEveSmartLightGroup default: point lights are components, not renderables. */
   @legacyBlue.method
   @meta.noop
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     return renderables;
   }

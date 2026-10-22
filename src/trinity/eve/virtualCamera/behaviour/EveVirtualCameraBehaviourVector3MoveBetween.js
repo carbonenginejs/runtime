@@ -75,7 +75,7 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
    */
 
   @meta.adapted
-  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
+  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out)
   {
     const duration = camera.GetAnimationTimelineLength();
     if (duration === 0)

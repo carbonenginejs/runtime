@@ -114,12 +114,12 @@ export class Tr2PostProcess2 extends IRoot
 
   /**
    * Collects the LUT effects with a positive influence - the single lut slot first, then the list - sorted by ascending influence. Carbon's misspelling of the name is preserved.
-   * @param {Array} [container] caller-owned array, cleared and refilled in place
+   * @param {Array} container caller-owned array, cleared and refilled in place
    * @returns {Array} the same container, left untouched when the quality setting is below LOW
    */
 
   @meta.implemented
-  GetAvilableSortedLuts(container = [], qualitySetting = Tr2PostProcess2.HIGH)
+  GetAvilableSortedLuts(container, qualitySetting = Tr2PostProcess2.HIGH)
   {
     if (qualitySetting < Tr2PostProcess2.LOW) return container;
     container.length = 0;

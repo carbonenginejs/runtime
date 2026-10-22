@@ -660,7 +660,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * the returned array. */
 
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (!this.display || !this._hasUpdated) return out;
 

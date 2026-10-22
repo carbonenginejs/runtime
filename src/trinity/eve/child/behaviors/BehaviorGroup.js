@@ -886,7 +886,7 @@ export class BehaviorGroup extends EveEntity
   /** Carbon BehaviorGroup::GetRenderables (cpp:871-877): PlayFX effects only. */
 
   @meta.implemented
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (this._playFXBehavior !== null)
     {

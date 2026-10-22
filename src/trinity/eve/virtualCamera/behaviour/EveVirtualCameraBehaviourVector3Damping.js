@@ -43,7 +43,7 @@ export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBeh
    */
 
   @meta.adapted
-  Update(_camera, current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
+  Update(_camera, current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out)
   {
     if (localElapsedTime <= 0)
     {

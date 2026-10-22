@@ -381,7 +381,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   /** Carbon EveChildProceduralContainer::GetRenderables (cpp:51-57). */
 
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (this.display && this.selectedObject)
     {
@@ -397,7 +397,7 @@ export class EveChildProceduralContainer extends EveChildTransform
    * path. */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     const childSphere = vec4.create();
     if (this.selectedObject && this.selectedObject.GetBoundingSphere(childSphere, 0))

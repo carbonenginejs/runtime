@@ -1243,7 +1243,7 @@ export class Tr2ParticleSystem
    * Copies the tracked axis-aligned bounds into the caller's vectors, reporting false when no particles are alive.
    */
   @meta.implemented
-  GetBoundingBox(outMin = vec3.create(), outMax = vec3.create())
+  GetBoundingBox(outMin, outMax)
   {
     if (this.aliveCount === 0)
     {

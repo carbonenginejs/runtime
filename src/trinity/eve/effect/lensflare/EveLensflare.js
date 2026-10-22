@@ -505,7 +505,7 @@ export class EveLensflare
    */
 
   @meta.implemented
-  GetRenderables(_frustum, renderables = [])
+  GetRenderables(_frustum, renderables)
   {
     if (!this.display || !this.isVisible) return renderables;
 

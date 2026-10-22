@@ -86,7 +86,7 @@ export class EveChildTransform extends EveSpaceObjectChild
    * convention receives it.
    */
   @meta.implemented
-  ComputeLocalTransform(out = mat4.create())
+  ComputeLocalTransform(out)
   {
     if (this.staticTransform || !this.useSRT)
     {

@@ -355,12 +355,12 @@ export class EveStretch3 extends IEveFiringEffectElement
 
   /**
    * Fills out with the fixed binding roots - Owner, Source, Dest, Stretch, Move and the two space objects - under their binding-path names.
-   * @param {Object} [out] - caller-owned map, mutated in place
+   * @param {Object} out - caller-owned map, mutated in place
    * @returns {Object} out
    */
 
   @meta.implemented
-  GetBindingRoots(out = {})
+  GetBindingRoots(out)
   {
     out.Owner = this;
     out.Source = this.sourceObject;
@@ -746,7 +746,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @meta.implemented
 
-  GetRenderables__Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out, _impostors)
   {
     if (this.display) this._RunOnComponents((component) => component.GetRenderables(out));
     return out;
@@ -773,7 +773,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
 
   @meta.adapted
-  GetBoundingSphere(out = vec4.create(), query = 0)
+  GetBoundingSphere(out, query = 0)
   {
     let valid = false;
     for (const component of [this._destObject, this._sourceObject, this._stretchObject, this._moveObject])

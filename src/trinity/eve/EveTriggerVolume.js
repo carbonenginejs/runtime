@@ -318,7 +318,7 @@ export class EveTriggerVolume extends IRoot
    * object stays pickable (Carbon cpp:172-177); always reports true.
    */
   @meta.implemented
-  GetBoundingSphere(sphere = vec4.create(), _query = 0)
+  GetBoundingSphere(sphere, _query = 0)
   {
     vec3.transformMat4(WORLD_CENTER_SCRATCH, this._boundingSphereCenter, this._worldTransform);
     vec4.set(sphere,
@@ -337,7 +337,7 @@ export class EveTriggerVolume extends IRoot
 
   /** Writes the bounding-sphere centre in world space (cpp:185-188). */
   @meta.implemented
-  GetModelCenterWorldPosition(position = vec3.create())
+  GetModelCenterWorldPosition(position)
   {
     return vec3.transformMat4(position, this._boundingSphereCenter, this._worldTransform);
   }
@@ -347,7 +347,7 @@ export class EveTriggerVolume extends IRoot
    * are set up yet so the object stays pickable (cpp:190-199); always true.
    */
   @meta.implemented
-  GetLocalBoundingBox(min = vec3.create(), max = vec3.create())
+  GetLocalBoundingBox(min, max)
   {
     const radius = Math.max(this._boundingSphereRadius, 1);
     vec3.set(min,
@@ -363,7 +363,7 @@ export class EveTriggerVolume extends IRoot
 
   /** Writes the current world transform (cpp:201-204). */
   @meta.implemented
-  GetLocalToWorldTransform(transform = mat4.create())
+  GetLocalToWorldTransform(transform)
   {
     return mat4.copy(transform, this._worldTransform);
   }
@@ -378,7 +378,7 @@ export class EveTriggerVolume extends IRoot
 
   /** The normalized world rotation of the trigger volume (cpp:211-214). */
   @meta.implemented
-  GetWorldRotation(out = quat.create())
+  GetWorldRotation(out)
   {
     mat4.getRotation(out, this._worldTransform);
     return quat.normalize(out, out);

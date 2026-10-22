@@ -312,7 +312,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /** Forward renderable collection to the instance renderer. */
 
   @meta.implemented
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     return super.GetRenderables(renderables);
   }

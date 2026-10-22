@@ -150,7 +150,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /** Post-process volumes publish no renderables (EveChildPostProcessVolume.h:40). */
   @blue.method
   @meta.noop
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     return renderables;
   }
@@ -158,7 +158,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /** Copies the object-space bound (EveChildPostProcessVolume.cpp:88-94). */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this._boundingSphere);
     return true;

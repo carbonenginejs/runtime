@@ -280,7 +280,7 @@ export class EveSpaceObjectDecal
    */
 
   @meta.adapted
-  GetPosition(out = vec3.create())
+  GetPosition(out)
   {
     return vec3.copy(out, this.position);
   }
@@ -303,7 +303,7 @@ export class EveSpaceObjectDecal
    */
 
   @meta.adapted
-  GetRotation(out = quat.create())
+  GetRotation(out)
   {
     return quat.copy(out, this.rotation);
   }
@@ -326,7 +326,7 @@ export class EveSpaceObjectDecal
    */
 
   @meta.adapted
-  GetScaling(out = vec3.create())
+  GetScaling(out)
   {
     return vec3.copy(out, this.scaling);
   }
@@ -337,7 +337,7 @@ export class EveSpaceObjectDecal
    */
   @meta.cjs
     @meta.adapted
-  GetDecalMatrix(out = mat4.create())
+  GetDecalMatrix(out)
   {
     return mat4.copy(out, this._decalMatrix);
   }
@@ -348,7 +348,7 @@ export class EveSpaceObjectDecal
    */
   @meta.cjs
     @meta.adapted
-  GetInverseDecalMatrix(out = mat4.create())
+  GetInverseDecalMatrix(out)
   {
     return mat4.copy(out, this._inverseDecalMatrix);
   }
@@ -732,7 +732,7 @@ export class EveSpaceObjectDecal
    */
 
   @meta.adapted
-  GetRenderables(out = [], _meshCache = null, geometryResource = null, screenSize = Infinity)
+  GetRenderables(out, _meshCache = null, geometryResource = null, screenSize = Infinity)
   {
     if (this._isVisible <= 0 || !geometryResource) return false;
 

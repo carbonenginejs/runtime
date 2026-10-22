@@ -180,7 +180,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    */
   @meta.adapted
 
-  GetRenderables__Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out, _impostors)
   {
     if (this.display && this._element) this._element.GetRenderables(out);
     return out;

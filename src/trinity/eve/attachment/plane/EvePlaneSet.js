@@ -672,12 +672,12 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    *
    * Adapted: Writes and returns the caller's colour vector instead of a Color value.
    *
-   * @param {vec4} [out] Destination colour.
+   * @param {vec4} out Destination colour.
    * @returns {vec4} The destination colour.
    */
 
   @meta.adapted
-  GetAverageColor(out = new Float32Array(4))
+  GetAverageColor(out)
   {
     const layer1 = this.GetAverageColor__Map(this.layerMap1Parameter);
     const layer2 = this.GetAverageColor__Map(this.layerMap2Parameter);

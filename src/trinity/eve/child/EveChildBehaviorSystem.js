@@ -405,7 +405,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
    */
 
   @meta.implemented
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (!this.display || !this._hasUpdated)
     {

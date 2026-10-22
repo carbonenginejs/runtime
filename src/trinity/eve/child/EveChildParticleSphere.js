@@ -226,7 +226,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    */
 
   @meta.adapted
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (this.mesh && this.particleSystem && this.display && this._hasUpdated)
     {

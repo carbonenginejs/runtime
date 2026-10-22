@@ -82,8 +82,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
         amount = Math.max(0, Math.min(1, this._transitionCurve.GetValue(this._localTime / this.tansitionTime)));
       }
       this.transitionCamera.UpdateExternal(
-        vec3.lerp(vec3.create(), this.sourceCamera.GetPosition(), this.targetCamera.GetPosition(), amount),
-        vec3.lerp(vec3.create(), this.sourceCamera.GetPointOfInterest(), this.targetCamera.GetPointOfInterest(), amount),
+        vec3.lerp(vec3.create(), this.sourceCamera.GetPosition(vec3.create()), this.targetCamera.GetPosition(vec3.create()), amount),
+        vec3.lerp(vec3.create(), this.sourceCamera.GetPointOfInterest(vec3.create()), this.targetCamera.GetPointOfInterest(vec3.create()), amount),
         this.sourceCamera.GetFov() + (this.targetCamera.GetFov() - this.sourceCamera.GetFov()) * amount,
         this.sourceCamera.GetRoll() + (this.targetCamera.GetRoll() - this.sourceCamera.GetRoll()) * amount
       );

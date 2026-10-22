@@ -226,7 +226,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /** Renderable fan-out, gated on display (EveSmartLightColorShareGroup.cpp:127-138). */
 
   @meta.implemented
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (!this.display)
     {

@@ -62,7 +62,7 @@ export class Tr2MaterialBoundsAdjustment
    * empty-box early return is retained, including when rotation is enabled.
    */
   @meta.adapted
-  AdjustBounds(box, out = box3.create())
+  AdjustBounds(box, out)
   {
     box3.copy(out, box);
 

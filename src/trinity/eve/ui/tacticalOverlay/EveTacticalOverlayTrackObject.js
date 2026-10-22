@@ -69,7 +69,7 @@ export class EveTacticalOverlayTrackObject extends IRoot
    */
 
   @meta.adapted
-  GetVelocity(out = vec3.create())
+  GetVelocity(out)
   {
     return vec3.copy(out, this._velocity);
   }
@@ -82,7 +82,7 @@ export class EveTacticalOverlayTrackObject extends IRoot
    */
 
   @meta.adapted
-  GetPosition(out = vec3.create())
+  GetPosition(out)
   {
     return vec3.copy(out, this.position);
   }

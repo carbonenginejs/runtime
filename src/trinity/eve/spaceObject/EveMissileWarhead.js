@@ -435,7 +435,7 @@ export class EveMissileWarhead extends EveTransform
    */
   @meta.implemented
 
-  GetRenderables__Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out, _impostors)
   {
     if (!this._isVisible || this.lodLevel <= EveTransform.Tr2Lod.TR2_LOD_LOW) return out;
     if (this.mesh) out.push(this);
@@ -448,7 +448,7 @@ export class EveMissileWarhead extends EveTransform
    */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out)
   {
     vec4.set(EveMissileWarhead._localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
     sph3.transformMat4(out, EveMissileWarhead._localSphere, this.worldTransform);
@@ -461,7 +461,7 @@ export class EveMissileWarhead extends EveTransform
    */
 
   @meta.implemented
-  GetLocalBoundingSphere(out = vec4.create())
+  GetLocalBoundingSphere(out)
   {
     vec4.set(EveMissileWarhead._localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
     sph3.transformMat4(out, EveMissileWarhead._localSphere, this._currentOffsetTransform);

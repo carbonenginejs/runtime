@@ -246,7 +246,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   /** Writes the aggregate sphere after applying this container's local transform. */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out)
   {
     return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
   }

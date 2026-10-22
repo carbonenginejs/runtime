@@ -366,7 +366,7 @@ export class EveStretch extends IEveFiringEffectElement
    */
   @meta.adapted
 
-  GetRenderables__Impostors(out = [], impostors)
+  GetRenderables__Impostors(out, impostors)
   {
     if (!this.display) return out;
     if (this.sourceObject && this._displaySource) this.sourceObject.GetRenderables__Impostors(out, impostors);
@@ -620,7 +620,7 @@ export class EveStretch extends IEveFiringEffectElement
    */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), query = 0)
+  GetBoundingSphere(out, query = 0)
   {
     let valid = false;
     for (const child of [this.destObject, this.sourceObject, this.stretchObject])

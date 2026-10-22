@@ -1108,7 +1108,7 @@ export class EveSwarm extends EveShip2
    */
 
   @meta.adapted
-  GetDamageLocatorPosition(index, inWorldSpace, out = vec3.create())
+  GetDamageLocatorPosition(index, inWorldSpace, out)
   {
     if (!this.count)
     {

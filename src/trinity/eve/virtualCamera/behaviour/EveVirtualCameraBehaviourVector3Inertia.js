@@ -44,7 +44,7 @@ export class EveVirtualCameraBehaviourVector3Inertia extends EveVirtualCameraBeh
    */
 
   @meta.adapted
-  Update(_camera, current, deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
+  Update(_camera, current, deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out)
   {
     if (localElapsedTime <= 0)
     {

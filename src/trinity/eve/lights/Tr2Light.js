@@ -262,7 +262,7 @@ export class Tr2Light
    */
 
   @meta.adapted
-  GetLight(out = { position: vec3.create(), radius: 0, color: vec3.create() })
+  GetLight(out)
   {
     const lightData = this._lightData;
     vec3.copy(out.position, lightData.position);

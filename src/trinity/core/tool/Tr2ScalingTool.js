@@ -128,7 +128,7 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
       const ray = this.ScreenCoordinatesToRay(x, y, viewport, view, projection);
       const normal = this.GetDesiredPlaneNormal(ray.ray, view);
       const delta = this.MovePointOnPlane(x, y, x + dx, y + dy, position, normal, viewport, view, projection);
-      const axes = this.GetBaseVectors(), index = ["x", "y", "z"].indexOf(this.selectedAxis);
+      const axes = this.GetBaseVectors(vec3.create(), vec3.create(), vec3.create()), index = ["x", "y", "z"].indexOf(this.selectedAxis);
       if (this.selectedAxis !== "w")
       {
         if (index < 0) return;
@@ -201,13 +201,13 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   @meta.implemented
   UpdateLines()
   {
-    const center = this.wBox.GetCenterOfMass();
+    const center = this.wBox.GetCenterOfMass(vec3.create());
     const lines = [this.xLine, this.yLine, this.zLine], boxes = [this.xBox, this.yBox, this.zBox];
     const color = [0.5, 0.5, 0.5, 1];
     for (let i = 0; i < 3; i++)
     {
       lines[i].ClearLines();
-      lines[i].AddLine(center, color, boxes[i].GetCenterOfMass(), color);
+      lines[i].AddLine(center, color, boxes[i].GetCenterOfMass(vec3.create()), color);
       lines[i].SubmitChanges();
     }
   }

@@ -740,7 +740,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * override - parent bounds unions consume it optional-chained. */
 
   @meta.implemented
-  GetBoundingSphere(out = new Float32Array(4), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     out[0] = this.boundingSphere.center[0];
     out[1] = this.boundingSphere.center[1];

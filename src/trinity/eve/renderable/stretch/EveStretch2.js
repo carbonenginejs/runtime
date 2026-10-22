@@ -469,7 +469,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    */
 
   @meta.implemented
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (this._visible && this._intensity > 0 && this._inFrustum) out.push(this);
     return out;
@@ -579,41 +579,41 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   /**
    * Copies the source endpoint position.
-   * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+   * @param {Array} out - caller-owned vec3
    * @returns {Array} out
    */
-  GetSourcePosition(out = vec3.create())
+  GetSourcePosition(out)
   {
     return vec3.copy(out, this._source);
   }
 
   /**
    * Copies the destination endpoint position.
-   * @param {Array} [out] - caller-owned vec3; a fresh vector is allocated when omitted
+   * @param {Array} out - caller-owned vec3
    * @returns {Array} out
    */
-  GetDestinationPosition(out = vec3.create())
+  GetDestinationPosition(out)
   {
     return vec3.copy(out, this._destination);
   }
 
   /**
    * Copies the source endpoint basis, which is only valid once Update has run.
-   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @param {Array} out - caller-owned mat4
    * @returns {Array} out
    */
-  GetSourceTransform(out = mat4.create())
+  GetSourceTransform(out)
   {
     return mat4.copy(out, this._sourceTransform);
   }
 
   /**
    * Copies the destination endpoint basis, which is only valid once Update has run.
-   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @param {Array} out - caller-owned mat4
    * @returns {Array} out
    */
 
-  GetDestinationTransform(out = mat4.create())
+  GetDestinationTransform(out)
   {
     return mat4.copy(out, this._destinationTransform);
   }

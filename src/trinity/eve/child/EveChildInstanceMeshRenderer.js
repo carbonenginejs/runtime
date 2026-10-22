@@ -158,7 +158,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   /** Distribution-local bound, valid whenever mesh and distribution exist. */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     if (!this.mesh || !this.distribution)
     {

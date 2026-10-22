@@ -1853,7 +1853,7 @@ export class EveSpaceSceneRenderDriver
     // Carbon (cpp:384-391): the camera's TriProjection and TriView when there
     // is a camera, else this driver's own pair - Validate guarantees one.
     const projection = this.camera ? this.camera.GetProjection() : this.projection;
-    const view = (this.camera ? this.camera.GetViewMatrix() : this.view).GetTransform();
+    const view = (this.camera ? this.camera.GetViewMatrix() : this.view).GetTransform(mat4.create());
 
     projection.SetProjection__RenderContext(renderContext);
     Tr2Renderer.SetViewTransform(view);

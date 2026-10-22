@@ -919,12 +919,12 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    *
    * Adapted: Writes and returns the caller's colour vector instead of a Color value.
    *
-   * @param {vec4} [out] Destination colour.
+   * @param {vec4} out Destination colour.
    * @returns {vec4} The destination colour.
    */
 
   @meta.adapted
-  GetAverageColor(out = new Float32Array(4))
+  GetAverageColor(out)
   {
     const parameter = this.primaryTextureParameter;
     if (!parameter || !parameter.GetResource())

@@ -5,6 +5,7 @@ import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriRenderStep } from "./TriRenderStep.js";
+import { mat4 } from "#math/mat4";
 
 
 /**
@@ -58,7 +59,7 @@ export class TriStepSetView extends TriRenderStep
   {
     if (this.view)
     {
-      Tr2Renderer.SetViewTransform(this.view.GetTransform());
+      Tr2Renderer.SetViewTransform(this.view.GetTransform(mat4.create()));
     }
     else if (this.camera)
     {

@@ -60,7 +60,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    */
 
   @meta.adapted
-  GetForce(position, velocity, dt, mass, out = vec3.create())
+  GetForce(position, velocity, dt, mass, out)
   {
     vec3.set(out, 0, 0, 0);
     const delta = Tr2ForceSphereVolume.#delta;

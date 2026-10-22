@@ -369,7 +369,7 @@ export class EveEffectRoot2 extends EveEntity
   /** Collects child renderables after applying a pending LOD change. */
   @meta.implemented
 
-  GetRenderables__Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out, _impostors)
   {
     if (!this.display) return out;
     if (this._changeLOD)
@@ -392,7 +392,7 @@ export class EveEffectRoot2 extends EveEntity
   /** Returns the authored local bounding sphere. */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out)
   {
     vec4.set(
       out,
@@ -470,7 +470,7 @@ export class EveEffectRoot2 extends EveEntity
    */
 
   @meta.adapted
-  GetModelCenterWorldPosition(out = vec3.create())
+  GetModelCenterWorldPosition(out)
   {
     return vec3.transformMat4(out, this.boundingSphereCenter, this._lastUpdateMatrix);
   }
@@ -504,7 +504,7 @@ export class EveEffectRoot2 extends EveEntity
    */
 
   @meta.adapted
-  GetLocalToWorldTransform(out = mat4.create())
+  GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this._lastUpdateMatrix);
   }
@@ -542,7 +542,7 @@ export class EveEffectRoot2 extends EveEntity
    * accesses its protected member directly.
    */
   @meta.adapted
-  GetWorldTransform(out = mat4.create())
+  GetWorldTransform(out)
   {
     return mat4.copy(out, this._worldTransform);
   }
@@ -854,7 +854,7 @@ export class EveEffectRoot2 extends EveEntity
    */
 
   @meta.adapted
-  GetDamageLocatorPosition(_index, _inWorldSpace, out = vec3.create())
+  GetDamageLocatorPosition(_index, _inWorldSpace, out)
   {
     vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
     return true;
@@ -868,7 +868,7 @@ export class EveEffectRoot2 extends EveEntity
    */
 
   @meta.adapted
-  GetDamageLocatorDirection(_index, _inWorldSpace, out = vec3.create())
+  GetDamageLocatorDirection(_index, _inWorldSpace, out)
   {
     vec3.set(out, 0, 1, 0);
     return true;
@@ -881,7 +881,7 @@ export class EveEffectRoot2 extends EveEntity
    */
 
   @meta.adapted
-  GetImpactPosition(locator, _posPrev, posNow, epsilon, out = vec3.create())
+  GetImpactPosition(locator, _posPrev, posNow, epsilon, out)
   {
     this.GetDamageLocatorPosition(locator, true, out);
     return vec3.squaredDistance(posNow, out) < Number(epsilon);
@@ -954,7 +954,7 @@ export class EveEffectRoot2 extends EveEntity
    */
 
   @meta.adapted
-  GetWorldRotation(out = quat.create())
+  GetWorldRotation(out)
   {
     mat4.getRotation(EveEffectRoot2._worldRotation, this._worldTransform);
     // Carbon (row-vector): m_rotation * RotationQuaternion(world) - local first.
@@ -965,7 +965,7 @@ export class EveEffectRoot2 extends EveEntity
   /** Computes a miss point just outside the root's spherical silhouette. */
 
   @meta.implemented
-  GetMissPosition(hit, source, out = vec3.create())
+  GetMissPosition(hit, source, out)
   {
     this.GetDamageLocatorPosition(-1, true, out);
     if (!hit || !source) return out;

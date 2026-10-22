@@ -170,11 +170,11 @@ export class EveChildAudio extends EveChildTransform
 
   /**
    * Copies the child's world transform, as rebuilt by the last sync update.
-   * @param {Float32Array} [out] - caller-owned; allocated when omitted
+   * @param {Float32Array} out - caller-owned
    * @returns {Float32Array} out
    */
 
-  GetLocalToWorldTransform(out = mat4.create())
+  GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
   }

@@ -304,11 +304,11 @@ export class Tr2LightManager
    * offsets/scale back into texels via the entry-min-size shift.
    *
    * @param {object} record A light record carrying the packed fields.
-   * @param {object} [out] Receives scale/offsetX/offsetY.
+   * @param {object} out Receives scale/offsetX/offsetY.
    * @returns {object} out
    */
   @meta.implemented
-  GetUnpackedShadowMapData(record, out = {})
+  GetUnpackedShadowMapData(record, out)
   {
     const shift = this._shadowMap.atlasSettings.entryMinSizeLog2;
     out.shadowMapScale = (record.shadowMapScale ?? 0) << shift;

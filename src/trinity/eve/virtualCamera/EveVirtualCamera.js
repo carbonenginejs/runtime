@@ -118,7 +118,7 @@ export class EveVirtualCamera extends IRoot
   @meta.implemented
   get forward()
   {
-    return this.GetViewDirection();
+    return this.GetViewDirection(vec3.create());
   }
 
   /**
@@ -130,7 +130,7 @@ export class EveVirtualCamera extends IRoot
   @meta.implemented
   get right()
   {
-    return this.GetRightDirection();
+    return this.GetRightDirection(vec3.create());
   }
 
   /**
@@ -142,7 +142,7 @@ export class EveVirtualCamera extends IRoot
   @meta.implemented
   get up()
   {
-    return this.GetUpDirection();
+    return this.GetUpDirection(vec3.create());
   }
 
   /**
@@ -151,9 +151,9 @@ export class EveVirtualCamera extends IRoot
    */
   @be.mapMethodAndWrap()
   @meta.adapted
-  GetViewMatrix(out = mat4.create())
+  GetViewMatrix(out)
   {
-    return mat4.lookAtD3D(out, this.position, this.pointOfInterest, this.GetUpDirection());
+    return mat4.lookAtD3D(out, this.position, this.pointOfInterest, this.GetUpDirection(vec3.create()));
   }
 
   /**
@@ -161,12 +161,12 @@ export class EveVirtualCamera extends IRoot
    * @param {Number} aspectRatio
    * @param {Number} frontClip Near plane distance
    * @param {Number} backClip Far plane distance
-   * @param {mat4} [out]
+   * @param {mat4} out
    * @returns {mat4}
    */
   @be.mapMethodAndWrap()
   @meta.adapted
-  GetProjectionMatrix(aspectRatio, frontClip, backClip, out = mat4.create())
+  GetProjectionMatrix(aspectRatio, frontClip, backClip, out)
   {
     return mat4.perspectiveZO(out, this.fov, aspectRatio, frontClip, backClip);
   }
@@ -177,7 +177,7 @@ export class EveVirtualCamera extends IRoot
    */
 
   @meta.adapted
-  GetViewDirection(out = vec3.create())
+  GetViewDirection(out)
   {
     return vec3.normalize(out, vec3.subtract(out, this.pointOfInterest, this.position));
   }
@@ -188,7 +188,7 @@ export class EveVirtualCamera extends IRoot
    */
 
   @meta.adapted
-  GetForwardDirection(out = vec3.create())
+  GetForwardDirection(out)
   {
     return this.GetViewDirection(out);
   }
@@ -200,7 +200,7 @@ export class EveVirtualCamera extends IRoot
    */
 
   @meta.adapted
-  GetUpDirection(out = vec3.create())
+  GetUpDirection(out)
   {
     const view = this.GetForwardDirection(vec3.create());
     const right = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), view, vec3.fromValues(0, 1, 0)));
@@ -212,7 +212,7 @@ export class EveVirtualCamera extends IRoot
   /** Returns the normalized cross product of the forward and up directions. */
 
   @meta.adapted
-  GetRightDirection(out = vec3.create())
+  GetRightDirection(out)
   {
     return vec3.normalize(out, vec3.cross(out, this.GetForwardDirection(vec3.create()), this.GetUpDirection(vec3.create())));
   }
@@ -431,7 +431,7 @@ export class EveVirtualCamera extends IRoot
   /** Copies the world-space camera position into out. */
 
   @meta.adapted
-  GetPosition(out = vec3.create())
+  GetPosition(out)
   {
     return vec3.copy(out, this.position);
   }
@@ -450,7 +450,7 @@ export class EveVirtualCamera extends IRoot
   /** Copies the world-space point the camera looks at into out. */
 
   @meta.adapted
-  GetPointOfInterest(out = vec3.create())
+  GetPointOfInterest(out)
   {
     return vec3.copy(out, this.pointOfInterest);
   }
@@ -521,7 +521,7 @@ export class EveVirtualCamera extends IRoot
     {
       if (behaviour.IsActive())
       {
-        vec3.add(value, value, behaviour.Update(camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward));
+        vec3.add(value, value, behaviour.Update(camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward, vec3.create()));
       }
     }
   }

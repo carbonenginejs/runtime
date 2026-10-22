@@ -272,11 +272,11 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 
   /**
    * Copies the cached local-space bounding sphere into out and always reports success, even before any volume has contributed (in which case it is the zero-radius sphere at the origin).
-   * @param {Float32Array} [out] - caller-owned; receives (x, y, z, radius)
+   * @param {Float32Array} out - caller-owned; receives (x, y, z, radius)
    * @returns {Boolean} always true
    */
 
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out)
   {
     vec4.set(out, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
     return true;
@@ -340,12 +340,12 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Carbon's body is empty; the JavaScript child contract must return the
    * transform because owned parent/FX consumers use this method as their
    * nominal transform boundary.
-   * @param {Float32Array} [out] - caller-owned; allocated when omitted
+   * @param {Float32Array} out - caller-owned
    * @returns {Float32Array} out
    */
 
   @meta.adapted
-  GetLocalToWorldTransform(out = mat4.create())
+  GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
   }

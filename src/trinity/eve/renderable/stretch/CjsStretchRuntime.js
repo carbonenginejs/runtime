@@ -9,11 +9,11 @@ export class CjsStretchRuntime
   /**
    * Writes a uniform-scale-plus-translation matrix.
    * @param {Array} position - translation vector
-   * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
+   * @param {Array} out - caller-owned mat4
    * @param {number} [scale=1] - uniform scale
    * @returns {Array} out
    */
-  static translationMatrix(position, out = mat4.create(), scale = 1)
+  static translationMatrix(position, out, scale = 1)
   {
     mat4.identity(out);
     out[0] = out[5] = out[10] = scale;

@@ -1397,7 +1397,7 @@ export class Tr2GrannyAnimation extends IRoot
   /** Copies a named bone's world transform into an output matrix. */
   @meta.adapted
 
-  GetBoneWorldTransform(boneName, out = mat4.create())
+  GetBoneWorldTransform(boneName, out)
   {
     const index = this._runtimeModel?.boneByName.get(String(boneName ?? ""));
     if (index === undefined)
@@ -1411,7 +1411,7 @@ export class Tr2GrannyAnimation extends IRoot
   /** Copies an indexed bone's world transform into an output matrix. */
   @meta.cjs
     @meta.adapted
-  GetBoneTransform(index, out = mat4.create())
+  GetBoneTransform(index, out)
   {
     const bone = this._runtimeModel?.bones[Number(index)];
     if (!bone)
@@ -1429,9 +1429,9 @@ export class Tr2GrannyAnimation extends IRoot
   {
     if (typeof bone === "number")
     {
-      return this.GetBoneTransform(bone);
+      return this.GetBoneTransform(bone, mat4.create());
     }
-    return this.GetBoneWorldTransform(bone);
+    return this.GetBoneWorldTransform(bone, mat4.create());
   }
 
   /** Returns the current world transforms for every animation bone. */

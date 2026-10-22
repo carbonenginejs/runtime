@@ -76,7 +76,7 @@ export class Tr2KelvinColor extends IInitialize
   }
 
   /** CIE 1931 two-degree standard observer XYZ to RGB. */
-  static xyzToRgb(x, y, z, out = vec3.create())
+  static xyzToRgb(x, y, z, out)
   {
     return vec3.set(out,
       0.41866 * x - 0.15866 * y - 0.08283 * z,
@@ -90,7 +90,7 @@ export class Tr2KelvinColor extends IInitialize
    * This retained JavaScript helper also maps NaN to black, uses decimal table
    * constants and float32 vec3 intermediates; native double arithmetic differs.
    */
-  static triColorFromKelvin(temperature, tint, whitePoint, out = vec3.create())
+  static triColorFromKelvin(temperature, tint, whitePoint, out)
   {
     const T = Number(temperature);
 
@@ -173,11 +173,11 @@ export class Tr2KelvinColor extends IInitialize
    * Adapted: written into `out` rather than returned by value, and stored as
    * float32 where Carbon converts its Vector3d at the end.
    *
-   * @param {vec4} [out] Receives the colour.
+   * @param {vec4} out Receives the colour.
    * @returns {vec4} out
    */
   @meta.adapted
-  AsRGB(out = vec4.create())
+  AsRGB(out)
   {
     const rgb = Tr2KelvinColor.triColorFromKelvin(this.temperature, this.tint, this.whiteBalance, Tr2KelvinColor._rgbScratch);
     return vec4.set(out, rgb[0], rgb[1], rgb[2], 1);

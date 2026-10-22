@@ -1055,7 +1055,7 @@ export class EveTurretSet extends EveEntity
    */
   @be.mapMethodAndWrap()
   @meta.adapted
-  GetFiringBoneWorldTransform(muzzle = 0, out = mat4.create())
+  GetFiringBoneWorldTransform(muzzle = 0, out)
   {
     let turretIndex = this._activeTurret;
     if (turretIndex === EveTurretSet.INVALID_INDEX) turretIndex = this.GetClosestTurret();
@@ -1074,7 +1074,7 @@ export class EveTurretSet extends EveEntity
    */
 
   @meta.adapted
-  GetTurretBoneTransform(turretIndex, boneID, out = mat4.create()) // alloc: returned native matrix value belongs to the caller; hot-path callers provide out
+  GetTurretBoneTransform(turretIndex, boneID, out) // alloc: returned native matrix value belongs to the caller; hot-path callers provide out
   {
     const turret = this._turrets[turretIndex];
     mat4.copy(out, turret.worldMatrix);
@@ -2096,7 +2096,7 @@ export class EveTurretSet extends EveEntity
    */
 
   @meta.adapted
-  GetRenderables(out = [], shLighting = null)
+  GetRenderables(out, shLighting = null)
   {
     this._parentShLighting = null;
     if (!this.display) return out;

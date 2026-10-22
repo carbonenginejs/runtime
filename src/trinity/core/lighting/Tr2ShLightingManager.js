@@ -247,7 +247,7 @@ export class Tr2ShLightingManager extends IRoot
     // returns Carbon's three out-params as one record (Tr2Light.GetLight).
     for (const light of this.lights)
     {
-      const { position, radius, color } = light.GetLight();
+      const { position, radius, color } = light.GetLight({ position: vec3.create(), radius: 0, color: vec3.create() });
 
       const emissive = vec3.scale(vec3.create(), color, this.primaryIntensity);
 

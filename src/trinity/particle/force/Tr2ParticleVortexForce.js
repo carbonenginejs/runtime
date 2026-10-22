@@ -46,7 +46,7 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
   /** Applies Carbon's normalized tangential vortex force. */
 
   @meta.adapted
-  GetForce(position, _velocity, _dt, _mass, out = vec3.create())
+  GetForce(position, _velocity, _dt, _mass, out)
   {
     const f = Math.fround;
     let x = f(f(this.position[0]) - f(position[0]));

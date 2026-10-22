@@ -117,7 +117,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   /** Copies Carbon's local-space bound. */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
     return true;
@@ -172,7 +172,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   /** Carbon's IEveTransform implementation deliberately returns identity. */
 
   @meta.implemented
-  GetLocalToWorldTransform(out = mat4.create())
+  GetLocalToWorldTransform(out)
   {
     return mat4.identity(out);
   }

@@ -23,7 +23,7 @@ export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
   /** Applies quadratic drag and Carbon's one-frame velocity reversal clamp. */
 
   @meta.adapted
-  GetForce(_position, velocity, dt, mass, out = vec3.create())
+  GetForce(_position, velocity, dt, mass, out)
   {
     const f = Math.fround;
     const x = f(velocity[0]), y = f(velocity[1]), z = f(velocity[2]);

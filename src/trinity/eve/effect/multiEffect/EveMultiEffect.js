@@ -208,14 +208,14 @@ export class EveMultiEffect extends IRoot
 
   /**
    * Fills out with Owner followed by each parameter slot's bound object, so a slot named Owner overrides the effect itself.
-   * @param {Object|Map} [out] - caller-owned map, mutated in place
+   * @param {Object|Map} out - caller-owned map, mutated in place
    * @returns {Object|Map} out
    *
    * Adapted: Carbon's unordered_map is a JavaScript object or Map, filled Owner first so a slot named Owner wins.
    */
 
   @meta.adapted
-  GetBindingRoots(out = {})
+  GetBindingRoots(out)
   {
     EveMultiEffect._SetMapValue(out, "Owner", this);
     for (const parameter of this.parameters)

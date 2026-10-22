@@ -42,7 +42,7 @@ export class Float4x3
    * helper and optional output buffer adapt the native Matrix constructor.
    */
   @meta.adapted
-  static fromMat4(matrix, out = new Float32Array(12))
+  static fromMat4(matrix, out)
   {
     return mat4.getAffineCarbon(out, matrix);
   }
@@ -53,7 +53,7 @@ export class Float4x3
    * and optional output buffer adapt the native Matrix conversion operator.
    */
   @meta.adapted
-  static toMat4(elements, out = mat4.create())
+  static toMat4(elements, out)
   {
     return mat4.fromAffineCarbon(out, elements);
   }
@@ -66,7 +66,7 @@ export class Float4x3
   }
 
   /** This record's elements unpacked into a transform, written into `out`. */
-  GetMat4(out = mat4.create())
+  GetMat4(out)
   {
     return Float4x3.toMat4(this.elements, out);
   }

@@ -319,7 +319,7 @@ export class EveTacticalTrails
   /** Carbon's GetRenderables( renderables, impostors ) (cpp:269-272): always the trails themselves. */
   @meta.implemented
 
-  GetRenderables__Impostors(out = [], _impostors = null)
+  GetRenderables__Impostors(out, _impostors = null)
   {
     out.push(this);
     return out;

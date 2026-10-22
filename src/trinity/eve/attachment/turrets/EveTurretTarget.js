@@ -325,7 +325,7 @@ export class EveTurretTarget extends IRoot
    */
 
   @meta.adapted
-  FindClosestLocator(source, out = vec3.create())
+  FindClosestLocator(source, out)
   {
     if (!this._targetable) return -1;
     // Carbon EveTurretTarget.cpp:318-333.
@@ -342,7 +342,7 @@ export class EveTurretTarget extends IRoot
    */
 
   @meta.adapted
-  FindRandomValidLocator(source, out = vec3.create())
+  FindRandomValidLocator(source, out)
   {
     if (!this._targetable) return -1;
     // Carbon EveTurretTarget.cpp:336-353.

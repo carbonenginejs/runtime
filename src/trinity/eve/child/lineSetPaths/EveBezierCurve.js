@@ -273,12 +273,12 @@ export class EveBezierCurve extends IEveLineSetPath
 
   /**
    * Returns the cached bounding sphere moved through the path's local transform.
-   * @param {Float32Array} [out] - caller-owned; allocated when omitted
+   * @param {Float32Array} out - caller-owned
    * @returns {Float32Array} out
    */
 
   @meta.adapted
-  GetBoundingSphere(out = vec4.create())
+  GetBoundingSphere(out)
   {
     return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
   }

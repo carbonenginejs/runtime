@@ -458,7 +458,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   /** Copies the current world-space sphere and always reports it available. */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     vec4.copy(out, this.boundingSphere);
     return true;
@@ -467,7 +467,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   /** Copies the transform composed during the last sync pass. */
 
   @meta.implemented
-  GetLocalToWorldTransform(out = mat4.create())
+  GetLocalToWorldTransform(out)
   {
     return mat4.copy(out, this.worldTransform);
   }

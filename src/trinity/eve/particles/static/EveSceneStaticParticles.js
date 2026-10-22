@@ -186,7 +186,7 @@ export class EveSceneStaticParticles extends IRoot
    * (kept for the scene call-site contract, EveSpaceScene.cpp:1504-1507). */
 
   @meta.implemented
-  GetRenderables(_frustum, out = [])
+  GetRenderables(_frustum, out)
   {
     if (this.visible)
     {

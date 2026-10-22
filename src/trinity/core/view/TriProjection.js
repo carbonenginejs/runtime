@@ -219,12 +219,12 @@ export class TriProjection extends IRoot
 
   /**
    * Rebuilds the projection matrix from the stored parameters, without any view-dependent adjustment; an unset projection type yields identity.
-   * @param {mat4} [out] Caller-owned destination; a new matrix is allocated when omitted.
+   * @param {mat4} out Caller-owned destination.
    * @returns {mat4} The destination matrix.
    */
 
   @meta.adapted
-  GetMatrixWithoutViewAdjustment(out = mat4.create())
+  GetMatrixWithoutViewAdjustment(out)
   {
     switch (this.projectionType)
     {
@@ -243,11 +243,11 @@ export class TriProjection extends IRoot
 
   /**
    * Rebuilds the cached transform field from the current parameters, then copies
-   * it into out (a fresh matrix when omitted) and returns it.
+   * it into out and returns it.
    */
 
   @meta.adapted
-  GetTransform(out = mat4.create())
+  GetTransform(out)
   {
     this.GetMatrixWithoutViewAdjustment(this.transform);
     return mat4.copy(out, this.transform);

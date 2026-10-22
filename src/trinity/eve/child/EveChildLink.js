@@ -219,7 +219,7 @@ export class EveChildLink extends EveChildMesh
    */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     const halfDistance = this.currentDistance / 2;
     vec4.set(

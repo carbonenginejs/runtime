@@ -82,7 +82,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    */
 
   @meta.adapted
-  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
+  Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out)
   {
     const offset = vec3.clone(this.magnitude);
     offset[0] *= EveVirtualCameraBehaviourVector3Shake._clampedNoise(localElapsedTime + this._phase + 1.1, this.perlineScale, this.octaves);

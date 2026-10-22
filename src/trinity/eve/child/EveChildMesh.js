@@ -1175,7 +1175,7 @@ export class EveChildMesh extends EveChildTransform
 
     if (!this._restPoseBoneTransforms || this._restPoseBoneTransforms.length !== boneCount * 12)
     {
-      const identity = Float4x3.fromMat4(mat4.create());
+      const identity = Float4x3.fromMat4(mat4.create(), new Float32Array(12));
       this._restPoseBoneTransforms = new Float32Array(boneCount * 12);
       for (let index = 0; index < boneCount; index++)
       {
@@ -1302,7 +1302,7 @@ export class EveChildMesh extends EveChildTransform
    */
 
   @meta.adapted
-  GetRenderables(out = [])
+  GetRenderables(out)
   {
     if (!this._isVisible)
     {
@@ -1345,7 +1345,7 @@ export class EveChildMesh extends EveChildTransform
    * sphere, valid only after an update produced bounds (radius > 0). */
 
   @meta.implemented
-  GetBoundingSphere(out = vec4.create(), _query = 0)
+  GetBoundingSphere(out, _query = 0)
   {
     if (this._worldBoundingSphere[3] > 0)
     {
@@ -1930,7 +1930,7 @@ export class EveChildMesh extends EveChildTransform
    */
 
   @meta.implemented
-  GetDamageLocatorBindPositionLocal(index, out = vec3.create())
+  GetDamageLocatorBindPositionLocal(index, out)
   {
     const locators = this.GetOwnedDamageLocators();
     const locatorIndex = Number(index) | 0;

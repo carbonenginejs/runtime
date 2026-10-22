@@ -298,7 +298,7 @@ export class PlayFX extends EveEntity
   /** Carbon PlayFX::GetRenderables (cpp:158-164). */
 
   @meta.implemented
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     for (const fx of this.generatedFiringEffects)
     {

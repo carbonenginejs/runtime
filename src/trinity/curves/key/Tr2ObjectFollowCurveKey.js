@@ -250,7 +250,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
         {
           if (this.object && blue.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
           {
-            return quat.normalize(this._rotation, this.object.GetWorldRotation());
+            return quat.normalize(this._rotation, this.object.GetWorldRotation(quat.create()));
           }
           break;
         }

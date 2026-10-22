@@ -307,7 +307,7 @@ export class EveMeshOverlayEffect extends IRoot
    * contains opaque areas alone. Tr2MeshBase applies Carbon's shadow-casting
    * filter while collecting opaque blocks.
    */
-  static collectOverlayAreaBlocks(mesh, out = [ [], [] ])
+  static collectOverlayAreaBlocks(mesh, out)
   {
     for (const blocks of out) blocks.length = 0;
 

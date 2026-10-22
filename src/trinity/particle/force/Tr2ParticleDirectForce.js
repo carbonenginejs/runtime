@@ -26,7 +26,7 @@ export class Tr2ParticleDirectForce extends ITr2ParticleForce
   /** Copies the authored constant force into caller-owned output. */
 
   @meta.adapted
-  GetForce(_position, _velocity, _dt, _mass, out = vec3.create())
+  GetForce(_position, _velocity, _dt, _mass, out)
   {
     return vec3.copy(out, this.force);
   }

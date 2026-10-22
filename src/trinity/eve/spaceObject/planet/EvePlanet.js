@@ -263,7 +263,7 @@ export class EvePlanet extends EveEffectRoot2
   /** Surface drawing requires HIGH LOD and strictly more than minScreenSize (cpp:243-263). */
   @meta.implemented
 
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (!this.display || this.lodLevel !== Tr2Lod.TR2_LOD_HIGH) return renderables;
     if (this.estimatedPixelDiameter > this.minScreenSize)
@@ -276,7 +276,7 @@ export class EvePlanet extends EveEffectRoot2
   /** The depth proxy has display/HIGH gates but no pixel-size gate (cpp:224-241). */
   @meta.implemented
 
-  GetZOnlyRenderables(renderables = [])
+  GetZOnlyRenderables(renderables)
   {
     if (this.display && this.lodLevel === Tr2Lod.TR2_LOD_HIGH && this.zOnlyModel)
     {
@@ -323,7 +323,7 @@ export class EvePlanet extends EveEffectRoot2
   /** Returns the authored rotation, not the ball-composed root rotation (cpp:147-150). */
   @meta.adapted
 
-  GetWorldRotation(out = quat.create()) // alloc: optional output is a caller-owned return value.
+  GetWorldRotation(out) // alloc: optional output is a caller-owned return value.
   {
     // Adapted: the caller owns the returned quaternion instead of a C++ value.
     return quat.copy(out, this.rotation);
@@ -358,7 +358,7 @@ export class EvePlanet extends EveEffectRoot2
   /** Out-last JS miss position is always the planet center (cpp:341-344). */
   @meta.adapted
 
-  GetMissPosition(_hit, _source, out = vec3.create()) // alloc: optional output is a caller-owned return value.
+  GetMissPosition(_hit, _source, out) // alloc: optional output is a caller-owned return value.
   {
     return this.GetWorldPosition(out);
   }

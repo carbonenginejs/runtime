@@ -282,7 +282,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   /** Carbon EveChildBulletStorm::GetRenderables (cpp:84-91): once updated and displayed. Adapted: returns the array. */
 
   @meta.adapted
-  GetRenderables(renderables = [])
+  GetRenderables(renderables)
   {
     if (this.display && this._hasUpdated) renderables.push(this);
     return renderables;

@@ -173,11 +173,11 @@ export class LightData
    * @param {mat4} transform
    * @param {LightFeatures} features
    * @param {number} shadowQuality A ShadowQuality value.
-   * @param {object} [out] A light record (CreateLightRecord) to write.
+   * @param {object} out A light record (CreateLightRecord) to write.
    * @returns {object} out
    */
   @meta.adapted
-  AsPerPointLightData(transform, features, shadowQuality, out = CreateLightRecord())
+  AsPerPointLightData(transform, features, shadowQuality, out)
   {
     // cpp:42-47.
     let composedBrightness = Math.fround(this.brightness * features.parentBrightness);
@@ -233,11 +233,11 @@ export class LightData
    * @param {mat4} transform
    * @param {LightFeatures} features
    * @param {number} shadowQuality A ShadowQuality value.
-   * @param {object} [out] A light record (CreateLightRecord) to write.
+   * @param {object} out A light record (CreateLightRecord) to write.
    * @returns {object} out
    */
   @meta.adapted
-  AsPerSpotLightData(transform, features, shadowQuality, out = CreateLightRecord())
+  AsPerSpotLightData(transform, features, shadowQuality, out)
   {
     this.AsPerPointLightData(transform, features, shadowQuality, out);
 

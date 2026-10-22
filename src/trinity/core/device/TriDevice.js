@@ -348,7 +348,7 @@ export class TriDevice extends IRoot
    * 3 maps to 1 and pixel 0 to -1.
    */
   @meta.adapted
-  ScreenToProjection(x, y, viewport = this.viewport, out = {})
+  ScreenToProjection(x, y, viewport = this.viewport, out)
   {
     const vx = x - (viewport?.x ?? 0);
     const vy = y - (viewport?.y ?? 0);
