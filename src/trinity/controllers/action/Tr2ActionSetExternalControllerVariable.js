@@ -232,7 +232,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    */
   static _getBindingRoots(owner)
   {
-    const roots = ITr2ControllerAction.callTarget(owner, "GetBindingRoots");
+    const roots = ITr2ControllerAction.callTarget(owner, "GetBindingRoots", {});
     if (Array.isArray(roots))
     {
       return roots.map(entry => [String(entry[0] ?? ""), entry[1]]);
