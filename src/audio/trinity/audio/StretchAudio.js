@@ -4,7 +4,7 @@ import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/StretchAudio.json.
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { IStretchAudio } from "../trinityAudioApi/IStretchAudio.js";
 import { AudEmitter } from "./AudEmitter.js";
@@ -238,6 +238,41 @@ export class StretchAudio extends IStretchAudio
       }
     }
     return null;
+  }
+
+  /**
+   * Carbon: StretchAudio::GetDebugOptions (audio/src/Components/StretchAudio.cpp:139-153;
+   * StretchAudio.h:46). Asks the source, destination and stretch emitters, in that
+   * order, for their debug options; an emitter that is unset or does not implement
+   * ITr2DebugRenderable is skipped (each is a `dynamic_cast`).
+   *
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
+    {
+      const renderable = CjsSchema.cast(emitter, ITr2DebugRenderable);
+      if (renderable) renderable.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon: StretchAudio::RenderDebugInfo (audio/src/Components/StretchAudio.cpp:155-169;
+   * StretchAudio.h:47). Draws the source, destination and stretch emitters' debug info,
+   * in that order, skipping an emitter that is unset or not ITr2DebugRenderable.
+   *
+   * @param {object} renderer The ITr2DebugRenderer2 to draw with.
+   */
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
+    {
+      const renderable = CjsSchema.cast(emitter, ITr2DebugRenderable);
+      if (renderable) renderable.RenderDebugInfo(renderer);
+    }
   }
 
 }
