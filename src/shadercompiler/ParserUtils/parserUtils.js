@@ -796,14 +796,15 @@ export function GetCBufferIndex__Symbol(symbol)
  *
  * @param {import("../ParserState/ParserState.js").ParserState} state The parse.
  * @param {ASTNode} parent The parent node.
- * @param {{ value: number }} index Child index, advanced past an inserted shadow struct.
+ * @param {number} index Child index.
+ * @returns {number} The index, advanced past an inserted shadow struct (Carbon's `unsigned&`).
  */
 function PatchCBuffers__ParentIndex(state, parent, index)
 {
-    const node = parent.GetChild(index.value);
+    const node = parent.GetChild(index);
     if (node === null)
     {
-        return;
+        return index;
     }
     if (node.GetNodeType() === NT_NAME_DECLARATION)
     {
@@ -814,18 +815,19 @@ function PatchCBuffers__ParentIndex(state, parent, index)
             const cbuffer = AddCBuffer(state, node, cbufferIndex, shadowStruct);
 
             cbuffer.AddChild(node);
-            parent.RemoveChild(index.value);
+            parent.RemoveChild(index);
             if (shadowStruct.value)
             {
-                parent.InsertChild(index.value++, shadowStruct.value);
+                parent.InsertChild(index++, shadowStruct.value);
             }
-            parent.InsertChild(index.value, cbuffer);
+            parent.InsertChild(index, cbuffer);
         }
     }
-    for (const i = { value: 0 }; i.value < node.GetChildrenCount(); ++i.value)
+    for (let i = 0; i < node.GetChildrenCount(); ++i)
     {
-        PatchCBuffers__ParentIndex(state, node, i);
+        i = PatchCBuffers__ParentIndex(state, node, i);
     }
+    return index;
 }
 
 /**
@@ -837,9 +839,9 @@ function PatchCBuffers__ParentIndex(state, parent, index)
  */
 export function PatchCBuffers(state)
 {
-    for (const i = { value: 0 }; i.value < state.GetTree().GetChildrenCount(); ++i.value)
+    for (let i = 0; i < state.GetTree().GetChildrenCount(); ++i)
     {
-        PatchCBuffers__ParentIndex(state, state.GetTree(), i);
+        i = PatchCBuffers__ParentIndex(state, state.GetTree(), i);
     }
 }
 
