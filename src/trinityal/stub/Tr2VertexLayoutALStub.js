@@ -18,7 +18,7 @@
 // stands rather than quietly reordered - a caller that ignores the result gets
 // Carbon's behaviour, not a different one.
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -90,6 +90,21 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
   }
 
   /**
+   * Describes this resource for a device inventory.
+   *
+   * Carbon: Tr2VertexLayoutAL::Describe (trinity/trinityal/stub/Tr2VertexLayoutALStub.cpp:37)
+   *
+   * Carbon's stub leaves the map untouched, so there is nothing to write
+   * here either; it is stated rather than inherited from the base class so
+   * the donor method has a counterpart on this class.
+   *
+   * @param {object} _description Accumulator, keyed by name; left untouched.
+   */
+  Describe(_description)
+  {
+  }
+
+  /**
    * Names the layout for a debugger.
    *
    * @param {string} _name The name Carbon would attach; the stub discards it.
@@ -115,4 +130,5 @@ CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2VertexLayoutALStub, { className: "Tr2VertexLayoutALStub" });
