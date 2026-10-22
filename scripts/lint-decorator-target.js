@@ -110,6 +110,22 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
                         if(!rows.some(r=>r.macro===maps[key]))add("exposure-macro",c,at,"Macro kind differs.",rows.map(r=>r.macro));
                         if(rows.some(r=>r.condition?.length&&!r.condition.every(x=>ruledOn.has(x))))add("conditional-exposure",c,at,"Select target preprocessor conditions before migration.");
                         if(category==="attributes"&&!rows.some(r=>flagMask(r.flagsAsWritten)===flagMask(d.args[0])))add("exposure-flags",c,at,"Flag bits differ or cannot be statically resolved.",rows.map(r=>r.flagsAsWritten));
+                        // A property on a plain field is faithful wherever the row sits: Carbon's getter (declared on a base when the member is inherited) must only read the member.
+                        if(key.endsWith("__Field")&&fs.existsSync(process.env.CARBON_ROOT??"E:/carbonengine"))
+                        {
+                            const row=rows.find(r=>r.getter);
+                            if(row)
+                            {
+                                const readOnly=key.includes("mapPropertyReadOnly");
+                                let check=null;
+                                for(const owner of [...searched])
+                                {
+                                    check=checkAccessorBodies(owner,row.getter,readOnly?null:row.setter);
+                                    if(!check.reasons.some(x=>/has no definition beside the class/.test(x)))break;
+                                }
+                                if(check&&!check.ok)add("property-field-body",c,at,"Carbon's accessors do more than read and write one member, so the property cannot sit on a plain field.",check.reasons);
+                            }
+                        }
                     }
                 }
                 continue;

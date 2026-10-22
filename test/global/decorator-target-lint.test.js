@@ -153,3 +153,52 @@ test("class donor comments preserve native audit independent of registration syn
     assert.ok(expected.some(f => f.rule === 'cjs-donor'));
     assert.ok(!expected.some(f => f.rule === 'carbon-origin-name'));
 });
+
+const classLevelOracle = [
+    { name: "Child", attributes: [ { name: "plain", macro: "MAP_ATTRIBUTE", flagsAsWritten: "Be::READ", condition: [] } ],
+        properties: [ { name: "partTag", macro: "MAP_PROPERTY_READONLY", getter: "GetPartTag", condition: [] }, { name: "wide", macro: "MAP_PROPERTY_READONLY", getter: "GetWidth", condition: [] } ],
+        methods: [ { name: "Rebuild", macro: "MAP_METHOD_AND_WRAP", function: "Rebuild", condition: [] } ], interfaces: [ { name: "Child" }, { name: "IRoot" } ], chain: [] }
+];
+const classLevelHeaders = [
+    { name: "Child", methods: [], bases: [ "EveSpaceObjectChild" ] },
+    { name: "EveSpaceObjectChild", methods: [ { name: "GetPartTag" } ], bases: [] },
+    { name: "Tr2ImageRes", methods: [ { name: "GetWidth" } ], bases: [] }
+];
+function inspectClassLevel(source, headers = classLevelHeaders)
+{
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "decorator-lint-"));
+    try
+    {
+        const file = path.join(root, "src/Child.js"); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, source);
+        return auditDecorators(inventoryRuntime(root), classLevelOracle, headers, {});
+    }
+    finally { fs.rmSync(root, { recursive: true }); }
+}
+const carbonAvailable = fs.existsSync(process.env.CARBON_ROOT ?? "E:/carbonengine");
+
+test("a be.map* above a class is checked against the class's own block and satisfies the native row", () =>
+{
+    const findings = inspectClassLevel(`import {exposure as be} from '#be'; import {meta} from '#schema';
+        @meta.implemented @be.define('Child') @be.mapMethodAndWrap(['Rebuild']) @be.mapAttribute(be.READ, 'plain') class Child {}`)
+        .filter(f => f.rule !== "required-state");
+    assert.deepEqual(findings.filter(f => ["exposure-absent", "exposure-macro", "exposure-flags", "exposure-member-unresolved"].includes(f.rule) && ["Rebuild", "plain"].includes(f.member)), []);
+});
+
+test("a class-level row naming a member Carbon's block does not map, the wrong macro kind or the wrong flags is reported", () =>
+{
+    const findings = inspectClassLevel(`import {exposure as be} from '#be'; import {meta} from '#schema';
+        @meta.implemented @be.define('Child') @be.mapMethodAndWrap('Missing') @be.mapMethod('Rebuild') @be.mapAttribute(be.WRITE, 'plain') class Child {}`);
+    assert.ok(findings.some(f => f.rule === "exposure-absent" && f.member === "Missing"));
+    assert.ok(findings.some(f => f.rule === "exposure-macro" && f.member === "Rebuild"));
+    assert.ok(findings.some(f => f.rule === "exposure-flags" && f.member === "plain"));
+});
+
+test("a class-level __Field property needs a trivial Carbon getter, found on a base when the member is inherited", { skip: !carbonAvailable }, () =>
+{
+    const ok = inspectClassLevel(`import {exposure as be} from '#be'; import {meta} from '#schema';
+        @meta.implemented @be.define('Child') @be.mapPropertyReadOnly__Field('partTag') class Child {}`);
+    assert.equal(ok.some(f => f.rule === "property-field-body"), false);
+    const refused = inspectClassLevel(`import {exposure as be} from '#be'; import {meta} from '#schema';
+        @meta.implemented @be.define('Child') @be.mapPropertyReadOnly__Field('wide') class Child {}`);
+    assert.ok(refused.some(f => f.rule === "property-field-body" && f.member === "wide"));
+});
