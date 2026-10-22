@@ -464,8 +464,9 @@ export class Tr2LightProfileRes extends CjsResource
 
 
 CjsSchema.decorateMethod(Tr2LightProfileRes, "GetTextureIndex", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(Tr2LightProfileRes, "IsMemoryUsageKnown", meta.implemented);
+CjsSchema.decorateMethod(Tr2LightProfileRes, "GetMemoryUsage", meta.adapted);
+CjsSchema.exposure.mapICacheableMethods()(Tr2LightProfileRes);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "_DoPrepare", meta.adapted);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "_ParseIes", meta.adapted);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "_ParseIes__ContentsBitmap", meta.adapted);

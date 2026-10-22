@@ -30,6 +30,7 @@ import { vec4 } from "#math/vec4";
 @be.define("Tr2AtlasTexture")
 @be.mapInterface(IBlueResource)
 @be.mapInterface(ICacheable)
+@be.mapICacheableMethods()
 @be.inherit(ICacheable, IBlueResource)
 export class Tr2AtlasTexture extends IRoot
 {

@@ -1632,8 +1632,9 @@ CjsSchema.decorateMethod(TriGeometryRes, "IsRayCasterReady", be.mapMethodAndWrap
 CjsSchema.decorateMethod(TriGeometryRes, "HasRayCasterPreparationFailed", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "DestroyRayCaster", meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "ReleaseResources", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "IsMemoryUsageKnown", meta.implemented);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMemoryUsage", meta.adapted);
+CjsSchema.exposure.mapICacheableMethods()(TriGeometryRes);
 CjsSchema.decorateMethod(TriGeometryRes, "GetIntersectionPoints", meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "GetMeshVertexElements", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "IsInstanceDataReady", meta.implemented);

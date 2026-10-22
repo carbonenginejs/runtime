@@ -689,6 +689,7 @@ function ReadClassLevelMethodRows(declaration)
   {
     const call = decorator.expression;
     if (call?.type !== "CallExpression" || call.callee?.type !== "MemberExpression" || call.callee.computed) continue;
+    if (["be", "exposure"].includes(call.callee.object?.name) && call.callee.property?.name === "mapICacheableMethods") names.push("IsMemoryUsageKnown", "GetMemoryUsage");
     if (!["be", "exposure"].includes(call.callee.object?.name) || !String(call.callee.property?.name).startsWith("mapMethod")) continue;
     const argument = call.arguments[0];
     for (const element of argument?.type === "ArrayExpression" ? argument.elements : [ argument ])

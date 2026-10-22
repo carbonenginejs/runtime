@@ -210,6 +210,8 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
             for(const row of [...native.attributes,...native.properties,...native.methods])
             {
                 const names=[row.name,row.function].filter(Boolean);
+                // `MAP_ICACHEABLE_METHODS()` is one Carbon line and one class-level decorator.
+                if(["IsMemoryUsageKnown","GetMemoryUsage"].includes(row.name)&&c.decorators.some(d=>d.name==="exposure.mapICacheableMethods"))continue;
                 // The C++ function name resolves first (MAP_METHOD_AND_WRAP( "Render", RenderFromScript )), so member order never decides which
                 // declaration a macro lands on; the exposed name is only a fallback.
                 const byFunction=row.function?c.members.find(m=>m.name===row.function):null;

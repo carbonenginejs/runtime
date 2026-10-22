@@ -178,7 +178,7 @@ for (const file of files(path.join(root,"src"), [".js"])) {
             }
             if(n.callee.type==="CallExpression" && n.arguments.length===1) {
                 const dn=normalize(dotted(n.callee.callee));
-                if(["blue.interface","blue.inherit","blue.chainTo","exposure.mapInterface","exposure.exposureChainTo","exposure.inherit","exposure.define","exposure.interface","meta.define","meta.carbon","meta.interface"].includes(dn)) {
+                if(["blue.interface","blue.inherit","blue.chainTo","exposure.mapInterface","exposure.mapICacheableMethods","exposure.exposureChainTo","exposure.inherit","exposure.define","exposure.interface","meta.define","meta.carbon","meta.interface"].includes(dn)) {
                     const c=target(src(n.arguments[0])); if(c)c.decorators.push(deco(n.callee,env));
                 }
             }

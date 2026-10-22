@@ -3838,7 +3838,29 @@ function createExposureNamespace(legacy)
         mapMethod: name => inheritedAware("mapMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD", key)),
         mapMethodAndWrap: name => inheritedAware("mapMethodAndWrap", "method", name, key => exposureMethodDecorator("MAP_METHOD_AND_WRAP", key)),
         mapMethodAndWrapOptionalArgs: name => inheritedAware("mapMethodAndWrapOptionalArgs", "method", name, key => exposureMethodDecorator("MAP_METHOD_AND_WRAP_OPTIONAL_ARGS", key)),
-        mapMethodAsMethod: name => inheritedAware("mapMethodAsMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD_AS_METHOD", key))
+        mapMethodAsMethod: name => inheritedAware("mapMethodAsMethod", "method", name, key => exposureMethodDecorator("MAP_METHOD_AS_METHOD", key)),
+        // Carbon's `MAP_ICACHEABLE_METHODS()` (ICacheable.h:21): both ICacheable rows, one line in the class's exposure block.
+        mapICacheableMethods: () => icacheableMethodsDecorator()
+    };
+}
+
+/**
+ * Carbon's `MAP_ICACHEABLE_METHODS()` (ICacheable.h:21-25), which expands to `MAP_METHOD_AND_WRAP` rows for `IsMemoryUsageKnown` and
+ * `GetMemoryUsage`. Placed on the class that calls the macro; both methods must be the class's own or inherited.
+ *
+ * @returns {Function} The class decorator.
+ */
+function icacheableMethodsDecorator()
+{
+    return target =>
+    {
+        for (const key of [ "IsMemoryUsageKnown", "GetMemoryUsage" ])
+        {
+            if (typeof target !== "function" || !(key in target.prototype))
+                throw new TypeError(`be.mapICacheableMethods on ${target?.name || "a class"} needs the ICacheable method "${key}".`);
+            for (const part of getDecoratorMetadata(exposureMethodDecorator("MAP_METHOD_AND_WRAP", key)).parts)
+                defineMethodMetadata(target, key, part.namespace, part.value);
+        }
     };
 }
 

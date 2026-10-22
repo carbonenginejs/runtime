@@ -909,8 +909,9 @@ CjsSchema.decorateMethod(TriTextureRes, "_DestroyOwnTexture", meta.notImplemente
 CjsSchema.decorateMethod(TriTextureRes, "_OnWrappedRenderTargetChanged", meta.implemented);
 CjsSchema.decorateMethod(TriTextureRes, "CreateAndCopyFromRenderTarget", be.mapMethodAndWrap(), meta.notSupported);
 CjsSchema.decorateMethod(TriTextureRes, "CreateFromHostBitmap", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(TriTextureRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(TriTextureRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(TriTextureRes, "IsMemoryUsageKnown", meta.implemented);
+CjsSchema.decorateMethod(TriTextureRes, "GetMemoryUsage", meta.implemented);
+CjsSchema.exposure.mapICacheableMethods()(TriTextureRes);
 CjsSchema.decorateMethod(TriTextureRes, "EstimateMemoryUse", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "LoadPipeline", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "IsValid", meta.implemented);

@@ -1110,8 +1110,9 @@ export class TriGrannyRes extends CjsResource
 
 
 CjsSchema.decorateField(TriGrannyRes, "_useCMF", meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(TriGrannyRes, "IsMemoryUsageKnown", meta.implemented);
+CjsSchema.decorateMethod(TriGrannyRes, "GetMemoryUsage", meta.implemented);
+CjsSchema.exposure.mapICacheableMethods()(TriGrannyRes);
 CjsSchema.decorateMethod(TriGrannyRes, "Load", be.mapMethodAndWrap("LoadForTools"), meta.adapted);
 CjsSchema.decorateMethod(TriGrannyRes, "IsUsingCMF", meta.implemented);
 CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyFile", meta.notSupported);
