@@ -56,7 +56,7 @@ export class TriShadowOrthoFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Boolean}
    */
-  @blue.method
+  @meta.implemented
   IsVisible(camera, boundingSphere)
   {
     const sphereIsVisible = this.shadow.IsSphereVisibleIgnoreFarPlane(boundingSphere, boundingSphere[3]);
@@ -86,7 +86,7 @@ export class TriShadowOrthoFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Number}
    */
-  @blue.method
+  @meta.implemented
   GetSizeInShadow(boundingSphere)
   {
     return this.shadow.GetPixelSize(boundingSphere, this.shadowMapSize);
@@ -96,7 +96,7 @@ export class TriShadowOrthoFrustum
    * Carbon TriShadowOrthoFrustum::GetEyePos (h:74-77).
    * @returns {Float32Array}
    */
-  @blue.method
+  @meta.implemented
   GetEyePos()
   {
     return this.shadow.GetEyePos();
@@ -106,11 +106,12 @@ export class TriShadowOrthoFrustum
    * Carbon TriShadowOrthoFrustum::SphereTest (h:79-104): the ortho
    * classification (far plane ignored), demoted per sun-facing camera plane -
    * Outside when fully behind one, Intersect when straddling one.
+   * Adapted: Carbon takes a CcpMath::Sphere; the port accepts that as { center, radius } or a packed vec4.
    * @param {Object} camera - TriFrustum duck ({ planes })
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
-  @blue.method
+  @meta.adapted
   SphereTest(camera, sphere)
   {
     let orthoResult = this.shadow.SphereTestIgnoreFarPlane(sphere);

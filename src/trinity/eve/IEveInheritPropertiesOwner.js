@@ -13,7 +13,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // The gate at the call sites is `instanceof IEveInheritPropertiesOwner`,
 // exactly as BehaviorGroup.SetPlayFXBehavior ports its dynamic_cast.
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 
 
 /** Contract for an object that accepts inherited faction colour properties. */
@@ -35,6 +35,6 @@ export class IEveInheritPropertiesOwner extends IRoot
 }
 
 
-CjsSchema.decorateMethod(IEveInheritPropertiesOwner, "SetInheritProperties", blue.method);
+CjsSchema.decorateMethod(IEveInheritPropertiesOwner, "SetInheritProperties", meta.abstract);
 CjsSchema.blue.inherit(IRoot)(IEveInheritPropertiesOwner);
 CjsSchema.exposure.interface("IEveInheritPropertiesOwner")(IEveInheritPropertiesOwner);

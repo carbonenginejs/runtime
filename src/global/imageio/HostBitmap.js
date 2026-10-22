@@ -1427,29 +1427,35 @@ export class HostBitmap extends BitmapDimensions
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.decorateMethod(HostBitmap, "Create", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "Create2DArray", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "CreateCube", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "CreateVolume", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "CreateFromBitmapDimensions", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "IsValid", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "Destroy", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "ChangeFormat", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "ConvertFormat", blue.method);
+// States, against HostBitmap.cpp: implemented are Create to CreateCube (71-182), CreateFromBitmapDimensions to ChangeFormat (215-258), GetPitch to
+// GetArrayElementSize (477-532), PopulateMargin (539-595), CopyChannel (597-643) and DropMipMaps (1176-1198). Adapted: CreateVolume also refuses a
+// zero height or depth where Carbon checks only the width (184-213); ConvertFormat reads the red byte for R8 where Carbon keeps byte 0 (270-403,
+// see the comment in the body); Crop with nothing left returns false and leaves the bitmap, where Carbon destroys it and returns true (745-785).
+// Still stamped, not yet compared line by line: Downsample2x2, RotateFaceClockwise, ConvertCrossmapToCubemap, ConvertToVolume, GenerateMipMaps and
+// _GenerateMipLevel.
+CjsSchema.decorateMethod(HostBitmap, "Create", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "Create2DArray", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "CreateCube", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "CreateVolume", meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "CreateFromBitmapDimensions", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "ChangeFormat", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "ConvertFormat", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "GetMipRawData", meta.adapted);
-CjsSchema.decorateMethod(HostBitmap, "GetPitch", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "GetPitch", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "GetRawData", meta.adapted);
-CjsSchema.decorateMethod(HostBitmap, "GetRawDataSize", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "GetArrayElementSize", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "PopulateMargin", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "CopyChannel", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "GetRawDataSize", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "GetArrayElementSize", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "PopulateMargin", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "CopyChannel", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "Downsample2x2", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "Crop", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "Crop", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "RotateFaceClockwise", blue.method);
 CjsSchema.decorateMethod(HostBitmap, "ConvertCrossmapToCubemap", blue.method);
 CjsSchema.decorateMethod(HostBitmap, "ConvertToVolume", blue.method);
 CjsSchema.decorateMethod(HostBitmap, "GenerateMipMaps", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "DropMipMaps", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "DropMipMaps", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "GetAverageColor", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "GetPixel", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "_CheckForMatch", meta.renamed("CheckForMatch"), meta.adapted);
