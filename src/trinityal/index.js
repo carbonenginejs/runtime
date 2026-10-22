@@ -32,6 +32,8 @@ export * from "./Tr2TextureAL/index.js";
 export * from "./Tr2ReadbackAL/index.js";
 export * from "./Tr2DeviceResourceAL/index.js";
 export * from "./Tr2DrawUPHelper.js";
+export * from "./Tr2MemoryCounterAL.js";
+export * from "./Tr2LockGuard.js";
 export * from "./Tr2HalHelperStructures/index.js";
 export * from "./Tr2RenderPassAL/index.js";
 export * from "./Tr2ResourceSetAL/index.js";
