@@ -17,13 +17,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
  * Skinned character object managing whole-model LOD selection and an immediate
  * CPU skinning palette.
  */
-@blue.define({
-  className: "Tr2SkinnedObject",
-  fields: {
-    // MAP_PROPERTY_READONLY (Tr2SkinnedObject_Blue.cpp:48).
-    currentLod: [blue.property(), type.int32]
-  }
-})
+@be.define("Tr2SkinnedObject")
 @blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify, ITr2SkinnedObject, ITr2DebugRenderable)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IWorldPosition)
@@ -212,6 +206,8 @@ export class Tr2SkinnedObject extends IRoot
   }
 
   /** m_lod.GetCurrentLod() (int) [READ] */
+  @be.mapPropertyReadOnly()
+  @type.int32
   get currentLod()
   {
     return this.lod.GetCurrentLod();
