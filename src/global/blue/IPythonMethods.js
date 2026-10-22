@@ -3,7 +3,7 @@ import { IRoot } from "./IRoot.js";
 //
 // The Python host's attribute hooks. JavaScript has no Python object protocol, so a class that maps it answers
 // every hook as "not handled", which is what Carbon's own classes do when no Python bridge is present.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IPythonMethods` - Python attribute, assignment and repr hooks. */
 export class IPythonMethods extends IRoot
@@ -38,7 +38,9 @@ export class IPythonMethods extends IRoot
 
 for (const name of [ "Destroy", "GetAttr", "SetAttr", "Repr" ])
 {
-  CjsSchema.decorateMethod(IPythonMethods, name, blue.abstract);
+  CjsSchema.decorateMethod(IPythonMethods, name, meta.abstract, meta.implemented);
 }
 
+CjsSchema.meta.abstract(IPythonMethods);
+CjsSchema.meta.implemented(IPythonMethods);
 CjsSchema.exposure.interface("IPythonMethods")(IPythonMethods);

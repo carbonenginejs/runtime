@@ -77,6 +77,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 const TRANSPARENT_AABB_MIN = vec3.create();
 const TRANSPARENT_AABB_MAX = vec3.create();
 const TRANSPARENT_CENTER = vec3.create();
+const BOUNDING_CENTER_SCRATCH = vec3.create();
 
 /**
  * The hull of an EVE space object - its mesh, locators, locator sets, decals,
@@ -901,7 +902,6 @@ export class EveSpaceObject2 extends EveEntity
    * @type {Float32Array}
    */
   static _clipSphereCenterScratch = vec3.create();
-  static _boundingCenterScratch = vec3.create();
 
   /**
    * Shared vector scratch for the shape ellipsoid center.
@@ -1487,7 +1487,7 @@ export class EveSpaceObject2 extends EveEntity
     const insideSpherePercentage = Math.min(1, clipOffset / normalizedBoundingRadius);
     const dissolveRadius = this.clipSphereFactor * normalizedBoundingRadius * (1 + insideSpherePercentage);
 
-    const center = this.GetBoundingSphereCenter(EveSpaceObject2._boundingCenterScratch);
+    const center = this.GetBoundingSphereCenter(BOUNDING_CENTER_SCRATCH);
     const clipSphereCenter = EveSpaceObject2._clipSphereCenterScratch;
     vec3.add(clipSphereCenter, this.clipSphereCenter, center);
     const clipRadiusSq = Math.sign(dissolveRadius) * dissolveRadius * dissolveRadius;
@@ -2861,7 +2861,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF())
     {
-      const center = this.GetBoundingSphereCenter(EveSpaceObject2._boundingCenterScratch);
+      const center = this.GetBoundingSphereCenter(BOUNDING_CENTER_SCRATCH);
       return vec4.set(out, center[0], center[1], center[2], this.GetBoundingSphereRadius());
     }
     return vec4.set(out, 0, 0, 0, -1);

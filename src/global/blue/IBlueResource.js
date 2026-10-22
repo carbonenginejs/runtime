@@ -3,7 +3,7 @@ import { IRoot } from "./IRoot.js";
 //
 // The contract of a resource Blue loads: an identity (path and extension) and the
 // three states of its load. Plain JavaScript so a test can import it raw.
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** `IBlueResource` - a loadable resource's identity and load state. */
 export class IBlueResource extends IRoot
@@ -54,7 +54,9 @@ export class IBlueResource extends IRoot
 
 for (const name of [ "Initialize", "GetPath", "GetExt", "IsLoading", "IsPrepared", "IsGood" ])
 {
-  CjsSchema.decorateMethod(IBlueResource, name, blue.abstract);
+  CjsSchema.decorateMethod(IBlueResource, name, meta.abstract, meta.implemented);
 }
 
+CjsSchema.meta.abstract(IBlueResource);
+CjsSchema.meta.implemented(IBlueResource);
 CjsSchema.exposure.interface("IBlueResource")(IBlueResource);
