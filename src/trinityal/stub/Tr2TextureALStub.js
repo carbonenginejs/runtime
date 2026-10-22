@@ -33,7 +33,7 @@
 // texture contributes nothing to a device inventory. That is transcribed, not
 // overlooked - a backend that reports real names is a real backend.
 
-import { CjsSchema, blue, type } from "#schema";
+import { CjsSchema, meta, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -611,6 +611,21 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   }
 
   /**
+   * Describes this resource for a device inventory.
+   *
+   * Carbon: Tr2TextureAL::Describe (trinity/trinityal/stub/Tr2TextureALStub.cpp:438)
+   *
+   * Carbon's stub leaves the map untouched, so there is nothing to write
+   * here either; it is stated rather than inherited from the base class so
+   * the donor method has a counterpart on this class.
+   *
+   * @param {object} _description Accumulator, keyed by name; left untouched.
+   */
+  Describe(_description)
+  {
+  }
+
+  /**
    * Names the texture for a debugger.
    *
    * @param {string} _name The name Carbon would attach; the stub discards it.
@@ -694,4 +709,5 @@ CjsSchema.decorateMethod(Tr2TextureALStub, "GetSrvIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALStub, "GetUavIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALStub, "SetName", blue.method);
 CjsSchema.decorateMethod(Tr2TextureALStub, "GetName", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2TextureALStub, { className: "Tr2TextureALStub" });
