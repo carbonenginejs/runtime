@@ -4,7 +4,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; texture-coordinate accessors are maintained here.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2Sprite2dVertexBase } from "./Tr2Sprite2dVertexBase.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
@@ -13,9 +13,8 @@ import { vec4 } from "#math/vec4";
  * Represents one Sprite2D polygon vertex with two texture-coordinate channels
  * (Tr2Sprite2dPolygon.h:21-32; constructor Tr2Sprite2dPolygon.cpp:173-179).
  */
-@blue.define({ className: "Tr2Sprite2dVertex", members: [{ name: "position", carbon: { member: true }, type: { kind: "vec3" }, edit: { read: true, write: true, persist: true } }] })
-@blue.interface()
-@blue.inherit(IRoot)
+@be.define("Tr2Sprite2dVertex")
+@be.inherit(IRoot)
 export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 {
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2LightProfileRes.h
 import { exposure as be } from "#be";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { CjsResource, ICacheable, blue as blueService } from "#blue";
 import { assertResourcePayloadObject } from "./resourceBoundary.js";
 import { HostBitmap, LoadParameters } from "#imageio";
@@ -464,8 +464,8 @@ export class Tr2LightProfileRes extends CjsResource
 
 
 CjsSchema.decorateMethod(Tr2LightProfileRes, "GetTextureIndex", meta.adapted);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2LightProfileRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2LightProfileRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(Tr2LightProfileRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "_DoPrepare", meta.adapted);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "_ParseIes", meta.adapted);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "_ParseIes__ContentsBitmap", meta.adapted);

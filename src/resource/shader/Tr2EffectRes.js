@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { CjsResource } from "#blue/CjsResource";
 import { ICacheable } from "#blue/ICacheable";
 import { validateResourcePayload } from "../resourceBoundary.js";
@@ -638,8 +638,8 @@ CjsSchema.decorateMethod(Tr2EffectRes, "DoLoad", meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "GetShader", meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", meta.adapted);
-CjsSchema.decorateMethod(Tr2EffectRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2EffectRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(Tr2EffectRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "_DoPrepare", meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "_OnPrepareResources", meta.notImplemented);
 CjsSchema.decorateMethod(Tr2EffectRes, "GetDescription", meta.adapted);

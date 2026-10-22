@@ -3,7 +3,7 @@ import { ResourceRequirement } from "#blue";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { box3 } from "#math/box3";
 import { triangleNormalTo } from "#math/mesh";
 import { ray3 } from "#math/ray3";
@@ -1632,8 +1632,8 @@ CjsSchema.decorateMethod(TriGeometryRes, "IsRayCasterReady", be.mapMethodAndWrap
 CjsSchema.decorateMethod(TriGeometryRes, "HasRayCasterPreparationFailed", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "DestroyRayCaster", meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "ReleaseResources", meta.adapted);
-CjsSchema.decorateMethod(TriGeometryRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
-CjsSchema.decorateMethod(TriGeometryRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "GetIntersectionPoints", meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "GetMeshVertexElements", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "IsInstanceDataReady", meta.implemented);

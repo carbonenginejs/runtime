@@ -200,8 +200,8 @@ CjsSchema.decorateMethod(Tr2ImageRes, "GetPixelColor", be.mapMethodAndWrap(), me
 CjsSchema.decorateMethod(Tr2ImageRes, "IsPixelOpaque", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2ImageRes, "GetBitmap", meta.adapted);
 CjsSchema.decorateMethod(Tr2ImageRes, "_DoPrepare", meta.implemented);
-CjsSchema.decorateMethod(Tr2ImageRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2ImageRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2ImageRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(Tr2ImageRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
 be.define("Tr2ImageRes")(Tr2ImageRes);
 be.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2ImageRes);

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 // Source: trinity/trinity/Resources/TriGrannyRes.cpp
 // Source: trinity/trinity/Resources/TriGrannyRes_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { CjsResource, ICacheable, blue as blueService } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsGr2Format } from "../../formats/gr2/CjsGr2Format.js";
@@ -1110,8 +1110,8 @@ export class TriGrannyRes extends CjsResource
 
 
 CjsSchema.decorateField(TriGrannyRes, "_useCMF", meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
-CjsSchema.decorateMethod(TriGrannyRes, "GetMemoryUsage", blue.method, meta.implemented);
+CjsSchema.decorateMethod(TriGrannyRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.decorateMethod(TriGrannyRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(TriGrannyRes, "Load", be.mapMethodAndWrap("LoadForTools"), meta.adapted);
 CjsSchema.decorateMethod(TriGrannyRes, "IsUsingCMF", meta.implemented);
 CjsSchema.decorateMethod(TriGrannyRes, "GetGrannyFile", meta.notSupported);

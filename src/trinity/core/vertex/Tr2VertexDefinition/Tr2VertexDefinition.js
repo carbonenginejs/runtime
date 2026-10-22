@@ -1,4 +1,4 @@
-import { CjsSchema, type, blue, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 // Source: trinity/trinityal/Tr2VertexDefinition.h:14-207 (the definition and its items)
 //   trinity/trinityal/Tr2VertexDefinition.cpp:25-42 (item and definition equality)
 //
@@ -291,10 +291,10 @@ CjsSchema.decorateMethod(Tr2VertexDefinition, "empty", meta.implemented);
 CjsSchema.decorateMethod(Tr2VertexDefinition, "Add", meta.adapted);
 CjsSchema.decorateMethod(Tr2VertexDefinition, "Find", meta.adapted);
 CjsSchema.decorateMethod(Tr2VertexDefinition, "Find__UsageIndex", meta.adapted);
-blue.method(Tr2VertexDefinition, "getDataTypeSizeInMembers");
+CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInMembers", meta.adapted);
 meta.renamed("GetDataTypeSizeInMembers")(Tr2VertexDefinition, "getDataTypeSizeInMembers");
-blue.method(Tr2VertexDefinition, "getDataTypeSizeInBytes");
+CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInBytes", meta.adapted);
 meta.renamed("GetDataTypeSizeInBytes")(Tr2VertexDefinition, "getDataTypeSizeInBytes");
-blue.method(Tr2VertexDefinition, "isSameDefinition");
+CjsSchema.decorateMethod(Tr2VertexDefinition, "isSameDefinition", meta.adapted);
 meta.renamed("operator==")(Tr2VertexDefinition, "isSameDefinition");
 CjsSchema.meta.carbon("Tr2VertexDefinition")(Tr2VertexDefinition);
