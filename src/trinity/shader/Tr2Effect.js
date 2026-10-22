@@ -642,9 +642,9 @@ export class Tr2Effect extends Tr2Material
             passParameters.compatibleWithGdr = false;
           }
 
-          this.#MapPassParameters(stage, passParameters.stageInput[stageType], passParameters);
-          this.#MapPassResources(stage.resources, passParameters.stageInput[stageType].textures, passParameters);
-          this.#MapPassResources(stage.uavs, passParameters.stageInput[stageType].uavs, passParameters);
+          this._MapPassParameters(stage, passParameters.stageInput[stageType], passParameters);
+          this._MapPassResources(stage.resources, passParameters.stageInput[stageType].textures, passParameters);
+          this._MapPassResources(stage.uavs, passParameters.stageInput[stageType].uavs, passParameters);
         }
 
         if (!passParameters.compatibleWithGdr) this.compatibleWithGdr = false;
@@ -658,7 +658,8 @@ export class Tr2Effect extends Tr2Material
 
   /**
    * Maps one stage's authored constants onto byte offsets in its CPU mirror
-   * (Carbon `MapPassParameters`, Tr2Effect.cpp:1722-2025).
+   * (protected Carbon `MapPassParameters`, Tr2Effect.cpp:1722-2025). Adapted: the descriptor and
+   * context arguments are gone.
    *
    * `registerIndex` and `registerCount` on a stored parameter are BYTE OFFSET
    * and BYTE SIZE, not a register index and count. Carbon's field names are
@@ -677,9 +678,8 @@ export class Tr2Effect extends Tr2Material
    * @param {object} passParameters Owning pass parameters.
    * @returns {void}
    */
-  @legacyBlue.method
-  @meta.renamed("MapPassParameters")
-  #MapPassParameters(stage, stageInput, passParameters)
+  @meta.adapted
+  _MapPassParameters(stage, stageInput, passParameters)
   {
     const constantSize = stage.GetConstantBufferSize();
     const constants = stage.constants ?? [];
@@ -762,7 +762,8 @@ export class Tr2Effect extends Tr2Material
 
   /**
    * Maps a stage's texture or UAV registers onto authored values
-   * (Carbon `MapPassResources`, Tr2Effect.cpp:1436-1489).
+   * (protected Carbon `MapPassResources`, Tr2Effect.cpp:1436-1489). Adapted: entries are sorted by register, and a
+   * browser texture-array container is bridged.
    *
    * Here `registerIndex` really is the register, and `registerCount` is
    * overloaded as a flag word carrying only the sRGB bit. Unresolved names
@@ -776,9 +777,8 @@ export class Tr2Effect extends Tr2Material
    * @param {object} passParameters Owning pass parameters.
    * @returns {void}
    */
-  @legacyBlue.method
-  @meta.renamed("MapPassResources")
-  #MapPassResources(resources, into, passParameters)
+  @meta.adapted
+  _MapPassResources(resources, into, passParameters)
   {
     if (!resources || typeof resources.entries !== "function") return;
 

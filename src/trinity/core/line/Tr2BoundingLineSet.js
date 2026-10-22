@@ -45,17 +45,17 @@ export class Tr2BoundingLineSet extends Tr2LineSet
     vec3.copy(this.maxBounds, max);
     this.ClearLines();
     this.ClearPickingTriangles();
-    this.#AddBox(this.minBounds, this.maxBounds, this.color);
-    this.#AddPickingBox(this.minBounds, this.maxBounds);
+    this._AddBox(this.minBounds, this.maxBounds, this.color);
+    this._AddPickingBox(this.minBounds, this.maxBounds);
     return this.SubmitChanges();
   }
 
   /**
-   * Appends the twelve edges of an axis-aligned box.
+   * Appends the twelve edges of an axis-aligned box (private Carbon AddBox, Tr2BoundingLineSet.cpp:41-64).
    */
 
-  @meta.renamed("AddBox")
-  #AddBox(min, max, color)
+  @meta.implemented
+  _AddBox(min, max, color)
   {
     const minA = vec3.fromValues(max[0], min[1], min[2]);
     const minB = vec3.fromValues(min[0], max[1], min[2]);
@@ -70,11 +70,11 @@ export class Tr2BoundingLineSet extends Tr2LineSet
   }
 
   /**
-   * Appends the box's triangles so it can be picked as a solid volume.
+   * Appends the box's triangles so it can be picked as a solid volume (private Carbon AddPickingBox, cpp:66-87).
    */
 
-  @meta.renamed("AddPickingBox")
-  #AddPickingBox(min, max)
+  @meta.implemented
+  _AddPickingBox(min, max)
   {
     const minA = vec3.fromValues(max[0], min[1], min[2]);
     const minB = vec3.fromValues(min[0], max[1], min[2]);

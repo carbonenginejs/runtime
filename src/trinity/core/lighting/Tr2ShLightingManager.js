@@ -278,11 +278,11 @@ export class Tr2ShLightingManager extends IRoot
   {
     const order = this.quality === Tr2ShLightingManager.Quality.L2 ? 3 : 2;
 
-    return this.#CalculateSecondaryLighting(position, intensity, cutoffRadius, out, order);
+    return this._CalculateSecondaryLighting(position, intensity, cutoffRadius, out, order);
   }
 
   /**
-   * Carbon CalculateSecondaryLighting<Order> (cpp:305-352): accumulates every
+   * Carbon CalculateSecondaryLighting<Order> (private, cpp:305-352), adapted: the template order is the `order` argument. Accumulates every
    * visible source's contribution into `order * order` RGB coefficients, then
    * normalizes and packs them.
    * @param {Float32Array} position - receiver position
@@ -293,8 +293,8 @@ export class Tr2ShLightingManager extends IRoot
    * @returns {Float32Array} out
    */
 
-  @meta.renamed("CalculateSecondaryLighting")
-  #CalculateSecondaryLighting(position, intensity, cutoffRadius, out, order)
+  @meta.adapted
+  _CalculateSecondaryLighting(position, intensity, cutoffRadius, out, order)
   {
     const count = order * order;
     const sh = new Float64Array(count * 3);
