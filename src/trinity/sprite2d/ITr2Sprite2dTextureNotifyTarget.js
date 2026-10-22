@@ -15,7 +15,7 @@ import { meta } from "#schema";
 import { blue } from "#schema";
 
 /** Receives change notifications from a Sprite2D texture it registered with. */
-@blue.define({ className: "ITr2Sprite2dTextureNotifyTarget" })
+@meta.carbon("ITr2Sprite2dTextureNotifyTarget")
 @be.abstract
 export class ITr2Sprite2dTextureNotifyTarget
 {

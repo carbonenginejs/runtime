@@ -69,7 +69,7 @@ import "#consts/renderContext/formats";
 const CARBON_DEFAULT_SETTINGS = new EveSpaceSceneRenderDriverSettings();
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
-@legacyBlue.define({ className: "EveSpaceSceneRenderDriver" })
+@be.define("EveSpaceSceneRenderDriver")
 @legacyBlue.inherit(ITr2RenderNode, Tr2DeviceResource)
 @be.mapInterface(ITr2RenderNode)
 export class EveSpaceSceneRenderDriver

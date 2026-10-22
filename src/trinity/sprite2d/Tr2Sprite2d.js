@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2d.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2d.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
 import { Tr2SpriteObjectPickState, Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
 import { INotify } from "#blue";
@@ -14,7 +14,7 @@ const spriteIndices = new Uint16Array([0, 1, 3, 3, 1, 2, 4, 5, 7, 7, 5, 6, 8, 9,
  *
  * Prepares and gathers sprite quads through the native Sprite2D renderer contract.
  */
-@blue.define({ className: "Tr2Sprite2d" })
+@be.define("Tr2Sprite2d")
 @be.mapInterface(INotify)
 @be.exposureChainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2d extends Tr2TexturedSpriteObject

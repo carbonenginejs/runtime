@@ -3,11 +3,11 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Hand-maintained Sprite2D traversal, picking and cache policy.
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 
 /** Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching. */
-@blue.define({ className: "Tr2Sprite2dContainer" })
+@be.define("Tr2Sprite2dContainer")
 @be.exposureChainTo(Tr2Sprite2dContainerBase)
 export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 {

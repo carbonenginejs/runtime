@@ -55,7 +55,7 @@ function updateBoundingSphere(cloud)
  * state, SRT composition, visibility, tessellated screen grid and draw data.
  * Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp.
  */
-@blue.define({ className: "EveChildCloud" })
+@be.define("EveChildCloud")
 @blue.inherit(ITr2Renderable, ITr2DebugRenderable)
 @blue.inherit(IInitialize, INotify, Tr2DeviceResource)
 @be.mapInterface(ITr2Renderable)

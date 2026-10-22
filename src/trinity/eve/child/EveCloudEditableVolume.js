@@ -17,7 +17,7 @@ const MAX_FRAMES = 4;
 const Status = Object.freeze({ Working: 0, StopRequested: 1, DataReady: 2, Aborted: 3 });
 
 /** Holds the editable voxel dimensions, bitmap and texture backing, control balls, and curve sets used to author a cloud volume. */
-@blue.define({ className: "EveCloudEditableVolume" })
+@be.define("EveCloudEditableVolume")
 @blue.inherit(IInitialize, INotify, IListNotify)
 @be.mapInterface(IListNotify)
 @be.mapInterface(IInitialize)

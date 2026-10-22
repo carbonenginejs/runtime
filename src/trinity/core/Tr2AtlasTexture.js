@@ -27,7 +27,7 @@ import { vec4 } from "#math/vec4";
  * happen. A device reset therefore does not call `ReleaseResources` on atlas
  * textures.
  */
-@blue.define({ className: "Tr2AtlasTexture" })
+@be.define("Tr2AtlasTexture")
 @blue.inherit(ICacheable)
 @blue.interface(ICacheable)
 export class Tr2AtlasTexture extends IRoot

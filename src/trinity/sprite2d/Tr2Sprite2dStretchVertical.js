@@ -74,7 +74,7 @@ function setVertex(vertex, x, y, u, v)
  * Vertices are local to the sprite; the translation is pushed on the scene while they are
  * submitted.
  */
-@blue.define({ className: "Tr2Sprite2dStretchVertical" })
+@be.define("Tr2Sprite2dStretchVertical")
 @blue.chainTo(Tr2TexturedSpriteObject)
 @blue.interface()
 export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject

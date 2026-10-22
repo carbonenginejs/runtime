@@ -296,6 +296,4 @@ CjsSchema.decorateField(Tr2Pass, "indirectLayout", type.rawStruct("Tr2IndirectDr
 CjsSchema.decorateField(Tr2Pass, "renderStateValues", meta.adapted, type.rawStruct("CjsEffectRenderStateValues"));
 CjsSchema.decorateField(Tr2Pass, "stageOrder", type.rawStruct("CjsEffectStageOrder"));
 CjsSchema.decorateField(Tr2Pass, "backendBlock", type.rawStruct("CjsEffectBackendBlock"));
-CjsSchema.blue.define(Tr2Pass, {
-  className: "Tr2Pass"
-});
+CjsSchema.meta.carbon("Tr2Pass")(Tr2Pass);

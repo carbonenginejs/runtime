@@ -16,7 +16,7 @@ import { blue, INotify } from "#blue";
  * ordinary JavaScript references; native destructor detach assertions have no
  * deterministic destruction counterpart here.
  */
-@legacyBlue.define({ className: "Tr2SpriteObjectBase" })
+@be.define("Tr2SpriteObjectBase")
 @legacyBlue.inherit(INotify)
 @be.mapInterface(ITr2SpriteObject)
 @be.mapInterface(INotify)

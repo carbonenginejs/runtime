@@ -37,7 +37,7 @@ function toUint32(value)
  * has one base class, so the device resource is the `TriDevice` registration in the constructor
  * plus `PrepareResources`/`ReleaseResources` here, as on the other Trinity device resources.
  */
-@blue.define({ className: "Tr2Sprite2dLayer" })
+@be.define("Tr2Sprite2dLayer")
 @blue.chainTo(Tr2Sprite2dContainer)
 @blue.inherit(ITr2Sprite2dTextureNotifyTarget)
 @blue.interface()

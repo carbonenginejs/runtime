@@ -20,7 +20,8 @@
 //   `Stop` joins the threads; here both return promises. The semaphores
 //   (`m_alarm`, `m_pauseSemaphore`) become a dispatch on add, on completion
 //   and on resume.
-import { CjsSchema, meta, blue } from "#schema";
+import { exposure as be } from "#be";
+import { CjsSchema, meta } from "#schema";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { BlueCallbackManThreadData } from "./BlueCallbackManThreadData.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
@@ -766,9 +767,7 @@ CjsSchema.decorateMethod(BlueCallbackMan, "ResetQueueStats", meta.implemented);
 CjsSchema.decorateMethod(BlueCallbackMan, "SetPriority", meta.adapted);
 CjsSchema.decorateMethod(BlueCallbackMan, "SetThreadCount", meta.implemented);
 CjsSchema.decorateMethod(BlueCallbackMan, "SetName", meta.adapted);
-CjsSchema.blue.define(BlueCallbackMan, {
-  className: "BlueCallbackMan"
-});
+be.define("BlueCallbackMan")(BlueCallbackMan);
 
 CjsSchema.decorateMethod(BlueCallbackMan, "_AddHelper", meta.renamed("AddHelper"), meta.adapted);
 CjsSchema.decorateMethod(BlueCallbackMan, "_UpdateThread", meta.renamed("UpdateThread"), meta.adapted);

@@ -14,7 +14,7 @@ import { CjsSchema, meta, blue } from "#schema";
  * user data and per-object-data store, and declares the collect and sort
  * contract concrete accumulators implement.
  */
-@blue.define({ className: "ITriRenderBatchAccumulator" })
+@meta.carbon("ITriRenderBatchAccumulator")
 @be.abstract
 export class ITriRenderBatchAccumulator
 {

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2PickBuffer.h
 // Source: trinity/trinity/Tr2PickBuffer.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALResult } from "#trinityal";
 import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
 import { TriDevice } from "../device/TriDevice.js";
@@ -165,9 +165,7 @@ CjsSchema.decorateMethod(Tr2PickBuffer, "EndRendering", meta.implemented);
 CjsSchema.decorateMethod(Tr2PickBuffer, "MapForReading", meta.adapted);
 CjsSchema.decorateMethod(Tr2PickBuffer, "UnmapForReading", meta.implemented);
 CjsSchema.decorateMethod(Tr2PickBuffer, "Destruct", meta.adapted);
-CjsSchema.blue.define(Tr2PickBuffer, {
-  className: "Tr2PickBuffer"
-});
+CjsSchema.meta.carbon("Tr2PickBuffer")(Tr2PickBuffer);
 
 CjsSchema.decorateMethod(Tr2PickBuffer, "SetSize");
 CjsSchema.decorateMethod(Tr2PickBuffer, "GetSize");

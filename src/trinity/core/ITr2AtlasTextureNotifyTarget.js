@@ -12,10 +12,10 @@
 // own plain C++ interface (not a BLUE_INTERFACE), so it has no Blue exposure.
 // Implemented in Carbon by Tr2Sprite2dTexture (Sprite2d/Tr2Sprite2dTexture.h:20).
 import { exposure as be } from "#be";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 /** Receives change notifications from an atlas texture it registered with. */
-@blue.define({ className: "ITr2AtlasTextureNotifyTarget" })
+@meta.carbon("ITr2AtlasTextureNotifyTarget")
 @be.abstract
 export class ITr2AtlasTextureNotifyTarget
 {

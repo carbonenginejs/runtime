@@ -7,7 +7,7 @@ import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 
 /** Adds primary and secondary texture bindings to the shared 2D sprite render state. */
-@blue.define({ className: "Tr2TexturedSpriteObject" })
+@be.define("Tr2TexturedSpriteObject")
 @be.exposureChainTo(Tr2SpriteObject)
 @blue.inherit(ITr2Sprite2dTextureNotifyTarget)
 @be.abstract

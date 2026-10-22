@@ -42,7 +42,7 @@ export function EveCollectAreas(type, mesh, areaPool)
  * producers in EveChildMesh, EveChildInstancedMeshes and EveCollectAreas emit
  * plain records; no nominal class declarations exist for those three structs.
  */
-@blue.define({ className: "EveSpaceObjectChild" })
+@be.define("EveSpaceObjectChild")
 @blue.interface()
 @be.abstract
 export class EveSpaceObjectChild extends IEveSpaceObjectChild

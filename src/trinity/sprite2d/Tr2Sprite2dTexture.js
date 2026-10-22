@@ -21,7 +21,7 @@ import { Tr2Sprite2dTextureSettings } from "../generated/sprite2d/enums.js";
  * Atlas resource acquisition remains unported; Apply uses the native scene
  * contract, whose GPU renderer is a separate unfinished implementation.
  */
-@blue.define({ className: "Tr2Sprite2dTexture" })
+@be.define("Tr2Sprite2dTexture")
 @blue.inherit(IInitialize, INotify, ITr2AtlasTextureNotifyTarget)
 @be.mapInterface(ITr2Sprite2dTexture)
 @be.mapInterface(IInitialize)

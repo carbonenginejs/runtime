@@ -3693,7 +3693,7 @@ CjsSchema.meta.define(CjsBlueEnumRegistry, {
     ].map(name => [name, [CjsSchema.meta.adapted]]))
 });
 
-CjsSchema.blue.define(CcpLogChannel_t, { className: "CcpLogChannel_t" });
+CjsSchema.meta.carbon("CcpLogChannel_t")(CcpLogChannel_t);
 
 CjsSchema.meta.define("CjsSchema")(CjsSchema);
 

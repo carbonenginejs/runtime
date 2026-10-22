@@ -4,7 +4,7 @@ import { blue } from "#schema";
 import { ITr2Updateable } from "./ITr2Updateable.js";
 
 /** Native scene contract adding render entry points to the two-clock update contract. */
-@blue.define({ className: "ITr2Scene" })
+@be.interface("ITr2Scene")
 @be.abstract
 export class ITr2Scene extends ITr2Updateable
 {

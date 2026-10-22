@@ -20,7 +20,7 @@ import { LightFeatures } from "./LightFeatures.js";
  * transform, and submits a converted point or spot record to the light manager
  * each frame.
  */
-@legacyBlue.define({ className: "Tr2Light" })
+@be.define("Tr2Light")
 @legacyBlue.inherit(IInitialize, INotify)
 @legacyBlue.interface()
 @be.abstract

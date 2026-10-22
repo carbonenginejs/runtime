@@ -12,7 +12,7 @@
 // fill a plain object whose keys are the wire tags, in place of a yaml-cpp
 // node and emitter. Every scalar in it is the source text, as `as<std::string>()`
 // reads it; see ResourceGroupImpl.ImportFromYamlString.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { DocumentParameter } from "./DocumentParameter.js";
 import { Location } from "./Location.js";
 import { Parameter } from "./ParameterInfo.js";
@@ -583,6 +583,4 @@ CjsSchema.decorateMethod(ResourceInfo, "PutDataStreamLocalCdn", meta.notImplemen
 CjsSchema.decorateMethod(ResourceInfo, "PutDataStreamRemoteCdn", meta.notImplemented);
 CjsSchema.decorateMethod(ResourceInfo, "PutDataRemoteCdn", meta.notImplemented);
 CjsSchema.decorateMethod(ResourceInfo, "GetDestinationPath", meta.notImplemented);
-CjsSchema.blue.define(ResourceInfo, {
-  className: "ResourceInfo"
-});
+CjsSchema.meta.carbon("ResourceInfo")(ResourceInfo);

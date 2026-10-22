@@ -11,7 +11,7 @@ import { ImpactConfiguration } from "../generated/include/enums.js";
  * last argument (Carbon passes them first) except UpdateImpact, whose
  * implementers already take the output first.
  */
-@blue.define({ className: "ITriTargetable" })
+@be.interface("ITriTargetable")
 @be.abstract
 export class ITriTargetable extends IRoot
 {

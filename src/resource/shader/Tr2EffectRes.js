@@ -593,8 +593,6 @@ CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", be.mapMethod
 CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2EffectRes, "GetMemoryUsage", blue.method, meta.adapted);
-CjsSchema.blue.define(Tr2EffectRes, {
-  className: "Tr2EffectRes"
-});
+be.define("Tr2EffectRes")(Tr2EffectRes);
 blue.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);

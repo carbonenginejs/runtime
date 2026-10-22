@@ -13,7 +13,7 @@
 
 import { exposure as be } from "#be";
 import { CjsConstantPayload } from "#interfaces";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { Tr2RenderUtils } from "../../Tr2RenderUtils.js";
 import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
@@ -22,7 +22,7 @@ import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
  * Per-object render data: the object id a batch is picked and identified by,
  * and the upload of its constant payloads through the abstraction layer.
  */
-@blue.define({ className: "Tr2PerObjectData" })
+@meta.carbon("Tr2PerObjectData")
 @be.abstract
 export class Tr2PerObjectData
 {

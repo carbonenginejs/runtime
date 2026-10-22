@@ -14,7 +14,7 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
  * resource path, group and track name plus the cycle flag and resolved duration;
  * subclasses supply the track binding and sampling.
  */
-@blue.define({ className: "Tr2GrannyTrack" })
+@be.define("Tr2GrannyTrack")
 @blue.inherit(ITriFunction, IInitialize, ITriCurveLength, INotify)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(IInitialize)

@@ -95,7 +95,7 @@ function CheckEffect(effect)
 }
 
 /** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */
-@blue.define({ className: "Tr2GpuParticleSystem" })
+@be.define("Tr2GpuParticleSystem")
 @blue.inherit(IInitialize, INotify, IRenderCallback, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

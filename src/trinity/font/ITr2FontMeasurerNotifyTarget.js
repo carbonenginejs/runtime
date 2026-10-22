@@ -17,7 +17,7 @@ import { meta } from "#schema";
 import { blue } from "#schema";
 
 /** Receives change notifications from a font measurer it registered with. */
-@blue.define({ className: "ITr2FontMeasurerNotifyTarget" })
+@meta.carbon("ITr2FontMeasurerNotifyTarget")
 @be.abstract
 export class ITr2FontMeasurerNotifyTarget
 {

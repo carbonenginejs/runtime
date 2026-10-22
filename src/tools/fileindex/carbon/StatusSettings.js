@@ -6,7 +6,7 @@
 //
 // Adapted: Carbon ends a scope in its destructor. JavaScript has none, so a
 // caller ends one with `Dispose()`, in a `finally`.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { CallbackSettings } from "./CallbackSettings.js";
 import { StatusProgressType } from "./enums.js";
 import { StatusReturn } from "./StatusReturn.js";
@@ -104,6 +104,4 @@ CjsSchema.decorateMethod(StatusSettings, "RequiresStatusUpdates", meta.implement
 CjsSchema.decorateMethod(StatusSettings, "Update", meta.implemented);
 CjsSchema.decorateMethod(StatusSettings, "CalculateOverallProgress", meta.implemented);
 CjsSchema.decorateMethod(StatusSettings, "Dispose", meta.adapted);
-CjsSchema.blue.define(StatusSettings, {
-  className: "StatusSettings"
-});
+CjsSchema.meta.carbon("StatusSettings")(StatusSettings);

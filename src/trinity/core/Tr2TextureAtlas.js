@@ -15,7 +15,7 @@ import { exposure as be } from "#be";
 //   pointer as a `WeakRef`, and runs no code when the last reference goes. So
 //   the two sets are keyed by each texture's `_selfRef`, and
 //   `_ReclaimCollectedTextures` (ours) returns what a collected texture held.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import {
   PixelFormat,
@@ -256,7 +256,7 @@ function CopyToTexture(bitmap, texture, x, y, margin, renderContext)
  * do not fit become "outsiders" with their own AL texture and are pulled in when
  * space opens.
  */
-@blue.define({ className: "Tr2TextureAtlas" })
+@be.define("Tr2TextureAtlas")
 @be.mapInterface(ITr2TextureProvider)
 export class Tr2TextureAtlas extends ITr2TextureProvider
 {

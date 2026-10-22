@@ -50,7 +50,7 @@ const srcVertexSegments = [0, 8, 16].map(start => srcVertices.slice(start, start
  * stretching the centre piece to the display width (Tr2Sprite2dStretch.h:21-27). Vertices are
  * local to the sprite; the translation is pushed on the scene while they are submitted.
  */
-@blue.define({ className: "Tr2Sprite2dStretch" })
+@be.define("Tr2Sprite2dStretch")
 @blue.chainTo(Tr2TexturedSpriteObject)
 @blue.interface()
 export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject

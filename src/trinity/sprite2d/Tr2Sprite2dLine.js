@@ -36,7 +36,7 @@ const verts = Array.from({ length: 4 }, () => new Tr2Sprite2dVertexBase()); // a
  * Tr2Sprite2dLine draws one textured quad from `translationFrom` to `translationTo`, with its
  * width and colour interpolated between the ends. The texture tiles along the line.
  */
-@blue.define({ className: "Tr2Sprite2dLine" })
+@be.define("Tr2Sprite2dLine")
 @blue.chainTo(Tr2TexturedSpriteObject)
 @blue.interface()
 export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject

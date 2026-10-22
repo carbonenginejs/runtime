@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Raytracing/Tr2RaytracingGeometry.h
 // Source: trinity/trinity/Raytracing/Tr2RaytracingGeometry.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /** Tracks one ray-tracing mesh's geometry, transforms, skinning and morph offsets, screen size, and selected LOD. */
-@blue.define({ className: "Tr2RaytracingMesh" })
+@meta.carbon("Tr2RaytracingMesh")
 export class Tr2RaytracingMesh
 {
 

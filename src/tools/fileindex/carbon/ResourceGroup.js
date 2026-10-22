@@ -3,7 +3,7 @@
 import { ResourceGroupImpl } from "./ResourceGroupImpl.js";
 import { StatusSettings } from "./StatusSettings.js";
 import { StatusProgressType } from "./enums.js";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Carbon resource-group facade, preserving its separately owned nested implementation. */
 export class ResourceGroup
@@ -148,6 +148,4 @@ CjsSchema.decorateMethod(ResourceGroup, "CreateBundle", meta.notImplemented);
 CjsSchema.decorateMethod(ResourceGroup, "CreatePatch", meta.notImplemented);
 CjsSchema.decorateMethod(ResourceGroup, "CreateFromDirectory", meta.notImplemented);
 CjsSchema.decorateMethod(ResourceGroup, "createFromFilter", meta.renamed("CreateFromFilter"), meta.notImplemented);
-CjsSchema.blue.define(ResourceGroup, {
-  className: "ResourceGroup"
-});
+CjsSchema.meta.carbon("ResourceGroup")(ResourceGroup);

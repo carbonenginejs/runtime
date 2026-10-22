@@ -7,7 +7,8 @@
 //
 // Adapted: it is given its cache, where Carbon's always asks the one global
 // `BeRemoteFileCache`, so a host serving several builds can hold one per build.
-import { CjsSchema, meta, blue } from "#schema";
+import { exposure as be } from "#be";
+import { CjsSchema, meta } from "#schema";
 import { BlueFileUtil } from "./BlueFileUtil.js";
 import { BlueResFileSystemForm, IBlueResFileSystem } from "./IBlueResFileSystem.js";
 
@@ -119,6 +120,4 @@ CjsSchema.decorateMethod(BlueResFileSystemRemote, "IsDirectory", meta.implemente
 CjsSchema.decorateMethod(BlueResFileSystemRemote, "GetDirectoryContents", meta.implemented);
 CjsSchema.decorateMethod(BlueResFileSystemRemote, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"), meta.adapted);
 CjsSchema.decorateMethod(BlueResFileSystemRemote, "ResolvePathW", meta.adapted);
-CjsSchema.blue.define(BlueResFileSystemRemote, {
-  className: "BlueResFileSystemRemote"
-});
+be.define("BlueResFileSystemRemote")(BlueResFileSystemRemote);

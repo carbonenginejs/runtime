@@ -50,7 +50,7 @@ const FILTER_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Refl
 const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/CopyCube.fx";
 
 /** Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map. */
-@legacyBlue.define({ className: "Tr2ReflectionProbe" })
+@be.define("Tr2ReflectionProbe")
 @legacyBlue.inherit(INotify)
 @be.mapInterface(INotify)
 export class Tr2ReflectionProbe

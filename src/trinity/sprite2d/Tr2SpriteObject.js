@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.h
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 import { color } from "#math/color";
 import { vec2 } from "#math/vec2";
@@ -12,7 +12,7 @@ import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from
  * Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites.
  * Carbon declares a protected `ValidateAndSetTextures` here (Tr2SpriteObject.h:100) but defines only Tr2TexturedSpriteObject's (Tr2SpriteObject.cpp:294), so it has no port on this class.
  */
-@blue.define({ className: "Tr2SpriteObject" })
+@be.define("Tr2SpriteObject")
 @be.exposureChainTo(Tr2SpriteObjectBase)
 @be.abstract
 export class Tr2SpriteObject extends Tr2SpriteObjectBase
