@@ -616,7 +616,9 @@ export class CjsBlueClasses extends IBlueClasses
     {
       for (const method of CjsSchema.getSchema(type).methods || [])
       {
-        if (method.carbon && method.carbon.method === true)
+        // PyGetTypeInfo walks the class's PyMethodDef table, which only the MAP_METHOD* macros fill (blueexposure/TypeInfo.cpp:155-160): a method
+        // belongs when it carries an exposure record of Carbon's (class-level rows and aliases included), never the legacy origin stamp or one of ours.
+        if (method.exposure && method.exposure.origin !== "ours")
         {
           methods[method.exposure?.name ?? method.name] = "";
           for (const alias of method.exposure?.aliases ?? []) methods[alias.name ?? method.name] = "";
