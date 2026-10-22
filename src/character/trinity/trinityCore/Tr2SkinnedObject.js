@@ -507,7 +507,7 @@ export class Tr2SkinnedObject extends IRoot
    */
   @be.mapMethodAndWrap()
   @meta.adapted
-  GetBonePosition(joint, out = vec3.create())
+  GetBonePosition(joint, out)
   {
     const transform = this.GetBoneTransform(joint);
 
