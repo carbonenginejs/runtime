@@ -13,12 +13,14 @@ import { EveUpdateContext } from "../../EveUpdateContext.js";
 const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).buffer)[0];
 
 /**
+ * Groups sprite occlusion elements that can be displayed as one named EVE scene effect.
+ *
  * A lens flare's occlusion test: sprites drawn against the scene depth whose
  * shader counts, into the flare's FlareOcclusionBuffer slot, how many of
  * their pixels pass. Tr2OcclusionBuffer's CopyCounters turns the counts into
  * the visibility the flare and the god rays read.
  */
-@blue.define({ className: "EveOccluder", purpose: "Groups sprite occlusion elements that can be displayed as one named EVE scene effect." })
+@blue.define({ className: "EveOccluder" })
 @blue.inherit(IRoot)
 export class EveOccluder extends IRoot
 {

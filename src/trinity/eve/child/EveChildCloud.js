@@ -49,11 +49,13 @@ function updateBoundingSphere(cloud)
 
 
 /**
+ * Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state.
+ *
  * Legacy transformable volumetric-cloud child. Trinity owns its authored
  * state, SRT composition, visibility, tessellated screen grid and draw data.
  * Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp.
  */
-@blue.define({ className: "EveChildCloud", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
+@blue.define({ className: "EveChildCloud" })
 @blue.inherit(ITr2Renderable, ITr2DebugRenderable)
 @blue.inherit(IInitialize, INotify, Tr2DeviceResource)
 @be.mapInterface(ITr2Renderable)

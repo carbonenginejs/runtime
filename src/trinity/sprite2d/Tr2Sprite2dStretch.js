@@ -44,11 +44,13 @@ const srcVertices = Array.from({ length: 8 * 3 }, () => new Tr2Sprite2dVertexBas
 const srcVertexSegments = [0, 8, 16].map(start => srcVertices.slice(start, start + 8)); // alloc: module scratch views
 
 /**
+ * Defines a horizontally stretchable textured sprite with independent edge widths, center fill, offset, opacity, and DPI scaling.
+ *
  * Tr2Sprite2dStretch renders a sprite by cutting a texture into three horizontal pieces and
  * stretching the centre piece to the display width (Tr2Sprite2dStretch.h:21-27). Vertices are
  * local to the sprite; the translation is pushed on the scene while they are submitted.
  */
-@blue.define({ className: "Tr2Sprite2dStretch", purpose: "Defines a horizontally stretchable textured sprite with independent edge widths, center fill, offset, opacity, and DPI scaling." })
+@blue.define({ className: "Tr2Sprite2dStretch" })
 @blue.chainTo(Tr2TexturedSpriteObject)
 @blue.interface()
 export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject

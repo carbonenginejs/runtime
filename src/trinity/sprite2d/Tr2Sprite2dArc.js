@@ -136,11 +136,13 @@ function prepareEdgeQuad(arc, verts, current, angle, innerRadius)
 }
 
 /**
+ * Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures.
+ *
  * Tr2Sprite2dArc draws a circular arc around its translation: an outline of `lineWidth`, a filled
  * pie, or both. Carbon builds the vertices only when dirty, in a heap buffer sized by
  * `GetVertexCount`, and draws them with its own index list.
  */
-@blue.define({ className: "Tr2Sprite2dArc", purpose: "Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures." })
+@blue.define({ className: "Tr2Sprite2dArc" })
 @blue.chainTo(Tr2SpriteObject)
 @blue.interface()
 export class Tr2Sprite2dArc extends Tr2SpriteObject

@@ -31,10 +31,12 @@ const vertexBaseStride = 1;
 const verts = Array.from({ length: 4 }, () => new Tr2Sprite2dVertexBase()); // alloc: module scratch reused by every line
 
 /**
+ * Defines a textured 2D line segment with per-end widths and colors and texture offset controls.
+ *
  * Tr2Sprite2dLine draws one textured quad from `translationFrom` to `translationTo`, with its
  * width and colour interpolated between the ends. The texture tiles along the line.
  */
-@blue.define({ className: "Tr2Sprite2dLine", purpose: "Defines a textured 2D line segment with per-end widths and colors and texture offset controls." })
+@blue.define({ className: "Tr2Sprite2dLine" })
 @blue.chainTo(Tr2TexturedSpriteObject)
 @blue.interface()
 export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject

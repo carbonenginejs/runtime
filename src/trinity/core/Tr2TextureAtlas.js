@@ -249,12 +249,14 @@ function CopyToTexture(bitmap, texture, x, y, margin, renderContext)
 
 
 /**
+ * Shares one AL texture between many atlas textures, allocating best-fit rectangles and tracking textures that did not fit.
+ *
  * A texture that many small textures share: each `Tr2AtlasTexture` is a window
  * into it. Allocation is best-fit over a list of free rectangles; textures that
  * do not fit become "outsiders" with their own AL texture and are pulled in when
  * space opens.
  */
-@blue.define({ className: "Tr2TextureAtlas", purpose: "Shares one AL texture between many atlas textures, allocating best-fit rectangles and tracking textures that did not fit." })
+@blue.define({ className: "Tr2TextureAtlas" })
 @be.mapInterface(ITr2TextureProvider)
 export class Tr2TextureAtlas extends ITr2TextureProvider
 {

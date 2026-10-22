@@ -10,7 +10,7 @@ import { meta, type, blue } from "#schema";
 import { Tr2TextureAtlas } from "./Tr2TextureAtlas.js";
 
 /** Holds texture atlases and finds one for a given pixel format. */
-@blue.define({ className: "Tr2TextureAtlasMan", purpose: "Holds texture atlases and finds one for a given pixel format." })
+@blue.define({ className: "Tr2TextureAtlasMan" })
 export class Tr2TextureAtlasMan extends IRoot
 {
 

@@ -20,7 +20,7 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** Extends the manipulation tool with quaternion rotation state and angular precision. */
-@blue.define({ className: "Tr2RotationTool", purpose: "Extends the manipulation tool with quaternion rotation state and angular precision." })
+@blue.define({ className: "Tr2RotationTool" })
 export class Tr2RotationTool extends Tr2ManipulationTool
 {
   _angle = 0;

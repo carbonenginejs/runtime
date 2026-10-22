@@ -15,11 +15,13 @@ import { mat4 } from "#math/mat4";
 import { Tr2Sprite2dTextureSettings } from "../generated/sprite2d/enums.js";
 
 /**
+ * Describes a named 2D texture transform around separate rotation and scaling centers.
+ *
  * Wraps a supplied atlas texture with cropping, tiling, transforms and listeners.
  * Atlas resource acquisition remains unported; Apply uses the native scene
  * contract, whose GPU renderer is a separate unfinished implementation.
  */
-@blue.define({ className: "Tr2Sprite2dTexture", purpose: "Describes a named 2D texture transform around separate rotation and scaling centers." })
+@blue.define({ className: "Tr2Sprite2dTexture" })
 @blue.inherit(IInitialize, INotify, ITr2AtlasTextureNotifyTarget)
 @be.mapInterface(ITr2Sprite2dTexture)
 @be.mapInterface(IInitialize)

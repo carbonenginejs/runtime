@@ -10,7 +10,6 @@ class Effect
 }
 CjsSchema.define(Effect, {
   className: "BlueClassesManagerEffect",
-  purpose: "A leaf the manager finds.",
   fields: {
     name: [ CjsSchema.blue.readwrite, CjsSchema.blue.persist, type.string ]
   }

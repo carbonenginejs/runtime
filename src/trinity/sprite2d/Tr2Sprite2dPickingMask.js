@@ -25,7 +25,7 @@ blue.enums.Create("trinity.Tr2Sprite2dPickingMask.Channel_Chooser", Channel, {
 });
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
-@legacyBlue.define({ className: "Tr2Sprite2dPickingMask", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
+@legacyBlue.define({ className: "Tr2Sprite2dPickingMask" })
 @legacyBlue.interface()
 @legacyBlue.inherit(IRoot)
 export class Tr2Sprite2dPickingMask extends IRoot

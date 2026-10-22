@@ -7,7 +7,7 @@ import { vec3 } from "#math/vec3";
 import { TriDebugFont } from "../include/enums.js";
 
 /** Positions a displayable text label with its font and content inside a primitive scene. */
-@blue.define({ className: "Tr2PrimitiveText", purpose: "Positions a displayable text label with its font and content inside a primitive scene." })
+@blue.define({ className: "Tr2PrimitiveText" })
 export class Tr2PrimitiveText extends IRoot
 {
 

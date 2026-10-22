@@ -3,7 +3,7 @@
 import { type, blue } from "#schema";
 
 /** Tracks a ray-tracing pipeline descriptor, compiled state, pending name, and dirty-rebuild flag. */
-@blue.define({ className: "Tr2RaytracingPipelineStateManager", purpose: "Tracks a ray-tracing pipeline descriptor, compiled state, pending name, and dirty-rebuild flag." })
+@blue.define({ className: "Tr2RaytracingPipelineStateManager" })
 export class Tr2RaytracingPipelineStateManager
 {
 

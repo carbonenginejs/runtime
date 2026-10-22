@@ -11,7 +11,7 @@ import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
-@blue.define({ className: "Tr2GpuStructuredBuffer", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
+@blue.define({ className: "Tr2GpuStructuredBuffer" })
 @blue.inherit(ITr2GpuBuffer, INotify, IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)

@@ -10,7 +10,7 @@ import { Tr2TextureArrayElement } from "./Tr2TextureArrayElement.js";
 import "#consts/renderContext/resources";
 
 /** Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback. */
-@blue.define({ className: "Tr2TextureArray", purpose: "Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback." })
+@blue.define({ className: "Tr2TextureArray" })
 export class Tr2TextureArray extends IRoot
 {
 

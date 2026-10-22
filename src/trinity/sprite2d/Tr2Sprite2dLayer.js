@@ -29,13 +29,15 @@ function toUint32(value)
 }
 
 /**
+ * Defines a sprite container layer with blend and effect state plus optional background clearing.
+ *
  * Tr2Sprite2dLayer renders its children into its own render target, then draws that target into
  * the parent as one sprite with the layer's colour, effect and blend mode (Tr2Sprite2dLayer.h:16-62).
  * It is a Tr2Sprite2dContainer, a Tr2DeviceResource and an ITr2Sprite2dTextureNotifyTarget. JS
  * has one base class, so the device resource is the `TriDevice` registration in the constructor
  * plus `PrepareResources`/`ReleaseResources` here, as on the other Trinity device resources.
  */
-@blue.define({ className: "Tr2Sprite2dLayer", purpose: "Defines a sprite container layer with blend and effect state plus optional background clearing." })
+@blue.define({ className: "Tr2Sprite2dLayer" })
 @blue.chainTo(Tr2Sprite2dContainer)
 @blue.inherit(ITr2Sprite2dTextureNotifyTarget)
 @blue.interface()

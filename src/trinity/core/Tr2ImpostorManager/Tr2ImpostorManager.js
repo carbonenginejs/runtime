@@ -38,7 +38,7 @@ function copyHash(out, value)
 }
 
 /** Carries an impostor atlas, tile dimensions, capture effect, and per-frame update budget. */
-@blue.define({ className: "Tr2ImpostorManager", purpose: "Carries an impostor atlas, tile dimensions, capture effect, and per-frame update budget." })
+@blue.define({ className: "Tr2ImpostorManager" })
 @blue.inherit(IInitialize, INotify)
 export class Tr2ImpostorManager
 {

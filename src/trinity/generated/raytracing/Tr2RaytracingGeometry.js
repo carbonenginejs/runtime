@@ -5,7 +5,7 @@ import { type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 
 /** Collects mesh-area, material, transforms, skinning buffers, bindless resources, and acceleration-structure state for ray-traced geometry. */
-@blue.define({ className: "Tr2RaytracingGeometry", purpose: "Collects mesh-area, material, transforms, skinning buffers, bindless resources, and acceleration-structure state for ray-traced geometry." })
+@blue.define({ className: "Tr2RaytracingGeometry" })
 export class Tr2RaytracingGeometry extends IRoot
 {
 

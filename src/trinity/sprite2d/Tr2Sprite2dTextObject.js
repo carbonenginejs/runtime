@@ -8,7 +8,7 @@ import { ITr2FontMeasurerNotifyTarget } from "../font/ITr2FontMeasurerNotifyTarg
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 
 /** Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag. */
-@blue.define({ className: "Tr2Sprite2dTextObject", purpose: "Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag." })
+@blue.define({ className: "Tr2Sprite2dTextObject" })
 @be.exposureChainTo(Tr2SpriteObject)
 @blue.inherit(ITr2FontMeasurerNotifyTarget)
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject

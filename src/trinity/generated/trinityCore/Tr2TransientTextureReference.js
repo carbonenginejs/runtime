@@ -4,7 +4,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { type, blue } from "#schema";
 
 /** Models Carbon's caller-owned texture pointer wrapper without claiming responsibility for the texture's lifetime. */
-@blue.define({ className: "Tr2TransientTextureReference", purpose: "Models Carbon's caller-owned texture pointer wrapper without claiming responsibility for the texture's lifetime." })
+@blue.define({ className: "Tr2TransientTextureReference" })
 export class Tr2TransientTextureReference extends IRoot
 {
 

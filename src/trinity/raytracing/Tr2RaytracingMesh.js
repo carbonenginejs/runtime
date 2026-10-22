@@ -4,7 +4,7 @@
 import { meta, type, blue } from "#schema";
 
 /** Tracks one ray-tracing mesh's geometry, transforms, skinning and morph offsets, screen size, and selected LOD. */
-@blue.define({ className: "Tr2RaytracingMesh", purpose: "Tracks one ray-tracing mesh's geometry, transforms, skinning and morph offsets, screen size, and selected LOD." })
+@blue.define({ className: "Tr2RaytracingMesh" })
 export class Tr2RaytracingMesh
 {
 

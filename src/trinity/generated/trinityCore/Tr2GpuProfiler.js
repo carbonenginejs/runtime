@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { meta, type, blue } from "#schema";
 
 /** Carries nested GPU timing zones, frame fences, messages, and capture state for one profiling owner. */
-@blue.define({ className: "Tr2GpuProfiler", purpose: "Carries nested GPU timing zones, frame fences, messages, and capture state for one profiling owner." })
+@blue.define({ className: "Tr2GpuProfiler" })
 export class Tr2GpuProfiler extends IRoot
 {
 

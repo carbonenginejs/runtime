@@ -24,7 +24,7 @@ const IMAGE_TYPE_RAW_RGB = 2;
 const IMAGE_TYPE_RAW_GREYSCALE = 3;
 
 /** Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points. */
-@blue.define({ className: "Tr2StreamingBitmapSaver", purpose: "Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points." })
+@blue.define({ className: "Tr2StreamingBitmapSaver" })
 export class Tr2StreamingBitmapSaver extends IRoot
 {
 

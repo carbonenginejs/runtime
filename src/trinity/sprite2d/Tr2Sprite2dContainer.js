@@ -7,7 +7,7 @@ import { meta, type, blue } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 
 /** Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching. */
-@blue.define({ className: "Tr2Sprite2dContainer", purpose: "Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching." })
+@blue.define({ className: "Tr2Sprite2dContainer" })
 @be.exposureChainTo(Tr2Sprite2dContainerBase)
 export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 {

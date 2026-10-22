@@ -19,7 +19,7 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** Extends the manipulation tool with the current three-axis translation result. */
-@blue.define({ className: "Tr2TranslationTool", purpose: "Extends the manipulation tool with the current three-axis translation result." })
+@blue.define({ className: "Tr2TranslationTool" })
 export class Tr2TranslationTool extends Tr2ManipulationTool
 {
   /** Native constructor builds arrows and selects the free-move ring. */

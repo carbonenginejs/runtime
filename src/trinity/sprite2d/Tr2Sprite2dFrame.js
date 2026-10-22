@@ -50,11 +50,13 @@ const srcVertices = Array.from({ length: 16 * 3 }, () => new Tr2Sprite2dVertexBa
 const srcVertexSegments = [0, 16, 32].map(start => srcVertices.slice(start, start + 16)); // alloc: module scratch views
 
 /**
+ * Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls.
+ *
  * Tr2Sprite2dFrame renders a frame by cutting a texture into nine pieces and stretching them to
  * the frame's display extents (Tr2Sprite2dFrame.h:15-23). Vertices hold the sprite translation;
  * three 16-vertex segments carry the shadow, the frame and its glow.
  */
-@blue.define({ className: "Tr2Sprite2dFrame", purpose: "Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls." })
+@blue.define({ className: "Tr2Sprite2dFrame" })
 @blue.chainTo(Tr2TexturedSpriteObject)
 @blue.interface()
 export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject

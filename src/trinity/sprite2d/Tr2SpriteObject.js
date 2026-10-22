@@ -12,7 +12,7 @@ import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from
  * Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites.
  * Carbon declares a protected `ValidateAndSetTextures` here (Tr2SpriteObject.h:100) but defines only Tr2TexturedSpriteObject's (Tr2SpriteObject.cpp:294), so it has no port on this class.
  */
-@blue.define({ className: "Tr2SpriteObject", purpose: "Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites." })
+@blue.define({ className: "Tr2SpriteObject" })
 @be.exposureChainTo(Tr2SpriteObjectBase)
 @be.abstract
 export class Tr2SpriteObject extends Tr2SpriteObjectBase

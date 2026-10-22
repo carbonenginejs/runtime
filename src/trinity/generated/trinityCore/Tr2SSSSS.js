@@ -6,7 +6,7 @@ import { type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** Configures screen-space subsurface scattering width, front-scatter color, scene presence, and enablement. */
-@blue.define({ className: "Tr2SSSSS", purpose: "Configures screen-space subsurface scattering width, front-scatter color, scene presence, and enablement." })
+@blue.define({ className: "Tr2SSSSS" })
 export class Tr2SSSSS extends IRoot
 {
 

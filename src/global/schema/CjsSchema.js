@@ -301,12 +301,6 @@ export class CjsSchema
         return null;
     }
 
-    /** Returns this constructor's own reviewed purpose without inheriting it. */
-    static getClassPurpose(Constructor)
-    {
-        return CLASS_SCHEMA.get(Constructor)?.purpose || null;
-    }
-
 
     /**
      * Every declared class name on a constructor's chain, nearest first.
@@ -2278,7 +2272,6 @@ function defineClassMetadata(Constructor, definition)
     }
     if (definition.struct) schema.structureSize = definition.struct.size;
     if (definition.family) schema.family = definition.family;
-    if (definition.purpose) schema.purpose = definition.purpose;
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
     if (definition.carbon) schema.carbon = definition.carbon;
     if (definition.blue) schema.blue = true;
@@ -2797,11 +2790,6 @@ function buildClassInfo(Constructor, namespaces)
         result.family = family;
     }
 
-    if (schema?.purpose)
-    {
-        result.purpose = schema.purpose;
-    }
-
     if (schema?.sourceClass && schema.sourceClass !== result.className)
     {
         result.sourceClass = schema.sourceClass;
@@ -2937,7 +2925,6 @@ function getOrCreateClassSchema(Constructor)
         schema = {
             className: null,
             family: null,
-            purpose: null,
             sourceClass: null,
             carbon: null,
             aliases: null,
@@ -3107,18 +3094,8 @@ function normalizeClassDefinition(Constructor, definition)
     {
         throw new TypeError("CjsSchema.define abstract must be a boolean when provided.");
     }
-    if (result.purpose !== undefined && result.purpose !== null)
-    {
-        if (typeof result.purpose !== "string" || !result.purpose.trim())
-        {
-            throw new TypeError("CjsSchema.define purpose must be a non-empty string when provided.");
-        }
-        result.purpose = result.purpose.trim().replace(/\s+/g, " ");
-        if (result.purpose.includes("*/"))
-        {
-            throw new TypeError("CjsSchema.define purpose cannot close a JSDoc comment.");
-        }
-    }
+    // A class's purpose is prose: it lives in the class JSDoc.
+    if (Object.hasOwn(result, "purpose")) throw new TypeError("Class purpose is retired; write it in the class JSDoc.");
     // Native identity is runtime metadata; donors are checked from class JSDoc.
     if (Object.hasOwn(result, "donors") || Object.hasOwn(result, "modelledOn"))
         throw new TypeError("Class donors and modelledOn are retired; use Carbon: or Modelled on: class JSDoc lines.");

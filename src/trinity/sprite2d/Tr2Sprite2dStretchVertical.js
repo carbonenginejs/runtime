@@ -67,12 +67,14 @@ function setVertex(vertex, x, y, u, v)
 }
 
 /**
+ * Defines a vertically stretchable textured sprite with independent edge heights, center fill, offset and opacity.
+ *
  * Tr2Sprite2dStretchVertical renders a sprite by cutting a texture into three vertical pieces and
  * stretching the centre piece to the display height (Tr2Sprite2dStretchVertical.h:14-20).
  * Vertices are local to the sprite; the translation is pushed on the scene while they are
  * submitted.
  */
-@blue.define({ className: "Tr2Sprite2dStretchVertical", purpose: "Defines a vertically stretchable textured sprite with independent edge heights, center fill, offset and opacity." })
+@blue.define({ className: "Tr2Sprite2dStretchVertical" })
 @blue.chainTo(Tr2TexturedSpriteObject)
 @blue.interface()
 export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject

@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { type, blue } from "#schema";
 
 /** Carries shadow-effect, denoiser, enablement, and sun-angle state for Carbon's ray-tracing manager. */
-@blue.define({ className: "Tr2RaytracingManager", purpose: "Carries shadow-effect, denoiser, enablement, and sun-angle state for Carbon's ray-tracing manager." })
+@blue.define({ className: "Tr2RaytracingManager" })
 export class Tr2RaytracingManager extends IRoot
 {
 

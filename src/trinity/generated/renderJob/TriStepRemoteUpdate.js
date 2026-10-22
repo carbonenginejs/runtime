@@ -5,7 +5,7 @@ import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "../../renderJob/step/TriRenderStep.js";
 
 /** Carries the view, projection, viewport, and shared-memory handles for a render step that publishes remote frame updates. */
-@blue.define({ className: "TriStepRemoteUpdate", purpose: "Carries the view, projection, viewport, and shared-memory handles for a render step that publishes remote frame updates." })
+@blue.define({ className: "TriStepRemoteUpdate" })
 export class TriStepRemoteUpdate extends TriRenderStep
 {
 

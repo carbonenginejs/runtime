@@ -18,7 +18,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 
 /** Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls. */
-@blue.define({ className: "EveStarfield", purpose: "Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls." })
+@blue.define({ className: "EveStarfield" })
 @blue.inherit(IInitialize, INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

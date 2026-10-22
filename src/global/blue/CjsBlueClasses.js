@@ -561,7 +561,8 @@ export class CjsBlueClasses extends IBlueClasses
     const classInfo = {
       module: "",
       classname: schema.className,
-      description: CjsSchema.getClassPurpose(Constructor) || "",
+      // Carbon's EXPOSURE_BEGIN doc string is a separate question; our class prose lives in the JSDoc.
+      description: "",
       autovar: flags & 0x1 ? 1 : 0,
       signatures: {}
     };

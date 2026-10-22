@@ -9,8 +9,12 @@ import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 
 const spriteIndices = new Uint16Array([0, 1, 3, 3, 1, 2, 4, 5, 7, 7, 5, 6, 8, 9, 11, 11, 9, 10]); // alloc: immutable module-level triangle index table
 
-/** Prepares and gathers sprite quads through the native Sprite2D renderer contract. */
-@blue.define({ className: "Tr2Sprite2d", purpose: "Adds opacity, saturation, texture-sized dimensions, and picking radius to a textured 2D sprite." })
+/**
+ * Adds opacity, saturation, texture-sized dimensions, and picking radius to a textured 2D sprite.
+ *
+ * Prepares and gathers sprite quads through the native Sprite2D renderer contract.
+ */
+@blue.define({ className: "Tr2Sprite2d" })
 @be.mapInterface(INotify)
 @be.exposureChainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2d extends Tr2TexturedSpriteObject
