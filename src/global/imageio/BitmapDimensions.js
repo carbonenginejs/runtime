@@ -22,7 +22,7 @@
 // are the `create__` static factories, each built as Carbon's initializer list
 // builds it.
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import {
   PixelFormat,
   TextureType,
@@ -400,29 +400,30 @@ export class BitmapDimensions
 }
 
 
+// States: each accessor is BitmapDimensions.h:146-280 line for line (Destroy, h:77-81, keeps its commented-out zeroing).
 // DECLARED AS A CALL, NOT A DECORATOR. The abstraction layer is imported
 // straight from source by its tests - `#trinityal/...` resolves to `src/` - and
 // raw Node cannot parse decorator syntax, so a decorator here breaks every test
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
-CjsSchema.decorateMethod(BitmapDimensions, "GetWidth", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetHeight", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetDepth", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetFormat", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetType", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetArraySize", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipCount", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetTrueMipCount", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "IsCompressed", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "HasMipmap", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipWidth", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipHeight", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipDepth", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipPitch", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipSize", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "GetMipNumRows", blue.method);
-CjsSchema.decorateMethod(BitmapDimensions, "Destroy", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetWidth", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetHeight", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetDepth", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetFormat", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetType", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetArraySize", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipCount", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetTrueMipCount", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "IsCompressed", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "HasMipmap", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipWidth", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipHeight", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipDepth", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipPitch", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipSize", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipNumRows", meta.implemented);
+CjsSchema.decorateMethod(BitmapDimensions, "Destroy", meta.implemented);
 CjsSchema.blue.define(BitmapDimensions, {
   className: "BitmapDimensions",
   aliases: [ "Tr2BitmapDimensions" ]
