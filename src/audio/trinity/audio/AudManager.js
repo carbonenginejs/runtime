@@ -98,7 +98,7 @@ export class AudManager extends IRoot
   }
 
   /** Carbon method GetStateValue: Carbon's scripting int (0/1/2). */
-  @blue.method
+  @be.mapMethodAndWrap("GetState")
   @meta.implemented
   GetStateValue()
   {

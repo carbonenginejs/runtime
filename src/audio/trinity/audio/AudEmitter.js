@@ -86,6 +86,7 @@ export class AudEmitter extends AudGameObjResource
    *
    * @param {string} [name] Emitter name; Carbon defaults it to empty.
    */
+  @be.mapMethodAndWrapOptionalArgs()
   @meta.renamed("Py__init__")
   @meta.implemented
   __init__(name = "")
