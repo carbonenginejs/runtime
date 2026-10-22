@@ -8,6 +8,7 @@ import {
     Tr2VideoAdapters,
     Tr2VideoDriver
 } from "../../../npm/dist/core/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 
 function fakeAdapter()
 {
@@ -110,4 +111,33 @@ test("Tr2VideoAdapters exposes the single adapter selected by the browser", asyn
     assert.equal(manager.GetDisplayModeCount(0, "rgba8unorm"), 0);
     assert.equal(manager.SupportsRenderTargetFormat(0, "rgba16float"), true);
     assert.equal(manager.GetMaxTextureSize(0), 8192);
+});
+
+test("Tr2PlatformInfo's properties are accessors over Carbon's getters (Tr2PlatformInfo_Blue.cpp:47-49)", async () =>
+{
+    const platform = await Tr2PlatformInfo.Detect({ adapter: fakeAdapter() });
+
+    assert.equal(platform.GetPlatformName(), "webgpu");
+    assert.equal(platform.GetPlatformID(), 0);
+    assert.equal(platform.IsLowPerformance(), false);
+    assert.equal(platform.platformName, platform.GetPlatformName());
+    assert.equal(platform.platformID, platform.GetPlatformID());
+    assert.equal(platform.isLowPerformance, platform.IsLowPerformance());
+
+    const configured = new Tr2PlatformInfo({ platformName: "gles2.mali400", platformID: 7, isLowPerformance: true });
+    assert.equal(configured.GetPlatformName(), "gles2.mali400");
+    assert.equal(configured.GetPlatformID(), 7);
+    assert.equal(configured.IsLowPerformance(), true);
+    assert.equal(configured.platformName, "gles2.mali400", "the accessor reads through the getter");
+    assert.throws(() => { configured.platformName = "x"; }, TypeError, "MAP_PROPERTY_READONLY has no setter");
+
+    for (const [ name, row ] of [ [ "platformName", "MAP_PROPERTY_READONLY" ], [ "platformID", "MAP_PROPERTY_READONLY" ], [ "isLowPerformance", "MAP_PROPERTY_READONLY" ] ])
+    {
+        const property = CjsSchema.getSchema(Tr2PlatformInfo).properties.find(entry => entry.name === name);
+        assert.equal(property.exposure.macro, row, name);
+    }
+    for (const method of [ "GetPlatformName", "GetPlatformID", "IsLowPerformance" ])
+    {
+        assert.equal(CjsSchema.getMethod(Tr2PlatformInfo, method).impl.status, "adapted", method);
+    }
 });

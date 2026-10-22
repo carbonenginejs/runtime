@@ -84,7 +84,7 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 // the backend about the shading language rather than read this name.
 
 /** Browser feature report replacing Carbon's compile-time platform macros. */
-@blue.define({ className: "Tr2PlatformInfo", fields: { platformName: [blue.read], platformID: [blue.read], isLowPerformance: [blue.read] } })
+@blue.define({ className: "Tr2PlatformInfo" })
 @blue.interface()
 @blue.inherit(IRoot)
 export class Tr2PlatformInfo
@@ -96,22 +96,31 @@ export class Tr2PlatformInfo
     backend = Tr2PlatformInfo.Backend.NONE;
 
     /**
-     * The platform name for the described backend, or null for none.
+     * The value `GetPlatformName` answers: the platform name for the described backend, or null for none.
+     * Carbon has no member (the name is the macro TRINITY_PLATFORM_NAME), so this is ours.
      * @type {string|null}
      */
-    platformName = null;
+    @meta.cjs
+    @meta.adapted
+    _platformName = null;
 
     /**
-     * Carbon's TRINITY_PLATFORM build constant; always 0 here (see the constructor).
+     * The value `GetPlatformID` answers: Carbon's TRINITY_PLATFORM build constant; always 0 here (see the constructor).
+     * Carbon has no member, so this is ours.
      * @type {number}
      */
-    platformID = 0;
+    @meta.cjs
+    @meta.adapted
+    _platformID = 0;
 
     /**
-     * Whether the described platform is low-end.
+     * The value `IsLowPerformance` answers: whether the described platform is low-end.
+     * Carbon has no member (the answer is the macro TRINITY_PLATFORM_IS_LOW_PERFORMACE), so this is ours.
      * @type {boolean}
      */
-    isLowPerformance = false;
+    @meta.cjs
+    @meta.adapted
+    _isLowPerformance = false;
 
     /**
      * The probed WebGPU adapter snapshot, or null.
@@ -199,17 +208,108 @@ export class Tr2PlatformInfo
     constructor(values = {})
     {
         this.backend = values.backend ?? Tr2PlatformInfo.Backend.NONE;
-        this.platformName = values.platformName ?? Tr2PlatformInfo.PlatformName[this.backend] ?? null;
+        this._platformName = values.platformName ?? Tr2PlatformInfo.PlatformName[this.backend] ?? null;
         // Carbon's TRINITY_PLATFORM is a per-backend build constant (dx11 = 2,
         // stub = 5, dx12 = 6, metal = 10) naming targets that do not exist
         // here, so a browser value in that numbering would be a fabrication.
         // It stays zero, as it has been, and nothing reads it.
-        this.platformID = values.platformID ?? 0;
-        this.isLowPerformance = values.isLowPerformance ?? false;
+        this._platformID = values.platformID ?? 0;
+        this._isLowPerformance = values.isLowPerformance ?? false;
         this.adapter = values.adapter ?? null;
         this.webgl = values.webgl ?? null;
         this.probeError = values.probeError ?? null;
         for (const name of Object.keys(PlatformStaticCap)) this.#staticCaps.set(name, values.staticCaps?.[name] === true);
+    }
+
+    /**
+     * The AL platform name abbreviation: the path segment a compiled effect is resolved through.
+     *
+     * Carbon: Tr2PlatformInfo::GetPlatformName (trinity/trinity/Tr2PlatformInfo.cpp:7-10;
+     * Tr2PlatformInfo.h:24).
+     *
+     * Adapted: Carbon returns the compile-time macro TRINITY_PLATFORM_NAME of the linked backend; this
+     * returns the name of the backend that was probed, or null when there is none (see the head of this file).
+     *
+     * @returns {string|null} The platform name.
+     */
+    @meta.adapted
+    GetPlatformName()
+    {
+        return this._platformName;
+    }
+
+    /**
+     * The AL platform id.
+     *
+     * Carbon: Tr2PlatformInfo::GetPlatformID (trinity/trinity/Tr2PlatformInfo.cpp:12-15;
+     * Tr2PlatformInfo.h:25).
+     *
+     * Adapted: Carbon returns the build constant TRINITY_PLATFORM (dx11 = 2, stub = 5, dx12 = 6, metal = 10),
+     * which names targets that do not exist here; a browser value in that numbering would be invented, so
+     * this answers 0 unless the host supplies one.
+     *
+     * @returns {number} The platform id.
+     */
+    @meta.adapted
+    GetPlatformID()
+    {
+        return this._platformID;
+    }
+
+    /**
+     * Whether the AL platform is low-end.
+     *
+     * Carbon: Tr2PlatformInfo::IsLowPerformance (trinity/trinity/Tr2PlatformInfo.cpp:40-43;
+     * Tr2PlatformInfo.h:28).
+     *
+     * Adapted: Carbon returns the macro TRINITY_PLATFORM_IS_LOW_PERFORMACE of the linked backend; this
+     * returns what the probe measured (a WebGPU fallback adapter), false for WebGL.
+     *
+     * @returns {boolean} Whether the platform is low-end.
+     */
+    @meta.adapted
+    IsLowPerformance()
+    {
+        return this._isLowPerformance;
+    }
+
+    /**
+     * platformName (MAP_PROPERTY_READONLY): Carbon's property over GetPlatformName, which the macro calls.
+     * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2PlatformInfo_Blue.cpp:47).
+     *
+     * @type {string|null}
+     */
+    @be.mapPropertyReadOnly()
+    @meta.implemented
+    get platformName()
+    {
+        return this.GetPlatformName();
+    }
+
+    /**
+     * platformID (MAP_PROPERTY_READONLY): Carbon's property over GetPlatformID, which the macro calls.
+     * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2PlatformInfo_Blue.cpp:48).
+     *
+     * @type {number}
+     */
+    @be.mapPropertyReadOnly()
+    @meta.implemented
+    get platformID()
+    {
+        return this.GetPlatformID();
+    }
+
+    /**
+     * isLowPerformance (MAP_PROPERTY_READONLY): Carbon's property over IsLowPerformance, which the macro calls.
+     * Carbon: MAP_PROPERTY_READONLY (trinity/trinity/Tr2PlatformInfo_Blue.cpp:49).
+     *
+     * @type {boolean}
+     */
+    @be.mapPropertyReadOnly()
+    @meta.implemented
+    get isLowPerformance()
+    {
+        return this.IsLowPerformance();
     }
 
     /** Reports one named or numeric static platform capability. */
@@ -245,7 +345,7 @@ export class Tr2PlatformInfo
             taa: this.GetStaticCap(PlatformStaticCap.TAA),
             webgpuFeatures: adapter?.features ?? [],
             webgpuLimits: adapter?.limits ?? {},
-            lowPerformance: this.isLowPerformance
+            lowPerformance: this.IsLowPerformance()
         };
     }
 
@@ -329,7 +429,7 @@ export class Tr2PlatformInfo
      */
     ResolveEffectPath(path, options = {})
     {
-        return ResolveEffectPath(path, { shaderModel: options.shaderModel, platformName: this.platformName });
+        return ResolveEffectPath(path, { shaderModel: options.shaderModel, platformName: this.GetPlatformName() });
     }
 
     /**
