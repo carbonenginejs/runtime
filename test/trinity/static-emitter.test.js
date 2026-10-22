@@ -69,7 +69,7 @@ test("ForceSpawn inserts one particle per vertex, matching elements by usage and
   emitter.particleSystem = particles;
   emitter.geometryResource = geometry();
 
-  emitter.ForceSpawn();
+  emitter.DoSpawn();
 
   assert.equal(emitter.hasSpawnedParticles, true);
   assert.equal(particles.aliveCount, 3);
@@ -113,7 +113,7 @@ test("ForceSpawn refuses a vertex element that is neither Float32 nor Float16", 
   emitter.particleSystem = particles;
   emitter.geometryResource = geometry([ { usage: "Position", usageIndex: 0, type: "UInt16Norm", elementCount: 3, offset: 0 } ]);
 
-  emitter.ForceSpawn();
+  emitter.DoSpawn();
 
   assert.equal(particles.aliveCount, 0);
   assert.equal(emitter.hasSpawnedParticles, true, "Carbon marks the attempt spawned before validating (cpp:196-213)");
@@ -128,7 +128,7 @@ test("an invalid mesh index logs and spawns nothing", t =>
   emitter.geometryResource = geometry();
   emitter.meshIndex = 4;
 
-  emitter.ForceSpawn();
+  emitter.DoSpawn();
 
   assert.equal(particles.aliveCount, 0);
 });

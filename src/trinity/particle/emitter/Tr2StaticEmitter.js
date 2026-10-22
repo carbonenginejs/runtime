@@ -89,7 +89,8 @@ export class Tr2StaticEmitter extends IRoot
   }
 
   /**
-   * Carbon DoSpawn, exposed as ForceSpawn (Tr2StaticEmitter.cpp:96-262): once
+   * Carbon: Tr2StaticEmitter::DoSpawn (Tr2StaticEmitter.cpp:96-262), exposed as ForceSpawn
+   * (Tr2StaticEmitter_Blue.cpp:39, MAP_METHOD_AND_WRAP( "ForceSpawn", DoSpawn, ... )): once
    * the particle system is valid and the geometry is good, clears the system
    * and inserts one particle per vertex of mesh `meshIndex`. Each particle
    * element reads the vertex element of the matching usage (LIFETIME from
@@ -106,9 +107,9 @@ export class Tr2StaticEmitter extends IRoot
    *
    * @returns {void}
    */
-  @be.mapMethodAndWrap()
+  @be.mapMethodAndWrap("ForceSpawn")
   @meta.adapted
-  ForceSpawn()
+  DoSpawn()
   {
     const system = this.particleSystem;
     const geometry = this.geometryResource;
@@ -229,7 +230,7 @@ export class Tr2StaticEmitter extends IRoot
   @meta.implemented
   Update(_updateArguments)
   {
-    if (!this.hasSpawnedParticles) this.ForceSpawn();
+    if (!this.hasSpawnedParticles) this.DoSpawn();
   }
 
   /**
