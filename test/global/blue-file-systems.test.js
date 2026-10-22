@@ -13,6 +13,7 @@ import {
   CjsBlueResFileSystemFetch,
   IBlueResFileSystem
 } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 
 const { BYTES, TEXT, STREAM, VALUE } = BlueResFileSystemForm;
 const encode = text => new TextEncoder().encode(text);
@@ -78,13 +79,40 @@ test("BlueResFileSystemLocal keeps Carbon's members and throws in a browser", as
 {
   const local = new BlueResFileSystemLocal();
   for (const member of [ "FileExists", "IsDirectory", "ResolvePathW", "ResolvePath", "SetSearchPath", "GetSearchPath", "ClearSearchPaths",
-    "ResolvePathForWriting", "ResolvePathToRoot", "GetExpandedSearchPaths", "GetExpandedSearchPaths__Key",
+    "ResolvePathForWriting", "ResolvePathToRoot", "SetSearchPathW", "GetSearchPathW", "ResolvePathForWritingW", "ResolvePathToRootW", "GetExpandedSearchPaths", "GetExpandedSearchPaths__Key",
     "InitializeStdAppPaths", "LogPaths", "GetInitialWorkingDirectory", "GetAllSearchPaths", "GetExpandedSearchPathsAsDict",
     "ListDirFromScript", "Initialize", "GetDirectoryContents" ])
   {
     assert.throws(() => local[member]("res:/a"), /a browser has no disk/u, member);
   }
   await assert.rejects(local.GetStreamFromPath("res:/a", { form: BYTES }), /a browser has no disk/u);
+});
+
+test("BlueResFileSystemLocal exposes the W members under Carbon's names (BlueResFileSystemLocal_Blue.cpp:28-82)", () =>
+{
+  const exposed = { SetSearchPathW: "SetSearchPath", GetSearchPathW: "GetSearchPath", ResolvePathForWritingW: "ResolvePathForWriting", ResolvePathToRootW: "ResolvePathToRoot" };
+  for (const [ member, name ] of Object.entries(exposed))
+  {
+    const row = CjsSchema.getMethod(BlueResFileSystemLocal, member);
+    assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP", member);
+    assert.equal(row.exposure.name, name, member);
+    assert.equal(row.impl.status, "notSupported", member);
+    assert.equal(CjsSchema.getMethod(BlueResFileSystemLocal, name).impl.status, "notSupported", name);
+  }
+
+  // The W member returns the non-W call, so a host that implements the non-W body serves both.
+  class Host extends BlueResFileSystemLocal
+  {
+    SetSearchPath(key, value) { return [ "set", key, value ]; }
+    GetSearchPath(key) { return `get ${key}`; }
+    ResolvePathForWriting(path) { return `write ${path}`; }
+    ResolvePathToRoot(root, path) { return `${root}:${path}`; }
+  }
+  const host = new Host();
+  assert.deepEqual(host.SetSearchPathW("res", "a;b"), [ "set", "res", "a;b" ]);
+  assert.equal(host.GetSearchPathW("res"), "get res");
+  assert.equal(host.ResolvePathForWritingW("res:/a"), "write res:/a");
+  assert.equal(host.ResolvePathToRootW("res", "/x"), "res:/x");
 });
 
 test("BePaths asks only the file systems that serve the path's protocol, in list order", async () =>

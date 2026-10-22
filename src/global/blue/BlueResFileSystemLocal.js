@@ -79,19 +79,108 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   /** `InitializeStdAppPaths` - ensures the standard app paths exist, with defaults. */
   InitializeStdAppPaths() { return noDisk("InitializeStdAppPaths"); }
 
-  /** `SetSearchPathW` - sets a protocol's search path: a semicolon-separated list of folders or prefixes. */
+  /**
+   * `SetSearchPathW` - sets a protocol's search path: a semicolon-separated
+   * list of folders or prefixes. An empty value removes the protocol's path.
+   *
+   * Carbon: BlueResFileSystemLocal::SetSearchPathW (blue/src/BlueResFileSystemLocal.cpp:170-202;
+   * blue/src/BlueResFileSystemLocal.h:30). Exposed as "SetSearchPath"
+   * (blue/src/BlueResFileSystemLocal_Blue.cpp:28-35, MAP_METHOD_AND_WRAP).
+   *
+   * Not supported: A browser has no disk, so a host must implement it (see the head of this file). `const char*` and `const wchar_t*` are both JS
+   * strings, so this returns the `SetSearchPath` call. Carbon returns a
+   * `Be::Result`; a host reports its failure ("Search paths contain a
+   * circular reference", "Unexpected error during search path expansion")
+   * by throwing an `Error` with that message.
+   *
+   * @param {string} key Path prefix.
+   * @param {string} value Semicolon separated list of paths or prefixes.
+   * @returns {void}
+   */
+  SetSearchPathW(key, value)
+  {
+    return this.SetSearchPath(key, value);
+  }
+
+  /** `SetSearchPath` - the body of `SetSearchPathW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method. */
   SetSearchPath(_key, _value) { return noDisk("SetSearchPath"); }
 
-  /** `GetSearchPathW` - a protocol's search path as set. */
+  /**
+   * `GetSearchPathW` - a protocol's search path as set.
+   *
+   * Carbon: BlueResFileSystemLocal::GetSearchPathW (blue/src/BlueResFileSystemLocal.cpp:204-207;
+   * blue/src/BlueResFileSystemLocal.h:31). Exposed as "GetSearchPath"
+   * (blue/src/BlueResFileSystemLocal_Blue.cpp:37-44, MAP_METHOD_AND_WRAP).
+   *
+   * Not supported: A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
+   * the `GetSearchPath` call. Quirk, for a host to reproduce (cpp:206):
+   * Carbon reads `m_searchPaths[key]` with the key as given, not lower-cased
+   * as `SetSearchPathW` stores it, and `operator[]` inserts an empty entry for
+   * an unknown key.
+   *
+   * @param {string} key Path prefix.
+   * @returns {string} The value associated with the key.
+   */
+  GetSearchPathW(key)
+  {
+    return this.GetSearchPath(key);
+  }
+
+  /** `GetSearchPath` - the body of `GetSearchPathW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method. */
   GetSearchPath(_key) { return noDisk("GetSearchPath"); }
 
   /** `ClearSearchPaths` - removes every search path. */
   ClearSearchPaths() { return noDisk("ClearSearchPaths"); }
 
-  /** `ResolvePathForWritingW` - the first disk path a file could be written to, existing or not. */
+  /**
+   * `ResolvePathForWritingW` - the first disk path a file could be written to,
+   * existing or not: the first expansion of the protocol's search path joined
+   * to the rest, else the absolute path of the input.
+   *
+   * Carbon: BlueResFileSystemLocal::ResolvePathForWritingW (blue/src/BlueResFileSystemLocal.cpp:283-316;
+   * blue/src/BlueResFileSystemLocal.h:34). Exposed as "ResolvePathForWriting"
+   * (blue/src/BlueResFileSystemLocal_Blue.cpp:62-72, MAP_METHOD_AND_WRAP).
+   *
+   * Not supported: A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
+   * the `ResolvePathForWriting` call.
+   *
+   * @param {string} path Res path.
+   * @returns {string} Path usable for the underlying file system.
+   */
+  ResolvePathForWritingW(path)
+  {
+    return this.ResolvePathForWriting(path);
+  }
+
+  /** `ResolvePathForWriting` - the body of `ResolvePathForWritingW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method. */
   ResolvePathForWriting(_path) { return noDisk("ResolvePathForWriting"); }
 
-  /** `ResolvePathToRootW` - a disk path back to a res path under the given protocol. */
+  /**
+   * `ResolvePathToRootW` - a disk path back to a res path under the given
+   * protocol; an empty string when no search-path folder of that protocol
+   * matches.
+   *
+   * Carbon: BlueResFileSystemLocal::ResolvePathToRootW (blue/src/BlueResFileSystemLocal.cpp:318-355;
+   * blue/src/BlueResFileSystemLocal.h:35). Exposed as "ResolvePathToRoot"
+   * (blue/src/BlueResFileSystemLocal_Blue.cpp:74-82, MAP_METHOD_AND_WRAP).
+   *
+   * Not supported: A browser has no disk, so a host must implement it (see the head of this file). Both string kinds are JS strings, so this returns
+   * the `ResolvePathToRoot` call. Quirk, for a host to reproduce (cpp:28-35,
+   * 338): `AreStringsEqualIgnoringCase` is a prefix test under MSVC
+   * (`_wcsnicmp` over `a.size()` characters) but a whole-string test
+   * elsewhere (`wcscasecmp`), so the same call matches a path under a
+   * search-path folder on one and only the folder itself on the other.
+   *
+   * @param {string} root Path prefix.
+   * @param {string} path Physical file path.
+   * @returns {string} A path based on the given root, or `""`.
+   */
+  ResolvePathToRootW(root, path)
+  {
+    return this.ResolvePathToRoot(root, path);
+  }
+
+  /** `ResolvePathToRoot` - the body of `ResolvePathToRootW`, under the name Carbon exposes it by; a host overrides this. Ours, not a Carbon method. */
   ResolvePathToRoot(_root, _path) { return noDisk("ResolvePathToRoot"); }
 
   /**
@@ -154,11 +243,15 @@ CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathW", meta.notImpleme
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePath", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "Initialize", meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "InitializeStdAppPaths", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "SetSearchPath", blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetSearchPath", blue.method, meta.renamed("GetSearchPathW"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "SetSearchPathW", be.mapMethodAndWrap("SetSearchPath"), meta.notSupported);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "SetSearchPath", meta.cjs, meta.notSupported);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetSearchPathW", be.mapMethodAndWrap("GetSearchPath"), meta.notSupported);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetSearchPath", meta.cjs, meta.notSupported);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ClearSearchPaths", be.mapMethodAndWrap(), meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathForWriting", blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathToRoot", blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathForWritingW", be.mapMethodAndWrap("ResolvePathForWriting"), meta.notSupported);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathForWriting", meta.cjs, meta.notSupported);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathToRootW", be.mapMethodAndWrap("ResolvePathToRoot"), meta.notSupported);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathToRoot", meta.cjs, meta.notSupported);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths__Key", meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "LogPaths", meta.notImplemented);
