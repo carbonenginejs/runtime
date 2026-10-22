@@ -48,16 +48,37 @@ export class TriStepRemoteUpdate extends TriRenderStep
   id = -1;
 
   /**
-   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS).
+   * Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS, TriStepRemoteUpdate.cpp:31-38): Blue's initializer,
+   * which hands its arguments to SetData. The shared-memory feed the step runs on is `_WIN32` only (Windows pipe and event
+   * handles), so nothing else here is ported.
    *
-   * Not supported: `_WIN32` build only; the step reads a shared-memory view/projection feed through Windows pipe
-   * and event handles, which a browser does not have.
+   * @param {TriView} view The view the step publishes.
+   * @param {TriProjection} projection The projection it publishes.
+   * @param {TriViewport} viewport The viewport it publishes.
+   * @param {number} [id] The shared-memory instance id; Carbon's default is -1.
    */
   @be.mapMethodAndWrapOptionalArgs()
-  @meta.notSupported
-  __init__(...args)
+  @meta.implemented
+  __init__(view, projection, viewport, id = -1)
   {
-    throw new Error("TriStepRemoteUpdate.__init__ is not implemented in CarbonEngineJS.");
+    this.SetData(view, projection, viewport, id);
+  }
+
+  /**
+   * Stores the feed's sources (TriStepRemoteUpdate.cpp:95-101).
+   *
+   * @param {TriView} view The view.
+   * @param {TriProjection} projection The projection.
+   * @param {TriViewport} viewport The viewport.
+   * @param {number} id The shared-memory instance id.
+   */
+  @meta.implemented
+  SetData(view, projection, viewport, id)
+  {
+    this.view = view;
+    this.projection = projection;
+    this.viewport = viewport;
+    this.id = id;
   }
 
 }
