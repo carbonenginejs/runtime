@@ -88,13 +88,13 @@ export function createValuesTransport(services)
      * Exports a decorated class's declared fields into a plain bag.
      *
      * @param {object} target
-     * @param {object} [out] A bag the caller owns, for composing several
+     * @param {object} out A bag the caller owns, for composing several
      *     exports into one object - the reason the static carries `out` while
      *     the instance method does not.
      * @param {object} [options]
      * @returns {object}
      */
-    function getValues(target, out = {}, options = {})
+    function getValues(target, out, options = {})
     {
         for (const field of GetFields(target.constructor))
         {

@@ -73,14 +73,14 @@ export class DictWriter extends IRootWriter
    * Writes an object into a bag (`WriteObjectToString`, YamlWriter.cpp:76-87).
    *
    * @param {object} instance The object.
-   * @param {object} [out] The bag to fill.
+   * @param {object} out The bag to fill.
    * @param {object} [options] `persistOnly`, `typeTags`, `forceTypeTags`, `refs`
    *   (default true; false writes shared objects as independent copies), and
    *   `sizeWarningBytes` (default DEFAULT_SIZE_WARNING_BYTES; 0 turns the
    *   warning off).
    * @returns {object} The bag.
    */
-  WriteObject(instance, out = {}, options = {})
+  WriteObject(instance, out, options = {})
   {
     this._Cleanup();
     this._options = options;

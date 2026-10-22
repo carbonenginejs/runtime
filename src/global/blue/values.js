@@ -9,7 +9,7 @@ import { applyValues } from "../compose/values.js";
 // Construction resolves references before the native mapped initialization phase.
 CjsSchema.registerValuesService({
     /** Exports fields through a custom format contract or the Blue dictionary writer. */
-    getValues(target, out = {}, options = {})
+    getValues(target, out, options = {})
     {
         if (target && typeof target.GetValues === "function") return target.GetValues(options);
         return new DictWriter().WriteObject(target, out, options);

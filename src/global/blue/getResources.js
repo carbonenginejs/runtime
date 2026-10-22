@@ -13,10 +13,10 @@ import { CjsBlue } from "./CjsBlue.js";
  * in that visit order.
  *
  * @param {object|null} root Root whose declared graph is visited.
- * @param {Array<*>} [out=[]] Replaced output array.
+ * @param {Array<*>} out] Replaced output array.
  * @returns {Array<*>} The supplied output array.
  */
-export function GetResources(root, out = [])
+export function GetResources(root, out)
 {
   out.length = 0;
   if (!root) return out;
