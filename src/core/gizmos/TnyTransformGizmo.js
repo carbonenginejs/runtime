@@ -283,7 +283,7 @@ export class TnyTransformGizmo
       const drag = this._drag;
       const view = this.getView();
       this.tool.Move(event.x, event.y, event.dx, event.dy, view.viewport,
-        view.view.GetTransform(), view.projection.GetMatrixWithoutViewAdjustment());
+        view.view.GetTransform(mat4.create()), view.projection.GetMatrixWithoutViewAdjustment(mat4.create()));
       // Change callbacks may cancel the drag, replace its target or switch tools.
       if (this._drag !== drag) return result.RELEASE;
       drag.moved ||= !!(event.dx || event.dy);
@@ -299,7 +299,7 @@ export class TnyTransformGizmo
         // final sample commits the last movement, including a coalesced drag.
         const view = this.getView();
         this.tool.Move(event.x, event.y, 0, 0, view.viewport,
-          view.view.GetTransform(), view.projection.GetMatrixWithoutViewAdjustment());
+          view.view.GetTransform(mat4.create()), view.projection.GetMatrixWithoutViewAdjustment(mat4.create()));
         if (this._drag !== drag) return result.RELEASE;
       }
       this._drag = null;
