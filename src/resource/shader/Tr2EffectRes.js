@@ -431,6 +431,53 @@ export class Tr2EffectRes extends CjsResource
     return bytes;
   }
 
+  /**
+   * Carbon: Tr2EffectRes::DoPrepare (Tr2EffectRes.cpp:316-326), private virtual. Drops
+   * every shader built from the previous load so `GetShader` rebuilds them.
+   *
+   * Adapted: Carbon then answers `Tr2Renderer::IsResourceCreationAllowed()`, which is
+   * false while a device reset is under way and so postpones the prepare. That gate
+   * lives in trinity and the resource layer cannot import it; this layer has no
+   * device to reset, so it answers true.
+   *
+   * @returns {boolean} Always true.
+   */
+  _DoPrepare()
+  {
+    this._shaders.clear();
+    return true;
+  }
+
+  /**
+   * Carbon: Tr2EffectRes::OnPrepareResources (Tr2EffectRes.cpp:342-364), the
+   * Tr2DeviceResource hook.
+   *
+   * Not implemented: it is gated on `Tr2Renderer::IsEffectLoadDisabled()` and on the
+   * main-thread render context being valid (USE_MAIN_THREAD_RENDER_CONTEXT), then
+   * re-`Initialize`s the path and extension of a resource that is neither good nor
+   * loading. Tr2EffectRes does not derive from Tr2DeviceResource here and the resource
+   * layer cannot reach either gate.
+   *
+   * @returns {boolean} Never returns.
+   */
+  _OnPrepareResources()
+  {
+    throw new Error("Tr2EffectRes.OnPrepareResources requires Tr2Renderer and the main-thread render context, which the resource layer cannot reach.");
+  }
+
+  /**
+   * Carbon: Tr2EffectRes::GetDescription (Tr2EffectRes.cpp:366-372), compiled under
+   * TRINITYDEV. Appends the resource path in the form `Tr2EffectRes: 'path'`.
+   *
+   * Adapted: Carbon fills a `std::string&` output; the description is the return value.
+   *
+   * @returns {string} The description.
+   */
+  GetDescription()
+  {
+    return `Tr2EffectRes: '${this.path}'`;
+  }
+
   static payload = ResourceRequirement.SHADER;
 
 }
@@ -593,6 +640,9 @@ CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", be.mapMethod
 CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2EffectRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "_DoPrepare", meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "_OnPrepareResources", meta.notImplemented);
+CjsSchema.decorateMethod(Tr2EffectRes, "GetDescription", meta.adapted);
 be.define("Tr2EffectRes")(Tr2EffectRes);
 blue.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);
