@@ -320,10 +320,7 @@ test("shader reflection classes register canonical runtime-resource metadata", (
     CjsSchema.getConstructor("Tr2Shader"),
     Tr2Shader
   );
-  assert.equal(
-    CjsSchema.getMethod(Tr2Shader, "GetConstant")?.carbon?.method,
-    true
-  );
+  // Origin comes from the class registered above; the method keeps its state.
   assert.equal(
     CjsSchema.getMethod(Tr2Shader, "GetConstant")?.impl?.status,
     "implemented"

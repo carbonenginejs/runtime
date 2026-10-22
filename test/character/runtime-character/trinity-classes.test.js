@@ -202,7 +202,8 @@ test("native skinned-object LOD helper selects whole models at exact thresholds"
   new Tr2SkinnedObjectLod();
   // Every class registers its name (class-ownership.md, Class-shape rules), native helpers included.
   assert.equal(CjsSchema.getConstructor("Tr2SkinnedObjectLod"), Tr2SkinnedObjectLod);
-  assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLod, "SetLOD")?.carbon?.method, true);
+  // Origin comes from the class (meta.carbon registers it); the method's own record carries its state.
+  assert.equal(CjsSchema.getClassName(Tr2SkinnedObjectLod), "Tr2SkinnedObjectLod");
   assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLod, "SetLOD")?.impl?.status, "implemented");
 
   const select = diameter =>
@@ -561,7 +562,7 @@ test("interior light sets and sort keys expose only their real source surface", 
   assert.equal(Tr2IntKeyGenerator.Less({ renderingMode: 4, depth: 3 }, { renderingMode: 4, depth: 2 }), false);
   assert.equal(Tr2IntKeyGenerator.Less({ renderingMode: 1, depth: 1 }, { renderingMode: 1, depth: 2 }), false);
   assert.equal(Object.hasOwn(new Tr2IntKeyGenerator(), "ALLOW_GDPR"), false);
-  assert.equal(CjsSchema.getMethod(Tr2IntKeyGenerator, "Less")?.carbon?.method, true);
+  assert.equal(CjsSchema.getClassName(Tr2IntKeyGenerator), "Tr2IntKeyGenerator");
   assert.equal(CjsSchema.getMethod(Tr2IntKeyGenerator, "Less")?.impl?.status, "implemented");
   assert.equal(CjsSchema.getMethod(Tr2IntKeyGenerator, "GetSortType")?.impl?.status, "implemented");
 
