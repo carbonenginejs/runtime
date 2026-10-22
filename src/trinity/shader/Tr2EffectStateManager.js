@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 import { Tr2VertexLayoutAL } from "../../trinityal/Tr2VertexLayoutAL/index.js";
 import { Tr2ShaderAL } from "../../trinityal/Tr2ShaderAL/index.js";
@@ -15,8 +15,13 @@ import { Tr2ShaderProgramAL } from "../../trinityal/Tr2ShaderProgramAL/index.js"
 // ApplyIndexBuffer, and the viewport and render-target families.
 //
 // Still absent: RegisterShaderProgramOverride, which costs the pixel-shader
-// override path, and DoApplyRenderStates, which is where a state handle turns
-// into the AL's SetRenderStates.
+// override path. DoApplyRenderStates is present, adapted: it hands the backend a
+// projection instead of Carbon's state-pair list.
+//
+// States: every method that is stamped here was compared with
+// Tr2EffectStateManager.cpp. Most are adapted, either because the JS returns a
+// value where Carbon returns void or because a class-head reason (interpreted
+// setups, no override tables) changes the body; each JSDoc says which.
 //
 // This class declares no @carbon.method, so the parity audit cannot see it:
 // an entirely unimplemented class reports clean. Do not read a green audit as
@@ -478,7 +483,7 @@ export class Tr2EffectStateManager
    * @param {object} [signature] Stage signature; only `samplers` participates.
    * @returns {number} Stable handle, or `Unknown` when the body is absent.
    */
-  @blue.method
+  @meta.adapted
 
   static registerShader(stageType, bytecode, signature = null)
   {
@@ -522,7 +527,7 @@ export class Tr2EffectStateManager
    * @param {number[]} shaderHandles Handles from `registerShader`.
    * @returns {number} Stable handle, or `Unknown` for an empty or stale list.
    */
-  @blue.method
+  @meta.adapted
 
   static registerShaderProgram(shaderHandles)
   {
@@ -562,7 +567,7 @@ export class Tr2EffectStateManager
    * @param {object} pass Reflected pass carrying `renderStateValues`.
    * @returns {number} Stable handle. This one never fails.
    */
-  @blue.method
+  @meta.adapted
 
   static registerRenderStateSetup(pass)
   {
@@ -678,7 +683,7 @@ export class Tr2EffectStateManager
    * @param {Array|Tr2VertexDefinition} elements A definition or plain element list.
    * @returns {number} Stable handle.
    */
-  @blue.method
+  @meta.adapted
 
   static getVertexDeclarationHandle(elements)
   {
@@ -709,7 +714,7 @@ export class Tr2EffectStateManager
    * @param {number} handle Vertex-declaration handle.
    * @returns {Array|Tr2VertexDefinition|null} The interned declaration.
    */
-  @blue.method
+  @meta.adapted
 
   static getVertexDeclarationElements(handle)
   {
@@ -992,7 +997,7 @@ export class Tr2EffectStateManager
    * @param {boolean} [updateViewport] Whether slot zero moves the viewport.
    * @returns {boolean} Whether the bind was accepted.
    */
-  @blue.method
+  @meta.adapted
   SetRenderTarget(index, renderTarget, updateViewport = true, slice = 0)
   {
     // SLICE IS CARBON'S FOURTH ARGUMENT (`Tr2EffectStateManager.h:147`) and it
@@ -1013,7 +1018,7 @@ export class Tr2EffectStateManager
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
-  @blue.method
+  @meta.adapted
   PushRenderTarget__Current(slot = 0)
   {
     this.#renderContext.PushRenderTarget(slot);
@@ -1030,7 +1035,7 @@ export class Tr2EffectStateManager
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
-  @blue.method
+  @meta.adapted
   PushRenderTarget__TextureAL(renderTarget, slot = 0)
   {
     this.#renderContext.PushRenderTarget(slot);
@@ -1045,7 +1050,7 @@ export class Tr2EffectStateManager
    *
    * @returns {boolean} True.
    */
-  @blue.method
+  @meta.adapted
   PushRenderTarget(first = undefined, slot = 0)
   {
     return first === undefined || typeof first === "number"
@@ -1059,7 +1064,7 @@ export class Tr2EffectStateManager
    * @param {number} [slot] Target slot.
    * @returns {boolean} False when nothing was saved.
    */
-  @blue.method
+  @meta.adapted
   PopRenderTarget(slot = 0)
   {
     const popped = !Failed(this.#renderContext.PopRenderTarget(slot));
@@ -1075,7 +1080,7 @@ export class Tr2EffectStateManager
    * @param {object|null} depthStencil The surface, or null to unbind.
    * @returns {boolean} Whether the bind was accepted.
    */
-  @blue.method
+  @meta.implemented
   SetDepthStencilBuffer(depthStencil)
   {
     return !Failed(this.#renderContext.SetDepthStencil(depthStencil));
@@ -1087,7 +1092,7 @@ export class Tr2EffectStateManager
    *
    * @returns {boolean} True.
    */
-  @blue.method
+  @meta.adapted
   PushDepthStencilBuffer__Current()
   {
     this.#renderContext.PushDepthStencil();
@@ -1102,7 +1107,7 @@ export class Tr2EffectStateManager
    * @param {object|null} depthStencil The surface to bind after saving.
    * @returns {boolean} True.
    */
-  @blue.method
+  @meta.adapted
   PushDepthStencilBuffer__TextureAL(depthStencil)
   {
     this.#renderContext.PushDepthStencil();
@@ -1117,7 +1122,7 @@ export class Tr2EffectStateManager
    *
    * @returns {boolean} True.
    */
-  @blue.method
+  @meta.adapted
   PushDepthStencilBuffer(depthStencil = undefined)
   {
     return depthStencil === undefined
@@ -1130,7 +1135,7 @@ export class Tr2EffectStateManager
    *
    * @returns {boolean} False when nothing was saved.
    */
-  @blue.method
+  @meta.adapted
   PopDepthStencilBuffer()
   {
     return !Failed(this.#renderContext.PopDepthStencil());
@@ -1156,7 +1161,7 @@ export class Tr2EffectStateManager
    *
    * @returns {object|null} The authored viewport, or null before one is set.
    */
-  @blue.method
+  @meta.implemented
   GetViewport()
   {
     return this.viewport;
@@ -1167,7 +1172,7 @@ export class Tr2EffectStateManager
    *
    * @returns {object|null} The device viewport, or null before one is set.
    */
-  @blue.method
+  @meta.implemented
   GetDeviceViewport()
   {
     return this.viewportOnDevice;
@@ -1179,7 +1184,7 @@ export class Tr2EffectStateManager
    * @param {object} viewport `{ x, y, width, height, minZ, maxZ }`.
    * @returns {void}
    */
-  @blue.method
+  @meta.adapted
   SetViewport(viewport)
   {
     this.viewport = {
@@ -1199,7 +1204,7 @@ export class Tr2EffectStateManager
    *
    * @returns {void}
    */
-  @blue.method
+  @meta.implemented
   SetFullScreenViewport()
   {
     this.viewport = {
@@ -1220,7 +1225,7 @@ export class Tr2EffectStateManager
    *
    * @returns {void}
    */
-  @blue.method
+  @meta.adapted
   SetupViewport()
   {
     const authored = this.viewport;
@@ -1274,7 +1279,7 @@ export class Tr2EffectStateManager
    * @param {number} height Render target height.
    * @returns {void}
    */
-  @blue.method
+  @meta.implemented
   UpdateRenderTargetViewport(width, height)
   {
     if (!(width > 0) || !(height > 0)) failState("a render target's viewport needs a non-zero extent");
@@ -1292,7 +1297,7 @@ export class Tr2EffectStateManager
    *
    * @returns {void}
    */
-  @blue.method
+  @meta.implemented
   PushViewport()
   {
     if (!Array.isArray(this.viewportStack)) this.viewportStack = [];
@@ -1305,7 +1310,7 @@ export class Tr2EffectStateManager
    *
    * @returns {boolean} False when nothing was saved.
    */
-  @blue.method
+  @meta.adapted
   PopViewport()
   {
     if (!Array.isArray(this.viewportStack) || !this.viewportStack.length) return false;
@@ -1378,7 +1383,7 @@ export class Tr2EffectStateManager
    * @param {number} [cullMode] A `CullMode` member.
    * @returns {void}
    */
-  @blue.method
+  @meta.adapted
   BeginManagedRendering(cullMode = CullMode.CULLMODE_CW)
   {
     this._ReleaseBufferBindings();
@@ -1399,7 +1404,7 @@ export class Tr2EffectStateManager
    *
    * @returns {void}
    */
-  @blue.method
+  @meta.implemented
   EndManagedRendering()
   {
     this.#isManagedRendering = false;
@@ -1426,7 +1431,7 @@ export class Tr2EffectStateManager
    * @param {boolean} inverted
    * @returns {void}
    */
-  @blue.method
+  @meta.adapted
   SetInvertedDepthTest(inverted)
   {
     this.#overrides.invertedDepthTest = !!inverted;
@@ -1435,7 +1440,7 @@ export class Tr2EffectStateManager
   /**
    * @returns {boolean} Whether the depth comparison is reversed.
    */
-  @blue.method
+  @meta.adapted
   IsDepthTestInverted()
   {
     return this.#overrides.invertedDepthTest;
@@ -1448,7 +1453,7 @@ export class Tr2EffectStateManager
    * @param {boolean} inverted
    * @returns {void}
    */
-  @blue.method
+  @meta.adapted
   SetInvertedCullMode(inverted)
   {
     this.#overrides.invertedCullMode = !!inverted;
@@ -1457,7 +1462,7 @@ export class Tr2EffectStateManager
   /**
    * @returns {boolean} Whether the winding order is mirrored.
    */
-  @blue.method
+  @meta.adapted
   IsCullModeInverted()
   {
     return this.#overrides.invertedCullMode;
@@ -1485,7 +1490,7 @@ export class Tr2EffectStateManager
    * @param {boolean} enabled Whether to draw wireframe.
    * @returns {boolean} The flag as stored.
    */
-  @blue.method
+  @meta.adapted
   SetWireframeRendering(enabled)
   {
     this.#overrides.wireframe = !!enabled;
@@ -1538,7 +1543,7 @@ export class Tr2EffectStateManager
    * @param {number} renderingMode A `RenderingMode` member.
    * @returns {boolean} Whether the mode carries states to apply.
    */
-  @blue.method
+  @meta.adapted
   ApplyStandardStates(renderingMode)
   {
     // THE PREDICATE IS CARBON'S, AND SO IS ACTING ON IT. This returned the
@@ -1575,7 +1580,7 @@ export class Tr2EffectStateManager
    * @param {number} handle Render-state handle.
    * @returns {boolean} False when the handle is already current in a managed span.
    */
-  @blue.method
+  @meta.adapted
   ApplyRenderStates(handle)
   {
     if (this.#isManagedRendering && handle === this.#currentValues.renderStateSetup) return false;
@@ -1625,7 +1630,7 @@ export class Tr2EffectStateManager
    * @param {number} handle Render-state handle.
    * @returns {boolean} Whether a setup reached the backend.
    */
-  @blue.method
+  @meta.adapted
   DoApplyRenderStates(handle)
   {
     const setup = Tr2EffectStateManager.getRenderStateSetup(handle);
@@ -1700,7 +1705,7 @@ export class Tr2EffectStateManager
    * @param {number} handle Shader-program handle.
    * @returns {boolean}
    */
-  @blue.method
+  @meta.adapted
   ApplyShaderProgram(handle)
   {
     if (this.#isManagedRendering)
@@ -1744,7 +1749,7 @@ export class Tr2EffectStateManager
    * @param {number} handle A shader-program handle.
    * @returns {object|null} The realized program, or null when a stage refused.
    */
-  @blue.method
+  @meta.adapted
   GetShaderProgram(handle)
   {
     if (!this.#renderContext) return null;
@@ -1807,7 +1812,7 @@ export class Tr2EffectStateManager
    * @param {number} handle Vertex-declaration handle.
    * @returns {boolean}
    */
-  @blue.method
+  @meta.adapted
   ApplyVertexDeclaration(handle)
   {
     if (this.#isManagedRendering && handle === this.#currentValues.vertexDeclaration) return false;
@@ -1896,7 +1901,7 @@ export class Tr2EffectStateManager
    * @param {number} stride Bytes per vertex.
    * @returns {boolean} False when the bind was filtered out as redundant.
    */
-  @blue.method
+  @meta.adapted
   ApplyStreamSource(stream, buffer, offset, stride)
   {
     const current = this.#currentValues.streams[stream];
@@ -1929,7 +1934,7 @@ export class Tr2EffectStateManager
    * @param {object} indices A `Tr2BufferAL`.
    * @returns {boolean} False when the bind was filtered out as redundant.
    */
-  @blue.method
+  @meta.adapted
   ApplyIndexBuffer(indices)
   {
     return this.ApplyIndexBuffer__Stride(indices, indices.GetDesc().stride);
@@ -1949,7 +1954,7 @@ export class Tr2EffectStateManager
    * @param {number} stride Bytes per index.
    * @returns {boolean} False when the bind was filtered out as redundant.
    */
-  @blue.method
+  @meta.adapted
   ApplyIndexBuffer__Stride(indices, stride)
   {
     if (stride === 1) throw new Error("Tr2EffectStateManager: a one-byte index stride is never right.");
