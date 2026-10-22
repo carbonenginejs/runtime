@@ -26,7 +26,7 @@
 // `diverged:` and reported upstream. Behaviour
 // that is Carbon's design rather than a defect is kept and marked `quirk:`.
 import * as CcpLog from "../logging/ccpLog.js";
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import {
   PixelFormat,
   TextureType,
@@ -1449,15 +1449,16 @@ CjsSchema.decorateMethod(HostBitmap, "GetRawDataSize", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "GetArrayElementSize", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "PopulateMargin", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "CopyChannel", meta.implemented);
-CjsSchema.decorateMethod(HostBitmap, "Downsample2x2", blue.method);
+// States against HostBitmap.cpp:645-1175. Adapted (each is a deliberate divergence from Carbon's defect, listed in the docs as a divergence to revisit): Downsample2x2 counts the true mip count (issue 12), RotateFaceClockwise needs exactly one mip (issue 17), ConvertToVolume refuses block-compressed input (issue 16), GenerateMipMaps validates and keeps the mip count on refusal (issue 13). ConvertCrossmapToCubemap (874-953) and the private GenerateMipLevel (1132-1167) are Carbon's.
+CjsSchema.decorateMethod(HostBitmap, "Downsample2x2", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "Crop", meta.adapted);
-CjsSchema.decorateMethod(HostBitmap, "RotateFaceClockwise", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "ConvertCrossmapToCubemap", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "ConvertToVolume", blue.method);
-CjsSchema.decorateMethod(HostBitmap, "GenerateMipMaps", blue.method);
+CjsSchema.decorateMethod(HostBitmap, "RotateFaceClockwise", meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "ConvertCrossmapToCubemap", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "ConvertToVolume", meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "GenerateMipMaps", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "DropMipMaps", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "GetAverageColor", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "GetPixel", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "_CheckForMatch", meta.renamed("CheckForMatch"), meta.adapted);
-CjsSchema.decorateMethod(HostBitmap, "_GenerateMipLevel", blue.method, meta.renamed("GenerateMipLevel"));
+CjsSchema.decorateMethod(HostBitmap, "_GenerateMipLevel", meta.implemented, meta.renamed("GenerateMipLevel"));
 CjsSchema.meta.carbon("HostBitmap")(HostBitmap);
