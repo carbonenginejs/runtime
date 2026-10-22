@@ -125,10 +125,11 @@ export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "SetName", blue.method);
+// States against stub/Tr2VertexLayoutALStub.cpp:11-38 and .h:20-32. Create is adapted: it keeps a copy of the definition's items, not a Tr2VertexDefinition copy.
+CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Create", meta.adapted);
+CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2VertexLayoutALStub, { className: "Tr2VertexLayoutALStub" });

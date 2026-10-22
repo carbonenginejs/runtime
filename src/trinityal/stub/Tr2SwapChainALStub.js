@@ -172,13 +172,14 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "Present", blue.method);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetWidth", blue.method);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetHeight", blue.method);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2SwapChainALStub, "SetName", blue.method);
+// States against stub/Tr2SwapChainALStub.cpp:11-58 and .h:22-32: a 4x4 B8G8R8X8 render-target back buffer (STUB_BACK_BUFFER_SIZE).
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "Create", meta.implemented);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "Present", meta.implemented);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetWidth", meta.implemented);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetHeight", meta.implemented);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub" });

@@ -147,13 +147,14 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2OcclusionQueryALStub, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2OcclusionQueryALStub, "_isRunning", type.boolean);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Begin", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "End", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetPixelCount", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "SetName", blue.method);
+// States against stub/Tr2OcclusionQueryALStub.cpp:14-72 and .h:25-28; GetPixelCount is adapted: the uint32& count comes back with the result as { result, count }. Destroy also runs the base resource's Destroy.
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Create", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Begin", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "End", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetPixelCount", meta.adapted);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2OcclusionQueryALStub, { className: "Tr2OcclusionQueryALStub" });

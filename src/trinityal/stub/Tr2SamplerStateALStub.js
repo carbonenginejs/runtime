@@ -142,11 +142,12 @@ export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2SamplerStateALStub, "_isValid", type.boolean);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetIndexInHeap", blue.method);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2SamplerStateALStub, "SetName", blue.method);
+// States against stub/Tr2SamplerStateALStub.cpp:11-39 and .h:23-26. Create and Destroy are adapted: this port keeps the description (GetDescription) where Carbon's stub ignores it.
+CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Create", meta.adapted);
+CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Destroy", meta.adapted);
+CjsSchema.decorateMethod(Tr2SamplerStateALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetIndexInHeap", meta.implemented);
+CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2SamplerStateALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2SamplerStateALStub, { className: "Tr2SamplerStateALStub" });

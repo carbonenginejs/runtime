@@ -13,7 +13,7 @@
 // to everything would drive Trinity down paths a real device never takes, which
 // is the opposite of what a headless engine carrying correct data is for.
 
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 
 /**
  * The platform capability constants (`Tr2CapsALStub.h:10-19`).
@@ -112,10 +112,11 @@ export class Tr2CapsALStub
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsFloat16", blue.method);
-CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsGpuBuffer", blue.method);
-CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsStandaloneSwapChain", blue.method);
-CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVertexShaderTextures", blue.method);
-CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVariableRefreshRate", blue.method);
-CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsRaytracing", blue.method);
+// States against stub/Tr2CapsALStub.cpp:8-35 (true, false, true, true, false, false), statement for statement.
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsFloat16", meta.implemented);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsGpuBuffer", meta.implemented);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsStandaloneSwapChain", meta.implemented);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVertexShaderTextures", meta.implemented);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVariableRefreshRate", meta.implemented);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsRaytracing", meta.implemented);
 CjsSchema.blue.define(Tr2CapsALStub, { className: "Tr2CapsALStub" });

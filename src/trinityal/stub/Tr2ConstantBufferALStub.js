@@ -169,13 +169,14 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2ConstantBufferALStub, "_shadowCopy", type.uint8Array);
-CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Lock", blue.method);
-CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Unlock", blue.method);
-CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetSize", blue.method);
-CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "SetName", blue.method);
+// States against stub/Tr2ConstantBufferALStub.cpp:11-74 and .h:22-26. Create is adapted: it copies initialData into the shadow copy where Carbon's stub only sizes it, and does not log the immutable-without-data error. Lock is adapted: the void** comes back with the result as { result, data }.
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Create", meta.adapted);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Lock", meta.adapted);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Unlock", meta.implemented);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetSize", meta.implemented);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2ConstantBufferALStub, { className: "Tr2ConstantBufferALStub" });

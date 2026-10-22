@@ -185,14 +185,15 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2ShaderALStub, "_type", type.int32);
 CjsSchema.decorateField(Tr2ShaderALStub, "_bytecode", type.uint8Array);
 CjsSchema.decorateField(Tr2ShaderALStub, "_signature", type.rawStruct("Tr2ShaderSignatureAL"));
-CjsSchema.decorateMethod(Tr2ShaderALStub, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "GetType", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "GetBytecode", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "GetSignature", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "SetNullShaderType", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderALStub, "SetName", blue.method);
+// States against stub/Tr2ShaderALStub.cpp:14-70 and .h:32-40. Create is adapted: it keeps the signature, which Carbon's stub ignores. GetBytecode is adapted: the Tr2ShaderBytecodeAL& comes back with the result as { result, bytecode }.
+CjsSchema.decorateMethod(Tr2ShaderALStub, "Create", meta.adapted);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "GetType", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "GetBytecode", meta.adapted);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "GetSignature", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "SetNullShaderType", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2ShaderALStub, { className: "Tr2ShaderALStub" });

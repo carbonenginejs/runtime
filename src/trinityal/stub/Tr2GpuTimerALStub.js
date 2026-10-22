@@ -120,13 +120,14 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2GpuTimerALStub, "_isValid", type.boolean);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Begin", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "End", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetTime", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALStub, "SetName", blue.method);
+// States against stub/Tr2GpuTimerALStub.cpp (Create/Destroy/IsValid/Begin/End/GetTime/SetName) and .h (GetMemoryClass = AL_MEMORY_VIDEO). Destroy also runs the base resource's Destroy.
+CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Create", meta.implemented);
+CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2GpuTimerALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Begin", meta.implemented);
+CjsSchema.decorateMethod(Tr2GpuTimerALStub, "End", meta.implemented);
+CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetTime", meta.implemented);
+CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2GpuTimerALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2GpuTimerALStub, { className: "Tr2GpuTimerALStub" });

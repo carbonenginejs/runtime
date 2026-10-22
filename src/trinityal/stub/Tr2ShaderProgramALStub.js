@@ -155,11 +155,12 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2ShaderProgramALStub, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2ShaderProgramALStub, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetRegisterMap", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "SetName", blue.method);
+// States against stub/Tr2ShaderProgramALStub.cpp:11-68 and .h:20-26. Create is adapted: it also keeps the shaders (GetShaders), which Carbon's stub does not.
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetRegisterMap", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Create", meta.adapted);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2ShaderProgramALStub, { className: "Tr2ShaderProgramALStub" });
