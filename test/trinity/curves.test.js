@@ -208,7 +208,7 @@ test("curve methods expose source-backed Carbon metadata", () =>
   assertCarbonMethod(Tr2CurveEulerRotationExpression, "GetExpression", "implemented");
   assertCarbonMethod(Tr2CurveEulerRotationExpression, "SetExpression", "adapted");
   for (const method of ["Compile", "GetContext"]) assertEquals(CjsSchema.getMethod(Tr2CurveEulerRotationExpression, method)?.carbon, undefined);
-  const jsOnlyMethods = [[TriEventCurve, "FireKey"], [TriCurveSet, "IsUsingSimTimeRebase"], [TriCurveSet, "ApplyTimeRange"], [TriCurveSet, "CallStopCallback"], [TriCurveSet, "DestroyStopCallback"], [Tr2ObjectFollowCurveKey, "GetRotation"], [Tr2ObjectFollowCurveKey, "GetWorldPosition"], [Tr2ObjectFollowCurveKey, "TransformByRotation"], [Tr2CurveScalar, "GetScaledTime"], [Tr2CurveScalar, "FindSegment"], [Tr2CurveScalar, "rasterize"], [Tr2CurveRandomAxisRotation, "Evaluate"], [Tr2CurveQuaternion, "GetName"], [Tr2CurveQuaternion, "SetName"], [Tr2CurveQuaternion, "FindSegment"], [Tr2CurveQuaternion, "Evaluate"]];
+  const jsOnlyMethods = [[TriEventCurve, "FireKey"], [TriCurveSet, "IsUsingSimTimeRebase"], [TriCurveSet, "ApplyTimeRange"], [TriCurveSet, "CallStopCallback"], [TriCurveSet, "DestroyStopCallback"], [Tr2ObjectFollowCurveKey, "GetWorldPosition"], [Tr2CurveScalar, "GetScaledTime"], [Tr2CurveScalar, "FindSegment"], [Tr2CurveScalar, "rasterize"], [Tr2CurveRandomAxisRotation, "Evaluate"], [Tr2CurveQuaternion, "GetName"], [Tr2CurveQuaternion, "SetName"], [Tr2CurveQuaternion, "FindSegment"], [Tr2CurveQuaternion, "Evaluate"]];
   for (const [ctor, methodName] of jsOnlyMethods)
   {
     assertEquals(CjsSchema.getMethod(ctor, methodName)?.carbon?.method, undefined);
