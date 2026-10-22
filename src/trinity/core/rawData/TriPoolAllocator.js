@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/trinity/TriPoolAllocator.h
 // Source: trinity/trinity/TriPoolAllocator.cpp
 // Factory + arena for RawData constant-data payloads.
@@ -329,7 +329,7 @@ export class TriPoolAllocator
 
     if (!this.#pool || this.#cursor + stride > this.#pool.length)
     {
-      this.#GetMoreSystemMemory(stride);
+      this._GetMoreSystemMemory(stride);
     }
 
     const start = this.#cursor;
@@ -399,7 +399,7 @@ export class TriPoolAllocator
    * until the request fits. JS allocation does not fail, so Carbon's
    * null-pool arm has nothing to port.
    */
-  #GetMoreSystemMemory(strideFloats)
+  _GetMoreSystemMemory(strideFloats)
   {
     if (this.#pool)
     {
@@ -523,9 +523,9 @@ export class TriPoolAllocator
 }
 
 // States: Clear is TriPoolAllocator.cpp:49-95 statement for statement (shrink under half, grow past one chunk, else rewind). Allocate is adapted:
-// Carbon's Allocate<T> sizes the block from the type, this takes a registered struct-layout name (cpp:26-47). #GetMoreSystemMemory keeps its
-// stamp: a private name cannot take a state decorator by call.
+// Carbon's Allocate<T> sizes the block from the type, this takes a registered struct-layout name (cpp:26-47). _GetMoreSystemMemory is adapted:
+// the arena is a Float32Array chunk, not malloc, and a failed allocation has nothing to port (cpp:97-127).
 CjsSchema.decorateMethod(TriPoolAllocator, "Allocate", meta.adapted);
 CjsSchema.decorateMethod(TriPoolAllocator, "Clear", meta.implemented);
-CjsSchema.decorateMethod(TriPoolAllocator, "#GetMoreSystemMemory", blue.method, meta.renamed("GetMoreSystemMemory"));
+CjsSchema.decorateMethod(TriPoolAllocator, "_GetMoreSystemMemory", meta.adapted, meta.renamed("GetMoreSystemMemory"));
 CjsSchema.meta.carbon("TriPoolAllocator")(TriPoolAllocator);

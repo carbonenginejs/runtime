@@ -9,7 +9,7 @@
 // are omitted. Matrix element mapping: Carbon row-major _rc lands at flat
 // index (r-1)*4+(c-1), which is the SAME flat index in the shared gl-matrix
 // byte layout, so every _rc below is ported as m[(r-1)*4+(c-1)] unchanged.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -131,7 +131,7 @@ export class TriFrustum
   @meta.implemented
   DeriveFrustum(view, viewPos, projection, viewport)
   {
-    this.#CacheTransformationData(view, viewPos, projection, viewport);
+    this._CacheTransformationData(view, viewPos, projection, viewport);
 
     // Carbon (row-vector): worldMat = view * projection - view applied first,
     // then projection, so gl-matrix swaps the operands.
@@ -433,7 +433,7 @@ export class TriFrustum
    * @param {Float32Array} projection
    * @param {Object} viewport
    */
-  #CacheTransformationData(view, viewPos, projection, viewport)
+  _CacheTransformationData(view, viewPos, projection, viewport)
   {
     mat4.copy(this.projectionMatrix, projection);
     vec3.copy(this.viewPos, viewPos);
@@ -478,7 +478,7 @@ export class TriFrustum
   static #boxCenterScratch = vec3.create();
 }
 
-// States: each method is TriFrustum.cpp:26-325 statement for statement (DeconstructProjectionMatrix, MatrixUtils.cpp:48-59, inlined); #CacheTransformationData
-// keeps its stamp because a state decorator cannot address a private name by call. SphereTest is adapted:
+// States: each method is TriFrustum.cpp:26-325 statement for statement (DeconstructProjectionMatrix, MatrixUtils.cpp:48-59, inlined); _CacheTransformationData
+// is adapted: it guards the divisions in DeconstructProjectionMatrix against a zero element. SphereTest is adapted:
 // Carbon takes a CcpMath::Sphere, this also accepts a packed vec4. The matrix products swap operands for gl-matrix, as everywhere here.
-CjsSchema.decorateMethod(TriFrustum, "#CacheTransformationData", blue.method, meta.renamed("CacheTransformationData"));
+CjsSchema.decorateMethod(TriFrustum, "_CacheTransformationData", meta.adapted, meta.renamed("CacheTransformationData"));

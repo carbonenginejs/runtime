@@ -25,7 +25,7 @@
 // The packing below follows Carbon's PerLightData layout, packed flag word,
 // premultiply and fade band.
 
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { num } from "#math/num";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -1197,11 +1197,14 @@ export class Tr2LightManager
   }
 }
 
-CjsSchema.decorateMethod(Tr2LightManager, "_CreateShadowMapAtlas", blue.method, meta.renamed("CreateShadowMapAtlas"));
-CjsSchema.decorateMethod(Tr2LightManager, "_GetShadowMapAtlasEntry", blue.method, meta.renamed("GetShadowMapAtlasEntry"));
-CjsSchema.decorateMethod(Tr2LightManager, "_InsertAtlasNode", blue.method, meta.renamed("InsertAtlasNode"));
+// States: _InsertAtlasNode is Tr2LightManager.cpp:719-788 branch for branch and getLightProfileArray is cpp:682-686. _CreateShadowMapAtlas (cpp:442-504) and
+// _GetShadowMapAtlasEntry (cpp:790-808) are adapted: the position comes back through an out object, the records are the flat _records, and the
+// "everything fit" assert is dropped.
+CjsSchema.decorateMethod(Tr2LightManager, "_CreateShadowMapAtlas", meta.adapted, meta.renamed("CreateShadowMapAtlas"));
+CjsSchema.decorateMethod(Tr2LightManager, "_GetShadowMapAtlasEntry", meta.adapted, meta.renamed("GetShadowMapAtlasEntry"));
+CjsSchema.decorateMethod(Tr2LightManager, "_InsertAtlasNode", meta.implemented, meta.renamed("InsertAtlasNode"));
 CjsSchema.decorateMethod(Tr2LightManager, "areLightFlagsValid", meta.renamed("AreLightFlagsValid"));
 CjsSchema.decorateMethod(Tr2LightManager, "getOrCreateInstance", meta.renamed("GetOrCreateInstance"));
 CjsSchema.decorateMethod(Tr2LightManager, "getInstance", meta.renamed("GetInstance"));
 CjsSchema.decorateMethod(Tr2LightManager, "deleteInstance", meta.renamed("DeleteInstance"));
-CjsSchema.decorateMethod(Tr2LightManager, "getLightProfileArray", blue.method, meta.renamed("GetLightProfileArray"));
+CjsSchema.decorateMethod(Tr2LightManager, "getLightProfileArray", meta.implemented, meta.renamed("GetLightProfileArray"));
