@@ -2713,7 +2713,10 @@ function mergeMemberMetadata(target, source)
     for (const [namespace, value] of Object.entries(source))
     {
         if (namespace === "name") continue;
-        target[namespace] = mergeNamespace(target[namespace], value);
+        // The subclass's class-level row is Carbon's complete row for what it defines (edit flags, exposure, declaration): it replaces the
+        // inherited value instead of overlaying it. What the row does not define (type, state) stays inherited.
+        target[namespace] = source.mapsInherited && value !== null && typeof value === "object" && !Array.isArray(value)
+            ? { ...value } : mergeNamespace(target[namespace], value);
         // A new declared type replaces the resource fact; edit-only overrides
         // continue to inherit their original type and its marker.
         if (namespace === "type" && value?.kind && !Object.hasOwn(value, "runtimeOnly"))

@@ -129,3 +129,22 @@ test("below a member the name stays the optional exposed name and an array is re
     meta.carbon("InhOwn")(Own);
     assert.equal(CjsSchema.getSchema(Own).methods.find(m => m.name === "Go").exposure.name, "go");
 });
+
+test("the subclass's row is Carbon's complete row: its flags replace the base's instead of overlaying them", async () =>
+{
+    const { Base, Sub } = await load(`
+      @meta.carbon("InhFlagBase")
+      export class Base { @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY) @type.boolean display = true; }
+      @be.define("InhFlagSub")
+      @be.mapAttribute(be.READWRITE | be.PERSIST, "display")
+      export class Sub extends Base {}`);
+    const own = CjsSchema.getSchema(Sub).members.find(m => m.name === "display" && m.declaringClass === Sub);
+    assert.equal(own.edit.notify, undefined, "the base's NOTIFY does not survive");
+    assert.equal(own.edit.write, true);
+    assert.equal(own.edit.persist, true);
+    assert.equal(own.exposure.flags, be.READWRITE | be.PERSIST);
+    assert.equal(own.type.kind, "boolean", "what the row does not define stays inherited");
+    const base = CjsSchema.getSchema(Base).members.find(m => m.name === "display");
+    assert.equal(base.edit.notify, true, "the base keeps its own flags");
+    assert.equal(base.exposure.flags, be.READWRITE | be.PERSIST | be.NOTIFY);
+});
