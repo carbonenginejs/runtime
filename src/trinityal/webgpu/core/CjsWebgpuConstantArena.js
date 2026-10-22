@@ -21,7 +21,7 @@
 // dynamic offset must be a multiple of.
 
 
-import { CjsSchema, blue, type } from "#schema";
+import { CjsSchema, blue, type, meta } from "#schema";
 function fail(message)
 {
   const error = new Error(`CjsWebgpuConstantArena: ${message}`);
@@ -178,9 +178,10 @@ export class CjsWebgpuConstantArena
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
 CjsSchema.decorateField(CjsWebgpuConstantArena, "_totalUploadedSize", type.uint32);
-CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Reset", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Allocate", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetPage", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantArena, "_CreatePage", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetTotalUploadedSize", blue.method);
+// Donor: metal/MetalUtils.h:77 and MetalUtils.mm (ConstantBufferAllocator). Reset and GetTotalUploadedSize are the Metal bodies (the page and offset live in two fields here, one packed word there). Allocate is adapted: one thread, no atomics, and the bytes go to the page with queue.writeBuffer where Metal memcpys into mapped memory; it returns { page, offset, size }. GetPage creates the page on first use and _CreatePage makes a uniform GPUBuffer, where Metal's GetPage only reads and CreatePage makes a shared MTLBuffer.
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Reset", meta.implemented);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Allocate", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetPage", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "_CreatePage", meta.adapted);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetTotalUploadedSize", meta.implemented);
 CjsSchema.blue.define(CjsWebgpuConstantArena, { className: "CjsWebgpuConstantArena" });
