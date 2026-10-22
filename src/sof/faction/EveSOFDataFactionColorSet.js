@@ -1,72 +1,20 @@
 import { IRoot } from "../../global/blue/IRoot.js";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:177-243
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
-import { blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { ColorType } from "#consts/graphics";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 
 
-/** One exposed `m_colors[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:156-197). */
-const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "color" },
-  edit: { read: true, write: true, persist: true } });
-
 /**
  * A faction's colour palette: `Color m_colors[TYPE_MAX]`, exposed by chooser
  * name. Declarations keep the order this class has always exported.
  */
-@legacyBlue.define({
-  className: "EveSOFDataFactionColorSet",
-  members: [
-  slot("Killmark", ColorType.TYPE_KILLMARK),
-  slot("PrimaryForcefield", ColorType.TYPE_PRIMARY_FORCEFIELD),
-  slot("SecondaryForcefield", ColorType.TYPE_SECONDARY_FORCEFIELD),
-  slot("PrimaryFx", ColorType.TYPE_PRIMARY_FX),
-  slot("SecondaryFx", ColorType.TYPE_SECONDARY_FX),
-  slot("PrimaryWarpFx", ColorType.TYPE_PRIMARY_WARP_FX),
-  slot("PrimaryAttackFX", ColorType.TYPE_PRIMARY_ATTACK_FX),
-  slot("PrimarySiegeFX", ColorType.TYPE_PRIMARY_SIEGE_FX),
-  slot("PrimaryDockedFX", ColorType.TYPE_PRIMARY_DOCKED_FX),
-  slot("Primary", ColorType.TYPE_PRIMARY),
-  slot("Secondary", ColorType.TYPE_SECONDARY),
-  slot("Tertiary", ColorType.TYPE_TERTIARY),
-  slot("Black", ColorType.TYPE_BLACK),
-  slot("White", ColorType.TYPE_WHITE),
-  slot("Yellow", ColorType.TYPE_YELLOW),
-  slot("Orange", ColorType.TYPE_ORANGE),
-  slot("Red", ColorType.TYPE_RED),
-  slot("Blue", ColorType.TYPE_BLUE),
-  slot("Green", ColorType.TYPE_GREEN),
-  slot("Cyan", ColorType.TYPE_CYAN),
-  slot("Fire", ColorType.TYPE_FIRE),
-  slot("PrimaryHologram", ColorType.TYPE_PRIMARY_HOLOGRAM),
-  slot("SecondaryHologram", ColorType.TYPE_SECONDARY_HOLOGRAM),
-  slot("TertiaryHologram", ColorType.TYPE_TERTIARY_HOLOGRAM),
-  slot("PrimaryLight", ColorType.TYPE_PRIMARY_LIGHT),
-  slot("SecondaryLight", ColorType.TYPE_SECONDARY_LIGHT),
-  slot("TertiaryLight", ColorType.TYPE_TERTIARY_LIGHT),
-  slot("WhiteLight", ColorType.TYPE_WHITE_LIGHT),
-  slot("Hull", ColorType.TYPE_HULL),
-  slot("Glass", ColorType.TYPE_GLASS),
-  slot("Reactor", ColorType.TYPE_REACTOR),
-  slot("Darkhull", ColorType.TYPE_DARKHULL),
-  slot("Booster", ColorType.TYPE_BOOSTER),
-  slot("PrimaryBanner", ColorType.TYPE_PRIMARY_BANNER),
-  slot("PrimaryBillboard", ColorType.TYPE_PRIMARY_BILLBOARD),
-  slot("PrimarySpotlight", ColorType.TYPE_PRIMARY_SPOTLIGHT),
-  slot("SecondarySpotlight", ColorType.TYPE_SECONDARY_SPOTLIGHT),
-  slot("TertiarySpotlight", ColorType.TYPE_TERTIARY_SPOTLIGHT),
-  slot("State0", ColorType.TYPE_STATE_0),
-  slot("State1", ColorType.TYPE_STATE_1),
-  slot("State2", ColorType.TYPE_STATE_2),
-  slot("State3", ColorType.TYPE_STATE_3),
-  slot("StateVulnerable", ColorType.TYPE_STATE_VULNERABLE),
-  slot("StateInvulnerable", ColorType.TYPE_STATE_INVULNERABLE)
-]
-})
+@be.define("EveSOFDataFactionColorSet")
 @legacyBlue.inherit(IRoot)
-@legacyBlue.interface()
 export class EveSOFDataFactionColorSet extends IRoot
 {
   static ColorType = ColorType;
@@ -76,6 +24,51 @@ export class EveSOFDataFactionColorSet extends IRoot
    * slot with (0, 0, 0, 1), then sets the authored defaults (EveSOFData.cpp:42-51).
    * @type {Array<Float32Array>}
    */
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Killmark", ColorType.TYPE_KILLMARK)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryForcefield", ColorType.TYPE_PRIMARY_FORCEFIELD)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "SecondaryForcefield", ColorType.TYPE_SECONDARY_FORCEFIELD)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryFx", ColorType.TYPE_PRIMARY_FX)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "SecondaryFx", ColorType.TYPE_SECONDARY_FX)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryWarpFx", ColorType.TYPE_PRIMARY_WARP_FX)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryAttackFX", ColorType.TYPE_PRIMARY_ATTACK_FX)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimarySiegeFX", ColorType.TYPE_PRIMARY_SIEGE_FX)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryDockedFX", ColorType.TYPE_PRIMARY_DOCKED_FX)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Primary", ColorType.TYPE_PRIMARY)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Secondary", ColorType.TYPE_SECONDARY)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Tertiary", ColorType.TYPE_TERTIARY)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Black", ColorType.TYPE_BLACK)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "White", ColorType.TYPE_WHITE)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Yellow", ColorType.TYPE_YELLOW)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Orange", ColorType.TYPE_ORANGE)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Red", ColorType.TYPE_RED)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Blue", ColorType.TYPE_BLUE)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Green", ColorType.TYPE_GREEN)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Cyan", ColorType.TYPE_CYAN)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Fire", ColorType.TYPE_FIRE)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryHologram", ColorType.TYPE_PRIMARY_HOLOGRAM)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "SecondaryHologram", ColorType.TYPE_SECONDARY_HOLOGRAM)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "TertiaryHologram", ColorType.TYPE_TERTIARY_HOLOGRAM)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryLight", ColorType.TYPE_PRIMARY_LIGHT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "SecondaryLight", ColorType.TYPE_SECONDARY_LIGHT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "TertiaryLight", ColorType.TYPE_TERTIARY_LIGHT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "WhiteLight", ColorType.TYPE_WHITE_LIGHT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Hull", ColorType.TYPE_HULL)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Glass", ColorType.TYPE_GLASS)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Reactor", ColorType.TYPE_REACTOR)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Darkhull", ColorType.TYPE_DARKHULL)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Booster", ColorType.TYPE_BOOSTER)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryBanner", ColorType.TYPE_PRIMARY_BANNER)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimaryBillboard", ColorType.TYPE_PRIMARY_BILLBOARD)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "PrimarySpotlight", ColorType.TYPE_PRIMARY_SPOTLIGHT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "SecondarySpotlight", ColorType.TYPE_SECONDARY_SPOTLIGHT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "TertiarySpotlight", ColorType.TYPE_TERTIARY_SPOTLIGHT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "State0", ColorType.TYPE_STATE_0)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "State1", ColorType.TYPE_STATE_1)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "State2", ColorType.TYPE_STATE_2)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "State3", ColorType.TYPE_STATE_3)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "StateVulnerable", ColorType.TYPE_STATE_VULNERABLE)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "StateInvulnerable", ColorType.TYPE_STATE_INVULNERABLE)
+  @type.array({ kind: "color" })
   colors = EveSOFDataFactionColorSet.createColors();
 
   /**

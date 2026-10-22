@@ -1,7 +1,8 @@
 import { IRoot } from "../../global/blue/IRoot.js";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:352-383
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113-145
-import { blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 
 /**
@@ -25,31 +26,12 @@ const AreaType = {
   TYPE_NO_OVERWRITE: 11
 };
 
-/** One exposed `m_materials[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:135-144). */
-const slot = (name, index) => ({ name, key: "materials", index, type: { kind: "rootRef", className: "EveSOFDataAreaMaterial" },
-  edit: { read: true, write: true, persist: true } });
-
 /**
  * Area-material slots: `EveSOFDataAreaMaterialPtr m_materials[TYPE_MAX]`,
  * exposed by chooser name. TYPE_WRECK has no exposed slot, so it is never
  * read or written and stays null. Native IRoot-only data with no lifecycle.
  */
-@legacyBlue.define({
-  className: "EveSOFDataArea",
-  members: [
-  slot("Primary", AreaType.TYPE_PRIMARY),
-  slot("Glass", AreaType.TYPE_GLASS),
-  slot("Sails", AreaType.TYPE_SAILS),
-  slot("Reactor", AreaType.TYPE_REACTOR),
-  slot("Darkhull", AreaType.TYPE_DARKHULL),
-  slot("Rock", AreaType.TYPE_ROCK),
-  slot("Monument", AreaType.TYPE_MONUMENT),
-  slot("Ornament", AreaType.TYPE_ORNAMENT),
-  slot("SimplePrimary", AreaType.TYPE_SIMPLEPRIMARY),
-  slot("Turret", AreaType.TYPE_TURRET)
-]
-})
-@legacyBlue.interface()
+@be.define("EveSOFDataArea")
 @legacyBlue.inherit(IRoot)
 export class EveSOFDataArea extends IRoot
 {
@@ -59,6 +41,17 @@ export class EveSOFDataArea extends IRoot
    * m_materials: one area material per AreaType, or null.
    * @type {Array<EveSOFDataAreaMaterial|null>}
    */
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Primary", AreaType.TYPE_PRIMARY)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Glass", AreaType.TYPE_GLASS)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Sails", AreaType.TYPE_SAILS)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Reactor", AreaType.TYPE_REACTOR)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Darkhull", AreaType.TYPE_DARKHULL)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Rock", AreaType.TYPE_ROCK)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Monument", AreaType.TYPE_MONUMENT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Ornament", AreaType.TYPE_ORNAMENT)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "SimplePrimary", AreaType.TYPE_SIMPLEPRIMARY)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Turret", AreaType.TYPE_TURRET)
+  @type.array({ kind: "rootRef", className: "EveSOFDataAreaMaterial" })
   materials = new Array(AreaType.TYPE_MAX).fill(null);
 }
 

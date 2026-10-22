@@ -1,7 +1,8 @@
 import { IRoot } from "../../global/blue/IRoot.js";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:301-324
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70-77, 1140-1147
-import { blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 
 /**
@@ -17,26 +18,12 @@ const BlinkType = {
   TYPE_CYCLE: 4
 };
 
-/** One exposed `m_blinkType[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:1143-1146). */
-const slot = (name, index) => ({ name, key: "blinkType", index, type: { kind: "rootRef", className: "EveSOFDataBlink" },
-  edit: { read: true, write: true, persist: true } });
-
 /**
  * Blink settings slots: `EveSOFDataBlinkPtr m_blinkType[TYPE_CYCLE]`, exposed
  * by chooser name. TYPE_STATIC has no exposed slot. Nothing in Carbon reads
  * the slots. Native IRoot-only data with no lifecycle.
  */
-@legacyBlue.define({
-  className: "EveSOFDataBlinkType",
-  members: [
-  slot("Blink", BlinkType.TYPE_BLINK),
-  slot("FadeIn", BlinkType.TYPE_FADE_IN),
-  slot("FadeOut", BlinkType.TYPE_FADE_OUT),
-  // Adapted: Carbon's slot is one past the end of its array (CE-115); see `blinkType`.
-  { ...slot("Cycle", BlinkType.TYPE_CYCLE), impl: { adapted: true, status: "adapted" } }
-]
-})
-@legacyBlue.interface()
+@be.define("EveSOFDataBlinkType")
 @legacyBlue.inherit(IRoot)
 export class EveSOFDataBlinkType extends IRoot
 {
@@ -64,6 +51,12 @@ export class EveSOFDataBlinkType extends IRoot
    * Cycle data round-trips; Carbon's behaviour there is undefined.
    * @type {Array<EveSOFDataBlink|null>}
    */
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Blink", BlinkType.TYPE_BLINK)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "FadeIn", BlinkType.TYPE_FADE_IN)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "FadeOut", BlinkType.TYPE_FADE_OUT)
+  // Adapted: Carbon's slot is one past the end of its array (CE-115); see the field.
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Cycle", BlinkType.TYPE_CYCLE)
+  @type.array({ kind: "rootRef", className: "EveSOFDataBlink" })
   blinkType = new Array(BlinkType.TYPE_CYCLE + 1).fill(null);
 }
 

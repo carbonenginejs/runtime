@@ -1,7 +1,8 @@
 import { IRoot } from "../../global/blue/IRoot.js";
+import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:260-284
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60-66, 1125-1133
-import { blue as legacyBlue } from "#schema";
+import { type, blue as legacyBlue } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
 
@@ -18,25 +19,11 @@ const LogoType = {
   TYPE_MAX: 5
 };
 
-/** One exposed `m_logos[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:1128-1132). */
-const slot = (name, index) => ({ name, key: "logos", index, type: { kind: "rootRef", className: "EveSOFDataLogo" },
-  edit: { read: true, write: true, persist: true } });
-
 /**
  * Logo slots: `EveSOFDataLogoPtr m_logos[TYPE_MAX]`, exposed by chooser name.
  * Native IRoot-only data with no lifecycle.
  */
-@legacyBlue.define({
-  className: "EveSOFDataLogoSet",
-  members: [
-  slot("Primary", LogoType.TYPE_PRIMARY),
-  slot("Secondary", LogoType.TYPE_SECONDARY),
-  slot("Tertiary", LogoType.TYPE_TERTIARY),
-  slot("Marking_01", LogoType.TYPE_MARKING_01),
-  slot("Marking_02", LogoType.TYPE_MARKING_02)
-]
-})
-@legacyBlue.interface()
+@be.define("EveSOFDataLogoSet")
 @legacyBlue.inherit(IRoot)
 export class EveSOFDataLogoSet extends IRoot
 {
@@ -46,6 +33,12 @@ export class EveSOFDataLogoSet extends IRoot
    * m_logos: one logo per LogoType, or null.
    * @type {Array<EveSOFDataLogo|null>}
    */
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Primary", LogoType.TYPE_PRIMARY)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Secondary", LogoType.TYPE_SECONDARY)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Tertiary", LogoType.TYPE_TERTIARY)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Marking_01", LogoType.TYPE_MARKING_01)
+  @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "Marking_02", LogoType.TYPE_MARKING_02)
+  @type.array({ kind: "rootRef", className: "EveSOFDataLogo" })
   logos = new Array(LogoType.TYPE_MAX).fill(null);
 
   /**

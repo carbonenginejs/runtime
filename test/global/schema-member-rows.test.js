@@ -115,3 +115,37 @@ test("the imperative call form registers the same rows", () =>
     const names = CjsSchema.getSchema(RowsCalled).members.map(member => member.name).sort();
     assert.deepEqual(names, [ "currentValue", "value" ]);
 });
+
+test("mapAttribute__Index names one element of an array member and leaves the array without a declaration of its own", async () =>
+{
+    const { RowsIndexed } = await load(`
+      @be.define("RowsIndexed")
+      export class RowsIndexed
+      {
+        @be.mapAttribute__Index(be.READWRITE | be.PERSIST, "First", 0)
+        @be.mapAttribute__Index(be.READ, "Second", 1)
+        @type.array({ kind: "color" })
+        slots = [ [ 1, 1, 1, 1 ], [ 0, 0, 0, 1 ] ];
+      }`);
+    const schema = CjsSchema.getSchema(RowsIndexed);
+    assert.deepEqual(schema.members.map(member => [ member.name, member.key, member.index ]), [ [ "First", "slots", 0 ], [ "Second", "slots", 1 ] ]);
+    assert.deepEqual(schema.members.map(member => member.type), [ { kind: "color" }, { kind: "color" } ], "each slot has the element type");
+    assert.deepEqual(schema.members.map(member => member.exposure.flags), [ 19, 1 ]);
+    assert.equal(schema.fields.some(field => field.name === "slots"), false, "the array hosts rows and declares nothing itself");
+});
+
+test("an indexed row needs its flags, a name and an index, and a repeated name throws", async () =>
+{
+    assert.throws(() => be.mapAttribute__Index("First", 0), /flags first/);
+    assert.throws(() => be.mapAttribute__Index(be.READ, undefined, 0), /exposed name/);
+    assert.throws(() => be.mapAttribute__Index(be.READ, "First"), /element index/);
+    await assert.rejects(load(`
+      @be.define("RowsIndexedDup")
+      export class RowsIndexedDup
+      {
+        @be.mapAttribute__Index(be.READ, "Same", 0)
+        @be.mapAttribute__Index(be.READ, "Same", 1)
+        @type.array({ kind: "color" })
+        slots = [ [ 1, 1, 1, 1 ], [ 0, 0, 0, 1 ] ];
+      }`), /named "Same"/);
+});

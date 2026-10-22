@@ -1640,7 +1640,7 @@ function combinedFieldDecorator(definition)
     // An attribute or property row applies as one unit, exposure first, behind a marker that says how many parts it holds: a second
     // row on the same member then registers its own exposed name instead of replacing the first (decorator-upgrade.md § 00).
     const applied = isRowExposure(definition.exposure)
-        ? [ { namespace: "row", value: { count: parts.length } }, ...parts.filter(part => part.namespace === "exposure"), ...parts.filter(part => part.namespace !== "exposure") ]
+        ? [ { namespace: "row", value: { count: parts.length, index: definition.declaration?.index !== undefined } }, ...parts.filter(part => part.namespace === "exposure"), ...parts.filter(part => part.namespace !== "exposure") ]
         : parts;
     const decorators = applied.map(({namespace, value}) => fieldDecorator(namespace, value));
     const combined = (target, context) =>
@@ -2108,10 +2108,17 @@ function RejectRetiredTypeKinds(type)
     RejectRetiredTypeKinds(type.valueType);
 }
 
+/** An array that only hosts indexed rows has no declaration of its own: its elements do. */
+function isIndexHostOnly(schema, record)
+{
+    return record.legacy && !record.entry.exposure && !record.entry.edit
+        && schema.declarations.some(other => other.isAlias && other.entry.index !== undefined && other.entry.key === record.entry.key);
+}
+
 /** The compatibility view retains JS-key lookup and never serves native readers. */
 function refreshLegacyFields(schema)
 {
-    schema.fields = schema.declarations.filter(record => record.legacy).map(({ entry }) =>
+    schema.fields = schema.declarations.filter(record => record.legacy && !isIndexHostOnly(schema, record)).map(({ entry }) =>
     {
         const field = { name: entry.key };
         for (const [ namespace, value ] of Object.entries(entry))
@@ -2148,9 +2155,10 @@ function applyRowPart(schema, Constructor, fieldName, namespace, value)
     if (namespace === "exposure" && row.alias === null)
     {
         const base = schema.legacyDeclarationsByKey.get(fieldName);
-        if (base && isRowExposure(base.entry.exposure))
+        // An indexed row is always its own declaration: it names one element of the member's array.
+        if (row.index || (base && isRowExposure(base.entry.exposure)))
         {
-            row.alias = { entry: { name: fieldName, key: fieldName, role: base.entry.role, declaringClass: Constructor }, aliasOf: base };
+            row.alias = { entry: { name: fieldName, key: fieldName, role: base?.entry.role ?? "member", declaringClass: Constructor }, aliasOf: base ?? null };
         }
     }
     if (!row.alias) return false;
@@ -2161,13 +2169,16 @@ function applyRowPart(schema, Constructor, fieldName, namespace, value)
         const identity = declarationIdentity(entry);
         const map = declarationMap(schema, entry.role);
         if (map.has(identity)) throw new TypeError(`CjsSchema has duplicate ${entry.role} declaration "${entry.name}" for ${entry.key}.`);
-        const record = { entry, legacy: false, aliasOf };
+        const record = { entry, legacy: false, aliasOf, isAlias: true };
         // Decorators run nearest-first, so a row written above the member lands before it, and before the rows between: source order,
         // which is the order of Carbon's rows.
-        const first = schema.declarations.find(candidate => candidate.aliasOf === aliasOf) ?? aliasOf;
-        schema.declarations.splice(schema.declarations.indexOf(first), 0, record);
+        const first = schema.declarations.find(candidate => candidate.isAlias && candidate.entry.key === entry.key) ?? aliasOf;
+        const at = first ? schema.declarations.indexOf(first) : -1;
+        if (at < 0) schema.declarations.push(record);
+        else schema.declarations.splice(at, 0, record);
         map.set(identity, record);
         schema.rowState = null;
+        refreshLegacyFields(schema);
         SCHEMA_GENERATION += 1;
     }
     return true;
@@ -2179,7 +2190,7 @@ function defineFieldMetadata(Constructor, fieldName, namespace, value, options =
     const schema = getOrCreateClassSchema(Constructor);
     if (namespace === "row")
     {
-        schema.rowState = { key: fieldName, remaining: value.count, alias: null };
+        schema.rowState = { key: fieldName, remaining: value.count, alias: null, index: Boolean(value.index) };
         return;
     }
     if (applyRowPart(schema, Constructor, fieldName, namespace, value)) return;
@@ -2261,7 +2272,7 @@ function getCanonicalDeclarations(Constructor, role)
         for (const record of CLASS_SCHEMA.get(current).declarations)
         {
             const { entry } = record;
-            if (entry.role !== role || hidden.has(entry.key)) continue;
+            if (entry.role !== role || hidden.has(entry.key) || isIndexHostOnly(CLASS_SCHEMA.get(current), record)) continue;
             declarations.push(resolveInheritedDeclaration(current, record));
         }
     }
@@ -2284,11 +2295,14 @@ function getCanonicalDeclarations(Constructor, role)
 function resolveInheritedDeclaration(Owner, record)
 {
     const { entry } = record;
-    if (record.aliasOf)
+    if (record.isAlias)
     {
-        const base = resolveInheritedDeclaration(Owner, record.aliasOf);
+        const host = record.aliasOf ?? CLASS_SCHEMA.get(Owner).legacyDeclarationsByKey.get(entry.key);
+        const base = host ? resolveInheritedDeclaration(Owner, host) : {};
         const shared = Object.fromEntries(Object.entries(base).filter(([ namespace ]) =>
             ![ "name", "key", "role", "index", "declaringClass", "edit", "carbon", "exposure", "property", "impl", "mapsInherited" ].includes(namespace)));
+        // An indexed row's type is the element type of the array it names.
+        if (entry.index !== undefined && shared.type?.itemType !== undefined) shared.type = shared.type.itemType;
         return { ...shared, ...entry };
     }
     if (!record.legacy || (entry.exposure && !entry.mapsInherited)) return entry;
@@ -2398,9 +2412,9 @@ function RejectDuplicateExposedNames(Constructor, schema)
 {
     const seen = new Set();
     // Rows only: a decorated member or property, or a second name on one. Declarations given whole by a define table are not rows.
-    for (const { entry, legacy, aliasOf } of schema.declarations)
+    for (const { entry, legacy, isAlias } of schema.declarations)
     {
-        if (!legacy && !aliasOf) continue;
+        if (!legacy && !isAlias) continue;
         const macro = entry.exposure?.macro ?? "";
         const identity = `${/^MAP_PROPERTY/.test(macro) ? "property" : /^MAP_ATTRIBUTE/.test(macro) ? "attribute" : entry.role}:${entry.name}`;
         if (seen.has(identity))
@@ -3811,6 +3825,8 @@ function createExposureNamespace(legacy)
         inherit: (...Bases) => CjsSchema.blue.inherit(...Bases),
         abstract: legacy.abstract,
         mapAttribute: (flags, name) => inheritedAware("mapAttribute", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE", flags, undefined, key)),
+        // Carbon's `MAP_ATTRIBUTE( name, member[index], ... )` for one element of an array member: the row sits on the array field.
+        mapAttribute__Index: (flags, name, index) => exposureIndexDecorator(flags, name, index),
         mapAttributeWithChooser: (flags, chooser, name) => inheritedAware("mapAttributeWithChooser", "member", name, key => exposureAttributeDecorator("MAP_ATTRIBUTE_WITH_CHOOSER", flags, chooser, key)),
         mapProperty: name => inheritedAware("mapProperty", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY", key)),
         mapPropertyReadOnly: name => inheritedAware("mapPropertyReadOnly", "property", name, key => exposurePropertyDecorator("MAP_PROPERTY_READONLY", key)),
@@ -3920,6 +3936,20 @@ function ownAttributeDecorator(flags, name)
     const definition = { edit: exposureEditFlags(flags), exposure: { origin: "ours", flags } };
     if (name !== undefined) definition.declaration = { name: exposureName(name) };
     return combinedFieldDecorator(definition);
+}
+
+/** One element of an array member under its own exposed name: the `{ key, index }` reroute the readers follow. */
+function exposureIndexDecorator(flags, name, index)
+{
+    if (typeof flags !== "number") throw new TypeError("mapAttribute__Index requires the Carbon flags first.");
+    if (typeof name !== "string" || !name.trim()) throw new TypeError("mapAttribute__Index requires the exposed name.");
+    if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("mapAttribute__Index requires the element index.");
+    return combinedFieldDecorator({
+        edit: exposureEditFlags(flags),
+        carbon: { member: true },
+        exposure: { macro: "MAP_ATTRIBUTE", flags },
+        declaration: { name: exposureName(name), index }
+    });
 }
 
 /** One complete attribute row; chooser identity and literal flags are independent. */
