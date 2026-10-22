@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2RotationTool.h
 // Source: trinity/trinity/Tr2RotationTool.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -20,7 +20,9 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** Extends the manipulation tool with quaternion rotation state and angular precision. */
-@blue.define({ className: "Tr2RotationTool" })
+@be.define("Tr2RotationTool")
+@be.mapInterface(Tr2ManipulationTool)
+@be.exposureChainTo(Tr2ManipulationTool)
 export class Tr2RotationTool extends Tr2ManipulationTool
 {
   _angle = 0;

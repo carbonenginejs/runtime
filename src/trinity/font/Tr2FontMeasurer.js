@@ -13,7 +13,7 @@ import { Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
 import { meta, type, blue } from "#schema";
 
 /** Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text. */
-@blue.define({ className: "Tr2FontMeasurer" })
+@be.define("Tr2FontMeasurer")
 @blue.inherit(IRoot)
 export class Tr2FontMeasurer extends IRoot
 {

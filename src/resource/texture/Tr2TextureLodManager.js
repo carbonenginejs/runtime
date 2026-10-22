@@ -102,6 +102,4 @@ CjsSchema.decorateMethod(Tr2TextureLodManager, "RegisterTexture", meta.implement
 CjsSchema.decorateMethod(Tr2TextureLodManager, "UnregisterTexture", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureLodManager, "GetManagedTextures", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.exposure.abstract(Tr2TextureLodManager);
-CjsSchema.blue.define(Tr2TextureLodManager, {
-  className: "Tr2TextureLodManager"
-});
+be.define("Tr2TextureLodManager")(Tr2TextureLodManager);

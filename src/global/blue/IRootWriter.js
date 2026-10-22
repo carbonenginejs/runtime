@@ -13,6 +13,7 @@
 // `options.persistOnly` asks. DictWriter retains the full shape (operator
 // ruling 2026-09-27; research page `blue-values-engine.md`); YamlWriter opts
 // into Carbon's persisted-only traversal and default comparison.
+import { exposure as be } from "#be";
 import { CjsSchema, meta, blue } from "#schema";
 import { IRoot } from "./IRoot.js";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
@@ -370,7 +371,7 @@ function EqualDefault(value, other, type)
 CjsSchema.blue.inherit(IRoot)(IRootWriter);
 
 CjsSchema.exposure.abstract(IRootWriter);
-CjsSchema.blue.define(IRootWriter, { className: "IRootWriter" });
+be.define("IRootWriter")(IRootWriter);
 CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteList", meta.adapted);

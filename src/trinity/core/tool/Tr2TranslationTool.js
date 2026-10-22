@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2TranslationTool.h
 // Source: trinity/trinity/Tr2TranslationTool.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -19,7 +19,9 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** Extends the manipulation tool with the current three-axis translation result. */
-@blue.define({ className: "Tr2TranslationTool" })
+@be.define("Tr2TranslationTool")
+@be.mapInterface(Tr2ManipulationTool)
+@be.exposureChainTo(Tr2ManipulationTool)
 export class Tr2TranslationTool extends Tr2ManipulationTool
 {
   /** Native constructor builds arrows and selects the free-move ring. */

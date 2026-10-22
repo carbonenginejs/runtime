@@ -5,7 +5,7 @@ import { meta, type, blue } from "#schema";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Provides named typed socket parameters with external-value binding, default capture, and propagation hooks. */
-@blue.define({ className: "EveSocketParameterBindingBase" })
+@be.define("EveSocketParameterBindingBase")
 @be.abstract
 export class EveSocketParameterBindingBase extends IEveSocketParameter
 {

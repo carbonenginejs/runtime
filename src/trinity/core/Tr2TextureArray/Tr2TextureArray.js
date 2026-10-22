@@ -1,8 +1,10 @@
+import { exposure as be } from "#be";
+import { ITr2TextureProvider } from "../ITr2TextureProvider.js";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2TextureArray.h
 //   trinity/trinity/Tr2TextureArray.cpp
 
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2Event } from "../Tr2Event.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions, HostBitmap } from "#imageio";
@@ -10,7 +12,8 @@ import { Tr2TextureArrayElement } from "./Tr2TextureArrayElement.js";
 import "#consts/renderContext/resources";
 
 /** Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback. */
-@blue.define({ className: "Tr2TextureArray" })
+@be.define("Tr2TextureArray")
+@be.mapInterface(ITr2TextureProvider)
 export class Tr2TextureArray extends IRoot
 {
 

@@ -10,7 +10,7 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
  * Base for camera hand-overs, owning the source and target cameras plus the
  * temporary camera that is rendered while the hand-over runs.
  */
-@blue.define({ className: "EveVirtualCameraTransitionBase" })
+@be.define("EveVirtualCameraTransitionBase")
 @blue.inherit(IRoot)
 @be.abstract
 export class EveVirtualCameraTransitionBase extends IRoot

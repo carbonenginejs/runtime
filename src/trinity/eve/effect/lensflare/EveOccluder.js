@@ -20,7 +20,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
  * their pixels pass. Tr2OcclusionBuffer's CopyCounters turns the counts into
  * the visibility the flare and the god rays read.
  */
-@blue.define({ className: "EveOccluder" })
+@be.define("EveOccluder")
 @blue.inherit(IRoot)
 export class EveOccluder extends IRoot
 {

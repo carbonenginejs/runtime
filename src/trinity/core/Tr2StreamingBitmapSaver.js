@@ -14,7 +14,7 @@ import { exposure as be } from "#be";
 // behaviour: the pre-check never fails and the REAL format gate is
 // SaveHeader's switch, whose default returns SAVE_NOT_SUPPORTED. This port
 // keeps that net behaviour: no pre-check, the header switch rejects.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { GetBytesPerPixel, PixelFormat } from "#consts/render-context";
 import { ALResult } from "../../trinityal/ALResult.js";
 import "#consts/renderContext/formats";
@@ -24,7 +24,7 @@ const IMAGE_TYPE_RAW_RGB = 2;
 const IMAGE_TYPE_RAW_GREYSCALE = 3;
 
 /** Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points. */
-@blue.define({ className: "Tr2StreamingBitmapSaver" })
+@be.define("Tr2StreamingBitmapSaver")
 export class Tr2StreamingBitmapSaver extends IRoot
 {
 
