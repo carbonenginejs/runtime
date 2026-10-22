@@ -52,7 +52,7 @@ test("five curve classes construct through Blue without model state or convenien
 test("removed curves expose exact native interfaces and inherit the function reset", () =>
 {
     for(const [Class,interfaces] of [
-        [Tr2CurveConstant,[Tr2CurveConstant,ITriScalarFunction,ITriVectorFunction,ITriQuaternionFunction,ITriColorFunction,ITriFunction]],
+        [Tr2CurveConstant,[Tr2CurveConstant,ITriScalarFunction,ITriVectorFunction,ITriQuaternionFunction,ITriColorFunction]],
         [Tr2CurveScalar,[Tr2CurveScalar,ITriScalarFunction,ITriFunction,ITriCurveLength]],
         [Tr2CurveQuaternion,[Tr2CurveQuaternion,ITriQuaternionFunction,ITriFunction,ITriCurveLength]]
     ])

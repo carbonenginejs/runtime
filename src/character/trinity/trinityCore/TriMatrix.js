@@ -2,6 +2,8 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Include/TriMatrix.h, TriMatrix.cpp, TriMatrix_Blue.cpp
 import { meta, blue } from "#schema";
+import { IPythonMethods } from "#blue";
+import { ITriMatrix } from "./ITriMatrix.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 
@@ -26,6 +28,9 @@ const ELEMENTS = [
     name, key: "_matrix", index, type: { kind: "float32" }, edit: { read: true, write: true, persist: true }
   }))
 })
+@be.mapInterface(ITriMatrix)
+@be.mapInterface(IPythonMethods)
+@blue.inherit(ITriMatrix, IPythonMethods)
 export class TriMatrix extends IRoot
 {
   /**
@@ -33,6 +38,45 @@ export class TriMatrix extends IRoot
    * @type {mat4}
    */
   _matrix = mat4.create();
+
+  /** IPythonMethods::Destroy (IPythonMethods.h:14): there is no Python wrapper to release. */
+  @meta.notSupported
+  Destroy()
+  {
+  }
+
+  /**
+   * IPythonMethods::GetAttr (IPythonMethods.h:17): there is no Python host, so no attribute is handled.
+   * @param {string} name The attribute name.
+   * @returns {null} Not handled.
+   */
+  @meta.notSupported
+  GetAttr(name)
+  {
+    return null;
+  }
+
+  /**
+   * IPythonMethods::SetAttr (IPythonMethods.h:22): there is no Python host, so no assignment is handled.
+   * @param {string} name The attribute name.
+   * @param {*} value The value.
+   * @returns {boolean} False: not handled.
+   */
+  @meta.notSupported
+  SetAttr(name, value)
+  {
+    return false;
+  }
+
+  /**
+   * IPythonMethods::Repr (IPythonMethods.h:26): there is no Python host, so no repr is supplied.
+   * @returns {null} Not handled.
+   */
+  @meta.notSupported
+  Repr()
+  {
+    return null;
+  }
 
   /**
    * Carbon GetMatrix (TriMatrix.cpp:160-163): the matrix storage itself.

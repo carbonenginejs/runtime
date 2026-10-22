@@ -1,0 +1,42 @@
+import { IRoot } from "#blue/IRoot";
+// Source: trinity/trinity/Include/ITriMatrix.h:6-24
+import { CjsSchema, blue } from "#schema";
+
+/** Carbon's matrix interface: construction, data access and Identity. */
+export class ITriMatrix extends IRoot
+{
+  /**
+   * Sets all sixteen elements, row by row.
+   * @param {...number} elements _11 .. _44.
+   */
+  SetPivots(...elements) {}
+
+  /**
+   * Copies a matrix into this one.
+   * @param {ArrayLike<number>} m The source matrix.
+   */
+  SetMatrix(m) {}
+
+  /**
+   * Returns the matrix storage itself.
+   * @returns {ArrayLike<number>} The stored matrix.
+   */
+  GetMatrix() {}
+
+  /**
+   * Copies the matrix into `out`.
+   * @param {ArrayLike<number>} out The destination.
+   * @returns {ArrayLike<number>} `out`.
+   */
+  CopyMatrix(out) {}
+
+  /** Resets the matrix to identity. */
+  Identity() {}
+}
+
+for (const name of [ "SetPivots", "SetMatrix", "GetMatrix", "CopyMatrix", "Identity" ])
+{
+  CjsSchema.decorateMethod(ITriMatrix, name, blue.abstract);
+}
+
+CjsSchema.exposure.interface("ITriMatrix")(ITriMatrix);

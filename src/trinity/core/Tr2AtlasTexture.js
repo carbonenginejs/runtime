@@ -8,7 +8,7 @@ import { exposure as be } from "#be";
 // DoPrepare, OnPrepareResources and the six `*atlas` resource extensions) is
 // left as explicit obligations: see `DoLoad`.
 import { meta, type, blue } from "#schema";
-import { ICacheable } from "#blue";
+import { ICacheable, IBlueResource } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2TextureAL, Tr2TextureSubresource, Failed } from "#trinityal";
@@ -28,8 +28,9 @@ import { vec4 } from "#math/vec4";
  * textures.
  */
 @be.define("Tr2AtlasTexture")
-@blue.inherit(ICacheable)
-@blue.interface(ICacheable)
+@be.mapInterface(IBlueResource)
+@be.mapInterface(ICacheable)
+@blue.inherit(ICacheable, IBlueResource)
 export class Tr2AtlasTexture extends IRoot
 {
 
@@ -809,5 +810,39 @@ export class Tr2AtlasTexture extends IRoot
   IsLoading()
   {
     return this._isLoading;
+  }
+
+  /**
+   * IBlueResource::Initialize, which BlueAsyncRes supplies (IBlueResource.h:14). The atlas texture's path is set by its owner.
+   *
+   * @param {string} name The resource path.
+   * @param {string} ext The extension.
+   */
+  @meta.notImplemented
+  Initialize(name, ext)
+  {
+    throw new Error("Tr2AtlasTexture.Initialize is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * IBlueResource::GetPath, which BlueAsyncRes supplies (IBlueResource.h:16).
+   *
+   * @returns {string} The resource path.
+   */
+  @meta.notImplemented
+  GetPath()
+  {
+    throw new Error("Tr2AtlasTexture.GetPath is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * IBlueResource::GetExt, which BlueAsyncRes supplies (IBlueResource.h:17).
+   *
+   * @returns {string} The resource extension.
+   */
+  @meta.notImplemented
+  GetExt()
+  {
+    throw new Error("Tr2AtlasTexture.GetExt is not implemented in CarbonEngineJS.");
   }
 }

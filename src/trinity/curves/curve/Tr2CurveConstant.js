@@ -17,7 +17,10 @@ import { meta, type, blue } from "#schema";
  */
 @be.define("Tr2CurveConstant")
 @blue.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
-@blue.interface(ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction)
+@be.mapInterface(ITriScalarFunction)
+@be.mapInterface(ITriVectorFunction)
+@be.mapInterface(ITriQuaternionFunction)
+@be.mapInterface(ITriColorFunction)
 export class Tr2CurveConstant extends ITriScalarFunction
 {
   /**

@@ -70,6 +70,8 @@ export * from "./CcpDateTime.js";
 export * from "./CcpTime.js";
 export * from "./IBlueResMan.js";
 export * from "./IBlueResManNotifications.js";
+export * from "./IBlueResource.js";
+export * from "./IPythonMethods.js";
 export * from "./ICacheable.js";
 export * from "./IRoot.js";
 export * from "./IInitialize.js";
