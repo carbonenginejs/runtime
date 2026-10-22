@@ -36,6 +36,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.mapInterface(EveEntity)
 @be.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildSocket extends EveChildTransform
 {
 

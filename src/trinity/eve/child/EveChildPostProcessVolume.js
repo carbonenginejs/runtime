@@ -26,6 +26,7 @@ import { EveComponentType } from "../EntityComponents.js";
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(IInitialize)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildPostProcessVolume extends EveChildTransform
 {
 

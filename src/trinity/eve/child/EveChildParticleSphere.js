@@ -32,6 +32,7 @@ const BIND_INVALID = 2;
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(ITr2Renderable)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildParticleSphere extends EveSpaceObjectChild
 {
 

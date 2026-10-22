@@ -23,6 +23,7 @@ import { Tr2SphereShapeAttributeGenerator } from "../../particle/attribute/Tr2Sp
 @be.mapInterface(EveSpaceObjectChild)
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildExplosion extends EveChildContainer
 {
 

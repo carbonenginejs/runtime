@@ -68,6 +68,7 @@ function createFroxelFogSettings()
 @be.mapInterface(IInitialize)
 @be.inherit(ITr2DebugRenderable)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildFogVolume extends ITr2FroxelFogSettings
 {
   _fogIntensity = 0;

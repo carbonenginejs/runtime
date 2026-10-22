@@ -39,6 +39,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.mapInterface(IShaderConfigurer)
 @be.inherit(IEveEffectChildrenOwner)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildInstanceContainer extends EveChildTransform
 {
 

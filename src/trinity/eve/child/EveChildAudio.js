@@ -25,6 +25,7 @@ import { ITr2DebugRenderable } from "#interfaces";
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildAudio extends EveChildTransform
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)

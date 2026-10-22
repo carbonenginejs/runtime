@@ -35,6 +35,7 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 @be.mapInterface(EveEntity)
 @be.mapInterface(IShaderConfigurer)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildProceduralContainer extends EveChildTransform
 {
 

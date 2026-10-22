@@ -69,6 +69,7 @@ function FindDamageLocators(sets)
 @be.mapInterface(IEveShadowCaster)
 @be.mapInterface(IEveInstanceMeshProvider)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

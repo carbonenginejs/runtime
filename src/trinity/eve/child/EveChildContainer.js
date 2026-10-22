@@ -77,6 +77,7 @@ const ZERO_VEC3 = vec3.create();
 @be.mapInterface(IShaderConfigurer)
 @be.inherit(IEveEffectChildrenOwner, IEveSpaceObjectAttachmentOwner)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildContainer extends EveChildTransform
 {
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:59); chooser EveChildContainerDataSetShaderChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:14). */

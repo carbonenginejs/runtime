@@ -39,6 +39,7 @@ const INSTANCE_STRIDE = 40;
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(INotify)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildBulletStorm extends EveSpaceObjectChild
 {
 

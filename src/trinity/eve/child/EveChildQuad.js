@@ -26,6 +26,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapInterface(IInitialize)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildQuad extends EveChildTransform
 {
 

@@ -63,6 +63,7 @@ const TRI_PI = Math.fround(3.141592654);
 @be.mapInterface(IListNotify)
 @be.mapInterface(INotify)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveEllipseSet extends EveChildTransform
 {
 

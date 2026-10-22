@@ -42,6 +42,7 @@ const DEBUG_TRANSFORM = mat4.create();
 @be.mapInterface(ITr2Renderable)
 @be.inherit(ITr2DebugRenderable, Tr2DeviceResource)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
+@be.mapPropertyReadOnly__Field("partTag")
 export class EveChildLineSet extends EveChildTransform
 {
 
