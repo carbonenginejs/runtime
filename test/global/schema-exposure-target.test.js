@@ -294,12 +294,12 @@ test("own complete attributes keep explicit flags and aliases without Carbon ori
 test("legacy named/indexed own attributes coexist with zero-mask target declarations", () =>
 {
     class Sample { value = 0; other = 0; }
-    CjsSchema.decorateField(Sample, "value", meta.attribute("legacy"), meta.readwrite, type.float32);
+    CjsSchema.decorateField(Sample, "value", meta.attribute(meta.NONE, "legacy"), meta.readwrite, type.float32);
     CjsSchema.decorateField(Sample, "other", meta.attribute(meta.NONE), type.int32);
     meta.define("Goal3LegacyAttribute")(Sample);
     const members=CjsSchema.getSchema(Sample).members;
     assert.equal(members.find(m=>m.name==="legacy").key,"value");
-    assert.equal(members.find(m=>m.name==="legacy").exposure,undefined);
+    assert.equal(members.find(m=>m.name==="legacy").exposure.macro,undefined);
     assert.deepEqual(members.find(m=>m.name==="other").edit,{});
 });
 
@@ -307,7 +307,7 @@ test("object ownership aliases preserve complete legacy class information and Bl
 {
     class Item {}
     meta.define("Goal3ObjectItem")(Item);
-    const pairs=[["root","embed"],["rootRef","ref"],["rootWeak","weak"]];
+    const pairs=[["rootRef","ref"]];
     for(const [oldName,newName] of pairs) for(const argument of ["Goal3ObjectItem",Item])
     {
         class Old { value = null; }

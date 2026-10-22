@@ -664,9 +664,9 @@ export class CjsSchema
     /**
      * Field type descriptors. The object-shaped kinds differ in how a
      * value is populated:
-     * - `rootRef(className)` is Carbon's IROOTPTR, a registered class held by
-     *   reference; `rootWeak(className)` is IROOTWEAKREF;
-     * - `root(className)` is Carbon's IROOT, an object embedded in its owner:
+     * - `object.ref(className)` is Carbon's IROOTPTR, a registered class held by
+     *   reference; `object.weak(className)` is IROOTWEAKREF;
+     * - `object.embed(className)` is Carbon's IROOT, an object embedded in its owner:
      *   the owner creates it, and readers and SetValues populate it in place,
      *   keeping its identity. It is not a binary struct; those are described by
      *   `meta.struct` on the item class;
@@ -727,8 +727,6 @@ export class CjsSchema
         rootRef: className => objectTypeDecorator("rootRef", className),
         /** Declares a live resource edge that values, persistence and copying must omit. */
         resource: className => fieldDecorator("type", { kind: "rootRef", className, runtimeOnly: true }),
-        /** Carbon's IROOTWEAKREF: a weak pointer to an object of the class. */
-        rootWeak: className => objectTypeDecorator("rootWeak", className),
         /**
          * A path, and what it may name. `path()` accepts any file. Entries
          * narrow it, and a path is accepted when any one entry accepts it:
@@ -757,7 +755,6 @@ export class CjsSchema
         set: itemType => fieldDecorator("type", { kind: "set", itemType }),
         string: fieldDecorator("type", { kind: "string" }),
         wstring: fieldDecorator("type", { kind: "wstring" }),
-        root: className => objectTypeDecorator("root", className),
         /** Target ownership spellings retain the existing reader/storage class information. */
         object: {
             embed: className => objectTypeDecorator("root", className),
@@ -1048,10 +1045,7 @@ export class CjsSchema
          */
         setting: SETTING_DECORATOR,
         struct: createStructNamespace(),
-        // Transitional typeof overload dispatch violates the no-argument-inspection rule; remove it when the last legacy caller is migrated.
-        attribute: (flagsOrName, nameOrOptions) => typeof flagsOrName === "number"
-            ? ownAttributeDecorator(flagsOrName, nameOrOptions)
-            : declarationDecorator("member", flagsOrName, nameOrOptions),
+        attribute: (flags, name) => ownAttributeDecorator(flags, name),
         property: (name, options) => propertyDecorator(name, options, false),
         chooser: values => chooserDecorator(values),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, false),
@@ -1079,12 +1073,6 @@ export class CjsSchema
             return [ name, combinedFieldDecorator({ [namespace]: value, carbon: { member: true } }) ];
         })),
         ...this.#carbon,
-        // Carbon's `MAP_ATTRIBUTE` exposed name: `meta.attribute` stamped as Carbon's member.
-        attribute: (name, options) =>
-        {
-            const { namespace, value } = getDecoratorMetadata(declarationDecorator("member", name, options));
-            return combinedFieldDecorator({ [namespace]: value, carbon: { member: true } });
-        },
         // Carbon's `MAP_PROPERTY*` row: `meta.property` stamped as Carbon's member.
         property: (name, options) => propertyDecorator(name, options, true),
         // Carbon's `MAP_ATTRIBUTE_WITH_CHOOSER` chooser table: `meta.chooser` stamped as Carbon's member.
@@ -2915,7 +2903,7 @@ function buildClassInfo(Constructor, namespaces)
 const MANY_KINDS = new Set([ "list", "array", "set", "map" ]);
 
 // Kinds that can hold a child model. Bucketing on the KIND rather than on a
-// resolvable class reference keeps traversal conservative: `type.root(Class)`
+// resolvable class reference keeps traversal conservative: `type.object.embed(Class)`
 // drops the reference during normalization, and a raw defineField may omit the
 // item type, so requiring a reference would silently stop visiting those.
 // Scalar and math kinds are excluded, which is where the saving comes from.
@@ -2990,7 +2978,7 @@ function isValueItemType(itemType)
 }
 
 
-// Only string references survive normalization - type.root(SomeClass) drops
+// Only string references survive normalization - type.object.embed(SomeClass) drops
 // the reference entirely - so a field can only be bucketed when it names a
 // class. The one field in the tree that named nothing was a missing
 // declaration, not a deliberate escape.

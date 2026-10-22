@@ -64,7 +64,7 @@ test("object pointers are Carbon's rootRef and rootWeak; the retired kinds fail 
   for (const retired of [ "model", "objectRef", "weakRef" ]) assert.equal(type[retired], undefined);
   class Pointers {}
   CjsSchema.define(Pointers, { className: "RetiredKindsPointers", fields: {
-    strong: type.rootRef("RetiredKindsPointers"), weak: type.rootWeak("RetiredKindsPointers")
+    strong: type.rootRef("RetiredKindsPointers"), weak: type.object.weak("RetiredKindsPointers")
   } });
   assert.equal(CjsSchema.getField(Pointers, "strong").type.kind, "rootRef");
   assert.equal(CjsSchema.getField(Pointers, "weak").type.kind, "rootWeak");

@@ -475,7 +475,7 @@ test("embedded members keep destination objects while pointer members allocate",
     pointer = null;
   }
   CjsSchema.define(CopierEmbeddedAndPointer, { className: "CopierEmbeddedAndPointer", fields: {
-    embedded: [ type.root("CopierLeaf"), CjsSchema.blue.persist ],
+    embedded: [ type.object.embed("CopierLeaf"), CjsSchema.blue.persist ],
     pointer: [ type.rootRef("CopierLeaf"), CjsSchema.blue.persist ]
   } });
   const source = new CopierEmbeddedAndPointer();
@@ -516,7 +516,7 @@ test("weak-reference members retain their referents rather than cloning them", (
 {
   class CopierWeakReference { owner = null; }
   CjsSchema.define(CopierWeakReference, { className: "CopierWeakReference", fields: {
-    owner: [ type.rootWeak("CopierLeaf"), CjsSchema.blue.persist ]
+    owner: [ type.object.weak("CopierLeaf"), CjsSchema.blue.persist ]
   } });
   const source = new CopierWeakReference();
   source.owner = Leaf(11);

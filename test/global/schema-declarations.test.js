@@ -1,6 +1,7 @@
 import * as schemaExports from "../../src/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { exposure as be } from "#be";
 import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
 
 function withoutOwners(entries)
@@ -35,8 +36,9 @@ test("the public decorator surface has one namespace per vocabulary and preserve
         assert.equal(typeof meta[name], "function", "generic flag: " + name);
         assert.equal(typeof CjsSchema.blue[name], "function", "Carbon flag: " + name);
     }
-    for (const name of ["interface", "inherit", "chainTo", "method", "define", "attribute"])
+    for (const name of ["interface", "inherit", "chainTo", "method", "define"])
         assert.equal(typeof CjsSchema.blue[name], "function", "Carbon declaration: " + name);
+    assert.equal(Object.hasOwn(CjsSchema.blue, "attribute"), false, "removed: blue.attribute (be.mapAttribute names the member)");
     for (const name of ["edit", "impl", "lifecycle", "jessica", "compose", "custom"])
         assert.equal(Object.hasOwn(meta, name), false, "removed meta alias: " + name);
     for (const name of ["none", "enum", "setting"])
@@ -52,7 +54,7 @@ test("the public decorator surface has one namespace per vocabulary and preserve
     class Types {}
     CjsSchema.define(Types, {
         className: "DeclarationTypes",
-        fields: { text: type.wstring, peer: type.rootWeak("DeclarationTypes") }
+        fields: { text: type.wstring, peer: type.object.weak("DeclarationTypes") }
     });
     assert.deepEqual(CjsSchema.getSchema(Types).members.map(entry => entry.type),
         [ { kind: "wstring" }, { kind: "rootWeak", className: "DeclarationTypes" } ]);
@@ -68,7 +70,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         get boosters() { throw new Error("registration evaluated a getter"); }
         set boosters(value) {}
     }
-    applyStage3(metadata, "_boosters", "field", [ blue.attribute("boosters"), type.rootRef("Booster"), blue.persistOnly ]);
+    applyStage3(metadata, "_boosters", "field", [ be.mapAttribute(be.PERSISTONLY, "boosters"), type.rootRef("Booster") ]);
     applyStage3(metadata, "boosters", "getter", [ type.rootRef("Booster"), blue.property(), meta.implemented ]);
     meta.define({ className: "DeclarationDecorated" })(Decorated, { kind: "class", metadata });
 
@@ -79,7 +81,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
     }
     CjsSchema.define(Explicit, {
         className: "DeclarationExplicit",
-        members: [ { name: "boosters", key: "_boosters", type: { kind: "rootRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true } } ],
+        members: [ { name: "boosters", key: "_boosters", type: { kind: "rootRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true }, exposure: { macro: "MAP_ATTRIBUTE", flags: 24 } } ],
         properties: {
             boosters: [ type.rootRef("Booster"), blue.property(), meta.implemented ]
         }
@@ -99,25 +101,25 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
     assert.equal(decorated.members[0].declaringClass, Decorated);
 });
 
-test("blue.attribute is meta.attribute stamped as Carbon's member", () =>
+test("meta.attribute names a member as ours and be.mapAttribute__Index carries the element index", () =>
 {
     class Ours {}
     CjsSchema.define(Ours, {
         className: "DeclarationAttributeOurs",
-        fields: { _ratio: [ meta.attribute("ratio", { index: 2 }), type.float32 ] }
+        fields: { _ratio: [ meta.attribute(meta.NONE, "ratio"), type.float32 ] }
     });
     class Carbon {}
     CjsSchema.define(Carbon, {
         className: "DeclarationAttributeCarbon",
-        fields: { dampingRatio: [ blue.attribute("m_dampingRatio"), type.float32 ] }
+        fields: { dampingRatio: [ be.mapAttribute(be.NONE, "m_dampingRatio"), type.float32 ] }
     });
     const [ ours ] = CjsSchema.getSchema(Ours).members;
     const [ carbon ] = CjsSchema.getSchema(Carbon).members;
-    assert.deepEqual({ name: ours.name, key: ours.key, index: ours.index }, { name: "ratio", key: "_ratio", index: 2 });
+    assert.deepEqual({ name: ours.name, key: ours.key }, { name: "ratio", key: "_ratio" });
     assert.equal(ours.carbon?.member, undefined);
     assert.deepEqual({ name: carbon.name, key: carbon.key }, { name: "m_dampingRatio", key: "dampingRatio" });
     assert.equal(carbon.carbon.member, true);
-    assert.throws(() => blue.attribute("x", { index: -1 }), /nonnegative safe integer/u);
+    assert.throws(() => be.mapAttribute__Index(be.NONE, "x", -1), /element index/u);
 });
 
 test("imperative metadata and explicit fields infer accessors without evaluating or replacing them", () =>
@@ -161,12 +163,11 @@ test("indexed declarations retain every route including index zero and reject ex
         className: "DeclarationDuplicate",
         members: [ { name: "x", key: "values", index: 0 }, { name: "x", key: "values", index: 0 } ]
     }), /duplicate member/u);
-    assert.throws(() => meta.attribute("x", { index: -1 }), /nonnegative safe integer/u);
-    assert.throws(() => meta.attribute("x", { index: 0.5 }), /nonnegative safe integer/u);
+    assert.throws(() => be.mapAttribute__Index(be.NONE, "x", 0.5), /element index/u);
     class IndexedDecorator {}
     CjsSchema.define(IndexedDecorator, {
         className: "DeclarationIndexedDecorator",
-        fields: { values: [ meta.attribute("x", { index: 0 }), type.float32 ] }
+        fields: { values: [ be.mapAttribute__Index(be.NONE, "x", 0), type.float32 ] }
     });
     assert.equal(CjsSchema.getSchema(IndexedDecorator).members[0].index, 0);
 });
@@ -208,7 +209,7 @@ test("native tables keep class occurrences and derived-first ordering while lega
     class Base {}
     CjsSchema.define(Base, {
         className: "DeclarationBase",
-        fields: { stored: [ meta.attribute("shared"), type.float32, blue.persist ], baseOnly: type.uint32 }
+        fields: { stored: [ meta.attribute(meta.NONE, "shared"), type.float32, blue.persist ], baseOnly: type.uint32 }
     });
     class Derived extends Base { get shared() { throw new Error("getter read"); } }
     CjsSchema.define(Derived, {

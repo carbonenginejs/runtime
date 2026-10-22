@@ -146,7 +146,7 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
                     "No header method match; review free functions, extracted helpers and explicit own origin.",{identities:id.native,searched:[...searched]});
             }
             const mapped=ds.filter(d=>d.name.startsWith("exposure.")&&maps[d.name.split(".")[1]]);
-            const legacy=ds.some(d=>d.name.startsWith("blue.")&&(["property","attribute","chooser","method"].includes(d.name.slice(5))||Object.hasOwn(oldBits,d.name.slice(5))));
+            const legacy=ds.some(d=>d.name.startsWith("blue.")&&(["property","chooser","method"].includes(d.name.slice(5))||Object.hasOwn(oldBits,d.name.slice(5))));
             if(!mapped.length && !legacy)continue;
             const isMethod=m.kind==="method", property=mapped.some(d=>d.name.includes("mapProperty"))||ds.some(d=>d.name==="blue.property");
             const category=isMethod?"methods":property?"properties":"attributes";
@@ -167,7 +167,7 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
             }
             else
             {
-                const alias=ds.find(d=>["blue.attribute","blue.property"].includes(d.name)&&typeof d.args[0]==="string");
+                const alias=ds.find(d=>["blue.property"].includes(d.name)&&typeof d.args[0]==="string");
                 if(alias)exposed=alias.args[0];
                 actualFlags=0;
                 for(const d of ds)if(Object.hasOwn(oldBits,d.name.slice(5))&&d.name.startsWith("blue."))actualFlags|=oldBits[d.name.slice(5)];
@@ -216,11 +216,11 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
                 // declaration a macro lands on; the exposed name is only a fallback.
                 const byFunction=row.function?c.members.find(m=>m.name===row.function):null;
                 const found=byFunction??c.members.find(m=>names.includes(m.name)||m.decorators.some(d=>
-                    (["blue.attribute","blue.property"].includes(d.name)||d.name.startsWith("exposure.map"))&&d.args.some(a=>names.includes(a))));
+                    (["blue.property"].includes(d.name)||d.name.startsWith("exposure.map"))&&d.args.some(a=>names.includes(a))));
                 const classLevel=c.decorators.some(d=>d.name.startsWith("exposure.map")&&[d.args[0],d.args[1],d.args[2]].flat().some(a=>names.includes(a)));
                 if(!found&&classLevel)continue;
                 if(!found)add("exposure-member-unresolved",c,{name:row.name},"No own declaration resolved; inherited exposure needs review.",{source:row.source,line:row.line});
-                else if(!found.decorators.some(d=>d.name.startsWith("exposure.map") || d.name.startsWith("blue.") && (["method","attribute","property","chooser"].includes(d.name.slice(5)) || Object.hasOwn(oldBits,d.name.slice(5)))))
+                else if(!found.decorators.some(d=>d.name.startsWith("exposure.map") || d.name.startsWith("blue.") && (["method","property","chooser"].includes(d.name.slice(5)) || Object.hasOwn(oldBits,d.name.slice(5)))))
                     add("exposure-declaration-missing",c,found,"Native macro has no exposure decorator on the resolved member.",{source:row.source,line:row.line});
             }
             const mapsInSource=c.decorators.filter(d=>["blue.interface","exposure.mapInterface"].includes(d.name)).flatMap(d=>d.args.map(x=>x?.$expr??x));

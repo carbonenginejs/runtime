@@ -13,7 +13,7 @@ import { TriStepToggleCubemap } from "../../npm/dist/trinity/renderJob/index.js"
 // (EveVirtualCameraBehaviour_Blue.cpp:206) and MAP_ATTRIBUTE( "m_showCubemap",
 // m_showCubemap, ..., Be::READWRITE ) (TriStepToggleCubemap_Blue.cpp:17-21).
 // The JS keys drop the prefix, so every reader and writer must resolve the
-// exposed name through `blue.attribute`, never the JS key.
+// exposed name through `be.mapAttribute`, never the JS key.
 const DAMPING = "EveVirtualCameraBehaviourVector3Damping";
 const TOGGLE = "TriStepToggleCubemap";
 function readRed(text) {
