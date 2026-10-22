@@ -103,6 +103,18 @@ test("baseline updates retire resolved findings but never absorb newly missing s
     assert.deepEqual(shrinkBaseline([],result).fingerprints,[]);
 });
 
+test("a constructor is exempt from required-state while an unstated method is not", () =>
+{
+    const findings=inspect(`import {exposure as target} from '#be'; import {meta} from '#schema';
+        @meta.implemented @target.define('Native') class Example {
+            constructor(){ this.value=1; }
+            Call(){}
+        }`);
+    const missing=findings.filter(f=>f.rule==='required-state').map(f=>f.member);
+    assert.ok(!missing.includes('constructor'));
+    assert.ok(missing.includes('Call'));
+});
+
 test("a declared rename carries its baselined finding and nothing else", () =>
 {
     const old={rule:"required-state",source:"src/A.js",class:"A",member:"#Call",detail:"Missing"};

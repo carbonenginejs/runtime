@@ -92,7 +92,8 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
         for(const m of [{name:"<class>",kind:"class",decorators:c.decorators,line:c.line},...c.members])
         {
             const ds=m.decorators??[], present=new Set(ds.filter(d=>states.has(d.name)).map(d=>d.name));
-            if(!present.size)add("required-state",c,m,"Missing explicit target state; never inferred as implemented.");
+            // A constructor cannot carry a decorator; its state is the class's.
+            if(!present.size&&m.kind!=="constructor")add("required-state",c,m,"Missing explicit target state; never inferred as implemented.");
             if(present.size>1)add("conflicting-state",c,m,[...present].join(", "));
             if(ds.some(d=>d.name==="meta.noop"))add("retired-noop",c,m,"Convert to adapted with rationale.");
             // A be.map* decorator above a class names a member the class inherits (decorator-upgrade.md § 00): the row is checked against the class's own block.
