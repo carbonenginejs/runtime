@@ -5,6 +5,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { EveTriggerVolume } from "../../npm/dist/trinity/eve/EveTriggerVolume.js";
 import { EveSphereVolume } from "../../npm/dist/trinity/eve/volume/EveSphereVolume.js";
+import { quat } from "../../npm/dist/global/math/quat.js";
 
 
 const assertVecNear = (actual, expected, epsilon = 1e-5) =>
@@ -116,7 +117,7 @@ test("EveTriggerVolume transforms, merges bounding spheres, and floors pickable 
   const rotated = vec3.transformMat4(vec3.create(), [ 1, 0, 0 ], transform);
   assertVecNear(rotated, [ 0, 101, 0 ]);
 
-  const rotation = trigger.GetWorldRotation();
+  const rotation = trigger.GetWorldRotation(quat.create());
   assert.ok(Math.abs(Math.abs(rotation[2] * halfSqrt + rotation[3] * halfSqrt) - 1) < 1e-5);
 
   const center = trigger.GetModelCenterWorldPosition(vec3.create());

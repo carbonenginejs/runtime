@@ -33,6 +33,7 @@ import {
   EveSOFDataHullController
 } from "../../npm/dist/sof/hull/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 /** The class's property declaration for an exposed name. */
 function Property(Constructor, name)
@@ -287,9 +288,9 @@ test("EveVirtualCamera.forward/right/up are getters over the direction methods (
   const camera = new EveVirtualCamera();
   camera.position.set([ 0, 0, 0 ]);
   camera.pointOfInterest.set([ 0, 0, -5 ]);
-  assert.deepEqual(Array.from(camera.forward), Array.from(camera.GetViewDirection()));
-  assert.deepEqual(Array.from(camera.right), Array.from(camera.GetRightDirection()));
-  assert.deepEqual(Array.from(camera.up), Array.from(camera.GetUpDirection()));
+  assert.deepEqual(Array.from(camera.forward), Array.from(camera.GetViewDirection(vec3.create())));
+  assert.deepEqual(Array.from(camera.right), Array.from(camera.GetRightDirection(vec3.create())));
+  assert.deepEqual(Array.from(camera.up), Array.from(camera.GetUpDirection(vec3.create())));
 
   const view = t.mock.method(camera, "GetViewDirection");
   void camera.forward;

@@ -40,7 +40,7 @@ for(const [Class,components,Base,interfaces] of cases)
         blue.EnumerateChildren(curve,child=>children.push(child));
         assert.deepEqual(children,components.map(key=>curve[key]));
         components.forEach((key,index)=>assert.equal(children[index],curve[key]));
-        assert.deepEqual(GetResources(curve),[]);
+        assert.deepEqual(GetResources(curve, []),[]);
     });
 
     test(`${name} uses shared dictionary and Copier graph operations`,()=>

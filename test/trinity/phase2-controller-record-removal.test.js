@@ -188,7 +188,7 @@ test("handler construction and copy preserve list identity shared actions and ob
   const seen = [];
   seen.push(copy, ...blue.FindAllReferences(copy).keys());
   assert.equal(seen.includes(copy.actions[0]), true);
-  assert.deepEqual(GetResources(copy), []);
+  assert.deepEqual(GetResources(copy, []), []);
 });
 
 test("timeline owner constructs and edits the plain three-field entry", () =>

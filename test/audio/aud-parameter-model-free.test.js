@@ -207,7 +207,7 @@ test("current dictionary construction creates unbound parameters without a model
     // declaration metadata is checked separately from storage precision.
     assert.equal(parameter.value, 0.1);
     assert.equal(parameter._gameObjID, 0);
-    const values = new DictWriter().WriteObject(parameter);
+    const values = new DictWriter().WriteObject(parameter, {});
     assert.equal(values.name, "主推力");
     assert.equal(values.value, 0.1);
     const persistent = new DictWriter().WriteObject(parameter, {}, {persistOnly: true});

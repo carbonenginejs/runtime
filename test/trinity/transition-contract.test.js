@@ -175,7 +175,7 @@ test("unrestricted values carry the stored declarations but not the unpersisted 
   transition.name = "values";
   transition.condition = "1";
   assert.equal(transition._program, null);
-  const values = new DictWriter().WriteObject(transition);
+  const values = new DictWriter().WriteObject(transition, {});
   // Only a persisted property is written (decision 2026-10-18; BlueMemberIterator.cpp:150-177).
   assert.equal(Object.hasOwn(values, "isConditionValid"), false);
   assert.equal(values.name, "values");

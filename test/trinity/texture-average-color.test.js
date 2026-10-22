@@ -45,17 +45,17 @@ test("TriTextureRes.SetAverageColor is the push hook a video source uses (VideoP
 test("EveBannerSet reads its primary texture's average, zero without one (EveBannerSet.cpp:441-455)", () =>
 {
     const set = new EveBannerSet();
-    close(set.GetAverageColor(), [ 0, 0, 0, 0 ]);
+    close(set.GetAverageColor(new Float32Array(4)), [ 0, 0, 0, 0 ]);
     const texture = loadedTexture();
     set.primaryTextureParameter = { GetResource: () => texture };
-    close(set.GetAverageColor(), SOLID);
+    close(set.GetAverageColor(new Float32Array(4)), SOLID);
 });
 
 test("EvePlaneSet multiplies its maps' averages, a missing map counting as white (EvePlaneSet.cpp:499-527)", () =>
 {
     const set = new EvePlaneSet();
-    close(set.GetAverageColor(), [ 1, 1, 1, 1 ]);
+    close(set.GetAverageColor(new Float32Array(4)), [ 1, 1, 1, 1 ]);
     const texture = loadedTexture();
     set.imageMapParameter = { GetResource: () => texture };
-    close(set.GetAverageColor(), SOLID);
+    close(set.GetAverageColor(new Float32Array(4)), SOLID);
 });

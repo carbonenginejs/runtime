@@ -356,7 +356,7 @@ test("dynamic exposure runs Carbon's three compute passes over 16 x 16 tiles", (
 test("the gaussian pass normalises over every tap and packs two taps per vector", () =>
 {
   // Radius 3, centre weight 0: taps at -3, -1, 1 (and 3 as the last, lone step).
-  const data = GaussianData.calculateGaussianPassParameters(3, 0, 1 / 64, [ 1, 1, 1 ], [ 1, 0 ]);
+  const data = GaussianData.calculateGaussianPassParameters(3, 0, 1 / 64, [ 1, 1, 1 ], [ 1, 0 ], new GaussianData());
 
   assert.equal(data.count * 2 % 2, 0);
   let weightSum = 0;
@@ -364,7 +364,7 @@ test("the gaussian pass normalises over every tap and packs two taps per vector"
   assert.ok(Math.abs(weightSum - 1) < 1e-6, `on-screen taps sum to one, got ${weightSum}`);
 
   // The struct as Carbon memcpys it: vec3 + uint count, then the Vector4s.
-  const bytes = GaussianData.pack(data);
+  const bytes = GaussianData.pack(data, new Uint8Array(GaussianData.byteSize));
   const view = new DataView(bytes.buffer);
   assert.equal(bytes.byteLength, 16 + 64 * 16);
   assert.equal(view.getUint32(12, true), data.count);
@@ -458,10 +458,10 @@ test("a reused GaussianData packs the same bytes as a fresh one, the old taps ze
 {
   // Bloom reuses one struct every pass (no per-frame allocation): a wide pass
   // then a narrow one must leave no trace of the wide pass's extra taps.
-  const reused = GaussianData.calculateGaussianPassParameters(40, 0, 1 / 512, [ 1, 1, 1 ], [ 1, 0 ]);
+  const reused = GaussianData.calculateGaussianPassParameters(40, 0, 1 / 512, [ 1, 1, 1 ], [ 1, 0 ], new GaussianData());
   GaussianData.calculateGaussianPassParameters(3, 0, 1 / 64, [ 0.5, 0.25, 1 ], [ 0, 1 ], reused);
-  const fresh = GaussianData.calculateGaussianPassParameters(3, 0, 1 / 64, [ 0.5, 0.25, 1 ], [ 0, 1 ]);
-  assert.deepEqual(GaussianData.pack(reused), GaussianData.pack(fresh));
+  const fresh = GaussianData.calculateGaussianPassParameters(3, 0, 1 / 64, [ 0.5, 0.25, 1 ], [ 0, 1 ], new GaussianData());
+  assert.deepEqual(GaussianData.pack(reused, new Uint8Array(GaussianData.byteSize)), GaussianData.pack(fresh, new Uint8Array(GaussianData.byteSize)));
   // Negative control: the wide pass alone does differ from the narrow one.
-  assert.notDeepEqual(GaussianData.pack(GaussianData.calculateGaussianPassParameters(40, 0, 1 / 512, [ 1, 1, 1 ], [ 1, 0 ])), GaussianData.pack(fresh));
+  assert.notDeepEqual(GaussianData.pack(GaussianData.calculateGaussianPassParameters(40, 0, 1 / 512, [ 1, 1, 1 ], [ 1, 0 ], new GaussianData()), new Uint8Array(GaussianData.byteSize)), GaussianData.pack(fresh, new Uint8Array(GaussianData.byteSize)));
 });

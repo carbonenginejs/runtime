@@ -32,7 +32,7 @@ test("camera key constructs without model state and implements the native five-m
     assert.equal(CjsSchema.getMethod(ITr2FollowCurveKey, name).impl.status, "abstract");
     assert.equal(Object.hasOwn(Tr2CameraFollowCurveKey.prototype, name), true);
   }
-  assert.deepEqual(GetResources(key), []);
+  assert.deepEqual(GetResources(key, []), []);
 });
 
 test("camera key maps itself first, then exactly the native interfaces, without a parent query chain", () =>

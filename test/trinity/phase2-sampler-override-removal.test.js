@@ -46,7 +46,7 @@ test("sampler data retains opaque AL value semantics without resource traversal"
   assert.ok(row.sampler instanceof Tr2SamplerStateAL);
   assert.equal(row.sampler.IsValid(), false);
   row.sampler = { isResource: true };
-  assert.deepEqual(GetResources(row), [], "opaque sampler state is not a declared Blue resource edge");
+  assert.deepEqual(GetResources(row, []), [], "opaque sampler state is not a declared Blue resource edge");
 });
 
 test("sampler declared reader and Copier preserve full unsigned authored values", () =>

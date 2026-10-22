@@ -46,14 +46,14 @@ test("direct writes run the live resource acquisition property, which the dictio
  // maskPath is a MAP_PROPERTY, not PERSIST (DictReader.cpp:706).
  assert.throws(()=>new DictReader({declarations:true}).ReadInto(mask,{maskPath:"res:/test/other-mask.png"}),/Invalid attribute/);
  new DictReader({declarations:true}).ReadInto(mask,{channel:2,leftEdge:1});mask.maskPath="res:/test/other-mask.png";assert.equal(mask.maskPath,"res:/test/other-mask.png");assert.equal(stub.requests.length,count+2);assert.equal(mask.mask,image);
- const result=new DictWriter().WriteObject(mask);assert.equal("maskPath" in result,false);assert.equal("mask" in result,false);assert.equal("_maskPath" in result,false);
+ const result=new DictWriter().WriteObject(mask, {});assert.equal("maskPath" in result,false);assert.equal("mask" in result,false);assert.equal("_maskPath" in result,false);
  mask.maskPath="";assert.equal(mask.mask,null);assert.equal(stub.requests.length,count+2);
 });
 
 test("Blue resource traversal reaches a held image through the actual sprite owner",()=>{
  const owner=new Tr2Sprite2dRenderJob(),mask=new Tr2Sprite2dPickingMask();owner.pickingMask=mask;mask.mask=image;
- assert.deepEqual(GetResources(mask),[image]);assert.deepEqual(GetResources(owner),[image]);
- mask.mask=null;assert.deepEqual(GetResources(owner),[]);
+ assert.deepEqual(GetResources(mask, []),[image]);assert.deepEqual(GetResources(owner, []),[image]);
+ mask.mask=null;assert.deepEqual(GetResources(owner, []),[]);
 });
 
 test("actual sprite PickPoint consumes the preserved nine-slice mask and strict threshold",()=>{

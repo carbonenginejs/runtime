@@ -18,7 +18,7 @@ for (const mode of ["fov", "off-center", "custom", "ortho"])
     if (mode === "off-center") projection.PerspectiveOffCenter(-2, 3, -1, 1, 1, 10000);
     if (mode === "custom") EveCamera.CalculateProjectionMatrix(mat4.create(), 2, Math.PI / 4, 0.2, -0.1, 1, 10000, projection);
     if (mode === "ortho") projection.PerspectiveOrthographic(800, 400, 1, 10000);
-    const original = projection.GetMatrixWithoutViewAdjustment();
+    const original = projection.GetMatrixWithoutViewAdjustment(mat4.create());
     const expectedFov = mode === "ortho" ? 1 : mode === "fov" ? projection.fov : 2 * Math.atan(1 / original[5]);
     view.SetLookAtPosition([10, 20, 1000], [0, 0, 0], [0, 1, 0]);
     handle.scaleByDistanceToView = true;
@@ -28,7 +28,7 @@ for (const mode of ["fov", "off-center", "custom", "ortho"])
     Tr2Renderer.PushViewTransform();
     t.after(() => { Tr2Renderer.PopViewTransform(); Tr2Renderer.PopProjection(); scene.Destruct(); });
     // Carbon sets the view and the projection the way a pass does.
-    Tr2Renderer.SetViewTransform(view.GetTransform());
+    Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
     projection.SetProjection();
     scene.GetPickingObjectsToRender(null, context);
     const visibleWorld = [...handle.worldTransform], visibleScale = handle.scale;
@@ -39,7 +39,7 @@ for (const mode of ["fov", "off-center", "custom", "ortho"])
     assert.equal(Tr2Renderer.GetFieldOfView(), expectedFov);
     assert.equal(handle.scale, visibleScale, "picking must not collapse or shrink the handle");
     assert.deepEqual([...handle.worldTransform], visibleWorld);
-    assert.deepEqual([...projection.GetMatrixWithoutViewAdjustment()], [...original]);
+    assert.deepEqual([...projection.GetMatrixWithoutViewAdjustment(mat4.create())], [...original]);
     assert.ok(Math.abs(Tr2Renderer.GetProjectionTransform()[0] - original[0] * viewport.width) < 0.001);
   });
 }

@@ -55,7 +55,7 @@ test("plain SOF bases and all typed parameters retain exact native self and base
     if (typed) assert.equal(CjsSchema.cast(record, Parameter), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in record, false);
-    assert.equal("from" in Class, false); assert.deepEqual(GetResources(record), []);
+    assert.equal("from" in Class, false); assert.deepEqual(GetResources(record, []), []);
   }
 });
 

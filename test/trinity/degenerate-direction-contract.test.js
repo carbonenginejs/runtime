@@ -30,13 +30,13 @@ test("offset and move-between use native backward-heading identity", () =>
   offset.world = false;
   offset.proportional = false;
   vec3.set(offset.offset, 1, 0, 0);
-  near(offset.Update(camera, null, 0, 0.5, null, 1, [0, 0, -1]), [1, 0, 0]);
+  near(offset.Update(camera, null, 0, 0.5, null, 1, [0, 0, -1], vec3.create()), [1, 0, 0]);
   const move = new MoveBetween();
   move.world = false;
   move.proportional = false;
   vec3.set(move.start, 1, 0, 0);
   vec3.set(move.end, 1, 0, 0);
-  near(move.Update(camera, null, 0, 0.5, null, 1, [0, 0, -1]), [1, 0, 0]);
+  near(move.Update(camera, null, 0, 0.5, null, 1, [0, 0, -1], vec3.create()), [1, 0, 0]);
 });
 
 test("orbit preserves a zero horizontal heading without changing world-space mode", () =>
@@ -49,9 +49,9 @@ test("orbit preserves a zero horizontal heading without changing world-space mod
   orbit.distance = 2;
   orbit.start = orbit.end = 0;
   for (const heading of [[0, 1, 0], [0, 0, 0]])
-    near(orbit.Update(camera, null, 0, 0, null, 1, heading), [0, 0, 0]);
+    near(orbit.Update(camera, null, 0, 0, null, 1, heading, vec3.create()), [0, 0, 0]);
   orbit.world = true;
-  near(orbit.Update(camera, null, 0, 0, null, 1, [0, 1, 0]), [0, 0, 2]);
+  near(orbit.Update(camera, null, 0, 0, null, 1, [0, 1, 0], vec3.create()), [0, 0, 2]);
 });
 
 test("sphere projection retains native center NaN and nonzero radial projection", t =>

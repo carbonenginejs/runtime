@@ -20,7 +20,7 @@ test("tool ray direction is independent of camera translation, including a rotat
   const nearView = mat4.invert(mat4.create(), world);
   world[12] = 300000; world[13] = 200000; world[14] = depth;
   const farView = mat4.invert(mat4.create(), world);
-  const matrix = projection.GetMatrixWithoutViewAdjustment();
+  const matrix = projection.GetMatrixWithoutViewAdjustment(mat4.create());
   for (const x of [600, 601, 602, 700])
   {
     const near = tool.ScreenCoordinatesToRay(x, 301, viewport, nearView, matrix);
@@ -41,8 +41,8 @@ function setup(t, mode, axis, behind = false)
   const projection = new TriProjection(), view = new TriView();
   projection.PerspectiveFov(fov, 2, 2, 1e8);
   view.SetLookAtPosition([300000, 200000, behind ? -depth : depth], [300000, 200000, 0], [0, 1, 0]);
-  Tr2Renderer.SetProjectionTransform(projection.GetMatrixWithoutViewAdjustment());
-  Tr2Renderer.SetViewTransform(view.GetTransform());
+  Tr2Renderer.SetProjectionTransform(projection.GetMatrixWithoutViewAdjustment(mat4.create()));
+  Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
   const local = mat4.fromTranslation(mat4.create(), [300000, 200000, 0]);
   mat4.scale(local, local, [100, 100, 100]);
   const gizmo = new TnyTransformGizmo({ mode, getView: () => ({ context, projection, view, viewport }) });

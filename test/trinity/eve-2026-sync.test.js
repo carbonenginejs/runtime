@@ -587,7 +587,7 @@ test("EveModularObjectModifier adds, transforms, bounds and removes parts", asyn
     "hull", "", "", [ 2, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]));
   assert.equal(id, 1);
   assert.equal(partData.parts.length, 1);
-  assertVectorClose(modifier.GetPosition(id), [ 2, 0, 0 ], "part position");
+  assertVectorClose(modifier.GetPosition(id, vec3.create()), [ 2, 0, 0 ], "part position");
   assertVectorClose(partData.parts[0].boundingSphere, [ 1, 0, 0, 2 ], "part bounds");
   assertVectorClose(
     [ object.boundingSphereCenter[0], object.boundingSphereCenter[1],
@@ -612,7 +612,7 @@ test("EveModularObjectModifier adds, transforms, bounds and removes parts", asyn
   assert.equal(partData.parts.length, 0);
   assert.equal(object.effectChildren.includes(builtChildren[0]), false);
   assertVectorClose(object.shapeEllipsoidRadius, [ 0, 0, 0 ], "empty modular ellipsoid");
-  assert.throws(() => modifier.GetPosition(id), /Unknown modular part tag/);
+  assert.throws(() => modifier.GetPosition(id, vec3.create()), /Unknown modular part tag/);
 });
 
 

@@ -117,7 +117,7 @@ test("binding copy keeps authored graph identity and leaves resolved state unlin
   const seen = [];
   seen.push(copy, ...blue.FindAllReferences(copy).keys());
   assert.equal(seen.includes(copy.object), true);
-  assert.deepEqual(GetResources(copy), []);
+  assert.deepEqual(GetResources(copy, []), []);
   copy.Link([]);
   assert.equal(copy.IsValid(), true);
   assert.equal(copy.GetValue(), 5);

@@ -68,6 +68,8 @@ import { Tr2FactionLight } from "../../npm/dist/trinity/eve/lights/Tr2FactionLig
 import { EveSmartLightSpotLight } from "../../npm/dist/trinity/eve/smartLights/EveSmartLightSpotLight.js";
 import { Tr2Light } from "../../npm/dist/trinity/eve/lights/Tr2Light.js";
 import { EveBezierCurve, EveCircle, EveLineChildContainer, IEveLineSetPath } from "../../npm/dist/trinity/index.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { vec4 } from "../../npm/dist/global/math/vec4.js";
 
 
 // A minimal accumulator duck carrying a fresh per-object store.
@@ -1223,7 +1225,7 @@ test("CPU particle forces use Carbon's GetForce contract and volume attenuation"
   volume.radius = 2;
   volume.exponent = 1;
   volume.forces.push(direct);
-  assert.deepEqual(Array.from(volume.GetForce([1, 0, 0], [0, 0, 0], 1, 1)), [1, 0, 0]);
+  assert.deepEqual(Array.from(volume.GetForce([1, 0, 0], [0, 0, 0], 1, 1, vec3.create())), [1, 0, 0]);
 
   const system = new Tr2ParticleSystem();
   system.maxParticleCount = 1;
@@ -1456,7 +1458,7 @@ test("EveLineChildContainer owns portable child traversal and aggregate bounds",
   container.OnModified();
   assert.equal(container.Update({}, {}), true);
   assert.equal(container.GetPointCount(), 5);
-  assert.deepEqual(Array.from(container.GetBoundingSphere()), [2, 0, 0, 4]);
+  assert.deepEqual(Array.from(container.GetBoundingSphere(vec4.create())), [2, 0, 0, 4]);
   assert.equal(events.filter(event => event[0] === "generate").length, 2);
   assert.equal(events.filter(event => event[0] === "bounds").length, 2);
 

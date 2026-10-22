@@ -248,9 +248,9 @@ test("EveChildTurret tracking fades, muzzle transforms and movement audio", () =
   // The firing bone transform lifts the bone through this world transform.
   turret.mesh = { GetGeometryResource: () => null };
   turret.firingEffect = null;
-  const fallback = turret.GetFiringBoneWorldTransform(0);
+  const fallback = turret.GetFiringBoneWorldTransform(0, mat4.create());
   assert.deepEqual(Array.from(fallback), Array.from(turret.worldTransform));
-  const lifted = turret.GetTurretBoneTransform(5);
+  const lifted = turret.GetTurretBoneTransform(5, mat4.create());
   assertVecNear([ lifted[12], lifted[13], lifted[14] ], [ 5, 0, 0 ]);
 
   // Movement audio goes through the observer's emitter on target acquisition.

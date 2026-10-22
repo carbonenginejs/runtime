@@ -492,7 +492,7 @@ test("GetBatches culls, bins by LOD and mirroring, and commits instanced draws i
   assert.equal(manager._staticInstanceBuffer._mappedData, null, "DoneCopying unmapped the ring (cpp:922-923)");
   const bytes = manager._staticInstanceBuffer._buffer.MapForWriting(renderContext).data;
   const view = new DataView(bytes.buffer, bytes.byteOffset, 240);
-  const packed = Float4x3.fromMat4(instances[0].transform);
+  const packed = Float4x3.fromMat4(instances[0].transform, new Float32Array(12));
   const near = (a, b) => Math.abs(a - b) < 1e-5;
   assert.ok(near(view.getFloat32(4, true), -3) && near(view.getFloat32(16, true), 2), "basis packed column-stride (MatrixUtils.cpp:6-20), rotated and scaled");
   assert.ok(near(view.getFloat32(12, true), 1) && near(view.getFloat32(28, true), 2) && near(view.getFloat32(44, true), 3), "translation in each row's w");

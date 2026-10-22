@@ -19,7 +19,7 @@ function transform()
 test("packing drops only the constant fourth column", () =>
 {
   const matrix = transform();
-  const packed = Float4x3.fromMat4(matrix);
+  const packed = Float4x3.fromMat4(matrix, new Float32Array(12));
 
   assert.equal(packed.length, 12);
 
@@ -33,7 +33,7 @@ test("packing drops only the constant fourth column", () =>
 test("unpacking restores the original transform exactly", () =>
 {
   const matrix = transform();
-  const restored = Float4x3.toMat4(Float4x3.fromMat4(matrix));
+  const restored = Float4x3.toMat4(Float4x3.fromMat4(matrix, new Float32Array(12)), mat4.create());
 
   for (let index = 0; index < 16; index++)
   {
@@ -48,7 +48,7 @@ test("a packed transform still moves a point the same way", () =>
   const point = [ 1, -2, 3 ];
 
   const direct = vec3.transformMat4(vec3.create(), point, matrix);
-  const roundTripped = vec3.transformMat4(vec3.create(), point, Float4x3.toMat4(Float4x3.fromMat4(matrix)));
+  const roundTripped = vec3.transformMat4(vec3.create(), point, Float4x3.toMat4(Float4x3.fromMat4(matrix, new Float32Array(12)), mat4.create()));
 
   for (let axis = 0; axis < 3; axis++)
   {
@@ -59,7 +59,7 @@ test("a packed transform still moves a point the same way", () =>
 test("the packing is its own inverse mapping", () =>
 {
   const elements = Float32Array.from({ length: 12 }, (value, index) => index + 1);
-  const round = Float4x3.fromMat4(Float4x3.toMat4(elements));
+  const round = Float4x3.fromMat4(Float4x3.toMat4(elements, mat4.create()), new Float32Array(12));
 
   assert.deepEqual(Array.from(round), Array.from(elements));
 });
@@ -71,7 +71,7 @@ test("the record form packs and unpacks through its own elements", () =>
 
   assert.equal(record.elements.length, 12);
 
-  const restored = record.GetMat4();
+  const restored = record.GetMat4(mat4.create());
   assert.ok(Math.abs(restored[12] - 10) < 1e-6, "translation x survives the round trip");
   assert.equal(restored[15], 1, "the reconstructed fourth column is (0,0,0,1)");
   assert.equal(restored[3], 0);
@@ -84,7 +84,7 @@ test("mat4.getAffineCarbon and fromAffineCarbon round-trip a rotation, scale and
 
   // Carbon's elements[0..3] are _11, _21, _31, _41: column one, translation x last.
   assert.deepEqual(Array.from(packed.subarray(0, 4)), [ matrix[0], matrix[4], matrix[8], matrix[12] ]);
-  assert.deepEqual(Array.from(packed), Array.from(Float4x3.fromMat4(matrix)), "one implementation");
+  assert.deepEqual(Array.from(packed), Array.from(Float4x3.fromMat4(matrix, new Float32Array(12))), "one implementation");
 
   const restored = mat4.fromAffineCarbon(mat4.create(), packed);
   assert.deepEqual(Array.from(restored), Array.from(matrix));

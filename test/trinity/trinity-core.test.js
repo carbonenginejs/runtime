@@ -156,7 +156,7 @@ test("primitive sets retain CPU geometry and native AL submission state", t =>
   assertAlmostEquals(solids.triangles[0].normal[0], 0);
   assertAlmostEquals(solids.triangles[0].normal[1], 0);
   assertAlmostEquals(solids.triangles[0].normal[2], 1);
-  assert.deepEqual(Array.from(solids.GetCenterOfMass()).map(value => Math.round(value * 1e6) / 1e6), [0.333333, 0.333333, 0]);
+  assert.deepEqual(Array.from(solids.GetCenterOfMass(vec3.create())).map(value => Math.round(value * 1e6) / 1e6), [0.333333, 0.333333, 0]);
   solids.SetCurrentColor(white);
   assert.deepEqual(Array.from(solids.triangles[0].color3), Array.from(white));
 
@@ -744,7 +744,7 @@ test("TriProjection exposes its source-backed schema and identity default", () =
     assertEquals(CjsSchema.getField(TriProjection, privateField), null);
   }
   assertEquals(projection.GetProjectionType(), 0);
-  assertMatrixValues(projection.GetTransform(), mat4.create());
+  assertMatrixValues(projection.GetTransform(mat4.create()), mat4.create());
 });
 
 test("TriProjection constructs Carbon's right-handed perspective and orthographic matrices", () =>
@@ -753,7 +753,7 @@ test("TriProjection constructs Carbon's right-handed perspective and orthographi
 
   projection.PerspectiveFov(Math.PI / 2, 2, 1, 11);
   assertEquals(projection.GetProjectionType(), TriProjection.FOV);
-  assertMatrixValues(projection.GetTransform(), [
+  assertMatrixValues(projection.GetTransform(mat4.create()), [
     0.5, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, -1.1, -1,
@@ -762,7 +762,7 @@ test("TriProjection constructs Carbon's right-handed perspective and orthographi
 
   projection.PerspectiveOffCenter(-1, 3, -2, 2, 1, 11);
   assertEquals(projection.GetProjectionType(), TriProjection.OFF_CENTER);
-  assertMatrixValues(projection.GetTransform(), [
+  assertMatrixValues(projection.GetTransform(mat4.create()), [
     0.5, 0, 0, 0,
     0, 0.5, 0, 0,
     0.5, 0, -1.1, -1,
@@ -771,7 +771,7 @@ test("TriProjection constructs Carbon's right-handed perspective and orthographi
 
   projection.PerspectiveOrthographic(8, 4, 1, 11);
   assertEquals(projection.GetProjectionType(), TriProjection.ORTHO);
-  assertMatrixValues(projection.GetTransform(), [
+  assertMatrixValues(projection.GetTransform(mat4.create()), [
     0.25, 0, 0, 0,
     0, 0.5, 0, 0,
     0, 0, -0.1, 0,
@@ -787,11 +787,11 @@ test("TriProjection custom transforms are copied at both API boundaries", () =>
   projection.CustomProjection(source);
   source[12] = 8;
 
-  const first = projection.GetTransform();
+  const first = projection.GetTransform(mat4.create());
   assertEquals(projection.GetProjectionType(), TriProjection.CUSTOM);
   assertAlmostEquals(first[12], 4);
   first[12] = 12;
-  assertAlmostEquals(projection.GetTransform()[12], 4);
+  assertAlmostEquals(projection.GetTransform(mat4.create())[12], 4);
 });
 
 test("TriView builds Carbon's right-handed look-at transform", () =>
@@ -804,7 +804,7 @@ test("TriView builds Carbon's right-handed look-at transform", () =>
   assertMatrixValues(view.transform, expected);
   const replacement = mat4.fromTranslation(mat4.create(), [7, 8, 9]);
   view.SetTransform(replacement);
-  const detached = view.GetTransform();
+  const detached = view.GetTransform(mat4.create());
   assertMatrixValues(detached, replacement);
   detached[12] = 100;
   assertEquals(view.transform[12], 7);

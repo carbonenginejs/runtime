@@ -44,7 +44,7 @@ test("instance record defaults and borrowed opaque storage survive model removal
   record.buffer = borrowed;
   record.count = 3;
   assert.equal(record.buffer, borrowed);
-  assert.deepEqual(GetResources(record), [], "opaque AL storage does not become a Blue resource edge");
+  assert.deepEqual(GetResources(record, []), [], "opaque AL storage does not become a Blue resource edge");
   const copy = new Copier().CopyTo(record);
   assert.deepEqual([copy.buffer, copy.offset, copy.stride, copy.count], [null, 0, 0, 0], "runtime record slots do not persist");
 });

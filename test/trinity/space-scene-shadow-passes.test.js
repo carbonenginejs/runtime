@@ -74,10 +74,10 @@ function shadowScene()
 
   core.Tr2Renderer.prepareDeviceResources(context);
   projection.PerspectiveFov(Math.PI / 4, 1, 1, 100000);
-  Tr2Renderer.SetProjectionTransform(projection.GetTransform());
+  Tr2Renderer.SetProjectionTransform(projection.GetTransform(mat4.create()));
   Tr2Renderer.SetViewTransform(view);
   context.SetTriPoolAllocator({ Allocate: () => ({}), Clear() {} });
-  frustum.DeriveFrustum(view, vec3.create(), projection.GetTransform(), { x: 0, y: 0, width: 256, height: 256 });
+  frustum.DeriveFrustum(view, vec3.create(), projection.GetTransform(mat4.create()), { x: 0, y: 0, width: 256, height: 256 });
   scene.StampFrameContext({ frustum });
 
   return { context, pool, scene };

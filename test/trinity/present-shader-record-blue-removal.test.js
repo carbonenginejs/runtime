@@ -25,7 +25,7 @@ test("presentation record inherits native AL storage with concrete UI defaults a
 
 test("presentation dictionary aliases share AL dimensions and remain nonpersistent",()=>{
  const value=new Tr2PresentParameters(),mode=value.mode;new DictReader({declarations:true}).ReadInto(value,{backBufferWidth:800,backBufferHeight:600,windowed:true,software:true});assert.equal(value.mode,mode);assert.deepEqual([mode.width,mode.height],[800,600]);
- mode.width=1024;assert.equal(value.backBufferWidth,1024);const written=new DictWriter().WriteObject(value);assert.deepEqual([written.backBufferWidth,written.backBufferHeight,written.windowed,written.software],[1024,600,true,true]);
+ mode.width=1024;assert.equal(value.backBufferWidth,1024);const written=new DictWriter().WriteObject(value, {});assert.deepEqual([written.backBufferWidth,written.backBufferHeight,written.windowed,written.software],[1024,600,true,true]);
  const persisted=new DictWriter().WriteObject(value,{}, {persistOnly:true});for(const field of ["backBufferWidth","backBufferHeight","windowed","software"])assert.equal(Object.hasOwn(persisted,field),false);
 });
 

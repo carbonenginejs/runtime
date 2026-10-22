@@ -313,7 +313,7 @@ test("shared traversal reaches functions bindings and ranges without instance he
   const visited = [];
   visited.push(set, ...blue.FindAllReferences(set).keys());
   for (const value of [set, curve, binding, range]) assert.equal(visited.includes(value), true);
-  assert.deepEqual(GetResources(set), []);
+  assert.deepEqual(GetResources(set, []), []);
 });
 
 const corpus = process.env.CURVE_SET_BLACK_CORPUS_DIR;

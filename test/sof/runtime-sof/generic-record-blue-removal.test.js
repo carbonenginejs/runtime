@@ -45,7 +45,7 @@ test("generic SOF records construct without model APIs and expose self-only nati
     assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null);
     assert.equal(CjsSchema.cast(record, INotify), null);
-    assert.deepEqual(GetResources(record), []);
+    assert.deepEqual(GetResources(record, []), []);
   }
 });
 

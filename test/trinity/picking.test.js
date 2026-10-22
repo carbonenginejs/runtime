@@ -132,17 +132,17 @@ test("EveSpaceScene.PickInfinity resolves a click on empty space to a direction"
   const scene = new EveSpaceScene();
   const { projection, view } = makeCamera();
 
-  const centre = scene.PickInfinity(400, 300, projection, view, VIEWPORT);
+  const centre = scene.PickInfinity(400, 300, projection, view, VIEWPORT, vec3.create());
   assert.ok(Math.abs(centre[2] + 1) < 1e-6, "the centre pixel points straight ahead");
 
-  const right = scene.PickInfinity(800, 300, projection, view, VIEWPORT);
+  const right = scene.PickInfinity(800, 300, projection, view, VIEWPORT, vec3.create());
   assert.ok(right[0] > 0, "the right edge leans +x");
 
   // Carbon returns false from the ray helper on a singular matrix; the scene
   // surfaces that as null rather than a plausible-looking direction.
   const singular = mat4.create();
   mat4.set(singular, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-  assert.equal(scene.PickInfinity(400, 300, singular, view, VIEWPORT), null, "no ray, no guess");
+  assert.equal(scene.PickInfinity(400, 300, singular, view, VIEWPORT, vec3.create()), null, "no ray, no guess");
 });
 
 

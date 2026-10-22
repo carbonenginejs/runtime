@@ -143,7 +143,7 @@ test("EveSpaceScene.GetRenderables aggregates objects and the camera attachment 
   scene.objects.push(a, b);
   scene.cameraAttachmentParent = camera;
 
-  assert.deepEqual(scene.GetRenderables().map(entry => entry.name), [ "a", "b", "camera" ]);
+  assert.deepEqual(scene.GetRenderables([]).map(entry => entry.name), [ "a", "b", "camera" ]);
 });
 
 test("manager transparent pass draws renderables back-to-front in insertion order", () =>

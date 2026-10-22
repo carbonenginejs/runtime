@@ -95,7 +95,7 @@ test("declared parent references and lists construct and traverse typed light re
     const leafChildren = [];
     blue.EnumerateChildren(light, child => leafChildren.push(child));
     assert.deepEqual(leafChildren, []);
-    assert.deepEqual(GetResources(light), []);
+    assert.deepEqual(GetResources(light, []), []);
   }
 });
 

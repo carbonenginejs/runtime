@@ -26,7 +26,7 @@ for(const [name,Class,Base,table] of [
     for(const method of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(method in value,false);
     assert.equal("from" in Class,false);assert.equal(value.Reset,ITriFunction.prototype.Reset);assert.equal(value.Reset(),undefined);
     const list=new BlueList(ITriFunction);assert.equal(list.Append(value),true);assert.equal(list[0],value);
-    assert.deepEqual(GetResources(value),[]);
+    assert.deepEqual(GetResources(value, []),[]);
 });
 
 test("event factory hydration initializes owned typed keys while borrowed reads remain explicit",()=>{

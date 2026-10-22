@@ -66,7 +66,7 @@ test("SOF transform exposes its native self table while the packed instance rema
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state", "Update", "Initialize", "OnModified"])
       assert.equal(name in record, false, name);
-    assert.equal("from" in Class, false); assert.deepEqual(GetResources(record), []);
+    assert.equal("from" in Class, false); assert.deepEqual(GetResources(record, []), []);
   }
 });
 

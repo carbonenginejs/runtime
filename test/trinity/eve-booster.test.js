@@ -376,12 +376,12 @@ test("EveBoosterSet2Renderable visibility is the sphere OR the trail bounds (cpp
   const inFront = MakeBoosterAt(-2000).renderable;
   inFront.UpdateVisibility(context);
   assert.equal(inFront.isVisible, true);
-  assert.deepEqual(inFront.GetRenderables(), [inFront]);
+  assert.deepEqual(inFront.GetRenderables([]), [inFront]);
 
   const behind = MakeBoosterAt(2000).renderable;
   behind.UpdateVisibility(context);
   assert.equal(behind.isVisible, false, "behind the camera, sphere and trail box both fail");
-  assert.deepEqual(behind.GetRenderables(), []);
+  assert.deepEqual(behind.GetRenderables([]), []);
 });
 
 test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibility (cpp:1096-1116)", () =>
@@ -397,7 +397,7 @@ test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibili
 
   set.display = false;
   assert.equal(set.UpdateVisibility(context), false, "display off clears the flag before anything else");
-  assert.deepEqual(set.GetRenderables(), [], "display gates GetRenderables too");
+  assert.deepEqual(set.GetRenderables([]), [], "display gates GetRenderables too");
 
   set.display = true;
   set.glows = new EveSpriteSet();
@@ -405,7 +405,7 @@ test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibili
   // An empty sprite set has no bounds to test, so it reports not visible.
   assert.equal(set.UpdateVisibility(context), false);
   assert.equal(renderable.isVisible, true, "renderables were updated regardless");
-  assert.deepEqual(set.GetRenderables(), [renderable]);
+  assert.deepEqual(set.GetRenderables([]), [renderable]);
 
   // A sprite sitting on the booster is on screen, so the glow draws.
   const sprite = new EveSpriteSetItem();
@@ -416,7 +416,7 @@ test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibili
   assert.equal(set.UpdateVisibility(context), true);
 
   set.effect = null;
-  assert.deepEqual(set.GetRenderables(), [], "no effect, no batches");
+  assert.deepEqual(set.GetRenderables([]), [], "no effect, no batches");
 });
 
 

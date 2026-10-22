@@ -143,7 +143,7 @@ test("real Svipul authored slots resolve exact animated indices before duplicate
   {
     for (let index = 0; index < indices.length; index++)
     {
-      near(sets[setIndex].GetTurrets()[index].localMatrix, normalized(ship.animationUpdater.GetBoneTransform(indices[index])), "native bone mount");
+      near(sets[setIndex].GetTurrets()[index].localMatrix, normalized(ship.animationUpdater.GetBoneTransform(indices[index], mat4.create())), "native bone mount");
     }
   }
   const authored = ship.locators.find(value => value.GetName() === "locator_turret_1a");
@@ -196,7 +196,7 @@ test("real Svipul stance update publishes current mount pose before turret synch
     for (let index = 0; index < 3; index++)
     {
       near(set.GetTurrets()[index].localMatrix.slice(12, 15), expected[sample][index], "raw constant-track quaternion/translation oracle", 0.002);
-      const local = normalized(ship.animationUpdater.GetBoneTransform([18, 28, 9][index]));
+      const local = normalized(ship.animationUpdater.GetBoneTransform([18, 28, 9][index], mat4.create()));
       near(set.GetTurrets()[index].worldMatrix, worldFromLocal(local, ship.GetTurretTransform(set.GetSwarmID())), "current pose is published before the direct transform-boundary probe", 0.002);
     }
     samples.push(set.GetTurrets().map(value => Array.from(value.localMatrix)));

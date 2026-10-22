@@ -43,7 +43,7 @@ test("EveCamera projection helpers preserve Carbon's right-handed matrix bytes",
   ]);
   assert.ok(Math.abs(EveCamera.CalculateFovFromProjection(projection) - Math.PI / 2) < 1e-6);
 
-  const shifted = EveCamera.AddCenterOffset(projection, 0.25, -0.5, 2, 22);
+  const shifted = EveCamera.AddCenterOffset(projection, 0.25, -0.5, 2, 22, mat4.create());
   assert.ok(Math.abs(shifted[8] - 0.25) < 1e-6);
   assert.ok(Math.abs(shifted[9] + 0.5) < 1e-6);
   assert.ok(Math.abs(shifted[10] + 1.1) < 1e-6);

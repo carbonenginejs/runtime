@@ -112,7 +112,7 @@ test("opaque texture and event state stay outside Blue resources and persisted c
   const reference = new Tr2TextureReference();
   reference.texture = { isResource: true };
   reference.onTextureChange = { isResource: true };
-  assert.deepEqual(GetResources(reference), []);
+  assert.deepEqual(GetResources(reference, []), []);
   const copy = new Copier().CopyTo(reference);
   assert.equal(copy.GetTexture().IsValid(), false);
   assert.equal(copy.onTextureChange.constructor, Tr2Event);

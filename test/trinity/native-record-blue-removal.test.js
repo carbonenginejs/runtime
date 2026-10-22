@@ -38,7 +38,7 @@ test("upscaling struct uses dictionary values while native persistence copy skip
  const source={_type:"Tr2UpscalingTechniqueInfo",technique:2,supportedSettings:7,framegeneration:true};const value=new DictReader({declarations:true}).CreateObject(source);
  assert.equal(value.constructor,Tr2UpscalingTechniqueInfo);assert.deepEqual([value.technique,value.supportedSettings,value.framegeneration],[2,7,true]);
  const target=new Tr2UpscalingTechniqueInfo();blue.classes.CopyTo(value,target);assert.deepEqual([target.technique,target.supportedSettings,target.framegeneration],[0,0,false]);
- const written=new DictWriter().WriteObject(value);assert.deepEqual([written.technique,written.supportedSettings,written.framegeneration],[2,7,true]);
+ const written=new DictWriter().WriteObject(value, {});assert.deepEqual([written.technique,written.supportedSettings,written.framegeneration],[2,7,true]);
  new DictReader({declarations:true}).ReadInto(target,written);assert.deepEqual([target.technique,target.supportedSettings,target.framegeneration],[2,7,true]);
  const persisted=new DictWriter().WriteObject(value,{}, {persistOnly:true});for(const field of ["technique","supportedSettings","framegeneration"])assert.equal(Object.hasOwn(persisted,field),false);
  assert.equal(Object.hasOwn(written,"framegen"),false);assert.equal(Tr2UpscalingTechniqueInfo.UpscalingTechnique.NONE,0);

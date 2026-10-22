@@ -68,7 +68,7 @@ test("the display rect insets the viewport by the configured offsets", () =>
   step.displayY = 4;
 
   assert.deepEqual(
-    step.GetDisplayRect({ x: 100, y: 200, width: 800, height: 600 }),
+    step.GetDisplayRect({ x: 100, y: 200, width: 800, height: 600 }, {}),
     { left: 110, top: 204, right: 890, bottom: 796 });
 });
 

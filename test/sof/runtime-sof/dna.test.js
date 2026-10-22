@@ -45,6 +45,7 @@ import { EveSofDataMeshInstance } from "../../../npm/dist/sof/shared/EveSofDataM
 import { EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings } from "../../../npm/dist/sof/layout/EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.js";
 import { EveSOFDataHullExtensionBucket } from "../../../npm/dist/sof/layout/EveSOFDataHullExtensionBucket.js";
 import { EveSOFDataLogoSet } from "../../../npm/dist/sof/shared/EveSOFDataLogoSet.js";
+import { vec3 } from "../../../npm/dist/global/math/vec3.js";
 import {
   EveChildTurret,
   EveTurretSet,
@@ -2740,7 +2741,7 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
   const hydrated = { root: CjsSchema.from(document._type, document) };
   const decal = hydrated.root.decals[0];
   assert.deepEqual(decal.GetStaticIndexBuffers(), [[0, 1, 70000]]);
-  assert.deepEqual(Array.from(decal.GetPosition()), [1, 2, 3]);
+  assert.deepEqual(Array.from(decal.GetPosition(vec3.create())), [1, 2, 3]);
   assert.equal(decal.batchType, 1);
 });
 

@@ -65,13 +65,13 @@ test('planet size threshold is strict and depth proxy has no minScreenSize gate'
   planet.zOnlyModel = child;
   planet.estimatedPixelDiameter = planet.minScreenSize;
   planet.lodLevel = Tr2Lod.TR2_LOD_HIGH;
-  assert.deepEqual(planet.GetRenderables(), []);
-  assert.deepEqual(planet.GetZOnlyRenderables(), ['child']);
+  assert.deepEqual(planet.GetRenderables([]), []);
+  assert.deepEqual(planet.GetZOnlyRenderables([]), ['child']);
   planet.UpdateLOD();
   assert.equal(planet.lodLevel, Tr2Lod.TR2_LOD_LOW);
   planet.estimatedPixelDiameter += 0.01;
   planet.UpdateLOD();
-  assert.deepEqual(planet.GetRenderables(), ['child']);
+  assert.deepEqual(planet.GetRenderables([]), ['child']);
   assert.deepEqual(changes, [Tr2Lod.TR2_LOD_LOW, Tr2Lod.TR2_LOD_LOW, Tr2Lod.TR2_LOD_HIGH, Tr2Lod.TR2_LOD_HIGH]);
   planet.radius = 5000000;
   // Tr2Renderer::GetViewport is the main-thread context's state-manager viewport (Tr2Renderer.cpp:1392-1396).

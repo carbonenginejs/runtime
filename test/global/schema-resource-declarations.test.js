@@ -158,7 +158,7 @@ test("derived ordinary type replaces resource marker while edit-only overrides r
   assert.equal(Object.hasOwn(CjsSchema.getDefaults(StillResource), "cache"), false);
   const traversed = new StillResource();
   traversed.cache = new CjsResource();
-  assert.deepEqual(GetResources(traversed), [traversed.cache]);
+  assert.deepEqual(GetResources(traversed, []), [traversed.cache]);
 });
 
 test("metadata-only type inheritance never crosses roles, slots or explicit declarations", () => {

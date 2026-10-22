@@ -41,7 +41,7 @@ test("audio setters retain native int32 and float32 widths", () =>
     const settings = new SpatialAudioSettings();
     settings.SetNumberOfPrimaryRays(0xffffffff);
     assert.equal(settings.GetNumberOfPrimaryRays(),-1);
-    assert.equal(settings.PopulateInitSettings().uNumberOfPrimaryRays,0xffffffff);
+    assert.equal(settings.PopulateInitSettings({}).uNumberOfPrimaryRays,0xffffffff);
     settings.SetMovementThreshold(0.1);
     assert.equal(settings.GetMovementThreshold(),Math.fround(0.1));
     assert.equal(settings.GetTransmissionLoss(),Math.fround(0.7));

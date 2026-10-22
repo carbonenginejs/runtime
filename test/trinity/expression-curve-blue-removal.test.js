@@ -22,7 +22,7 @@ test("expression curves construct without inherited model APIs", () =>
     assert.equal(Object.getPrototypeOf(Class.prototype), Base.prototype);
     for (const key of ["SetValues", "UpdateValues", "GetValues", "Clone", "OnEvent", "__state"]) assert.equal(key in curve, false);
     assert.equal("from" in Class, false);
-    assert.deepEqual(GetResources(curve), []);
+    assert.deepEqual(GetResources(curve, []), []);
   }
 });
 

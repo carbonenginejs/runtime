@@ -92,7 +92,7 @@ test("float reader and Copier keep scalar storage independent", () =>
   assert.equal(copy.value, 12);
   copy.value = 20;
   assert.equal(source.value, 12);
-  assert.deepEqual(GetResources(copy), []);
+  assert.deepEqual(GetResources(copy, []), []);
 });
 
 test("real variable store retains model-free local value behavior and native value size", () =>
@@ -135,7 +135,7 @@ test("variable resource adapter preserves binding while its discovery gap remain
   const calls = [], resourceDesc = { SetSrv__TextureAL: (...args) => { calls.push(args); return true; } };
   assert.equal(variable.CopyToResourceSet(resourceDesc, 1, 2, 0), true);
   assert.equal(calls[0][2], texture);
-  assert.deepEqual(GetResources(variable), [], "held mixed-slot discovery gap; no false conditional descriptor");
+  assert.deepEqual(GetResources(variable, []), [], "held mixed-slot discovery gap; no false conditional descriptor");
   const copy = new Copier().CopyTo(variable);
   assert.equal(copy.value, null);
   variable.Clear();

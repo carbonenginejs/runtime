@@ -229,7 +229,7 @@ test("EnumerateChildren walks are cycle-safe and GetResources visits every model
 
     // Prior contents are replaced, not accumulated into.
     assert.deepEqual(new Set(GetResources(root, [resourceC])), new Set([resourceA, resourceB, resourceC]));
-    assert.equal(GetResources(root).length, 3);
+    assert.equal(GetResources(root, []).length, 3);
 });
 
 test("CjsEventEmitter normalizes names and supports external method sources", () => {

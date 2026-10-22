@@ -10,6 +10,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { vec3 } from "../../../npm/dist/global/math/vec3.js";
 import {
   ITr2AnimationUpdater,
   ITr2SkinnedObject,
@@ -502,7 +503,7 @@ test("Tr2SkinnedObject exposes verified animation-updater bone queries", () =>
   const out = new Float32Array(3);
   assert.equal(object.GetBonePosition(1, out), out);
   assert.deepEqual(Array.from(out), [ 10, 20, 30 ]);
-  assert.deepEqual(Array.from(object.GetBonePosition(99)), [ 0, 0, 0 ]);
+  assert.deepEqual(Array.from(object.GetBonePosition(99, vec3.create())), [ 0, 0, 0 ]);
   assert.equal(CjsSchema.getMethod(Tr2SkinnedObject, "GetBoneIndex")?.carbon?.method, true);
   assert.equal(CjsSchema.getMethod(Tr2SkinnedObject, "GetBonePosition")?.impl?.status, "adapted");
   assert.equal(CjsSchema.getMethod(Tr2SkinnedObject, "GetBoneTransform")?.impl?.status, "adapted");

@@ -185,8 +185,8 @@ test("AsPerPointLightData flickers brightness with Carbon's fixed-seed Perlin no
   flicker.startTime = blue.os.GetCurrentFrameTime() - 25_000_000;
   const features = { parentBrightness: 1, parentScale: 1 };
 
-  const base = steady.AsPerPointLightData(mat4.create(), features, 0);
-  const lit = flicker.AsPerPointLightData(mat4.create(), features, 0);
+  const base = steady.AsPerPointLightData(mat4.create(), features, 0, CreateLightRecord());
+  const lit = flicker.AsPerPointLightData(mat4.create(), features, 0, CreateLightRecord());
 
   // PerlinNoise1D( TimeAsDouble( now - start ) * frequency, 2, 2, octaves ).
   const value = Math.fround(noise.carbonPerlin1D(CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime() - flicker.startTime) * 3, 2, 2, 2));

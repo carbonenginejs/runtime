@@ -42,7 +42,7 @@ test("shader records retain exact native tables, exposure order, flags and indep
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in a, false);
     assert.equal("from" in Class, false); assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]);
     assert.equal(CjsSchema.cast(a, Class), a); assert.equal(CjsSchema.cast(a, IInitialize), null); assert.equal(CjsSchema.cast(a, INotify), null);
-    assert.deepEqual(GetResources(a), []);
+    assert.deepEqual(GetResources(a, []), []);
     assert.deepEqual(CjsSchema.getSchema(Class).members.map(field => field.name), names);
     assert.deepEqual(CjsSchema.getSchema(Class).properties, []);
     for (const field of CjsSchema.getSchema(Class).members)
@@ -68,7 +68,7 @@ test("actual hydration constructs concrete string, parameter and texture helper 
   assert.equal(decal.defaultTextures[0].constructor, EveSOFDataTexture);
   assert.equal(shader.defaultParameters[0].constructor, EveSOFDataParameter);
   assert.equal(shader.doGenerateDepthArea, false); assert.equal(decal.additive, true);
-  assert.deepEqual(GetResources(shader), []);
+  assert.deepEqual(GetResources(shader, []), []);
   assert.equal(shader.hasPatternMaskMaps, true); assert.equal(new Shader().hasPatternMaskMaps, false);
 });
 

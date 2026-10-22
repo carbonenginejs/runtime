@@ -4,6 +4,7 @@ import { EveSpaceScene, EveSpaceObject2, EvePickingContext, Tr2PerObjectData, Tr
   TriView, TriViewport, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { ALResult, Tr2ConstantBufferAL, Tr2RenderContextALStub, Tr2TextureAL, Tr2ReadbackAL } from "../../npm/dist/trinityal/index.js";
 import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { mat4 } from "../../npm/dist/global/math/mat4.js";
 
 function setup(t, framework = "pointer")
 {
@@ -19,8 +20,8 @@ function setup(t, framework = "pointer")
   viewport.height = 600;
   projection.PerspectiveFov(Math.PI / 3, 4 / 3, 1, 10000);
   view.SetLookAtPosition([10, 20, 100], [0, 0, 0], [0, 1, 0]);
-  Tr2Renderer.SetProjectionTransform(projection.GetMatrixWithoutViewAdjustment());
-  Tr2Renderer.SetViewTransform(view.GetTransform());
+  Tr2Renderer.SetProjectionTransform(projection.GetMatrixWithoutViewAdjustment(mat4.create()));
+  Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
   const esm = context.GetEffectStateManager();
   esm.SetViewport(viewport);
   const originalView = [...Tr2Renderer.GetViewTransform()];

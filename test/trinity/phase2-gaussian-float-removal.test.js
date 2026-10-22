@@ -53,11 +53,11 @@ test("Float4x3 packs exact column strides and restores the affine fourth column"
 test("Gaussian dictionary values and packed layout survive plain construction without persistence", () =>
 {
   assert.deepEqual(CjsSchema.getSchema(GaussianData).members.map(f=>[f.name,f.type.kind]),[["overallWeight","vec3"],["count","uint32"],["weightOffset","array"]]);
-  const source=GaussianData.calculateGaussianPassParameters(40,0,1/512,[1,1,1],[1,0]);
+  const source=GaussianData.calculateGaussianPassParameters(40,0,1/512,[1,1,1],[1,0], new GaussianData());
   const bag=new DictWriter().WriteObject(source,{}, {persistOnly:false});
   const decoded=new DictReader({declarations:true}).CreateObject({_type:"GaussianData",...bag});
   assert.equal(decoded.weightOffset.length,64);
-  assert.deepEqual(GaussianData.pack(decoded),GaussianData.pack(source));
+  assert.deepEqual(GaussianData.pack(decoded, new Uint8Array(GaussianData.byteSize)),GaussianData.pack(source, new Uint8Array(GaussianData.byteSize)));
   const clone=new Copier().CloneTo(source);
   assert.equal(clone.count,0);
   assert.deepEqual(Array.from(clone.overallWeight),[0,0,0]);

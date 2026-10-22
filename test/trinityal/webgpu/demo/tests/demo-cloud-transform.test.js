@@ -21,17 +21,17 @@ test('effect-root gizmo SRT survives native updates under a curve-driven parent'
   root.UpdateSyncronous({ GetTime: () => 1 });
   close(target.readLocal(mat4.create()), edited);
   const expected = mat4.multiply(mat4.create(), target.readParentWorld(mat4.create()), edited);
-  close(root.GetLocalToWorldTransform(), expected);
+  close(root.GetLocalToWorldTransform(mat4.create()), expected);
   const bounds = selectionBounds(root);
   close(bounds.centre, [110,20,30]);
   assert.ok(bounds.radius > 0);
   const copy = new EveEffectRoot2();
   const copiedTarget = createDemoCopiedTransform(copy, expected, 1, null);
   copy.UpdateSyncronous({ GetTime: () => 2 });
-  close(copy.GetLocalToWorldTransform(), expected);
+  close(copy.GetLocalToWorldTransform(mat4.create()), expected);
   copiedTarget.destroy(); target.destroy();
   root.UpdateSyncronous({ GetTime: () => 3 });
-  close(root.GetLocalToWorldTransform(), expected);
+  close(root.GetLocalToWorldTransform(mat4.create()), expected);
 });
 
 test('cloud child world bounds frame effect roots with no authored root sphere', () => {

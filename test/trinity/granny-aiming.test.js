@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/core/animation/Tr2GrannyAnimation.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { mat4 } from "../../npm/dist/global/math/mat4.js";
 
 function close(actual, expected)
 {
@@ -29,20 +30,20 @@ test("aiming replaces sampled rotation, matches names without case, and persists
   for (let i = 0; i < 3; i++)
   {
     value.Update(0);
-    close(Array.from(value.GetBoneWorldTransform("Root").slice(8, 11)), [1, 0, 0]);
+    close(Array.from(value.GetBoneWorldTransform("Root", mat4.create()).slice(8, 11)), [1, 0, 0]);
   }
   // Carbon never rest-poses m_pose per frame (Tr2GrannyAnimation.cpp:1704-1717;
   // cmf AnimationSequencer::Sample writes only active players' bones,
   // mesh/src/cmf/animation.cpp:810-819): an unanimated bone keeps the aim.
   value.DisableAimBone();
   value.Update(0);
-  close(Array.from(value.GetBoneWorldTransform("Root").slice(8, 11)), [1, 0, 0]);
+  close(Array.from(value.GetBoneWorldTransform("Root", mat4.create()).slice(8, 11)), [1, 0, 0]);
   value.AimBone("missing", 10, 0, 0, 0, 0, 1);
   value.Update(0);
-  close(Array.from(value.GetBoneWorldTransform("Root").slice(8, 11)), [1, 0, 0]);
+  close(Array.from(value.GetBoneWorldTransform("Root", mat4.create()).slice(8, 11)), [1, 0, 0]);
   // Only a rebuild rest-poses again (cmf::RestPose at setup, cpp:624).
   value.RebuildCachedData();
-  close(Array.from(value.GetBoneWorldTransform("Root").slice(8, 11)), [0, 0, 1]);
+  close(Array.from(value.GetBoneWorldTransform("Root", mat4.create()).slice(8, 11)), [0, 0, 1]);
 });
 
 test("UpdateAimingBone is Carbon-private (Tr2GrannyAnimation.h:175,191)", () =>
@@ -64,7 +65,7 @@ test("aiming preserves Carbon parent-transpose behavior under nonuniform scale",
   ]);
   value.AimBone("Child", 11, 23, 30, 0, 0, 1);
   value.Update(0);
-  const matrix = value.GetBoneWorldTransform("Child");
+  const matrix = value.GetBoneWorldTransform("Child", mat4.create());
   close(Array.from(matrix.slice(12, 15)), [10, 22, 30]);
   close(Array.from(matrix.slice(8, 11)), [1 / Math.sqrt(5), 4 / Math.sqrt(5), 0]);
 });
@@ -87,7 +88,7 @@ test("pose modifier sees aiming before offsets and final world composition", () 
     // Carbon restores m_sampledPose before sampling (cpp:1704-1709), so
     // neither the modifier nor the offsets compound frame over frame.
     value.Update(0);
-    const matrix = value.GetBoneWorldTransform("Root");
+    const matrix = value.GetBoneWorldTransform("Root", mat4.create());
     close(Array.from(matrix.slice(8, 11)), [0, 0, 1]);
     close(Array.from(matrix.slice(12, 15)), [5, 0, 0]);
   }
@@ -101,9 +102,9 @@ test("bone offsets compound on an unanimated bone without a pose modifier (Carbo
   const value = animation([bone("Root")]);
   value.boneOffset.SetOffset("Root", 3, 0, 0);
   value.Update(0);
-  close(Array.from(value.GetBoneWorldTransform("Root").slice(12, 15)), [3, 0, 0]);
+  close(Array.from(value.GetBoneWorldTransform("Root", mat4.create()).slice(12, 15)), [3, 0, 0]);
   value.Update(0);
-  close(Array.from(value.GetBoneWorldTransform("Root").slice(12, 15)), [6, 0, 0]);
+  close(Array.from(value.GetBoneWorldTransform("Root", mat4.create()).slice(12, 15)), [6, 0, 0]);
 });
 
 test("rotation arc preserves native antiparallel fallback and degenerate directions", () =>
@@ -116,5 +117,5 @@ test("rotation arc preserves native antiparallel fallback and degenerate directi
   const value = animation([bone("Root")]);
   value.AimBone("Root", 0, 0, 0, 0, 0, 1);
   value.Update(0);
-  close(Array.from(value.GetBoneWorldTransform("Root").slice(8, 11)), [0, 0, 1]);
+  close(Array.from(value.GetBoneWorldTransform("Root", mat4.create()).slice(8, 11)), [0, 0, 1]);
 });

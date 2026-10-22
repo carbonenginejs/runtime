@@ -32,7 +32,7 @@ test("Tr2ManipulationTool.GetBaseVectors normalises the local rows (Tr2Manipulat
 {
   const tool = new Tr2ManipulationTool();
   mat4.fromScaling(tool.localTransform, [ 2, 3, 4 ]);
-  const [ x, y, z ] = tool.GetBaseVectors();
+  const [ x, y, z ] = tool.GetBaseVectors(vec3.create(), vec3.create(), vec3.create());
   assertVecNear(x, [ 1, 0, 0 ], "x");
   assertVecNear(y, [ 0, 1, 0 ], "y");
   assertVecNear(z, [ 0, 0, 1 ], "z");
@@ -44,20 +44,20 @@ test("Tr2RotationTool.GetDesiredPlaneNormal picks the drag plane per axis (cpp:1
   const view = mat4.create();
 
   tool.selectedAxis = "w";
-  assertVecNear(tool.GetDesiredPlaneNormal(null, view), [ 0, 0, 1 ], "screen handle uses the view vector");
+  assertVecNear(tool.GetDesiredPlaneNormal(null, view, vec3.create()), [ 0, 0, 1 ], "screen handle uses the view vector");
 
   tool.selectedAxis = "x";
-  assertVecNear(tool.GetDesiredPlaneNormal(null, view), [ 1, 0, 0 ], "x axis, camera perpendicular");
+  assertVecNear(tool.GetDesiredPlaneNormal(null, view, vec3.create()), [ 1, 0, 0 ], "x axis, camera perpendicular");
 
   // The identity view's third column IS z, so dot > 0 flips the z plane
   // toward the camera.
   tool.selectedAxis = "z";
-  assertVecNear(tool.GetDesiredPlaneNormal(null, view), [ 0, 0, -1 ], "axis flipped toward the camera");
+  assertVecNear(tool.GetDesiredPlaneNormal(null, view, vec3.create()), [ 0, 0, -1 ], "axis flipped toward the camera");
 });
 
 test("Tr2RotationTool.GetUnTransformedBaseVectors is the identity basis (cpp:211-216)", () =>
 {
-  const [ x, y, z ] = new Tr2RotationTool().GetUnTransformedBaseVectors();
+  const [ x, y, z ] = new Tr2RotationTool().GetUnTransformedBaseVectors(vec3.create(), vec3.create(), vec3.create());
   assertVecNear(x, [ 1, 0, 0 ], "x");
   assertVecNear(y, [ 0, 1, 0 ], "y");
   assertVecNear(z, [ 0, 0, 1 ], "z");
@@ -73,12 +73,12 @@ test("Tr2RotationTool.Hemisphere maps mouse offsets onto Carbon's cone (cpp:396-
 
   // Identity viewProj: centre projects to (50,50); the ring's screen radius
   // is 50 * scale, plus Carbon's 16px cursor pad -> 66.
-  assertVecNear(tool.Hemisphere(50, 50, viewport, view, projection), [ 0, 0, 1 ], "centre lifts straight up");
-  assertVecNear(tool.Hemisphere(116, 50, viewport, view, projection), [ 1, 0, 0 ], "the rim has no lift");
+  assertVecNear(tool.Hemisphere(50, 50, viewport, view, projection, vec3.create()), [ 0, 0, 1 ], "centre lifts straight up");
+  assertVecNear(tool.Hemisphere(116, 50, viewport, view, projection, vec3.create()), [ 1, 0, 0 ], "the rim has no lift");
 
   // Halfway out: z = 1 - d, a CONE despite the name - (0, .5, .5) normalised.
   const half = Math.SQRT1_2;
-  assertVecNear(tool.Hemisphere(50, 17, viewport, view, projection), [ 0, half, half ], "half radius, screen-inverted y");
+  assertVecNear(tool.Hemisphere(50, 17, viewport, view, projection, vec3.create()), [ 0, half, half ], "half radius, screen-inverted y");
 });
 
 

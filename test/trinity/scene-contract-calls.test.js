@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { EveSpaceScene, EveComponentRegistry, EveChildPostProcessVolume, EveComponentType, Tr2LightManager, TriRenderBatchMap, Tr2RenderContext, TriDevice, gTriDev } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/index.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 test("scene picking without a supplied viewport reads the device viewport (TriDevice.cpp:1132-1135)", () =>
 {
@@ -11,13 +12,13 @@ test("scene picking without a supplied viewport reads the device viewport (TriDe
   try
   {
     gTriDev.device.viewport = { x: 0, y: 0, width: 10, height: 10 };
-    assert.ok(scene.PickInfinity(1, 1, mat4.create(), mat4.create()));
+    assert.ok(scene.PickInfinity(1, 1, mat4.create(), mat4.create(), null, vec3.create()));
   }
   finally
   {
     gTriDev.device = previous;
   }
-  assert.ok(scene.PickInfinity(1, 1, mat4.create(), mat4.create(), { x: 0, y: 0, width: 10, height: 10 }));
+  assert.ok(scene.PickInfinity(1, 1, mat4.create(), mat4.create(), { x: 0, y: 0, width: 10, height: 10 }, vec3.create()));
 });
 
 function lightManager()

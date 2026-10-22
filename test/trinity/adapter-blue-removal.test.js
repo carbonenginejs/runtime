@@ -42,7 +42,7 @@ for (const [name,Class,Base,table] of cases)
         const functions = new BlueList(ITriFunction);
         assert.equal(functions.Append(instance),false);
         assert.equal(functions.length,0);
-        assert.deepEqual(GetResources(instance),[]);
+        assert.deepEqual(GetResources(instance, []),[]);
     });
 }
 

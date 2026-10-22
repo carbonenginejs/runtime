@@ -142,7 +142,7 @@ test("TriDevice exposes the loader switches and screen-space math", () =>
   device.viewport.__init__(0, 0, 4, 4);
   assert.equal(device.AspectRatio(), 1);
   // DX pixel-centre mapping: for four pixels, pixel 3 -> +1 and pixel 0 -> -1.
-  const projected = device.ScreenToProjection(3, 0);
+  const projected = device.ScreenToProjection(3, 0, undefined, {});
   assertClose(projected.x, 1, "pixel centre maps to +1");
   assertClose(projected.y, 1, "y flips");
 

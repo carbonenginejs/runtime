@@ -52,7 +52,7 @@ test("declared reader and Copier preserve independent vector storage", () =>
   assert.notEqual(copy.value, vector.value);
   copy.value[0] = 9;
   assert.equal(vector.value[0], 2);
-  assert.deepEqual(GetResources(copy), []);
+  assert.deepEqual(GetResources(copy, []), []);
 });
 
 test("Python binding notification and real curve-set admission preserve attribute copying", () =>
@@ -114,7 +114,7 @@ test("external declared reader and Copier resolve each copied destination graph"
   const seen = [];
   seen.push(copy, ...blue.FindAllReferences(copy).keys());
   assert.equal(seen.includes(copy.destinationObject), true);
-  assert.deepEqual(GetResources(copy), []);
+  assert.deepEqual(GetResources(copy, []), []);
 });
 
 test("external setters retain eager invalidation and portable normalization", () =>

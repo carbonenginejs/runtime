@@ -28,7 +28,7 @@ test("FloatAdd constructs Carbon's named constant scale curve", () =>
 /** Calls the donor update shape with a real camera and ordinary anchor data. */
 function update(behavior, camera, elapsed = 1)
 {
-  return behavior.Update(camera, vec3.create(), 0, elapsed, vec3.create(), 2, vec3.fromValues(0, 0, 1));
+  return behavior.Update(camera, vec3.create(), 0, elapsed, vec3.create(), 2, vec3.fromValues(0, 0, 1), vec3.create());
 }
 
 for (const [name, Behavior, field, line] of cases)

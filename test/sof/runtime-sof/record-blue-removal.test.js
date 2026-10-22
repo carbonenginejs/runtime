@@ -25,7 +25,7 @@ test("SOF records construct without model APIs and expose only their native quer
     assert.equal("from" in Class,false);
     assert.deepEqual([...mappedInterfaces(Class)],table.length ? [ExposureRoot, ...table] : []);
     assert.equal(CjsSchema.cast(record,IInitialize),null);assert.equal(CjsSchema.cast(record,INotify),null);
-    assert.deepEqual(GetResources(record),[]);
+    assert.deepEqual(GetResources(record, []),[]);
   }
   assert.equal(CjsSchema.cast(new Indices(),ICustomPersist).constructor,Indices);
 });

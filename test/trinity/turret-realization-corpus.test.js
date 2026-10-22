@@ -46,7 +46,7 @@ test("real turret geometry remains READ-accessible and collected but is excluded
   const declaration=CjsSchema.getSchema(EveTurretSet).members.find(member=>member.name==="geometryResource");
   assert.equal(declaration.edit.read,true,"native READ accessibility is retained");
   assert.ok(set.geometryResource===resource,"initialized turret owns the requested real geometry");
-  assert.ok(GetResources(set).includes(resource),"the held resource remains a dependency edge");
+  assert.ok(GetResources(set, []).includes(resource),"the held resource remains a dependency edge");
   const values=CjsSchema.getValues(set);
   assert.equal(Object.hasOwn(values,"geometryResource"),false,"unfiltered Values must not serialize the loaded handle");
   assert.equal(values.geometryResPath,geometryPath,"the authored resource path remains serializable");
@@ -340,15 +340,15 @@ for(const geometryFirst of [false,true])test(`real muzzle binding handles ${geom
   set.UpdateAsyncronous(updateContext({deltaTime:.2}),hull(parent));const turret=set.GetTurrets()[1];
   assert.equal(turret.sequencer.GetMeshBoneCount(),9,"muzzle10 cannot index the9-bone skin palette");
   const expected=carbonProduct(turret.worldTransforms[10],turret.worldMatrix);
-  assertScalars(set.GetFiringBoneWorldTransform(0),expected,"native full bone * turret world");
+  assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),expected,"native full bone * turret world");
   assertScalars(effect.GetMuzzleTransform(0,mat4.create()),expected,"same-frame FX muzzle upload");
-  const retained=set.GetTurretBoneTransform(1,10),retainedValues=Array.from(retained);set.GetTurretBoneTransform(0,10);assert.deepEqual(Array.from(retained),retainedValues,"native return value is caller-owned" );
+  const retained=set.GetTurretBoneTransform(1,10, mat4.create()),retainedValues=Array.from(retained);set.GetTurretBoneTransform(0,10, mat4.create());assert.deepEqual(Array.from(retained),retainedValues,"native return value is caller-owned" );
   const before=Array.from(expected);set.UpdateAsyncronous(updateContext({deltaTime:2}),hull(parent));
   const next=carbonProduct(turret.worldTransforms[10],turret.worldMatrix);
   assert.notDeepEqual(Array.from(next),before);assertScalars(effect.GetMuzzleTransform(0,mat4.create()),next,"animated muzzle is not one frame stale");
   set._activeTurret=EveTurretSet.INVALID_INDEX;set.chooseRandomLocator=false;
   const closest=set.GetClosestTurret();assert.ok(closest===0 || closest===1);
-  assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(set.GetTurrets()[closest].worldTransforms[10],set.GetTurrets()[closest].worldMatrix),"no active turret temporarily uses closest");
+  assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),carbonProduct(set.GetTurrets()[closest].worldTransforms[10],set.GetTurrets()[closest].worldMatrix),"no active turret temporarily uses closest");
 });
 
 test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform order and effect registry",{skip},async t=>
@@ -360,20 +360,20 @@ test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform
   assert.equal(old.GetComponentRegistry(),null);assert.ok(effect.GetComponentRegistry()===registry);
   const parent=mat4.create();mat4.translate(parent,parent,[60,20,10]);mat4.rotateZ(parent,parent,.3);set.UpdateAsyncronous(updateContext({deltaTime:0}),hull(parent));set._activeTurret=0;
   const turret=set.GetTurrets()[0];effect.boneName="Absent";set.InitializeFiringEffect();assert.equal(effect.GetPerMuzzleBoneID(0),0xffffffff);
-  assertScalars(set.GetFiringBoneWorldTransform(0),turret.worldMatrix,"missing joint returns turret center before orientation fallback");
+  assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),turret.worldMatrix,"missing joint returns turret center before orientation fallback");
   set.useLowLodFiringTransform=true;set.lowLodFiringEffectTranslation.set([2,3,7]);set.lowLodFiringEffectScale.set([2,1,3]);set.lowLodFiringEffectRotation.set([0,Math.sin(.2),0,Math.cos(.2)]);
   const low=mat4.fromRotationTranslationScale(mat4.create(),set.lowLodFiringEffectRotation,set.lowLodFiringEffectTranslation,set.lowLodFiringEffectScale);
-  assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(low,turret.worldMatrix),"native lowLOD * turretWorld");
+  assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),carbonProduct(low,turret.worldMatrix),"native lowLOD * turretWorld");
   effect.boneName="Pos_Fire";set.InitializeFiringEffect();resource.MarkPurged();set.UpdateSyncronous(updateContext({GetVisibilityThreshold:()=>1}));assert.ok(turret.pose===null,"the update after a purge releases the pose");
-  assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(low,turret.worldMatrix),"unloaded pose uses lowLOD even with retained valid joint ID");
+  assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),carbonProduct(low,turret.worldMatrix),"unloaded pose uses lowLOD even with retained valid joint ID");
   set.useLowLodFiringTransform=false;set.sysBonePitchMin=0;set.target.position.set([800,900,500]);
-  const direct=set.GetFiringBoneWorldTransform(0),direction=Array.from(set.target.position).map((v,i)=>v-turret.worldMatrix[12+i]);const length=Math.hypot(...direction);
+  const direct=set.GetFiringBoneWorldTransform(0, mat4.create()),direction=Array.from(set.target.position).map((v,i)=>v-turret.worldMatrix[12+i]);const length=Math.hypot(...direction);
   assertScalars(direct.slice(8,11),direction.map(v=>v/length),"native RotationArc normalizes the non-unit target direction");
   assertScalars(direct.slice(12,15),turret.worldMatrix.slice(12,15),"direct fallback preserves position");
   set.sysBonePitchMin=60;const launcher=mat4.fromXRotation(mat4.create(),-Math.PI/2);
-  assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(launcher,turret.worldMatrix),"narrow launcher rotates local +Y to effect +Z");
-  set.firingEffect=null;assert.equal(effect.GetComponentRegistry(),null);assertScalars(set.GetFiringBoneWorldTransform(0),turret.worldMatrix,"no effect returns turret matrix");
-  set._activeTurret=EveTurretSet.INVALID_INDEX;set.GetTurrets().length=0;assertScalars(set.GetFiringBoneWorldTransform(0),parent,"no mount returns parent matrix");
+  assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),carbonProduct(launcher,turret.worldMatrix),"narrow launcher rotates local +Y to effect +Z");
+  set.firingEffect=null;assert.equal(effect.GetComponentRegistry(),null);assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),turret.worldMatrix,"no effect returns turret matrix");
+  set._activeTurret=EveTurretSet.INVALID_INDEX;set.GetTurrets().length=0;assertScalars(set.GetFiringBoneWorldTransform(0, mat4.create()),parent,"no mount returns parent matrix");
   set.UnRegister(registry);
 });
 

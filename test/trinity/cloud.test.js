@@ -601,7 +601,7 @@ test("Tr2Light.GetLight returns lightData position/radius and brightness-scaled 
 {
   const light = new Tr2PointLight();
   light.SetLightData(Object.assign(new LightData(), { position: [1, 2, 3], radius: 5, brightness: 2, color: [0.5, 0.25, 1, 1] }));
-  const out = light.GetLight();
+  const out = light.GetLight({ position: vec3.create(), radius: 0, color: vec3.create() });
   assertVecClose(out.position, [1, 2, 3], "position");
   assertClose(out.radius, 5, "radius");
   assertVecClose(out.color, [1, 0.5, 2], "rgb * brightness");

@@ -9,6 +9,7 @@ import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { GrannyBoneOffset } from "../../npm/dist/trinity/core/animation/GrannyBoneOffset.js";
 import { Tr2KelvinColor } from "../../npm/dist/trinity/core/lighting/Tr2KelvinColor.js";
+import { vec4 } from "../../npm/dist/global/math/vec4.js";
 
 for (const [Type, className] of [[GrannyBoneOffset, "GrannyBoneOffset"], [Tr2KelvinColor, "Tr2KelvinColor"]])
 test(`${className} has exact initialization exposure and no model services`, t =>
@@ -98,8 +99,8 @@ test("Kelvin authored member order roundtrips while existing RGB adapters are re
   assert.deepEqual([written.temperature,written.tint,written.whiteBalance], [5000,0.25,3]);
   const out = new Float32Array(4);
   assert.equal(copy.AsRGB(out), out);
-  assert.deepEqual(Array.from(out), Array.from(value.AsRGB()));
+  assert.deepEqual(Array.from(out), Array.from(value.AsRGB(vec4.create())));
   copy.temperature = NaN;
-  assert.deepEqual(Array.from(copy.AsRGB()), [0,0,0,1]);
+  assert.deepEqual(Array.from(copy.AsRGB(vec4.create())), [0,0,0,1]);
   assert.equal(CjsSchema.getMethod(Tr2KelvinColor, "AsRGB").impl.status, "adapted");
 });

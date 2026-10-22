@@ -28,7 +28,7 @@ test("type first, persisted members only, defaults omitted with native tolerance
   root.b = 0.0000000000005;
   root.integer = 8;
   assert.equal(write(root), `type: ${CjsSchema.getClassName(Root)}\ninteger: 8\n`);
-  const bag = new DictWriter().WriteObject(root);
+  const bag = new DictWriter().WriteObject(root, {});
   assert.equal(bag.a, root.a, "DictWriter keeps its full-value default policy");
   assert.equal(bag.b, root.b);
 });
@@ -103,7 +103,7 @@ test("metadata output uses only the allow-list, sorted and quoted; source table 
   const restored = new YamlReader().CreateObjectFromString(text);
   assert.equal(BeObjectMetadata.Get(restored, "typeID"), "42");
   assert.equal(BeObjectMetadata.Get(restored, "privatePath"), null);
-  assert.equal(new DictWriter().WriteObject(root).__bluemetadata__.privatePath, "private-authoring-location");
+  assert.equal(new DictWriter().WriteObject(root, {}).__bluemetadata__.privatePath, "private-authoring-location");
 });
 
 test("float vectors and matrix storage are flat flow sequences without changing inputs", () => {

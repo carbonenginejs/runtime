@@ -4,6 +4,8 @@ import { setImmediate as nextTurn } from "node:timers/promises";
 import { composeStubResMan } from "../support/stubResMan.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { EveStation2, EveChildPartData, EveChildMesh, EveModularObjectModifier, CreateModularObject } from "../../npm/dist/trinity/eve/index.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { quat } from "../../npm/dist/global/math/quat.js";
 composeStubResMan();
 
 function deferred()
@@ -105,13 +107,13 @@ test("earlier sessions read, move and remove the live records after another sess
   const first = new EveModularObjectModifier().Create(owner, sof);
   const second = new EveModularObjectModifier().Create(owner, sof);
   const a = await add(first), b = await add(second);
-  assert.deepEqual(Array.from(first.GetPosition(b)), POSITION);
+  assert.deepEqual(Array.from(first.GetPosition(b, vec3.create())), POSITION);
   first.SetTransform(a, [3, 4, 5], ROTATION, SCALE);
   assert.deepEqual(Array.from(parts(owner).find(part => part.partId === a).position), [3, 4, 5]);
   first.Remove(a);
   assert.deepEqual(parts(owner).map(part => part.partId), [b]);
-  assert.deepEqual(Array.from(second.GetPosition(b)), POSITION);
-  assert.throws(() => second.GetPosition(a), /Unknown modular part/);
+  assert.deepEqual(Array.from(second.GetPosition(b, vec3.create())), POSITION);
+  assert.throws(() => second.GetPosition(a, vec3.create()), /Unknown modular part/);
 });
 
 for (const method of ["AddHull", "AddChild"])
@@ -135,8 +137,8 @@ for (const method of ["AddHull", "AddChild"])
     ready.resolve();
     await leading;
     const id = await pending;
-    assert.deepEqual(Array.from(modifier.GetPosition(id)), [1, 2, 3]);
-    assert.deepEqual(Array.from(modifier.GetRotation(id)), [0, 0, 0, 1]);
-    assert.deepEqual(Array.from(modifier.GetScale(id)), [2, 2, 2]);
+    assert.deepEqual(Array.from(modifier.GetPosition(id, vec3.create())), [1, 2, 3]);
+    assert.deepEqual(Array.from(modifier.GetRotation(id, quat.create())), [0, 0, 0, 1]);
+    assert.deepEqual(Array.from(modifier.GetScale(id, vec3.create())), [2, 2, 2]);
   });
 }

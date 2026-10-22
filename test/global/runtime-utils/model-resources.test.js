@@ -84,7 +84,7 @@ test("resources in declared fields are collected without any hook", () =>
   model.texture = createResource("texture");
   model.geometry = createResource("geometry");
 
-  const found = GetResources(model).map(r => r.name).sort();
+  const found = GetResources(model, []).map(r => r.name).sort();
 
   assert.deepEqual(found, [ "geometry", "texture" ]);
 });
@@ -95,7 +95,7 @@ test("declared list fields contribute each of their resources", () =>
   const model = new DeclaredHolder();
   model.profiles = [ createResource("a"), createResource("b") ];
 
-  assert.deepEqual(GetResources(model).map(r => r.name).sort(), [ "a", "b" ]);
+  assert.deepEqual(GetResources(model, []).map(r => r.name).sort(), [ "a", "b" ]);
 });
 
 
@@ -106,7 +106,7 @@ test("declared fields are collected all the way down the graph", () =>
   root.child = new DeclaredHolder();
   root.child.texture = createResource("child");
 
-  assert.deepEqual(GetResources(root).map(r => r.name).sort(), [ "child", "root" ]);
+  assert.deepEqual(GetResources(root, []).map(r => r.name).sort(), [ "child", "root" ]);
 });
 
 
@@ -117,7 +117,7 @@ test("non-resource field values are ignored", () =>
   model.texture = { name: "impostor" };
   model.geometry = createResource("real");
 
-  assert.deepEqual(GetResources(model).map(r => r.name), [ "real" ]);
+  assert.deepEqual(GetResources(model, []).map(r => r.name), [ "real" ]);
 });
 
 
@@ -129,7 +129,7 @@ test("a model with runtime resource fields does not hide its children's", () =>
   branch.child = new LeafHolder();
   branch.child.res = createResource("texture");
 
-  const found = GetResources(branch).map(r => r.name).sort();
+  const found = GetResources(branch, []).map(r => r.name).sort();
 
   assert.deepEqual(found, [ "effect", "texture" ]);
 });
@@ -141,7 +141,7 @@ test("unset resource slots are skipped, not collected", () =>
   branch.child = new LeafHolder();
   branch.child.res = createResource("texture");
 
-  assert.deepEqual(GetResources(branch).map(r => r.name), [ "texture" ]);
+  assert.deepEqual(GetResources(branch, []).map(r => r.name), [ "texture" ]);
 });
 
 
@@ -153,7 +153,7 @@ test("the same resource shared by two models is reported once", () =>
   branch.child = new LeafHolder();
   branch.child.res = shared;
 
-  assert.equal(GetResources(branch).length, 1);
+  assert.equal(GetResources(branch, []).length, 1);
 });
 
 
@@ -173,7 +173,7 @@ test("runtime resource declarations ignore impostors and absent values", () =>
   for (const value of [undefined, null, "resource", { name: "impostor" }])
   {
     model.res = value;
-    assert.deepEqual(GetResources(model), []);
+    assert.deepEqual(GetResources(model, []), []);
   }
 });
 
@@ -185,5 +185,5 @@ test("resource collection never reads the removed callback property", () =>
   Object.defineProperty(model, "OnGetResources", {
     get() { assert.fail("resource collection must use declarations only"); },
   });
-  assert.deepEqual(GetResources(model), [model.res]);
+  assert.deepEqual(GetResources(model, []), [model.res]);
 });

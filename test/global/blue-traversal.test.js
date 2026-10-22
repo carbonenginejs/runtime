@@ -228,7 +228,7 @@ test("resource references accept constructors and names without collecting impos
     root.ctor = new Resource("constructor");
     root.named = new Resource("name");
     root.impostor = {};
-    assert.deepEqual(new Set(GetResources(root)), new Set([root.ctor, root.named]));
+    assert.deepEqual(new Set(GetResources(root, [])), new Set([root.ctor, root.named]));
 });
 
 test("declared resource collections do not spread unbounded results into call arguments", () =>
@@ -236,7 +236,7 @@ test("declared resource collections do not spread unbounded results into call ar
     const root = new Graph("root");
     const items = Array.from({ length: 150000 }, (_, index) => new Resource(String(index)));
     root.list = items;
-    const result = GetResources(root);
+    const result = GetResources(root, []);
     assert.equal(result.length, items.length);
     assert.equal(new Set(result).size, items.length);
 });

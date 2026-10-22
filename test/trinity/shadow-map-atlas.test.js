@@ -164,7 +164,7 @@ test("point lights pack a 3x2 cross, spots a square, and unpack round-trips", ()
 
         // GetUnpackedShadowMapData shifts back to texels.
         const record = { shadowMapScale: scale0, shadowMapOffsetX: 0, shadowMapOffsetY: 0 };
-        const unpacked = manager.GetUnpackedShadowMapData(record);
+        const unpacked = manager.GetUnpackedShadowMapData(record, {});
         assert.equal(unpacked.shadowMapScale, 512);
     });
 });

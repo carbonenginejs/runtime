@@ -217,11 +217,11 @@ test("Blue dictionary reads and writes preserve the model-free finalizer and aut
   assert.ok(finalizer instanceof Type);
   assert.equal(finalizer.constructor, Type);
   assert.equal(finalizer.mask, "body");
-  assert.equal(new DictWriter().WriteObject(finalizer).mask, "body");
+  assert.equal(new DictWriter().WriteObject(finalizer, {}).mask, "body");
   assert.equal(new DictWriter().WriteObject(finalizer, {}, { persistOnly: true }).mask, "body");
   assert.deepEqual([...new DictReader({ declarations: true }).ReadInto(finalizer, { mask: "upper" })], ["mask"]);
   assert.equal(finalizer.mask, "upper");
-  assert.equal(new DictWriter().WriteObject(finalizer).mask, "upper");
+  assert.equal(new DictWriter().WriteObject(finalizer, {}).mask, "upper");
   const restored = new Type();
   new DictReader({ declarations: true }).ReadInto(restored, new DictWriter().WriteObject(finalizer, {}, { persistOnly: true }));
   assert.equal(restored.constructor, Type);

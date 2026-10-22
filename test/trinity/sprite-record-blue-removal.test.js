@@ -32,8 +32,8 @@ test("clip struct dictionary values travel through the existing D3D vertex field
  const clip=new Tr2Sprite2dClipRect();assert.deepEqual([clip.left,clip.top,clip.right,clip.bottom],[0,0,0,0]);
  new DictReader({declarations:true}).ReadInto(clip,{left:1,top:2,right:30,bottom:40});const vertex=new Tr2Sprite2dD3DVertex();vertex.clipRect=clip;
  assert.equal(vertex.clipRect,clip);assert.equal(CjsSchema.getField(Tr2Sprite2dD3DVertex,"clipRect").type.kind,"rawStruct");
- const transported=new DictWriter().WriteObject(vertex).clipRect;assert.deepEqual([transported.left,transported.top,transported.right,transported.bottom],[1,2,30,40]);
- const written=new DictWriter().WriteObject(clip),copy=new Tr2Sprite2dClipRect();new DictReader({declarations:true}).ReadInto(copy,written);assert.deepEqual([copy.left,copy.top,copy.right,copy.bottom],[1,2,30,40]);
+ const transported=new DictWriter().WriteObject(vertex, {}).clipRect;assert.deepEqual([transported.left,transported.top,transported.right,transported.bottom],[1,2,30,40]);
+ const written=new DictWriter().WriteObject(clip, {}),copy=new Tr2Sprite2dClipRect();new DictReader({declarations:true}).ReadInto(copy,written);assert.deepEqual([copy.left,copy.top,copy.right,copy.bottom],[1,2,30,40]);
  const persisted=new DictWriter().WriteObject(clip,{}, {persistOnly:true});for(const field of ["left","top","right","bottom"])assert.equal(Object.hasOwn(persisted,field),false);
  // The current scene has no clipping algorithm; this proves only existing record transport.
  assert.deepEqual([vertex.clipRect.left,vertex.clipRect.top,vertex.clipRect.right,vertex.clipRect.bottom],[1,2,30,40]);

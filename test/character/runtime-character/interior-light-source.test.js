@@ -7,6 +7,7 @@ import {
     Tr2InteriorPerObjectLightData
 } from "../../../npm/dist/character/index.js";
 import { Tr2KelvinColor, TriFrustum, Tr2TexturedPointLight } from "../../../npm/dist/trinity/index.js";
+import { vec4 } from "../../../npm/dist/global/math/vec4.js";
 
 function AverageTexture(r, g, b, a)
 {
@@ -67,7 +68,7 @@ test("kelvin colour wins when enabled, linearized like the rgb path", () =>
     CjsSchema.setValues(source, { useKelvinColor: true });
     source.kelvinColor = kelvin;
 
-    const expected = Array.from(kelvin.AsRGB()).slice(0, 3);
+    const expected = Array.from(kelvin.AsRGB(vec4.create())).slice(0, 3);
     const data = new Tr2InteriorPerObjectLightData();
     source.PopulateLightData(data);
     assert.ok(Math.abs(data.color[0] - Math.pow(expected[0], 2.2)) < 1e-6);

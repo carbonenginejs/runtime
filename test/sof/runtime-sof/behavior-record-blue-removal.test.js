@@ -58,7 +58,7 @@ test("SOF behavior records construct without model APIs and expose self-only nat
     assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null);
     assert.equal(CjsSchema.cast(record, INotify), null);
-    assert.deepEqual(GetResources(record), []);
+    assert.deepEqual(GetResources(record, []), []);
   }
 });
 
@@ -103,7 +103,7 @@ test("real SOF hydration populates records and creates a declared nested hull ar
   assert.equal(variant.name, "damaged"); assert.equal(variant.isTransparent, true);
   assert.equal(variant.hullArea.constructor, EveSOFDataHullArea); assert.equal(variant.hullArea.shader, "overlay.fx");
   for (const [name, value] of Object.entries(damageValues)) assert.deepEqual(Array.isArray(value) ? Array.from(damage[name]) : damage[name], value);
-  assert.deepEqual(GetResources(damage), []);
+  assert.deepEqual(GetResources(damage, []), []);
 });
 
 test("Blue persisted roundtrip and copier preserve nested area and independent vectors", () =>

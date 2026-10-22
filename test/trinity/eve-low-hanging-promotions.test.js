@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import {
   EveEffectRoot2,
   EveMultiEffectParameter,
@@ -73,8 +74,8 @@ test("EveTacticalOverlayTrackObject samples position and velocity curves", () =>
 
   tracked.UpdatePosition({ GetTime: () => 8 });
   assert.deepEqual(calls, [["velocity", 8], ["position", 8]]);
-  assert.deepEqual(Array.from(tracked.GetVelocity()), [1, 2, 3]);
-  assert.deepEqual(Array.from(tracked.GetPosition()), [4, 5, 6]);
+  assert.deepEqual(Array.from(tracked.GetVelocity(vec3.create())), [1, 2, 3]);
+  assert.deepEqual(Array.from(tracked.GetPosition(vec3.create())), [4, 5, 6]);
   assert.equal(tracked.GetRadius(), 7);
   assert.equal(tracked.IsAggressive(), true);
   assert.equal(tracked.ShowVelocity(), false);

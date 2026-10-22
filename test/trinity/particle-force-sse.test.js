@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { num } from "../../npm/dist/global/math/num.js";
 import { Tr2ParticleAttractorForce, Tr2ParticleVortexForce, Tr2ParticleFluidDragForce } from "../../npm/dist/trinity/index.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 const cases = JSON.parse(readFileSync(new URL("../global/math/fixtures/particle-force-sse-cases.json", import.meta.url), "utf8"));
 const view = new DataView(new ArrayBuffer(4));
@@ -36,7 +37,7 @@ test("particle forces reproduce the selected native SSE oracle bit for bit", () 
         const position = c.position.map(fromBits), velocity = c.velocity.map(fromBits);
         for (const [name,force] of [["attractor",attractor],["vortex",vortex],["fluid",drag]])
         {
-            const out = force.GetForce(position,velocity,fromBits(c.dt),fromBits(c.mass));
+            const out = force.GetForce(position,velocity,fromBits(c.dt),fromBits(c.mass), vec3.create());
             for(let axis=0;axis<3;axis++)
             {
                 const expected = fromBits(c[name][axis]);

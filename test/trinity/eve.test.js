@@ -355,12 +355,12 @@ test("EveSpaceObjectDecal keeps Carbon graph state and private SOF indices CPU-o
   decal.SetRotation([0, 0, 0, 1]);
   position[0] = 99;
   scaling[0] = 99;
-  assertVec3(decal.GetPosition(), [1, 2, 3]);
-  assertVec3(decal.GetScaling(), [2, 3, 4]);
+  assertVec3(decal.GetPosition(vec3.create()), [1, 2, 3]);
+  assertVec3(decal.GetScaling(vec3.create()), [2, 3, 4]);
   assertEquals(decal.Initialize(), true);
   const expectedMatrix = mat4.fromRotationTranslationScale(mat4.create(), decal.rotation, decal.position, decal.scaling);
-  assertMat4(decal.GetDecalMatrix(), expectedMatrix);
-  assertMat4(mat4.multiply(mat4.create(), decal.GetInverseDecalMatrix(), decal.GetDecalMatrix()), mat4.create());
+  assertMat4(decal.GetDecalMatrix(mat4.create()), expectedMatrix);
+  assertMat4(mat4.multiply(mat4.create(), decal.GetInverseDecalMatrix(mat4.create()), decal.GetDecalMatrix(mat4.create())), mat4.create());
 
   const indices = [[0, 1, 2, 3, 4, 5], new Uint32Array([7, 8, 9, 10])];
   decal.SetIndices(indices);
@@ -384,7 +384,7 @@ test("EveSpaceObjectDecal keeps Carbon graph state and private SOF indices CPU-o
   assertEquals(clone.hasStaticIndexBuffers, true, "CopyFrom preserves the destination's private SOF indices");
   assertVec3(clone.position, [1, 2, 3]);
   // Carbon cpp:388-400 copies the decal matrix itself, and not the name.
-  assertMat4(clone.GetDecalMatrix(), decal.GetDecalMatrix());
+  assertMat4(clone.GetDecalMatrix(mat4.create()), decal.GetDecalMatrix(mat4.create()));
   assertEquals(clone.name, "kept");
   decal.SetIndices(null);
   assertEquals(decal.hasStaticIndexBuffers, false);
@@ -1008,22 +1008,22 @@ test("virtual camera vector offset, damping, and inertia follow Carbon", () =>
   offset.offset = vec3.fromValues(0, 0, 1);
   offset.proportional = true;
   offset.world = false;
-  assertVec3(offset.Update(null, vec3.create(), 0, 0, vec3.create(), 2, vec3.fromValues(1, 0, 0)), [2, 0, 0]);
+  assertVec3(offset.Update(null, vec3.create(), 0, 0, vec3.create(), 2, vec3.fromValues(1, 0, 0), vec3.create()), [2, 0, 0]);
   offset.world = true;
   offset.proportional = false;
-  assertVec3(offset.Update(null, vec3.create(), 0, 0, vec3.create(), 2, vec3.fromValues(1, 0, 0)), [0, 0, 1]);
+  assertVec3(offset.Update(null, vec3.create(), 0, 0, vec3.create(), 2, vec3.fromValues(1, 0, 0), vec3.create()), [0, 0, 1]);
 
   const damping = new EveVirtualCameraBehaviourVector3Damping();
   damping.dampingRatio = 0.5;
-  assertVec3(damping.Update(null, vec3.fromValues(0, 0, 0), 0, 0), [0, 0, 0]);
-  assertVec3(damping.Update(null, vec3.fromValues(10, 0, 0), 0, 1), [-5, 0, 0]);
-  assertVec3(damping.Update(null, vec3.fromValues(10, 0, 0), 0, 2), [-2.5, 0, 0]);
+  assertVec3(damping.Update(null, vec3.fromValues(0, 0, 0), 0, 0, undefined, undefined, undefined, vec3.create()), [0, 0, 0]);
+  assertVec3(damping.Update(null, vec3.fromValues(10, 0, 0), 0, 1, undefined, undefined, undefined, vec3.create()), [-5, 0, 0]);
+  assertVec3(damping.Update(null, vec3.fromValues(10, 0, 0), 0, 2, undefined, undefined, undefined, vec3.create()), [-2.5, 0, 0]);
 
   const inertia = new EveVirtualCameraBehaviourVector3Inertia();
   inertia.inertiaFactor = 2;
-  assertVec3(inertia.Update(null, vec3.create(), 0.5, 0), [0, 0, 0]);
-  assertVec3(inertia.Update(null, vec3.fromValues(10, 0, 0), 0.5, 1), [-5, 0, 0]);
-  assertVec3(inertia.Update(null, vec3.fromValues(10, 0, 0), 0.5, 2), [-1.25, 0, 0]);
+  assertVec3(inertia.Update(null, vec3.create(), 0.5, 0, undefined, undefined, undefined, vec3.create()), [0, 0, 0]);
+  assertVec3(inertia.Update(null, vec3.fromValues(10, 0, 0), 0.5, 1, undefined, undefined, undefined, vec3.create()), [-5, 0, 0]);
+  assertVec3(inertia.Update(null, vec3.fromValues(10, 0, 0), 0.5, 2, undefined, undefined, undefined, vec3.create()), [-1.25, 0, 0]);
   assertEquals(CjsSchema.getField(EveVirtualCameraBehaviourVector3Damping, "dampingRatio")?.type.kind, "float32");
 });
 
@@ -1050,9 +1050,9 @@ test("virtual camera vector shake uses Carbon component phases and view scaling"
   shake.octaves = 1;
   shake.scaleByView = false;
   const raw = [1.1, 10.1, 18.3].map(value => TriPerlinCurve.PerlinNoise1D(value, 2, 2, 1));
-  assertVec3(shake.Update(camera, vec3.create(), 0, 0), raw, 1e-6);
+  assertVec3(shake.Update(camera, vec3.create(), 0, 0, undefined, undefined, undefined, vec3.create()), raw, 1e-6);
   shake.scaleByView = true;
-  assertVec3(shake.Update(camera, vec3.create(), 0, 0), raw.map(value => Math.atan(value) * 2), 1e-6);
+  assertVec3(shake.Update(camera, vec3.create(), 0, 0, undefined, undefined, undefined, vec3.create()), raw.map(value => Math.atan(value) * 2), 1e-6);
 });
 
 test("virtual camera vector movement behaviours follow Carbon", () =>
@@ -1067,13 +1067,13 @@ test("virtual camera vector movement behaviours follow Carbon", () =>
   between.start = vec3.create();
   between.end = vec3.fromValues(4, 0, 0);
   between.interpolationCurve = Object.assign(new Tr2CurveScalar(), { GetValue: time => time });
-  assertVec3(between.Update(camera, vec3.create(), 0, 1, vec3.create(), 1, vec3.fromValues(0, 0, 1)), [1, 0, 0]);
+  assertVec3(between.Update(camera, vec3.create(), 0, 1, vec3.create(), 1, vec3.fromValues(0, 0, 1), vec3.create()), [1, 0, 0]);
   between.world = false;
   between.proportional = true;
   between.start = vec3.create();
   between.end = vec3.fromValues(0, 0, 2);
-  assertVec3(between.Update(camera, vec3.create(), 0, 2, vec3.create(), 2, vec3.fromValues(1, 0, 0)), [2, 0, 0]);
-  assertVec3(between.Update(Object.assign(new EveVirtualCamera(), { animationTimelineLength: 0 }), vec3.create(), 0, 2, vec3.create(), 2, vec3.fromValues(1, 0, 0)), [0, 0, 2]);
+  assertVec3(between.Update(camera, vec3.create(), 0, 2, vec3.create(), 2, vec3.fromValues(1, 0, 0), vec3.create()), [2, 0, 0]);
+  assertVec3(between.Update(Object.assign(new EveVirtualCamera(), { animationTimelineLength: 0 }), vec3.create(), 0, 2, vec3.create(), 2, vec3.fromValues(1, 0, 0), vec3.create()), [0, 0, 2]);
 
   for (const [Behaviour, expected] of [[EveVirtualCameraBehaviourVector3MoveForward, [0, 0, 1]], [EveVirtualCameraBehaviourVector3MoveRight, [1, 0, 0]], [EveVirtualCameraBehaviourVector3MoveUp, [0, 1, 0]]])
   {
@@ -1081,7 +1081,7 @@ test("virtual camera vector movement behaviours follow Carbon", () =>
     behaviour.value = 2;
     behaviour.proportional = false;
     behaviour.scaleCurve = Object.assign(new Tr2CurveScalar(), { GetValue: time => time });
-    assertVec3(behaviour.Update(camera, vec3.create(), 0, 2, vec3.create(), 3, vec3.fromValues(0, 0, 1)), expected);
+    assertVec3(behaviour.Update(camera, vec3.create(), 0, 2, vec3.create(), 3, vec3.fromValues(0, 0, 1), vec3.create()), expected);
   }
   assert(new EveVirtualCameraBehaviourVector3MoveRight() instanceof EveVirtualCameraBehaviourVector3MoveForward);
   assert(new EveVirtualCameraBehaviourVector3MoveUp() instanceof EveVirtualCameraBehaviourVector3MoveForward);
@@ -1094,7 +1094,7 @@ test("virtual camera vector movement behaviours follow Carbon", () =>
   orbit.distance = 2;
   orbit.orbitCurve = Object.assign(new Tr2CurveScalar(), { GetValue: time => time });
   orbit.distanceScalarCurve = Object.assign(new Tr2CurveScalar(), { GetValue: () => 1 });
-  assertVec3(orbit.Update(camera, vec3.create(), 0, 4, vec3.create(), 3, vec3.fromValues(0, 0, 1)), [2, 0, 0]);
+  assertVec3(orbit.Update(camera, vec3.create(), 0, 4, vec3.create(), 3, vec3.fromValues(0, 0, 1), vec3.create()), [2, 0, 0]);
   assertEquals(CjsSchema.getField(EveVirtualCameraBehaviourVector3MoveBetween, "interpolationCurve")?.type.className, "Tr2CurveScalar");
 });
 
@@ -1107,9 +1107,9 @@ test("EveVirtualCamera follows Carbon playback, transforms, and behaviours", () 
   camera.SetPointOfInterest(vec3.fromValues(1, 2, 4));
   camera.SetFov(0.8);
   camera.SetRoll(15);
-  assertVec3(camera.GetPosition(), [1, 2, 3]);
-  assertVec3(camera.GetPointOfInterest(), [1, 2, 4]);
-  assertVec3(camera.GetForwardDirection(), [0, 0, 1]);
+  assertVec3(camera.GetPosition(vec3.create()), [1, 2, 3]);
+  assertVec3(camera.GetPointOfInterest(vec3.create()), [1, 2, 4]);
+  assertVec3(camera.GetForwardDirection(vec3.create()), [0, 0, 1]);
 
   const copy = new EveVirtualCamera();
   copy.CopyTransform(camera);
@@ -1391,11 +1391,11 @@ test("EveCircle updates animation, bounds, and visibility without renderer state
   circle.translation = vec3.fromValues(5, 6, 7);
   circle.scaling = vec3.fromValues(2, 3, 1);
   circle.RebuildLocalTransform();
-  const sphere = circle.GetBoundingSphere();
+  const sphere = circle.GetBoundingSphere(vec4.create());
   assertVec3(sphere, [5, 6, 7]);
   assertAlmostEquals(sphere[3], 45);
   sphere[3] = 1;
-  assertAlmostEquals(circle.GetBoundingSphere()[3], 45);
+  assertAlmostEquals(circle.GetBoundingSphere(vec4.create())[3], 45);
 
   let visibleSphere = null;
   circle.UpdateVisibility({
@@ -1492,11 +1492,11 @@ test("EveBezierCurve preserves Carbon clamps, partial curves, bounds, and stale 
 
   curve.CalculateBoundingSphere(2);
   curve.lineWidth = 99;
-  const sphere = curve.GetBoundingSphere();
+  const sphere = curve.GetBoundingSphere(vec4.create());
   assertVec3(sphere, [1, 2 / 3, 0]);
   assertAlmostEquals(sphere[3], 10 / 3);
   curve.CalculateBoundingSphere();
-  assertAlmostEquals(curve.GetBoundingSphere()[3], 10 / 3);
+  assertAlmostEquals(curve.GetBoundingSphere(vec4.create())[3], 10 / 3);
 
   curve.completeness = 0;
   curve.OnModified("completeness");

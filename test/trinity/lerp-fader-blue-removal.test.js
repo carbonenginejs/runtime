@@ -42,7 +42,7 @@ for (const [name, Class, Base, table] of [
             assert.equal(instance.Reset(), undefined);
             assert.equal(CjsSchema.cast(instance, Base), instance);
         }
-        assert.deepEqual(GetResources(instance), []);
+        assert.deepEqual(GetResources(instance, []), []);
     });
 }
 
@@ -89,7 +89,7 @@ test("SOF hydration and shared graph operations retain live lerp child reference
         if (keys.length === 2) assert.equal(copy.startCurve, copy.endCurve);
         const serialized = new DictWriter().WriteObject(curve, {}, {persistOnly:true});
         assert.ok(Object.hasOwn(serialized, keys[0]));
-        assert.deepEqual(GetResources(curve), []);
+        assert.deepEqual(GetResources(curve, []), []);
     }
 });
 

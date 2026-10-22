@@ -46,7 +46,7 @@ test("SOF material and area containers expose native self-only tables without mo
     assert.deepEqual([...mappedInterfaces(Class)], [ExposureRoot, Class]); assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);
     for (const name of ["Copy", "GetValues", "SetValues", "Clone", "OnEvent", "__state"]) assert.equal(name in record, false);
-    assert.equal("from" in Class, false); assert.deepEqual(GetResources(record), []);
+    assert.equal("from" in Class, false); assert.deepEqual(GetResources(record, []), []);
   }
 });
 
@@ -79,7 +79,7 @@ test("actual hydration creates model-free containers and concrete typed authored
   assert.deepEqual(material.parameters.map(record => record.constructor), [Parameter, Float, Vector2]);
   assert.equal(area.materials[0].constructor, AreaMaterial); assert.equal(area.materials[10].constructor, AreaMaterial);
   assert.equal(area.materials[0].material1, "testMaterial"); assert.equal(area.materials[0].colorType, 0);
-  assert.equal(area.materials[1], null); assert.deepEqual(GetResources(area), []);
+  assert.equal(area.materials[1], null); assert.deepEqual(GetResources(area, []), []);
   assert.equal("Copy" in material.parameters[0], false); assert.equal("Copy" in area.materials[0], false);
 });
 

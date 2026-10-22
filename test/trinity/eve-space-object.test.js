@@ -29,6 +29,7 @@ import { EveChildInheritProperties } from "../../npm/dist/trinity/eve/child/EveC
 import { ITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controller/ITr2Controller.js";
 import { IEveInheritPropertiesOwner } from "../../npm/dist/trinity/eve/IEveInheritPropertiesOwner.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 // Test fixture standing in for `@carbon.inherit(X)` as a base-class
 // expression, because these files are plain scripts and carry no decorators.
@@ -302,10 +303,10 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   const sphere = new Float32Array(4);
   assert.equal(effect.GetBoundingSphere(sphere), true);
   assertVecNear(sphere, [1, 0, 0, 5]);
-  assertVecNear(effect.GetModelCenterWorldPosition(), [11, 2, 0]);
+  assertVecNear(effect.GetModelCenterWorldPosition(vec3.create()), [11, 2, 0]);
   assertVecNear(effect.GetWorldPosition(new Float32Array(3)), [10, 0, 0]);
   assert.equal(effect.GetDamageLocatorPosition(0, true, new Float32Array(3)), true);
-  assert.equal(effect.GetImpactPosition(0, null, [10, 0, 0], 0.1), true);
+  assert.equal(effect.GetImpactPosition(0, null, [10, 0, 0], 0.1, vec3.create()), true);
   assert.equal(effect.GetRadius(), 5);
   assert.equal(effect.GetCurveSetDuration("impact"), 5);
   assert.equal(effect.GetRangeDuration("impact", "burst"), 4);

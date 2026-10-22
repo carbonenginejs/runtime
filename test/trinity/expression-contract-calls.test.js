@@ -156,7 +156,7 @@ test("controller owners answer Owner in their binding roots, as ITr2ControllerOw
   for (const name of [ "EveShip2", "EveEffectRoot2", "EveChildBoosterSet", "EveChildInstanceContainer", "EveMeshOverlayEffect" ])
   {
     const owner = new trinity[name]();
-    assert.equal(owner.GetBindingRoots().Owner, owner, name);
+    assert.equal(owner.GetBindingRoots({}).Owner, owner, name);
     assert.equal(typeof owner.GetControllerValueByName, "function", name);
   }
 });

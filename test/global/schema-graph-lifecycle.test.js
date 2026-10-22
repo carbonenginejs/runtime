@@ -163,7 +163,7 @@ test("public resource collection forwards independently of Traverse overrides ac
     root._geometryRes = dependency;
     const out = ["stale"];
     assert.equal(GetResources(root, out), out);
-    assert.deepEqual(out, GetResources(root));
+    assert.deepEqual(out, GetResources(root, []));
     assert.deepEqual(new Set(out), new Set([dependency, root.resource]));
     assert.equal(out.length, 2);
 });
