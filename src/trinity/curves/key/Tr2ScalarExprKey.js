@@ -246,12 +246,8 @@ export class Tr2ScalarExprKey extends IInitialize
     {
       return fallback;
     }
-    const program = CjsControllerExpressionProgram.Compile(expression, {
-      emptyValue: fallback,
-      functions: SCALAR_EXPR_KEY_FUNCTIONS,
-      pureFunctions: SCALAR_EXPR_KEY_PURE_FUNCTIONS
-    });
-    if (!program.IsValid())
+    const program = this.SetExpression(null, expression);
+    if (!program)
     {
       return fallback;
     }
@@ -262,6 +258,45 @@ export class Tr2ScalarExprKey extends IInitialize
     }));
     // Carbon stores Eval's result as it is, NaN included (Tr2ScalarExprKeyCurve.cpp:161-176).
     return value;
+  }
+
+  /**
+   * Compiles an expression against the key's variables, functions and constants.
+   *
+   * Carbon: Tr2ScalarExprKey::SetExpression (trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp:188-232). An empty
+   * expression clears the program; a failed parse leaves the program as it was (ccpparser.cpp:51-54 returns before
+   * BuildCode touches it).
+   *
+   * Adapted: Carbon's CcpParser::Program& parser output is the return value, with the caller passing the current
+   * program (parser) back in so a failed parse can hand it back unchanged. Carbon retains one program per
+   * expression member (m_timeParser and its siblings) and compiles when an expression changes (Initialize,
+   * OnModified); this class compiles per Evaluate call, so every caller passes null. The variable table is
+   * _expressionVariables, the functions are SCALAR_EXPR_KEY_FUNCTIONS, and the constants come from the expression
+   * runtime. Not ported: the CCP_LOGERR for a failed parse (cpp:220), which per-call compilation would repeat on
+   * every frame, and the shared temp-arena resize (cpp:223-231), which the AST walker has no use for.
+   *
+   * @param {CjsControllerExpressionProgram|null} parser The current program, handed back when the parse fails.
+   * @param {string} expression Expression source.
+   * @returns {CjsControllerExpressionProgram|null} The compiled program, null for an empty expression, or the passed program when the parse fails.
+   */
+  @meta.adapted
+  SetExpression(parser, expression)
+  {
+    if (!expression)
+    {
+      return null;
+    }
+
+    const program = CjsControllerExpressionProgram.Compile(expression, {
+      functions: SCALAR_EXPR_KEY_FUNCTIONS,
+      pureFunctions: SCALAR_EXPR_KEY_PURE_FUNCTIONS
+    });
+    if (!program.IsValid())
+    {
+      return parser;
+    }
+
+    return program;
   }
 
   /**
