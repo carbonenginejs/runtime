@@ -139,20 +139,15 @@ export class ResourceGroup
 }
 
 
+CjsSchema.decorateMethod(ResourceGroup, "Merge", meta.implemented);
+CjsSchema.decorateMethod(ResourceGroup, "DiffAgainstGroup", meta.implemented);
+CjsSchema.decorateMethod(ResourceGroup, "RemoveResources", meta.implemented);
+CjsSchema.decorateMethod(ResourceGroup, "ImportFromFile", meta.adapted);
+CjsSchema.decorateMethod(ResourceGroup, "ExportToFile", meta.adapted);
+CjsSchema.decorateMethod(ResourceGroup, "CreateBundle", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceGroup, "CreatePatch", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceGroup, "CreateFromDirectory", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceGroup, "createFromFilter", meta.renamed("CreateFromFilter"), meta.notImplemented);
 CjsSchema.blue.define(ResourceGroup, {
-  className: "ResourceGroup",
-  fields: {},
-  methods: {
-        Merge: [ meta.implemented ],
-        DiffAgainstGroup: [ meta.implemented ],
-        RemoveResources: [ meta.implemented ],
-        ImportFromFile: [ meta.adapted ],
-        ExportToFile: [ meta.adapted ],
-        _Invoke: [],
-        _InvokeAsync: [],
-        CreateBundle: [ meta.notImplemented ],
-        CreatePatch: [ meta.notImplemented ],
-        CreateFromDirectory: [ meta.notImplemented ],
-        createFromFilter: [ meta.renamed("CreateFromFilter"), meta.notImplemented ]
-    }
+  className: "ResourceGroup"
 });

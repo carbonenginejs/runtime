@@ -92,8 +92,12 @@ CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Map");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Destroy");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Describe");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "GetMemoryClass");
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "IsReady", meta.adapted);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Map", meta.adapted);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Destroy", meta.adapted);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Describe", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "GetMemoryClass", meta.implemented);
 CjsSchema.blue.define(Tr2ReadbackALWebgpu, {
-  className: "Tr2ReadbackALWebgpu",
-  methods: { IsReady: [meta.adapted], IsValid: [meta.implemented], Map: [meta.adapted],
-    Destroy: [meta.adapted], Describe: [meta.implemented], GetMemoryClass: [meta.implemented] }
+  className: "Tr2ReadbackALWebgpu"
 });

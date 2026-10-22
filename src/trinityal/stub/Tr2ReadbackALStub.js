@@ -67,8 +67,12 @@ CjsSchema.decorateMethod(Tr2ReadbackALStub, "Destroy");
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "Describe");
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "GetMemoryClass");
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsValid");
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsReady", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "Map", meta.adapted);
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "Destroy", meta.adapted);
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "Describe", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.blue.define(Tr2ReadbackALStub, {
-  className: "Tr2ReadbackALStub",
-  methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted],
-    Destroy: [meta.adapted], Describe: [meta.implemented], GetMemoryClass: [meta.implemented] }
+  className: "Tr2ReadbackALStub"
 });

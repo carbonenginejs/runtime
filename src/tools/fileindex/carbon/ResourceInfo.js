@@ -544,49 +544,45 @@ export class ResourceInfo
     }
 }
 
+CjsSchema.decorateMethod(ResourceInfo, "typeId", meta.renamed("TypeId"), meta.implemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetRelativePath", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "GetType", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "GetChecksum", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "GetPrefix", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "GetBinaryOperation", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "GetCompressedSize", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "GetUncompressedSize", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "GetLocation", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "SetRelativePath", meta.implemented);
+CjsSchema.decorateMethod(ResourceInfo, "SetCompressedSize", meta.implemented);
+CjsSchema.decorateMethod(ResourceInfo, "SetUncompressedSize", meta.implemented);
+CjsSchema.decorateMethod(ResourceInfo, "SetDataChecksum", meta.implemented);
+CjsSchema.decorateMethod(ResourceInfo, "UpdateLocation", meta.implemented);
+CjsSchema.decorateMethod(ResourceInfo, "Equals", meta.renamed("operator=="), meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "LessThan", meta.renamed("operator<"), meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "SetParametersFromResource", meta.implemented);
+CjsSchema.decorateMethod(ResourceInfo, "ExportToCsv", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "ImportFromYaml", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "ExportToYaml", meta.adapted);
+CjsSchema.decorateMethod(ResourceInfo, "GetDataStream", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetData", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "PutDataStream", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "PutData", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "SetParametersFromData", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "SetParametersFromSourceStream", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetDataLocalRelative", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetDataLocalCdn", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetDataRemoteCdn", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetDataStreamLocalRelative", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetDataStreamLocalCdn", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetDataStreamRemoteCdn", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "PutDataLocalRelative", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "PutDataLocalCdn", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "PutDataStreamLocalRelative", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "PutDataStreamLocalCdn", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "PutDataStreamRemoteCdn", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "PutDataRemoteCdn", meta.notImplemented);
+CjsSchema.decorateMethod(ResourceInfo, "GetDestinationPath", meta.notImplemented);
 CjsSchema.blue.define(ResourceInfo, {
-  className: "ResourceInfo",
-  fields: {},
-  methods: {
-        typeId: [ meta.renamed("TypeId"), meta.implemented ],
-        GetRelativePath: [ meta.adapted ],
-        GetType: [ meta.adapted ],
-        GetChecksum: [ meta.adapted ],
-        GetPrefix: [ meta.adapted ],
-        GetBinaryOperation: [ meta.adapted ],
-        GetCompressedSize: [ meta.adapted ],
-        GetUncompressedSize: [ meta.adapted ],
-        GetLocation: [ meta.adapted ],
-        SetRelativePath: [ meta.implemented ],
-        SetCompressedSize: [ meta.implemented ],
-        SetUncompressedSize: [ meta.implemented ],
-        SetDataChecksum: [ meta.implemented ],
-        UpdateLocation: [ meta.implemented ],
-        Equals: [ meta.renamed("operator=="), meta.adapted ],
-        LessThan: [ meta.renamed("operator<"), meta.adapted ],
-        SetParametersFromResource: [ meta.implemented ],
-        ExportToCsv: [ meta.adapted ],
-        ImportFromYaml: [ meta.adapted ],
-        ExportToYaml: [ meta.adapted ],
-        _Read: [],
-        GetDataStream: [ meta.notImplemented ],
-        GetData: [ meta.notImplemented ],
-        PutDataStream: [ meta.notImplemented ],
-        PutData: [ meta.notImplemented ],
-        SetParametersFromData: [ meta.notImplemented ],
-        SetParametersFromSourceStream: [ meta.notImplemented ],
-        GetDataLocalRelative: [ meta.notImplemented ],
-        GetDataLocalCdn: [ meta.notImplemented ],
-        GetDataRemoteCdn: [ meta.notImplemented ],
-        GetDataStreamLocalRelative: [ meta.notImplemented ],
-        GetDataStreamLocalCdn: [ meta.notImplemented ],
-        GetDataStreamRemoteCdn: [ meta.notImplemented ],
-        PutDataLocalRelative: [ meta.notImplemented ],
-        PutDataLocalCdn: [ meta.notImplemented ],
-        PutDataStreamLocalRelative: [ meta.notImplemented ],
-        PutDataStreamLocalCdn: [ meta.notImplemented ],
-        PutDataStreamRemoteCdn: [ meta.notImplemented ],
-        PutDataRemoteCdn: [ meta.notImplemented ],
-        GetDestinationPath: [ meta.notImplemented ]
-    }
+  className: "ResourceInfo"
 });

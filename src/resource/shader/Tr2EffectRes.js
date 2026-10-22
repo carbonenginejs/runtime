@@ -587,18 +587,14 @@ function normalizeShaderOptions(options)
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
 
+CjsSchema.decorateMethod(Tr2EffectRes, "DoLoad", meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "GetShader", meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "GetPermutationDescription", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "ReleaseResources", meta.adapted);
+CjsSchema.decorateMethod(Tr2EffectRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2EffectRes, "GetMemoryUsage", blue.method, meta.adapted);
 CjsSchema.blue.define(Tr2EffectRes, {
-  className: "Tr2EffectRes",
-  methods: {
-    DoLoad: [ meta.adapted ],
-    GetShader: [ meta.adapted ],
-    GetShaderByIndex: [],
-    SetPermutationTranslator: [],
-    GetPermutationDescription: [ be.mapMethodAndWrap(), meta.adapted ],
-    ReleaseResources: [ meta.adapted ],
-    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
-    GetMemoryUsage: [ blue.method, meta.adapted ]
-  }
+  className: "Tr2EffectRes"
 });
 blue.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);

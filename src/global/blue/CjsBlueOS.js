@@ -330,21 +330,17 @@ export class CjsBlueOS extends IBlueOS
 
 CjsSchema.exposure.mapInterface(IBlueOS)(CjsBlueOS);
 CjsSchema.blue.inherit(BeInfo)(CjsBlueOS);
+CjsSchema.decorateField(CjsBlueOS, "frameClock", blue.readwrite);
+CjsSchema.decorateMethod(CjsBlueOS, "GetSmoothedTime", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "GetActualTime", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "GetCurrentFrameTime", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "PumpOS", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "GetInfo", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "RegisterForTicks", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "UnregisterForTicks", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "RegisterForSimTimeRebase", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "UnregisterForSimTimeRebase", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueOS, "RunStackless", meta.adapted);
 CjsSchema.blue.define(CjsBlueOS, {
-  className: "CjsBlueOS",
-  fields: { frameClock: [ blue.readwrite ] },
-  methods: {
-    GetSmoothedTime: [ meta.adapted ],
-    GetActualTime: [ meta.adapted ],
-    GetCurrentFrameTime: [ meta.adapted ],
-    PumpOS: [ blue.method, meta.adapted ],
-    GetRealTime: [],
-    GetInfo: [ meta.adapted ],
-    RegisterForTicks: [ meta.adapted ],
-    UnregisterForTicks: [ meta.adapted ],
-    IsRegisteredForTicks: [],
-    RegisterForSimTimeRebase: [ meta.adapted ],
-    UnregisterForSimTimeRebase: [ meta.adapted ],
-    RunStackless: [ meta.adapted ]
-  }
+  className: "CjsBlueOS"
 });

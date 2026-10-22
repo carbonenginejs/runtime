@@ -1679,25 +1679,22 @@ function defaultNow()
 }
 
 
+CjsSchema.decorateMethod(CjsMotherLode, "Startup", meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "Shutdown", meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "Insert", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "HasKey", meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "Lookup", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "Delete", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "Clear", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "ClearCached", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "SetCacheSize", meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "GetCacheSize", meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "GetStats", meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "GetKeys", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "GetValues", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "GetSize", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "TrimCache", meta.renamed("Housekeeping"), meta.adapted);
+CjsSchema.decorateMethod(CjsMotherLode, "_WeakRefNotify", meta.renamed("WeakRefNotify"), meta.adapted);
 CjsSchema.blue.define(CjsMotherLode, {
-  className: "CjsMotherLode",
-  fields: {},
-  methods: {
-    Startup: [ meta.adapted ],
-    Shutdown: [ meta.adapted ],
-    Insert: [ blue.method, meta.adapted ],
-    HasKey: [ meta.adapted ],
-    Lookup: [ blue.method, meta.adapted ],
-    Delete: [ blue.method, meta.adapted ],
-    Clear: [ blue.method, meta.adapted ],
-    ClearCached: [ blue.method, meta.adapted ],
-    SetCacheSize: [ meta.adapted ],
-    GetCacheSize: [ meta.adapted ],
-    GetStats: [ meta.adapted ],
-    GetKeys: [ blue.method, meta.adapted ],
-    GetValues: [ blue.method, meta.adapted ],
-    GetSize: [ blue.method, meta.adapted ],
-    TrimCache: [ meta.renamed("Housekeeping"), meta.adapted ],
-    _WeakRefNotify: [ meta.renamed("WeakRefNotify"), meta.adapted ]
-  }
+  className: "CjsMotherLode"
 });

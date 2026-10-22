@@ -153,14 +153,20 @@ CjsSchema.decorateField(Tr2PickBuffer, "_format", type.uint32);
 CjsSchema.decorateField(Tr2PickBuffer, "_clearColor", type.uint32);
 CjsSchema.decorateField(Tr2PickBuffer, "_pickTarget", type.rawStruct("Tr2TextureAL"));
 CjsSchema.decorateField(Tr2PickBuffer, "_depthBuffer", type.rawStruct("Tr2TextureAL"));
+CjsSchema.decorateMethod(Tr2PickBuffer, "SetSize", meta.implemented);
+CjsSchema.decorateMethod(Tr2PickBuffer, "GetSize", meta.implemented);
+CjsSchema.decorateMethod(Tr2PickBuffer, "GetDescription", meta.adapted);
+CjsSchema.decorateMethod(Tr2PickBuffer, "SetClearColor", meta.implemented);
+CjsSchema.decorateMethod(Tr2PickBuffer, "ReleaseResources", meta.adapted);
+CjsSchema.decorateMethod(Tr2PickBuffer, "PrepareResources", meta.adapted);
+CjsSchema.decorateMethod(Tr2PickBuffer, "OnPrepareResources", meta.adapted);
+CjsSchema.decorateMethod(Tr2PickBuffer, "BeginRendering", meta.adapted);
+CjsSchema.decorateMethod(Tr2PickBuffer, "EndRendering", meta.implemented);
+CjsSchema.decorateMethod(Tr2PickBuffer, "MapForReading", meta.adapted);
+CjsSchema.decorateMethod(Tr2PickBuffer, "UnmapForReading", meta.implemented);
+CjsSchema.decorateMethod(Tr2PickBuffer, "Destruct", meta.adapted);
 CjsSchema.blue.define(Tr2PickBuffer, {
-  className: "Tr2PickBuffer",
-  methods: {
-    SetSize: [meta.implemented], GetSize: [meta.implemented], GetDescription: [meta.adapted], SetClearColor: [meta.implemented],
-    ReleaseResources: [meta.adapted], PrepareResources: [meta.adapted], OnPrepareResources: [meta.adapted],
-    BeginRendering: [meta.adapted], EndRendering: [meta.implemented], MapForReading: [meta.adapted],
-    UnmapForReading: [meta.implemented], Destruct: [meta.adapted], CreateReadback: []
-  }
+  className: "Tr2PickBuffer"
 });
 
 CjsSchema.decorateMethod(Tr2PickBuffer, "SetSize");

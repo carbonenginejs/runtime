@@ -99,15 +99,11 @@ export class StatusSettings
     }
 }
 
+CjsSchema.decorateMethod(StatusSettings, "SetCallbackSettings", meta.implemented);
+CjsSchema.decorateMethod(StatusSettings, "RequiresStatusUpdates", meta.implemented);
+CjsSchema.decorateMethod(StatusSettings, "Update", meta.implemented);
+CjsSchema.decorateMethod(StatusSettings, "CalculateOverallProgress", meta.implemented);
+CjsSchema.decorateMethod(StatusSettings, "Dispose", meta.adapted);
 CjsSchema.blue.define(StatusSettings, {
-  className: "StatusSettings",
-  fields: {},
-  methods: {
-        SetCallbackSettings: [ meta.implemented ],
-        RequiresStatusUpdates: [ meta.implemented ],
-        Update: [ meta.implemented ],
-        CalculateOverallProgress: [ meta.implemented ],
-        Dispose: [ meta.adapted ],
-        _Copy: []
-    }
+  className: "StatusSettings"
 });

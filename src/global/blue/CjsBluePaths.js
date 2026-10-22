@@ -321,24 +321,18 @@ export class CjsBluePaths extends IBluePaths
 }
 
 CjsSchema.exposure.mapInterface(IBluePaths)(CjsBluePaths);
+CjsSchema.decorateMethod(CjsBluePaths, "RegisterFileSystem", meta.adapted);
+CjsSchema.decorateMethod(CjsBluePaths, "UnregisterFileSystem", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBluePaths, "IsFileSystemRegistered", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBluePaths, "GetDirectoryContents", meta.implemented);
+CjsSchema.decorateMethod(CjsBluePaths, "IsDirectory", blue.method, meta.implemented);
+CjsSchema.decorateMethod(CjsBluePaths, "FileExists", blue.method, meta.implemented);
+CjsSchema.decorateMethod(CjsBluePaths, "FileExistsLocally", blue.method, meta.implemented);
+CjsSchema.decorateMethod(CjsBluePaths, "FileNeedsDownload", meta.implemented);
+CjsSchema.decorateMethod(CjsBluePaths, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"), meta.adapted);
 CjsSchema.blue.define(CjsBluePaths, {
   className: "CjsBluePaths",
-  members: [ { name: "cacheFileExistance", key: "_cacheFileExistance", type: { kind: "boolean" }, edit: { read: true, write: true }, carbon: { member: true } } ],
-  methods: {
-    SetLocalFileSystem: [],
-    GetLocalFileSystem: [],
-    SetRemoteFileCache: [],
-    GetRemoteFileCache: [],
-    RegisterFileSystem: [ meta.adapted ],
-    UnregisterFileSystem: [ blue.method, meta.adapted ],
-    IsFileSystemRegistered: [ blue.method, meta.adapted ],
-    GetDirectoryContents: [ meta.implemented ],
-    IsDirectory: [ blue.method, meta.implemented ],
-    FileExists: [ blue.method, meta.implemented ],
-    FileExistsLocally: [ blue.method, meta.implemented ],
-    FileNeedsDownload: [ meta.implemented ],
-    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ]
-  }
+  members: [ { name: "cacheFileExistance", key: "_cacheFileExistance", type: { kind: "boolean" }, edit: { read: true, write: true }, carbon: { member: true } } ]
 });
 
 

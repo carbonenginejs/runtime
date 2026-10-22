@@ -114,15 +114,11 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
 }
 
 CjsSchema.exposure.mapInterface(IBlueResFileSystem)(BlueResFileSystemRemote);
+CjsSchema.decorateMethod(BlueResFileSystemRemote, "FileExists", meta.implemented);
+CjsSchema.decorateMethod(BlueResFileSystemRemote, "IsDirectory", meta.implemented);
+CjsSchema.decorateMethod(BlueResFileSystemRemote, "GetDirectoryContents", meta.implemented);
+CjsSchema.decorateMethod(BlueResFileSystemRemote, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"), meta.adapted);
+CjsSchema.decorateMethod(BlueResFileSystemRemote, "ResolvePathW", meta.adapted);
 CjsSchema.blue.define(BlueResFileSystemRemote, {
-  className: "BlueResFileSystemRemote",
-  fields: {},
-  methods: {
-    GetRemoteFileCache: [],
-    FileExists: [ meta.implemented ],
-    IsDirectory: [ meta.implemented ],
-    GetDirectoryContents: [ meta.implemented ],
-    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ],
-    ResolvePathW: [ meta.adapted ]
-  }
+  className: "BlueResFileSystemRemote"
 });

@@ -1043,4 +1043,7 @@ CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Describe", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "SetName", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetName", blue.method);
-CjsSchema.blue.define(CjsWebgpuTextureAL, { className: "CjsWebgpuTextureAL",  methods: { RequestAverageColor: [] } });
+
+CjsSchema.blue.define(CjsWebgpuTextureAL, {
+  className: "CjsWebgpuTextureAL"
+});

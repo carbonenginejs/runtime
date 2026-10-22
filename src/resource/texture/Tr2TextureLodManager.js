@@ -89,23 +89,19 @@ export class Tr2TextureLodManager extends IRoot
 
 CjsSchema.blue.inherit(IRoot, IBlueEvents)(Tr2TextureLodManager);
 
+CjsSchema.decorateField(Tr2TextureLodManager, "gpuMemoryUsed", type.uint64);
+CjsSchema.decorateField(Tr2TextureLodManager, "gpuMemoryAllocated", type.uint64);
+CjsSchema.decorateField(Tr2TextureLodManager, "cpuMemoryUsed", type.uint64);
+CjsSchema.decorateField(Tr2TextureLodManager, "cpuMemoryAllocated", type.uint64);
+CjsSchema.decorateField(Tr2TextureLodManager, "gpuUploadSize", type.uint64);
+CjsSchema.decorateField(Tr2TextureLodManager, "gpuMemorySize", type.uint32);
+CjsSchema.decorateField(Tr2TextureLodManager, "cpuMemorySize", type.uint32);
+CjsSchema.decorateField(Tr2TextureLodManager, "currentStats", type.rawStruct("Stats"));
+CjsSchema.decorateField(Tr2TextureLodManager, "lowDetailVtaFiles", type.boolean);
+CjsSchema.decorateMethod(Tr2TextureLodManager, "RegisterTexture", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureLodManager, "UnregisterTexture", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureLodManager, "GetManagedTextures", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.blue.define(Tr2TextureLodManager, {
   className: "Tr2TextureLodManager",
-  abstract: true,
-  fields: {
-    gpuMemoryUsed: type.uint64,
-    gpuMemoryAllocated: type.uint64,
-    cpuMemoryUsed: type.uint64,
-    cpuMemoryAllocated: type.uint64,
-    gpuUploadSize: type.uint64,
-    gpuMemorySize: type.uint32,
-    cpuMemorySize: type.uint32,
-    currentStats: type.rawStruct("Stats"),
-    lowDetailVtaFiles: type.boolean
-  },
-  methods: {
-    RegisterTexture: [ meta.implemented ],
-    UnregisterTexture: [ meta.implemented ],
-    GetManagedTextures: [ be.mapMethodAndWrap(), meta.implemented ]
-  }
+  abstract: true
 });

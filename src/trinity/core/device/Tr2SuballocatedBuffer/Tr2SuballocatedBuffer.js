@@ -218,15 +218,11 @@ function Lcm(a, b)
   return (a * b) / Gcd(a, b);
 }
 
+CjsSchema.decorateMethod(Tr2SuballocatedBuffer, "Allocate", meta.adapted);
+CjsSchema.decorateMethod(Tr2SuballocatedBuffer, "Free", meta.adapted);
+CjsSchema.decorateMethod(Tr2SuballocatedBuffer, "GetBuffer", meta.adapted);
+CjsSchema.decorateMethod(Tr2SuballocatedBuffer, "ReleaseResources", meta.adapted);
+CjsSchema.decorateMethod(Tr2SuballocatedBuffer, "PrepareResources", meta.adapted);
 CjsSchema.blue.define(Tr2SuballocatedBuffer, {
-  className: "Tr2SuballocatedBuffer",
-  methods: {
-    Allocate: [ meta.adapted ],
-    Free: [ meta.adapted ],
-    GetBuffer: [ meta.adapted ],
-    ReleaseResources: [ meta.adapted ],
-    PrepareResources: [ meta.adapted ],
-    _AddBlock: [],
-    GetBlocks: []
-  }
+  className: "Tr2SuballocatedBuffer"
 });

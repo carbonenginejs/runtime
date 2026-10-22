@@ -287,20 +287,15 @@ export class Tr2Pass
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
+CjsSchema.decorateField(Tr2Pass, "stageInputs", type.list("Tr2EffectStageInput"));
+CjsSchema.decorateField(Tr2Pass, "renderStates", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "shaderTypeMask", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "shaderProgram", type.uint32);
+CjsSchema.decorateField(Tr2Pass, "resourceSetDesc", type.rawStruct("Tr2ResourceSetDescriptionAL"));
+CjsSchema.decorateField(Tr2Pass, "indirectLayout", type.rawStruct("Tr2IndirectDrawBufferLayout"));
+CjsSchema.decorateField(Tr2Pass, "renderStateValues", meta.adapted, type.rawStruct("CjsEffectRenderStateValues"));
+CjsSchema.decorateField(Tr2Pass, "stageOrder", type.rawStruct("CjsEffectStageOrder"));
+CjsSchema.decorateField(Tr2Pass, "backendBlock", type.rawStruct("CjsEffectBackendBlock"));
 CjsSchema.blue.define(Tr2Pass, {
-  className: "Tr2Pass",
-  fields: {
-    stageInputs: type.list("Tr2EffectStageInput"),
-    renderStates: type.uint32,
-    shaderTypeMask: type.uint32,
-    shaderProgram: type.uint32,
-    resourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
-    renderStateValues: [ meta.adapted, type.rawStruct("CjsEffectRenderStateValues") ],
-    stageOrder: [ type.rawStruct("CjsEffectStageOrder") ],
-    backendBlock: [ type.rawStruct("CjsEffectBackendBlock") ]
-  },
-  methods: {
-    readMergedResources: []
-  }
+  className: "Tr2Pass"
 });

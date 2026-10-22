@@ -406,25 +406,24 @@ export class BitmapDimensions
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.decorateMethod(BitmapDimensions, "GetWidth", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetHeight", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetDepth", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetFormat", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetType", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetArraySize", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipCount", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetTrueMipCount", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "IsCompressed", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "HasMipmap", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipWidth", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipHeight", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipDepth", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipPitch", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipSize", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "GetMipNumRows", blue.method);
+CjsSchema.decorateMethod(BitmapDimensions, "Destroy", blue.method);
 CjsSchema.blue.define(BitmapDimensions, {
-  className: "BitmapDimensions", aliases: [ "Tr2BitmapDimensions" ],
-  methods: {
-    GetWidth: [ blue.method ],
-    GetHeight: [ blue.method ],
-    GetDepth: [ blue.method ],
-    GetFormat: [ blue.method ],
-    GetType: [ blue.method ],
-    GetArraySize: [ blue.method ],
-    GetMipCount: [ blue.method ],
-    GetTrueMipCount: [ blue.method ],
-    IsCompressed: [ blue.method ],
-    HasMipmap: [ blue.method ],
-    GetMipWidth: [ blue.method ],
-    GetMipHeight: [ blue.method ],
-    GetMipDepth: [ blue.method ],
-    GetMipPitch: [ blue.method ],
-    GetMipSize: [ blue.method ],
-    GetMipNumRows: [ blue.method ],
-    Destroy: [ blue.method ]
-  }
+  className: "BitmapDimensions",
+  aliases: [ "Tr2BitmapDimensions" ]
 });

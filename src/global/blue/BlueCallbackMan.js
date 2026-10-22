@@ -746,33 +746,28 @@ export class BlueCallbackMan extends IBlueCallbackMan
 }
 
 CjsSchema.exposure.mapInterface(IBlueCallbackMan)(BlueCallbackMan);
+CjsSchema.decorateMethod(BlueCallbackMan, "Add", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "Add__Name", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "Cancel", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "Run", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "Stop", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "Pause", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "Resume", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "IsPaused", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "Throttle", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "Unthrottle", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "Update", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "IsEmpty", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "GetNextId", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "GetSize", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "GetTimeInQueueMax", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "GetTimeInQueueAverage", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "ResetQueueStats", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "SetPriority", meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "SetThreadCount", meta.implemented);
+CjsSchema.decorateMethod(BlueCallbackMan, "SetName", meta.adapted);
 CjsSchema.blue.define(BlueCallbackMan, {
-  className: "BlueCallbackMan",
-  fields: {},
-  methods: {
-    Add: [ meta.adapted ],
-    Add__Name: [ meta.adapted ],
-    Cancel: [ meta.adapted ],
-    Run: [ meta.adapted ],
-    Stop: [ meta.adapted ],
-    Pause: [ meta.implemented ],
-    Resume: [ meta.implemented ],
-    IsPaused: [ meta.implemented ],
-    Throttle: [ meta.implemented ],
-    Unthrottle: [ meta.implemented ],
-    Update: [ meta.adapted ],
-    IsEmpty: [ meta.implemented ],
-    GetNextId: [ meta.implemented ],
-    GetSize: [ meta.implemented ],
-    GetTimeInQueueMax: [ meta.implemented ],
-    GetTimeInQueueAverage: [ meta.implemented ],
-    ResetQueueStats: [ meta.implemented ],
-    SetPriority: [ meta.adapted ],
-    SetThreadCount: [ meta.implemented ],
-    SetName: [ meta.adapted ],
-    SetWorkerModule: [],
-    SetWorkerFactory: []
-  }
+  className: "BlueCallbackMan"
 });
 
 CjsSchema.decorateMethod(BlueCallbackMan, "_AddHelper", meta.renamed("AddHelper"), meta.adapted);

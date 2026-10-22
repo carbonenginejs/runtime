@@ -181,22 +181,17 @@ export class Tr2ImageRes extends CjsResource
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
 
+CjsSchema.decorateField(Tr2ImageRes, "width", type.int32, blue.read, meta.persist);
+CjsSchema.decorateField(Tr2ImageRes, "height", type.int32, blue.read, meta.persist);
+CjsSchema.decorateMethod(Tr2ImageRes, "GetWidth", meta.adapted);
+CjsSchema.decorateMethod(Tr2ImageRes, "GetHeight", meta.adapted);
+CjsSchema.decorateMethod(Tr2ImageRes, "GetPixelColor", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(Tr2ImageRes, "IsPixelOpaque", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(Tr2ImageRes, "GetBitmap", meta.adapted);
+CjsSchema.decorateMethod(Tr2ImageRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2ImageRes, "GetMemoryUsage", blue.method, meta.adapted);
 CjsSchema.blue.define(Tr2ImageRes, {
-  className: "Tr2ImageRes",
-  fields: {
-    width: [ type.int32, blue.read, meta.persist ],
-    height: [ type.int32, blue.read, meta.persist ]
-  },
-  methods: {
-    SetPayload: [],
-    GetWidth: [ meta.adapted ],
-    GetHeight: [ meta.adapted ],
-    GetPixelColor: [ be.mapMethodAndWrap(), meta.adapted ],
-    IsPixelOpaque: [ be.mapMethodAndWrap(), meta.adapted ],
-    GetBitmap: [ meta.adapted ],
-    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
-    GetMemoryUsage: [ blue.method, meta.adapted ]
-  }
+  className: "Tr2ImageRes"
 });
 blue.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2ImageRes);

@@ -83,11 +83,9 @@ export class ImageIOResult
 
 
 // A call, not a decorator: see BitmapDimensions.js.
+CjsSchema.decorateMethod(ImageIOResult, "GetErrorMessage", blue.method);
 CjsSchema.blue.define(ImageIOResult, {
-  className: "ImageIOResult",
-  methods: {
-    GetErrorMessage: [ blue.method ]
-  }
+  className: "ImageIOResult"
 });
 
 
