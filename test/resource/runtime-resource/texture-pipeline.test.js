@@ -3,6 +3,8 @@ import { test } from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { PixelFormat } from "#consts/render-context";
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
+// ExecuteFromScript makes its bitmaps through Blue's class registry (Carbon's CreateInstance), so the class must be defined.
+import "../../../npm/dist/trinity/core/Tr2HostBitmap.js";
 import {
   Tr2TextureLodManager,
   Tr2TexturePackChannel,
@@ -205,7 +207,7 @@ test("our Convert and Resize steps let Pack join a compressed source and a diffe
   assert.equal(compressed.GetFormat(), PixelFormat.PIXEL_FORMAT_BC1_UNORM, "the source bitmap was not changed");
 });
 
-test("Tr2TexturePipeline exposes its FromScript members under Carbon's names (Tr2TexturePipeline_Blue.cpp:20-30)", () =>
+test("Tr2TexturePipeline exposes its FromScript members under Carbon's names (Tr2TexturePipeline_Blue.cpp:20-30)", async () =>
 {
   const load = new Tr2TexturePipelineStepLoad();
   load.path = "res:/z.png";
@@ -224,6 +226,10 @@ test("Tr2TexturePipeline exposes its FromScript members under Carbon's names (Tr
   const execute = CjsSchema.getMethod(Tr2TexturePipeline, "ExecuteFromScript");
   assert.equal(execute.exposure.macro, "MAP_METHOD_AND_WRAP_OPTIONAL_ARGS");
   assert.equal(execute.exposure.name, "Execute");
-  assert.equal(execute.impl.status, "notImplemented");
-  assert.throws(() => pipeline.ExecuteFromScript(0, 0), /Tr2HostBitmap\.CreateFromFile .* is not ported/u);
+  assert.equal(execute.impl.status, "adapted");
+  // It reads files, so it is asynchronous; no file system is installed here, so the first
+  // dependency (res:/a.png, sorted before res:/z.png) cannot be opened.
+  const executing = pipeline.ExecuteFromScript(0, 0);
+  assert.ok(executing instanceof Promise);
+  await assert.rejects(executing, /failed to load texture res:\/a\.png/u);
 });

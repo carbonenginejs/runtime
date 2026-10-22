@@ -1,5 +1,6 @@
 import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
+import { blue as blueService } from "#blue";
 import "#blue/values";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.h
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.cpp
@@ -58,21 +59,50 @@ export class Tr2TexturePipeline extends IRoot
    * Tr2TexturePipeline.h:23). Exposed as "Execute"
    * (Tr2TexturePipeline_Blue.cpp:24-30, MAP_METHOD_AND_WRAP_OPTIONAL_ARGS with 2 optional arguments).
    *
-   * Not implemented: Carbon loads each dependency with `Tr2HostBitmap::CreateFromFile`
-   * (Tr2HostBitmap.cpp:486-510), which reads the file through `BePaths->GetFileContentsWithYield` and
-   * decodes it with `ImageIO::ReadImage`. Neither is available to this class: `Tr2HostBitmap` has no
-   * `CreateFromFile`, the resource layer has no global `BePaths` or `BeResMan`, and a JS file read is
-   * asynchronous where Carbon's yields. `TriTextureRes.LoadPipeline` loads the dependencies through a
-   * resource manager and runs `Execute`; use it.
+   * Carbon creates a `Tr2HostBitmap` per dependency path (`CreateInstance()`, here Blue's class registry, so
+   * that this resource layer does not import the `trinity` layer that defines the class), in the sorted order of
+   * `GetResourceDependencies`, fills it with `Tr2HostBitmap::CreateFromFile` (Tr2HostBitmap.cpp:486-510),
+   * runs `Execute` with the bitmaps as inputs and the caller's size limits, and hands the result back
+   * through `Tr2HostBitmapPtr& result` with a `Be::Result<std::string>` for the outcome.
    *
-   * @param {number} _maxWidth Max resulting texture width.
-   * @param {number} _maxHeight Max resulting texture height.
-   * @returns {never}
-   * @throws {Error} Always.
+   * Forced divergences: a Promise, because `CreateFromFile` reads files asynchronously (the same
+   * limitation, named there); the `Be::Result` error is a thrown `Error` with Carbon's message and
+   * the output pointer is the resolved value, as ports of other `Result` methods do. The two optional
+   * arguments default to 0 (no limit), the default-constructed values the optional-args wrapper supplies.
+   * Carbon's "out of memory" results (cpp:68, 82) are an unregistered `Tr2HostBitmap`. `Execute` here stops at the first
+   * failing step (its own divergence, marked there).
+   *
+   * @param {number} [maxWidth=0] Max resulting texture width; 0 for none.
+   * @param {number} [maxHeight=0] Max resulting texture height; 0 for none.
+   * @returns {Promise<object>} The resulting `Tr2HostBitmap`.
+   * @throws {Error} "failed to load texture <path>", "error executing pipeline" or "out of memory".
    */
-  ExecuteFromScript(_maxWidth, _maxHeight)
+  async ExecuteFromScript(maxWidth = 0, maxHeight = 0)
   {
-    throw new Error("Tr2TexturePipeline.ExecuteFromScript: Tr2HostBitmap.CreateFromFile (BePaths file read and ImageIO::ReadImage) is not ported; use TriTextureRes.LoadPipeline.");
+    const bitmaps = new Map();
+
+    for (const path of this.GetResourceDependencies())
+    {
+      const bitmap = blueService.classes.CreateInstance("Tr2HostBitmap");
+
+      if (!bitmap) throw new Error("out of memory");
+
+      if (!await bitmap.CreateFromFile(path)) throw new Error(`failed to load texture ${path}`);
+
+      bitmaps.set(path, bitmap);
+    }
+
+    const params = new Tr2TexturePipelineParams();
+    params.maxWidth = maxWidth;
+    params.maxHeight = maxHeight;
+
+    const result = blueService.classes.CreateInstance("Tr2HostBitmap");
+
+    if (!result) throw new Error("out of memory");
+
+    if (!await this.Execute(result, bitmaps, params)) throw new Error("error executing pipeline");
+
+    return result;
   }
 
   /**
@@ -140,7 +170,7 @@ CjsSchema.blue.inherit(IRoot)(Tr2TexturePipeline);
 CjsSchema.decorateField(Tr2TexturePipeline, "pipelineType", be.mapAttribute(be.READWRITE | be.PERSIST), type.string);
 CjsSchema.decorateField(Tr2TexturePipeline, "steps", be.mapAttribute(be.READ | be.PERSIST), type.list("ITr2TexturePipelineStep"));
 CjsSchema.decorateMethod(Tr2TexturePipeline, "Execute", meta.adapted);
-CjsSchema.decorateMethod(Tr2TexturePipeline, "ExecuteFromScript", be.mapMethodAndWrapOptionalArgs("Execute"), meta.notImplemented);
+CjsSchema.decorateMethod(Tr2TexturePipeline, "ExecuteFromScript", be.mapMethodAndWrapOptionalArgs("Execute"), meta.adapted);
 CjsSchema.decorateMethod(Tr2TexturePipeline, "GetResourceDependencies", meta.adapted);
 CjsSchema.decorateMethod(Tr2TexturePipeline, "GetResourceDependenciesFromScript", be.mapMethodAndWrap("GetResourceDependencies"), meta.adapted);
 CjsSchema.exposure.define("Tr2TexturePipeline")(Tr2TexturePipeline);
