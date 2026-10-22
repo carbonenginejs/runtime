@@ -1,5 +1,5 @@
 // Source: blue/include/ITr2DebugRenderer2.h:37-94
-import { CjsSchema, blue } from "../schema/index.js";
+import { CjsSchema, meta } from "../schema/index.js";
 import { color as colorMath } from "../math/color.js";
 
 // Scratch for GetAutoSelectedColor's Color temporary (debug drawing is single-threaded).
@@ -34,7 +34,7 @@ export class Tr2DebugColor
 
   /**
    * Brightens a packed color by 0.7 per RGB channel, clamped at one, leaving
-   * alpha alone (h:48-55).
+   * alpha alone (ITr2DebugRenderer2.h:49-56; the same arithmetic).
    * @param {number} color Packed ARGB word.
    * @returns {number} Packed ARGB word.
    */
@@ -120,5 +120,5 @@ export class Tr2DebugColor
 
 // Declared as a call, not a decorator: global/interfaces is imported straight
 // from source by tests, and raw Node cannot parse decorator syntax.
-CjsSchema.decorateMethod(Tr2DebugColor, "GetAutoSelectedColor", blue.method);
+CjsSchema.decorateMethod(Tr2DebugColor, "GetAutoSelectedColor", meta.implemented);
 CjsSchema.meta.carbon("Tr2DebugColor")(Tr2DebugColor);

@@ -1,5 +1,5 @@
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /** Runs one outline helper's retained mask composite after the scene driver. */
 export class TnyOutlineCompositeNode extends ITr2RenderNode
@@ -31,8 +31,8 @@ export class TnyOutlineCompositeNode extends ITr2RenderNode
   }
 }
 
-CjsSchema.decorateMethod(TnyOutlineCompositeNode, "Validate", blue.method);
-CjsSchema.decorateMethod(TnyOutlineCompositeNode, "Execute", blue.method);
+CjsSchema.decorateMethod(TnyOutlineCompositeNode, "Validate", meta.implemented);
+CjsSchema.decorateMethod(TnyOutlineCompositeNode, "Execute", meta.implemented);
 CjsSchema.meta.define(TnyOutlineCompositeNode, {
   className: "TnyOutlineCompositeNode",
   methods: { Validate: [], Execute: [] }

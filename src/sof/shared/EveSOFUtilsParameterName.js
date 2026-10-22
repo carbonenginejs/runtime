@@ -1,5 +1,4 @@
 import { meta } from "#schema";
-import { blue } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFUtils.h
 
 /** Parses and remaps Carbon SOF material parameter prefixes. */
@@ -47,29 +46,29 @@ export class EveSOFUtilsParameterName
     }
   }
 
-  /** Reports whether construction matched one of the supplied material prefixes. */
-  @blue.method
+  /** Reports whether construction matched one of the supplied material prefixes (EveSOFUtils.cpp:32-35). */
+  @meta.implemented
   IsMaterialIdxValid()
   {
     return this.materialIdx !== -1;
   }
 
-  /** Returns the zero-based matched prefix position, or -1 when none matched. */
-  @blue.method
+  /** Returns the zero-based matched prefix position, or -1 when none matched (EveSOFUtils.cpp:41-44). */
+  @meta.implemented
   GetMaterialIdx()
   {
     return this.materialIdx;
   }
 
-  /** Returns the currently qualified material parameter name. */
-  @blue.method
+  /** Returns the currently qualified material parameter name (EveSOFUtils.cpp:56-59). */
+  @meta.implemented
   GetFullName()
   {
     return this.fullname;
   }
 
-  /** Returns the parameter suffix remaining after its recognized material prefix. */
-  @blue.method
+  /** Returns the parameter suffix remaining after its recognized material prefix (EveSOFUtils.cpp:50-53). */
+  @meta.implemented
   GetShortName()
   {
     return this.shortname;
@@ -77,9 +76,9 @@ export class EveSOFUtilsParameterName
 
   /**
    * When a prefix is recognized, rebuilds the qualified name with the requested
-   * generic material prefix and updates the stored index.
+   * generic material prefix and updates the stored index (EveSOFUtils.cpp:65-72).
    */
-  @blue.method
+  @meta.implemented
   ChangeMaterialIdx(genericData, index)
   {
     if (this.IsMaterialIdxValid())

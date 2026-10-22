@@ -88,8 +88,8 @@ for (const method of [
 }
 
 // Carbon declares only the wide-character forms; a JS string covers both.
-CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", blue.method, meta.renamed("SetSearchPathW"));
-CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", blue.method, meta.renamed("GetSearchPathW"));
-CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"));
+CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", meta.renamed("SetSearchPathW"));
+CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", meta.renamed("GetSearchPathW"));
+CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"));
 
 CjsSchema.exposure.interface("IBluePaths")(IBluePaths);

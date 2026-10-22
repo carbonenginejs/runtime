@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.h
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.cpp
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -28,15 +28,18 @@ export class TriStepRemoteSync extends TriRenderStep
     this.SetId(id);
   }
 
-  /** Returns the synchronization event identifier, -1 when none was set. */
-  @blue.method
+  /** Returns the synchronization event identifier, -1 when none was set (TriStepRemoteSync.h:23-26). */
+  @meta.implemented
   GetId()
   {
     return this.#id;
   }
 
-  /** Sets the synchronization event identifier, throwing on a non-integer. */
-  @blue.method
+  /**
+   * Sets the synchronization event identifier (TriStepRemoteSync.h:27-30). Adapted: Carbon's parameter is an `int`, so a JavaScript
+   * value that is not an integer is refused with a TypeError.
+   */
+  @meta.adapted
   SetId(id)
   {
     if (!Number.isInteger(id))
