@@ -147,7 +147,7 @@ export class Tr2LightProfileRes extends CjsResource
 }
 
 
-CjsSchema.decorateMethod(Tr2LightProfileRes, "GetTextureIndex", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2LightProfileRes, "GetTextureIndex", meta.adapted);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "GetMemoryUsage", blue.method, meta.adapted);
 CjsSchema.exposure.define("Tr2LightProfileRes")(Tr2LightProfileRes);

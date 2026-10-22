@@ -25,7 +25,6 @@ export class EveComponentCollection
    * Appends an entity and returns the index it was stored at, which the registry
    * records on the entity.
    */
-  @blue.method
   @meta.implemented
   Add(entity)
   {
@@ -48,7 +47,6 @@ export class EveComponentCollection
    * @returns {object|null} The entity moved into index, or null.
    * @throws {RangeError} When the write at index or the pop falls outside the collection.
    */
-  @blue.method
   @meta.implemented
   SwapWithBack(index)
   {
@@ -77,7 +75,6 @@ export class EveComponentCollection
    * Drops all entities from the collection without touching their stored
    * component state.
    */
-  @blue.method
   @meta.implemented
   Clear()
   {
@@ -88,7 +85,6 @@ export class EveComponentCollection
    * Returns the single mask bit the registry assigned to this collection, used
    * as the key for an entity's per-component index.
    */
-  @blue.method
   @meta.implemented
   GetBit()
   {
@@ -96,7 +92,6 @@ export class EveComponentCollection
   }
 
   /** Returns the number of entities currently in the collection. */
-  @blue.method
   @meta.implemented
   Size()
   {

@@ -307,7 +307,6 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * The particle system child's name.
    */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -317,7 +316,6 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Sets the particle system child's name, coercing the value to a string.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

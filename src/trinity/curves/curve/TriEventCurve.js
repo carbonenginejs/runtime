@@ -168,7 +168,6 @@ export class TriEventCurve extends ITriFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @blue.method
   @meta.adapted
   UpdateValue(time)
   {
@@ -208,7 +207,6 @@ export class TriEventCurve extends ITriFunction
    * The helper resets an empty track length to zero, unlike the native empty-list branch.
    * @returns {boolean} True.
    */
-  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -220,7 +218,6 @@ export class TriEventCurve extends ITriFunction
    * Returns the cached track length.
    * @returns {number} Duration in seconds.
    */
-  @blue.method
   @meta.implemented
   Length()
   {
@@ -232,7 +229,6 @@ export class TriEventCurve extends ITriFunction
    * Native declares Sort without a donor body; this retained JavaScript helper also resets empty length to zero.
    * @returns {void}
    */
-  @blue.method
   @meta.adapted
   Sort()
   {
@@ -282,7 +278,6 @@ export class TriEventCurve extends ITriFunction
    * @param {TriEventKey|object} key Key or compatible record.
    * @returns {void}
    */
-  @blue.method
   @meta.adapted
   InsertKey(key)
   {

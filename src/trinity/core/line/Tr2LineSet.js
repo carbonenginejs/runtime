@@ -165,7 +165,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

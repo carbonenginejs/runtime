@@ -329,15 +329,15 @@ CjsSchema.blue.define(CjsBluePaths, {
     GetLocalFileSystem: [],
     SetRemoteFileCache: [],
     GetRemoteFileCache: [],
-    RegisterFileSystem: [ blue.method, meta.adapted ],
+    RegisterFileSystem: [ meta.adapted ],
     UnregisterFileSystem: [ blue.method, meta.adapted ],
     IsFileSystemRegistered: [ blue.method, meta.adapted ],
-    GetDirectoryContents: [ blue.method, meta.implemented ],
+    GetDirectoryContents: [ meta.implemented ],
     IsDirectory: [ blue.method, meta.implemented ],
     FileExists: [ blue.method, meta.implemented ],
     FileExistsLocally: [ blue.method, meta.implemented ],
-    FileNeedsDownload: [ blue.method, meta.implemented ],
-    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ]
+    FileNeedsDownload: [ meta.implemented ],
+    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });
 

@@ -11,7 +11,7 @@
 // GetPickedObject (h:101) without a body, so it is not ported.
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriGeometryRes } from "#resource/geometry";
 import { EveComponentType } from "../EntityComponents.js";
 import { Tr2GpuStructuredBuffer } from "../../core/device/Tr2GpuStructuredBuffer.js";
@@ -325,7 +325,6 @@ export class EveInstancedMeshManager
    *   counterpart and are omitted.
    * @param {EveComponentRegistry} registry The scene's component registry.
    */
-  @blue.method
   @meta.adapted
   CollectMeshes(registry)
   {
@@ -382,7 +381,6 @@ export class EveInstancedMeshManager
    * @param {RawData} data The provider's EveSpacePerObjectData record, read in place each frame.
    * @returns {EveInstancedMeshManagerDataHandle} The PerObjectDataHandle.
    */
-  @blue.method
   @meta.adapted
   AddPerObjectData(data)
   {
@@ -406,7 +404,6 @@ export class EveInstancedMeshManager
    * is reset - `owner` keeps pointing at this manager.
    * @param {EveInstancedMeshManagerDataHandle} handle A valid PerObjectDataHandle.
    */
-  @blue.method
   @meta.implemented
   RemovePerObjectData(handle)
   {
@@ -449,7 +446,6 @@ export class EveInstancedMeshManager
    * @param {number} count The number of spheres.
    * @returns {EveInstancedMeshManagerDataHandle} The BoundingSphereHandle.
    */
-  @blue.method
   @meta.adapted
   AddBoundingSphereGroup(bounds, flags, boundingSpheres, count)
   {
@@ -477,7 +473,6 @@ export class EveInstancedMeshManager
    * handle (index and owner). Nothing happens for an empty handle.
    * @param {EveInstancedMeshManagerDataHandle} handle The BoundingSphereHandle.
    */
-  @blue.method
   @meta.implemented
   RemoveBoundingSphereGroup(handle)
   {
@@ -517,7 +512,6 @@ export class EveInstancedMeshManager
    * @param {{center: vec3, radius: number}} bounds The group's enclosing sphere, copied.
    * @param {EveInstancedMeshManagerInstanceFlags} flags The group's flags, copied.
    */
-  @blue.method
   @meta.implemented
   SetSphereGroupBounds(handle, bounds, flags)
   {
@@ -536,7 +530,6 @@ export class EveInstancedMeshManager
    * guessing from how many arguments a caller passed.
    * @throws {TypeError} Always.
    */
-  @blue.method
   @meta.notSupported
   AddMeshGroup()
   {
@@ -571,7 +564,6 @@ export class EveInstancedMeshManager
    * @param {number} pickingOwnerIndex
    * @returns {EveInstancedMeshManagerDataHandle} The MeshGroupHandle.
    */
-  @blue.method
   @meta.adapted
   AddMeshGroup__DynamicPerInstanceData(geometry, combinedVertexDeclaration, batchType, meshIndex, areaIndex, areaCount, material, materialHash, perObjectDataHandle, sphereHandle, perInstanceData, count, pickingOwner, pickingOwnerIndex)
   {
@@ -652,7 +644,6 @@ export class EveInstancedMeshManager
    * @param {number} pickingOwnerIndex
    * @returns {EveInstancedMeshManagerDataHandle} The MeshGroupHandle.
    */
-  @blue.method
   @meta.adapted
   AddMeshGroup__StaticPerInstanceData(geometry, combinedVertexDeclaration, batchType, meshIndex, areaIndex, areaCount, areaReversed, material, materialHash, perObjectDataHandle, sphereHandle, perInstanceData, count, pickingOwner, pickingOwnerIndex)
   {
@@ -718,7 +709,6 @@ export class EveInstancedMeshManager
    * at this manager.
    * @param {EveInstancedMeshManagerDataHandle} handle The MeshGroupHandle.
    */
-  @blue.method
   @meta.implemented
   RemoveMeshGroup(handle)
   {
@@ -756,7 +746,6 @@ export class EveInstancedMeshManager
    * @param {boolean} isDynamic Which buffer and element layout.
    * @returns {EveInstancedMeshManagerInstanceBufferAllocation}
    */
-  @blue.method
   @meta.implemented
   _AllocateInstanceData(count, isDynamic)
   {
@@ -779,7 +768,6 @@ export class EveInstancedMeshManager
    * @param {number} [reason] A Tr2RenderReason value; Carbon's default is TR2RENDERREASON_NORMAL.
    * @returns {number} The number of batches committed.
    */
-  @blue.method
   @meta.implemented
   GetBatches(cameraFrustum, invLodFactor, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -808,7 +796,6 @@ export class EveInstancedMeshManager
    * @param {number} [reason] A Tr2RenderReason value; Carbon's default is TR2RENDERREASON_NORMAL.
    * @returns {number} The number of batches committed.
    */
-  @blue.method
   @meta.implemented
   GetShadowBatches(cameraFrustum, shadowFrustum, invLodFactor, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -837,7 +824,6 @@ export class EveInstancedMeshManager
    * @param {number} invLodFactor
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches `[batchType, accumulator]` pairs, Carbon's vector.
    */
-  @blue.method
   @meta.implemented
   GetPickingBatches(readback, viewFrustum, pickingFrustum, invLodFactor, batches)
   {
@@ -860,7 +846,6 @@ export class EveInstancedMeshManager
    * densities passes an empty list, as Tr2MeshBase does, which the material
    * reads as "no LOD data".
    */
-  @blue.method
   @meta.adapted
   ReportUsedScreenSizes()
   {
@@ -891,7 +876,6 @@ export class EveInstancedMeshManager
    * @param {number} invLodFactor
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    */
-  @blue.method
   @meta.implemented
   _PerformFrustumCulling(cameraFrustum, invLodFactor, filter)
   {
@@ -943,7 +927,6 @@ export class EveInstancedMeshManager
    * @param {number} invLodFactor
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    */
-  @blue.method
   @meta.implemented
   _PerformFrustumCulling__PickingFrustum(cameraFrustum, pickingFrustum, invLodFactor, filter)
   {
@@ -997,7 +980,6 @@ export class EveInstancedMeshManager
    * @param {number} invLodFactor
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    */
-  @blue.method
   @meta.implemented
   _PerformFrustumCulling__ShadowFrustum(cameraFrustum, shadowFrustum, invLodFactor, filter)
   {
@@ -1056,7 +1038,6 @@ export class EveInstancedMeshManager
    * name throws and the manager calls the named variants.
    * @throws {TypeError} Always.
    */
-  @blue.method
   @meta.notSupported
   _BinVisibleInstances()
   {
@@ -1072,7 +1053,6 @@ export class EveInstancedMeshManager
    * @param {EveInstancedMeshManagerMeshData} meshInfo
    * @returns {[number, number]} The binned instance count and the largest screen size seen.
    */
-  @blue.method
   @meta.adapted
   _BinVisibleInstances__MeshInfo(mesh, meshInfo)
   {
@@ -1106,7 +1086,6 @@ export class EveInstancedMeshManager
    * @param {EveInstancedMeshManagerMeshGroup} group
    * @returns {[number, number]} The binned instance count and the largest screen size seen.
    */
-  @blue.method
   @meta.adapted
   _BinVisibleInstances__Group(mesh, meshInfo, group)
   {
@@ -1139,7 +1118,6 @@ export class EveInstancedMeshManager
    * tbb::parallel_for_each runs serially here.
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    */
-  @blue.method
   @meta.implemented
   _BinVisibleInstances__Batches(batches)
   {
@@ -1171,7 +1149,6 @@ export class EveInstancedMeshManager
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    * @returns {number} The number of batches committed.
    */
-  @blue.method
   @meta.adapted
   _GetBatches(batches)
   {
@@ -1272,7 +1249,6 @@ export class EveInstancedMeshManager
    * @param {EvePendingPickingReadback} readback
    * @param {Array<[number, ITriRenderBatchAccumulator]>} batches
    */
-  @blue.method
   @meta.adapted
   _GetPickingBatches(readback, batches)
   {
@@ -1360,7 +1336,6 @@ export class EveInstancedMeshManager
    * @param {number} lod A lodIndices slot.
    * @param {EveInstancedMeshManagerInstanceBufferAllocation} allocation Advanced in place.
    */
-  @blue.method
   @meta.adapted
   _UploadLodData(mesh, meshInfo, lod, allocation)
   {
@@ -1424,7 +1399,6 @@ export class EveInstancedMeshManager
    * @param {number} screenSize
    * @returns {number} The LOD index.
    */
-  @blue.method
   @meta.implemented
   static _GetMeshLod(meshInfo, screenSize)
   {

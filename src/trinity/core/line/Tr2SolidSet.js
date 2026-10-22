@@ -137,7 +137,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -238,5 +237,5 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
 
 }
 
-CjsSchema.decorateMethod(Tr2SolidSet, "SetCurrentColor", blue.method);
-CjsSchema.decorateMethod(Tr2SolidSet, "GetCenterOfMass", blue.method);
+CjsSchema.decorateMethod(Tr2SolidSet, "SetCurrentColor");
+CjsSchema.decorateMethod(Tr2SolidSet, "GetCenterOfMass");

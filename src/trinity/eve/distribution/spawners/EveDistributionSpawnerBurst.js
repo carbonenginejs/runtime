@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerBurst.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns a configured fraction of the free distribution placements in one delayed burst. */
@@ -80,7 +80,6 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
   }
 
   /** Ignores controller variables; the burst is purely time-driven. */
-  @blue.method
   @meta.implemented
   SetControllerVariable(_name, _value)
   {

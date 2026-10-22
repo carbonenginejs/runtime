@@ -545,7 +545,6 @@ export class Tr2FontManager extends IRoot
    * @returns {number} The doubly shifted kerning.
    */
   @meta.implemented
-  @legacyBlue.method
   _PyLookupKerningXP(faceID, charCode1, charCode2)
   {
     const kerning = g_fontManager.LookupKerningXP(faceID, charCode1, charCode2) | 0;

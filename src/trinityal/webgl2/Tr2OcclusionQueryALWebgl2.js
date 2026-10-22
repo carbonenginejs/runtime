@@ -194,9 +194,9 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
 
 CjsSchema.decorateField(Tr2OcclusionQueryALWebgl2, "_name", type.string);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Begin", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "End", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetPixelCount", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Begin");
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "End");
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetPixelCount");
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetMemoryClass", blue.method);

@@ -156,7 +156,6 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Releases the borrowed allocator range and declaration; CPU rows survive. */
-  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -165,7 +164,6 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -173,7 +171,6 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Allocates the native shared stream and interns its layout (cpp:210-231). */
-  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -223,7 +220,6 @@ export class Tr2RuntimeInstanceData
    * Repacks the CPU buffer from the persisted layout and rows, then publishes
    * it.
    */
-  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -423,7 +419,6 @@ export class Tr2RuntimeInstanceData
    * @param {vec3} [maxBounds] Caller-owned destination for the maximum.
    * @returns {boolean|{min: vec3, max: vec3}} True when written into the out vectors, otherwise a new { min, max } pair.
    */
-  @blue.method
   @meta.implemented
   GetBoundingBox(minBounds, maxBounds)
   {
@@ -443,7 +438,6 @@ export class Tr2RuntimeInstanceData
    * The bounding box of the single CPU instance buffer; the buffer index is
    * ignored because only one stream exists.
    */
-  @blue.method
   @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
@@ -451,7 +445,6 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Number of packed instance rows. */
-  @blue.method
   @meta.implemented
   GetCount()
   {
@@ -459,7 +452,6 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Byte size of one packed row, summed from the element layout. */
-  @blue.method
   @meta.implemented
   GetStride()
   {
@@ -470,7 +462,6 @@ export class Tr2RuntimeInstanceData
    * The frozen normalized element descriptors, each carrying usage, type,
    * component count, byte size and byte offset.
    */
-  @blue.method
   @meta.implemented
   GetLayout()
   {
@@ -481,7 +472,6 @@ export class Tr2RuntimeInstanceData
    * A copy of the packed instance bytes, or null when no rows are set; the
    * caller owns the returned array.
    */
-  @blue.method
   @meta.adapted
   GetData()
   {
@@ -489,7 +479,6 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Both a declaration and a valid allocation are required (cpp:239-242). */
-  @blue.method
   @meta.implemented
   IsInstanceDataReady()
   {
@@ -516,7 +505,6 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Borrowed instance AL buffer (cpp:278-281). */
-  @blue.method
   @meta.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
@@ -527,7 +515,6 @@ export class Tr2RuntimeInstanceData
    * Drops every row and the packed buffer while keeping the layout, and marks
    * the data dirty.
    */
-  @blue.method
   @meta.adapted
   @meta.invalidates("#dirty")
   DestroyData()
@@ -610,7 +597,6 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Does nothing as this emitter only emits
    * particles on demand (Spawn).
    */
-  @blue.method
   @meta.implemented
   Update(_arguments)
   {
@@ -620,7 +606,6 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Does nothing as this emitter only emits
    * particles on demand (Spawn); both Carbon overloads are deliberate no-ops.
    */
-  @blue.method
   @meta.implemented
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
@@ -636,7 +621,6 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Nothing to prepare - this emitter never
    * spawns from the threaded particle update.
    */
-  @blue.method
   @meta.implemented
   SetThreadSafeFlag()
   {

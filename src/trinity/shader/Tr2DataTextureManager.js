@@ -124,7 +124,6 @@ export class Tr2DataTextureManager
    * Tr2Renderer::IsResourceCreationAllowed, which has no JS counterpart; a context
    * with no device refuses Create instead.
    */
-  @blue.method
   @meta.adapted
   PrepareResources()
   {

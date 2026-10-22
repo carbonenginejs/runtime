@@ -165,7 +165,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources resource-creation guard. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -430,7 +429,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
   }
 
   /** Carbon returns true without writing the sphere (cpp:668-671). */
-  @blue.method
   @meta.implemented
   GetBoundingSphere(_sphere = null, _query = 0)
   {
@@ -445,7 +443,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
   }
 
   /** Carbon's body is empty (cpp:682-684). */
-  @blue.method
   @meta.adapted
   ChangeLOD(_lod)
   {

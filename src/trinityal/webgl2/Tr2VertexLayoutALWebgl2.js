@@ -254,8 +254,8 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
 }
 
 CjsSchema.decorateField(Tr2VertexLayoutALWebgl2, "_name", type.string);
-CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "SetLayout", blue.method);
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Create");
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "SetLayout");
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "GetMemoryClass", blue.method);

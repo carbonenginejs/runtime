@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2TextureAL.h
 // Source: trinity/trinityal/src/Tr2TextureAL.cpp
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ALResult } from "../ALResult.js";
 
 /** An owned snapshot of a texture copy, independently retained until consumption. */
@@ -56,9 +56,9 @@ export class Tr2ReadbackAL
 
 
 CjsSchema.decorateField(Tr2ReadbackAL, "_readback", type.unknown);
-CjsSchema.decorateMethod(Tr2ReadbackAL, "IsReady", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackAL, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackAL, "Map", blue.method);
+CjsSchema.decorateMethod(Tr2ReadbackAL, "IsReady");
+CjsSchema.decorateMethod(Tr2ReadbackAL, "IsValid");
+CjsSchema.decorateMethod(Tr2ReadbackAL, "Map");
 CjsSchema.decorateMethod(Tr2ReadbackAL, "IsReady", meta.implemented);
 CjsSchema.decorateMethod(Tr2ReadbackAL, "IsValid", meta.implemented);
 CjsSchema.decorateMethod(Tr2ReadbackAL, "Map", meta.adapted);

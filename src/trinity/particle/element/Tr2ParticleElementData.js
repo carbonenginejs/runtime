@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementData.json).
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue } from "#blue";
 
 /** Tr2ParticleElementData (particle) - generated from schema shapeHash ca640653.... */
@@ -32,7 +32,6 @@ export class Tr2ParticleElementData
    *
    * @returns {Tr2ParticleElementData} The invalid descriptor.
    */
-  @legacyBlue.method
   @meta.implemented
   static Invalid()
   {

@@ -7,7 +7,7 @@ import { exposure as be } from "#be";
 // additions are the per-frame update driver ported from Carbon
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { IsMatch, BlueList, IInitialize, INotify, IListNotify, CjsResource } from "#blue";
 import { ITr2Scene } from "../../core/ITr2Scene.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -2128,7 +2128,6 @@ export class EveSpaceScene
    * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.adapted
   static registerWithVariableStore(shadowResources, gpuResourcePool)
   {
@@ -2441,7 +2440,6 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.implemented
   UpdateQuadRenderer(frustum, objects, renderContext)
   {

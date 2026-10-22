@@ -104,8 +104,8 @@ CjsSchema.blue.define(Tr2TextureLodManager, {
     lowDetailVtaFiles: type.boolean
   },
   methods: {
-    RegisterTexture: [ blue.method, meta.implemented ],
-    UnregisterTexture: [ blue.method, meta.implemented ],
+    RegisterTexture: [ meta.implemented ],
+    UnregisterTexture: [ meta.implemented ],
     GetManagedTextures: [ be.mapMethodAndWrap(), meta.implemented ]
   }
 });

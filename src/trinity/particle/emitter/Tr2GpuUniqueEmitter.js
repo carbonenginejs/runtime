@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Particle/Tr2GpuUniqueEmitter_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2GpuSharedEmitter } from "./Tr2GpuSharedEmitter.js";
 
 
@@ -105,7 +105,6 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * overload is SpawnParticles__StartEnd. Scaling uses reusable value copies.
    * As in Carbon, spawning does not update the attractor's world position.
    */
-  @blue.method
   @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
@@ -133,7 +132,6 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * shared spawning. The renamed entry remains available to existing callers.
    * Formerly SpawnParticlesSegment.
    */
-  @blue.method
   @meta.adapted
   SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {

@@ -475,7 +475,6 @@ export class Tr2MeshBase
    * Appends an area to the list for a batch type; returns false when that type
    * has no list. The area's record of this mesh is the INSERTED arm's.
    */
-  @blue.method
   @meta.implemented
   AddArea(areaType, area)
   {
@@ -488,7 +487,6 @@ export class Tr2MeshBase
    * Removes an area from the list for a batch type; the area forgets this mesh
    * in the REMOVED arm.
    */
-  @blue.method
   @meta.implemented
   RemoveArea(areaType, area)
   {
@@ -711,7 +709,6 @@ export class Tr2MeshBase
    * Adapted: Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported
    * yet.
    */
-  @blue.method
   @meta.adapted
   CreateGeometryBatch(geometry, area, perObjectData, reverseWinding = false, lod = null)
   {

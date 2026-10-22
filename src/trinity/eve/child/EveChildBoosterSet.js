@@ -350,7 +350,6 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

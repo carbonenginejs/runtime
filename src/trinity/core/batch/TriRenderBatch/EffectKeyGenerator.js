@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriRenderBatch.h
 import { RenderBatchSortType } from "../../../generated/trinityCore/enums.js";
 import { OrderOf } from "./Tr2RenderBatch.js";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 /** Carbon's EffectKeyGenerator batch sorting policy. */
 @meta.carbon("EffectKeyGenerator")
@@ -13,7 +13,6 @@ export class EffectKeyGenerator
    * Adapted: JavaScript has no pointer ordering; the existing per-reference ordinal keeps
    * equal shader identities contiguous.
    */
-  @blue.method
   @meta.adapted
   static Less(batch1, batch2)
   {
@@ -23,7 +22,6 @@ export class EffectKeyGenerator
   }
 
   /** Selects Carbon's regular sort path. */
-  @blue.method
   @meta.implemented
   static GetSortType()
   {

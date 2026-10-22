@@ -103,10 +103,10 @@ CjsSchema.blue.define(StatusSettings, {
   className: "StatusSettings",
   fields: {},
   methods: {
-        SetCallbackSettings: [ blue.method, meta.implemented ],
-        RequiresStatusUpdates: [ blue.method, meta.implemented ],
-        Update: [ blue.method, meta.implemented ],
-        CalculateOverallProgress: [ blue.method, meta.implemented ],
+        SetCallbackSettings: [ meta.implemented ],
+        RequiresStatusUpdates: [ meta.implemented ],
+        Update: [ meta.implemented ],
+        CalculateOverallProgress: [ meta.implemented ],
         Dispose: [ meta.adapted ],
         _Copy: []
     }

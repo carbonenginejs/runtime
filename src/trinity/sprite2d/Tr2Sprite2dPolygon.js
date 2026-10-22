@@ -99,7 +99,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
   GatherSprites(renderer)
   {
     if (this.isDirty && this.display && this.triangles.length !== 0)
@@ -205,7 +204,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @returns {Tr2Sprite2dPolygon|null} This polygon when hit.
    */
   @meta.implemented
-  @blue.method
   PickPoint(x, y, renderer)
   {
     if (!this.display || this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON) return null;
@@ -234,7 +232,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @returns {Float32Array} A copy of the polygon colour.
    */
   @meta.implemented
-  @blue.method
   GetColor()
   {
     return vec4.clone(this.color); // alloc: native value return belongs to the caller
@@ -248,7 +245,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
-  @blue.method
   SetColor(val)
   {
     vec4.copy(this.color, val);
@@ -487,7 +483,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * Carbon returns no vertices while hidden, otherwise the authored count (Tr2Sprite2dPolygon.cpp:163-171).
    * @returns {number} Vertex count.
    */
-  @blue.method
   @meta.implemented
   GetVertexCount()
   {

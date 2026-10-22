@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet.cpp
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { blue, IInitialize, IsMatch, ResourceRequirement } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage, Topology } from "#consts/render-context";
 import { decodeTangentFrame } from "#math/tangent";
@@ -240,7 +240,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Inherited native device-resource creation guard. */
-  @legacyBlue.method
   @meta.implemented
   PrepareResources()
   {

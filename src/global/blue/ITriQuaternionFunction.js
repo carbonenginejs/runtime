@@ -121,8 +121,8 @@ for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleD
 {
   CjsSchema.decorateMethod(ITriQuaternionFunction, method, blue.abstract);
 }
-CjsSchema.decorateMethod(ITriQuaternionFunction, "Update__Ticks", blue.method, meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAt__Ticks", blue.method, meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDotAt__Ticks", blue.method, meta.adapted);
-CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDoubleDotAt__Ticks", blue.method, meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "Update__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAt__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDotAt__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDoubleDotAt__Ticks", meta.adapted);
 CjsSchema.exposure.interface("ITriQuaternionFunction")(ITriQuaternionFunction);

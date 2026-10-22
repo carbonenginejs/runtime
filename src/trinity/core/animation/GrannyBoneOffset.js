@@ -23,7 +23,6 @@ export class GrannyBoneOffset extends IInitialize
   _riggedTransforms = [];
 
   /** Nothing to prepare; always succeeds. */
-  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -31,7 +30,6 @@ export class GrannyBoneOffset extends IInitialize
   }
 
   /** Whether any bone offset has been set. */
-  @blue.method
   @meta.implemented
   HaveTransforms()
   {
@@ -42,7 +40,6 @@ export class GrannyBoneOffset extends IInitialize
    * True when offsets exist but the cached rig binding does not cover the given
    * bone count, so BindToRig must run again.
    */
-  @blue.method
   @meta.implemented
   NeedRebind(numBones)
   {
@@ -53,7 +50,6 @@ export class GrannyBoneOffset extends IInitialize
    * Drops the joint-order cache, forcing the next BindToRig to rebuild it; the
    * named offsets are kept.
    */
-  @blue.method
   @meta.implemented
   ClearRigBindings()
   {
@@ -110,7 +106,6 @@ export class GrannyBoneOffset extends IInitialize
    * adapter defaults the count and rebuilds all slots, unlike native resize
    * which can retain unmatched slots when rebinding an unchanged size.
    */
-  @blue.method
   @meta.adapted
   BindToRig(bones, numBones = bones?.length ?? 0)
   {
@@ -126,7 +121,6 @@ export class GrannyBoneOffset extends IInitialize
    * (bone * offset)` here, and the translation is added component-wise rather
    * than transformed.
    */
-  @blue.method
   @meta.adapted
   Apply(out, joint, boneMatrix, parentMatrix)
   {
@@ -150,7 +144,6 @@ export class GrannyBoneOffset extends IInitialize
    * that joint has no offset. JavaScript treats an absent/out-of-range slot
    * as unbound and uses gl-matrix decomposition and reversed composition.
    */
-  @blue.method
   @meta.adapted
   ApplyToLocal(joint, rotation, position)
   {

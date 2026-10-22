@@ -44,6 +44,6 @@ export class Tr2TexturePipelineStepGenerateMips extends IRoot
 }
 
 
-CjsSchema.decorateMethod(Tr2TexturePipelineStepGenerateMips, "GetResourceDependencies", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepGenerateMips, "Execute", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepGenerateMips, "GetResourceDependencies", meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepGenerateMips, "Execute", meta.implemented);
 CjsSchema.exposure.define("Tr2TexturePipelineStepGenerateMips")(Tr2TexturePipelineStepGenerateMips);

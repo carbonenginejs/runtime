@@ -69,7 +69,6 @@ export class Tr2SwapChain extends IRoot
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the chain came up.
    */
-  @blue.method
   @meta.implemented
   PrepareResources(renderContext)
   {

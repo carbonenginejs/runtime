@@ -62,6 +62,6 @@ export class Tr2TexturePipelineStepLoad extends IRoot
 
 
 CjsSchema.decorateField(Tr2TexturePipelineStepLoad, "path", be.mapAttribute(be.READWRITE | be.PERSIST), type.wpath);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepLoad, "GetResourceDependencies", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepLoad, "Execute", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLoad, "GetResourceDependencies", meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLoad, "Execute", meta.implemented);
 CjsSchema.exposure.define("Tr2TexturePipelineStepLoad")(Tr2TexturePipelineStepLoad);

@@ -234,7 +234,6 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface through the shared resolveGroupColor helper.
    */
-  @legacyBlue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -253,7 +252,6 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @legacyBlue.method
   @meta.adapted
   SetColor(color)
   {
@@ -267,7 +265,6 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @legacyBlue.method
   @meta.adapted
   SetInheritProperties(colorSet)
   {
@@ -288,7 +285,6 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @legacyBlue.method
   @meta.adapted
   SetControllerVariable(name, value)
   {
@@ -305,7 +301,6 @@ export class EveSmartLightPointLight extends EveEntity
    * Adapted: The secondary base's list handling lives on this class and receives the Blue
    * list event, inserted value and owning array explicitly.
    */
-  @legacyBlue.method
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {

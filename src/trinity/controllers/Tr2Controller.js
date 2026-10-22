@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
 // Source: trinity/trinity/Controllers/Tr2Controller_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { blue, BlueList, IListNotify, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -109,7 +109,6 @@ export class Tr2Controller extends EveThrottleable
    * Returns the current callback-vector size (Tr2Controller.h:63-66).
    * @returns {number} Number of registered callbacks.
    */
-  @legacyBlue.method
   @meta.implemented
   GetCallbackCount()
   {

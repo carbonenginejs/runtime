@@ -161,7 +161,6 @@ export class EveChildQuad extends EveChildTransform
   /**
    * The quad's name.
    */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -171,7 +170,6 @@ export class EveChildQuad extends EveChildTransform
   /**
    * Sets the quad's name, coercing the value to a string.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -366,7 +364,6 @@ export class EveChildQuad extends EveChildTransform
   }
 
   /** Carbon declares ChangeLOD inline empty (EveChildQuad.h:40). */
-  @blue.method
   @meta.adapted
   ChangeLOD(_lod)
   {

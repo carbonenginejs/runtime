@@ -10,7 +10,7 @@ import { exposure as be } from "#be";
 // Carbon's overloads are one method each (skill rule 11); the variant names
 // match ITr2DebugRenderer2.
 import { ITr2DebugRenderer2, ITr2DebugRenderable, Tr2DebugColor } from "#interfaces";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { color as colorMath } from "#math/color";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -367,7 +367,6 @@ export class Tr2DebugRenderer
    * @param {vec3} normal3
    * @param {Tr2DebugColor} color
    */
-  @blue.method
   @meta.implemented
   DrawTriangle__VertexNormals(owner, vertex1, normal1, vertex2, normal2, vertex3, normal3, color)
   {
@@ -392,7 +391,6 @@ export class Tr2DebugRenderer
    * @param {vec3} normal
    * @param {Tr2DebugColor} color
    */
-  @blue.method
   @meta.implemented
   DrawTriangle__FaceNormal(owner, vertex1, vertex2, vertex3, normal, color)
   {

@@ -162,7 +162,6 @@ export class Tr2ImpostorManager
   }
 
   /** The supplied context replaces the native main-thread device-creation gate. */
-  @blue.method
   @meta.adapted
   PrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {

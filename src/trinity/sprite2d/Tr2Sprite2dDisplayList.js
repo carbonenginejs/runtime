@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dDisplayList.cpp
 // Carbon's nested Tr2Sprite2dDisplayList::Entry is ported in
 // Tr2Sprite2dDisplayListEntry.js.
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { Tr2BufferAL } from "#trinityal";
 import { Tr2Sprite2dDisplayListEntry } from "./Tr2Sprite2dDisplayListEntry.js";
 
@@ -24,7 +24,6 @@ export class Tr2Sprite2dDisplayList
 
   /** Native release drops geometry and dirties the owner for recapture. */
   @meta.implemented
-  @blue.method
   ReleaseResources(_storage)
   {
     this.vertexBuffer.Destroy();
@@ -45,7 +44,6 @@ export class Tr2Sprite2dDisplayList
    * @returns {boolean} Always true, as Carbon returns.
    */
   @meta.implemented
-  @blue.method
   OnPrepareResources()
   {
     return true;

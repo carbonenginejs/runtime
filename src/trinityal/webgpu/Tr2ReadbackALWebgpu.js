@@ -86,12 +86,12 @@ export class Tr2ReadbackALWebgpu extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "IsReady", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Map", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Describe", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "IsReady");
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "IsValid");
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Map");
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Destroy");
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "Describe");
+CjsSchema.decorateMethod(Tr2ReadbackALWebgpu, "GetMemoryClass");
 CjsSchema.blue.define(Tr2ReadbackALWebgpu, {
   className: "Tr2ReadbackALWebgpu",
   methods: { IsReady: [meta.adapted], IsValid: [meta.implemented], Map: [meta.adapted],

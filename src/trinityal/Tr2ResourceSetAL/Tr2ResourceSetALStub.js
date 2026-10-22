@@ -106,7 +106,7 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2ResourceSetALStub, "_isValid", type.boolean);
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Create");
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "GetMemoryClass", blue.method);

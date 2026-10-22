@@ -148,11 +148,11 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
 CjsSchema.exposure.mapInterface(IBlueResFileSystem)(BlueResFileSystemLocal);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "FileExists", be.mapMethodAndWrap("exists"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "IsDirectory", be.mapMethodAndWrap("isdir"), meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetDirectoryContents", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"), meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathW", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetDirectoryContents", meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathW", meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePath", be.mapMethodAndWrap(), meta.implemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "Initialize", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "Initialize", meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "InitializeStdAppPaths", be.mapMethodAndWrap(), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "SetSearchPath", blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetSearchPath", blue.method, meta.renamed("GetSearchPathW"), meta.notImplemented);
@@ -160,9 +160,9 @@ CjsSchema.decorateMethod(BlueResFileSystemLocal, "ClearSearchPaths", be.mapMetho
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathForWriting", blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ResolvePathToRoot", blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths__Key", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "LogPaths", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetInitialWorkingDirectory", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths__Key", meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "LogPaths", meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetInitialWorkingDirectory", meta.notImplemented);
 CjsSchema.decorateField(BlueResFileSystemLocal, "initialWorkingDirectory", be.mapPropertyReadOnly(), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetAllSearchPaths", be.mapMethodAndWrap(), meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPathsAsDict", be.mapMethodAndWrap("GetExpandedSearchPaths"), meta.implemented);

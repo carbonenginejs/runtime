@@ -33,7 +33,7 @@
 // could not have reached them without copying them.
 
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
 import { TriDebugTextRenderer } from "./TriDebugTextRenderer.js";
 import { TriLineSet } from "./line/TriLineSet.js";
@@ -128,7 +128,6 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @blue.method
   @meta.implemented
   GetPerFrameVSStartRegister()
   {
@@ -140,7 +139,6 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @blue.method
   @meta.implemented
   GetPerFramePSStartRegister()
   {
@@ -152,7 +150,6 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @blue.method
   @meta.implemented
   GetPerObjectVSStartRegister()
   {
@@ -164,7 +161,6 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @blue.method
   @meta.implemented
   GetPerObjectPSStartRegister()
   {
@@ -176,7 +172,6 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @blue.method
   @meta.implemented
   GetPerObjectRTVertexBufferDataRegister()
   {
@@ -188,7 +183,6 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @blue.method
   @meta.implemented
   GetPerObjectVSGUIStartRegister()
   {
@@ -206,7 +200,6 @@ export class Tr2Renderer
    * @param {number} shaderType A Carbon `ShaderType` value.
    * @returns {number} A constant-buffer register.
    */
-  @blue.method
   @meta.adapted
   GetPerObjectStartRegister(shaderType)
   {
@@ -280,7 +273,6 @@ export class Tr2Renderer
    * @param {object} [renderContext] The context to prepare the blitter against.
    * @returns {Tr2Blitter} The renderer's blitter.
    */
-  @blue.method
   @meta.adapted
   static prepareDeviceResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -331,7 +323,6 @@ export class Tr2Renderer
    * @param {object} material The material to draw with.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @blue.method
   @meta.implemented
   static drawScreenQuad(renderContext, material)
   {
@@ -356,7 +347,6 @@ export class Tr2Renderer
    * @param {Array<number>} bottomRight Bottom-right vertex corner.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @blue.method
   @meta.adapted
   static drawScreenQuadRect(renderContext, effect, topLeft, bottomRight)
   {
@@ -374,7 +364,6 @@ export class Tr2Renderer
    * @param {object} material The material supplying its parameters.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @blue.method
   @meta.implemented
   static drawCameraSpaceScreenQuad(renderContext, shader, material)
   {
@@ -391,7 +380,6 @@ export class Tr2Renderer
    * @param {object} material The material to draw with.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @blue.method
   @meta.implemented
   static drawFullScreenWithShader(renderContext, material)
   {
@@ -416,7 +404,6 @@ export class Tr2Renderer
    * @param {object} [options] `material`, `tlTexCoord`, `brTexCoord`, `filter`.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @blue.method
   @meta.adapted
   static drawTexture(renderContext, texture, options = {})
   {
@@ -444,7 +431,6 @@ export class Tr2Renderer
    * @param {ArrayLike<number>} brTexCoord Bottom-right texture coordinate.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @blue.method
   @meta.implemented
   static DrawTexture__EffectTexCoords(renderContext, effect, tlTexCoord, brTexCoord)
   {
@@ -480,7 +466,6 @@ export class Tr2Renderer
    *
    * @returns {TriSettings} The renderer's settings.
    */
-  @blue.method
   @meta.adapted
   static getSettings()
   {
@@ -496,7 +481,6 @@ export class Tr2Renderer
    *
    * @returns {number} Seconds since the clock was last recentred.
    */
-  @blue.method
   @meta.implemented
   static GetAnimationTime()
   {
@@ -510,7 +494,6 @@ export class Tr2Renderer
    * @param {number} startTime An earlier reading of the animation clock.
    * @returns {number} The elapsed seconds.
    */
-  @blue.method
   @meta.implemented
   static GetAnimationTimeElapsed(startTime)
   {
@@ -528,7 +511,6 @@ export class Tr2Renderer
    *
    * @returns {number[]} The published vector.
    */
-  @blue.method
   @meta.implemented
   static BeginFrame()
   {
@@ -559,7 +541,6 @@ export class Tr2Renderer
    *
    * @returns {void}
    */
-  @blue.method
   @meta.adapted
   static EndFrame()
   {
@@ -590,7 +571,6 @@ export class Tr2Renderer
    * @param {Tr2RenderContext} renderContext The context to draw through.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static RenderDebugInfo(renderContext)
   {
@@ -612,7 +592,6 @@ export class Tr2Renderer
    *
    * @returns {*} Whatever the backend's BeginScene returns.
    */
-  @blue.method
   @meta.implemented
   static BeginRenderContext()
   {
@@ -631,7 +610,6 @@ export class Tr2Renderer
    *
    * @returns {*} Whatever the backend's EndScene returns.
    */
-  @blue.method
   @meta.adapted
   static EndRenderContext()
   {
@@ -649,7 +627,6 @@ export class Tr2Renderer
    *
    * @returns {number} The frame number.
    */
-  @blue.method
   @meta.implemented
   static GetCurrentFrameCounter()
   {
@@ -662,7 +639,6 @@ export class Tr2Renderer
    *
    * @returns {number} A `TR2SHADERMODEL` value.
    */
-  @blue.method
   @meta.implemented
   static GetShaderModel()
   {
@@ -670,7 +646,6 @@ export class Tr2Renderer
   }
 
   /** Carbon IsLowQuality (Tr2Renderer.cpp:1193-1197): the low shader model or below. */
-  @blue.method
   @meta.implemented
   static IsLowQuality()
   {
@@ -686,7 +661,6 @@ export class Tr2Renderer
    * @param {number} shaderModel A `TR2SHADERMODEL` value.
    * @returns {void}
    */
-  @blue.method
   @meta.adapted
   static SetShaderModel(shaderModel)
   {
@@ -703,7 +677,6 @@ export class Tr2Renderer
    *
    * @returns {boolean} True when creation is allowed.
    */
-  @blue.method
   @meta.adapted
   static IsResourceCreationAllowed()
   {
@@ -718,7 +691,6 @@ export class Tr2Renderer
    * @param {number} [numOfQuads] Quads the caller needs indices for.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static ReserveQuadListIndexBuffer(numOfQuads = 0)
   {
@@ -781,7 +753,6 @@ export class Tr2Renderer
    *
    * @returns {Tr2SuballocatedBufferAllocation} The allocation.
    */
-  @blue.method
   @meta.implemented
   static GetQuadListIndexBuffer()
   {
@@ -803,7 +774,6 @@ export class Tr2Renderer
    *     `(techniqueName, groupDimX, groupDimY, groupDimZ, renderContext)`.
    * @returns {boolean} Whether at least one pass dispatched, and none failed.
    */
-  @blue.method
   @meta.adapted
   static runComputeShader(effect, ...args)
   {
@@ -859,7 +829,6 @@ export class Tr2Renderer
    * @param {object} renderContext The context to dispatch on.
    * @returns {boolean} False when there is no effect or shader, or a dispatch failed.
    */
-  @blue.method
   @meta.adapted
   static runComputeShaderIndirect(effect, indirectParams, offset, renderContext)
   {
@@ -914,7 +883,6 @@ export class Tr2Renderer
    * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static SetPerspectiveProjection__FovAspect(fov, front, back, asp, viewportAdjustment = IDENTITY)
   {
@@ -943,7 +911,6 @@ export class Tr2Renderer
    * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static SetPerspectiveProjection__LeftRightBottomTop(left, right, bottom, top, front, back, viewportAdjustment = IDENTITY)
   {
@@ -967,7 +934,6 @@ export class Tr2Renderer
    * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static SetOrthoProjection__WidthHeight(width, height, front, back, viewportAdjustment = IDENTITY)
   {
@@ -999,7 +965,6 @@ export class Tr2Renderer
    * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static SetOrthoProjection__LeftRightBottomTop(left, right, bottom, top, front, back, viewportAdjustment = IDENTITY)
   {
@@ -1032,7 +997,6 @@ export class Tr2Renderer
    * @param {ArrayLike<number>} translation x and y offset.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static AdjustProjection(scaling, translation)
   {
@@ -1053,7 +1017,6 @@ export class Tr2Renderer
    * @param {mat4} [viewportAdjustment] Scale and offset for a clipped viewport.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static SetProjectionTransform(proj, viewportAdjustment = IDENTITY)
   {
@@ -1069,7 +1032,6 @@ export class Tr2Renderer
    *
    * @returns {number} A `PROJECTION_TYPE` value.
    */
-  @blue.method
   @meta.implemented
   static GetCurrentProjectionType()
   {
@@ -1082,7 +1044,6 @@ export class Tr2Renderer
    *
    * @returns {mat4} The projection.
    */
-  @blue.method
   @meta.implemented
   static GetProjectionTransform()
   {
@@ -1097,7 +1058,6 @@ export class Tr2Renderer
    * @param {mat4} [out] Receives the matrix.
    * @returns {mat4} out
    */
-  @blue.method
   @meta.implemented
   static GetReversedDepthProjectionTransform(out = mat4.create())
   {
@@ -1113,7 +1073,6 @@ export class Tr2Renderer
    *
    * @returns {mat4} The raw projection.
    */
-  @blue.method
   @meta.implemented
   static GetProjectionRawTransform()
   {
@@ -1136,7 +1095,6 @@ export class Tr2Renderer
    * @param {vec3} [out] Receives the screen position.
    * @returns {vec3} out
    */
-  @blue.method
   @meta.implemented
   static ProjectWorldToScreen(worldPos, vp, out = vec3.create())
   {
@@ -1160,7 +1118,6 @@ export class Tr2Renderer
    *
    * @returns {mat4} The inverse of the adjusted projection.
    */
-  @blue.method
   @meta.implemented
   static GetInverseProjectionTransform()
   {
@@ -1174,7 +1131,6 @@ export class Tr2Renderer
    *
    * @returns {number} The front clip.
    */
-  @blue.method
   @meta.implemented
   static GetFrontClip()
   {
@@ -1186,7 +1142,6 @@ export class Tr2Renderer
    *
    * @returns {number} The back clip.
    */
-  @blue.method
   @meta.implemented
   static GetBackClip()
   {
@@ -1199,7 +1154,6 @@ export class Tr2Renderer
    *
    * @returns {number} The radius.
    */
-  @blue.method
   @meta.implemented
   static GetFrustumRadius()
   {
@@ -1215,7 +1169,6 @@ export class Tr2Renderer
    * @param {Float32Array|number[]} [plane] Receives the plane.
    * @returns {Float32Array|number[]} plane
    */
-  @blue.method
   @meta.implemented
   static GetFrustumPlane(index, plane = vec4.create())
   {
@@ -1227,7 +1180,6 @@ export class Tr2Renderer
    *
    * @returns {number} Radians; 1 for an orthographic projection.
    */
-  @blue.method
   @meta.implemented
   static GetFieldOfView()
   {
@@ -1239,7 +1191,6 @@ export class Tr2Renderer
    *
    * @returns {number} Width over height.
    */
-  @blue.method
   @meta.implemented
   static GetAspectRatio()
   {
@@ -1251,7 +1202,6 @@ export class Tr2Renderer
    *
    * @returns {number} The width of the last orthographic projection.
    */
-  @blue.method
   @meta.implemented
   static GetOrthoWidth()
   {
@@ -1263,7 +1213,6 @@ export class Tr2Renderer
    *
    * @returns {number} The height of the last orthographic projection.
    */
-  @blue.method
   @meta.implemented
   static GetOrthoHeight()
   {
@@ -1277,7 +1226,6 @@ export class Tr2Renderer
    * @param {mat4} m The world matrix.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static SetWorldTransform(m)
   {
@@ -1296,7 +1244,6 @@ export class Tr2Renderer
    * @param {mat4} m The view matrix.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static SetViewTransform(m)
   {
@@ -1317,7 +1264,6 @@ export class Tr2Renderer
    *
    * @returns {mat4} The world matrix.
    */
-  @blue.method
   @meta.implemented
   static GetWorldTransform()
   {
@@ -1330,7 +1276,6 @@ export class Tr2Renderer
    *
    * @returns {mat4} The view matrix.
    */
-  @blue.method
   @meta.implemented
   static GetViewTransform()
   {
@@ -1343,7 +1288,6 @@ export class Tr2Renderer
    *
    * @returns {mat4} The inverse view matrix.
    */
-  @blue.method
   @meta.implemented
   static GetInverseViewTransform()
   {
@@ -1357,7 +1301,6 @@ export class Tr2Renderer
    *
    * @returns {Float32Array} The camera position, three components.
    */
-  @blue.method
   @meta.implemented
   static GetViewPosition()
   {
@@ -1372,7 +1315,6 @@ export class Tr2Renderer
    * @param {vec3} [out] Receives the direction.
    * @returns {vec3} out
    */
-  @blue.method
   @meta.implemented
   static GetViewLookAt(out = vec3.create())
   {
@@ -1386,7 +1328,6 @@ export class Tr2Renderer
    *
    * @returns {object|null} The viewport, or null before one is set.
    */
-  @blue.method
   @meta.implemented
   static GetViewport()
   {
@@ -1399,7 +1340,6 @@ export class Tr2Renderer
    *
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static PushProjection()
   {
@@ -1420,7 +1360,6 @@ export class Tr2Renderer
    *
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static PopProjection()
   {
@@ -1441,7 +1380,6 @@ export class Tr2Renderer
    *
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static PushViewTransform()
   {
@@ -1455,7 +1393,6 @@ export class Tr2Renderer
    *
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   static PopViewTransform()
   {

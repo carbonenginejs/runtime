@@ -2,7 +2,7 @@
 // Source: resources/src/ResourceInfo/ResourceInfo.cpp:26-59
 import { fnv164 } from "#utils/hash";
 import { Result } from "./Result.js";
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 
 /** CarbonResources::Location, the stored name computed from path and data hashes. */
 export class Location
@@ -69,7 +69,7 @@ export class Location
 
 
 CjsSchema.decorateField(Location, "location", type.string);
-CjsSchema.decorateMethod(Location, "SetFromRelativePathAndDataChecksum", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Location, "ToString", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Location, "CalculateLocationFromChecksums", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Location, "SetFromRelativePathAndDataChecksum", meta.adapted);
+CjsSchema.decorateMethod(Location, "ToString", meta.implemented);
+CjsSchema.decorateMethod(Location, "CalculateLocationFromChecksums", meta.implemented);
 CjsSchema.meta.carbon("Location")(Location);

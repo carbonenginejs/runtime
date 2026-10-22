@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ProceduralResources.h
 // Source: trinity/trinity/Tr2ProceduralResources.cpp
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { TriDevice } from "./device/TriDevice.js";
@@ -102,7 +102,6 @@ export class Tr2ProceduralBuffer
    *
    * @returns {object|null} A `Tr2SuballocatedBufferAllocation`, or null.
    */
-  @blue.method
   @meta.adapted
   GetSharedResource()
   {

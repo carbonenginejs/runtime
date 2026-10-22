@@ -112,6 +112,6 @@ export class Tr2LineGraph extends IRoot
 
 }
 
-CjsSchema.decorateMethod(Tr2LineGraph, "Add", blue.method);
-CjsSchema.decorateMethod(Tr2LineGraph, "GetSize", blue.method);
-CjsSchema.decorateMethod(Tr2LineGraph, "GetMaxValue", blue.method);
+CjsSchema.decorateMethod(Tr2LineGraph, "Add");
+CjsSchema.decorateMethod(Tr2LineGraph, "GetSize");
+CjsSchema.decorateMethod(Tr2LineGraph, "GetMaxValue");

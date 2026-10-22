@@ -1,7 +1,7 @@
 // Source: resources/src/VersionInternal.h
 // Source: resources/src/VersionInternal.cpp
 import { S_VALID_DOCUMENT_VERSIONS } from "./enums.js";
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 
 /** Carbon resource-document version; this is not a game build number. */
 export class VersionInternal
@@ -177,10 +177,10 @@ CjsSchema.decorateMethod(VersionInternal, "LessThan", meta.renamed("operator<"),
 CjsSchema.decorateMethod(VersionInternal, "GreaterThanOrEqual", meta.renamed("operator>="), meta.adapted);
 CjsSchema.decorateMethod(VersionInternal, "LessThanOrEqual", meta.renamed("operator<="), meta.adapted);
 CjsSchema.decorateMethod(VersionInternal, "Equals", meta.renamed("operator=="), meta.adapted);
-CjsSchema.decorateMethod(VersionInternal, "ToString", blue.method, meta.implemented);
-CjsSchema.decorateMethod(VersionInternal, "FromString", blue.method, meta.implemented);
-CjsSchema.decorateMethod(VersionInternal, "getMajor", blue.method, meta.implemented);
-CjsSchema.decorateMethod(VersionInternal, "getMinor", blue.method, meta.implemented);
-CjsSchema.decorateMethod(VersionInternal, "getPatch", blue.method, meta.implemented);
-CjsSchema.decorateMethod(VersionInternal, "isVersionValid", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "ToString", meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "FromString", meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "getMajor", meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "getMinor", meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "getPatch", meta.implemented);
+CjsSchema.decorateMethod(VersionInternal, "isVersionValid", meta.implemented);
 CjsSchema.meta.carbon("VersionInternal")(VersionInternal);

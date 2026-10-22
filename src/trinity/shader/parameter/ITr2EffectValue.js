@@ -86,8 +86,8 @@ export class ITr2EffectValue extends IRoot
 }
 
 CjsSchema.blue.inherit(IRoot)(ITr2EffectValue);
-CjsSchema.decorateMethod(ITr2EffectValue, "CopyValueToEffect", blue.method);
-CjsSchema.decorateMethod(ITr2EffectValue, "CopyToResourceSet", blue.method);
-CjsSchema.decorateMethod(ITr2EffectValue, "ApplyUav", blue.method);
-CjsSchema.decorateMethod(ITr2EffectValue, "AddUsedTexture", blue.method);
+CjsSchema.decorateMethod(ITr2EffectValue, "CopyValueToEffect");
+CjsSchema.decorateMethod(ITr2EffectValue, "CopyToResourceSet");
+CjsSchema.decorateMethod(ITr2EffectValue, "ApplyUav");
+CjsSchema.decorateMethod(ITr2EffectValue, "AddUsedTexture");
 CjsSchema.exposure.interface("ITr2EffectValue")(ITr2EffectValue);

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:206-235
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.cpp:398-507
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
 import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
@@ -66,7 +66,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    * @param {number} count Bytes wanted.
    * @returns {EveInstancedMeshManagerInstanceBufferAllocation}
    */
-  @blue.method
   @meta.adapted
   Allocate(count)
   {
@@ -128,7 +127,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    * @param {number} count Bytes wanted (Carbon's header names it minSize).
    * @returns {number|null} The byte offset, or null when nothing fits.
    */
-  @blue.method
   @meta.adapted
   GetUnusedRegion(count)
   {
@@ -174,7 +172,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    * Carbon DoneCopying (cpp:473-487): unmaps the current buffer if mapped,
    * then every retired buffer that was retired while mapped.
    */
-  @blue.method
   @meta.implemented
   DoneCopying()
   {
@@ -202,7 +199,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    * is null here and has nothing to destroy.
    * @param {number} renderedFrame The last frame the device has finished.
    */
-  @blue.method
   @meta.adapted
   TrimRegions(renderedFrame)
   {
@@ -231,7 +227,6 @@ export class EveInstancedMeshManagerInstanceBuffer
    * Carbon GetSize (cpp:504-507): the current buffer's size in bytes, 0 without one.
    * @returns {number}
    */
-  @blue.method
   @meta.implemented
   GetSize()
   {

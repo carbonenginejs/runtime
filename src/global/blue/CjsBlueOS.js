@@ -334,17 +334,17 @@ CjsSchema.blue.define(CjsBlueOS, {
   className: "CjsBlueOS",
   fields: { frameClock: [ blue.readwrite ] },
   methods: {
-    GetSmoothedTime: [ blue.method, meta.adapted ],
-    GetActualTime: [ blue.method, meta.adapted ],
-    GetCurrentFrameTime: [ blue.method, meta.adapted ],
+    GetSmoothedTime: [ meta.adapted ],
+    GetActualTime: [ meta.adapted ],
+    GetCurrentFrameTime: [ meta.adapted ],
     PumpOS: [ blue.method, meta.adapted ],
     GetRealTime: [],
-    GetInfo: [ blue.method, meta.adapted ],
-    RegisterForTicks: [ blue.method, meta.adapted ],
-    UnregisterForTicks: [ blue.method, meta.adapted ],
+    GetInfo: [ meta.adapted ],
+    RegisterForTicks: [ meta.adapted ],
+    UnregisterForTicks: [ meta.adapted ],
     IsRegisteredForTicks: [],
-    RegisterForSimTimeRebase: [ blue.method, meta.adapted ],
-    UnregisterForSimTimeRebase: [ blue.method, meta.adapted ],
-    RunStackless: [ blue.method, meta.adapted ]
+    RegisterForSimTimeRebase: [ meta.adapted ],
+    UnregisterForSimTimeRebase: [ meta.adapted ],
+    RunStackless: [ meta.adapted ]
   }
 });

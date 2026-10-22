@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 //   trinity/trinity/Tr2DirectInstanceData.cpp
 //   trinity/trinity/Tr2DirectInstanceData_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
@@ -81,7 +81,6 @@ export class Tr2DirectInstanceData
   }
 
   /** Inherited Tr2DeviceResource.cpp:21-32 reset guard. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

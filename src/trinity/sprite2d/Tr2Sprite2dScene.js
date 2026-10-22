@@ -1964,7 +1964,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
   RenderTriangleVerts(vertices, vertexCount, indices, indexCount)
   {
     // Buffers are full, kick off what we've got
@@ -2043,7 +2042,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
   RenderTriangleVerts__Tr2BufferAL(vertices, vertexCount, indices, indexCount)
   {
     const context = Tr2RenderContext_GetMainThreadRenderContext(), esm = context.GetEffectStateManager();

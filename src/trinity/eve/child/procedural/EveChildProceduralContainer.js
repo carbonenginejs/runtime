@@ -133,7 +133,6 @@ export class EveChildProceduralContainer extends EveChildTransform
   }
 
   /** Carbon method GetName (cpp:19-22). */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -141,7 +140,6 @@ export class EveChildProceduralContainer extends EveChildTransform
   }
 
   /** Carbon method SetName (cpp:24-27). */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

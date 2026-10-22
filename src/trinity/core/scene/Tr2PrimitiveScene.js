@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2PrimitiveScene.h
 // Source: trinity/trinity/Tr2PrimitiveScene.cpp
 // Source: trinity/trinity/Tr2PrimitiveScene_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { ITr2Scene } from "../ITr2Scene.js";
 import { ITr2PickableScene } from "./ITr2PickableScene.js";
@@ -332,21 +332,21 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   }
 }
 
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "Render", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "Update", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderDebugInfo", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "OnPrepareResources", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "PrepareResources", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetDescription", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "ReleaseResources", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetupTransformsForPicking", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetupPerFrameData", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetPerFrameDataForPicking", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickingObjectsToRender", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetOpaquePickingBatchAccumulator", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickingBatchAccumulator", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderPickingAreasForComponents", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickBuffer", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetRequiredPasses", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "DecodeBufferPixel", blue.method);
-CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderPicking", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "Render");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "Update");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderDebugInfo");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "OnPrepareResources");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "PrepareResources");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetDescription");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "ReleaseResources");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetupTransformsForPicking");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetupPerFrameData");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetPerFrameDataForPicking");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickingObjectsToRender");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetOpaquePickingBatchAccumulator");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickingBatchAccumulator");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderPickingAreasForComponents");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickBuffer");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetRequiredPasses");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "DecodeBufferPixel");
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderPicking");

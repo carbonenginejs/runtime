@@ -591,7 +591,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the spatial-audio movement threshold. */
-  @blue.method
   @meta.implemented
   GetMovementThreshold()
   {
@@ -599,7 +598,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the spatial-audio movement threshold. */
-  @blue.method
   @meta.implemented
   SetMovementThreshold(value)
   {
@@ -625,7 +623,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the maximum number of primary spatial-audio rays. */
-  @blue.method
   @meta.implemented
   GetNumberOfPrimaryRays()
   {
@@ -633,7 +630,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the maximum number of primary spatial-audio rays. */
-  @blue.method
   @meta.implemented
   SetNumberOfPrimaryRays(value)
   {
@@ -659,7 +655,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the maximum reflection order. */
-  @blue.method
   @meta.implemented
   GetMaxReflectionOrder()
   {
@@ -667,7 +662,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the maximum reflection order. */
-  @blue.method
   @meta.implemented
   SetMaxReflectionOrder(value)
   {
@@ -693,7 +687,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the maximum diffraction order. */
-  @blue.method
   @meta.implemented
   GetMaxDiffractionOrder()
   {
@@ -701,7 +694,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the maximum diffraction order. */
-  @blue.method
   @meta.implemented
   SetMaxDiffractionOrder(value)
   {
@@ -727,7 +719,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the maximum number of emitter room auxiliary sends. */
-  @blue.method
   @meta.implemented
   GetMaxEmitterRoomAuxSends()
   {
@@ -735,7 +726,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the maximum number of emitter room auxiliary sends. */
-  @blue.method
   @meta.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
@@ -761,7 +751,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the diffraction order applied at reflection endpoints. */
-  @blue.method
   @meta.implemented
   GetDiffractionOnReflectionsOrder()
   {
@@ -769,7 +758,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the diffraction order applied at reflection endpoints. */
-  @blue.method
   @meta.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
@@ -795,7 +783,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the maximum spatial-audio path length. */
-  @blue.method
   @meta.implemented
   GetMaxPathLength()
   {
@@ -803,7 +790,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the maximum spatial-audio path length. */
-  @blue.method
   @meta.implemented
   SetMaxPathLength(value)
   {
@@ -829,7 +815,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the targeted spatial-audio CPU percentage. */
-  @blue.method
   @meta.implemented
   GetCPULimitPercentage()
   {
@@ -837,7 +822,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the targeted spatial-audio CPU percentage. */
-  @blue.method
   @meta.implemented
   SetCPULimitPercentage(value)
   {
@@ -863,7 +847,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the spatial-audio load-balancing spread. */
-  @blue.method
   @meta.implemented
   GetLoadBalancingSpread()
   {
@@ -871,7 +854,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the spatial-audio load-balancing spread. */
-  @blue.method
   @meta.implemented
   SetLoadBalancingSpread(value)
   {
@@ -897,7 +879,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns whether geometric diffraction and transmission are enabled. */
-  @blue.method
   @meta.implemented
   GetEnableDiffractionAndTransmission()
   {
@@ -905,7 +886,6 @@ export class AudManager extends IRoot
   }
 
   /** Enables or disables geometric diffraction and transmission. */
-  @blue.method
   @meta.implemented
   SetEnableDiffractionAndTransmission(value)
   {
@@ -931,7 +911,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns whether Wwise calculates emitter virtual positions. */
-  @blue.method
   @meta.implemented
   GetCalcEmitterVirtualPosition()
   {
@@ -939,7 +918,6 @@ export class AudManager extends IRoot
   }
 
   /** Enables or disables Wwise emitter virtual-position calculation. */
-  @blue.method
   @meta.implemented
   SetCalcEmitterVirtualPosition(value)
   {
@@ -965,7 +943,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the geometry surface transmission loss. */
-  @blue.method
   @meta.implemented
   GetTransmissionLoss()
   {
@@ -973,7 +950,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the geometry surface transmission loss. */
-  @blue.method
   @meta.implemented
   SetTransmissionLoss(value)
   {
@@ -999,7 +975,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns whether geometry diffraction is enabled. */
-  @blue.method
   @meta.implemented
   GetEnableDiffraction()
   {
@@ -1007,7 +982,6 @@ export class AudManager extends IRoot
   }
 
   /** Enables or disables geometry diffraction. */
-  @blue.method
   @meta.implemented
   SetEnableDiffraction(value)
   {
@@ -1033,7 +1007,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns whether geometry boundary-edge diffraction is enabled. */
-  @blue.method
   @meta.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
@@ -1041,7 +1014,6 @@ export class AudManager extends IRoot
   }
 
   /** Enables or disables geometry boundary-edge diffraction. */
-  @blue.method
   @meta.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
@@ -1067,7 +1039,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the one-shot opportunity window in milliseconds. */
-  @blue.method
   @meta.implemented
   GetOneShotWindow()
   {
@@ -1075,7 +1046,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the one-shot opportunity window in milliseconds. */
-  @blue.method
   @meta.implemented
   SetOneShotWindow(value)
   {
@@ -1101,7 +1071,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the weighted playing-2D contribution. */
-  @blue.method
   @meta.implemented
   GetPlaying2DWeight()
   {
@@ -1109,7 +1078,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the raw playing-2D weight. */
-  @blue.method
   @meta.implemented
   SetPlaying2DWeight(value)
   {
@@ -1135,7 +1103,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the weighted playing-events contribution. */
-  @blue.method
   @meta.implemented
   GetPlayingEventsWeight()
   {
@@ -1143,7 +1110,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the raw playing-events weight. */
-  @blue.method
   @meta.implemented
   SetPlayingEventsWeight(value)
   {
@@ -1169,7 +1135,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the weighted vital-sound contribution. */
-  @blue.method
   @meta.implemented
   GetPlayingVitalSoundWeight()
   {
@@ -1177,7 +1142,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the raw vital-sound weight. */
-  @blue.method
   @meta.implemented
   SetPlayingVitalSoundWeight(value)
   {
@@ -1185,7 +1149,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the weighted range contribution. */
-  @blue.method
   @meta.implemented
   GetRangeWeight()
   {
@@ -1193,7 +1156,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the raw range weight. */
-  @blue.method
   @meta.implemented
   SetRangeWeight(value)
   {
@@ -1219,7 +1181,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the weighted used-emitter contribution. */
-  @blue.method
   @meta.implemented
   GetUsedEmitterWeight()
   {
@@ -1227,7 +1188,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the raw used-emitter weight. */
-  @blue.method
   @meta.implemented
   SetUsedEmitterWeight(value)
   {
@@ -1253,7 +1213,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the weighted visibility contribution. */
-  @blue.method
   @meta.implemented
   GetVisibleWeight()
   {
@@ -1261,7 +1220,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the raw visibility weight. */
-  @blue.method
   @meta.implemented
   SetVisibleWeight(value)
   {
@@ -1287,7 +1245,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the weighted waiting-one-shot contribution. */
-  @blue.method
   @meta.implemented
   GetWaitingOneShotWeight()
   {
@@ -1295,7 +1252,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the raw waiting-one-shot weight. */
-  @blue.method
   @meta.implemented
   SetWaitingOneShotWeight(value)
   {
@@ -1321,7 +1277,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the global prioritization weight multiplier. */
-  @blue.method
   @meta.implemented
   GetWeightMultiplier()
   {
@@ -1329,7 +1284,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the global prioritization weight multiplier. */
-  @blue.method
   @meta.implemented
   SetWeightMultiplier(value)
   {
@@ -1355,7 +1309,6 @@ export class AudManager extends IRoot
   }
 
   /** Returns the maximum number of awake audio objects. */
-  @blue.method
   @meta.implemented
   GetMaxAwakeGameObjects()
   {
@@ -1363,7 +1316,6 @@ export class AudManager extends IRoot
   }
 
   /** Sets the maximum number of awake audio objects. */
-  @blue.method
   @meta.implemented
   SetMaxAwakeGameObjects(value)
   {

@@ -13,7 +13,7 @@
 // shape - which is all that distinguishes it from its siblings in Carbon either.
 
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -66,7 +66,6 @@ export class EveBasicPerObjectData extends Tr2PerObjectData
    * @param {object} renderContext The context to upload and bind against.
    * @returns {number} How many payloads were uploaded.
    */
-  @blue.method
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {

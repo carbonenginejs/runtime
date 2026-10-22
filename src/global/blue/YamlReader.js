@@ -979,7 +979,7 @@ CjsSchema.decorateMethod(YamlReader, "_ReadIRootClass", meta.adapted);
 CjsSchema.decorateMethod(YamlReader, "_ReadIRoot", meta.adapted);
 CjsSchema.decorateMethod(YamlReader, "_ReadMembers", meta.adapted);
 CjsSchema.decorateMethod(YamlReader, "_ReadMetadata", meta.adapted);
-CjsSchema.decorateMethod(YamlReader, "FindEntry", meta.adapted, blue.method);
+CjsSchema.decorateMethod(YamlReader, "FindEntry", meta.adapted);
 CjsSchema.decorateMethod(YamlReader, "_ReadMember", meta.adapted, meta.cjs);
 CjsSchema.decorateMethod(YamlReader, "_ReadValue__Int32", meta.adapted);
 CjsSchema.decorateMethod(YamlReader, "_ReadValue__UInt32", meta.adapted);

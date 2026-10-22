@@ -2,7 +2,7 @@
 //
 // A document field's tag and the construct it belongs to; it asks
 // ParameterInfo whether a document version carries the field.
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ParameterInfo, Parameter } from "./ParameterInfo.js";
 
 /** `VersionedParameter` - a field's tag and construct, and whether a document version carries it. */
@@ -41,7 +41,7 @@ export class VersionedParameter
 CjsSchema.decorateField(VersionedParameter, "_tag", type.string);
 CjsSchema.decorateField(VersionedParameter, "_context", type.string);
 CjsSchema.decorateField(VersionedParameter, "_parameter", type.int32, type.enum(Parameter));
-CjsSchema.decorateMethod(VersionedParameter, "IsParameterExpectedInDocumentVersion", blue.method, meta.implemented);
-CjsSchema.decorateMethod(VersionedParameter, "GetTag", blue.method, meta.implemented);
+CjsSchema.decorateMethod(VersionedParameter, "IsParameterExpectedInDocumentVersion", meta.implemented);
+CjsSchema.decorateMethod(VersionedParameter, "GetTag", meta.implemented);
 CjsSchema.meta.carbon("VersionedParameter")(VersionedParameter);
 

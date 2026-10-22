@@ -119,10 +119,10 @@ export class CjsScriptCallback
 }
 
 // DECLARED AS CALLS, NOT DECORATORS, matching every other file in this folder.
-CjsSchema.decorateMethod(CjsScriptCallback, "IsValid", blue.method, meta.implemented);
-CjsSchema.decorateMethod(CjsScriptCallback, "Destroy", blue.method, meta.implemented);
-CjsSchema.decorateMethod(CjsScriptCallback, "Call", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsScriptCallback, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(CjsScriptCallback, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(CjsScriptCallback, "Call", meta.adapted);
+CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", meta.adapted);
 
 // THE DONOR IS NAMED, not left to be derived from this class's name. The port
 // keeps its Cjs name - schema can call a class whatever we want - and this

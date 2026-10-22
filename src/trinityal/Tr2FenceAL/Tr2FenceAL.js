@@ -12,7 +12,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2FenceAL.cpp:5`): we ship every backend at
 // once, so the context that knows its backend is the factory
 // (`CreateFence(true)`).
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -76,7 +76,6 @@ export class Tr2FenceAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(renderContext)
   {
@@ -95,7 +94,6 @@ export class Tr2FenceAL
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   PutFence(renderContext)
   {
@@ -110,7 +108,6 @@ export class Tr2FenceAL
    * @param {object} renderContext The context whose stream is asked.
    * @returns {{result: number, isReached: boolean}} The answer.
    */
-  @blue.method
   @meta.adapted
   IsReached(renderContext)
   {
@@ -123,7 +120,6 @@ export class Tr2FenceAL
    * @param {object} renderContext The context whose stream is waited on.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Wait(renderContext)
   {
@@ -135,7 +131,6 @@ export class Tr2FenceAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -150,7 +145,6 @@ export class Tr2FenceAL
    * @param {Tr2FenceAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -162,7 +156,6 @@ export class Tr2FenceAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -176,7 +169,6 @@ export class Tr2FenceAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

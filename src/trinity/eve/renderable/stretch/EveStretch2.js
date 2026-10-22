@@ -177,7 +177,6 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: prepare when a device allows it. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

@@ -123,8 +123,8 @@ export class Tr2TexturePipelineStepLimitSize extends IRoot
 
 CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxHeight", be.mapAttribute(be.READWRITE | be.PERSIST), type.uint32);
 CjsSchema.decorateField(Tr2TexturePipelineStepLimitSize, "maxWidth", be.mapAttribute(be.READWRITE | be.PERSIST), type.uint32);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "GetResourceDependencies", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "Execute", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "GetResourceDependencies", meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepLimitSize, "Execute", meta.implemented);
 blue.method(Tr2TexturePipelineStepLimitSize, "limitSize");
 meta.adapted(Tr2TexturePipelineStepLimitSize, "limitSize");
 CjsSchema.exposure.define("Tr2TexturePipelineStepLimitSize")(Tr2TexturePipelineStepLimitSize);

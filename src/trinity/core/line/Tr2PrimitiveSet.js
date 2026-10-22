@@ -248,4 +248,4 @@ export class Tr2PrimitiveSet extends IRoot
 }
 
 
-CjsSchema.decorateMethod(Tr2PrimitiveSet, "OnModified", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveSet, "OnModified");

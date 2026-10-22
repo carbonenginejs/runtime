@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp:21-60
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
 
 /** Legacy cloud constants, uploaded to the non-pixel shader stages. */
@@ -24,7 +24,6 @@ export class EveChildCloudPerObjectData extends Tr2PerObjectData
   }
 
   /** Adapted: RawData replaces the native struct and the shared uploader gates stages by the technique mask, as documented in this family's README (CE-19). */
-  @blue.method
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
@@ -32,7 +31,6 @@ export class EveChildCloudPerObjectData extends Tr2PerObjectData
   }
 
   /** Native indirect draw requires the currently unported Tr2IndirectDrawBufferWriter. */
-  @blue.method
   @meta.notImplemented
   ApplyConstantBuffers()
   {

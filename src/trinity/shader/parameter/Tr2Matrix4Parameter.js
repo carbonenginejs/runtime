@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1String } from "#utils/hash";
 
 
@@ -198,7 +198,6 @@ export class Tr2Matrix4Parameter extends ITriEffectParameter
    * Seeds an existing reroute destination with the current matrix; always
    * returns true.
    */
-  @blue.method
   @meta.implemented
   Initialize()
   {

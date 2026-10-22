@@ -221,10 +221,10 @@ function Lcm(a, b)
 CjsSchema.blue.define(Tr2SuballocatedBuffer, {
   className: "Tr2SuballocatedBuffer",
   methods: {
-    Allocate: [ blue.method, meta.adapted ],
-    Free: [ blue.method, meta.adapted ],
-    GetBuffer: [ blue.method, meta.adapted ],
-    ReleaseResources: [ blue.method, meta.adapted ],
+    Allocate: [ meta.adapted ],
+    Free: [ meta.adapted ],
+    GetBuffer: [ meta.adapted ],
+    ReleaseResources: [ meta.adapted ],
     PrepareResources: [ meta.adapted ],
     _AddBlock: [],
     GetBlocks: []

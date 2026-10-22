@@ -364,11 +364,11 @@ export class TriLineSet extends IRoot
   };
 }
 
-CjsSchema.decorateMethod(TriLineSet, "AddDefaultColor", blue.method);
-CjsSchema.decorateMethod(TriLineSet, "AddTransformed", blue.method);
-CjsSchema.decorateMethod(TriLineSet, "AddCylinder", blue.method);
-CjsSchema.decorateMethod(TriLineSet, "AddCone", blue.method);
-CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox__MinMax", blue.method, meta.renamed("AddOrientedBox"));
-CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox", blue.method);
+CjsSchema.decorateMethod(TriLineSet, "AddDefaultColor");
+CjsSchema.decorateMethod(TriLineSet, "AddTransformed");
+CjsSchema.decorateMethod(TriLineSet, "AddCylinder");
+CjsSchema.decorateMethod(TriLineSet, "AddCone");
+CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox__MinMax", meta.renamed("AddOrientedBox"));
+CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox");
 CjsSchema.decorateMethod(TriLineSet, "Render", blue.method);
-CjsSchema.decorateMethod(TriLineSet, "SubmitGeometry", blue.method);
+CjsSchema.decorateMethod(TriLineSet, "SubmitGeometry");

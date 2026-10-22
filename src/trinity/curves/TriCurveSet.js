@@ -121,7 +121,6 @@ export class TriCurveSet extends IInitialize
    * @param {number} simTime Simulation time in Blue 100ns ticks.
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.implemented
   Update__RealTimeSimTime(realTime, simTime)
   {

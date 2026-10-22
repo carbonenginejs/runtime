@@ -187,7 +187,6 @@ export class Tr2MeshArea extends IRoot
   }
 
   /** Sets the spherical-harmonic lighting flag; schedules the batches rebuild. */
-  @blue.method
   @meta.adapted
   SetUseSHLighting(value)
   {
@@ -347,7 +346,6 @@ export class Tr2MeshArea extends IRoot
    * Carbon's operator= - copies authored fields and deliberately resets the
    * joint state, which BindToRig must rebuild for the new owner.
    */
-  @blue.method
   @meta.adapted
   CopyFrom(other)
   {

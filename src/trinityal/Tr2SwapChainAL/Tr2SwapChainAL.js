@@ -12,7 +12,7 @@
 // backend at once, so the context that knows its backend is the factory
 // (`CreateSwapChain(windowHandle, true)`). A backend whose caps report no
 // standalone swap chain refuses there.
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -79,7 +79,6 @@ export class Tr2SwapChainAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(windowHandle, renderContext)
   {
@@ -98,7 +97,6 @@ export class Tr2SwapChainAL
    * @param {object} renderContext The context presenting the frame.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Present(renderContext)
   {
@@ -110,7 +108,6 @@ export class Tr2SwapChainAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -123,7 +120,6 @@ export class Tr2SwapChainAL
    *
    * @returns {Tr2TextureAL} The back buffer; a default, invalid one when uncreated.
    */
-  @blue.method
   @meta.implemented
   GetBackBuffer()
   {
@@ -135,7 +131,6 @@ export class Tr2SwapChainAL
    *
    * @returns {number} Width in pixels.
    */
-  @blue.method
   @meta.implemented
   GetWidth()
   {
@@ -147,7 +142,6 @@ export class Tr2SwapChainAL
    *
    * @returns {number} Height in pixels.
    */
-  @blue.method
   @meta.implemented
   GetHeight()
   {
@@ -162,7 +156,6 @@ export class Tr2SwapChainAL
    * @param {Tr2SwapChainAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -174,7 +167,6 @@ export class Tr2SwapChainAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -188,7 +180,6 @@ export class Tr2SwapChainAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

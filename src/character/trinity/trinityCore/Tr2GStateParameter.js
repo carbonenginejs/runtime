@@ -79,7 +79,6 @@ export class Tr2GStateParameter extends IInitialize
    * Reports successful portable initialization for the persisted parameter
    * record.
    */
-  @blue.method
   @meta.implemented
   Initialize()
   {

@@ -15,7 +15,7 @@
 // Ours is the render context's `CreateSamplerState(description, true)`, for the
 // reason the context allocates every AL implementation: it is the one place the
 // backend is known.
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -73,7 +73,6 @@ export class Tr2SamplerStateAL
    * @param {object} renderContext The context whose factory answers.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(description, renderContext)
   {
@@ -89,7 +88,6 @@ export class Tr2SamplerStateAL
    *
    * @returns {number} The index, or Carbon's "no index".
    */
-  @blue.method
   @meta.implemented
   GetIndexInHeap()
   {
@@ -101,7 +99,6 @@ export class Tr2SamplerStateAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -113,7 +110,6 @@ export class Tr2SamplerStateAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -128,7 +124,6 @@ export class Tr2SamplerStateAL
    * @param {Tr2SamplerStateAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -141,7 +136,6 @@ export class Tr2SamplerStateAL
    *
    * @returns {object} The implementation.
    */
-  @blue.method
   @meta.implemented
   TrinityALImpl_GetObject()
   {
@@ -155,7 +149,6 @@ export class Tr2SamplerStateAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

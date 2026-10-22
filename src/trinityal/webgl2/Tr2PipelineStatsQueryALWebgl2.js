@@ -171,15 +171,15 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
 }
 
 CjsSchema.decorateField(Tr2PipelineStatsQueryALWebgl2, "_name", type.string);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Begin", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "End", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetStats", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValueCount", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetLabel", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetDescription", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValue", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetStats");
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValueCount");
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetLabel");
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetDescription");
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValue");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Describe", blue.method);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "SetName", blue.method);

@@ -6,7 +6,7 @@
 //
 // Adapted: Carbon assigns with `operator=`, which JavaScript cannot overload,
 // so a value is assigned to `_value` (Carbon's protected `m_value`). An unset `std::optional` is `undefined`.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { VersionedParameter } from "./VersionedParameter.js";
 
 /** `DocumentParameter<T>` - a versioned field holding an optional value. */
@@ -38,7 +38,7 @@ export class DocumentParameter extends VersionedParameter
     }
 }
 
-CjsSchema.decorateMethod(DocumentParameter, "GetValue", blue.method, meta.implemented);
-CjsSchema.decorateMethod(DocumentParameter, "HasValue", blue.method, meta.implemented);
-CjsSchema.decorateMethod(DocumentParameter, "Reset", blue.method, meta.implemented);
+CjsSchema.decorateMethod(DocumentParameter, "GetValue", meta.implemented);
+CjsSchema.decorateMethod(DocumentParameter, "HasValue", meta.implemented);
+CjsSchema.decorateMethod(DocumentParameter, "Reset", meta.implemented);
 CjsSchema.meta.carbon("DocumentParameter")(DocumentParameter);

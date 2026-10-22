@@ -544,7 +544,6 @@ export class Tr2VolumetricsRenderer
    * temporally.
    * @returns {object} The froxel texture, or the empty fog texture.
    */
-  @blue.method
   @meta.implemented
   RenderFog(renderContext, gpuResourcePool, width, height, cascadedShadowMap, raytracingGeometry, shadowQuality,
     sunDirection, sunColor, origin, originShift, view, projection, viewLast, projectionLast)
@@ -611,7 +610,6 @@ export class Tr2VolumetricsRenderer
    * @returns {GpuResourceHandle|null} The froxel texture; null where Carbon returns an empty texture.
    */
   @meta.adapted
-  @blue.method
   @meta.renamed("RenderFog")
   _RenderFog_Resources(resources, renderContext, gpuResourcePool, originalWidth, originalHeight, cascadedShadowMap,
     raytracingGeometry, shadowQuality, sunDirection, sunColor, origin, originShift, view, projection, viewLast,

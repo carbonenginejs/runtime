@@ -590,12 +590,12 @@ function normalizeShaderOptions(options)
 CjsSchema.blue.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
   methods: {
-    DoLoad: [ blue.method, meta.adapted ],
-    GetShader: [ blue.method, meta.adapted ],
+    DoLoad: [ meta.adapted ],
+    GetShader: [ meta.adapted ],
     GetShaderByIndex: [],
     SetPermutationTranslator: [],
     GetPermutationDescription: [ be.mapMethodAndWrap(), meta.adapted ],
-    ReleaseResources: [ blue.method, meta.adapted ],
+    ReleaseResources: [ meta.adapted ],
     IsMemoryUsageKnown: [ blue.method, meta.implemented ],
     GetMemoryUsage: [ blue.method, meta.adapted ]
   }

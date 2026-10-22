@@ -168,7 +168,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * before the first key it is the retained value. Time first and output last, as the rest of the curve family;
    * GetValueAt__Ticks is the Be::Time overload.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -201,7 +200,6 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * The angular velocity at a time measured from the start, written into
    * `out`; before the first key it is zero.
    */
-  @blue.method
   @meta.adapted
   GetValueDotAt(time, out)
   {

@@ -163,14 +163,14 @@ CjsSchema.blue.define(Tr2PickBuffer, {
   }
 });
 
-CjsSchema.decorateMethod(Tr2PickBuffer, "SetSize", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "GetSize", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "GetDescription", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "SetClearColor", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "ReleaseResources", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "PrepareResources", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "OnPrepareResources", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "BeginRendering", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "EndRendering", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "MapForReading", blue.method);
-CjsSchema.decorateMethod(Tr2PickBuffer, "UnmapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2PickBuffer, "SetSize");
+CjsSchema.decorateMethod(Tr2PickBuffer, "GetSize");
+CjsSchema.decorateMethod(Tr2PickBuffer, "GetDescription");
+CjsSchema.decorateMethod(Tr2PickBuffer, "SetClearColor");
+CjsSchema.decorateMethod(Tr2PickBuffer, "ReleaseResources");
+CjsSchema.decorateMethod(Tr2PickBuffer, "PrepareResources");
+CjsSchema.decorateMethod(Tr2PickBuffer, "OnPrepareResources");
+CjsSchema.decorateMethod(Tr2PickBuffer, "BeginRendering");
+CjsSchema.decorateMethod(Tr2PickBuffer, "EndRendering");
+CjsSchema.decorateMethod(Tr2PickBuffer, "MapForReading");
+CjsSchema.decorateMethod(Tr2PickBuffer, "UnmapForReading");

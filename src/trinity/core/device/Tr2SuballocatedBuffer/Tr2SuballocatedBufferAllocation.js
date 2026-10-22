@@ -99,7 +99,7 @@ export class Tr2SuballocatedBufferAllocation
   }
 }
 
-CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "IsValid", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "IsValid", meta.implemented);
 
 CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_offset", type.uint32);
 CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_size", type.uint32);

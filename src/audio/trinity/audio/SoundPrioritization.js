@@ -1,6 +1,6 @@
 // Source: audio/src/SoundPrioritization.h + SoundPrioritization.cpp (not Blue-exposed; pure logic port)
 // Hand-owned since 2026-07-18; the generator skips this file.
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 // Audio2.h:19 - the listener's fixed game-object id.
 export const LISTENER_GAME_OBJ_ID = 4;
@@ -44,7 +44,6 @@ export class SoundPrioritization
   _audioCullingEnabled = true;
 
   /** Carbon method RegisterGameObject: listener recognized by its fixed id. */
-  @blue.method
   @meta.implemented
   RegisterGameObject(object)
   {
@@ -60,7 +59,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method UnregisterGameObject (by id). */
-  @blue.method
   @meta.implemented
   UnregisterGameObject(objectID)
   {
@@ -74,7 +72,6 @@ export class SoundPrioritization
   // Carbon quirk preserved: the strict `>` keeps maxAwakeGameObjects + 1
   // objects awake (SoundPrioritization.cpp:146-171). Do not "fix".
   /** Carbon method CullAudio: distance + weight every object, sort ascending, wake the top set. */
-  @blue.method
   @meta.implemented
   CullAudio(now)
   {
@@ -118,7 +115,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method ResetCullingSettings: restore constructor defaults. */
-  @blue.method
   @meta.implemented
   ResetCullingSettings()
   {
@@ -126,7 +122,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetAudioCullingEnabled. */
-  @blue.method
   @meta.implemented
   GetAudioCullingEnabled()
   {
@@ -142,7 +137,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method EnableAudioCulling. */
-  @blue.method
   @meta.implemented
   EnableAudioCulling()
   {
@@ -155,7 +149,6 @@ export class SoundPrioritization
    *
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   DisableAudioCulling()
   {
@@ -172,7 +165,6 @@ export class SoundPrioritization
   // Carbon asymmetry preserved: weight getters return weightMultiplier x the
   // stored raw field; setters store raw (SoundPrioritization.cpp:228-296).
   /** Carbon method GetMaxAwakeGameObjects (plain, no multiply). */
-  @blue.method
   @meta.implemented
   GetMaxAwakeGameObjects()
   {
@@ -180,7 +172,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetMaxAwakeGameObjects. */
-  @blue.method
   @meta.implemented
   SetMaxAwakeGameObjects(value)
   {
@@ -188,7 +179,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetOneShotWindow (ms, plain). */
-  @blue.method
   @meta.implemented
   GetOneShotWindow()
   {
@@ -196,7 +186,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetOneShotWindow. */
-  @blue.method
   @meta.implemented
   SetOneShotWindow(value)
   {
@@ -204,7 +193,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetWeightMultiplier (plain). */
-  @blue.method
   @meta.implemented
   GetWeightMultiplier()
   {
@@ -212,7 +200,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetWeightMultiplier. */
-  @blue.method
   @meta.implemented
   SetWeightMultiplier(value)
   {
@@ -220,7 +207,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetPlayingVitalSoundWeight (multiplied). */
-  @blue.method
   @meta.implemented
   GetPlayingVitalSoundWeight()
   {
@@ -228,7 +214,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetPlayingVitalSoundWeight (raw). */
-  @blue.method
   @meta.implemented
   SetPlayingVitalSoundWeight(value)
   {
@@ -236,7 +221,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetPlaying2DWeight (multiplied). */
-  @blue.method
   @meta.implemented
   GetPlaying2DWeight()
   {
@@ -244,7 +228,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetPlaying2DWeight (raw). */
-  @blue.method
   @meta.implemented
   SetPlaying2DWeight(value)
   {
@@ -252,7 +235,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetRangeWeight (multiplied). */
-  @blue.method
   @meta.implemented
   GetRangeWeight()
   {
@@ -260,7 +242,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetRangeWeight (raw). */
-  @blue.method
   @meta.implemented
   SetRangeWeight(value)
   {
@@ -268,7 +249,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetPlayingEventsWeight (multiplied activeSoundsWeight). */
-  @blue.method
   @meta.implemented
   GetPlayingEventsWeight()
   {
@@ -276,7 +256,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetPlayingEventsWeight (raw). */
-  @blue.method
   @meta.implemented
   SetPlayingEventsWeight(value)
   {
@@ -284,7 +263,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetWaitingOneShotWeight (multiplied). */
-  @blue.method
   @meta.implemented
   GetWaitingOneShotWeight()
   {
@@ -292,7 +270,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetWaitingOneShotWeight (raw). */
-  @blue.method
   @meta.implemented
   SetWaitingOneShotWeight(value)
   {
@@ -300,7 +277,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetVisibleWeight (multiplied). */
-  @blue.method
   @meta.implemented
   GetVisibleWeight()
   {
@@ -308,7 +284,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetVisibleWeight (raw). */
-  @blue.method
   @meta.implemented
   SetVisibleWeight(value)
   {
@@ -316,7 +291,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method GetUsedEmitterWeight (multiplied). */
-  @blue.method
   @meta.implemented
   GetUsedEmitterWeight()
   {
@@ -324,7 +298,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetUsedEmitterWeight (raw). */
-  @blue.method
   @meta.implemented
   SetUsedEmitterWeight(value)
   {
@@ -337,7 +310,6 @@ export class SoundPrioritization
    * Adapted: Carbon returns a const vector reference; CarbonEngineJS returns a defensive
    * array.
    */
-  @blue.method
   @meta.adapted
   GetPrioritizedAudioObjects()
   {
@@ -345,7 +317,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method ForEachAwakeAudioObject: visits every non-culled tracked object. Source: SoundPrioritization.h:264-274 (commit c9b986d). */
-  @blue.method
   @meta.implemented
   ForEachAwakeAudioObject(visitor)
   {

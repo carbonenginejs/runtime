@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.h
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
 import { blue, CjsBlueClasses, IList, INotify } from "#blue";
-import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor, type, blue as legacyBlue } from "#schema";
+import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor, type } from "#schema";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "../../../global/blue/dictionaryDeclarations.js";
 
 
@@ -75,7 +75,6 @@ export class Tr2BindingPoint
    *
    * @param {Array<[string, object]>} roots Named roots, as a controller's GetBindingPathRoots.
    */
-  @legacyBlue.method
   @meta.implemented
   Link(roots)
   {
@@ -92,7 +91,6 @@ export class Tr2BindingPoint
   }
 
   /** Carbon Unlink (cpp:295-303). */
-  @legacyBlue.method
   @meta.implemented
   Unlink()
   {
@@ -109,7 +107,6 @@ export class Tr2BindingPoint
    *
    * @returns {boolean} Whether a destination is bound.
    */
-  @legacyBlue.method
   @meta.implemented
   IsValid()
   {
@@ -126,7 +123,6 @@ export class Tr2BindingPoint
    *
    * @param {number} value The value; stored as a C++ float first.
    */
-  @legacyBlue.method
   @meta.adapted
   SetValue(value)
   {
@@ -163,7 +159,6 @@ export class Tr2BindingPoint
    *
    * @returns {number|null} The destination value as a float.
    */
-  @legacyBlue.method
   @meta.adapted
   GetValue()
   {
@@ -180,7 +175,6 @@ export class Tr2BindingPoint
    *
    * @returns {object|null} The resolved object, else the authored one.
    */
-  @legacyBlue.method
   @meta.implemented
   GetBoundObject()
   {
@@ -197,7 +191,6 @@ export class Tr2BindingPoint
    * @param {string} attribute Member name with an optional `.x` swizzle.
    * @returns {boolean} Whether a destination was bound.
    */
-  @legacyBlue.method
   @meta.implemented
   SetDestination(object, attribute)
   {

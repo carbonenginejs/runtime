@@ -9,7 +9,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveComponentType, EntityComponents } from "../../EntityComponents.js";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 import { RawData } from "../../../core/rawData/RawData.js";
@@ -149,7 +149,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * The authored name, persisted with the child and used to identify it in the
    * parent graph.
    */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -157,7 +156,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /** Sets the authored child name, coercing nullish to the empty string. */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -608,7 +606,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Carbon EveChildInstancedMeshes::ChangeLOD (cpp:339-341) is an intentional
    * no-op; the child keeps no LOD state.
    */
-  @blue.method
   @meta.implemented
   ChangeLOD()
   {
@@ -618,7 +615,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Accepts and discards the placement origin; this child has no Carbon origin
    * field and stores none.
    */
-  @blue.method
   @meta.adapted
   SetOrigin()
   {
@@ -628,7 +624,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Returns false, so owners treat this child as subject to normal activation
    * gating.
    */
-  @blue.method
   @meta.implemented
   IsAlwaysOn()
   {

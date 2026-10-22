@@ -14,7 +14,7 @@
 // there with `E_FAIL`, as Carbon's backends refuse a query the device cannot
 // make (`Tr2GpuTimerALMetal.mm:48-51`), and the value stays on the null
 // implementation.
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -88,7 +88,6 @@ export class Tr2OcclusionQueryAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(renderContext)
   {
@@ -107,7 +106,6 @@ export class Tr2OcclusionQueryAL
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Begin(renderContext)
   {
@@ -120,7 +118,6 @@ export class Tr2OcclusionQueryAL
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   End(renderContext)
   {
@@ -137,7 +134,6 @@ export class Tr2OcclusionQueryAL
    * @param {number} [waitMode] A `WaitMode`; Carbon's default is `DO_NOT_WAIT`.
    * @returns {{result: number, count: number}} The answer.
    */
-  @blue.method
   @meta.adapted
   GetPixelCount(renderContext, waitMode = Tr2OcclusionQueryAL.WaitMode.DO_NOT_WAIT)
   {
@@ -149,7 +145,6 @@ export class Tr2OcclusionQueryAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -164,7 +159,6 @@ export class Tr2OcclusionQueryAL
    * @param {Tr2OcclusionQueryAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -176,7 +170,6 @@ export class Tr2OcclusionQueryAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -190,7 +183,6 @@ export class Tr2OcclusionQueryAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

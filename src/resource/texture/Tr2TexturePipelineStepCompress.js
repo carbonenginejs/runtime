@@ -98,6 +98,6 @@ CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "format", be.mapAttribut
 CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "b", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
 CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "g", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
 CjsSchema.decorateField(Tr2TexturePipelineStepCompress, "r", be.mapAttribute(be.READWRITE | be.PERSIST), type.float32);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepCompress, "GetResourceDependencies", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2TexturePipelineStepCompress, "Execute", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepCompress, "GetResourceDependencies", meta.implemented);
+CjsSchema.decorateMethod(Tr2TexturePipelineStepCompress, "Execute", meta.adapted);
 CjsSchema.exposure.define("Tr2TexturePipelineStepCompress")(Tr2TexturePipelineStepCompress);

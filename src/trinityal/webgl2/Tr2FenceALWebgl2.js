@@ -198,10 +198,10 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2FenceALWebgl2, "_name", type.string);
 CjsSchema.decorateField(Tr2FenceALWebgl2, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2FenceALWebgl2, "_finished", type.boolean);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "PutFence", blue.method);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsReached", blue.method);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Wait", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Create");
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "PutFence");
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsReached");
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Wait");
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "GetMemoryClass", blue.method);

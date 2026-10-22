@@ -103,8 +103,8 @@ export class Tr2ResourceSetAL
 }
 
 CjsSchema.decorateField(Tr2ResourceSetAL, "_resourceSet", type.unknown);
-CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Program", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Pipeline", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Program");
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Pipeline");
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "GetMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "SetName", blue.method);

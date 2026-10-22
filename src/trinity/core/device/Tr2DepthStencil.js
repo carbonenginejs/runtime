@@ -148,7 +148,6 @@ export class Tr2DepthStencil extends IRoot
    *
    * @returns {object|null} The `Tr2TextureAL`, or null before Create.
    */
-  @blue.method
   @meta.adapted
   GetDepthStencil()
   {

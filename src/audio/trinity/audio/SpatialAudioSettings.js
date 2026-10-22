@@ -1,6 +1,6 @@
 // Source: audio/src/SpatialAudioSettings.h + SpatialAudioSettings.cpp
 // Hand-owned behavior port. Verify against audio/SpatialAudioSettings.json.
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 /**
  * Retains Carbon spatial-audio initialization defaults and getter/setter
@@ -41,7 +41,6 @@ export class SpatialAudioSettings
   _enableDiffractionOnBoundaryEdges = true;
 
   /** Returns whether geometry-based spatial audio is enabled. */
-  @blue.method
   @meta.implemented
   GetSpatialAudioGeometryEnabled()
   {
@@ -49,7 +48,6 @@ export class SpatialAudioSettings
   }
 
   /** Enables or disables geometry-based spatial audio. */
-  @blue.method
   @meta.implemented
   SetSpatialAudioGeometryEnabled(value)
   {
@@ -57,7 +55,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the movement threshold used for spatial path validation. */
-  @blue.method
   @meta.implemented
   GetMovementThreshold()
   {
@@ -65,7 +62,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the movement threshold used for spatial path validation. */
-  @blue.method
   @meta.implemented
   SetMovementThreshold(value)
   {
@@ -73,7 +69,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the maximum number of primary spatial-audio rays. */
-  @blue.method
   @meta.implemented
   GetNumberOfPrimaryRays()
   {
@@ -81,7 +76,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the maximum number of primary spatial-audio rays. */
-  @blue.method
   @meta.implemented
   SetNumberOfPrimaryRays(value)
   {
@@ -89,7 +83,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the maximum reflection order. */
-  @blue.method
   @meta.implemented
   GetMaxReflectionOrder()
   {
@@ -97,7 +90,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the maximum reflection order. */
-  @blue.method
   @meta.implemented
   SetMaxReflectionOrder(value)
   {
@@ -105,7 +97,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the maximum diffraction order. */
-  @blue.method
   @meta.implemented
   GetMaxDiffractionOrder()
   {
@@ -113,7 +104,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the maximum diffraction order. */
-  @blue.method
   @meta.implemented
   SetMaxDiffractionOrder(value)
   {
@@ -121,7 +111,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the maximum number of emitter room auxiliary sends. */
-  @blue.method
   @meta.implemented
   GetMaxEmitterRoomAuxSends()
   {
@@ -129,7 +118,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the maximum number of emitter room auxiliary sends. */
-  @blue.method
   @meta.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
@@ -137,7 +125,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the diffraction order applied at reflection endpoints. */
-  @blue.method
   @meta.implemented
   GetDiffractionOnReflectionsOrder()
   {
@@ -145,7 +132,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the diffraction order applied at reflection endpoints. */
-  @blue.method
   @meta.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
@@ -153,7 +139,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the maximum spatial-audio path length. */
-  @blue.method
   @meta.implemented
   GetMaxPathLength()
   {
@@ -161,7 +146,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the maximum spatial-audio path length. */
-  @blue.method
   @meta.implemented
   SetMaxPathLength(value)
   {
@@ -169,7 +153,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the targeted spatial-audio CPU percentage. */
-  @blue.method
   @meta.implemented
   GetCPULimitPercentage()
   {
@@ -177,7 +160,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the targeted spatial-audio CPU percentage. */
-  @blue.method
   @meta.implemented
   SetCPULimitPercentage(value)
   {
@@ -185,7 +167,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the number of frames used for load balancing. */
-  @blue.method
   @meta.implemented
   GetLoadBalancingSpread()
   {
@@ -193,7 +174,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets the number of frames used for load balancing. */
-  @blue.method
   @meta.implemented
   SetLoadBalancingSpread(value)
   {
@@ -201,7 +181,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns whether geometric diffraction and transmission are enabled. */
-  @blue.method
   @meta.implemented
   GetEnableDiffractionAndTransmission()
   {
@@ -209,7 +188,6 @@ export class SpatialAudioSettings
   }
 
   /** Enables or disables geometric diffraction and transmission. */
-  @blue.method
   @meta.implemented
   SetEnableDiffractionAndTransmission(value)
   {
@@ -217,7 +195,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns whether Wwise calculates emitter virtual positions. */
-  @blue.method
   @meta.implemented
   GetCalcEmitterVirtualPosition()
   {
@@ -225,7 +202,6 @@ export class SpatialAudioSettings
   }
 
   /** Enables or disables Wwise emitter virtual-position calculation. */
-  @blue.method
   @meta.implemented
   SetCalcEmitterVirtualPosition(value)
   {
@@ -233,7 +209,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns the geometry surface transmission loss. */
-  @blue.method
   @meta.implemented
   GetTransmissionLoss()
   {
@@ -241,7 +216,6 @@ export class SpatialAudioSettings
   }
 
   /** Sets geometry surface transmission loss, clamped to the Carbon range. */
-  @blue.method
   @meta.implemented
   SetTransmissionLoss(value)
   {
@@ -249,7 +223,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns whether geometry diffraction is enabled. */
-  @blue.method
   @meta.implemented
   GetEnableDiffraction()
   {
@@ -257,7 +230,6 @@ export class SpatialAudioSettings
   }
 
   /** Enables or disables geometry diffraction. */
-  @blue.method
   @meta.implemented
   SetEnableDiffraction(value)
   {
@@ -265,7 +237,6 @@ export class SpatialAudioSettings
   }
 
   /** Returns whether geometry boundary-edge diffraction is enabled. */
-  @blue.method
   @meta.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
@@ -273,7 +244,6 @@ export class SpatialAudioSettings
   }
 
   /** Enables or disables geometry boundary-edge diffraction. */
-  @blue.method
   @meta.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
@@ -286,7 +256,6 @@ export class SpatialAudioSettings
    * Adapted: AkSpatialAudioInitSettings is represented by a caller-owned plain JavaScript
    * object.
    */
-  @blue.method
   @meta.adapted
   PopulateInitSettings(out = {})
   {

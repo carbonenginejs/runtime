@@ -194,5 +194,5 @@ CjsSchema.decorateMethod(Tr2MouseCursor, "__init__", meta.renamed("py__init__"),
 CjsSchema.decorateMethod(Tr2MouseCursor, "Create", be.mapMethodAndWrapOptionalArgs(), meta.adapted);
 CjsSchema.decorateMethod(Tr2MouseCursor, "IsValid", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateField(Tr2MouseCursor, "isValid", be.mapPropertyReadOnly(), meta.adapted);
-CjsSchema.decorateMethod(Tr2MouseCursor, "Apply", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MouseCursor, "Apply", meta.adapted);
 CjsSchema.exposure.define("Tr2MouseCursor")(Tr2MouseCursor);

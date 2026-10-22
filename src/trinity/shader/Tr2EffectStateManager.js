@@ -889,7 +889,6 @@ export class Tr2EffectStateManager
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
   Initialize()
   {
     this.viewportSizeVar = Tr2VariableStore.globalStore().RegisterVariableInternal(
@@ -965,7 +964,6 @@ export class Tr2EffectStateManager
    * @returns {void}
    */
   @meta.adapted
-  @blue.method
   ReleaseDeviceResources(s)
   {
     if ((s & TriStorageFlags.TRISTORAGE_ALL) !== TriStorageFlags.TRISTORAGE_ALL) return;

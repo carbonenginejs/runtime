@@ -246,7 +246,6 @@ export class EveEffectRoot2 extends EveEntity
    * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
    * through the shared child service rather than the list driving it.
    */
-  @blue.method
   @meta.adapted
   AddController(controller)
   {
@@ -261,7 +260,6 @@ export class EveEffectRoot2 extends EveEntity
    * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
    * through the shared child service rather than the list driving it.
    */
-  @blue.method
   @meta.adapted
   RemoveController(controller)
   {
@@ -543,7 +541,6 @@ export class EveEffectRoot2 extends EveEntity
    * Adapted: Copies the stored world transform into the caller's output matrix where Carbon
    * accesses its protected member directly.
    */
-  @blue.method
   @meta.adapted
   GetWorldTransform(out = mat4.create())
   {

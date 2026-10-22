@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
 import { box3 } from "#math/box3";
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { TriGeometryRes, ResourceRequirement } from "#resource";
 import { TriDevice } from "../device/TriDevice.js";
@@ -101,7 +101,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @legacyBlue.method
   @meta.implemented
   PrepareResources()
   {

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2KelvinColor.h
 // Source: trinity/trinity/Tr2KelvinColor.cpp
 // Source: trinity/trinity/Tr2KelvinColor_Blue.cpp
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -199,7 +199,7 @@ export class Tr2KelvinColor extends IInitialize
 
 
 
-CjsSchema.decorateMethod(Tr2KelvinColor, "GetTemperature", legacyBlue.method);
-CjsSchema.decorateMethod(Tr2KelvinColor, "GetTint", legacyBlue.method);
-CjsSchema.decorateMethod(Tr2KelvinColor, "GetWhiteBalance", legacyBlue.method);
-CjsSchema.decorateMethod(Tr2KelvinColor, "AsRGB", legacyBlue.method);
+CjsSchema.decorateMethod(Tr2KelvinColor, "GetTemperature");
+CjsSchema.decorateMethod(Tr2KelvinColor, "GetTint");
+CjsSchema.decorateMethod(Tr2KelvinColor, "GetWhiteBalance");
+CjsSchema.decorateMethod(Tr2KelvinColor, "AsRGB");

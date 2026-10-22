@@ -7,7 +7,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 import { TriBatchType } from "#consts/graphics";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
@@ -213,7 +213,6 @@ export class Tr2Transform extends IRoot
   }
 
   /** Carbon's default ITr2Renderable visibility contract. */
-  @legacyBlue.method
   @meta.implemented
   IsVisible(_updateContext)
   {

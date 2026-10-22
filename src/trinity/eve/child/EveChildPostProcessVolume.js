@@ -126,7 +126,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /**
    * The volume's name.
    */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -136,7 +135,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /**
    * Sets the volume's name, coercing the value to a string.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -144,7 +142,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Carbon's visibility pass is empty (EveChildPostProcessVolume.cpp:84-86). */
-  @blue.method
   @meta.adapted
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
@@ -168,7 +165,6 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Carbon's synchronous pass is empty (EveChildPostProcessVolume.cpp:96-98). */
-  @blue.method
   @meta.adapted
   UpdateSyncronous(_updateContext, _params)
   {

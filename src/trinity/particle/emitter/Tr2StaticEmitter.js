@@ -7,7 +7,7 @@ import { ResourceRequirement } from "#resource";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue as legacyBlue } from "#schema";
+import { meta, type } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 import { Tr2ParticleElementDeclarationName } from "../element/Tr2ParticleElementDeclarationName.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -209,14 +209,12 @@ export class Tr2StaticEmitter extends IRoot
    * Both Carbon SpawnParticles overloads are empty for the static emitter -
    * it only spawns once from Update (Tr2StaticEmitter.cpp:293-308).
    */
-  @legacyBlue.method
   @meta.adapted
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
   }
 
   /** Carbon's start/end SpawnParticles overload; empty, as above. */
-  @legacyBlue.method
   @meta.adapted
   SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {

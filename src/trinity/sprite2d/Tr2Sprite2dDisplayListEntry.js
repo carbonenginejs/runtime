@@ -3,7 +3,7 @@
 // Carbon's nested struct Tr2Sprite2dDisplayList::Entry; split out of
 // Tr2Sprite2dDisplayList.js so the class is findable by its own name.
 import { vec4 } from "#math/vec4";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { ShaderType, Topology } from "#consts/render-context";
 import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
@@ -29,7 +29,6 @@ export class Tr2Sprite2dDisplayListEntry
 
   /** Native transpose/upload/draw; typed arrays replace the native stack matrix array. */
   @meta.adapted
-  @blue.method
   SubmitGeometry(context)
   {
     for (let i = 0; i < 32; i++) mat4.transpose(this._transposedTransforms.subarray(i * 16, (i + 1) * 16), this.transformArray[i]);

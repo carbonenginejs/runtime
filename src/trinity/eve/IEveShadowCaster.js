@@ -82,7 +82,7 @@ export class IEveShadowCaster extends IRoot
 }
 
 
-CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow", blue.method, meta.adapted);
+CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow", meta.adapted);
 CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__ShadowFrustum", meta.abstract);
 CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__PositionRadius", meta.implemented);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowBatches", meta.abstract);

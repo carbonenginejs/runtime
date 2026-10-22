@@ -16,7 +16,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2VertexLayoutAL.cpp:5`): we ship every
 // backend at once, so the context that knows its backend is the factory
 // (`CreateVertexLayout(definition, true)`).
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -80,7 +80,6 @@ export class Tr2VertexLayoutAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(definition, renderContext)
   {
@@ -98,7 +97,6 @@ export class Tr2VertexLayoutAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -113,7 +111,6 @@ export class Tr2VertexLayoutAL
    * @param {Tr2VertexLayoutAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -125,7 +122,6 @@ export class Tr2VertexLayoutAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -139,7 +135,6 @@ export class Tr2VertexLayoutAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

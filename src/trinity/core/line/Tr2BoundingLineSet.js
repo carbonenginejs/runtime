@@ -90,4 +90,4 @@ export class Tr2BoundingLineSet extends Tr2LineSet
 
 }
 
-CjsSchema.decorateMethod(Tr2BoundingLineSet, "OnModified", blue.method);
+CjsSchema.decorateMethod(Tr2BoundingLineSet, "OnModified");

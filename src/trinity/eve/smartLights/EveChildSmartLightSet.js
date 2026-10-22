@@ -61,7 +61,6 @@ export class EveChildSmartLightSet extends EveChildTransform
   /**
    * The smart light set's name.
    */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -71,7 +70,6 @@ export class EveChildSmartLightSet extends EveChildTransform
   /**
    * Sets the smart light set's name, coercing the value to a string.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -79,21 +77,18 @@ export class EveChildSmartLightSet extends EveChildTransform
   }
 
   /** Carbon declares Setup inline empty (EveChildSmartLightSet.h:48). */
-  @blue.method
   @meta.adapted
   Setup(_scale = null, _rotation = null, _translation = null, _lowestLodVisible = null)
   {
   }
 
   /** Carbon declares ChangeLOD inline empty (EveChildSmartLightSet.h:49). */
-  @blue.method
   @meta.adapted
   ChangeLOD(_lod)
   {
   }
 
   /** Smart light sets carry no bound (EveChildSmartLightSet.h:39-42). */
-  @blue.method
   @meta.implemented
   GetBoundingSphere(_sphere = null, _query = 0)
   {

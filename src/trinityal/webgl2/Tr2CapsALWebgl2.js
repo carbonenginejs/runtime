@@ -134,9 +134,9 @@ export class Tr2CapsALWebgl2
   }
 }
 
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsFloat16", blue.method);
+CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsFloat16");
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsGpuBuffer", blue.method);
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsStandaloneSwapChain", blue.method);
+CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsStandaloneSwapChain");
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVertexShaderTextures", blue.method);
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVariableRefreshRate", blue.method);
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsRaytracing", blue.method);

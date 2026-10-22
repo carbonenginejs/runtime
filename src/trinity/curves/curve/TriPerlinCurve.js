@@ -127,7 +127,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    * with its first-call origin. Existing
    * noise arithmetic retains JS precision rather than native float rounding.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time)
   {

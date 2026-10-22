@@ -52,7 +52,6 @@ export class Tr2PerObjectData
 
   /** Native uint64_t, held exactly as BigInt; callers encode request-local identity. */
   @meta.adapted
-  @blue.method
   SetPickingPointer(pickingPointer)
   {
     if (typeof pickingPointer !== "bigint") throw new TypeError("Picking pointers require a BigInt.");
@@ -61,7 +60,6 @@ export class Tr2PerObjectData
 
   /** Returns all 64 bits without conversion through a JavaScript Number. */
   @meta.adapted
-  @blue.method
   GetPickingPointer()
   {
     return this.pickingPointer;
@@ -101,7 +99,6 @@ export class Tr2PerObjectData
    *
    * @returns {number} How many payloads were uploaded; none, at this level.
    */
-  @blue.method
   @meta.implemented
   SetPerObjectDataToDevice()
   {
@@ -117,7 +114,6 @@ export class Tr2PerObjectData
    * Adapted: Tr2IndirectDrawBufferWriter is unported and nothing on this path draws
    * indirectly; Carbon's base asserts here too.
    */
-  @blue.method
   @meta.notImplemented
   ApplyConstantBuffers()
   {

@@ -61,12 +61,12 @@ export class Tr2ReadbackALStub extends Tr2DeviceResourceAL
 
 CjsSchema.decorateField(Tr2ReadbackALStub, "_data", type.uint8Array);
 CjsSchema.decorateField(Tr2ReadbackALStub, "_rowPitch", type.uint32);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsReady", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "Map", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "Describe", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsReady");
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "Map");
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "Destroy");
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "Describe");
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "GetMemoryClass");
+CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsValid");
 CjsSchema.blue.define(Tr2ReadbackALStub, {
   className: "Tr2ReadbackALStub",
   methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted],

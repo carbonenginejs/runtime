@@ -11,7 +11,7 @@
 //
 // `BeObjectMetadata` is the process-wide instance (BlueObjectMetadata.cpp:8-9).
 import { exposure as be } from "#be";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IBlueObjectMetadata } from "./IBlueObjectMetadata.js";
 
 /** `BlueStdResult` codes the store answers with (`BLUE_STD_RESULT_OK`, `BLUE_STD_RESULT_KEY_ERROR`). */
@@ -172,7 +172,7 @@ export const BeObjectMetadata = new BlueObjectMetadata();
 
 CjsSchema.exposure.mapInterface(IBlueObjectMetadata)(BlueObjectMetadata);
 CjsSchema.exposure.define("BlueObjectMetadata")(BlueObjectMetadata);
-CjsSchema.decorateMethod(BlueObjectMetadata, "GetMetadata", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "GetMetadata", meta.adapted);
 CjsSchema.decorateMethod(BlueObjectMetadata, "Set", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(BlueObjectMetadata, "GetKeys", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(BlueObjectMetadata, "Delete", be.mapMethodAndWrap(), meta.adapted);

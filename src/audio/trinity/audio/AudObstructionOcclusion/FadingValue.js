@@ -1,4 +1,4 @@
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 // Source: audio/src/AudObstructionOcclusion.h + AudObstructionOcclusion.cpp
 // Headless behavior port. The host supplies blockage; this class performs no
 // ray casting and leaves the audible obstruction/occlusion law to the backend.
@@ -18,7 +18,6 @@ export class FadingValue
   targetValue = 0;
 
   /** Clamps and stores the next fade target. */
-  @blue.method
   @meta.adapted
   SetTarget(target)
   {
@@ -26,7 +25,6 @@ export class FadingValue
   }
 
   /** Advances linearly by one clock delta and reports a live-value change. */
-  @blue.method
   @meta.adapted
   Advance(deltaSeconds, fadeRate)
   {
@@ -55,7 +53,6 @@ export class FadingValue
   }
 
   /** Applies the target immediately for a newly tracked emitter. */
-  @blue.method
   @meta.adapted
   SnapToTarget()
   {

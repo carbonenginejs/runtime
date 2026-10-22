@@ -125,7 +125,6 @@ export class Tr2SBitWrapper extends IRoot
 
   /** Returns the cached glyph width. */
   @meta.implemented
-  @blue.method
   GetWidth()
   {
     return this.sbit.width;
@@ -133,7 +132,6 @@ export class Tr2SBitWrapper extends IRoot
 
   /** Returns the cached glyph height. */
   @meta.implemented
-  @blue.method
   GetHeight()
   {
     return this.sbit.height;
@@ -141,7 +139,6 @@ export class Tr2SBitWrapper extends IRoot
 
   /** Returns the cached glyph left. */
   @meta.implemented
-  @blue.method
   GetXOffset()
   {
     return this.sbit.left;
@@ -149,7 +146,6 @@ export class Tr2SBitWrapper extends IRoot
 
   /** Returns the cached glyph top. */
   @meta.implemented
-  @blue.method
   GetYOffset()
   {
     return this.sbit.top;
@@ -157,7 +153,6 @@ export class Tr2SBitWrapper extends IRoot
 
   /** Returns the cached glyph xadvance. */
   @meta.implemented
-  @blue.method
   GetXAdvance()
   {
     return this.sbit.xadvance;
@@ -165,7 +160,6 @@ export class Tr2SBitWrapper extends IRoot
 
   /** Returns the cached glyph yadvance. */
   @meta.implemented
-  @blue.method
   GetYAdvance()
   {
     return this.sbit.yadvance;

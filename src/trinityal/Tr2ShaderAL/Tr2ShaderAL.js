@@ -17,7 +17,7 @@
 // Tr2ShaderSignatureAL, declared in the same header, are plain records here
 // (a typed array and the shader compiler's signature object); they are not
 // ported as classes by this file.
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ShaderType } from "#consts/render-context";
 import { ALResult, Failed } from "../ALResult.js";
@@ -103,7 +103,6 @@ export class Tr2ShaderAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(shaderType, bytecode, signature, shaderPath, renderContext)
   {
@@ -121,7 +120,6 @@ export class Tr2ShaderAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -133,7 +131,6 @@ export class Tr2ShaderAL
    *
    * @returns {number} A `ShaderType`; `INVALID_SHADER` when uncreated.
    */
-  @blue.method
   @meta.implemented
   GetType()
   {
@@ -148,7 +145,6 @@ export class Tr2ShaderAL
    *
    * @returns {{result: number, bytecode: ArrayBufferView|null}} The bytecode.
    */
-  @blue.method
   @meta.adapted
   GetBytecode()
   {
@@ -160,7 +156,6 @@ export class Tr2ShaderAL
    *
    * @returns {object|null} The signature.
    */
-  @blue.method
   @meta.implemented
   GetSignature()
   {
@@ -175,7 +170,6 @@ export class Tr2ShaderAL
    * @param {Tr2ShaderAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -190,7 +184,6 @@ export class Tr2ShaderAL
    * @param {Tr2ShaderAL} other The value to compare.
    * @returns {boolean} Whether the two hold different implementations.
    */
-  @blue.method
   @meta.adapted
   NotEquals(other)
   {
@@ -204,7 +197,6 @@ export class Tr2ShaderAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -219,7 +211,6 @@ export class Tr2ShaderAL
    *
    * @returns {object} The implementation.
    */
-  @blue.method
   @meta.implemented
   TrinityALImpl_GetObject()
   {

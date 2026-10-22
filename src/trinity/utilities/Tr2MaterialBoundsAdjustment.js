@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Utilities/Tr2MaterialBoundsAdjustment.h
 // Source: trinity/trinity/Utilities/Tr2MaterialBoundsAdjustment.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { box3 } from "#math/box3";
 
 /**
@@ -61,7 +61,6 @@ export class Tr2MaterialBoundsAdjustment
    * buffer replaces the native box value return. The existing JavaScript
    * empty-box early return is retained, including when rotation is enabled.
    */
-  @blue.method
   @meta.adapted
   AdjustBounds(box, out = box3.create())
   {

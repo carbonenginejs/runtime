@@ -38,7 +38,6 @@ export class Tr2GpuBuffer extends IRoot
 
   /** Carbon Tr2GpuBuffer.cpp: create from persisted parameters on the ambient context. */
   @meta.implemented
-  @blue.method
   Initialize()
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -47,7 +46,6 @@ export class Tr2GpuBuffer extends IRoot
 
   /** Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules. */
   @meta.implemented
-  @blue.method
   OnModified(_names)
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -89,7 +87,6 @@ export class Tr2GpuBuffer extends IRoot
    * Sets the debug label, coercing null to an empty string; Carbon keeps this
    * private with no getter, so the paired GetName is a JS addition.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -120,7 +117,6 @@ export class Tr2GpuBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @blue.method
   @meta.adapted
   Create(count, format, creationFlags, renderContext)
   {
@@ -138,7 +134,6 @@ export class Tr2GpuBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @blue.method
   @meta.adapted
   CreateBuffer(renderContext)
   {
@@ -187,7 +182,6 @@ export class Tr2GpuBuffer extends IRoot
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
-  @blue.method
   @meta.implemented
   GetGpuBuffer(_index = 0)
   {
@@ -195,7 +189,6 @@ export class Tr2GpuBuffer extends IRoot
   }
 
   /** Carbon IsValid (cpp:130-133). */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -214,7 +207,6 @@ export class Tr2GpuBuffer extends IRoot
   }
 
   /** Carbon GetCount (cpp:190-193): the created buffer's element count. */
-  @blue.method
   @meta.implemented
   GetCount()
   {

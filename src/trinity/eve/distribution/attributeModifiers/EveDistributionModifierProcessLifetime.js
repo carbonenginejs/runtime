@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierProcessLifetime.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { DistributionEntityLifeTimeEvent } from "./enums.js";
 
@@ -30,7 +30,6 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
    * Reports no transform effect, so this modifier alone never forces the
    * distribution into its per-frame transform reset.
    */
-  @blue.method
   @meta.implemented
   AffectsTransform()
   {

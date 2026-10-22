@@ -27,7 +27,7 @@ import {
   PER_OBJECT_VS_FLOAT_CAPACITY,
   Tr2PerObjectDataPSBuffer
 } from "./Tr2PerObjectDataPSBuffer.js";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 
 
 /**
@@ -102,7 +102,6 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * @param {object} renderContext The context to upload and bind against.
    * @returns {number} How many payloads were uploaded.
    */
-  @blue.method
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
@@ -120,7 +119,6 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * Adapted: Tr2IndirectDrawBufferWriter is unported and nothing on this path draws
    * indirectly.
    */
-  @blue.method
   @meta.notImplemented
   ApplyConstantBuffers()
   {

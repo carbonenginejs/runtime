@@ -275,9 +275,9 @@ function EstimateJsonBytes(value)
 }
 
 CjsSchema.meta.define(DictWriter, { className: "DictWriter" });
-CjsSchema.decorateMethod(DictWriter, "WriteIRoot", blue.method, meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteBinaryBlock", blue.method, meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteMemberName", blue.method, meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteVectorBegin", blue.method, meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteVectorEnd", blue.method, meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "_Cleanup", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictWriter, "WriteIRoot", meta.adapted);
+CjsSchema.decorateMethod(DictWriter, "WriteBinaryBlock", meta.adapted);
+CjsSchema.decorateMethod(DictWriter, "WriteMemberName", meta.adapted);
+CjsSchema.decorateMethod(DictWriter, "WriteVectorBegin", meta.adapted);
+CjsSchema.decorateMethod(DictWriter, "WriteVectorEnd", meta.adapted);
+CjsSchema.decorateMethod(DictWriter, "_Cleanup", meta.adapted);

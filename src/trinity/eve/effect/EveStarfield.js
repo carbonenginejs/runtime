@@ -125,7 +125,6 @@ export class EveStarfield
   }
 
   /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

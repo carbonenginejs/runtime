@@ -8,7 +8,7 @@ import { GenerateBoosterLightPhase } from "#utils/boosterLightPhase";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF_Blue.cpp
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -1330,7 +1330,6 @@ export class EveSOF extends IRoot
    * model values instead of constructing Trinity objects.
    */
   @meta.adapted
-  @legacyBlue.method
   _BuildFromDNA(dnaString, options)
   {
     this._buildDiagnostics = [];

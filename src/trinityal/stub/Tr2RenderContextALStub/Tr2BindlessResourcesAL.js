@@ -67,9 +67,9 @@ export class Tr2BindlessResourcesAL
   }
 }
 
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__TextureAL", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__BufferAL", blue.method, meta.implemented);
-CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__BindlessResourcesAL", blue.method, meta.implemented);
+CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add", meta.adapted);
+CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__TextureAL", meta.implemented);
+CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__BufferAL", meta.implemented);
+CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add__BindlessResourcesAL", meta.implemented);
 CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Clear", blue.method);
 CjsSchema.meta.carbon("Tr2BindlessResourcesAL")(Tr2BindlessResourcesAL);

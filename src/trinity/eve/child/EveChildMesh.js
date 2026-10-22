@@ -619,7 +619,6 @@ export class EveChildMesh extends EveChildTransform
    * The authored name, persisted with the child and used to identify it in the
    * parent graph.
    */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -627,7 +626,6 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /** Sets the authored child name, coercing nullish to the empty string. */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

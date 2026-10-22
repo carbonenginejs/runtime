@@ -208,10 +208,10 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2GpuTimerALWebgl2, "_name", type.string);
 CjsSchema.decorateField(Tr2GpuTimerALWebgl2, "_lastTime", type.float32);
 CjsSchema.decorateField(Tr2GpuTimerALWebgl2, "_state", type.int32);
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Create", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Begin", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "End", blue.method);
-CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "GetTime", blue.method);
+CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Create");
+CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Begin");
+CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "End");
+CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "GetTime");
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "GetMemoryClass", blue.method);

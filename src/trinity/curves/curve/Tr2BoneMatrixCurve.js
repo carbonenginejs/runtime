@@ -156,7 +156,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   _skeletonTag = 0xffffffff;
 
   /** Gets the native curve template's name. */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -164,7 +163,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Sets the native curve template's name. */
-  @blue.method
   @meta.implemented
   SetName(value)
   {
@@ -175,7 +173,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Initializes sorted keys and cached value.
    * Adapted: native Initialize only sorts; the existing JS adapter also samples zero.
    */
-  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -188,7 +185,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Gets authored duration.
    * Adapted: retains the JS last-key fallback when authored length is zero.
    */
-  @blue.method
   @meta.adapted
   Length()
   {
@@ -200,7 +196,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   /**
    * Updates cached matrix value.
    */
-  @blue.method
   @meta.adapted
   UpdateValue(time)
   {
@@ -228,7 +223,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Gets matrix value at a time.
    * Adapted: the matrix is written into out rather than returned by value.
    */
-  @blue.method
   @meta.adapted
   GetValue(time, out)
   {

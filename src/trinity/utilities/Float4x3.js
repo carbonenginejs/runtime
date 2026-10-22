@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Utilities/MatrixUtils.h:9-17 (the struct)
 //   trinity/trinity/Utilities/MatrixUtils.cpp:6-26 (both conversions)
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 
 /**
@@ -41,7 +41,6 @@ export class Float4x3
    * Packs a transform into the twelve floats, writing into `out`. The static
    * helper and optional output buffer adapt the native Matrix constructor.
    */
-  @blue.method
   @meta.adapted
   static fromMat4(matrix, out = new Float32Array(12))
   {
@@ -53,7 +52,6 @@ export class Float4x3
    * Carbon reconstructs as (0, 0, 0, 1); writes into `out`. The static helper
    * and optional output buffer adapt the native Matrix conversion operator.
    */
-  @blue.method
   @meta.adapted
   static toMat4(elements, out = mat4.create())
   {

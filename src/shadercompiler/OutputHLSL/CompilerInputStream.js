@@ -77,7 +77,7 @@ export class CompilerInputStream extends CodeStream
 }
 
 CjsSchema.decorateMethod(CompilerInputStream, "Endl", blue.method, meta.noop);
-CjsSchema.decorateMethod(CompilerInputStream, "ChangeLocation", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CompilerInputStream, "ChangeLocation", meta.adapted);
 CjsSchema.decorateMethod(CompilerInputStream, "Indent", blue.method, meta.noop);
 CjsSchema.decorateMethod(CompilerInputStream, "Unindent", blue.method, meta.noop);
 CjsSchema.meta.carbon("CompilerInputStream")(CompilerInputStream);

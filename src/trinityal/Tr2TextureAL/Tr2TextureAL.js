@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2TextureAL.h
 // Source: trinity/trinityal/src/Tr2TextureAL.cpp
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -35,7 +35,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Create__GpuUsage(desc, gpuUsage, renderContext)
   {
@@ -53,7 +52,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Create__MsaaGpuUsage(desc, msaa, gpuUsage, renderContext)
   {
@@ -71,7 +69,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Create__GpuUsageInitialData(desc, gpuUsage, initialData, renderContext)
   {
@@ -89,7 +86,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Create__GpuUsageCpuUsage(desc, gpuUsage, cpuUsage, renderContext)
   {
@@ -108,7 +104,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Create__GpuUsageCpuUsageInitialData(desc, gpuUsage, cpuUsage, initialData, renderContext)
   {
@@ -134,7 +129,6 @@ export class Tr2TextureAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(desc, msaa, gpuUsage, cpuUsage, initialData, renderContext)
   {
@@ -146,7 +140,6 @@ export class Tr2TextureAL
   }
 
   /** Shared external textures are unsupported by the current JS backends; failure resets this value. */
-  @blue.method
   @meta.notSupported
   OpenShared(_handle, _gpuUsage, _renderContext)
   {
@@ -162,7 +155,6 @@ export class Tr2TextureAL
   }
 
   /** Reports whether this value references valid backend storage. */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -170,7 +162,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the backend memory class, or managed for an uncreated value. */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -178,7 +169,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the native description, including its empty-value defaults. */
-  @blue.method
   @meta.implemented
   GetDesc()
   {
@@ -186,7 +176,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the native multisample description. */
-  @blue.method
   @meta.implemented
   GetMsaaDesc()
   {
@@ -194,7 +183,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the native usage flags. */
-  @blue.method
   @meta.implemented
   GetGpuUsage()
   {
@@ -202,7 +190,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the native usage flags. */
-  @blue.method
   @meta.implemented
   GetCpuUsage()
   {
@@ -210,7 +197,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the corresponding native texture dimension. */
-  @blue.method
   @meta.implemented
   GetWidth()
   {
@@ -218,7 +204,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the corresponding native texture dimension. */
-  @blue.method
   @meta.implemented
   GetHeight()
   {
@@ -226,7 +211,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the corresponding native texture dimension. */
-  @blue.method
   @meta.implemented
   GetDepth()
   {
@@ -234,7 +218,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the corresponding native texture dimension. */
-  @blue.method
   @meta.implemented
   GetMipCount()
   {
@@ -242,7 +225,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the corresponding native texture dimension. */
-  @blue.method
   @meta.implemented
   GetTrueMipCount()
   {
@@ -250,7 +232,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the corresponding native texture dimension. */
-  @blue.method
   @meta.implemented
   GetFormat()
   {
@@ -258,7 +239,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the corresponding native texture dimension. */
-  @blue.method
   @meta.implemented
   GetType()
   {
@@ -266,7 +246,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the corresponding native texture dimension. */
-  @blue.method
   @meta.implemented
   GetArraySize()
   {
@@ -274,7 +253,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the byte size of a mip level. */
-  @blue.method
   @meta.implemented
   GetMipSize(mip)
   {
@@ -282,7 +260,6 @@ export class Tr2TextureAL
   }
 
   /** Compares shared implementation identity; JavaScript has no overloadable equality operator. */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -298,7 +275,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards the current native mapping signature and preserves the empty-value result. */
-  @blue.method
   @meta.implemented
   MapForReading(region, renderContext)
   {
@@ -306,7 +282,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards UnmapForReading to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   UnmapForReading(renderContext)
   {
@@ -314,7 +289,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards MapForWriting to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   MapForWriting(region, renderContext)
   {
@@ -322,7 +296,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards UnmapForWriting to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   UnmapForWriting(renderContext)
   {
@@ -330,7 +303,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards UpdateSubresource to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   UpdateSubresource(region, source, pitch, slicePitch, renderContext)
   {
@@ -338,7 +310,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards CopySubresourceRegion to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   CopySubresourceRegion(destinationRegion, source, sourceRegion, renderContext)
   {
@@ -348,7 +319,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards Resolve to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   Resolve(destination, renderContext)
   {
@@ -362,7 +332,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards GetSharedHandle to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   GetSharedHandle()
   {
@@ -370,7 +339,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards GetSrvIndexInHeap to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   GetSrvIndexInHeap(colorSpace = 0)
   {
@@ -378,7 +346,6 @@ export class Tr2TextureAL
   }
 
   /** Forwards GetUavIndexInHeap to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   GetUavIndexInHeap(mip)
   {
@@ -386,7 +353,6 @@ export class Tr2TextureAL
   }
 
   /** Generates mips with Carbon’s validity, mip-count and BGR-format gates. */
-  @blue.method
   @meta.implemented
   GenerateMipMaps(renderContext)
   {
@@ -397,7 +363,6 @@ export class Tr2TextureAL
   }
 
   /** Names valid storage; invalid values and absent names retain Carbon’s errors. */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -407,7 +372,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the backend name for valid storage. */
-  @blue.method
   @meta.implemented
   GetName()
   {
@@ -415,7 +379,6 @@ export class Tr2TextureAL
   }
 
   /** Returns the borrowed backend implementation for backend-only operations. */
-  @blue.method
   @meta.implemented
   TrinityALImpl_GetObject()
   {
@@ -435,5 +398,5 @@ export class Tr2TextureAL
 
 CjsSchema.decorateField(Tr2TextureAL, "_texture", type.unknown);
 CjsSchema.decorateMethod(Tr2TextureAL, "Equals", meta.renamed("operator=="));
-CjsSchema.decorateMethod(Tr2TextureAL, "CreateReadback", blue.method);
+CjsSchema.decorateMethod(Tr2TextureAL, "CreateReadback");
 CjsSchema.meta.carbon("Tr2TextureAL")(Tr2TextureAL);

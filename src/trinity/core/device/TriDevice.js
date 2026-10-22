@@ -264,7 +264,6 @@ export class TriDevice extends IRoot
    * Width over height of the device viewport in pixels; zero when there is no
    * viewport or its height is zero.
    */
-  @legacyBlue.method
   @meta.implemented
   AspectRatio()
   {
@@ -281,7 +280,6 @@ export class TriDevice extends IRoot
    * DX maps viewport pixel CENTRES to view space, so for four pixels, pixel
    * 3 maps to 1 and pixel 0 to -1.
    */
-  @legacyBlue.method
   @meta.adapted
   ScreenToProjection(x, y, viewport = this.viewport, out = {})
   {
@@ -315,7 +313,6 @@ export class TriDevice extends IRoot
   }
 
   /** Time in seconds, recentered regularly (once per hour). */
-  @legacyBlue.method
   @meta.implemented
   GetAnimationTime()
   {
@@ -326,7 +323,6 @@ export class TriDevice extends IRoot
    * Elapsed animation time since startTime, correct across the hourly
    * ANIMATION_TIME_MAX recenter.
    */
-  @legacyBlue.method
   @meta.implemented
   GetAnimationTimeElapsed(startTime)
   {
@@ -364,7 +360,6 @@ export class TriDevice extends IRoot
   previousAnimationTime = 0;
 
   /** `Tr2Renderer::GetCurrentFrameCounter` reads this through gTriDev. */
-  @legacyBlue.method
   @meta.implemented
   GetCurrentFrameCounter()
   {
@@ -448,7 +443,6 @@ export class TriDevice extends IRoot
    *
    * @returns {TriDevice} This device.
    */
-  @legacyBlue.method
   @meta.adapted
   InvalidateAndUnregisterForTicks()
   {
@@ -521,7 +515,6 @@ export class TriDevice extends IRoot
    *
    * @returns {object[]} Registered resources at the time of this call.
    */
-  @legacyBlue.method
   @meta.adapted
   static GetResourcesRegistered()
   {
@@ -550,7 +543,6 @@ export class TriDevice extends IRoot
    * @param {object} resource The registered resource.
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.implemented
   static UnregisterResource(resource)
   {
@@ -598,7 +590,6 @@ export class TriDevice extends IRoot
    *
    * @returns {TriDevice} This device.
    */
-  @legacyBlue.method
   @meta.implemented
   DestroyRenderContext()
   {
@@ -631,7 +622,6 @@ export class TriDevice extends IRoot
    * @param {number} [storage] A `TriStorage` mask.
    * @returns {TriDevice} This device.
    */
-  @legacyBlue.method
   @meta.adapted
   ReleaseDeviceResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
@@ -659,7 +649,6 @@ export class TriDevice extends IRoot
    *
    * @returns {TriDevice} This device.
    */
-  @legacyBlue.method
   @meta.adapted
   PrepareDeviceResources()
   {
@@ -686,7 +675,6 @@ export class TriDevice extends IRoot
    * @param {object} presentParameters A `Tr2PresentParametersAL`.
    * @returns {boolean} Whether the parameters were accepted.
    */
-  @legacyBlue.method
   @meta.adapted
   SetPresentParameters(adapter, presentParameters)
   {
@@ -712,7 +700,6 @@ export class TriDevice extends IRoot
    * @returns {boolean} Carbon's mDeviceLost.
    */
   @meta.implemented
-  @legacyBlue.method
   IsDeviceLost()
   {
     return this.#deviceLost;
@@ -795,7 +782,6 @@ export class TriDevice extends IRoot
    * @returns {boolean} Whether the reset succeeded.
    */
   @meta.adapted
-  @legacyBlue.method
   ResetDevice(adapter = this.adapter, pp = null)
   {
     this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
@@ -836,7 +822,6 @@ export class TriDevice extends IRoot
    *
    * @returns {boolean} False when there is no device to describe.
    */
-  @legacyBlue.method
   @meta.adapted
   InitD3DDevice()
   {
@@ -963,7 +948,6 @@ export class TriDevice extends IRoot
    * @param {object|null} presentParameters A `Tr2PresentParametersAL`, or null.
    * @returns {boolean} True, as Carbon's does unconditionally.
    */
-  @legacyBlue.method
   @meta.implemented
   SetPresentation(adapter, presentParameters)
   {
@@ -1020,7 +1004,6 @@ export class TriDevice extends IRoot
    * @param {*} [context] Passed back to it.
    * @returns {TriDevice} This device.
    */
-  @legacyBlue.method
   @meta.adapted
   AddPostUpdateCallback(callback, context = null)
   {
@@ -1048,7 +1031,6 @@ export class TriDevice extends IRoot
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
-  @legacyBlue.method
   @meta.adapted
   Update(realTime, simTime)
   {
@@ -1090,7 +1072,6 @@ export class TriDevice extends IRoot
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
-  @legacyBlue.method
   @meta.adapted
   HandleRenderTick(realTime, simTime)
   {
@@ -1138,7 +1119,6 @@ export class TriDevice extends IRoot
    * @param {number} newTime The simulation time after it.
    * @returns {TriDevice} This device.
    */
-  @legacyBlue.method
   @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
@@ -1240,7 +1220,6 @@ export class TriDevice extends IRoot
    *
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.notSupported
   Throttle()
   {

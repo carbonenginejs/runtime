@@ -6,7 +6,7 @@ import { exposure as be } from "#be";
 // ring instance buffer (UpdateInstanceBuffer), the shared quad vertex and index
 // buffers (RecreateQuadBuffers) and the vertex declarations (OnPrepareResources).
 import { Tr2QuadRendererEffectRecord } from "./Tr2QuadRendererEffectRecord.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -276,7 +276,6 @@ export class Tr2QuadRenderer
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

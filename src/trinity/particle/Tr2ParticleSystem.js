@@ -6,7 +6,7 @@ import { ITr2GenericParticleConstraint } from "./constraint/ITr2GenericParticleC
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
 import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, blue, CcpTime } from "#blue";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue as legacyBlue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2BufferDescriptionAL } from "../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
@@ -295,7 +295,6 @@ export class Tr2ParticleSystem
    * particles. Typed arrays replace aligned CPU allocations; this retained
    * JS setter returns the new capacity and clears its cached empty bounds.
    */
-  @legacyBlue.method
   @meta.adapted
   SetMaxParticleCount(value)
   {
@@ -409,7 +408,6 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the particle budget captured when the declaration was built. */
-  @legacyBlue.method
   @meta.implemented
   GetOriginalMaxParticles()
   {
@@ -420,7 +418,6 @@ export class Tr2ParticleSystem
    * Carbon allocates an insertion mutex; JavaScript simulation is single
    * threaded, so the contract is an exact no-op at this layer.
    */
-  @legacyBlue.method
   @meta.adapted
   SetThreadSafeFlag()
   {
@@ -430,7 +427,6 @@ export class Tr2ParticleSystem
    * Carbon Tr2ParticleSystem::GetDebugOptions (Particle/Tr2ParticleSystem.cpp:1664-1667).
    * @param {Set<string>} options The caller-owned option set.
    */
-  @legacyBlue.method
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -444,7 +440,6 @@ export class Tr2ParticleSystem
    * @param {ITr2DebugRenderer2} renderer The debug renderer.
    * @param {mat4} worldTransform The owner's world transform.
    */
-  @legacyBlue.method
   @meta.implemented
   RenderDebugInfo(renderer, worldTransform)
   {
@@ -465,7 +460,6 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon IsValid (Tr2ParticleSystem.cpp:1339-1342): whether the element layout was built. */
-  @legacyBlue.method
   @meta.implemented
   IsValid()
   {
@@ -473,7 +467,6 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon IsDynamic (cpp:1351-1354): a dynamic system runs its simulation, a static one does not. */
-  @legacyBlue.method
   @meta.implemented
   IsDynamic()
   {
@@ -486,7 +479,6 @@ export class Tr2ParticleSystem
    * read-only property "gpuStride" (Tr2ParticleSystem_Blue.cpp:115-118).
    * @returns {number}
    */
-  @legacyBlue.method
   @meta.implemented
   GetGpuStride()
   {
@@ -508,7 +500,6 @@ export class Tr2ParticleSystem
    * and the live count to a caller's constraint, then marks the buffers for upload.
    * @param {Function} constraint - (buffers, strides, count) => void
    */
-  @legacyBlue.method
   @meta.implemented
   ApplyConstraint(constraint)
   {
@@ -771,7 +762,6 @@ export class Tr2ParticleSystem
    * Adapted: the per-system argument record is a reused member rather than
    * Carbon's stack copy.
    */
-  @legacyBlue.method
   @meta.adapted
   Update(globalArguments)
   {
@@ -820,7 +810,6 @@ export class Tr2ParticleSystem
   }
 
   /** Whether the vertex declaration is initialized (independent of buffer validity). */
-  @legacyBlue.method
   @meta.implemented
   IsInstanceDataReady()
   {
@@ -832,7 +821,6 @@ export class Tr2ParticleSystem
    * Adapted: JS reuses a mutable record; Carbon returns InstanceData by value
    * (Tr2ParticleSystem.cpp:306-309). Copy fields before retaining a snapshot.
    */
-  @legacyBlue.method
   @meta.adapted
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
@@ -844,7 +832,6 @@ export class Tr2ParticleSystem
   }
 
   /** Returns Carbon's interned vertex declaration handle. */
-  @legacyBlue.method
   @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
@@ -852,7 +839,6 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the borrowed physical particle buffer (the index is unused). */
-  @legacyBlue.method
   @meta.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
@@ -863,7 +849,6 @@ export class Tr2ParticleSystem
    * Releases the AL allocation and declaration while retaining CPU particles.
    * JS explicitly destroys the handle instead of replacing a C++ RAII value.
    */
-  @legacyBlue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -875,7 +860,6 @@ export class Tr2ParticleSystem
   }
 
   /** Recreates the declaration and buffer; Carbon reports true even if allocation fails. */
-  @legacyBlue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -889,7 +873,6 @@ export class Tr2ParticleSystem
    * JS uses the context factory and explicitly releases the prior handle;
    * null represents the AL's failed/default buffer value.
    */
-  @legacyBlue.method
   @meta.adapted
   CreateVertexBuffer()
   {
@@ -913,7 +896,6 @@ export class Tr2ParticleSystem
    * JS sorts the element values because Map preserves insertion order rather
    * than Carbon's type/name key order, and uses the AL's named data types.
    */
-  @legacyBlue.method
   @meta.adapted
   RebuildDeclaration()
   {
@@ -948,7 +930,6 @@ export class Tr2ParticleSystem
   }
 
   /** Moves POSITION and VELOCITY to four-float slots at the front of their streams. */
-  @legacyBlue.method
   @meta.implemented
   EnsureAligned()
   {
@@ -972,7 +953,6 @@ export class Tr2ParticleSystem
   }
 
   /** Shifts offsets at or after start; semantic and map entries share the same JS record. */
-  @legacyBlue.method
   @meta.adapted
   ShiftOffsets(bufferType, start, shift)
   {
@@ -986,7 +966,6 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the current particle bounds, or Carbon's zero box when empty. */
-  @legacyBlue.method
   @meta.adapted
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
@@ -1008,7 +987,6 @@ export class Tr2ParticleSystem
    * true; validity is queried separately. Registers clock rebasing and tells
    * child emitters to use their thread-safe insertion contract.
    */
-  @legacyBlue.method
   @meta.adapted
   Initialize()
   {
@@ -1022,7 +1000,6 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon Tr2ParticleSystem.cpp:141; batched edits apply each independent branch. */
-  @legacyBlue.method
   @meta.implemented
   OnModified(names)
   {
@@ -1037,7 +1014,6 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon OnSimClockRebase (Tr2ParticleSystem.cpp:474-477): moves the last-update tick time by the rebase. */
-  @legacyBlue.method
   @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
@@ -1061,7 +1037,6 @@ export class Tr2ParticleSystem
   /**
    * The map of resolved runtime elements, keyed by semantic or custom name.
    */
-  @legacyBlue.method
   @meta.implemented
   GetElementDeclaration()
   {
@@ -1071,7 +1046,6 @@ export class Tr2ParticleSystem
   /**
    * A counter that increments each time the element declaration is rebuilt, so a consumer can detect a stale binding.
    */
-  @legacyBlue.method
   @meta.implemented
   GetElementDeclarationHash()
   {
@@ -1081,7 +1055,6 @@ export class Tr2ParticleSystem
   /**
    * Whether an element of the given semantic type or name is present in the current declaration.
    */
-  @legacyBlue.method
   @meta.implemented
   HasElement(type)
   {
@@ -1110,7 +1083,6 @@ export class Tr2ParticleSystem
    * @param {{ element: Float32Array|null, stride: number }} out
    * @returns {boolean} Whether the element exists.
    */
-  @legacyBlue.method
   @meta.adapted
   GetElementStream(type, out)
   {
@@ -1137,7 +1109,6 @@ export class Tr2ParticleSystem
    * @param {Array<Float32Array|null>} particle Filled with one view per Tr2ParticleElementData buffer.
    * @returns {boolean} true if inserted; false if the system is full.
    */
-  @legacyBlue.method
   @meta.adapted
   InsertParticle(particle)
   {
@@ -1160,7 +1131,6 @@ export class Tr2ParticleSystem
    * Carbon DoneInsertingParticle (Tr2ParticleSystem.cpp:1323-1329) releases the insertion mutex taken by
    * InsertParticle. JS never creates that mutex (see SetThreadSafeFlag), so there is nothing to release.
    */
-  @legacyBlue.method
   @meta.adapted
   DoneInsertingParticle()
   {
@@ -1272,7 +1242,6 @@ export class Tr2ParticleSystem
   /**
    * Copies the tracked axis-aligned bounds into the caller's vectors, reporting false when no particles are alive.
    */
-  @legacyBlue.method
   @meta.implemented
   GetBoundingBox(outMin = vec3.create(), outMax = vec3.create())
   {
@@ -1290,7 +1259,6 @@ export class Tr2ParticleSystem
    * sorting visibility state from the current CPU bounds. JS uses gl-matrix
    * vectors with Carbon-identical single-transform layout.
    */
-  @legacyBlue.method
   @meta.adapted
   UpdateViewDependentData(frustum, worldTransform)
   {
@@ -1341,7 +1309,6 @@ export class Tr2ParticleSystem
    * gl-matrix returns null for a singular inverse, so NaNs explicitly retain
    * invalid coordinates instead of reusing a stale inverse.
    */
-  @legacyBlue.method
   @meta.adapted
   SortParticles()
   {
@@ -1399,7 +1366,6 @@ export class Tr2ParticleSystem
   }
 
   /** Compares squared local-space xyz distances, with Carbon's farther-first boolean result. */
-  @legacyBlue.method
   @meta.implemented
   CompareParticles(particle1, particle2)
   {
@@ -1414,7 +1380,6 @@ export class Tr2ParticleSystem
   }
 
   /** Copies the owning world transform without evaluating view state. */
-  @legacyBlue.method
   @meta.implemented
   UpdateTransform(worldTransform)
   {

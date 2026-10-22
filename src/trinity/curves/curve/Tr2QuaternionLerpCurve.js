@@ -117,7 +117,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -174,7 +173,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @blue.method
   @meta.adapted
   GetValueDotAt(_time, out)
   {
@@ -187,7 +185,6 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @blue.method
   @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {

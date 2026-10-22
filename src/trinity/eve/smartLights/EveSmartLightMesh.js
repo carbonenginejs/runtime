@@ -113,7 +113,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base through
    * its shared resolver.
    */
-  @blue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -131,7 +130,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @blue.method
   @meta.adapted
   SetColor(color)
   {
@@ -143,7 +141,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @blue.method
   @meta.adapted
   SetInheritProperties(colorSet)
   {
@@ -162,7 +159,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @blue.method
   @meta.adapted
   SetControllerVariable(name, value)
   {
@@ -178,7 +174,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Adapted: Receives the Blue list event, inserted value and owning array explicitly; only
    * an inserted modifier inherits the current colour set.
    */
-  @blue.method
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {

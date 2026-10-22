@@ -287,7 +287,7 @@ CjsSchema.decorateField(Tr2ShaderALWebgl2, "_name", type.string);
 CjsSchema.decorateField(Tr2ShaderALWebgl2, "_log", type.string);
 CjsSchema.decorateField(Tr2ShaderALWebgl2, "_bytecode", type.uint8Array);
 CjsSchema.decorateField(Tr2ShaderALWebgl2, "_type", type.int32);
-CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "ReleaseShader", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "IsValid", blue.method);

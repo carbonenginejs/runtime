@@ -49,7 +49,6 @@ export class AudObstructionOcclusion
   }
 
   /** Advances every fade and sends changed awake-emitter values. */
-  @blue.method
   @meta.adapted
   Update(backend)
   {
@@ -110,7 +109,6 @@ export class AudObstructionOcclusion
   }
 
   /** Sets the obstruction and occlusion targets for a registered emitter. */
-  @blue.method
   @meta.adapted
   SetObstructionOcclusion(emitterID, obstruction, occlusion)
   {
@@ -146,7 +144,6 @@ export class AudObstructionOcclusion
   }
 
   /** Maps caller-supplied blockage to Carbon's acoustics-aware targets. */
-  @blue.method
   @meta.adapted
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
@@ -161,7 +158,6 @@ export class AudObstructionOcclusion
   }
 
   /** Returns the live, mid-fade occlusion value for one emitter. */
-  @blue.method
   @meta.adapted
   GetEmitterOcclusion(emitterID)
   {
@@ -169,7 +165,6 @@ export class AudObstructionOcclusion
   }
 
   /** Drops one emitter immediately when its game object is unregistered. */
-  @blue.method
   @meta.adapted
   RemoveEmitter(emitterID)
   {
@@ -177,7 +172,6 @@ export class AudObstructionOcclusion
   }
 
   /** Forgets every emitter and resets the fade clock. */
-  @blue.method
   @meta.adapted
   Reset()
   {
@@ -187,7 +181,6 @@ export class AudObstructionOcclusion
   }
 
   /** Fades every tracked emitter back to clear. */
-  @blue.method
   @meta.adapted
   ClearAll()
   {
@@ -199,7 +192,6 @@ export class AudObstructionOcclusion
   }
 
   /** Returns whether new caller-supplied targets are accepted. */
-  @blue.method
   @meta.adapted
   IsEnabled()
   {
@@ -207,7 +199,6 @@ export class AudObstructionOcclusion
   }
 
   /** Enables target input or fades every existing target to clear. */
-  @blue.method
   @meta.adapted
   SetEnabled(value)
   {
@@ -225,7 +216,6 @@ export class AudObstructionOcclusion
   }
 
   /** Returns the linear fade speed in value units per second. */
-  @blue.method
   @meta.adapted
   GetFadeRate()
   {
@@ -233,7 +223,6 @@ export class AudObstructionOcclusion
   }
 
   /** Stores Carbon's nonnegative linear fade speed. */
-  @blue.method
   @meta.adapted
   SetFadeRate(value)
   {

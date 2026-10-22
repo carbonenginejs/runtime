@@ -233,7 +233,7 @@ CjsSchema.decorateField(CjsWebgpuConstantBufferAL, "_size", type.uint32);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Create", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Lock", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Unlock", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetConstants", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetConstants");
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "IsValid", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetSize", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Destroy", blue.method);

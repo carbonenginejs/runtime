@@ -143,16 +143,16 @@ CjsSchema.blue.define(ResourceGroup, {
   className: "ResourceGroup",
   fields: {},
   methods: {
-        Merge: [ blue.method, meta.implemented ],
-        DiffAgainstGroup: [ blue.method, meta.implemented ],
-        RemoveResources: [ blue.method, meta.implemented ],
-        ImportFromFile: [ blue.method, meta.adapted ],
-        ExportToFile: [ blue.method, meta.adapted ],
+        Merge: [ meta.implemented ],
+        DiffAgainstGroup: [ meta.implemented ],
+        RemoveResources: [ meta.implemented ],
+        ImportFromFile: [ meta.adapted ],
+        ExportToFile: [ meta.adapted ],
         _Invoke: [],
         _InvokeAsync: [],
-        CreateBundle: [ blue.method, meta.notImplemented ],
-        CreatePatch: [ blue.method, meta.notImplemented ],
-        CreateFromDirectory: [ blue.method, meta.notImplemented ],
+        CreateBundle: [ meta.notImplemented ],
+        CreatePatch: [ meta.notImplemented ],
+        CreateFromDirectory: [ meta.notImplemented ],
         createFromFilter: [ meta.renamed("CreateFromFilter"), meta.notImplemented ]
     }
 });

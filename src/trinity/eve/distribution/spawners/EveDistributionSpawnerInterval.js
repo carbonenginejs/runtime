@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerInterval.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count. */
@@ -92,7 +92,6 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   }
 
   /** Ignores controller variables; the interval is purely time-driven. */
-  @blue.method
   @meta.implemented
   SetControllerVariable(_name, _value)
   {

@@ -200,10 +200,10 @@ export class ITr2PickableScene
 
 CjsSchema.meta.carbon("ITr2PickableScene")(ITr2PickableScene);
 
-CjsSchema.decorateMethod(ITr2PickableScene, "PickObject", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "SetupTransformsForPicking", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "GetBatches", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "RenderPicking", blue.method);
+CjsSchema.decorateMethod(ITr2PickableScene, "PickObject");
+CjsSchema.decorateMethod(ITr2PickableScene, "SetupTransformsForPicking");
+CjsSchema.decorateMethod(ITr2PickableScene, "GetBatches");
+CjsSchema.decorateMethod(ITr2PickableScene, "RenderPicking");
 CjsSchema.decorateMethod(ITr2PickableScene, "SetPerFrameDataForPicking", blue.method);
 CjsSchema.decorateMethod(ITr2PickableScene, "GetPickingObjectsToRender", blue.method);
 CjsSchema.decorateMethod(ITr2PickableScene, "GetOpaquePickingBatchAccumulator", blue.method);

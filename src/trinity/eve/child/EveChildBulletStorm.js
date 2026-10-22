@@ -176,7 +176,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

@@ -11,7 +11,7 @@ import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/index.js";
 // BACKGROUND slot, indexed through LensflareFxOccScale (EveLensflare).
 //
 // Carbon keeps it as a function-local static singleton; getInstance is that.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { PixelFormat } from "#consts/render-context";
 import { OCCLUDER_MANAGEMENT_EFFECT_PATH } from "#consts/effectPaths";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
@@ -71,7 +71,6 @@ export class Tr2OcclusionBuffer
    *
    * @returns {number|null} The slot base, or null when none could be made.
    */
-  @blue.method
   @meta.adapted
   AllocateOffset()
   {
@@ -92,7 +91,6 @@ export class Tr2OcclusionBuffer
    * @param {Tr2RenderContext} renderContext The context to dispatch on.
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   ProcessBuffer(renderContext)
   {
@@ -120,7 +118,6 @@ export class Tr2OcclusionBuffer
    * @param {number|null} offset A slot base from AllocateOffset.
    * @returns {void}
    */
-  @blue.method
   @meta.adapted
   DestroyOffset(offset)
   {
@@ -128,7 +125,6 @@ export class Tr2OcclusionBuffer
   }
 
   /** Carbon OnPrepareResources (cpp:76-79): nothing to prepare; answers true. */
-  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -141,7 +137,6 @@ export class Tr2OcclusionBuffer
    *
    * @returns {void}
    */
-  @blue.method
   @meta.implemented
   ReleaseResources()
   {
@@ -164,7 +159,6 @@ export class Tr2OcclusionBuffer
    *
    * @returns {void}
    */
-  @blue.method
   @meta.adapted
   ResizeBuffer()
   {
@@ -209,7 +203,6 @@ export class Tr2OcclusionBuffer
   }
 
   /** Carbon GetInstance (cpp:59-63). */
-  @blue.method
   @meta.implemented
   static getInstance()
   {
@@ -225,7 +218,6 @@ export class Tr2OcclusionBuffer
    * @param {number} index The occluder index, 0-3.
    * @returns {number} The element index.
    */
-  @blue.method
   @meta.implemented
   static getOccluderOffset(offset, index)
   {

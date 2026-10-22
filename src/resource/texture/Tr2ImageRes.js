@@ -189,11 +189,11 @@ CjsSchema.blue.define(Tr2ImageRes, {
   },
   methods: {
     SetPayload: [],
-    GetWidth: [ blue.method, meta.adapted ],
-    GetHeight: [ blue.method, meta.adapted ],
+    GetWidth: [ meta.adapted ],
+    GetHeight: [ meta.adapted ],
     GetPixelColor: [ be.mapMethodAndWrap(), meta.adapted ],
     IsPixelOpaque: [ be.mapMethodAndWrap(), meta.adapted ],
-    GetBitmap: [ blue.method, meta.adapted ],
+    GetBitmap: [ meta.adapted ],
     IsMemoryUsageKnown: [ blue.method, meta.implemented ],
     GetMemoryUsage: [ blue.method, meta.adapted ]
   }

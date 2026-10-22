@@ -368,7 +368,7 @@ CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_uavOffset", type.uint32);
 CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_uavCount", type.uint32);
 CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_stages", type.array({ kind: "rawStruct", className: "Tr2ResourceSetAL::StageInput" }));
-CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "GetMemoryClass", blue.method);

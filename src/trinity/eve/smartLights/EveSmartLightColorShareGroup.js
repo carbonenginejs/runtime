@@ -88,7 +88,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface through the shared resolveGroupColor helper.
    */
-  @blue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -107,7 +106,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @blue.method
   @meta.adapted
   SetColor(color)
   {

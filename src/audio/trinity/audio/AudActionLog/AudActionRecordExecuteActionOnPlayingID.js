@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: audio/src/AudActionLog.h + AudActionLog.cpp
 // Hand-owned behavior port. Verify against audio/AudActionLogCB.json and the
 // AudActionRecord*.json schema documents.
@@ -39,5 +39,5 @@ export class AudActionRecordExecuteActionOnPlayingID extends AudActionRecord
 
 }
 
-CjsSchema.decorateMethod(AudActionRecordExecuteActionOnPlayingID, "ToPyObject", blue.method, meta.adapted);
+CjsSchema.decorateMethod(AudActionRecordExecuteActionOnPlayingID, "ToPyObject", meta.adapted);
 CjsSchema.meta.carbon("AudActionRecordExecuteActionOnPlayingID")(AudActionRecordExecuteActionOnPlayingID);

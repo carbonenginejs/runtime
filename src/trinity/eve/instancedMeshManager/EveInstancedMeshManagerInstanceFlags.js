@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.h:13-26
 // Source: trinity/trinity/Eve/EveInstancedMeshManager.cpp:1002-1052
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -32,7 +32,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * Carbon AddBatchType (cpp:1002-1005): sets bit `1 << type`.
    * @param {number} type A TriBatchType value.
    */
-  @blue.method
   @meta.implemented
   AddBatchType(type)
   {
@@ -43,7 +42,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * Carbon SetCastsShadow (cpp:1007-1017): sets or clears CASTS_SHADOW.
    * @param {boolean} castsShadow
    */
-  @blue.method
   @meta.implemented
   SetCastsShadow(castsShadow)
   {
@@ -61,7 +59,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * Carbon GetCastsShadow (cpp:1019-1022).
    * @returns {boolean}
    */
-  @blue.method
   @meta.implemented
   GetCastsShadow()
   {
@@ -72,7 +69,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * Carbon SetRenderInReflections (cpp:1024-1034): sets or clears RENDER_IN_REFLECTION.
    * @param {boolean} renderInReflections
    */
-  @blue.method
   @meta.implemented
   SetRenderInReflections(renderInReflections)
   {
@@ -93,7 +89,6 @@ export class EveInstancedMeshManagerInstanceFlags
    * @param {EveInstancedMeshManagerInstanceFlags} filter
    * @returns {boolean}
    */
-  @blue.method
   @meta.implemented
   MatchesFilter(filter)
   {

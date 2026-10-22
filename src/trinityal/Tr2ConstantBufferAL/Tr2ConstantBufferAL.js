@@ -11,7 +11,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2ConstantBufferAL.cpp:6`): we ship every backend at
 // once, so the context that knows its backend is the factory
 // (`CreateConstantBuffer(size, usage, initialData, true)`).
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -86,7 +86,6 @@ export class Tr2ConstantBufferAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Create__Size(size, renderContext)
   {
@@ -113,7 +112,6 @@ export class Tr2ConstantBufferAL
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(size, usage, initialData, renderContext)
   {
@@ -137,7 +135,6 @@ export class Tr2ConstantBufferAL
    * @param {object} renderContext The context to lock against.
    * @returns {{result: number, data: Uint8Array|null}} The locked memory.
    */
-  @blue.method
   @meta.adapted
   Lock(renderContext)
   {
@@ -150,7 +147,6 @@ export class Tr2ConstantBufferAL
    * @param {object} renderContext The context the lock was made against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Unlock(renderContext)
   {
@@ -162,7 +158,6 @@ export class Tr2ConstantBufferAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -174,7 +169,6 @@ export class Tr2ConstantBufferAL
    *
    * @returns {number} Bytes; zero when uncreated.
    */
-  @blue.method
   @meta.implemented
   GetSize()
   {
@@ -186,7 +180,6 @@ export class Tr2ConstantBufferAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -201,7 +194,6 @@ export class Tr2ConstantBufferAL
    * @param {Tr2ConstantBufferAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -215,7 +207,6 @@ export class Tr2ConstantBufferAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -231,7 +222,6 @@ export class Tr2ConstantBufferAL
    *
    * @returns {object} The implementation.
    */
-  @blue.method
   @meta.implemented
   TrinityALImpl_GetObject()
   {

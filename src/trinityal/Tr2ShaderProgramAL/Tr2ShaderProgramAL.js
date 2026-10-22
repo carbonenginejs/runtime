@@ -13,7 +13,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2ShaderProgramAL.cpp:5`): we ship every
 // backend at once, so the context that knows its backend is the factory
 // (`CreateShaderProgram(shaders, count, true)`).
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -81,7 +81,6 @@ export class Tr2ShaderProgramAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(shaders, count, renderContext)
   {
@@ -104,7 +103,6 @@ export class Tr2ShaderProgramAL
    * @param {object} _renderContext The primary context.
    * @returns {number} `E_FAIL`.
    */
-  @blue.method
   @meta.implemented
   CreateCommandSignatures(_bufferLayout, _renderContext)
   {
@@ -116,7 +114,6 @@ export class Tr2ShaderProgramAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -128,7 +125,6 @@ export class Tr2ShaderProgramAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -143,7 +139,6 @@ export class Tr2ShaderProgramAL
    * @param {Tr2ShaderProgramAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -155,7 +150,6 @@ export class Tr2ShaderProgramAL
    *
    * @returns {Tr2RegisterMapAL} The map; empty when uncreated.
    */
-  @blue.method
   @meta.implemented
   GetRegisterMap()
   {
@@ -169,7 +163,6 @@ export class Tr2ShaderProgramAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -184,7 +177,6 @@ export class Tr2ShaderProgramAL
    *
    * @returns {object} The implementation.
    */
-  @blue.method
   @meta.implemented
   TrinityALImpl_GetObject()
   {

@@ -85,7 +85,6 @@ export class EveChildTransform extends EveSpaceObjectChild
    * staticTransform. Carbon returns Matrix by value; the org out-last
    * convention receives it.
    */
-  @blue.method
   @meta.implemented
   ComputeLocalTransform(out = mat4.create())
   {

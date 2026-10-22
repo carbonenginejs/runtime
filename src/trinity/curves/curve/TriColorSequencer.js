@@ -123,7 +123,6 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {

@@ -39,7 +39,7 @@ import { exposure as be } from "#be";
 // Carbon only erases it when an incomplete region follows. The tail is the
 // same, but the JS list stays bounded (documented native quirk).
 
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriDevice } from "../TriDevice.js";
@@ -402,7 +402,6 @@ export class Tr2RingBuffer
    *
    * @returns {boolean} Whether preparation succeeded or was deferred.
    */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

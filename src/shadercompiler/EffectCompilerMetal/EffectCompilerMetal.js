@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.h
 // Source: trinity/shadercompiler/EffectCompilerMetal.cpp
 //
@@ -4940,6 +4940,6 @@ export function CjsFxWithMessages(messages, body)
     }
 }
 
-CjsSchema.decorateMethod(EffectCompilerMetal, "Create", blue.method, meta.adapted);
-CjsSchema.decorateMethod(EffectCompilerMetal, "CompileEffect", blue.method, meta.adapted);
+CjsSchema.decorateMethod(EffectCompilerMetal, "Create", meta.adapted);
+CjsSchema.decorateMethod(EffectCompilerMetal, "CompileEffect", meta.adapted);
 CjsSchema.meta.carbon("EffectCompilerMetal")(EffectCompilerMetal);

@@ -107,7 +107,6 @@ export class EveUpdateContext
    * Current frame time in raw 100ns ticks (Carbon EveUpdateContext::GetTime).
    * @returns {Number}
    */
-  @blue.method
   @meta.implemented
   GetTime()
   {
@@ -119,7 +118,6 @@ export class EveUpdateContext
    * (Carbon EveUpdateContext::SetTime).
    * @param {Number} time Frame timestamp in 100ns ticks.
    */
-  @blue.method
   @meta.implemented
   SetTime(time)
   {
@@ -133,7 +131,6 @@ export class EveUpdateContext
    * through TimeAsFloat; the result is zero while the previous timestamp is zero.
    * @returns {Number}
    */
-  @blue.method
   @meta.implemented
   GetDeltaT()
   {
@@ -150,7 +147,6 @@ export class EveUpdateContext
    * GetReferencePoint(time, outVector3d) (Carbon passes the out pointer first).
    * @param {Object|null} ballpark
    */
-  @blue.method
   @meta.adapted
   UpdateOrigin(ballpark)
   {
@@ -184,7 +180,6 @@ export class EveUpdateContext
    * EveUpdateContext::GetOrigin).
    * @returns {Float64Array}
    */
-  @blue.method
   @meta.adapted
   GetOrigin()
   {
@@ -197,7 +192,6 @@ export class EveUpdateContext
    * EveUpdateContext::GetOriginShift).
    * @returns {Float32Array}
    */
-  @blue.method
   @meta.implemented
   GetOriginShift()
   {
@@ -209,7 +203,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetDataTextureManager (h:61-64).
    * @returns {Object|null}
    */
-  @blue.method
   @meta.implemented
   GetDataTextureManager()
   {
@@ -220,7 +213,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::SetDataTextureManager (h:65-68).
    * @param {Object|null} manager
    */
-  @blue.method
   @meta.implemented
   SetDataTextureManager(manager)
   {
@@ -231,7 +223,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetGpuParticleSystem (h:70-73).
    * @returns {Object|null}
    */
-  @blue.method
   @meta.implemented
   GetGpuParticleSystem()
   {
@@ -244,7 +235,6 @@ export class EveUpdateContext
    * only when its final owner releases it, replacing Carbon shared-pointer destruction.
    * @param {Object|null} ps
    */
-  @blue.method
   @meta.adapted
   SetGpuParticleSystem(ps)
   {
@@ -255,7 +245,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetBallpark (h:79-82) - stamped by UpdateOrigin.
    * @returns {Object|null}
    */
-  @blue.method
   @meta.implemented
   GetBallpark()
   {
@@ -266,7 +255,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::SetTaskGroup (h:116-119).
    * @param {Object|null} taskGroup
    */
-  @blue.method
   @meta.implemented
   SetTaskGroup(taskGroup)
   {
@@ -277,7 +265,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetTaskGroup (h:121-124).
    * @returns {Object|null}
    */
-  @blue.method
   @meta.implemented
   GetTaskGroup()
   {
@@ -288,7 +275,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::SetVisibilityThreshold (h:126-129).
    * @param {Number} visibilityThreshold
    */
-  @blue.method
   @meta.implemented
   SetVisibilityThreshold(visibilityThreshold)
   {
@@ -299,7 +285,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetVisibilityThreshold (h:131-134).
    * @returns {Number}
    */
-  @blue.method
   @meta.implemented
   GetVisibilityThreshold()
   {
@@ -310,7 +295,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::SetHighDetailThreshold (h:136-139).
    * @param {Number} highDetailThreshold
    */
-  @blue.method
   @meta.implemented
   SetHighDetailThreshold(highDetailThreshold)
   {
@@ -321,7 +305,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetHighDetailThreshold (h:141-144).
    * @returns {Number}
    */
-  @blue.method
   @meta.implemented
   GetHighDetailThreshold()
   {
@@ -332,7 +315,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::SetMediumDetailThreshold (h:146-149).
    * @param {Number} mediumDetailThreshold
    */
-  @blue.method
   @meta.implemented
   SetMediumDetailThreshold(mediumDetailThreshold)
   {
@@ -343,7 +325,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetMediumDetailThreshold (h:151-154).
    * @returns {Number}
    */
-  @blue.method
   @meta.implemented
   GetMediumDetailThreshold()
   {
@@ -354,7 +335,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::SetLowDetailThreshold (h:156-159).
    * @param {Number} lowDetailThreshold
    */
-  @blue.method
   @meta.implemented
   SetLowDetailThreshold(lowDetailThreshold)
   {
@@ -365,7 +345,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetLowDetailThreshold (h:161-164).
    * @returns {Number}
    */
-  @blue.method
   @meta.implemented
   GetLowDetailThreshold()
   {
@@ -377,7 +356,6 @@ export class EveUpdateContext
    * invariant invLodFactor = 1 / lodFactor (no zero guard, matching Carbon).
    * @param {Number} lodFactor
    */
-  @blue.method
   @meta.implemented
   SetLodFactor(lodFactor)
   {
@@ -389,7 +367,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetLodFactor (h:172-175).
    * @returns {Number}
    */
-  @blue.method
   @meta.implemented
   GetLodFactor()
   {
@@ -400,7 +377,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetInvLodFactor (h:177-180).
    * @returns {Number}
    */
-  @blue.method
   @meta.implemented
   GetInvLodFactor()
   {
@@ -412,7 +388,6 @@ export class EveUpdateContext
    * value and assigns it into the context's own (ruling 16).
    * @param {TriFrustum} frustum
    */
-  @blue.method
   @meta.implemented
   SetFrustum(frustum)
   {
@@ -423,7 +398,6 @@ export class EveUpdateContext
    * Carbon EveUpdateContext::GetFrustum (h:187-190).
    * @returns {TriFrustum}
    */
-  @blue.method
   @meta.implemented
   GetFrustum()
   {

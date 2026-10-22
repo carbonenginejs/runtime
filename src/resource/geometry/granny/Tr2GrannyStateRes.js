@@ -263,10 +263,10 @@ export class Tr2GrannyStateRes extends CjsResource
 }
 
 
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "DoLoad", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetCharacterInfo", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetGStateAnimFileRefPaths", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsFullyLoaded", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "DoLoad", meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetCharacterInfo", meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetGStateAnimFileRefPaths", meta.adapted);
+CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsFullyLoaded", meta.adapted);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.exposure.define("Tr2GrannyStateRes")(Tr2GrannyStateRes);

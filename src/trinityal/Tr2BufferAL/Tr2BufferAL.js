@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2BufferAL.h
 // Source: trinity/trinityal/src/Tr2BufferAL.cpp
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -22,7 +22,6 @@ export class Tr2BufferAL
   }
 
   /** Creates a fresh implementation, preserving existing copies. Context allocation replaces compile-time backend selection. */
-  @blue.method
   @meta.adapted
   Create(description, initialData, renderContext)
   {
@@ -34,7 +33,6 @@ export class Tr2BufferAL
   }
 
   /** Reports whether this value references valid backend storage. */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -42,7 +40,6 @@ export class Tr2BufferAL
   }
 
   /** Returns the backend memory class, or managed for an uncreated value. */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -50,7 +47,6 @@ export class Tr2BufferAL
   }
 
   /** Returns the native description, including its empty-value defaults. */
-  @blue.method
   @meta.implemented
   GetDesc()
   {
@@ -58,7 +54,6 @@ export class Tr2BufferAL
   }
 
   /** Returns the description size in bytes. */
-  @blue.method
   @meta.implemented
   GetSize()
   {
@@ -66,7 +61,6 @@ export class Tr2BufferAL
   }
 
   /** Compares shared implementation identity; JavaScript has no overloadable equality operator. */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -74,7 +68,6 @@ export class Tr2BufferAL
   }
 
   /** Forwards MapForReading to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   MapForReading(renderContext)
   {
@@ -89,7 +82,6 @@ export class Tr2BufferAL
   }
 
   /** Forwards UnmapForReading to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   UnmapForReading(renderContext)
   {
@@ -97,7 +89,6 @@ export class Tr2BufferAL
   }
 
   /** Forwards MapForWriting to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   MapForWriting(renderContext)
   {
@@ -105,7 +96,6 @@ export class Tr2BufferAL
   }
 
   /** Forwards UnmapForWriting to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   UnmapForWriting(renderContext)
   {
@@ -113,7 +103,6 @@ export class Tr2BufferAL
   }
 
   /** Forwards UpdateBuffer to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   UpdateBuffer(offset, size, data, renderContext)
   {
@@ -121,7 +110,6 @@ export class Tr2BufferAL
   }
 
   /** Forwards GetSrvIndexInHeap to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   GetSrvIndexInHeap()
   {
@@ -129,7 +117,6 @@ export class Tr2BufferAL
   }
 
   /** Forwards GetUavIndexInHeap to the implementation, preserving the empty-value result. */
-  @blue.method
   @meta.implemented
   GetUavIndexInHeap()
   {
@@ -137,7 +124,6 @@ export class Tr2BufferAL
   }
 
   /** Names valid storage; invalid values and absent names retain Carbon’s errors. */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -147,7 +133,6 @@ export class Tr2BufferAL
   }
 
   /** Returns the borrowed backend implementation for backend-only operations. */
-  @blue.method
   @meta.implemented
   TrinityALImpl_GetObject()
   {
@@ -167,5 +152,5 @@ export class Tr2BufferAL
 
 CjsSchema.decorateField(Tr2BufferAL, "_buffer", type.unknown);
 CjsSchema.decorateMethod(Tr2BufferAL, "Equals", meta.renamed("operator=="));
-CjsSchema.decorateMethod(Tr2BufferAL, "MapForReading__OffsetSize", blue.method);
+CjsSchema.decorateMethod(Tr2BufferAL, "MapForReading__OffsetSize");
 CjsSchema.meta.carbon("Tr2BufferAL")(Tr2BufferAL);

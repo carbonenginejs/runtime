@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.h
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.cpp
 import { blue, CcpTime, IsMatch } from "#blue";
-import { meta, blue as legacyBlue } from "#schema";
+import { meta } from "#schema";
 
 const LOW_DETAIL_THRESHOLD = 150;
 const MEDIUM_DETAIL_THRESHOLD = 500;
@@ -49,7 +49,6 @@ export class Tr2SkinnedObjectLod
    * Repopulates availability when one of the three owned proxy references
    * changes.
    */
-  @legacyBlue.method
   @meta.implemented
   OnModified(value)
   {
@@ -63,7 +62,6 @@ export class Tr2SkinnedObjectLod
   }
 
   /** Enables whole-model selection whenever at least one detail proxy is present. */
-  @legacyBlue.method
   @meta.implemented
   PopulateLods()
   {
@@ -78,7 +76,6 @@ export class Tr2SkinnedObjectLod
    * Selects the best available or resident whole-model proxy for a projected
    * pixel diameter.
    */
-  @legacyBlue.method
   @meta.implemented
   SetLOD(_frustum, estimatedPixelDiameter)
   {
@@ -156,7 +153,6 @@ export class Tr2SkinnedObjectLod
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.adapted
   SetHighDetailModel(model)
   {
@@ -185,7 +181,6 @@ export class Tr2SkinnedObjectLod
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.adapted
   SetMediumDetailModel(model)
   {
@@ -214,7 +209,6 @@ export class Tr2SkinnedObjectLod
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The model.
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.adapted
   SetLowDetailModel(model)
   {
@@ -245,7 +239,6 @@ export class Tr2SkinnedObjectLod
    * @returns {boolean} Always false, as the maintained native implementation
    *   returns, despite the older header comment describing a possible true result.
    */
-  @legacyBlue.method
   @meta.implemented
   UnloadLodIfNeeded(time, deltaTime)
   {
@@ -277,7 +270,6 @@ export class Tr2SkinnedObjectLod
    * Overrides the selected whole-model detail index used by proxy lifecycle and
    * capability queries.
    */
-  @legacyBlue.method
   @meta.implemented
   SetCurrentLod(lod)
   {
@@ -285,7 +277,6 @@ export class Tr2SkinnedObjectLod
   }
 
   /** Returns the selected whole-model detail index, or -1 before selection. */
-  @legacyBlue.method
   @meta.implemented
   GetCurrentLod()
   {
@@ -293,7 +284,6 @@ export class Tr2SkinnedObjectLod
   }
 
   /** Reports whether at least one detail proxy permits whole-model selection. */
-  @legacyBlue.method
   @meta.implemented
   HaveLodSetup()
   {
@@ -301,7 +291,6 @@ export class Tr2SkinnedObjectLod
   }
 
   /** Allows shadow casting without selection or only for the high-detail model. */
-  @legacyBlue.method
   @meta.implemented
   IsCastingShadow()
   {
@@ -312,7 +301,6 @@ export class Tr2SkinnedObjectLod
    * Allows cloth simulation when selection is disabled or the current detail
    * index is within the requested maximum.
    */
-  @legacyBlue.method
   @meta.implemented
   IsSimulatingCloth(maxClothLod)
   {
@@ -329,7 +317,6 @@ export class Tr2SkinnedObjectLod
    * @param {import("./Tr2SkinnedModel.js").Tr2SkinnedModel|null} model The changed model.
    * @returns {void}
    */
-  @legacyBlue.method
   @meta.adapted
   OnModelChanged(model)
   {

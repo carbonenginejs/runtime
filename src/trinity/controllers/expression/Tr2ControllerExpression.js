@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerExpression.h
 // Source: trinity/trinity/Controllers/Tr2ControllerExpression.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2StateMachine } from "../state/Tr2StateMachine.js";
 import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram.js";
 
@@ -65,7 +65,6 @@ export class Tr2ControllerExpression
    * @param {object} [functions] Extra JavaScript parser functions.
    * @returns {string} Empty on success, otherwise the compile error.
    */
-  @blue.method
   @meta.adapted
   SetExpr(expression, source, functions)
   {
@@ -95,7 +94,6 @@ export class Tr2ControllerExpression
    * @param {object|null} [extra=null] Additional evaluator context.
    * @returns {Array<boolean|number>} Success and numeric result.
    */
-  @blue.method
   @meta.adapted
   Eval(extra = null)
   {
@@ -127,7 +125,6 @@ export class Tr2ControllerExpression
    * leaves that cached mask unchanged. This existing evaluator gap is held.
    * @returns {void}
    */
-  @blue.method
   @meta.adapted
   Clear()
   {
@@ -142,7 +139,6 @@ export class Tr2ControllerExpression
    * Checks whether the expression compiled successfully.
    * @returns {boolean} Whether a valid program is retained.
    */
-  @blue.method
   @meta.implemented
   IsExpressionValid()
   {
@@ -153,7 +149,6 @@ export class Tr2ControllerExpression
    * Gets the variable dirty mask referenced by this expression.
    * @returns {bigint} Cached variable bit mask.
    */
-  @blue.method
   @meta.adapted
   GetVariableMask()
   {
@@ -165,7 +160,6 @@ export class Tr2ControllerExpression
    * @param {Array} [out=[]] Output metadata list.
    * @returns {Array} The supplied list.
    */
-  @blue.method
   @meta.adapted
   GetExpressionTermInfo(out = [])
   {

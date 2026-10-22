@@ -13,7 +13,7 @@
 // That route has no constructor, so such a class registers itself in its own
 // constructor (`TriDevice.RegisterResource(this)`) as this constructor does,
 // and unregisters in its Destroy, where Carbon's destructor would (cpp:11-14).
-import { blue, meta } from "#schema";
+import { meta } from "#schema";
 import { TriDevice } from "./TriDevice.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 
@@ -36,7 +36,6 @@ export class Tr2DeviceResource
    * resource descriptions are (TriDebugResourceHelper.GetDescription).
    * @returns {string} "<Unknown>" unless a resource says otherwise.
    */
-  @blue.method
   @meta.adapted
   GetDescription()
   {
@@ -61,7 +60,6 @@ export class Tr2DeviceResource
    * that counts as success.
    * @returns {boolean} False when OnPrepareResources fails.
    */
-  @blue.method
   @meta.implemented
   PrepareResources()
   {

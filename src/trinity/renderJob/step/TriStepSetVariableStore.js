@@ -39,7 +39,6 @@ export class TriStepSetVariableStore extends TriRenderStep
   /**
    * Sets the name of the variable this step writes.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -49,7 +48,6 @@ export class TriStepSetVariableStore extends TriRenderStep
   /**
    * The value this step writes into the variable store.
    */
-  @blue.method
   @meta.adapted
   GetValue()
   {
@@ -62,7 +60,6 @@ export class TriStepSetVariableStore extends TriRenderStep
    * Sets the value this step writes, copying array and typed-array values so a
    * later mutation by the caller cannot change what the step publishes.
    */
-  @blue.method
   @meta.adapted
   SetValue(value)
   {
@@ -73,7 +70,6 @@ export class TriStepSetVariableStore extends TriRenderStep
    * Registers the named value on the global variable store, so shaders reading
    * that variable see it from this point in the job order onward.
    */
-  @blue.method
   @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {

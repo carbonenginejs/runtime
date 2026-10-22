@@ -328,7 +328,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * overload is SpawnParticles__StartEnd. A reusable value copy preserves the
    * continuous emitter's direction history.
    */
-  @blue.method
   @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
@@ -341,7 +340,6 @@ export class Tr2GpuSharedEmitter extends IRoot
    * also exposes Carbon's second overload explicitly for existing JS callers.
    * Formerly SpawnParticlesSegment.
    */
-  @blue.method
   @meta.adapted
   SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
@@ -389,7 +387,6 @@ export class Tr2GpuSharedEmitter extends IRoot
   }
 
   /** Carbon's protected SpawnParticles overload, with a distinct JS name. */
-  @blue.method
   @meta.adapted
   _SpawnParticles(emitter, arguments_, positionStart, positionEnd, velocityStart, velocityEnd, carryOverCount, deltaTime)
   {

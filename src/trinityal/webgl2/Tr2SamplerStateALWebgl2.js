@@ -259,7 +259,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
 }
 
 CjsSchema.decorateField(Tr2SamplerStateALWebgl2, "_name", type.string);
-CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "GetIndexInHeap", blue.method);
 CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "IsValid", blue.method);

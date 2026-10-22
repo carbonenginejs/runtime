@@ -313,18 +313,18 @@ CjsSchema.blue.define(BlueObjectProxy, {
     isResident: [ legacyBlue.property(), type.boolean ]
   },
   methods: {
-    SetBuilder: [ legacyBlue.method, meta.implemented ],
-    GetObject: [ legacyBlue.method, meta.implemented ],
-    ClearObject: [ legacyBlue.method, meta.implemented ],
-    Update: [ legacyBlue.method, meta.implemented ],
-    IsResident: [ legacyBlue.method, meta.implemented ],
-    SetTemporary: [ legacyBlue.method, meta.implemented ],
-    IsTemporary: [ legacyBlue.method, meta.implemented ],
-    OnSelected: [ legacyBlue.method, meta.implemented ],
-    SetObject: [ legacyBlue.method, meta.implemented ],
+    SetBuilder: [ meta.implemented ],
+    GetObject: [ meta.implemented ],
+    ClearObject: [ meta.implemented ],
+    Update: [ meta.implemented ],
+    IsResident: [ meta.implemented ],
+    SetTemporary: [ meta.implemented ],
+    IsTemporary: [ meta.implemented ],
+    OnSelected: [ meta.implemented ],
+    SetObject: [ meta.implemented ],
     Freeze: [ be.mapMethodAndWrap(), meta.implemented ],
     SetObjectFromBuilder: [ be.mapMethodAndWrap(), meta.implemented ],
-    _OnObjectInvalidated: [ legacyBlue.method, meta.renamed("OnObjectInvalidated"), meta.implemented ]
+    _OnObjectInvalidated: [ meta.renamed("OnObjectInvalidated"), meta.implemented ]
   }
 });
 CjsSchema.exposure.mapInterface(IBlueObjectProxy)(BlueObjectProxy);

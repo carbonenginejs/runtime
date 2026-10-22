@@ -196,7 +196,7 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
 CjsSchema.blue.define(VideoPlaylistController, {
   className: "VideoPlaylistController",
   methods: {
-  GetResource: [blue.method, meta.adapted], IsCacheable: [], SetPlaylist: [], Destruct: [meta.adapted]
+  GetResource: [meta.adapted], IsCacheable: [], SetPlaylist: [], Destruct: [meta.adapted]
 }
 });
 

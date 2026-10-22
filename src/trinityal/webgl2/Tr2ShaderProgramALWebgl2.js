@@ -424,7 +424,7 @@ CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_log", type.string);
 CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetRegisterMap", blue.method);
-CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Destroy", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "IsValid", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetMemoryClass", blue.method);

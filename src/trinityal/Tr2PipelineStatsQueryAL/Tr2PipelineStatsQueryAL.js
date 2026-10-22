@@ -13,7 +13,7 @@
 // refuses there with `E_FAIL`, as Metal's `Create` does when the device has no
 // statistics counter set (`Tr2PipelineStatsQueryALMetal.mm:69-72`, `:88-91`,
 // `:107-110`), and the value stays on the null implementation.
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -86,7 +86,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} renderContext The primary context to create against.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.adapted
   Create(renderContext)
   {
@@ -105,7 +104,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   Begin(renderContext)
   {
@@ -118,7 +116,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} renderContext The context recording.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   End(renderContext)
   {
@@ -134,7 +131,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} renderContext The context whose results are read.
    * @returns {{result: number, data: object}} The statistics record.
    */
-  @blue.method
   @meta.adapted
   GetStats(renderContext)
   {
@@ -150,7 +146,6 @@ export class Tr2PipelineStatsQueryAL
    *
    * @returns {boolean} True once created.
    */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -165,7 +160,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {Tr2PipelineStatsQueryAL} other The value to compare.
    * @returns {boolean} Whether both share one implementation.
    */
-  @blue.method
   @meta.adapted
   Equals(other)
   {
@@ -177,7 +171,6 @@ export class Tr2PipelineStatsQueryAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @blue.method
   @meta.implemented
   GetMemoryClass()
   {
@@ -194,7 +187,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {object} data A statistics record from `GetStats`.
    * @returns {number} The value count.
    */
-  @blue.method
   @meta.adapted
   static GetValueCount(data)
   {
@@ -209,7 +201,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {number} index Which value.
    * @returns {string} The label.
    */
-  @blue.method
   @meta.adapted
   static GetLabel(data, index)
   {
@@ -224,7 +215,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {number} index Which value.
    * @returns {string} The description.
    */
-  @blue.method
   @meta.adapted
   static GetDescription(data, index)
   {
@@ -239,7 +229,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {number} index Which value.
    * @returns {number} The value.
    */
-  @blue.method
   @meta.adapted
   static GetValue(data, index)
   {
@@ -254,7 +243,6 @@ export class Tr2PipelineStatsQueryAL
    * @param {string} name The name.
    * @returns {number} An `ALResult` value.
    */
-  @blue.method
   @meta.implemented
   SetName(name)
   {

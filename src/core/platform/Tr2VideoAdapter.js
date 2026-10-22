@@ -138,6 +138,6 @@ CjsSchema.decorateField(Tr2VideoAdapter, "deviceID", be.mapAttribute(be.READ));
 CjsSchema.decorateField(Tr2VideoAdapter, "subSystemID", be.mapAttribute(be.READ));
 CjsSchema.decorateField(Tr2VideoAdapter, "revision", be.mapAttribute(be.READ));
 CjsSchema.decorateField(Tr2VideoAdapter, "deviceIdentifier", blue.read);
-CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDeviceIdentifierString", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDeviceIdentifierString", meta.adapted);
 CjsSchema.decorateMethod(Tr2VideoAdapter, "GetDriverInfo", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.exposure.define("Tr2VideoAdapter")(Tr2VideoAdapter);

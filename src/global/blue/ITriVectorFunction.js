@@ -132,8 +132,8 @@ for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleD
 {
   CjsSchema.decorateMethod(ITriVectorFunction, method, blue.abstract);
 }
-CjsSchema.decorateMethod(ITriVectorFunction, "Update__Ticks", blue.method, meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt__Ticks", blue.method, meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAt__Ticks", blue.method, meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAt__Ticks", blue.method, meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "Update__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAt__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAt__Ticks", meta.adapted);
 CjsSchema.exposure.interface("ITriVectorFunction")(ITriVectorFunction);

@@ -5283,30 +5283,30 @@ CjsBlueResMan.getBluePaths = () =>
 
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceW", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "WaitUrgent", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "SaveObject", blue.method, meta.implemented);
 for (const method of [ "SaveObjectW", "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
 {
   CjsSchema.decorateMethod(CjsBlueResMan, method, blue.method, meta.notImplemented);
 }
-CjsSchema.decorateMethod(CjsBlueResMan, "AddToQueue", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "CancelFromQueue", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetNextIdForQueue", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "PumpMainThreadQueue", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "PauseQueue", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "ResumeQueue", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingLoads", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingPrepares", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "AddToQueue", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "CancelFromQueue", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetNextIdForQueue", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "PumpMainThreadQueue", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "PauseQueue", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "ResumeQueue", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingLoads", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingPrepares", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "SetUrgentResourceLoads", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "IsUrgentResourceLoads", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "Update", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "IsUrgentResourceLoads", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "Update", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "Wait", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "RegisterResourceConstructor", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "UnregisterResourceConstructor", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject__WChars", blue.method, meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "OnTick", blue.method, meta.implemented);
+CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject__WChars", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "OnTick", meta.implemented);
 CjsSchema.exposure.define("CjsBlueResMan")(CjsBlueResMan);
 
 

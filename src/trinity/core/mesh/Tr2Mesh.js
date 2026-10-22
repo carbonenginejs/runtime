@@ -305,7 +305,6 @@ export class Tr2Mesh extends Tr2MeshBase
    * Reads the selected geometry resource path, including the low-detail stand-in.
    * Source: trinity/trinity/Tr2MeshBase.cpp:425-434
    */
-  @legacyBlue.method
   @meta.implemented
   GetGeometryResPath()
   {

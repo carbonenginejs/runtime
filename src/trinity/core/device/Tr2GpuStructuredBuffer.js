@@ -19,7 +19,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
 
   /** Carbon Tr2GpuStructuredBuffer.cpp: create from persisted parameters on the ambient context. */
   @meta.implemented
-  @blue.method
   Initialize()
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -28,7 +27,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
 
   /** Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules. */
   @meta.implemented
-  @blue.method
   OnModified(_names)
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -81,7 +79,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @blue.method
   @meta.adapted
   Create(count, stride, creationFlags, renderContext)
   {
@@ -100,7 +97,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @blue.method
   @meta.adapted
   CreateBuffer(renderContext)
   {
@@ -122,7 +118,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
   }
 
   /** Carbon SetName (cpp:151-158): labels the buffer now and on every re-create. */
-  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -152,7 +147,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
-  @blue.method
   @meta.implemented
   GetGpuBuffer(_index = 0)
   {
@@ -160,7 +154,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
   }
 
   /** Carbon IsValid (cpp:106-109). */
-  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -179,7 +172,6 @@ export class Tr2GpuStructuredBuffer extends IRoot
   }
 
   /** Carbon GetCount (cpp:173-175): the created buffer's element count, 0 without one. */
-  @blue.method
   @meta.implemented
   GetCount()
   {

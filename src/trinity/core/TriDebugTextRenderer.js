@@ -8,7 +8,7 @@
 // offscreen DIB; elsewhere it copies glyphs from the baked bitmaps in
 // TriDebugTextRendererBitmaps.h. A browser has no GDI, so this is the baked
 // path (cpp:254-325) - Carbon's own non-Windows code, not a substitute.
-import { blue, meta } from "#schema";
+import { meta } from "#schema";
 import { color as colorMath } from "#math/color";
 import { formatMessage } from "../../global/logging/ccpLog.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -69,7 +69,6 @@ export class TriDebugTextRenderer
    * @param {string} msg printf format.
    * @param {...*} args
    */
-  @blue.method
   @meta.implemented
   Printf(font, rect, format, color, msg, ...args)
   {
@@ -86,7 +85,6 @@ export class TriDebugTextRenderer
    * @param {string} msg printf format.
    * @param {...*} args
    */
-  @blue.method
   @meta.implemented
   PrintfImmediate(renderContext, font, rect, format, color, msg, ...args)
   {
@@ -103,7 +101,6 @@ export class TriDebugTextRenderer
    * @param {string} msg
    * @param {Array<*>} args
    */
-  @blue.method
   @meta.implemented
   Vprintf(font, rect, format, color, msg, args)
   {
@@ -127,7 +124,6 @@ export class TriDebugTextRenderer
    * @param {string} msg
    * @param {Array<*>} args
    */
-  @blue.method
   @meta.implemented
   VprintfImmediate(renderContext, font, rect, format, color, msg, args)
   {
@@ -138,7 +134,6 @@ export class TriDebugTextRenderer
    * Carbon Render (cpp:113-119): draws every queued entry.
    * @param {Tr2RenderContext} renderContext
    */
-  @blue.method
   @meta.implemented
   Render(renderContext)
   {
@@ -149,7 +144,6 @@ export class TriDebugTextRenderer
   }
 
   /** Carbon Clear (cpp:121-128). */
-  @blue.method
   @meta.implemented
   Clear()
   {
@@ -161,7 +155,6 @@ export class TriDebugTextRenderer
    * texture is created on first draw.
    * @returns {boolean} True, always.
    */
-  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -176,7 +169,6 @@ export class TriDebugTextRenderer
    * resource descriptions are (TriDebugResourceHelper.GetDescription).
    * @returns {string} "<TriDebugFont>".
    */
-  @blue.method
   @meta.adapted
   GetDescription()
   {
@@ -187,7 +179,6 @@ export class TriDebugTextRenderer
    * Carbon ReleaseResources (cpp:130-133): drops the text texture.
    * @param {number} _s TriStorage flags.
    */
-  @blue.method
   @meta.implemented
   ReleaseResources(_s)
   {

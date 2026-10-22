@@ -663,8 +663,8 @@ CjsSchema.decorateMethod(Tr2MainWindow, "StoreStateSettings", be.mapMethodAndWra
 CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowSizeOptions", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "SetWindowTitle", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetWindowTitle", be.mapMethodAndWrap(), meta.adapted);
-CjsSchema.decorateMethod(Tr2MainWindow, "SetMouseCursor", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2MainWindow, "GetMouseCursor", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "SetMouseCursor", meta.adapted);
+CjsSchema.decorateMethod(Tr2MainWindow, "GetMouseCursor", meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "ClipCursor", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "UnclipCursor", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(Tr2MainWindow, "GetCursorPos", be.mapMethodAndWrap(), meta.adapted);

@@ -129,7 +129,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface through the shared resolveGroupColor helper.
    */
-  @blue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -148,7 +147,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @blue.method
   @meta.adapted
   SetColor(color)
   {
@@ -162,7 +160,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @blue.method
   @meta.adapted
   SetInheritProperties(colorSet)
   {
@@ -183,7 +180,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @blue.method
   @meta.adapted
   SetControllerVariable(name, value)
   {
@@ -200,7 +196,6 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: The secondary base's list handling lives on this class and receives the Blue
    * list event, inserted value and owning array explicitly.
    */
-  @blue.method
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {

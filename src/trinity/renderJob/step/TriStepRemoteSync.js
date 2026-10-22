@@ -52,7 +52,6 @@ export class TriStepRemoteSync extends TriRenderStep
    * synchronization happened.
    */
   @meta.adapted
-  @blue.method
   Execute(_realTime, _simTime, _renderContext)
   {
     // Carbon implements this class only on Windows with named HANDLE events.

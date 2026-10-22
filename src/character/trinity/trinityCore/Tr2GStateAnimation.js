@@ -114,7 +114,6 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Returns the persisted Granny animation path without resolving a resource. */
-  @blue.method
   @meta.implemented
   GetResPath()
   {
@@ -128,7 +127,6 @@ export class Tr2GStateAnimation extends IRoot
    * Adapted: Stores the authored path; Granny resource loading belongs to the
    * resource/state-machine adapter.
    */
-  @blue.method
   @meta.adapted
   SetResPath(value)
   {
@@ -136,7 +134,6 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Returns the persisted state-graph path without resolving a resource. */
-  @blue.method
   @meta.implemented
   GetGStateResPath()
   {
@@ -150,7 +147,6 @@ export class Tr2GStateAnimation extends IRoot
    * Adapted: Stores the authored path; state-graph loading belongs to the
    * resource/state-machine adapter.
    */
-  @blue.method
   @meta.adapted
   SetGStateResPath(value)
   {
@@ -158,7 +154,6 @@ export class Tr2GStateAnimation extends IRoot
   }
 
   /** Returns the persisted authored model name without instantiating it. */
-  @blue.method
   @meta.implemented
   GetModel()
   {
@@ -171,7 +166,6 @@ export class Tr2GStateAnimation extends IRoot
    * Adapted: Stores the authored model name; native model instantiation belongs to the
    * Granny runtime adapter.
    */
-  @blue.method
   @meta.adapted
   SetModel(value)
   {
