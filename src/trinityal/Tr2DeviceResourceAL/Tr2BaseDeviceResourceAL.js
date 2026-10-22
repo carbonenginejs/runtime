@@ -202,8 +202,6 @@ export function DestroyDeviceResources(memoryTypes)
   while (resourcesMutated);
 }
 
-CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "IsResourceValid", blue.method);
-CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "GetResourceMemoryClass", blue.method);
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Destroy");
 CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Describe");
 blue.method(Tr2BaseDeviceResourceAL, "EnumerateResources");

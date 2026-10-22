@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:129
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:547-607
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ALResult, Failed } from "../ALResult.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 
@@ -105,7 +105,8 @@ export class Tr2ResourceSetAL
 CjsSchema.decorateField(Tr2ResourceSetAL, "_resourceSet", type.unknown);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Program");
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Pipeline");
-CjsSchema.decorateMethod(Tr2ResourceSetAL, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetAL, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetAL, "SetName", blue.method);
+// States: the wrapper forwards to its implementation as Tr2ResourceSetAL.cpp:584-605 does (SetName refuses an invalid set and a null name).
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "SetName", meta.implemented);
 CjsSchema.meta.carbon("Tr2ResourceSetAL")(Tr2ResourceSetAL);

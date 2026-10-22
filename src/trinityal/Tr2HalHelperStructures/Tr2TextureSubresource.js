@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h
-import { CjsSchema, type, blue, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 // Source: trinity/trinityal/Tr2HalHelperStructures.cpp
 //
 // ONE FOLDER PER DONOR HEADER. Carbon declares six types in this header, and a
@@ -394,18 +394,20 @@ CjsSchema.decorateField(Tr2TextureSubresource, "endFace", type.uint32);
 CjsSchema.decorateField(Tr2TextureSubresource, "startMipLevel", type.uint32);
 CjsSchema.decorateField(Tr2TextureSubresource, "endMipLevel", type.uint32);
 CjsSchema.decorateField(Tr2TextureSubresource, "box", type.rawStruct("Tr2TextureCoordBox"));
-CjsSchema.decorateMethod(Tr2TextureSubresource, "GetWidth", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "GetHeight", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "GetDepth", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "GetMipCount", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "GetFaceCount", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "HasBox", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "IsSingleSubresource", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "SetBox", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "SetRect", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "ClampToTexture", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "IsSubresourceFull", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "IsValidForBitmap", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2TextureSubresource, "Equals", blue.method, meta.renamed("operator=="));
+// States: each method is Tr2HalHelperStructures.h:58-69, 96-123 and Tr2HalHelperStructures.cpp:57-216 statement for statement.
+// Unsigned wraparound on degenerate input (a mip width of zero, an inverted box) is not reproduced. SetRect is the four-argument overload.
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetWidth", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetHeight", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetDepth", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetMipCount", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetFaceCount", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "HasBox", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "IsSingleSubresource", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "SetBox", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "SetRect", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "ClampToTexture", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "IsSubresourceFull", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "IsValidForBitmap", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "Equals", meta.implemented, meta.renamed("operator=="));
 CjsSchema.meta.carbon("Tr2TextureSubresource")(Tr2TextureSubresource);

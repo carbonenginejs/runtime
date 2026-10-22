@@ -107,8 +107,10 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2ResourceSetALStub, "_isValid", type.boolean);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Create");
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetALStub, "SetName", blue.method);
+// States: Tr2ResourceSetALStub.cpp:21-48. Destroy is adapted: Carbon only clears the valid flag, this also releases the description,
+// the program and the registered base resource, which a garbage-collected port has to drop explicitly.
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Destroy", meta.adapted);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "SetName", meta.implemented);
 CjsSchema.blue.define(Tr2ResourceSetALStub, { className: "Tr2ResourceSetALStub" });
