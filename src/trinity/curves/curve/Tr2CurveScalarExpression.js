@@ -169,7 +169,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Evaluates the expression.
    * Adapted: retains the JavaScript program and evaluation-result fallback.
    */
-  @blue.method
+  @be.mapMethodAndWrap("GetValueAt")
   @meta.adapted
   GetValue(time)
   {

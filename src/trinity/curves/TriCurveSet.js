@@ -527,7 +527,7 @@ export class TriCurveSet extends IInitialize
    * along.
    * @returns {void}
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("Update")
   @meta.implemented
   UpdateWithCurrentTime()
   {

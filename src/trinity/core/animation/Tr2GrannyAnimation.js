@@ -1187,7 +1187,7 @@ export class Tr2GrannyAnimation extends IRoot
 
   /** Native-name alias retained for controller integrations. */
   @meta.adapted
-  @blue.method
+  @be.mapMethodAndWrap("PlayAnimation")
   PlayAnimationOnce(animName)
   {
     return this.PlayAnimation(animName, true, 1, 0, 1, true);
@@ -1203,7 +1203,7 @@ export class Tr2GrannyAnimation extends IRoot
 
   /** Alias used by Carbon controller actions. */
   @meta.adapted
-  @blue.method
+  @be.mapMethodAndWrap("PlayLayerAnimation")
   PlayLayerAnimationByName(...args)
   {
     return this.PlayLayerAnimation(...args);

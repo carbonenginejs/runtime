@@ -269,6 +269,7 @@ export class TriLineSet extends IRoot
   }
 
   /** Carbon RenderFromScript (cpp:440-444), Blue's Render: renders on the main-thread render context. */
+  @be.mapMethodAndWrap("Render")
   @meta.renamed("Render")
   @meta.implemented
   RenderFromScript()

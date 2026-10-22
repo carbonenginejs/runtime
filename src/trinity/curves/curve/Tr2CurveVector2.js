@@ -87,7 +87,7 @@ export class Tr2CurveVector2 extends ITriFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @blue.method
+  @be.mapMethodAndWrap("GetValueAt")
   @meta.adapted
   GetValue(time, out)
   {

@@ -216,7 +216,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * takes and discards the attribute name. Same forward here for nominal
    * parity.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("IsExpressionValid")
   @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {

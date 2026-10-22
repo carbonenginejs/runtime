@@ -250,7 +250,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+  @be.mapMethodAndWrap("GetValueAt")
   @meta.adapted
   GetValue(time, out)
   {

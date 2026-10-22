@@ -210,7 +210,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @blue.method
+  @be.mapMethodAndWrap("GetValueAt")
   @meta.adapted
   GetValue(time, out)
   {

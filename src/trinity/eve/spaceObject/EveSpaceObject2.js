@@ -3435,6 +3435,7 @@ export class EveSpaceObject2 extends EveEntity
    * Gets the closest locator in a set to a world position, ignoring locator
    * facing. Returns -1 when the set is missing or empty.
    */
+  @be.mapMethodAndWrap("GetGoodLocatorIndex")
   @be.mapMethodAndWrap()
   @meta.implemented
   GetCloseLocatorIndex(position, locatorSetName)

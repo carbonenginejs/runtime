@@ -155,6 +155,7 @@ export class Tr2ManipulationTool extends IRoot
    * @param {mat4} _viewMatrix The view matrix.
    * @param {mat4} _projectionMatrix The projection matrix.
    */
+  @be.mapMethodAndWrap()
   @be.abstract
   Move(_mouseX, _mouseY, _mouseXDelta, _mouseYDelta, _viewport, _viewMatrix, _projectionMatrix) {}
 

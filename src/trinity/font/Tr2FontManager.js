@@ -416,7 +416,7 @@ export class Tr2FontManager extends IRoot
    * @returns {[number, number]} The face ID and glyph index that were used.
    */
   @meta.implemented
-  @legacyBlue.method
+  @be.mapMethodAndWrap("LookupGlyphIndex")
   LookupFaceIDAndGlyphIndex(faceName, charCode)
   {
     const faceNameUsed = faceName === "" ? TR2_FONT_FALLBACK : faceName;
@@ -488,7 +488,7 @@ export class Tr2FontManager extends IRoot
    * @returns {[number, number]} Ascender and descender in pixels.
    */
   @meta.adapted
-  @legacyBlue.method
+  @be.mapMethodAndWrap("LookupMetrics")
   LookupMetricsFromScript(faceID, width, height)
   {
     const metrics = this.LookupMetrics(faceID, width, height);

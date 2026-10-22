@@ -205,7 +205,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("GetValueAt")
   @meta.adapted
   GetValue(time, out)
   {

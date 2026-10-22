@@ -257,7 +257,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * this forward takes and discards the attribute name. Same forward here
    * for nominal parity.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("IsExpressionValid")
   @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {

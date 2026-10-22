@@ -206,7 +206,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Gets the vector value.
    */
-  @blue.method
+  @be.mapMethodAndWrap("GetValueAt")
   @meta.adapted
   GetValue(time, out)
   {

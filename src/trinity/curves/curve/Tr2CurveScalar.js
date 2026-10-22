@@ -361,7 +361,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @blue.method
+  @be.mapMethodAndWrap("GetValueAt")
   @meta.implemented
   GetValue(time)
   {

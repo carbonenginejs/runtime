@@ -962,7 +962,7 @@ export class Tr2Effect extends Tr2Material
    * the way; a no-op while a StartUpdate batch is open. Resolves shader metadata
    * only - no GPU program is created.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("RebuildCachedData")
   RebuildCachedDataInternal()
   {
     if (this._destroyed) return;

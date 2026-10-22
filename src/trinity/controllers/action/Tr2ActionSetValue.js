@@ -196,7 +196,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * forward all four action classes carry): takes and discards the
    * attribute name. Same forward here for nominal parity.
    */
-  @blue.method
+  @be.mapMethodAndWrap("IsExpressionValid")
   @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {

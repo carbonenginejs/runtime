@@ -164,7 +164,7 @@ CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPaths__Key", 
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "LogPaths", blue.method, meta.notImplemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetInitialWorkingDirectory", blue.method, meta.notImplemented);
 CjsSchema.decorateField(BlueResFileSystemLocal, "initialWorkingDirectory", be.mapPropertyReadOnly(), meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetAllSearchPaths", blue.method, meta.notImplemented);
-CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPathsAsDict", blue.method, meta.implemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetAllSearchPaths", be.mapMethodAndWrap(), meta.notImplemented);
+CjsSchema.decorateMethod(BlueResFileSystemLocal, "GetExpandedSearchPathsAsDict", be.mapMethodAndWrap("GetExpandedSearchPaths"), meta.implemented);
 CjsSchema.decorateMethod(BlueResFileSystemLocal, "ListDirFromScript", be.mapMethodAndWrap("listdir"), meta.notImplemented);
 CjsSchema.exposure.define("BlueResFileSystemLocal")(BlueResFileSystemLocal);
