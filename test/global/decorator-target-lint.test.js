@@ -115,6 +115,26 @@ test("a constructor is exempt from required-state while an unstated method is no
     assert.ok(missing.includes('Call'));
 });
 
+test("create__ and Assign__ variants resolve to the constructor and operator rows of the header", () =>
+{
+    const ops=[{name:'Native',attributes:[],properties:[],methods:[],interfaces:[{name:'Native'},{name:'IRoot'}],chain:[]}];
+    const opHeaders=[{name:'Native',methods:[{name:'Native'},{name:'operator'}],bases:[]}];
+    const root=fs.mkdtempSync(path.join(os.tmpdir(),'decorator-lint-'));
+    try
+    {
+        const file=path.join(root,'src/Example.js');fs.mkdirSync(path.dirname(file),{recursive:true});
+        fs.writeFileSync(file,`import {exposure as target} from '#be'; import {meta} from '#schema';
+            @meta.implemented @target.define('Native') class Example {
+                @meta.implemented static create__Move(){}
+                @meta.implemented Assign__Move(){}
+                @meta.implemented Invented(){}
+            }`);
+        const origin=auditDecorators(inventoryRuntime(root),ops,opHeaders,{}).filter(f=>f.rule==='carbon-origin-name').map(f=>f.member);
+        assert.deepEqual(origin,['Invented']);
+    }
+    finally { fs.rmSync(root,{recursive:true}); }
+});
+
 test("a declared rename carries its baselined finding and nothing else", () =>
 {
     const old={rule:"required-state",source:"src/A.js",class:"A",member:"#Call",detail:"Missing"};

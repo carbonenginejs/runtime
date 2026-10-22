@@ -137,6 +137,10 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
                 const candidates=[m.name,name,...ds.filter(d=>d.name==="meta.renamed").map(d=>d.args[0])];
                 if(m.static)candidates.push(name[0]?.toUpperCase()+name.slice(1));
                 if(name==="Destruct")for(const n of id.native)candidates.push("~"+n.split("::").at(-1));
+                // A constructor overload is create__Discriminator and an assignment operator is Assign__Discriminator (decorator-upgrade.md § 00); the header
+                // oracle records a constructor under the class name and every operator as "operator".
+                if(name==="create")for(const n of id.native)candidates.push(n.split("::").at(-1));
+                if(name==="Assign")candidates.push("operator");
                 if(!candidates.some(n=>nativeMethods.has(n)))add("carbon-origin-name",c,m,
                     "No header method match; review free functions, extracted helpers and explicit own origin.",{identities:id.native,searched:[...searched]});
             }
