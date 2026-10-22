@@ -38,9 +38,8 @@ export class IPythonMethods extends IRoot
 
 for (const name of [ "Destroy", "GetAttr", "SetAttr", "Repr" ])
 {
-  CjsSchema.decorateMethod(IPythonMethods, name, meta.abstract, meta.implemented);
+  CjsSchema.decorateMethod(IPythonMethods, name, meta.abstract);
 }
 
 CjsSchema.meta.abstract(IPythonMethods);
-CjsSchema.meta.implemented(IPythonMethods);
 CjsSchema.exposure.interface("IPythonMethods")(IPythonMethods);

@@ -54,9 +54,8 @@ export class IBlueResource extends IRoot
 
 for (const name of [ "Initialize", "GetPath", "GetExt", "IsLoading", "IsPrepared", "IsGood" ])
 {
-  CjsSchema.decorateMethod(IBlueResource, name, meta.abstract, meta.implemented);
+  CjsSchema.decorateMethod(IBlueResource, name, meta.abstract);
 }
 
 CjsSchema.meta.abstract(IBlueResource);
-CjsSchema.meta.implemented(IBlueResource);
 CjsSchema.exposure.interface("IBlueResource")(IBlueResource);

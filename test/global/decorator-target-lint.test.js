@@ -135,6 +135,19 @@ test("create__ and Assign__ variants resolve to the constructor and operator row
     finally { fs.rmSync(root,{recursive:true}); }
 });
 
+test("meta.abstract is the state of a pure virtual and cannot be combined with another", () =>
+{
+    const findings=inspect(`import {exposure as target} from '#be'; import {meta} from '#schema';
+        @meta.abstract @target.define('Native') class Example {
+            @meta.abstract Pure(){}
+            @meta.abstract @meta.implemented Both(){}
+            Bare(){}
+        }`);
+    const by=rule=>findings.filter(f=>f.rule===rule).map(f=>f.member);
+    assert.deepEqual(by('required-state'),['Bare']);
+    assert.deepEqual(by('conflicting-state'),['Both']);
+});
+
 test("a declared rename carries its baselined finding and nothing else", () =>
 {
     const old={rule:"required-state",source:"src/A.js",class:"A",member:"#Call",detail:"Missing"};

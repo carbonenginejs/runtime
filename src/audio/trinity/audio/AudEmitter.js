@@ -129,9 +129,11 @@ export class AudEmitter extends AudGameObjResource
    * m_debugColor (Color, AudEmitter.h:76): the emitter's debug colour, random per emitter
    * (AudEmitter.cpp:23, 40) and red once code scales its attenuation.
    */
+  @meta.implemented
   _debugColor = GenerateDebugColor(0.4, 0.9);
 
   /** m_simulationColor (Color, AudEmitter.h:77): green, `0xff00ff00` (AudEmitter.cpp:24, 41). */
+  @meta.implemented
   _simulationColor = colorMath.fromARGB(colorMath.create(), 0xff00ff00);
 
   /**

@@ -36,9 +36,8 @@ export class ITriMatrix extends IRoot
 
 for (const name of [ "SetPivots", "SetMatrix", "GetMatrix", "CopyMatrix", "Identity" ])
 {
-  CjsSchema.decorateMethod(ITriMatrix, name, meta.abstract, meta.implemented);
+  CjsSchema.decorateMethod(ITriMatrix, name, meta.abstract);
 }
 
 CjsSchema.meta.abstract(ITriMatrix);
-CjsSchema.meta.implemented(ITriMatrix);
 CjsSchema.exposure.interface("ITriMatrix")(ITriMatrix);
