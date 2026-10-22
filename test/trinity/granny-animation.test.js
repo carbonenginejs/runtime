@@ -109,7 +109,7 @@ test("Tr2GrannyAnimation builds and samples browser bone matrices", () =>
   assert.ok(Math.abs(bones[15] - 5) < 1e-6, "bone 1 translation x");
   assert.ok(Math.abs(animation.GetMorphAnimations().get("Smile") - 0.5) < 1e-6);
 
-  assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "PlayAnimation")?.carbon?.method, true);
+  assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "PlayAnimation")?.impl?.status, "adapted");
   assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "PlayAnimationOnce")?.carbon?.method, true);
 });
 
