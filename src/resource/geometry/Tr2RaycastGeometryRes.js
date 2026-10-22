@@ -34,6 +34,17 @@ export class Tr2RaycastGeometryRes extends CjsResource
     return this.bvh;
   }
 
+  /**
+   * Carbon: Tr2RaycastGeometryRes::DoPrepare (TriGeometryRes.cpp:130-133): nothing to
+   * prepare. The BVH DoLoad builds is the whole resource; no device object is made.
+   *
+   * @returns {boolean} Always true.
+   */
+  _DoPrepare()
+  {
+    return true;
+  }
+
   /** Attaches the resident geometry that answers this raycast session. */
   SetSource(source)
   {
@@ -58,6 +69,7 @@ export class Tr2RaycastGeometryRes extends CjsResource
 
 CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "SetLodIndices", meta.implemented);
 CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "GetBVH", meta.adapted);
+CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "_DoPrepare", meta.implemented);
 CjsSchema.decorateField(Tr2RaycastGeometryRes, "lodIndices", type.list("int32_t"));
 CjsSchema.decorateField(Tr2RaycastGeometryRes, "bvh", type.rawStruct("BVH::BoundingVolumeHierarchy"));
 CjsSchema.exposure.define("Tr2RaycastGeometryRes")(Tr2RaycastGeometryRes);
