@@ -193,13 +193,14 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
 }
 
 CjsSchema.decorateField(Tr2OcclusionQueryALWebgl2, "_name", type.string);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Create", blue.method);
+// States against dx11/Tr2OcclusionQueryALDx11.cpp (Create, Destroy, IsValid, Describe, SetName) and .h (GetMemoryClass). Create makes a GL query where dx11 makes a D3D11_QUERY_OCCLUSION. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Create", meta.implemented);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Begin");
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "End");
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetPixelCount");
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Describe", blue.method);
-CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Describe", meta.implemented);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "SetName", meta.adapted);
 CjsSchema.blue.define(Tr2OcclusionQueryALWebgl2, { className: "Tr2OcclusionQueryALWebgl2" });

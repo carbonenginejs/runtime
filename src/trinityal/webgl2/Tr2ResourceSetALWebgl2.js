@@ -369,9 +369,10 @@ CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_uavOffset", type.uint32);
 CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_uavCount", type.uint32);
 CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_stages", type.array({ kind: "rawStruct", className: "Tr2ResourceSetAL::StageInput" }));
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Create");
-CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Describe", blue.method);
-CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "SetName", blue.method);
+// States against dx11/Tr2ResourceSetALDx11.cpp (Destroy clears the stages, UAVs and flags; SetName stores the name, with no native object to label).
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Describe", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "SetName", meta.implemented);
 CjsSchema.blue.define(Tr2ResourceSetALWebgl2, { className: "Tr2ResourceSetALWebgl2" });

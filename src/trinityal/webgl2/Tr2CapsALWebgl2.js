@@ -135,9 +135,10 @@ export class Tr2CapsALWebgl2
 }
 
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsFloat16");
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsGpuBuffer", blue.method);
+// States against dx11/Tr2CapsALDx11.cpp: true, true, false, false, statement for statement.
+CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsGpuBuffer", meta.implemented);
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsStandaloneSwapChain");
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVertexShaderTextures", blue.method);
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVariableRefreshRate", blue.method);
-CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsRaytracing", blue.method);
+CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVertexShaderTextures", meta.implemented);
+CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVariableRefreshRate", meta.implemented);
+CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsRaytracing", meta.implemented);
 CjsSchema.blue.define(Tr2CapsALWebgl2, { className: "Tr2CapsALWebgl2" });

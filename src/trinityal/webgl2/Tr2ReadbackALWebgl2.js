@@ -154,10 +154,11 @@ export class Tr2ReadbackALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "IsReady", blue.method);
+// States against dx11/Tr2TextureALDx11.cpp:343-396 (Tr2ReadbackAL): IsReady compares the rendered frame number with the recorded one, Describe is empty, the memory class is AL_MEMORY_MANAGED, and validity is the staging resource's existence.
+CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "IsReady", meta.implemented);
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Map");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Destroy");
-CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Describe", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Describe", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "IsValid", meta.implemented);
 CjsSchema.blue.define(Tr2ReadbackALWebgl2, { className: "Tr2ReadbackALWebgl2" });

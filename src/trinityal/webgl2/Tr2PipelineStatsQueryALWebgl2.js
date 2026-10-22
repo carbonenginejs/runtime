@@ -172,15 +172,16 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
 
 CjsSchema.decorateField(Tr2PipelineStatsQueryALWebgl2, "_name", type.string);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Create");
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Begin", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "End", blue.method);
+// States against dx11/Tr2PipelineStatsQueryALDx11.cpp. WebGL2 has no pipeline-statistics query, so IsValid is always false and Begin/End return E_INVALIDARG, which is dx11's answer for a query that was never created (cpp Begin/End). GetMemoryClass and Describe are dx11's; SetName stores the name without a native label.
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "IsValid", meta.notSupported);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Begin", meta.notSupported);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "End", meta.notSupported);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetStats");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValueCount");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetLabel");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetDescription");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValue");
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Describe", blue.method);
-CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Describe", meta.implemented);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "SetName", meta.adapted);
 CjsSchema.blue.define(Tr2PipelineStatsQueryALWebgl2, { className: "Tr2PipelineStatsQueryALWebgl2" });

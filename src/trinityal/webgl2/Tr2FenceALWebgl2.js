@@ -202,9 +202,10 @@ CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "PutFence");
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsReached");
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Wait");
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Destroy", blue.method);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsValid", blue.method);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "GetMemoryClass", blue.method);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Describe", blue.method);
-CjsSchema.decorateMethod(Tr2FenceALWebgl2, "SetName", blue.method);
+// States against dx11/Tr2FenceALDx11.cpp:32-105 and .h:26-30. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Destroy", meta.implemented);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsValid", meta.implemented);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "GetMemoryClass", meta.implemented);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Describe", meta.implemented);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "SetName", meta.adapted);
 CjsSchema.blue.define(Tr2FenceALWebgl2, { className: "Tr2FenceALWebgl2" });
