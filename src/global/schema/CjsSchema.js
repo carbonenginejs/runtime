@@ -1637,7 +1637,12 @@ function requireClassName(name)
 function combinedFieldDecorator(definition)
 {
     const parts = Object.entries(definition).map(([namespace, value]) => ({ namespace, value }));
-    const decorators = parts.map(({namespace, value}) => fieldDecorator(namespace, value));
+    // An attribute or property row applies as one unit, exposure first, behind a marker that says how many parts it holds: a second
+    // row on the same member then registers its own exposed name instead of replacing the first (decorator-upgrade.md § 00).
+    const applied = isRowExposure(definition.exposure)
+        ? [ { namespace: "row", value: { count: parts.length } }, ...parts.filter(part => part.namespace === "exposure"), ...parts.filter(part => part.namespace !== "exposure") ]
+        : parts;
+    const decorators = applied.map(({namespace, value}) => fieldDecorator(namespace, value));
     const combined = (target, context) =>
     {
         const initializers = decorators.map(decorator => decorator(target, context)).filter(value => typeof value === "function");
@@ -2119,10 +2124,65 @@ function refreshLegacyFields(schema)
     schema.fieldsByName = new Map(schema.fields.map(field => [ field.name, field ]));
 }
 
+/** Whether an exposure record is one of Carbon's attribute or property rows. Our own `meta.attribute` flags merge into the Carbon row instead. */
+function isRowExposure(exposure)
+{
+    return Boolean(exposure) && typeof exposure.macro === "string" && /^MAP_(ATTRIBUTE|PROPERTY)/.test(exposure.macro);
+}
+
+/**
+ * A second row on a member that already has one registers its own declaration: the same key under its own exposed name, with its own
+ * flags and exposure. Type, enum and ui come from the member's first row when the class is sealed. The parts of the row follow its marker.
+ *
+ * @param {object} schema The class schema.
+ * @param {string} fieldName The member's JS key.
+ * @param {string} namespace The part's namespace.
+ * @param {*} value The part's value.
+ * @returns {boolean} True when the part belonged to a second row and was applied to it.
+ */
+function applyRowPart(schema, Constructor, fieldName, namespace, value)
+{
+    const row = schema.rowState;
+    if (!row || row.remaining <= 0 || row.key !== fieldName) return false;
+    row.remaining -= 1;
+    if (namespace === "exposure" && row.alias === null)
+    {
+        const base = schema.legacyDeclarationsByKey.get(fieldName);
+        if (base && isRowExposure(base.entry.exposure))
+        {
+            row.alias = { entry: { name: fieldName, key: fieldName, role: base.entry.role, declaringClass: Constructor }, aliasOf: base };
+        }
+    }
+    if (!row.alias) return false;
+    applyDeclarationNamespace(row.alias.entry, namespace, value);
+    if (row.remaining === 0)
+    {
+        const { entry, aliasOf } = row.alias;
+        const identity = declarationIdentity(entry);
+        const map = declarationMap(schema, entry.role);
+        if (map.has(identity)) throw new TypeError(`CjsSchema has duplicate ${entry.role} declaration "${entry.name}" for ${entry.key}.`);
+        const record = { entry, legacy: false, aliasOf };
+        // Decorators run nearest-first, so a row written above the member lands before it, and before the rows between: source order,
+        // which is the order of Carbon's rows.
+        const first = schema.declarations.find(candidate => candidate.aliasOf === aliasOf) ?? aliasOf;
+        schema.declarations.splice(schema.declarations.indexOf(first), 0, record);
+        map.set(identity, record);
+        schema.rowState = null;
+        SCHEMA_GENERATION += 1;
+    }
+    return true;
+}
+
 function defineFieldMetadata(Constructor, fieldName, namespace, value, options = {})
 {
     RejectAfterRegistration(Constructor, `field "${String(fieldName)}"`);
     const schema = getOrCreateClassSchema(Constructor);
+    if (namespace === "row")
+    {
+        schema.rowState = { key: fieldName, remaining: value.count, alias: null };
+        return;
+    }
+    if (applyRowPart(schema, Constructor, fieldName, namespace, value)) return;
     let record = schema.legacyDeclarationsByKey.get(fieldName);
     const before = record?.entry;
     const entry = before ? { ...before } : {
@@ -2224,6 +2284,13 @@ function getCanonicalDeclarations(Constructor, role)
 function resolveInheritedDeclaration(Owner, record)
 {
     const { entry } = record;
+    if (record.aliasOf)
+    {
+        const base = resolveInheritedDeclaration(Owner, record.aliasOf);
+        const shared = Object.fromEntries(Object.entries(base).filter(([ namespace ]) =>
+            ![ "name", "key", "role", "index", "declaringClass", "edit", "carbon", "exposure", "property", "impl", "mapsInherited" ].includes(namespace)));
+        return { ...shared, ...entry };
+    }
     if (!record.legacy || (entry.exposure && !entry.mapsInherited)) return entry;
     for (const Parent of getSchemaLineage(Object.getPrototypeOf(Owner)).reverse())
     {
@@ -2305,6 +2372,7 @@ function defineClassMetadata(Constructor, definition)
  */
 function sealClassSchema(Constructor, schema)
 {
+    RejectDuplicateExposedNames(Constructor, schema);
     const fields = computeEffectiveFields(Constructor);
 
     schema.effectiveMembers = getCanonicalDeclarations(Constructor, "member");
@@ -2316,6 +2384,31 @@ function sealClassSchema(Constructor, schema)
     RejectInvalidBinaryMembers(Constructor, schema);
     schema.registered = true;
     SCHEMA_GENERATION += 1;
+}
+
+/**
+ * Two attribute rows, or two property rows, under one exposed name on a class are an error, identical or not. An attribute and a property may
+ * share a name: Carbon maps both (Tr2FloatParameter `value`, BlueObjectProxy `object`), and that pair is not decided yet.
+ *
+ * @param {Function} Constructor The class being registered.
+ * @param {object} schema Its schema.
+ * @throws {TypeError} When two of the class's own declarations share an exposed name.
+ */
+function RejectDuplicateExposedNames(Constructor, schema)
+{
+    const seen = new Set();
+    // Rows only: a decorated member or property, or a second name on one. Declarations given whole by a define table are not rows.
+    for (const { entry, legacy, aliasOf } of schema.declarations)
+    {
+        if (!legacy && !aliasOf) continue;
+        const macro = entry.exposure?.macro ?? "";
+        const identity = `${/^MAP_PROPERTY/.test(macro) ? "property" : /^MAP_ATTRIBUTE/.test(macro) ? "attribute" : entry.role}:${entry.name}`;
+        if (seen.has(identity))
+        {
+            throw new TypeError(`CjsSchema has two rows named "${entry.name}" on ${schema.className}; each exposed name is registered once per class.`);
+        }
+        seen.add(identity);
+    }
 }
 
 /**

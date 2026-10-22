@@ -76,19 +76,12 @@ const TRANSPARENT_AABB_MAX = vec3.create();
 const TRANSPARENT_CENTER = vec3.create();
 
 /**
- * m_mesh's second Blue name: EveSpaceObject2_Blue.cpp maps "meshLod" onto the
- * same m_mesh as "mesh" (READWRITE | PERSIST, jessica-hidden).
- */
-const meshLodMember = { carbon: { member: true }, name: "meshLod", key: "mesh", type: { kind: "rootRef", className: "Tr2MeshBase" },
-  edit: { read: true, write: true, persist: true } };
-
-/**
  * The hull of an EVE space object - its mesh, locators, locator sets, decals,
  * attachments, lights, effect children, overlay effects, impact overlay and
  * controllers - together with the curve-driven world transform, visibility, LOD
  * and batch submission that drive them each frame.
  */
-@legacyBlue.define({ className: "EveSpaceObject2", members: [ meshLodMember ] })
+@legacyBlue.define({ className: "EveSpaceObject2" })
 @legacyBlue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, IShaderConfigurer, ITr2LightOwner)
 @legacyBlue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveShadowCaster, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2DebugRenderable, IListNotify, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2LightOwner)
 @be.abstract
@@ -336,10 +329,11 @@ export class EveSpaceObject2 extends EveEntity
 
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST]
    * Hull mesh supplying geometry, areas and shader options.
+   * "meshLod" is its second name (EveSpaceObject2_Blue.cpp:250, 256).
    * @type {Tr2MeshBase|null}
    */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
-
+  @be.mapAttribute(be.READWRITE | be.PERSIST, "meshLod")
   @type.object.ref("Tr2MeshBase")
   mesh = null;
 

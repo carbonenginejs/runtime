@@ -1,32 +1,24 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-
-/**
- * m_pinColor's second Blue name: the _Blue.cpp maps both "pinColor" and
- * "color" onto the one member (READWRITE | NOTIFY | PERSIST).
- */
-const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color" },
-  edit: { read: true, write: true, notify: true, persist: true } } ];
 
 /**
  * Child mesh that draws a pin on a sphere's surface, contributing the pin's
  * centre normal, radius, rotation, alpha threshold and colour to its own
  * per-object shader data.
  */
-@blue.define({ className: "EveChildSpherePin", members: pinColorMembers })
+@be.define("EveChildSpherePin")
 @be.exposureChainTo(EveChildMesh)
 export class EveChildSpherePin extends EveChildMesh
 {
 
-  /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST]; its "color" name is in pinColorMembers. */
+  /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST]; "color" is its second name (EveChildSpherePin_Blue.cpp:17-18). */
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
-
-
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST, "color")
   @type.color
   pinColor = vec4.fromValues(1, 1, 1, 1);
 

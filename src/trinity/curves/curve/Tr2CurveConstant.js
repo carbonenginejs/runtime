@@ -5,7 +5,8 @@ import { quat } from "#math/quat";
 import { copyArrayLike } from "#utils";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, blue } from "#schema";
+import { exposure as be } from "#be";
+import { meta, type, blue } from "#schema";
 
 
 /**
@@ -14,14 +15,7 @@ import { meta, blue } from "#schema";
  * (identity for quaternions). JavaScript combines native overloads into time-first
  * calls with an optional output buffer; the mapped interfaces retain their identities.
  */
-@blue.define({
-  className: "Tr2CurveConstant",
-  members: [
-    { name: "name", key: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
-    { name: "currentValue", key: "value", type: { kind: "vec4" }, edit: { read: true } },
-    { name: "value", key: "value", type: { kind: "vec4" }, edit: { read: true, write: true, persist: true } }
-  ]
-})
+@be.define("Tr2CurveConstant")
 @blue.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
 @blue.interface(ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction)
 export class Tr2CurveConstant extends ITriScalarFunction
@@ -30,12 +24,18 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * Name identifying this constant function across its mapped value interfaces (native std::string m_name).
    * @type {string}
    */
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+  @type.string
   name = "";
 
   /**
    * Authored constant Vector4 storage; scalar sampling reads x and currentValue aliases the same buffer.
+   * Carbon maps m_value twice: "value" READWRITE | PERSIST and "currentValue" READ (Tr2CurveConstant_Blue.cpp:27, 33).
    * @type {Float32Array|number[]}
    */
+  @be.mapAttribute(be.READ, "currentValue")
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
+  @type.vec4
   value = vec4.create();
 
   /**

@@ -33,15 +33,8 @@ import { EveSpherePinIndexTree } from "./EveSpherePinIndexTree/index.js";
 // its process-lifetime owning map so retired resources can be collected.
 const treeMap = new WeakMap();
 
-/**
- * m_pinColor's second Blue name: the _Blue.cpp maps both "pinColor" and
- * "color" onto the one member (READWRITE | NOTIFY | PERSIST).
- */
-const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color" },
-  edit: { read: true, write: true, notify: true, persist: true } } ];
-
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
-@legacyBlue.define({ className: "EveSpherePin", members: pinColorMembers })
+@be.define("EveSpherePin")
 @legacyBlue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2Renderable)
@@ -93,10 +86,9 @@ export class EveSpherePin
   @type.string
   name = "";
 
-  /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST]; its "color" name is in pinColorMembers. */
+  /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST]; "color" is its second name (EveSpherePin_Blue.cpp:42-43). */
   @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
-
-
+  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST, "color")
   @type.color
   pinColor = vec4.fromValues(1, 1, 1, 1);
 
