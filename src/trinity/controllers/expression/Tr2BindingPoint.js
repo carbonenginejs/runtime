@@ -41,7 +41,7 @@ export class Tr2BindingPoint
   @meta.notify
   @meta.readwrite
   @meta.persist
-  @type.rootRef("IRoot")
+  @type.object.ref("IRoot")
   object = null;
 
   /** m_attribute: the member name, optionally with a one-letter swizzle (`color.a`). */

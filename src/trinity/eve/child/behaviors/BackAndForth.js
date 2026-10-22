@@ -97,21 +97,16 @@ export class BackAndForth extends IRoot
 
   /** m_fxBehavior (IBehavior*) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
-
   @type.object.weak("IBehavior")
   fxBehavior = null;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
-
-  @meta.reference
   @type.object.weak("EveSpaceObject2")
   target = null;
 
   /** m_parent (EveSpaceObject2*) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
-
-  @meta.reference
   @type.object.weak("EveSpaceObject2")
   parent = null;
 

@@ -5,7 +5,7 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 // Carbon persists banners as a raw structure list (BLUE_DECLARE_STRUCTURE_LIST
@@ -24,28 +24,28 @@ import { meta, type, blue } from "#schema";
 export class EveBannerItem
 {
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.INT32_1(0)
   bone = -1;
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(4)
   position = vec3.create();
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(16)
   @type.quat
   rotation = quat.create();
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(32)
   scaling = vec3.fromValues(1, 1, 1);
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(44)
   angleX = 0;
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_1(48)
   angleY = 0;
 

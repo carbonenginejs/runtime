@@ -8,7 +8,7 @@ export class Tr2CurveScalarDefinition
 {
 
   /** keys (const Tr2CurveScalarKey*) */
-  @type.rootRef("Tr2CurveScalarKey")
+  @type.object.weak("Tr2CurveScalarKey")
   keys = null;
 
   /** keyCount (uint32_t) */

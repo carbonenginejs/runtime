@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/TriValueBinding.h
 // Source: trinity/trinity/TriValueBinding.cpp
 // Source: trinity/trinity/TriValueBinding_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { INotify } from "#blue/INotify";
 import { ITriReroutable } from "../ITriReroutable.js";
 import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
@@ -141,8 +141,7 @@ export class TriValueBinding extends INotify
   offset = vec4.create();
 
   /** m_copyValueCallable (BlueScriptCallback) [READWRITE, NOTIFY] */
-  @blue.notify
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE | be.NOTIFY)
   @type.rawStruct("BlueScriptCallback")
   copyValueCallable = null;
 

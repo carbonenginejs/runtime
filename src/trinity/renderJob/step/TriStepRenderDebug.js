@@ -13,7 +13,7 @@ import { vec3 } from "#math/vec3";
 export class TriStepRenderDebug extends TriRenderStep
 {
 
-  @type.rootRef("TriLineSet")
+  @type.object.weak("TriLineSet")
   lineSet = new TriLineSet();
 
   @type.list("TriDebugText2D")

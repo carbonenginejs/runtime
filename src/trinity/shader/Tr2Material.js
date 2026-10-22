@@ -49,7 +49,7 @@ export class Tr2Material extends IRoot
 {
 
   /** m_shader (Tr2ShaderPtr) */
-  @type.rootRef("Tr2Shader")
+  @type.object.ref("Tr2Shader")
   shader = null;
 
   /** m_parametersForPasses (Tr2EffectTechniqueParametersVector) */

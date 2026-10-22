@@ -190,13 +190,13 @@ export class Tr2VolumetricsRenderer
   _fogPerObjectData = RawData.create("FogPerObjectData");
 
   /** Native cloud pass effects (cpp:51-66). */
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   volumeBlit = new Tr2Effect();
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   downsampleDepth = new Tr2Effect();
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   hBlur = new Tr2Effect();
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   vBlur = new Tr2Effect();
   /** Native unsorted cloud accumulator. */
   batches = new TriRenderBatchAccumulator();

@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/TriEventKey.h
 // Source: trinity/trinity/Curves/TriEventKey.cpp
 // Source: trinity/trinity/Curves/TriEventKey_Blue.cpp
-import { type, blue } from "#schema";
+import { type } from "#schema";
 
 
 /**
@@ -27,12 +27,12 @@ export class TriEventKey extends IRoot
   value = "";
 
   /** Host callable; JavaScript GC replaces native Py_XDECREF ownership. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("PyObject")
   callable = null;
 
   /** Host callable arguments; runtime-only and owned through ordinary JS references. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rootRef("PyObject")
   callableArgs = null;
 }

@@ -20,7 +20,7 @@ export class MeshBoundsInfo
   areaCount = null;
 
   /** areaInfos (AreaBoundsInfo*) */
-  @type.rootRef("AreaBoundsInfo")
+  @type.object.weak("AreaBoundsInfo")
   areaInfos = null;
 
   /** sourceMeshIndex (granny_int32) */

@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 
 
@@ -48,27 +48,23 @@ export class EveChildTransform extends EveSpaceObjectChild
   @type.mat4
   localTransform = mat4.create();
 
-  @blue.read
+  @meta.attribute(meta.READ)
   @type.mat4
   worldTransform = mat4.create();
 
-  @blue.readwrite
-  @blue.persist
+  @meta.attribute(meta.READWRITE | meta.PERSIST)
   @type.boolean
   staticTransform = false;
 
-  @blue.readwrite
-  @blue.persist
+  @meta.attribute(meta.READWRITE | meta.PERSIST)
   @type.boolean
   useSRT = true;
 
-  @blue.readwrite
-  @blue.persist
+  @meta.attribute(meta.READWRITE | meta.PERSIST)
   @type.boolean
   useStaticRotation = false;
 
-  @blue.readwrite
-  @blue.persist
+  @meta.attribute(meta.READWRITE | meta.PERSIST)
   @type.boolean
   useStaticScale = false;
 

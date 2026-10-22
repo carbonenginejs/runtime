@@ -9,11 +9,11 @@ export class Tr2RaytracingMesh
 {
 
   /** m_skinnedVertices (const Tr2BufferAL*) */
-  @type.rootRef("Tr2BufferAL")
+  @type.object.weak("Tr2BufferAL")
   skinnedVertices = null;
 
   /** m_geometry (TriGeometryResPtr) */
-  @type.rootRef("TriGeometryRes")
+  @type.object.ref("TriGeometryRes")
   geometry = null;
 
   /** m_meshIndex (uint32_t) */

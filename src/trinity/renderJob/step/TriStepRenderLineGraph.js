@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/RenderJob/TriStepRenderLineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { CjsScriptCallback } from "#blue";
 
@@ -51,7 +51,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
   _scaleChangeCallback = null;
 
   /** m_scaleChangeCallback (BlueScriptCallback) [READWRITE]: the stored script callback, or null. */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rawStruct("BlueScriptCallback")
   get scaleChangeCallback()
   {

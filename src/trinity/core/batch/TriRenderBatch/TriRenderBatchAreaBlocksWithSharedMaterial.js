@@ -44,7 +44,7 @@ export class TriRenderBatchAreaBlocksWithSharedMaterial extends TriRenderBatchAr
   }
 }
 
-CjsSchema.decorateField(TriRenderBatchAreaBlocksWithSharedMaterial, "shaderMaterial", type.rootRef("Tr2Effect"));
+CjsSchema.decorateField(TriRenderBatchAreaBlocksWithSharedMaterial, "shaderMaterial", type.object.ref("Tr2Effect"));
 CjsSchema.decorateField(TriRenderBatchAreaBlocksWithSharedMaterial, "areaBlockVector", type.array(TriRenderBatchAreaBlock));
 // States: TriRenderBatch.cpp:61-73, statement for statement.
 CjsSchema.decorateMethod(TriRenderBatchAreaBlocksWithSharedMaterial, "Optimize", meta.implemented);

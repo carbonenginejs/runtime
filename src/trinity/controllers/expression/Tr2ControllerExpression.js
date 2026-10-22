@@ -44,11 +44,11 @@ export class Tr2ControllerExpression
   program = null;
 
   /** State-machine overload context, or null. */
-  @type.rootRef("Tr2StateMachine")
+  @type.object.weak("Tr2StateMachine")
   stateMachine = null;
 
   /** Action controller whose expression buffer and owner are read. */
-  @type.rootRef("ITr2ActionController")
+  @type.object.weak("ITr2ActionController")
   controller = null;
 
   /** Cached variable dirty mask used to avoid unnecessary evaluation. */

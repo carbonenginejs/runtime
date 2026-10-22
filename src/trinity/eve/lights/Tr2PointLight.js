@@ -42,7 +42,7 @@ export class Tr2PointLight extends Tr2Light
   lightProfilePath = "";
 
   @be.mapAttribute(be.READ)
-  @type.rootRef("Tr2LightProfileRes")
+  @type.object.ref("Tr2LightProfileRes")
   lightProfile = null;
 
   // Carbon maps these rows into the embedded LightData m_lightData

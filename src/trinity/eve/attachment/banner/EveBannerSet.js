@@ -104,7 +104,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   // SOF-authored primary banner texture parameter; persisted so the values
   // interchange reproduces Carbon's hidden banner binding.
   @meta.attribute(meta.PERSIST)
-  @type.rootRef("TriTextureParameter")
+  @type.object.ref("TriTextureParameter")
   primaryTextureParameter = null;
 
   _rebuildRevision = 0;

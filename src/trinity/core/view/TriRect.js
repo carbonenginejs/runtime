@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/TriRect.h
 // Source: trinity/trinity/TriRect.cpp
 // Source: trinity/trinity/TriRect_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -18,26 +18,22 @@ import { meta, type, blue } from "#schema";
 export class TriRect extends IRoot
 {
   /** Stored signed left edge. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.int32
   left = 0;
 
   /** Stored signed top edge. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.int32
   top = 0;
 
   /** Stored signed right edge. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.int32
   right = 0;
 
   /** Stored signed bottom edge. */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.int32
   bottom = 0;
 

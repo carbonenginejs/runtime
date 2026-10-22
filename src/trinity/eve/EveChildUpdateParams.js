@@ -14,16 +14,16 @@ import { type, blue } from "#schema";
 @meta.carbon("EveChildUpdateParams")
 export class EveChildUpdateParams
 {
-  @type.rootRef("IEveSpaceObject2")
+  @type.object.weak("IEveSpaceObject2")
   spaceObjectParent = null;
 
-  @type.rootRef("EveSpaceObjectChild")
+  @type.object.weak("EveSpaceObjectChild")
   childParent = null;
 
   @type.uint64
   boneCount = 0;
 
-  @type.rootRef("Float4x3")
+  @type.object.weak("Float4x3")
   bones = null;
 
   @type.float32

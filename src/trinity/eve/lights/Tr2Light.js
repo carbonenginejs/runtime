@@ -57,7 +57,7 @@ export class Tr2Light
 
   // Every subclass exposes it Be::READ (Tr2PointLight_Blue.cpp:44 and siblings).
   @meta.read
-  @type.rootRef("Tr2LightProfileRes")
+  @type.object.ref("Tr2LightProfileRes")
   lightProfile = null;
 
   @meta.notify

@@ -22,7 +22,7 @@ export class EvePickingContext extends IRoot
   @type.uint32
   lastPickedY = 0;
 
-  @type.rootRef("IRoot")
+  @type.object.ref("IRoot")
   lastPickedObject = null;
 
   @type.uint32

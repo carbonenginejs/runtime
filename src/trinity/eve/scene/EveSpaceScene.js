@@ -394,7 +394,7 @@ export class EveSpaceScene
    * entity, default-constructed like Carbon's ctor CreateInstance (cpp:287, no
    * further setup applied). Consumers still optional-chain - deserialization
    * may null it. */
-  @type.rootRef("EveEffectRoot2")
+  @type.object.ref("EveEffectRoot2")
   cameraAttachmentParent = new EveEffectRoot2();
 
   /**

@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { IInitialize } from "#blue/IInitialize";
 import { ITr2AnimationUpdater } from "./ITr2AnimationUpdater.js";
 // Source: trinity/trinity/Tr2GStateAnimation.h
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /** Character GState animation record for an external state-machine adapter. */
 @be.define("Tr2GStateAnimation")
@@ -14,48 +14,47 @@ export class Tr2GStateAnimation extends IRoot
 {
 
   /** m_resPath (std::string) [PERSISTONLY] */
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
   @type.string
   resPath_ = "";
 
   /** m_gStateResPath (std::string) [PERSISTONLY] */
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
   @type.string
   gStateResPath_ = "";
 
   /** m_model (std::string) [PERSISTONLY] */
-  @blue.persistOnly
+  @be.mapAttribute(be.PERSISTONLY)
   @type.string
   model_ = "";
 
   /** m_gStateParameterList (PTr2GStateParameterVector) [READ, PERSIST] */
-  @blue.read
-  @blue.persist
+  @be.mapAttribute(be.READ | be.PERSIST)
   @type.list("Tr2GStateParameter")
   parameters = [];
 
   /** m_grannyRes (TriGrannyResPtr) [READ] */
-  @blue.read
-  @type.rootRef("TriGrannyRes")
+  @be.mapAttribute(be.READ)
+  @type.object.ref("TriGrannyRes")
   grannyRes = null;
 
   /** m_eventListener (IBlueEventListenerPtr) [READWRITE] */
-  @blue.readwrite
-  @type.rootRef("IBlueEventListener")
+  @be.mapAttribute(be.READWRITE)
+  @type.object.ref("IBlueEventListener")
   eventListener = null;
 
   /** m_animationEnabled (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   animationEnabled = true;
 
   /** m_debugRenderJointNames (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   debugRenderJointNames = false;
 
   /** m_debugRenderSkeleton (bool) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.boolean
   debugRenderSkeleton = false;
 

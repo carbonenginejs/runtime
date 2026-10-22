@@ -95,8 +95,6 @@ export class SeekTarget extends IRoot
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
-
-  @meta.reference
   @type.object.weak("EveSpaceObject2")
   target = null;
 
@@ -129,7 +127,6 @@ export class SeekTarget extends IRoot
 
   /** m_locatorSet (EveLocatorSetsPtr) [READ, PERSIST] */
   @be.mapAttribute(be.READ | be.PERSIST)
-
   @type.object.ref("EveLocatorSets")
   locatorSet = null;
 

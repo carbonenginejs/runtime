@@ -36,11 +36,11 @@ export class Tr2OcclusionBuffer
 {
 
   /** m_management (Tr2EffectPtr): Clear and CopyCounters (cpp:17-18). */
-  @type.rootRef("Tr2Effect")
+  @type.object.ref("Tr2Effect")
   management = null;
 
   /** m_buffer (Tr2GpuBufferPtr), registered as "FlareOcclusionBuffer" (cpp:20-21). */
-  @type.rootRef("Tr2GpuBuffer")
+  @type.object.ref("Tr2GpuBuffer")
   buffer = null;
 
   /** m_free (std::vector<uint32_t>): free slot bases, handed out from the back. */

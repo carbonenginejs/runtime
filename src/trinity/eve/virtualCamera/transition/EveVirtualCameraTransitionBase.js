@@ -15,15 +15,13 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
 @be.abstract
 export class EveVirtualCameraTransitionBase extends IRoot
 {
-  @meta.reference
-  @type.rootRef("EveVirtualCamera")
+  @type.object.ref("EveVirtualCamera")
   sourceCamera = null;
 
-  @meta.reference
-  @type.rootRef("EveVirtualCamera")
+  @type.object.ref("EveVirtualCamera")
   targetCamera = null;
 
-  @type.rootRef("EveVirtualCamera")
+  @type.object.ref("EveVirtualCamera")
   transitionCamera = null;
 
   /**

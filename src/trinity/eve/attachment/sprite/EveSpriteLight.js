@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { LightData } from "../../lights/LightData.js";
 
 
@@ -14,7 +14,6 @@ import { LightData } from "../../lights/LightData.js";
 @meta.carbon("EveSpriteLight")
 export class EveSpriteLight
 {
-  @meta.owned
   @type.object.embed("LightData")
   lightData = new LightData();
 
@@ -30,7 +29,7 @@ export class EveSpriteLight
   @type.float32
   maxScale = 0;
 
-  @type.rootRef("Tr2LightProfileRes")
+  @type.object.ref("Tr2LightProfileRes")
   lightProfile = null;
 
   @type.uint32

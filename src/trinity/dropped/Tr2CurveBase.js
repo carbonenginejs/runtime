@@ -60,11 +60,11 @@ export class Tr2CurveBase
   currentKeyIdx = 0;
 
   /** m_lastKey (Key*) */
-  @type.rootRef("Key")
+  @type.object.weak("Key")
   lastKey = null;
 
   /** m_nextKey (Key*) */
-  @type.rootRef("Key")
+  @type.object.weak("Key")
   nextKey = null;
 
   /** m_startOfSegment (float) */

@@ -560,7 +560,7 @@ CjsSchema.decorateField(Tr2RenderBatch, "groupCount", type.uint32);
 CjsSchema.decorateField(Tr2RenderBatch, "stride", type.array("uint32"));
 CjsSchema.decorateField(Tr2RenderBatch, "renderingMode", type.int32);
 CjsSchema.decorateField(Tr2RenderBatch, "topology", type.int32);
-CjsSchema.decorateField(Tr2RenderBatch, "material", type.rootRef("Tr2Material"));
+CjsSchema.decorateField(Tr2RenderBatch, "material", type.object.weak("Tr2Material"));
 // States: each setter is TriRenderBatch.cpp:75-170, IsValid is cpp:172-175. SetMaterial is adapted: a null material clears the shader where Carbon
 // dereferences it. SetStreamSource and SetIndices are adapted: only the buffer-and-stride overload is ported, not the suballocation one.
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetMaterial", meta.adapted);

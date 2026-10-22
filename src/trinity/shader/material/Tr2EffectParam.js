@@ -13,7 +13,7 @@ export class Tr2EffectParam
   sourceName = "";
 
   /** m_sourceValue (ITr2EffectValuePtr) */
-  @type.rootRef("ITr2EffectValue")
+  @type.object.ref("ITr2EffectValue")
   sourceValue = null;
 
   /** m_registerIndex (unsigned int). Carbon leaves it unset (Shader/Tr2Material.h:23). */

@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GStateParameter.h
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 
 /** Named, node-scoped scalar value for a character GState animation. */
@@ -10,20 +10,17 @@ export class Tr2GStateParameter extends IInitialize
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.string
   name = "";
 
   /** m_value (float) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.float32
   value = 0;
 
   /** m_nodeName (std::string) [READWRITE, PERSIST] */
-  @blue.readwrite
-  @blue.persist
+  @be.mapAttribute(be.READWRITE | be.PERSIST)
   @type.string
   nodename = "";
 

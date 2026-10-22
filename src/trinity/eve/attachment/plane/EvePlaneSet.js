@@ -153,19 +153,19 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   // SOF-authored shared texture parameters; persisted so the values
   // interchange reproduces Carbon's hidden plane-set bindings.
   @meta.attribute(meta.PERSIST)
-  @type.rootRef("TriTextureParameter")
+  @type.object.ref("TriTextureParameter")
   imageMapParameter = null;
 
   @meta.attribute(meta.PERSIST)
-  @type.rootRef("TriTextureParameter")
+  @type.object.ref("TriTextureParameter")
   layerMap1Parameter = null;
 
   @meta.attribute(meta.PERSIST)
-  @type.rootRef("TriTextureParameter")
+  @type.object.ref("TriTextureParameter")
   layerMap2Parameter = null;
 
   @meta.attribute(meta.PERSIST)
-  @type.rootRef("TriTextureParameter")
+  @type.object.ref("TriTextureParameter")
   maskMapParameter = null;
   _rebuildRevision = 0;
 

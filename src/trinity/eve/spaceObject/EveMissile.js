@@ -8,7 +8,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { CjsScriptCallback } from "#blue/CjsScriptCallback";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -34,11 +34,10 @@ export class EveMissile extends EveSpaceObject2
   @be.mapAttribute(be.READWRITE)
   @type.boolean updateWarheads = true;
   @be.mapAttribute(be.READWRITE)
-  @meta.reference
   @type.object.ref("ITriTargetable") target = null;
   @be.mapAttribute(be.READWRITE)
   @type.float32 targetRadius = 0;
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.rawStruct("BlueScriptCallback") explosionCallback = null;
 
   _inheritedStartVelocity = vec3.create();

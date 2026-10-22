@@ -12,7 +12,7 @@ export class DroneAgent
 {
 
   /** closestAgentInGroup (DroneAgent*) */
-  @type.rootRef("DroneAgent")
+  @type.object.weak("DroneAgent")
   closestAgentInGroup = null;
 
   /** rotation (Quaternion) */

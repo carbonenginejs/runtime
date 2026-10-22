@@ -61,24 +61,24 @@ export class EveUpdateContext
   raytracingEnabled = false;
 
   /** m_dataTextureManager (Tr2DataTextureManagerPtr) */
-  @type.rootRef("Tr2DataTextureManager")
+  @type.object.ref("Tr2DataTextureManager")
   dataTextureManager = null;
 
   /** m_gpuParticleSystem (Tr2GpuParticleSystemPtr) */
-  @type.rootRef("Tr2GpuParticleSystem")
+  @type.object.ref("Tr2GpuParticleSystem")
   gpuParticleSystem = null;
 
   /** m_ballpark (IEveBallparkPtr) */
-  @type.rootRef("IEveBallpark")
+  @type.object.ref("IEveBallpark")
   ballpark = null;
 
   /** m_taskGroup (Tr2ParallelTaskGroup*) */
-  @type.rootRef("Tr2ParallelTaskGroup")
+  @type.object.weak("Tr2ParallelTaskGroup")
   taskGroup = null;
 
   /** m_frustum (TriFrustum) - Carbon holds one by value (EveUpdateContext.h:216), so a
    * context always has its own frustum; SetFrustum copies into it (ruling 16). */
-  @type.rootRef("TriFrustum")
+  @type.object.embed("TriFrustum")
   frustum = new TriFrustum();
 
   /** m_origin (Vector3d) - double-precision world origin for camera-relative

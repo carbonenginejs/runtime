@@ -52,22 +52,22 @@ export class EveSOFDNA extends IRoot
   @type.string
   dna = "";
 
-  @type.rootRef("EveSOFDataMgr")
+  @type.object.ref("EveSOFDataMgr")
   dataMgr = null;
 
   @type.list("EveSOFDataMgr::HullData")
   hullDatas = [];
 
-  @type.rootRef("EveSOFDataMgr::FactionData")
+  @type.object.weak("EveSOFDataMgr::FactionData")
   factionData = null;
 
-  @type.rootRef("EveSOFDataMgr::RaceData")
+  @type.object.weak("EveSOFDataMgr::RaceData")
   raceData = null;
 
-  @type.rootRef("EveSOFDataMgr::GenericData")
+  @type.object.weak("EveSOFDataMgr::GenericData")
   genericData = null;
 
-  @type.rootRef("EveSOFDataMgr::PatternData")
+  @type.object.weak("EveSOFDataMgr::PatternData")
   patternData = null;
 
   @type.list("EveSOFDataMgr::LayoutData")

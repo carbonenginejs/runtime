@@ -56,7 +56,7 @@ export class AudManager extends IRoot
    */
   @meta.adapted
   @meta.attribute(meta.PERSIST)
-  @type.rootRef("AudSettings")
+  @type.object.ref("AudSettings")
   settings = null;
 
   // AudioState (Uninitialized/Disabled/Enabled) as lowercase strings;

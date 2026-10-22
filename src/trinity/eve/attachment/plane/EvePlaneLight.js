@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { LightData } from "../../lights/LightData.js";
 import { FadeType } from "../EveSpaceObjectAttachmentUtils.js";
 
@@ -23,14 +23,13 @@ export class EvePlaneLight
   static FT_FADEOUT = 3;
   static FT_FADEINOUT = 4;
 
-  @meta.owned
   @type.object.embed("LightData")
   lightData = new LightData();
 
   @type.float32
   saturation = 1;
 
-  @type.rootRef("Tr2LightProfileRes")
+  @type.object.ref("Tr2LightProfileRes")
   lightProfile = null;
 
   @type.int32

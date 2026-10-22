@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { LightData } from "../../lights/LightData.js";
 
 
@@ -13,14 +13,13 @@ import { LightData } from "../../lights/LightData.js";
 @meta.carbon("EveBannerLight")
 export class EveBannerLight
 {
-  @meta.owned
   @type.object.embed("LightData")
   lightData = new LightData();
 
   @type.float32
   saturation = 1;
 
-  @type.rootRef("Tr2LightProfileRes")
+  @type.object.ref("Tr2LightProfileRes")
   lightProfile = null;
 
   @type.uint32

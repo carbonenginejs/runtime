@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.h
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -14,25 +14,25 @@ import { meta, type, blue } from "#schema";
 @meta.struct.define({ size: 48 })
 export class Locator
 {
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(0)
   position = vec3.create();
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_4(12)
   @type.quat
   direction = quat.create();
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.FLOAT32_3(28)
   scale = vec3.fromValues(1, 1, 1);
 
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.INT32_1(40)
   boneIndex = -1;
 
   /** Carbon modular-object ownership tag for this locator record. */
-  @blue.persist
+  @meta.attribute(meta.PERSIST)
   @meta.struct.UINT32_1(44)
   partTag = 0;
 }

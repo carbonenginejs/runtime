@@ -12,15 +12,15 @@ export class TriStepRemoteUpdate extends TriRenderStep
 {
 
   /** m_view (TriViewPtr) */
-  @type.rootRef("TriView")
+  @type.object.ref("TriView")
   view = null;
 
   /** m_viewport (TriViewportPtr) */
-  @type.rootRef("TriViewport")
+  @type.object.ref("TriViewport")
   viewport = null;
 
   /** m_projection (TriProjectionPtr) */
-  @type.rootRef("TriProjection")
+  @type.object.ref("TriProjection")
   projection = null;
 
   /** m_sharedMemoryHandle (HANDLE) */

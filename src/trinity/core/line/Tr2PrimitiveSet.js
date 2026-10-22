@@ -47,7 +47,7 @@ export class Tr2PrimitiveSet extends IRoot
   worldTransform = mat4.create();
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
-  @blue.readwrite
+  @be.mapAttribute(be.READWRITE)
   @type.unknown
   _userData = null;
 
