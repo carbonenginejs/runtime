@@ -9,9 +9,10 @@ import { meta, type, blue } from "#schema";
  * Base of every render-job step: an enable flag, a name, and the
  * begin/execute/end contract the owning job drives.
  */
-@blue.define({ className: "TriRenderStep", abstract: true })
+@blue.define({ className: "TriRenderStep" })
 @blue.interface()
 @blue.inherit(IRoot)
+@be.abstract
 export class TriRenderStep extends IRoot
 {
   static Result = Object.freeze({

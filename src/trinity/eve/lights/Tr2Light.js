@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Lights/Tr2Light.h
 // Source: trinity/trinity/Lights/Tr2Light.cpp
+import { exposure as be } from "#be";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { color } from "#math/color";
@@ -19,9 +20,10 @@ import { LightFeatures } from "./LightFeatures.js";
  * transform, and submits a converted point or spot record to the light manager
  * each frame.
  */
-@legacyBlue.define({ className: "Tr2Light", abstract: true })
+@legacyBlue.define({ className: "Tr2Light" })
 @legacyBlue.inherit(IInitialize, INotify)
 @legacyBlue.interface()
+@be.abstract
 export class Tr2Light
 {
   static LightType = {

@@ -1,10 +1,12 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dTexture.h
 import { blue } from "#schema";
 
 /** Native nominal contract for Sprite2D texture inputs. */
-@blue.define({ className: "ITr2Sprite2dTexture", abstract: true })
+@blue.define({ className: "ITr2Sprite2dTexture" })
 @blue.inherit(IRoot)
+@be.abstract
 export class ITr2Sprite2dTexture extends IRoot
 {
   /** Applies the texture and sampling settings. */

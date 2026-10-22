@@ -5,6 +5,7 @@ import decoratorsPlugin from "@babel/plugin-proposal-decorators";
 import { exposure as be } from "#be";
 import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
 import { CjsBlueClasses } from "../../src/global/blue/CjsBlueClasses.js";
+import { getClassRegistration } from "../../src/global/blue/classes/registry.js";
 
 // decorator-upgrade.md § 00 "Inherited members mapped by a subclass": every be.map* decorator also works above a class, naming a member
 // the class inherits. The row lands in the subclass's own table, the base's table keeps what it had, and the name is required.
@@ -147,4 +148,21 @@ test("the subclass's row is Carbon's complete row: its flags replace the base's 
     const base = CjsSchema.getSchema(Base).members.find(m => m.name === "display");
     assert.equal(base.edit.notify, true, "the base keeps its own flags");
     assert.equal(base.exposure.flags, be.READWRITE | be.PERSIST | be.NOTIFY);
+});
+
+test("be.abstract and meta.abstract above a class mark it abstract, below the identity decorator", async () =>
+{
+    const { Plain, Marked, Ours } = await load(`
+      @be.define("AbstractPlain") export class Plain {}
+      @be.define("AbstractMarked") @be.abstract export class Marked {}
+      @meta.define("AbstractOurs") @meta.abstract export class Ours {}`);
+    assert.equal(CjsSchema.getSchema(Plain).abstract, undefined);
+    assert.equal(CjsSchema.getSchema(Marked).abstract, true);
+    assert.equal(getClassRegistration("AbstractMarked").flags, 1, "Blue refuses to construct it");
+    assert.equal(getClassRegistration("AbstractPlain").flags, 0);
+    assert.equal(CjsSchema.getSchema(Ours).abstract, true);
+    assert.equal(getClassRegistration("AbstractOurs").flags, 1);
+    class Late2 {}
+    be.define("AbstractLate")(Late2);
+    assert.throws(() => be.abstract(Late2), /added to AbstractLate after it registered/);
 });

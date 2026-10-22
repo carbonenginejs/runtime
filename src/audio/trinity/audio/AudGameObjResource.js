@@ -70,11 +70,12 @@ function NowMs()
  * culling state. Abstract in Carbon (`BLUE_DEFINE_ABSTRACT`, _Blue.cpp:8):
  * AudEmitter, AudListener, AudUIPlayer and AudMusicPlayer build on it.
  */
-@legacyBlue.define({ className: "AudGameObjResource", abstract: true })
+@legacyBlue.define({ className: "AudGameObjResource" })
 @legacyBlue.inherit(IInitialize, IListNotify, INotify, IPrioritizedObject)
 @be.mapInterface(IInitialize)
 @be.mapInterface(IListNotify)
 @be.mapInterface(INotify)
+@be.abstract
 export class AudGameObjResource
 {
 

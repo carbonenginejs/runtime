@@ -101,7 +101,7 @@ CjsSchema.decorateField(Tr2TextureLodManager, "lowDetailVtaFiles", type.boolean)
 CjsSchema.decorateMethod(Tr2TextureLodManager, "RegisterTexture", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureLodManager, "UnregisterTexture", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureLodManager, "GetManagedTextures", be.mapMethodAndWrap(), meta.implemented);
+CjsSchema.exposure.abstract(Tr2TextureLodManager);
 CjsSchema.blue.define(Tr2TextureLodManager, {
-  className: "Tr2TextureLodManager",
-  abstract: true
+  className: "Tr2TextureLodManager"
 });

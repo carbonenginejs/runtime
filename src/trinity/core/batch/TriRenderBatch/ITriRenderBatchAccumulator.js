@@ -4,6 +4,7 @@
 // state plus the collect/sort contract. Concrete accumulators
 // (TriRenderBatchAccumulator) implement Commit/Finalize/Get*/TransferFrom. This
 // collects CPU batch data; dispatch to the device is not ported yet.
+import { exposure as be } from "#be";
 import { RenderingMode } from "#consts/graphics";
 import { CjsSchema, meta, blue } from "#schema";
 
@@ -13,7 +14,8 @@ import { CjsSchema, meta, blue } from "#schema";
  * user data and per-object-data store, and declares the collect and sort
  * contract concrete accumulators implement.
  */
-@blue.define({ className: "ITriRenderBatchAccumulator", abstract: true })
+@blue.define({ className: "ITriRenderBatchAccumulator" })
+@be.abstract
 export class ITriRenderBatchAccumulator
 {
   // Fields in Carbon's member order (TriRenderBatch.h:291-293), with the

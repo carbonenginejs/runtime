@@ -75,8 +75,9 @@ const INT_MAX = 0x7fffffff;
  */
 
 /** Tracks font-loading policy together with the glyph-cache memory budget and occupancy. */
-@legacyBlue.define({ className: "Tr2FontManager", abstract: true, purpose: "Tracks font-loading policy together with the glyph-cache memory budget and occupancy." })
+@legacyBlue.define({ className: "Tr2FontManager", purpose: "Tracks font-loading policy together with the glyph-cache memory budget and occupancy." })
 @legacyBlue.inherit(IRoot, IBlueEvents)
+@be.abstract
 export class Tr2FontManager extends IRoot
 {
 

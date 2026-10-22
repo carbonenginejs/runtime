@@ -19,7 +19,6 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
  */
 @blue.define({
   className: "Tr2SkinnedObject",
-  abstract: true,
   fields: {
     // MAP_PROPERTY_READONLY (Tr2SkinnedObject_Blue.cpp:48).
     currentLod: [blue.property(), type.int32]
@@ -29,6 +28,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IWorldPosition)
 @be.mapInterface(IListNotify)
+@be.abstract
 export class Tr2SkinnedObject extends IRoot
 {
 

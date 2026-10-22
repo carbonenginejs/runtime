@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta } from "#schema";
 // Source: trinity/trinity/Font/Tr2FontMeasurer.h:20-24
 //
@@ -16,7 +17,8 @@ import { meta } from "#schema";
 import { blue } from "#schema";
 
 /** Receives change notifications from a font measurer it registered with. */
-@blue.define({ className: "ITr2FontMeasurerNotifyTarget", abstract: true })
+@blue.define({ className: "ITr2FontMeasurerNotifyTarget" })
+@be.abstract
 export class ITr2FontMeasurerNotifyTarget
 {
   /**

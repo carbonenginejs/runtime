@@ -11,9 +11,10 @@ import { meta, type, blue } from "#schema";
  * Base for the virtual camera behaviours that contribute a scalar delta to a
  * camera's field of view or roll each update.
  */
-@blue.define({ className: "EveVirtualCameraBehaviourFloatBase", abstract: true })
+@blue.define({ className: "EveVirtualCameraBehaviourFloatBase" })
 @blue.inherit(INotify)
 @be.mapInterface(INotify)
+@be.abstract
 export class EveVirtualCameraBehaviourFloatBase extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

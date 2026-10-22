@@ -1,10 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { exposure as be } from "#be";
 import { meta, type, blue } from "#schema";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Provides named typed socket parameters with external-value binding, default capture, and propagation hooks. */
-@blue.define({ className: "EveSocketParameterBindingBase", abstract: true })
+@blue.define({ className: "EveSocketParameterBindingBase" })
+@be.abstract
 export class EveSocketParameterBindingBase extends IEveSocketParameter
 {
 

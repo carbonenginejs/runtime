@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { meta } from "#schema";
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dTexture.h:14-18
 //
@@ -14,7 +15,8 @@ import { meta } from "#schema";
 import { blue } from "#schema";
 
 /** Receives change notifications from a Sprite2D texture it registered with. */
-@blue.define({ className: "ITr2Sprite2dTextureNotifyTarget", abstract: true })
+@blue.define({ className: "ITr2Sprite2dTextureNotifyTarget" })
+@be.abstract
 export class ITr2Sprite2dTextureNotifyTarget
 {
   /**

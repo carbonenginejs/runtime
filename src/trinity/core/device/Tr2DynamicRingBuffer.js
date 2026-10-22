@@ -5,6 +5,7 @@
 // into the first region the GPU is no longer reading, DoneUsingData fences it,
 // and regions are reused once their fence is reached. Carbon's header also
 // declares Tr2RingVertexBuffer and Tr2RingIndexBuffer; each has its own file.
+import { exposure as be } from "#be";
 import { meta, type, blue } from "#schema";
 import { ALResult, Failed, Tr2FenceAL } from "#trinityal";
 import { Tr2Renderer } from "../Tr2Renderer.js";
@@ -23,7 +24,8 @@ function Align(offset, alignment)
  * it is null until created. `PutData` returns `{ result, offset }` for
  * Carbon's out-parameter.
  */
-@blue.define({ className: "Tr2DynamicRingBuffer", abstract: true })
+@blue.define({ className: "Tr2DynamicRingBuffer" })
+@be.abstract
 export class Tr2DynamicRingBuffer
 {
   /** _bufferSize - bytes. */

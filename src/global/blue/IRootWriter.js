@@ -369,7 +369,8 @@ function EqualDefault(value, other, type)
 
 CjsSchema.blue.inherit(IRoot)(IRootWriter);
 
-CjsSchema.blue.define(IRootWriter, { className: "IRootWriter", abstract: true });
+CjsSchema.exposure.abstract(IRootWriter);
+CjsSchema.blue.define(IRootWriter, { className: "IRootWriter" });
 CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteList", meta.adapted);

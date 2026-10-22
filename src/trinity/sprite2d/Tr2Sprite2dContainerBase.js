@@ -10,11 +10,12 @@ import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 /** Shared Sprite2D container state and child-parent propagation. */
-@blue.define({ className: "Tr2Sprite2dContainerBase", abstract: true })
+@blue.define({ className: "Tr2Sprite2dContainerBase" })
 @blue.inherit(IListNotify)
 @be.mapInterface(ITr2SpriteObject)
 @be.mapInterface(IListNotify)
 @be.exposureChainTo(Tr2SpriteObjectBase)
+@be.abstract
 export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
 {
 

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITriTargetable.h
 import { meta, blue } from "#schema";
@@ -10,7 +11,8 @@ import { ImpactConfiguration } from "../generated/include/enums.js";
  * last argument (Carbon passes them first) except UpdateImpact, whose
  * implementers already take the output first.
  */
-@blue.define({ className: "ITriTargetable", abstract: true })
+@blue.define({ className: "ITriTargetable" })
+@be.abstract
 export class ITriTargetable extends IRoot
 {
   /** Number of damage locators. @returns {number} */

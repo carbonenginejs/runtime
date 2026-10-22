@@ -1,5 +1,6 @@
 // Source: audio/src/AudMusicPlayer.h + AudMusicPlayer.cpp
 // Hand-owned since 2026-07-19 (behavior port); the generator skips this file.
+import { exposure as be } from "#be";
 import { meta, blue } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 
@@ -13,9 +14,10 @@ const FLOAT_MAX = 3.4028234663852886e38;
  * FLT_MAX culling weight, fixed origin pose (AudMusicPlayer.cpp:6-11); all
  * behavior is inherited from AudEmitter (SendEvent/SetSwitch/SetRTPC/...).
  */
-@blue.define({ className: "AudMusicPlayer", abstract: true })
+@blue.define({ className: "AudMusicPlayer" })
 @blue.interface()
 @blue.chainTo(AudEmitter)
+@be.abstract
 export class AudMusicPlayer extends AudEmitter
 {
 

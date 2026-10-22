@@ -1833,6 +1833,16 @@ function abstractDecorator(parts)
     const describers = parts.map(({ namespace, value }) => methodDecorator(namespace, value));
     const decorator = function schemaAbstractDecorator(targetOrValue, contextOrMethodName)
     {
+        // Above a class it marks the class abstract: Blue refuses to construct it (BLUE_REGISTER_ABSTRACT_CLASS). The registry entry is
+        // chosen when the class registers, so this sits below the class's identity decorator, like attribute and property rows.
+        if ((contextOrMethodName && typeof contextOrMethodName === "object" && contextOrMethodName.kind === "class")
+            || (contextOrMethodName === undefined && typeof targetOrValue === "function"))
+        {
+            RejectAfterRegistration(targetOrValue, "abstract class marker");
+            getOrCreateClassSchema(targetOrValue).abstract = true;
+            SCHEMA_GENERATION += 1;
+            return;
+        }
         if (contextOrMethodName && typeof contextOrMethodName === "object")
         {
             const thrower = decorateAbstractMethod(targetOrValue, contextOrMethodName);

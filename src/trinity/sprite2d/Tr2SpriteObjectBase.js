@@ -16,10 +16,11 @@ import { blue, INotify } from "#blue";
  * ordinary JavaScript references; native destructor detach assertions have no
  * deterministic destruction counterpart here.
  */
-@legacyBlue.define({ className: "Tr2SpriteObjectBase", abstract: true })
+@legacyBlue.define({ className: "Tr2SpriteObjectBase" })
 @legacyBlue.inherit(INotify)
 @be.mapInterface(ITr2SpriteObject)
 @be.mapInterface(INotify)
+@be.abstract
 export class Tr2SpriteObjectBase extends ITr2SpriteObject
 {
 

@@ -88,9 +88,10 @@ const meshLodMember = { carbon: { member: true }, name: "meshLod", key: "mesh", 
  * controllers - together with the curve-driven world transform, visibility, LOD
  * and batch submission that drive them each frame.
  */
-@legacyBlue.define({ className: "EveSpaceObject2", abstract: true, members: [ meshLodMember ] })
+@legacyBlue.define({ className: "EveSpaceObject2", members: [ meshLodMember ] })
 @legacyBlue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, IShaderConfigurer, ITr2LightOwner)
 @legacyBlue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveShadowCaster, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2DebugRenderable, IListNotify, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2LightOwner)
+@be.abstract
 export class EveSpaceObject2 extends EveEntity
 {
 
