@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.h:23-32
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:6
@@ -10,7 +11,7 @@ import { CjsSchema, blue } from "#schema";
  * interface. Vector methods use caller-provided output buffers instead of native
  * value returns, matching the existing concrete follow-key methods.
  */
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class ITr2FollowCurveKey extends IRoot
 {
   /**

@@ -27,7 +27,7 @@
 //   empty one; its real backends keep it. Dropping caller data is a shortcut
 //   that is harmless only while nothing reads it, and the register map will.
 
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -196,4 +196,4 @@ CjsSchema.decorateMethod(Tr2ShaderALStub, "SetNullShaderType", meta.implemented)
 CjsSchema.decorateMethod(Tr2ShaderALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2ShaderALStub, { className: "Tr2ShaderALStub" });
+CjsSchema.meta.define("Tr2ShaderALStub")(Tr2ShaderALStub);

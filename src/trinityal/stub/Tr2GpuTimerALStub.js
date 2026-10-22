@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2GpuTimerALStub.cpp
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -130,4 +130,4 @@ CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetTime", meta.implemented);
 CjsSchema.decorateMethod(Tr2GpuTimerALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2GpuTimerALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2GpuTimerALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2GpuTimerALStub, { className: "Tr2GpuTimerALStub" });
+CjsSchema.meta.define("Tr2GpuTimerALStub")(Tr2GpuTimerALStub);

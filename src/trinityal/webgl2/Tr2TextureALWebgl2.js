@@ -47,7 +47,7 @@
 //   is not a texture, so there is nothing to attach; the swap chain draws to
 //   that framebuffer directly.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { CjsDdsFormat } from "../../resource/formats/dds/CjsDdsFormat.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
@@ -1436,5 +1436,5 @@ CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetUavIndexInHeap", meta.implement
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "SetName", meta.adapted);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Describe", meta.adapted);
-CjsSchema.blue.define(Tr2TextureALWebgl2, { className: "Tr2TextureALWebgl2" });
+CjsSchema.meta.define("Tr2TextureALWebgl2")(Tr2TextureALWebgl2);
 

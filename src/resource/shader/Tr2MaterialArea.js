@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialArea.json; maintained by the runtime resource layer.
 import { exposure as be } from "#be";
-import { CjsSchema, type, blue } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { IRoot } from "#blue";
 
 /**
@@ -26,7 +26,7 @@ export class Tr2MaterialArea
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.blue.inherit(IRoot)(Tr2MaterialArea);
+CjsSchema.exposure.inherit(IRoot)(Tr2MaterialArea);
 
 CjsSchema.decorateField(Tr2MaterialArea, "material", be.mapAttribute(be.READWRITE | be.PERSIST), type.object.ref("Tr2MaterialParameterStore"));
 CjsSchema.decorateField(Tr2MaterialArea, "metatype", be.mapAttribute(be.READWRITE | be.PERSIST), type.string);

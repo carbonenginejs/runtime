@@ -103,7 +103,7 @@ const s_layerIndices = [0, 1, 3, 3, 1, 2];
     {"carbon":{"member":true},"name":"gammaCorrectText","type":{"kind":"boolean"},"property":{"persisted":false}}
   ]
 })
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(ITr2Scene)
 @be.mapInterface(ITr2Updateable)
 @be.mapInterface(INotify)

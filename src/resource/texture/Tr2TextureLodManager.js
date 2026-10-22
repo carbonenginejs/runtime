@@ -5,7 +5,7 @@ import "#blue/values";
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.cpp
 // Source: trinity/trinity/Resources/Tr2TextureLodManager_Blue.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { blue as service } from "#blue";
 import { Tr2TextureLodUpdateRequest } from "./Tr2TextureLodUpdateRequest.js";
 
@@ -407,7 +407,7 @@ export class Tr2TextureLodManager extends IRoot
 
 }
 
-CjsSchema.blue.inherit(IRoot, IBlueEvents)(Tr2TextureLodManager);
+CjsSchema.exposure.inherit(IRoot, IBlueEvents)(Tr2TextureLodManager);
 
 CjsSchema.decorateField(Tr2TextureLodManager, "gpuMemoryUsed", type.uint64);
 CjsSchema.decorateField(Tr2TextureLodManager, "gpuMemoryAllocated", type.uint64);

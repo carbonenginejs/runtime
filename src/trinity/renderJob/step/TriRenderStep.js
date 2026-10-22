@@ -10,7 +10,7 @@ import { meta, type, blue } from "#schema";
  * begin/execute/end contract the owning job drives.
  */
 @be.define("TriRenderStep")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 @be.abstract
 export class TriRenderStep extends IRoot
 {

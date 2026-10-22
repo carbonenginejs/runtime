@@ -11,7 +11,7 @@
 // `SupportsFloat16`, which is an optional feature and is therefore asked of the
 // device when there is one.
 
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * The platform capability constants, WebGPU's answers.
@@ -182,4 +182,4 @@ CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsStandaloneSwapChain", meta.ad
 CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsVertexShaderTextures", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsVariableRefreshRate", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuCapsAL, "SupportsRaytracing", meta.implemented);
-CjsSchema.blue.define(CjsWebgpuCapsAL, { className: "CjsWebgpuCapsAL" });
+CjsSchema.meta.define("CjsWebgpuCapsAL")(CjsWebgpuCapsAL);

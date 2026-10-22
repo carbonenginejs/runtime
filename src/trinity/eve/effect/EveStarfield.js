@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/EveStarfield.cpp
 // Source: trinity/trinity/Eve/EveStarfield_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../trinityal/ALResult.js";
@@ -19,7 +19,7 @@ import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 
 /** Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls. */
 @be.define("EveStarfield")
-@blue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class EveStarfield

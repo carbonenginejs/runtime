@@ -19,7 +19,7 @@
 // for authored overrides and `Tr2RenderContext.TextureAddressMode` for the
 // address vocabulary - so the AL takes the description as given.
 
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -150,4 +150,4 @@ CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetIndexInHeap", meta.implement
 CjsSchema.decorateMethod(Tr2SamplerStateALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2SamplerStateALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2SamplerStateALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2SamplerStateALStub, { className: "Tr2SamplerStateALStub" });
+CjsSchema.meta.define("Tr2SamplerStateALStub")(Tr2SamplerStateALStub);

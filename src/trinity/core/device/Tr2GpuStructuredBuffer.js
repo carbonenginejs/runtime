@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.h
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.cpp
 // Hand-maintained from Carbon source; promoted from generated/trinityCore.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { INotify, IInitialize } from "#blue";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -12,7 +12,7 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
 @be.define("Tr2GpuStructuredBuffer")
-@blue.inherit(ITr2GpuBuffer, INotify, IInitialize)
+@be.inherit(ITr2GpuBuffer, INotify, IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(ITr2GpuBuffer)

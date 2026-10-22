@@ -49,7 +49,7 @@ export class ITriEffectParameter extends IRoot
 }
 
 
-CjsSchema.blue.inherit(ITr2EffectValue)(ITriEffectParameter);
+CjsSchema.exposure.inherit(ITr2EffectValue)(ITriEffectParameter);
 CjsSchema.decorateMethod(ITriEffectParameter, "GetParameterName", blue.abstract);
 CjsSchema.decorateMethod(ITriEffectParameter, "RebuildEffectHandles", blue.abstract);
 CjsSchema.decorateMethod(ITriEffectParameter, "GetHashValue", blue.abstract);

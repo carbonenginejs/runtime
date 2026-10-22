@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h
 // Schema: format-carbon resources/Tr2TexturePackChannel.json; maintained by the runtime resource layer.
-import { CjsSchema, type, blue } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
 
 /** Output-channel indices of the pack step (Tr2TexturePipelineStepPack_Blue.cpp:9). */
@@ -39,7 +39,7 @@ export class Tr2TexturePackChannel extends IRoot
 
 }
 
-CjsSchema.blue.inherit(IRoot)(Tr2TexturePackChannel);
+CjsSchema.exposure.inherit(IRoot)(Tr2TexturePackChannel);
 
 CjsSchema.decorateField(Tr2TexturePackChannel, "channel", be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ChannelChooser"), type.uint8);
 CjsSchema.decorateField(Tr2TexturePackChannel, "fill", be.mapAttribute(be.READWRITE | be.PERSIST), type.uint8);

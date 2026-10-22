@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveOccluder.h
 // Source: trinity/trinity/Eve/EveOccluder.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
@@ -21,7 +21,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
  * the visibility the flare and the god rays read.
  */
 @be.define("EveOccluder")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class EveOccluder extends IRoot
 {
 

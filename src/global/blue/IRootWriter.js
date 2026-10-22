@@ -368,7 +368,7 @@ function EqualDefault(value, other, type)
   return false;
 }
 
-CjsSchema.blue.inherit(IRoot)(IRootWriter);
+CjsSchema.exposure.inherit(IRoot)(IRootWriter);
 
 CjsSchema.exposure.abstract(IRootWriter);
 be.define("IRootWriter")(IRootWriter);

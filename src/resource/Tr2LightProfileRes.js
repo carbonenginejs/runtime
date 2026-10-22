@@ -472,5 +472,5 @@ CjsSchema.decorateMethod(Tr2LightProfileRes, "_ParseIes__ContentsBitmap", meta.a
 CjsSchema.decorateMethod(Tr2LightProfileRes, "BakeLightProfile", meta.adapted);
 CjsSchema.decorateMethod(Tr2LightProfileRes, "GetThumbnail", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.exposure.define("Tr2LightProfileRes")(Tr2LightProfileRes);
-blue.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
+be.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2LightProfileRes);

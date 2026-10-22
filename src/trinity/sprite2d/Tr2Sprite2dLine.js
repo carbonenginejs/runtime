@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2Sprite2dTextureSettings, Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
@@ -37,7 +37,7 @@ const verts = Array.from({ length: 4 }, () => new Tr2Sprite2dVertexBase()); // a
  * width and colour interpolated between the ends. The texture tiles along the line.
  */
 @be.define("Tr2Sprite2dLine")
-@blue.chainTo(Tr2TexturedSpriteObject)
+@be.exposureChainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
 {
 

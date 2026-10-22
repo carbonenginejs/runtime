@@ -83,7 +83,7 @@ import { Tr2PipelineStatsQueryAL } from "../Tr2PipelineStatsQueryAL/index.js";
 //   hatches. Ours are `GetWebgpu` and `GetWorkQueue` - Carbon names these per
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { isTyped } from "#utils/is";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
@@ -3813,4 +3813,4 @@ CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawPrimitive", meta.adapted
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawPrimitiveUP", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "DrawIndexedPrimitiveUP", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "ComputeVertexCount", meta.implemented);
-CjsSchema.blue.define(CjsWebgpuRenderContextAL, { className: "CjsWebgpuRenderContextAL" });
+CjsSchema.meta.define("CjsWebgpuRenderContextAL")(CjsWebgpuRenderContextAL);

@@ -41,7 +41,7 @@ function copyHash(out, value)
 @be.define("Tr2ImpostorManager")
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
-@blue.inherit(IInitialize, INotify)
+@be.inherit(IInitialize, INotify)
 export class Tr2ImpostorManager
 {
 

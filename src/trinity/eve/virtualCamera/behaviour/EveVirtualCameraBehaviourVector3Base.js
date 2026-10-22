@@ -7,7 +7,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 
@@ -17,7 +17,7 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
  * offset to a camera's position or point of interest each update.
  */
 @be.define("EveVirtualCameraBehaviourVector3Base")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 @be.abstract
 export class EveVirtualCameraBehaviourVector3Base extends IRoot

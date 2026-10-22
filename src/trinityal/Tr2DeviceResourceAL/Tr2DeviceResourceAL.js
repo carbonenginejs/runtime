@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/Tr2DeviceResourceAL.h
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2BaseDeviceResourceAL } from "./Tr2BaseDeviceResourceAL.js";
 
 /**
@@ -26,7 +26,7 @@ export class Tr2DeviceResourceAL extends Tr2BaseDeviceResourceAL
   }
 }
 
-blue.inherit(Tr2BaseDeviceResourceAL)(Tr2DeviceResourceAL);
+meta.inherit(Tr2BaseDeviceResourceAL)(Tr2DeviceResourceAL);
 // States: Tr2DeviceResourceAL.h:40-48, which forward to the concrete class's IsValid and GetMemoryClass.
 CjsSchema.decorateMethod(Tr2DeviceResourceAL, "IsResourceValid", meta.implemented);
 CjsSchema.decorateMethod(Tr2DeviceResourceAL, "GetResourceMemoryClass", meta.implemented);

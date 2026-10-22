@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema } from "#schema";
 import { IRoot } from "../../global/blue/IRoot.js";
 import { optionalString, snapshotWebIdl } from "./browserHelpers.js";
 
@@ -67,7 +67,7 @@ export class Tr2VideoDriver extends IRoot
 
 export default Tr2VideoDriver;
 
-blue.inherit(IRoot)(Tr2VideoDriver);
+be.inherit(IRoot)(Tr2VideoDriver);
 
 CjsSchema.decorateField(Tr2VideoDriver, "driverVersion", be.mapAttribute(be.READ));
 CjsSchema.decorateField(Tr2VideoDriver, "driverVersionString", be.mapAttribute(be.READ));

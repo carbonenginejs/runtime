@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/ITr2GenericEmitter.h
 import { CjsSchema, blue } from "#schema";
@@ -5,7 +6,7 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitterUpdateArg
 
 
 /** Contract shared by CPU and GPU particle emitters. */
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class ITr2GenericEmitter extends IRoot
 {
 

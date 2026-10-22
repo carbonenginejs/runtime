@@ -203,5 +203,5 @@ CjsSchema.decorateMethod(Tr2ImageRes, "_DoPrepare", meta.implemented);
 CjsSchema.decorateMethod(Tr2ImageRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
 CjsSchema.decorateMethod(Tr2ImageRes, "GetMemoryUsage", blue.method, meta.adapted);
 be.define("Tr2ImageRes")(Tr2ImageRes);
-blue.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
+be.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2ImageRes);

@@ -18,7 +18,7 @@
 // WebGL2 also allows one active query per target, where D3D11 nests them; a
 // `Begin` while another occlusion query is active is refused.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -203,4 +203,4 @@ CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "IsValid", meta.implemented)
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Describe", meta.implemented);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "SetName", meta.adapted);
-CjsSchema.blue.define(Tr2OcclusionQueryALWebgl2, { className: "Tr2OcclusionQueryALWebgl2" });
+CjsSchema.meta.define("Tr2OcclusionQueryALWebgl2")(Tr2OcclusionQueryALWebgl2);

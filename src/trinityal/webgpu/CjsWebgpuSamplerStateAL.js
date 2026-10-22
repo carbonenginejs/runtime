@@ -18,7 +18,7 @@
 // material fills (see the handover's emulation section). The description this
 // state keeps is the AUTHORED one, border included, so the material can read
 // the real modes back.
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { NormalizeSamplerDescription } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -174,4 +174,4 @@ CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Destroy", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Describe", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "SetName", meta.adapted);
-CjsSchema.blue.define(CjsWebgpuSamplerStateAL, { className: "CjsWebgpuSamplerStateAL" });
+CjsSchema.meta.define("CjsWebgpuSamplerStateAL")(CjsWebgpuSamplerStateAL);

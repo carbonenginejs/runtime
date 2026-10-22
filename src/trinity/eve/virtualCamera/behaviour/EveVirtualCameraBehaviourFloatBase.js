@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -12,7 +12,7 @@ import { meta, type, blue } from "#schema";
  * camera's field of view or roll each update.
  */
 @be.define("EveVirtualCameraBehaviourFloatBase")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 @be.abstract
 export class EveVirtualCameraBehaviourFloatBase extends IRoot

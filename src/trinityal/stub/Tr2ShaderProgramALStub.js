@@ -10,7 +10,7 @@
 // and draw with whichever the backend happened to keep.
 //
 // Carbon quirk: Create leaves the stub map empty (stub cpp:23-49; CE-26).
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -163,4 +163,4 @@ CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "IsValid", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2ShaderProgramALStub, { className: "Tr2ShaderProgramALStub" });
+CjsSchema.meta.define("Tr2ShaderProgramALStub")(Tr2ShaderProgramALStub);

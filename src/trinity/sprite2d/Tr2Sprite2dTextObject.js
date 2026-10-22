@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTextObject.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTextObject.cpp
 // Maintained implementation promoted from generated metadata.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { ITr2FontMeasurerNotifyTarget } from "../font/ITr2FontMeasurerNotifyTarget.js";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
@@ -10,7 +10,7 @@ import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sp
 /** Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag. */
 @be.define("Tr2Sprite2dTextObject")
 @be.exposureChainTo(Tr2SpriteObject)
-@blue.inherit(ITr2FontMeasurerNotifyTarget)
+@be.inherit(ITr2FontMeasurerNotifyTarget)
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 {
 

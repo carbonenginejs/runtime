@@ -30,4 +30,4 @@ export class ITr2SkinnedObject extends IRoot
 
 CjsSchema.exposure.interface("ITr2SkinnedObject")(ITr2SkinnedObject);
 
-blue.inherit(IRoot)(ITr2SkinnedObject);
+meta.inherit(IRoot)(ITr2SkinnedObject);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: trinityaudioapi/include/ITr2AudGeometry.h:23-40
 import { CjsSchema, blue } from "#schema";
@@ -19,5 +20,5 @@ for (const method of [ "SetGeometry", "SetGeometryTransform", "RemoveGeometry" ]
 {
   CjsSchema.decorateMethod(ITr2AudGeometry, method, blue.abstract);
 }
-blue.inherit(IRoot)(ITr2AudGeometry);
+be.inherit(IRoot)(ITr2AudGeometry);
 CjsSchema.exposure.interface("ITr2AudGeometry")(ITr2AudGeometry);

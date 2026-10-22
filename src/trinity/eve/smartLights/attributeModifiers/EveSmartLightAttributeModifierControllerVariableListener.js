@@ -14,7 +14,7 @@ import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeMo
   className: "EveSmartLightAttributeModifierControllerVariableListener",
   fields: [{ name: "active", type: { kind: "boolean" }, edit: { read: true, write: false, persist: false, notify: false }, carbon: { member: true } }]
 })
-@blue.inherit(IInitialize)
+@be.inherit(IInitialize)
 @be.mapInterface(EveSmartLightAttributeModifierBucket)
 @be.mapInterface(IEveSmartLightGroupAttributeModifier)
 @be.mapInterface(EveSmartLightBaseAttributeModifier)

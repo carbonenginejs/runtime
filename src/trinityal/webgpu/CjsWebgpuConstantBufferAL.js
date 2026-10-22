@@ -18,7 +18,7 @@
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on
 // `CjsWebgpuShaderAL`: Carbon's impl class carries public state.
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2ConstantUsageAL } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -241,4 +241,4 @@ CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Destroy", meta.implemented)
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Describe", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetName", meta.adapted);
-CjsSchema.blue.define(CjsWebgpuConstantBufferAL, { className: "CjsWebgpuConstantBufferAL" });
+CjsSchema.meta.define("CjsWebgpuConstantBufferAL")(CjsWebgpuConstantBufferAL);

@@ -24,7 +24,7 @@
 // answers a subset of this. That is a reason to keep the interface, not to skip
 // it: the shape of the question is what the consumer already asks.
 
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { PixelFormat } from "../../global/consts/renderContext/index.js";
 import { ALResult } from "../ALResult.js";
 
@@ -229,4 +229,4 @@ CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "SupportsBackBufferFormat", me
 CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "SupportsRenderTargetFormat", meta.implemented);
 CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "AreAdaptersDifferent", meta.implemented);
 CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "RefreshData", meta.implemented);
-CjsSchema.blue.define(Tr2VideoAdapterInfoStub, { className: "Tr2VideoAdapterInfoStub" });
+CjsSchema.meta.define("Tr2VideoAdapterInfoStub")(Tr2VideoAdapterInfoStub);

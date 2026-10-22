@@ -32,5 +32,5 @@ for (const method of [ "GetEffectChildByName", "AddToEffectChildrenList", "Remov
 {
   CjsSchema.decorateMethod(IEveEffectChildrenOwner, method, blue.abstract);
 }
-CjsSchema.blue.inherit(IRoot)(IEveEffectChildrenOwner);
+CjsSchema.exposure.inherit(IRoot)(IEveEffectChildrenOwner);
 CjsSchema.exposure.interface("IEveEffectChildrenOwner")(IEveEffectChildrenOwner);

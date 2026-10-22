@@ -5265,7 +5265,7 @@ function createExtensionTargetError(resource, message, cause = null)
 // as calls - this folder cannot use decorator syntax (global/blue/index.js).
 // The Cjs prefix identifies browser adaptations (workers, fetch and routes);
 // carbon metadata identifies the native service whose responsibility it carries.
-CjsSchema.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
+CjsSchema.meta.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
 CjsSchema.exposure.mapInterface(IBlueResMan)(CjsBlueResMan);
 /**
  * The paths service resMan reads through: Carbon's global `BePaths`.

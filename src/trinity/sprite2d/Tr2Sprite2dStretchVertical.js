@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretchVertical.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretchVertical_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
@@ -75,7 +75,7 @@ function setVertex(vertex, x, y, u, v)
  * submitted.
  */
 @be.define("Tr2Sprite2dStretchVertical")
-@blue.chainTo(Tr2TexturedSpriteObject)
+@be.exposureChainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
 {
 

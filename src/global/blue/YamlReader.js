@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: blue/src/YamlReader.cpp
 // Source: blue/src/YamlReader_Blue.cpp
 import { parseAllDocuments, isMap, isSeq, isScalar, isAlias } from "yaml";
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { IRootReaderBase } from "./IRootReaderBase.js";
 import { IRootReader } from "./IRootReader.js";
 import { IRootReaderException } from "./IRootReaderException.js";
@@ -1010,7 +1010,7 @@ be.define("YamlReader")(YamlReader);
 be.mapInterface(IRootReader)(YamlReader);
 be.mapInterface(IBlueObjectBuilder)(YamlReader);
 be.mapInterface(ICacheable)(YamlReader);
-blue.inherit(IRootReaderBase)(YamlReader);
+be.inherit(IRootReaderBase)(YamlReader);
 
 /** CE-209: UTF-8 anchor bytes truncate as memcpy into uint64 (YamlReader.cpp:929-948). */
 function AnchorId(anchor)

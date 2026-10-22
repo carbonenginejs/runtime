@@ -126,7 +126,7 @@ export class Tr2VideoAdapter extends IRoot
 
 export default Tr2VideoAdapter;
 
-blue.inherit(IRoot)(Tr2VideoAdapter);
+be.inherit(IRoot)(Tr2VideoAdapter);
 
 CjsSchema.decorateField(Tr2VideoAdapter, "index", be.mapAttribute(be.READ));
 CjsSchema.decorateField(Tr2VideoAdapter, "driver", be.mapAttribute(be.READ));

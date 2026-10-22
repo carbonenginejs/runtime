@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dFrame.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dFrame_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
@@ -57,7 +57,7 @@ const srcVertexSegments = [0, 16, 32].map(start => srcVertices.slice(start, star
  * three 16-vertex segments carry the shadow, the frame and its glow.
  */
 @be.define("Tr2Sprite2dFrame")
-@blue.chainTo(Tr2TexturedSpriteObject)
+@be.exposureChainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
 {
 

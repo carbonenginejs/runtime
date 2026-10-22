@@ -125,7 +125,7 @@ export class ITr2Controller extends IRoot
 }
 
 
-CjsSchema.blue.inherit(IRoot)(ITr2Controller);
+CjsSchema.exposure.inherit(IRoot)(ITr2Controller);
 CjsSchema.exposure.interface("ITr2Controller")(ITr2Controller);
 
 

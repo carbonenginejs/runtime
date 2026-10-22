@@ -59,7 +59,7 @@ import { Tr2PipelineStatsQueryALWebgl2 } from "./Tr2PipelineStatsQueryALWebgl2.j
 // indirect draws and compute refuse; the coverage-discard mode is kept but no
 // shader reads it yet.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { CompareFunc, CullMode, FillMode, HasFlag, PixelFormat, RenderState, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { float32FromBits } from "#utils/bytes";
 import { ALResult, Failed } from "../ALResult.js";
@@ -2605,4 +2605,4 @@ CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetSupportedUpscalingTechniq
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "GetUpscalingSetup", meta.adapted);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "ReleaseDeviceResources", meta.adapted);
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "Destroy", meta.adapted);
-CjsSchema.blue.define(Tr2RenderContextALWebgl2, { className: "Tr2RenderContextALWebgl2" });
+CjsSchema.meta.define("Tr2RenderContextALWebgl2")(Tr2RenderContextALWebgl2);

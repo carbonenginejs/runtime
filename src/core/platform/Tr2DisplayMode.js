@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema } from "#schema";
 import { IRoot } from "../../global/blue/IRoot.js";
 import { finiteNumber } from "./browserHelpers.js";
 import "#consts/render-context";
@@ -95,7 +95,7 @@ export class Tr2DisplayMode extends IRoot
 
 export default Tr2DisplayMode;
 
-blue.inherit(IRoot)(Tr2DisplayMode);
+be.inherit(IRoot)(Tr2DisplayMode);
 
 CjsSchema.decorateField(Tr2DisplayMode, "width", be.mapAttribute(be.READ));
 CjsSchema.decorateField(Tr2DisplayMode, "height", be.mapAttribute(be.READ));

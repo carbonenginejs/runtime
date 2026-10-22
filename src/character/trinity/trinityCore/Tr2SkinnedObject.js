@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2SkinnedObject } from "./ITr2SkinnedObject.js";
 // Source: trinity/trinity/Tr2SkinnedObject.h
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IsMatch, IListNotify, INotify } from "#blue";
 import { IWorldPosition } from "../../../trinity/core/IWorldPosition.js";
 import { mat4 } from "#math/mat4";
@@ -18,7 +18,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
  * CPU skinning palette.
  */
 @be.define("Tr2SkinnedObject")
-@blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify, ITr2SkinnedObject, ITr2DebugRenderable)
+@be.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify, ITr2SkinnedObject, ITr2DebugRenderable)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IWorldPosition)
 @be.mapInterface(IListNotify)

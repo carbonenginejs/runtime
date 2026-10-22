@@ -29,7 +29,7 @@
 // A compute stage runs as a fragment pass (see `Tr2ShaderALWebgl2`), so a
 // compute-only program is linked with a full-screen vertex stage of its own.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -432,4 +432,4 @@ CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetMemoryClass", meta.implem
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Describe", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "CreateCommandSignatures", meta.notSupported);
-CjsSchema.blue.define(Tr2ShaderProgramALWebgl2, { className: "Tr2ShaderProgramALWebgl2" });
+CjsSchema.meta.define("Tr2ShaderProgramALWebgl2")(Tr2ShaderProgramALWebgl2);

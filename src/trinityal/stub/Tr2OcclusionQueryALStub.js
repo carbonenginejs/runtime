@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2OcclusionQueryALStub.cpp
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -157,4 +157,4 @@ CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetPixelCount", meta.adapted)
 CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2OcclusionQueryALStub, { className: "Tr2OcclusionQueryALStub" });
+CjsSchema.meta.define("Tr2OcclusionQueryALStub")(Tr2OcclusionQueryALStub);

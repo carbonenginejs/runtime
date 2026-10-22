@@ -1159,5 +1159,5 @@ CjsSchema.decorateMethod(TriGrannyRes, "GetCMFContents", meta.notSupported);
 CjsSchema.decorateMethod(TriGrannyRes, "_DoPrepare", meta.implemented);
 CjsSchema.decorateMethod(TriGrannyRes, "_GetValidMesh", meta.cjs, meta.adapted);
 CjsSchema.exposure.define("TriGrannyRes")(TriGrannyRes);
-blue.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
+be.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriGrannyRes);

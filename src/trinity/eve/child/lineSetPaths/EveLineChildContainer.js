@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { quat } from "#math/quat";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
@@ -19,7 +19,7 @@ const DEBUG_SPHERE = vec4.create();
 
 /** Groups line-path children beneath a shared transform with naming and visibility state. */
 @be.define("EveLineChildContainer")
-@blue.inherit(INotify, IListNotify)
+@be.inherit(INotify, IListNotify)
 @be.mapInterface(IEveLineSetPath)
 @be.mapInterface(INotify)
 @be.mapInterface(IListNotify)

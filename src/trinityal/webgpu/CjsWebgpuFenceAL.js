@@ -9,7 +9,7 @@
 // records: WebGPU orders a later `writeBuffer` after every earlier submit, so
 // a region whose frame has been submitted can be rewritten safely. That is
 // what `Tr2DynamicRingBuffer` asks a fence.
-import { CjsSchema, blue, type, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -161,4 +161,4 @@ CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Wait", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Describe", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "SetName", meta.implemented);
-CjsSchema.blue.define(CjsWebgpuFenceAL, { className: "CjsWebgpuFenceAL" });
+CjsSchema.meta.define("CjsWebgpuFenceAL")(CjsWebgpuFenceAL);

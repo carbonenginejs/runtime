@@ -13,7 +13,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // A COPY IN EACH READER WOULD HAVE WORKED AND THAT IS THE PROBLEM: nothing
 // would have caught the day one of them disagreed.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * Flags a resource is bound with, stored by a mapped resource in
@@ -85,7 +85,7 @@ export class ITr2EffectValue extends IRoot
   }
 }
 
-CjsSchema.blue.inherit(IRoot)(ITr2EffectValue);
+CjsSchema.exposure.inherit(IRoot)(ITr2EffectValue);
 CjsSchema.decorateMethod(ITr2EffectValue, "CopyValueToEffect");
 CjsSchema.decorateMethod(ITr2EffectValue, "CopyToResourceSet");
 CjsSchema.decorateMethod(ITr2EffectValue, "ApplyUav");

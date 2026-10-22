@@ -10,11 +10,11 @@ import { Tr2TextureSubresource, Failed } from "#trinityal";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { Tr2Sprite2dD3DVertex } from "../sprite2d/Tr2Sprite2dD3DVertex.js";
 import { Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /** Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text. */
 @be.define("Tr2FontMeasurer")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2FontMeasurer extends IRoot
 {
 

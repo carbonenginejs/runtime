@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { CjsWebGLProbe } from "./CjsWebGLProbe.js";
 import { ResolveDeviceRequirements } from "./deviceLimits.js";
 import { ResolveEffectPath } from "#utils/effectPath";
@@ -85,7 +85,7 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 
 /** Browser feature report replacing Carbon's compile-time platform macros. */
 @be.define("Tr2PlatformInfo")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class Tr2PlatformInfo
 {
     /**

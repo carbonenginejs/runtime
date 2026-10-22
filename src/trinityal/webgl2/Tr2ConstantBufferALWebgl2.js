@@ -18,7 +18,7 @@
 // context set the constants as plain uniform arrays for a shader emitted with
 // the `array` profile, which has no blocks.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -269,4 +269,4 @@ CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetSize", meta.implemented)
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Describe", meta.implemented);
 CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "SetName", meta.adapted);
-CjsSchema.blue.define(Tr2ConstantBufferALWebgl2, { className: "Tr2ConstantBufferALWebgl2" });
+CjsSchema.meta.define("Tr2ConstantBufferALWebgl2")(Tr2ConstantBufferALWebgl2);

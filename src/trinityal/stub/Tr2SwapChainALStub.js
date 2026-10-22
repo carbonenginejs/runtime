@@ -13,7 +13,7 @@
 // from the present parameters. Transcribed as it stands, because inventing a
 // size would make a headless test agree with a number nothing chose.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -182,4 +182,4 @@ CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetHeight", meta.implemented);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2SwapChainALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub" });
+CjsSchema.meta.define("Tr2SwapChainALStub")(Tr2SwapChainALStub);

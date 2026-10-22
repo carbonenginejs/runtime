@@ -281,10 +281,13 @@ async function ReadJavaScriptClasses(directory)
     const carbonImports = new Set();
     for (const statement of ast.program.body)
     {
-      if (statement.type !== "ImportDeclaration"
-        || !/^(?:#schema|@carbonenginejs\/runtime\/schema)$|\/schema(?:\/index)?\.js$/.test(statement.source.value)) continue;
+      if (statement.type !== "ImportDeclaration") continue;
+      // `blue` and `meta` from the schema module, and `exposure` (the `be` namespace) from #be, each carry an `inherit` that states Carbon's base list.
+      const schema = /^(?:#schema|@carbonenginejs\/runtime\/schema)$|\/schema(?:\/index)?\.js$/.test(statement.source.value);
+      const exposure = /^(?:#be|@carbonenginejs\/runtime\/be)$|\/be\.js$/.test(statement.source.value);
+      if (!schema && !exposure) continue;
       for (const specifier of statement.specifiers)
-        if (specifier.type === "ImportSpecifier" && specifier.imported.name === "blue")
+        if (specifier.type === "ImportSpecifier" && ((schema && [ "blue", "meta" ].includes(specifier.imported.name)) || (exposure && specifier.imported.name === "exposure")))
           carbonImports.add(specifier.local.name);
     }
     for (const statement of ast.program.body)

@@ -13,7 +13,7 @@
 // (`gl.finish`), which returns once every command, the fence included, has
 // completed, and then records the fence as passed.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -208,4 +208,4 @@ CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsValid", meta.implemented);
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Describe", meta.implemented);
 CjsSchema.decorateMethod(Tr2FenceALWebgl2, "SetName", meta.adapted);
-CjsSchema.blue.define(Tr2FenceALWebgl2, { className: "Tr2FenceALWebgl2" });
+CjsSchema.meta.define("Tr2FenceALWebgl2")(Tr2FenceALWebgl2);

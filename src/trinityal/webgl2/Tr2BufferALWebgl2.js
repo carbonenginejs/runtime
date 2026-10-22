@@ -41,7 +41,7 @@
 // `COPY_READ_BUFFER`, which the render context never draws from; only the
 // first bind, which fixes the buffer's type, uses the real target.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -677,4 +677,4 @@ CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetUavIndexInHeap", meta.implemente
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Describe", meta.implemented);
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "SetName", meta.adapted);
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetGpuResource", meta.implemented);
-CjsSchema.blue.define(Tr2BufferALWebgl2, { className: "Tr2BufferALWebgl2" });
+CjsSchema.meta.define("Tr2BufferALWebgl2")(Tr2BufferALWebgl2);

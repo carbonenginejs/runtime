@@ -506,7 +506,7 @@ CjsSchema.decorateMethod(YamlWriter, "_AddAliasEvent", meta.adapted);
 CjsSchema.decorateMethod(YamlWriter, "_WriteToStream", meta.adapted);
 CjsSchema.decorateMethod(YamlWriter, "_ReportError", meta.adapted);
 be.define("YamlWriter")(YamlWriter);
-blue.inherit(IRootWriter)(YamlWriter);
+be.inherit(IRootWriter)(YamlWriter);
 
 /**
  * Exact binary64 -> fixed decimal, rounding ties to even as modern printf.

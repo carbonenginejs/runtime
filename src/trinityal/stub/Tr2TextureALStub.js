@@ -33,7 +33,7 @@
 // texture contributes nothing to a device inventory. That is transcribed, not
 // overlooked - a backend that reports real names is a real backend.
 
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -711,4 +711,4 @@ CjsSchema.decorateMethod(Tr2TextureALStub, "GetUavIndexInHeap", meta.implemented
 CjsSchema.decorateMethod(Tr2TextureALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureALStub, "GetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2TextureALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2TextureALStub, { className: "Tr2TextureALStub" });
+CjsSchema.meta.define("Tr2TextureALStub")(Tr2TextureALStub);

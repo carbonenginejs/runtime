@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -143,7 +143,7 @@ function prepareEdgeQuad(arc, verts, current, angle, innerRadius)
  * `GetVertexCount`, and draws them with its own index list.
  */
 @be.define("Tr2Sprite2dArc")
-@blue.chainTo(Tr2SpriteObject)
+@be.exposureChainTo(Tr2SpriteObject)
 export class Tr2Sprite2dArc extends Tr2SpriteObject
 {
 

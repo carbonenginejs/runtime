@@ -103,5 +103,5 @@ const OWNER_METHODS = [
 
 for (const name of OWNER_METHODS) CjsSchema.decorateMethod(ITr2ControllerOwner, name, blue.method, name === "GetControllerValueByName" || name === "GetBindingRoots" ? meta.adapted : meta.noop);
 
-CjsSchema.blue.inherit(IRoot)(ITr2ControllerOwner);
+CjsSchema.exposure.inherit(IRoot)(ITr2ControllerOwner);
 CjsSchema.exposure.interface("ITr2ControllerOwner")(ITr2ControllerOwner);

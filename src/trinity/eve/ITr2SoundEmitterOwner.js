@@ -1,6 +1,6 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2SoundEmitterOwner.h:9-14
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /** Contract for a scene object that finds named sound emitters. */
@@ -27,5 +27,5 @@ export class ITr2SoundEmitterOwner extends IRoot
 
 CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "FindSoundEmitter", meta.abstract);
 CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "AddObserver", meta.noop);
-CjsSchema.blue.inherit(IRoot)(ITr2SoundEmitterOwner);
+CjsSchema.exposure.inherit(IRoot)(ITr2SoundEmitterOwner);
 CjsSchema.exposure.interface("ITr2SoundEmitterOwner")(ITr2SoundEmitterOwner);

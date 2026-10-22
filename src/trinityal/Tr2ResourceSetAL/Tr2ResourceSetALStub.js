@@ -2,7 +2,7 @@ import { Tr2ResourceSetDescriptionAL } from "./Tr2ResourceSetDescriptionAL.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.cpp
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.h
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -129,4 +129,4 @@ CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Destroy", meta.adapted);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2ResourceSetALStub, { className: "Tr2ResourceSetALStub" });
+CjsSchema.meta.define("Tr2ResourceSetALStub")(Tr2ResourceSetALStub);

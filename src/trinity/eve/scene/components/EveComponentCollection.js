@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Hand-maintained after promotion from generated schema intake.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IEveComponentCollection } from "./IEveComponentCollection.js";
 
 /** Stores entities belonging to one Eve component type. */
 @meta.carbon("EveComponentCollection")
-@blue.inherit(IEveComponentCollection)
+@meta.inherit(IEveComponentCollection)
 export class EveComponentCollection
 {
 

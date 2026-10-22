@@ -29,7 +29,7 @@
 // something real: a program whose state was entirely private has no own
 // enumerable keys, canonicalised to an empty object, and would have collided
 // with every other program in the pipeline cache.
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -448,4 +448,4 @@ CjsSchema.decorateMethod(CjsWebgpuShaderAL, "SetNullShaderType", meta.implemente
 CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuShaderAL, "Describe", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuShaderAL, "SetName", meta.adapted);
-CjsSchema.blue.define(CjsWebgpuShaderAL, { className: "CjsWebgpuShaderAL" });
+CjsSchema.meta.define("CjsWebgpuShaderAL")(CjsWebgpuShaderAL);

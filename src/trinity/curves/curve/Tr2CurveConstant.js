@@ -6,7 +6,7 @@ import { copyArrayLike } from "#utils";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { exposure as be } from "#be";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 
 /**
@@ -16,7 +16,7 @@ import { meta, type, blue } from "#schema";
  * calls with an optional output buffer; the mapped interfaces retain their identities.
  */
 @be.define("Tr2CurveConstant")
-@blue.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
+@be.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
 @be.mapInterface(ITriScalarFunction)
 @be.mapInterface(ITriVectorFunction)
 @be.mapInterface(ITriQuaternionFunction)

@@ -3,7 +3,7 @@ import { IRoot } from "#blue/IRoot";
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
@@ -439,7 +439,7 @@ export class Tr2Shader extends IRoot
 // form. Field order is key order, and it drives GetValues() export order.
 // Statics belong in `methods`: the prototype is what carries instance fields.
 
-CjsSchema.blue.inherit(IRoot)(Tr2Shader);
+CjsSchema.exposure.inherit(IRoot)(Tr2Shader);
 
 CjsSchema.decorateField(Tr2Shader, "sortValue", type.uint32);
 CjsSchema.decorateField(Tr2Shader, "effect", type.rawStruct("Tr2EffectDescription"));

@@ -1,6 +1,6 @@
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
 import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
@@ -270,5 +270,5 @@ CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsFullyLoaded", meta.adapted);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "IsMemoryUsageKnown", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(Tr2GrannyStateRes, "GetMemoryUsage", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.exposure.define("Tr2GrannyStateRes")(Tr2GrannyStateRes);
-blue.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
+be.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2GrannyStateRes);

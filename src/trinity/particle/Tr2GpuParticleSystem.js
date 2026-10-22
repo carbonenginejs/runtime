@@ -18,7 +18,7 @@ import { IInitialize } from "../../global/blue/IInitialize.js";
 // `EmitterGpu` (112 bytes, the emit constant buffer's array element),
 // `EmitterParamsGpu` (128 bytes, the `Emitters` structured-buffer stride) and
 // the update constants (160 bytes).
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { RenderingMode, TriStorageFlags } from "#consts/graphics";
@@ -96,7 +96,7 @@ function CheckEffect(effect)
 
 /** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */
 @be.define("Tr2GpuParticleSystem")
-@blue.inherit(IInitialize, INotify, IRenderCallback, Tr2DeviceResource)
+@be.inherit(IInitialize, INotify, IRenderCallback, Tr2DeviceResource)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 export class Tr2GpuParticleSystem

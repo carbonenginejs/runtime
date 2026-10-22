@@ -12,7 +12,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // UpdateSyncronous and UpdateAsyncronous spellings; additional English-spelled
 // forwarding methods belong to the concrete classes that define them.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { IEveSpaceObject2ParentData } from "./spaceObject/IEveSpaceObject2ParentData.js";
 
@@ -232,5 +232,5 @@ export class IEveSpaceObject2 extends IRoot
 
 
 for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(IEveSpaceObject2, name, meta.implemented);
-CjsSchema.blue.inherit(IRoot)(IEveSpaceObject2);
+CjsSchema.exposure.inherit(IRoot)(IEveSpaceObject2);
 CjsSchema.exposure.interface("IEveSpaceObject2")(IEveSpaceObject2);

@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveVirtualCamera } from "../EveVirtualCamera.js";
 
 
@@ -11,7 +11,7 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
  * temporary camera that is rendered while the hand-over runs.
  */
 @be.define("EveVirtualCameraTransitionBase")
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 @be.abstract
 export class EveVirtualCameraTransitionBase extends IRoot
 {

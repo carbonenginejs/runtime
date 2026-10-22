@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/EvePicking.h
 // Source: trinity/trinity/Eve/EveSpaceScene.cpp (PerformPicking)
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { Tr2ReadbackAL } from "#trinityal";
 import { PixelFormat } from "#consts/render-context";
 import { Tr2PickBuffer } from "../../../core/scene/Tr2PickBuffer.js";
@@ -10,7 +10,7 @@ import { Tr2PickBuffer } from "../../../core/scene/Tr2PickBuffer.js";
 let nextSequence = 1;
 
 /** A request owns its retained objects and its independently copied GPU result. */
-@blue.define("EvePendingPickingReadback")
+@meta.carbon("EvePendingPickingReadback")
 export class EvePendingPickingReadback
 {
   pickedX = 0;

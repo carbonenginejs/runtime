@@ -13,7 +13,7 @@
 // to everything would drive Trinity down paths a real device never takes, which
 // is the opposite of what a headless engine carrying correct data is for.
 
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * The platform capability constants (`Tr2CapsALStub.h:10-19`).
@@ -119,4 +119,4 @@ CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsStandaloneSwapChain", meta.impl
 CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVertexShaderTextures", meta.implemented);
 CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVariableRefreshRate", meta.implemented);
 CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsRaytracing", meta.implemented);
-CjsSchema.blue.define(Tr2CapsALStub, { className: "Tr2CapsALStub" });
+CjsSchema.meta.define("Tr2CapsALStub")(Tr2CapsALStub);

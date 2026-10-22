@@ -23,7 +23,7 @@ import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetD
 // views (`Tr2ResourceSetALDx12.cpp:145-146`). A WebGPU bind group with a hole
 // is a validation error, so the same substitution happens here.
 //
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -315,4 +315,4 @@ CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Destroy", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Describe", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "SetName", meta.adapted);
-CjsSchema.blue.define(CjsWebgpuResourceSetAL, { className: "CjsWebgpuResourceSetAL" });
+CjsSchema.meta.define("CjsWebgpuResourceSetAL")(CjsWebgpuResourceSetAL);

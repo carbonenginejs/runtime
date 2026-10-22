@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretch.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState, Tr2StretchScaleBehavior } from "../generated/sprite2d/enums.js";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
@@ -51,7 +51,7 @@ const srcVertexSegments = [0, 8, 16].map(start => srcVertices.slice(start, start
  * local to the sprite; the translation is pushed on the scene while they are submitted.
  */
 @be.define("Tr2Sprite2dStretch")
-@blue.chainTo(Tr2TexturedSpriteObject)
+@be.exposureChainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
 {
 

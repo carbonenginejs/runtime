@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: trinityaudioapi/include/ITr2Audio.h
 import { CjsSchema, blue } from "#schema";
@@ -16,5 +17,5 @@ for (const method of [ "Update", "FindEmitterByName" ])
 {
   CjsSchema.decorateMethod(ITr2Audio, method, blue.abstract);
 }
-blue.inherit(IRoot)(ITr2Audio);
+be.inherit(IRoot)(ITr2Audio);
 CjsSchema.exposure.interface("ITr2Audio")(ITr2Audio);

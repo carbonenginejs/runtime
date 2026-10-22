@@ -19,7 +19,7 @@
 //   The stub is not a memory model: the map path is what carries data. A caller
 //   that needs the write to land must map for writing.
 
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -314,4 +314,4 @@ CjsSchema.decorateMethod(Tr2BufferALStub, "GetSrvIndexInHeap", meta.implemented)
 CjsSchema.decorateMethod(Tr2BufferALStub, "GetUavIndexInHeap", meta.implemented);
 CjsSchema.decorateMethod(Tr2BufferALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2BufferALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2BufferALStub, { className: "Tr2BufferALStub" });
+CjsSchema.meta.define("Tr2BufferALStub")(Tr2BufferALStub);

@@ -10,7 +10,7 @@ import "#blue/values";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2TexturePipelineParams } from "./Tr2TexturePipelineParams.js";
 import { Tr2TexturePipelineStepLimitSize } from "./Tr2TexturePipelineStepLimitSize.js";
 
@@ -165,7 +165,7 @@ export class Tr2TexturePipeline extends IRoot
 
 }
 
-CjsSchema.blue.inherit(IRoot)(Tr2TexturePipeline);
+CjsSchema.exposure.inherit(IRoot)(Tr2TexturePipeline);
 
 CjsSchema.decorateField(Tr2TexturePipeline, "pipelineType", be.mapAttribute(be.READWRITE | be.PERSIST), type.string);
 CjsSchema.decorateField(Tr2TexturePipeline, "steps", be.mapAttribute(be.READ | be.PERSIST), type.list("ITr2TexturePipelineStep"));

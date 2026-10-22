@@ -4,7 +4,7 @@ import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
-import { CjsSchema, type, blue, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 import "#consts/renderContext/presentation";
 import "#consts/renderContext/window";
 
@@ -164,7 +164,7 @@ function presentIntervalName(value)
 // Tr2MainWindow_Blue.cpp:59-76, in Carbon's order. `input` ships as raw
 // source (package.json "./input"), so the schema is defined here rather than
 // with decorator syntax.
-blue.inherit(IRoot)(Tr2MainWindowState);
+be.inherit(IRoot)(Tr2MainWindowState);
 
 CjsSchema.decorateMethod(Tr2MainWindowState, "ToString", be.mapMethodAndWrap("__str__"));
 CjsSchema.decorateMethod(Tr2MainWindowState, "__str__", meta.renamed("ToString"));

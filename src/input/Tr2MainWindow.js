@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IRoot } from "../global/blue/IRoot.js";
 import { IBlueEvents } from "../global/blue/IBlueEvents.js";
 // Source: trinity/trinity/UI/Tr2MainWindow.h
@@ -634,7 +634,7 @@ function sanitizeDimension(value, maximum, minimum)
 
 export default Tr2MainWindow;
 
-blue.inherit(IRoot, IBlueEvents)(Tr2MainWindow);
+be.inherit(IRoot, IBlueEvents)(Tr2MainWindow);
 
 CjsSchema.decorateField(Tr2MainWindow, "onKeyDown", be.mapAttribute(be.READWRITE));
 CjsSchema.decorateField(Tr2MainWindow, "onKeyUp", be.mapAttribute(be.READWRITE));

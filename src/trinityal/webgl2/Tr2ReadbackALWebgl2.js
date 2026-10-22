@@ -5,7 +5,7 @@
 // (`Tr2TextureALDx11.h:26-52`); it is its own file here because a file holds
 // one class, as `webgpu/Tr2ReadbackALWebgpu.js` and `stub/Tr2ReadbackALStub.js` do.
 
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -161,4 +161,4 @@ CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Destroy");
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "Describe", meta.implemented);
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ReadbackALWebgl2, "IsValid", meta.implemented);
-CjsSchema.blue.define(Tr2ReadbackALWebgl2, { className: "Tr2ReadbackALWebgl2" });
+CjsSchema.meta.define("Tr2ReadbackALWebgl2")(Tr2ReadbackALWebgl2);

@@ -9,7 +9,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -56,8 +56,8 @@ function updateBoundingSphere(cloud)
  * Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp.
  */
 @be.define("EveChildCloud")
-@blue.inherit(ITr2Renderable, ITr2DebugRenderable)
-@blue.inherit(IInitialize, INotify, Tr2DeviceResource)
+@be.inherit(ITr2Renderable, ITr2DebugRenderable)
+@be.inherit(IInitialize, INotify, Tr2DeviceResource)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

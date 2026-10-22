@@ -928,7 +928,7 @@ CjsSchema.decorateMethod(TriTextureRes, "PrepareResources", be.mapMethodAndWrap(
 CjsSchema.decorateMethod(TriTextureRes, "ReleaseResources", meta.adapted);
 CjsSchema.decorateMethod(TriTextureRes, "ReleasePayload", meta.adapted);
 be.define("TriTextureRes")(TriTextureRes);
-blue.inherit(ICacheable)(TriTextureRes, { kind: "class" });
+be.inherit(ICacheable)(TriTextureRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriTextureRes);
 // Carbon maps these in TriTextureRes_Blue.cpp:227-229 although BlueAsyncRes (CjsResource) declares them.
 be.mapMethodAndWrap([ "IsPrepared", "IsLoading", "IsGood" ])(TriTextureRes);

@@ -41,7 +41,7 @@ import { exposure as be } from "#be";
 // Each public operation owns fresh anchors. After references resolve, mapped
 // IInitialize runs once on its factory results, dependencies first. Existing
 // roots, embedded storage and supplied live objects remain borrowed.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { normalizeCarbonValue } from "../schema/types/index.js";
 import { IRoot } from "./IRoot.js";
@@ -1588,7 +1588,7 @@ function IsPlainObject(value)
   return Object.getPrototypeOf(prototype) === null && Object.prototype.toString.call(value) === "[object Object]";
 }
 
-CjsSchema.blue.inherit(IRoot)(DictReader);
+CjsSchema.exposure.inherit(IRoot)(DictReader);
 
 CjsSchema.exposure.define("DictReader")(DictReader);
 CjsSchema.decorateMethod(DictReader, "CreateObject", be.mapMethod(), meta.adapted);

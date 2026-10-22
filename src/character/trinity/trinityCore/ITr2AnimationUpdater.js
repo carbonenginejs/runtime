@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Include/ITr2AnimationUpdater.h:7-15
 import { CjsSchema, blue } from "#schema";
@@ -42,4 +43,4 @@ export class ITr2AnimationUpdater extends IRoot
 
 CjsSchema.exposure.interface("ITr2AnimationUpdater")(ITr2AnimationUpdater);
 
-blue.inherit(IRoot)(ITr2AnimationUpdater);
+be.inherit(IRoot)(ITr2AnimationUpdater);

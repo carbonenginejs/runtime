@@ -16,7 +16,7 @@
 // one, and the two are not interchangeable: a frame number says "everything up
 // to here is done", a fence says "this particular point is done".
 
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -173,4 +173,4 @@ CjsSchema.decorateMethod(Tr2FenceALStub, "Wait", meta.implemented);
 CjsSchema.decorateMethod(Tr2FenceALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2FenceALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2FenceALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2FenceALStub, { className: "Tr2FenceALStub" });
+CjsSchema.meta.define("Tr2FenceALStub")(Tr2FenceALStub);

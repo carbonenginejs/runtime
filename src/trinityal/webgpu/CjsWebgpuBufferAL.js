@@ -61,7 +61,7 @@ import { Tr2BufferDescriptionAL } from "../Tr2BufferAL/Tr2BufferDescriptionAL.js
 // declared only by DX11, and PRIVATE there (`Tr2BufferALDx11.h:43`) - it is an
 // implementation detail of that backend's upload path, not part of the
 // contract, and neither dx12, metal nor the stub has it.
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
@@ -582,4 +582,4 @@ CjsSchema.decorateMethod(CjsWebgpuBufferAL, "Describe", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuBufferAL, "SetName", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetSrvIndexInHeap", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetUavIndexInHeap", meta.adapted);
-CjsSchema.blue.define(CjsWebgpuBufferAL, { className: "CjsWebgpuBufferAL" });
+CjsSchema.meta.define("CjsWebgpuBufferAL")(CjsWebgpuBufferAL);

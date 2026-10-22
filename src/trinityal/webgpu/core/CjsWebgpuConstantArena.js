@@ -21,7 +21,7 @@
 // dynamic offset must be a multiple of.
 
 
-import { CjsSchema, blue, type, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 function fail(message)
 {
   const error = new Error(`CjsWebgpuConstantArena: ${message}`);
@@ -184,4 +184,4 @@ CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Allocate", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetPage", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "_CreatePage", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetTotalUploadedSize", meta.implemented);
-CjsSchema.blue.define(CjsWebgpuConstantArena, { className: "CjsWebgpuConstantArena" });
+CjsSchema.meta.define("CjsWebgpuConstantArena")(CjsWebgpuConstantArena);

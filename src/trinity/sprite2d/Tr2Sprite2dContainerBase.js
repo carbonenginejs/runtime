@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable child ownership is maintained here.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
@@ -11,7 +11,7 @@ import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 /** Shared Sprite2D container state and child-parent propagation. */
 @be.define("Tr2Sprite2dContainerBase")
-@blue.inherit(IListNotify)
+@be.inherit(IListNotify)
 @be.mapInterface(ITr2SpriteObject)
 @be.mapInterface(IListNotify)
 @be.exposureChainTo(Tr2SpriteObjectBase)

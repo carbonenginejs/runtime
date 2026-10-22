@@ -12,7 +12,7 @@
 // on a real backend - the CPU-side mirror the driver uploads from. Here there
 // is nothing to upload to, so the mirror is the whole resource.
 
-import { CjsSchema, meta, blue, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -179,4 +179,4 @@ CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetSize", meta.implemented);
 CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2ConstantBufferALStub, { className: "Tr2ConstantBufferALStub" });
+CjsSchema.meta.define("Tr2ConstantBufferALStub")(Tr2ConstantBufferALStub);

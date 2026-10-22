@@ -4,7 +4,7 @@
 // its partner - why these exist at all, why bytecode here is WGSL text rather
 // than DXBC, and why fields are public and Carbon-named - is recorded in the
 // head comment of CjsWebgpuShaderAL.js, which several other files already cite.
-import { CjsSchema, blue, type, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2RegisterMapAL } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -435,4 +435,4 @@ CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Destroy", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Describe", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "SetName", meta.adapted);
-CjsSchema.blue.define(CjsWebgpuShaderProgramAL, { className: "CjsWebgpuShaderProgramAL" });
+CjsSchema.meta.define("CjsWebgpuShaderProgramAL")(CjsWebgpuShaderProgramAL);

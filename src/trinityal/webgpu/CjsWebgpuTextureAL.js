@@ -19,7 +19,7 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 // `viewFormats` at creation, so it is.
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on `CjsWebgpuShaderAL`.
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, CopyRegion, Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag, IsWritable } from "#consts/render-context";
@@ -1046,6 +1046,4 @@ CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Describe", meta.adapted);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "SetName", meta.implemented);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetName", meta.implemented);
 
-CjsSchema.blue.define(CjsWebgpuTextureAL, {
-  className: "CjsWebgpuTextureAL"
-});
+CjsSchema.meta.define("CjsWebgpuTextureAL")(CjsWebgpuTextureAL);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ShLightingManager.h:117-122
 //
@@ -29,5 +30,5 @@ for (const method of [ "UpdateShLighting", "ClearShLighting" ])
 {
   CjsSchema.decorateMethod(ITr2ShLightingReceiver, method, blue.abstract);
 }
-blue.inherit(IRoot)(ITr2ShLightingReceiver);
+be.inherit(IRoot)(ITr2ShLightingReceiver);
 CjsSchema.exposure.interface("ITr2ShLightingReceiver")(ITr2ShLightingReceiver);

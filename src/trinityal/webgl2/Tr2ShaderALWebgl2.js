@@ -24,7 +24,7 @@
 // pass (its `computeFragment` recipe); geometry, hull and domain stages have
 // no WebGL2 counterpart and are refused.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -298,4 +298,4 @@ CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetSignature", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Describe", meta.adapted);
 CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "SetName", meta.adapted);
-CjsSchema.blue.define(Tr2ShaderALWebgl2, { className: "Tr2ShaderALWebgl2" });
+CjsSchema.meta.define("Tr2ShaderALWebgl2")(Tr2ShaderALWebgl2);

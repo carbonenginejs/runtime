@@ -5,7 +5,7 @@ import { IBlueEvents } from "../../global/blue/IBlueEvents.js";
 // Source: videoplayer/VideoPlayer.h, videoplayer/VideoPlayer.cpp:104-247
 // Browser adaptation: HTML media owns decoding, presentation and audio clocks.
 // Resource paths and playlist policy remain with VideoPlaylistController.
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { State } from "../../resource/video/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../trinity/core/context/Tr2RenderContext.js";
 import { BitmapDimensions } from "#imageio";
@@ -536,7 +536,7 @@ export class VideoPlayer
   }
 }
 
-blue.inherit(INotify, IBlueEvents)(VideoPlayer);
+be.inherit(INotify, IBlueEvents)(VideoPlayer);
 
 CjsSchema.decorateMethod(VideoPlayer, "Create", be.mapMethodAndWrapOptionalArgs("__init__"), meta.adapted);
 CjsSchema.decorateMethod(VideoPlayer, "Update", meta.adapted);

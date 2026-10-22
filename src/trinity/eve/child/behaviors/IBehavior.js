@@ -102,5 +102,5 @@ CjsSchema.decorateMethod(IBehavior, "RenderDebugInfo", meta.implemented);
 CjsSchema.decorateMethod(IBehavior, "GetBehaviorSearchRadius", meta.implemented);
 CjsSchema.decorateMethod(IBehavior, "UpdateState", meta.implemented);
 
-CjsSchema.blue.inherit(IRoot)(IBehavior);
+CjsSchema.exposure.inherit(IRoot)(IBehavior);
 CjsSchema.exposure.interface("IBehavior")(IBehavior);

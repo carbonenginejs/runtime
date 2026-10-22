@@ -16,5 +16,5 @@ export class IShaderConfigurer extends IRoot
 }
 
 CjsSchema.decorateMethod(IShaderConfigurer, "SetShaderOption", blue.abstract);
-CjsSchema.blue.inherit(IRoot)(IShaderConfigurer);
+CjsSchema.exposure.inherit(IRoot)(IShaderConfigurer);
 CjsSchema.exposure.interface("IShaderConfigurer")(IShaderConfigurer);

@@ -18,4 +18,4 @@ export class Tr2PipelineStatsDataALWebgl2
   data = [];
 }
 
-CjsSchema.blue.define(Tr2PipelineStatsDataALWebgl2, { className: "Tr2PipelineStatsDataALWebgl2" });
+CjsSchema.meta.define("Tr2PipelineStatsDataALWebgl2")(Tr2PipelineStatsDataALWebgl2);

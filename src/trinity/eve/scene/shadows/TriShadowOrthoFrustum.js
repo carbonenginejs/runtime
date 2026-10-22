@@ -15,7 +15,7 @@ import { IEveShadowFrustum } from "./IEveShadowFrustum.js";
 
 /** Carbon's native orthographic-shadow frustum adapter. */
 @meta.carbon("TriShadowOrthoFrustum")
-@blue.inherit(IEveShadowFrustum)
+@meta.inherit(IEveShadowFrustum)
 export class TriShadowOrthoFrustum
 {
 

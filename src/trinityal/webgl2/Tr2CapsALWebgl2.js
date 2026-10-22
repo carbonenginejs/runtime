@@ -10,7 +10,7 @@
 // branch to take. So compute is denied until dispatch works here, even though
 // the plan is to lower it to fragment passes.
 
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 /**
  * The platform capability constants (`Tr2CapsALDx11.h:9-18`), WebGL2's answers.
@@ -141,4 +141,4 @@ CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsStandaloneSwapChain");
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVertexShaderTextures", meta.implemented);
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsVariableRefreshRate", meta.implemented);
 CjsSchema.decorateMethod(Tr2CapsALWebgl2, "SupportsRaytracing", meta.implemented);
-CjsSchema.blue.define(Tr2CapsALWebgl2, { className: "Tr2CapsALWebgl2" });
+CjsSchema.meta.define("Tr2CapsALWebgl2")(Tr2CapsALWebgl2);

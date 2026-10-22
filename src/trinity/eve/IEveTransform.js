@@ -77,5 +77,5 @@ export class IEveTransform extends IRoot
 }
 
 
-CjsSchema.blue.inherit(IRoot)(IEveTransform);
+CjsSchema.exposure.inherit(IRoot)(IEveTransform);
 CjsSchema.exposure.interface("IEveTransform")(IEveTransform);

@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Include/ITr2Interior.h
 import { CjsSchema, blue } from "#schema";
@@ -11,4 +12,4 @@ export class ITr2InteriorCullable extends IRoot
 CjsSchema.decorateMethod(ITr2InteriorCullable, "IsInFrustum", blue.abstract);
 CjsSchema.exposure.interface("ITr2InteriorCullable")(ITr2InteriorCullable);
 
-blue.inherit(IRoot)(ITr2InteriorCullable);
+be.inherit(IRoot)(ITr2InteriorCullable);

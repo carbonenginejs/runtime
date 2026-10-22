@@ -7,7 +7,7 @@ import { exposure as be } from "#be";
 // Tr2DeviceResource; this one is none of them yet. The load path (DoLoad,
 // DoPrepare, OnPrepareResources and the six `*atlas` resource extensions) is
 // left as explicit obligations: see `DoLoad`.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ICacheable, IBlueResource } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { TriStorageFlags } from "#consts/graphics";
@@ -30,7 +30,7 @@ import { vec4 } from "#math/vec4";
 @be.define("Tr2AtlasTexture")
 @be.mapInterface(IBlueResource)
 @be.mapInterface(ICacheable)
-@blue.inherit(ICacheable, IBlueResource)
+@be.inherit(ICacheable, IBlueResource)
 export class Tr2AtlasTexture extends IRoot
 {
 

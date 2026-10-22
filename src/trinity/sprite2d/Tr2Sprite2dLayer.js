@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { CCP_LOGERR } from "../../global/logging/ccpLog.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -38,8 +38,8 @@ function toUint32(value)
  * plus `PrepareResources`/`ReleaseResources` here, as on the other Trinity device resources.
  */
 @be.define("Tr2Sprite2dLayer")
-@blue.chainTo(Tr2Sprite2dContainer)
-@blue.inherit(ITr2Sprite2dTextureNotifyTarget)
+@be.exposureChainTo(Tr2Sprite2dContainer)
+@be.inherit(ITr2Sprite2dTextureNotifyTarget)
 export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 {
 

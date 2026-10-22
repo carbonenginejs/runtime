@@ -34,5 +34,5 @@ for (const method of [ "ReadFromStream", "ReadForCachingFromStream", "SetFileNam
   CjsSchema.decorateMethod(IRootReader, method, blue.abstract);
 }
 
-CjsSchema.blue.inherit(IRoot)(IRootReader);
+CjsSchema.exposure.inherit(IRoot)(IRootReader);
 CjsSchema.exposure.interface("IRootReader")(IRootReader);

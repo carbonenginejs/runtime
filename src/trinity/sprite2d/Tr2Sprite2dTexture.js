@@ -7,7 +7,7 @@ import { ITr2Sprite2dTexture } from "./ITr2Sprite2dTexture.js";
 // Imported for the listener set's JSDoc type and so the interface is in the build graph.
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 import { ITr2AtlasTextureNotifyTarget } from "../core/ITr2AtlasTextureNotifyTarget.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -22,7 +22,7 @@ import { Tr2Sprite2dTextureSettings } from "../generated/sprite2d/enums.js";
  * contract, whose GPU renderer is a separate unfinished implementation.
  */
 @be.define("Tr2Sprite2dTexture")
-@blue.inherit(IInitialize, INotify, ITr2AtlasTextureNotifyTarget)
+@be.inherit(IInitialize, INotify, ITr2AtlasTextureNotifyTarget)
 @be.mapInterface(ITr2Sprite2dTexture)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

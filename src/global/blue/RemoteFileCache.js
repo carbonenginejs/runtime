@@ -545,7 +545,7 @@ export class RemoteFileCache
   }
 }
 
-CjsSchema.blue.inherit(IRoot)(RemoteFileCache);
+CjsSchema.exposure.inherit(IRoot)(RemoteFileCache);
 CjsSchema.decorateField(RemoteFileCache, "server", be.mapAttribute(be.READWRITE), type.string);
 CjsSchema.decorateField(RemoteFileCache, "backupServer", be.mapAttribute(be.READWRITE), type.string);
 CjsSchema.decorateField(RemoteFileCache, "prefix", be.mapAttribute(be.READWRITE), type.string);

@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2PipelineStatsQueryALStub.cpp
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../../ALResult.js";
@@ -166,4 +166,4 @@ CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetValue", meta.adapted);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2PipelineStatsQueryALStub, { className: "Tr2PipelineStatsQueryALStub" });
+CjsSchema.meta.define("Tr2PipelineStatsQueryALStub")(Tr2PipelineStatsQueryALStub);

@@ -11,7 +11,7 @@ import { IEveShadowFrustum } from "./IEveShadowFrustum.js";
 
 /** Carbon's native perspective-shadow frustum adapter. */
 @meta.carbon("TriShadowFrustum")
-@blue.inherit(IEveShadowFrustum)
+@meta.inherit(IEveShadowFrustum)
 export class TriShadowFrustum
 {
 

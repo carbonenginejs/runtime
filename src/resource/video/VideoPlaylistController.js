@@ -2,7 +2,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: videoplayer/python/videoplayer/playlistresource.py:24-165,231-254
 // One host-defined playlist owns one texture, player and colour sampler.
 import { IBlueDynamicResourceConstructor } from "#blue";
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { TriTextureRes } from "../texture/TriTextureRes.js";
 import { State } from "./enums.js";
 import { ColorPrefix } from "../texture/solidColorTexture.js";
@@ -195,9 +195,7 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
 
 CjsSchema.decorateMethod(VideoPlaylistController, "GetResource", meta.adapted);
 CjsSchema.decorateMethod(VideoPlaylistController, "Destruct", meta.adapted);
-CjsSchema.blue.define(VideoPlaylistController, {
-  className: "VideoPlaylistController"
-});
+CjsSchema.meta.define("VideoPlaylistController")(VideoPlaylistController);
 
 /**
  * Register host policy for dynamic playlist names. Shuffle once, then loop in

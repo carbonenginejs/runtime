@@ -18,7 +18,7 @@
 // stands rather than quietly reordered - a caller that ignores the result gets
 // Carbon's behaviour, not a different one.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -132,4 +132,4 @@ CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "IsValid", meta.implemented);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "SetName", meta.implemented);
 CjsSchema.decorateMethod(Tr2VertexLayoutALStub, "Describe", meta.implemented);
-CjsSchema.blue.define(Tr2VertexLayoutALStub, { className: "Tr2VertexLayoutALStub" });
+CjsSchema.meta.define("Tr2VertexLayoutALStub")(Tr2VertexLayoutALStub);

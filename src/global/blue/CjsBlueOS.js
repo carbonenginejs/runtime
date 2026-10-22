@@ -329,7 +329,7 @@ export class CjsBlueOS extends IBlueOS
 }
 
 CjsSchema.exposure.mapInterface(IBlueOS)(CjsBlueOS);
-CjsSchema.blue.inherit(BeInfo)(CjsBlueOS);
+CjsSchema.meta.inherit(BeInfo)(CjsBlueOS);
 CjsSchema.decorateField(CjsBlueOS, "frameClock", blue.readwrite);
 CjsSchema.decorateMethod(CjsBlueOS, "GetSmoothedTime", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueOS, "GetActualTime", meta.adapted);

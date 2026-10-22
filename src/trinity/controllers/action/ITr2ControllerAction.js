@@ -13,7 +13,7 @@
 // the concrete actions use to duck-type their OWNERS (which have no common
 // contract yet). They are unrelated to the instance surface.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IRoot } from "../../../global/blue/IRoot.js";
 
 
@@ -198,5 +198,5 @@ export class ITr2ControllerAction extends IRoot
 
 
 for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(ITr2ControllerAction, name, meta.implemented);
-CjsSchema.blue.inherit(IRoot)(ITr2ControllerAction);
+CjsSchema.exposure.inherit(IRoot)(ITr2ControllerAction);
 CjsSchema.exposure.interface("ITr2ControllerAction")(ITr2ControllerAction);

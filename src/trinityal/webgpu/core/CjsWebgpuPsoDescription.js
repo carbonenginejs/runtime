@@ -46,7 +46,7 @@
 // pointers - and hashes it with `CcpHashFNV1`; the cache compares the block
 // itself on a hash hit, Carbon's `operator==`, so a collision cannot alias two
 // pipelines. Nothing is allocated to key a draw.
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE, CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "#resource/format";
 import { ccpHashFnv1, identityOf } from "#utils/hash";
 import { TOPOLOGIES } from "./topology.js";
@@ -443,4 +443,4 @@ export class CjsWebgpuPsoDescription
 // it keeps the layer free of the decorator chain it has never carried.
 // Donor: dx12/util/PsoDescription.cpp (UpdateHash hashes the description block, then the program and layout pointers). This is the raster pipeline state the trinity-abstraction-layer decision names as the one sanctioned gap, so the block is ours: identities of the program, layout and render-state setup, the attachment formats and the stream strides, hashed with the same FNV-1.
 CjsSchema.decorateMethod(CjsWebgpuPsoDescription, "UpdateHash", meta.adapted);
-CjsSchema.blue.define(CjsWebgpuPsoDescription, { className: "CjsWebgpuPsoDescription" });
+CjsSchema.meta.define("CjsWebgpuPsoDescription")(CjsWebgpuPsoDescription);

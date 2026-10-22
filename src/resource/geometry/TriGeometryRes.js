@@ -1642,5 +1642,5 @@ CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceBufferVertexDeclaration", m
 CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceBufferBoundingBox", meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "SaveMesh", be.mapMethodAndWrap(), meta.notSupported);
 be.define("TriGeometryRes")(TriGeometryRes);
-blue.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
+be.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriGeometryRes);

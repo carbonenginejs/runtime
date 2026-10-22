@@ -8,7 +8,7 @@
 // every other call answers as dx11 does for a query that was never created,
 // and a statistics record has no fields.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -184,4 +184,4 @@ CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValue");
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Describe", meta.implemented);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "SetName", meta.adapted);
-CjsSchema.blue.define(Tr2PipelineStatsQueryALWebgl2, { className: "Tr2PipelineStatsQueryALWebgl2" });
+CjsSchema.meta.define("Tr2PipelineStatsQueryALWebgl2")(Tr2PipelineStatsQueryALWebgl2);

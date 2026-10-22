@@ -1,10 +1,11 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2CurveSetOwner.h:9-19
 import { CjsSchema, meta, blue } from "#schema";
 
 
 /** Contract for an object that plays and queries named curve sets. */
-@blue.inherit(IRoot)
+@be.inherit(IRoot)
 export class ITr2CurveSetOwner extends IRoot
 {
   /**

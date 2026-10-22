@@ -12,5 +12,5 @@ export class IEveLightingOverride extends IRoot
 }
 
 CjsSchema.decorateMethod(IEveLightingOverride, "GetOverrides", blue.abstract);
-CjsSchema.blue.inherit(IRoot)(IEveLightingOverride);
+CjsSchema.exposure.inherit(IRoot)(IEveLightingOverride);
 CjsSchema.exposure.interface("IEveLightingOverride")(IEveLightingOverride);

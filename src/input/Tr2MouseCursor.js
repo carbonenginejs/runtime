@@ -1,5 +1,5 @@
 import { exposure as be } from "#be";
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2MouseCursor.h
 // Source: trinity/trinity/UI/Tr2MouseCursor.cpp
@@ -188,7 +188,7 @@ export class Tr2MouseCursor
 
 export default Tr2MouseCursor;
 
-blue.inherit(IRoot)(Tr2MouseCursor);
+be.inherit(IRoot)(Tr2MouseCursor);
 
 CjsSchema.decorateMethod(Tr2MouseCursor, "__init__", meta.renamed("py__init__"), meta.adapted);
 CjsSchema.decorateMethod(Tr2MouseCursor, "Create", be.mapMethodAndWrapOptionalArgs(), meta.adapted);

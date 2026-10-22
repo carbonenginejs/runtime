@@ -9,13 +9,13 @@ import { exposure as be } from "#be";
 // CopyToResourceSet (cpp:415-433) is deliberately NOT here: it is
 // Tr2ResourceSetDescriptionAL/Tr2TextureAL device work and stays with the
 // engine lane.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { ITriEffectResourceParameter } from "../../shader/parameter/ITriEffectResourceParameter.js";
 import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 
 /** Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it. */
 @be.define("EveCloudVolumeTextureParameter")
-@blue.inherit(ITriEffectResourceParameter)
+@be.inherit(ITriEffectResourceParameter)
 @be.mapInterface(ITriEffectResourceParameter)
 export class EveCloudVolumeTextureParameter extends IRoot
 {

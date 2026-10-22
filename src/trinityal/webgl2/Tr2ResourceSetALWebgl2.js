@@ -29,7 +29,7 @@ import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetD
 //   binds (`:139-168`); JavaScript objects have no addresses to hash, and the
 //   render context compares sets by identity instead.
 
-import { CjsSchema, blue, meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
@@ -375,4 +375,4 @@ CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "IsValid", meta.implemented);
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Describe", meta.implemented);
 CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "SetName", meta.implemented);
-CjsSchema.blue.define(Tr2ResourceSetALWebgl2, { className: "Tr2ResourceSetALWebgl2" });
+CjsSchema.meta.define("Tr2ResourceSetALWebgl2")(Tr2ResourceSetALWebgl2);

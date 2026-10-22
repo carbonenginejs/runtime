@@ -27,7 +27,7 @@ import { INotify } from "../../global/blue/INotify.js";
 // the constructor only names them. Until a resource manager resolves those
 // paths the passes run and draw nothing, which is the same state every other
 // effect-driven path in this runtime is in.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
@@ -69,7 +69,7 @@ function effectAt(path)
 
 /** Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising. */
 @be.define("Tr2Denoiser")
-@blue.inherit(INotify)
+@be.inherit(INotify)
 @be.mapInterface(INotify)
 export class Tr2Denoiser extends IRoot
 {

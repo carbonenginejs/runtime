@@ -15,7 +15,7 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
  * subclasses supply the track binding and sampling.
  */
 @be.define("Tr2GrannyTrack")
-@blue.inherit(ITriFunction, IInitialize, ITriCurveLength, INotify)
+@be.inherit(ITriFunction, IInitialize, ITriCurveLength, INotify)
 @be.mapInterface(ITriFunction)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)

@@ -1,7 +1,7 @@
 // Source: audio/src/AudMusicPlayer.h + AudMusicPlayer.cpp
 // Hand-owned since 2026-07-19 (behavior port); the generator skips this file.
 import { exposure as be } from "#be";
-import { meta, blue } from "#schema";
+import { meta } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 
 export const MUSIC_GAME_OBJ_ID = 3;
@@ -15,7 +15,7 @@ const FLOAT_MAX = 3.4028234663852886e38;
  * behavior is inherited from AudEmitter (SendEvent/SetSwitch/SetRTPC/...).
  */
 @be.define("AudMusicPlayer")
-@blue.chainTo(AudEmitter)
+@be.exposureChainTo(AudEmitter)
 @be.abstract
 export class AudMusicPlayer extends AudEmitter
 {

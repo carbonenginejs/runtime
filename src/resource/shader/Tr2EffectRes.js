@@ -644,5 +644,5 @@ CjsSchema.decorateMethod(Tr2EffectRes, "_DoPrepare", meta.adapted);
 CjsSchema.decorateMethod(Tr2EffectRes, "_OnPrepareResources", meta.notImplemented);
 CjsSchema.decorateMethod(Tr2EffectRes, "GetDescription", meta.adapted);
 be.define("Tr2EffectRes")(Tr2EffectRes);
-blue.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
+be.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);

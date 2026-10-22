@@ -30,7 +30,7 @@ const ELEMENTS = [
 })
 @be.mapInterface(ITriMatrix)
 @be.mapInterface(IPythonMethods)
-@blue.inherit(ITriMatrix, IPythonMethods)
+@be.inherit(ITriMatrix, IPythonMethods)
 export class TriMatrix extends IRoot
 {
   /**

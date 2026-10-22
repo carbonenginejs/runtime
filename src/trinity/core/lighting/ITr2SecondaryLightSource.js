@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ShLightingManager.h:105-110
 //
@@ -33,5 +34,5 @@ for (const method of [ "RegisterSecondaryLightSource", "UnregisterSecondaryLight
 {
   CjsSchema.decorateMethod(ITr2SecondaryLightSource, method, blue.abstract);
 }
-blue.inherit(IRoot)(ITr2SecondaryLightSource);
+be.inherit(IRoot)(ITr2SecondaryLightSource);
 CjsSchema.exposure.interface("ITr2SecondaryLightSource")(ITr2SecondaryLightSource);

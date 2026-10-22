@@ -45,7 +45,7 @@ import { Tr2StubPlatformCaps } from "../Tr2CapsALStub.js";
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { CjsSchema, blue, type, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 import { Tr2ResourceSetAL } from "../../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2FenceALStub, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../../Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -1707,4 +1707,4 @@ CjsSchema.decorateMethod(Tr2RenderContextALStub, "DeleteUpscalingContext", meta.
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "GetUpscalingInfo", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "GetSupportedUpscalingTechniques", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "GetUpscalingSetup", meta.adapted);
-CjsSchema.blue.define(Tr2RenderContextALStub, { className: "Tr2RenderContextALStub" });
+CjsSchema.meta.define("Tr2RenderContextALStub")(Tr2RenderContextALStub);

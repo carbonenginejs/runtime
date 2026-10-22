@@ -47,5 +47,5 @@ export class ITr2StateMachineStateFinalizer extends IRoot
 }
 
 
-CjsSchema.blue.inherit(IRoot)(ITr2StateMachineStateFinalizer);
+CjsSchema.exposure.inherit(IRoot)(ITr2StateMachineStateFinalizer);
 CjsSchema.exposure.interface("ITr2StateMachineStateFinalizer")(ITr2StateMachineStateFinalizer);

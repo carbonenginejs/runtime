@@ -20,5 +20,5 @@ export class ITr2ValueBinding extends IRoot
 }
 
 CjsSchema.decorateMethod(ITr2ValueBinding, "CopyValue", blue.abstract);
-CjsSchema.blue.inherit(IRoot)(ITr2ValueBinding);
+CjsSchema.exposure.inherit(IRoot)(ITr2ValueBinding);
 CjsSchema.exposure.interface("ITr2ValueBinding")(ITr2ValueBinding);

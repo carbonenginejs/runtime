@@ -1,3 +1,4 @@
+import { exposure as be } from "#be";
 import { IRoot } from "#blue/IRoot";
 // Source: trinityaudioapi/include/ITr2AudEmitter.h
 //
@@ -132,5 +133,5 @@ export class ITr2AudEmitter extends IRoot
 
 for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, blue.abstract);
 CjsSchema.decorateMethod(ITr2AudEmitter, "Initialize__WithParameters", meta.renamed("Initialize"));
-blue.inherit(IRoot)(ITr2AudEmitter);
+be.inherit(IRoot)(ITr2AudEmitter);
 CjsSchema.exposure.interface("ITr2AudEmitter")(ITr2AudEmitter);

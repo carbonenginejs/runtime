@@ -2,14 +2,14 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.h
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
 import { Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 
 /** Adds primary and secondary texture bindings to the shared 2D sprite render state. */
 @be.define("Tr2TexturedSpriteObject")
 @be.exposureChainTo(Tr2SpriteObject)
-@blue.inherit(ITr2Sprite2dTextureNotifyTarget)
+@be.inherit(ITr2Sprite2dTextureNotifyTarget)
 @be.abstract
 export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 {
