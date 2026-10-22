@@ -118,7 +118,8 @@ export class TriColorSequencer extends ITriColorFunction
 
   /**
    * Combines child colors using Carbon's multiply or add operation.
-   * JavaScript retains seconds-first/output-last calls and existing sampling math.
+   * Carbon: TriColorSequencer::GetValueAt (trinity/trinity/TriSequencer.cpp:364-372): routes on the operator.
+   * JavaScript retains seconds-first/output-last calls.
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -128,23 +129,52 @@ export class TriColorSequencer extends ITriColorFunction
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
     {
-      vec4.set(out, 1, 1, 1, 1);
-      for (const curve of this.functions)
-      {
-        curve.GetValueAt(time, this._childValue);
-        vec4.multiply(out, out, this._childValue);
-      }
-      return out;
+      return this._GetValueAtMult(time, out);
     }
 
-    // Carbon's double-seconds overload starts additive evaluation at white.
-    // TriCurveSet drives UpdateValue(double), so preserve that observable quirk.
+    return this._GetValueAtAdd(time, out);
+  }
+
+  /**
+   * Multiplies the children's colors, starting from opaque white.
+   * Carbon: TriColorSequencer::GetValueAtMult(Color*, double) (trinity/trinity/TriSequencer.cpp:374-390).
+   * JavaScript retains seconds-first/output-last calls.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.adapted
+  _GetValueAtMult(time, out)
+  {
+    vec4.set(out, 1, 1, 1, 1);
+    for (const curve of this.functions)
+    {
+      curve.GetValueAt(time, this._childValue);
+      vec4.multiply(out, out, this._childValue);
+    }
+
+    return out;
+  }
+
+  /**
+   * Adds the children's colors.
+   * Carbon: TriColorSequencer::GetValueAtAdd(Color*, double) (trinity/trinity/TriSequencer.cpp:392-406).
+   * Quirk (TriSequencer.cpp:396): the double overload seeds the sum with opaque white where the Be::Time overload (TriSequencer.cpp:353) seeds zero; reproduced, so an additive sequencer sampled in seconds is offset by white. TriCurveSet drives UpdateValue(double), so this is the path real assets take.
+   * JavaScript retains seconds-first/output-last calls.
+   * @param {number} time Time in seconds.
+   * @param {Float32Array} out Destination value.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.adapted
+  _GetValueAtAdd(time, out)
+  {
     vec4.set(out, 1, 1, 1, 1);
     for (const curve of this.functions)
     {
       curve.GetValueAt(time, this._childValue);
       vec4.add(out, out, this._childValue);
     }
+
     return out;
   }
 
@@ -163,8 +193,7 @@ export class TriColorSequencer extends ITriColorFunction
   }
 
   /**
-   * Carbon's GetValueAt(Be::Time) (cpp:321-352): children sample through their Be::Time overloads, and the ADD arm
-   * seeds zero where the double overload seeds one - Carbon's own asymmetry, kept. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * Carbon's GetValueAt(Be::Time) (TriSequencer.cpp:322-330): routes on the operator. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
@@ -174,20 +203,49 @@ export class TriColorSequencer extends ITriColorFunction
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
     {
-      vec4.set(out, 1, 1, 1, 1);
-      for (const curve of this.functions)
-      {
-        curve.GetValueAt__Ticks(time, this._childValue);
-        vec4.multiply(out, out, this._childValue);
-      }
-      return out;
+      return this._GetValueAtMult__Ticks(time, out);
     }
+
+    return this._GetValueAtAdd__Ticks(time, out);
+  }
+
+  /**
+   * Multiplies the children's colors sampled through their Be::Time overloads, starting from opaque white.
+   * Carbon: TriColorSequencer::GetValueAtMult(Color*, Be::Time) (trinity/trinity/TriSequencer.cpp:332-347).
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination color.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.adapted
+  _GetValueAtMult__Ticks(time, out)
+  {
+    vec4.set(out, 1, 1, 1, 1);
+    for (const curve of this.functions)
+    {
+      curve.GetValueAt__Ticks(time, this._childValue);
+      vec4.multiply(out, out, this._childValue);
+    }
+
+    return out;
+  }
+
+  /**
+   * Adds the children's colors sampled through their Be::Time overloads, starting from zero (the double overload starts from white; see _GetValueAtAdd).
+   * Carbon: TriColorSequencer::GetValueAtAdd(Color*, Be::Time) (trinity/trinity/TriSequencer.cpp:349-362).
+   * @param {number} time Scene time in Blue 100ns ticks.
+   * @param {Float32Array} out Destination color.
+   * @returns {Float32Array} The destination.
+   */
+  @meta.adapted
+  _GetValueAtAdd__Ticks(time, out)
+  {
     vec4.set(out, 0, 0, 0, 0);
     for (const curve of this.functions)
     {
       curve.GetValueAt__Ticks(time, this._childValue);
       vec4.add(out, out, this._childValue);
     }
+
     return out;
   }
 
