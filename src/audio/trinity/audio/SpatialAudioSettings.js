@@ -257,7 +257,7 @@ export class SpatialAudioSettings
    * object.
    */
   @meta.adapted
-  PopulateInitSettings(out = {})
+  PopulateInitSettings(out)
   {
     out.fMovementThreshold = this._movementThreshold;
     out.uNumberOfPrimaryRays = this._numberOfPrimaryRays >>> 0;
