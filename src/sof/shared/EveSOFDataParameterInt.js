@@ -11,6 +11,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 /** Integer shader parameter: broadcasts the value to all four components. */
 @be.define("EveSOFDataParameterInt")
 @be.mapInterface(EveSOFDataParameter)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveSOFDataParameterInt extends EveSOFDataParameter
 {
   /**

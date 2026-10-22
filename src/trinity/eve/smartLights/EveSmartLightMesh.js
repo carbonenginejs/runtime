@@ -40,6 +40,14 @@ import { BLUELISTEVENT } from "#consts/blue";
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.mapInterface(IEveShadowCaster)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "display")
+@be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY, "mesh")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticOffsetTranslation")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticOffsetRotation")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticOffsetScale")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "minScreenSize")
+@be.mapAttribute(be.READ, "currentScreenSize")
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

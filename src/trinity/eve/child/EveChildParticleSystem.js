@@ -37,6 +37,9 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 @be.inherit(ITr2DebugRenderable)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READ, "worldTransform")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "useSRT")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticTransform")
 export class EveChildParticleSystem extends EveChildTransform
 {
 

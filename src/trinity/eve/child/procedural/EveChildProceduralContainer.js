@@ -36,6 +36,10 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 @be.mapInterface(IShaderConfigurer)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READ, "worldTransform")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "useSRT")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticTransform")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "useStaticRotation")
 export class EveChildProceduralContainer extends EveChildTransform
 {
 

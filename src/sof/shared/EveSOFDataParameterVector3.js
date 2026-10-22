@@ -12,6 +12,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 /** Three-component shader parameter: zero-pads w (0, not 1). */
 @be.define("EveSOFDataParameterVector3")
 @be.mapInterface(EveSOFDataParameter)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveSOFDataParameterVector3 extends EveSOFDataParameter
 {
   /**

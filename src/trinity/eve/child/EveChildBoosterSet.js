@@ -84,6 +84,7 @@ const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
 @be.mapInterface(EveEntity)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(ITr2ControllerOwner)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveChildBoosterSet extends EveSpaceObjectChild
 {
 

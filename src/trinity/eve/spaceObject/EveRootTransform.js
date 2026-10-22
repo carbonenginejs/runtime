@@ -27,6 +27,9 @@ import { ITriTargetable } from "../../core/ITriTargetable.js";
 @be.mapInterface(ITr2BoundingBox)
 @be.mapInterface(ITr2Pickable)
 @be.exposureChainTo(Tr2Transform)
+@be.mapAttribute(be.READ | be.PERSIST, "children")
+@be.mapAttribute(be.READ | be.PERSIST, "observers")
+@be.mapAttribute(be.READ, "lodLevel")
 export class EveRootTransform extends EveTransform
 {
 

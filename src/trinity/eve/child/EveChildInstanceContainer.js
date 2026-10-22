@@ -40,6 +40,10 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.inherit(IEveEffectChildrenOwner)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READ, "worldTransform")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticTransform")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "useSRT")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "useStaticRotation")
 export class EveChildInstanceContainer extends EveChildTransform
 {
 

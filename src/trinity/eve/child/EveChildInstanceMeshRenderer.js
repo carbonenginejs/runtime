@@ -101,6 +101,10 @@ const INSTANCE_SPHERE = vec4.create();
 @be.mapInterface(IEveShadowCaster)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "display")
+@be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY, "mesh")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "minScreenSize")
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:37); chooser RotationalConstraintsChooser (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:7). */

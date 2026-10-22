@@ -12,6 +12,13 @@ import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttri
 @be.mapInterface(EveSmartLightBaseAttributeModifier)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "attributeMultiplier")
+@be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY, "active")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "startsActive")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "crossFadeDuration")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "crossFadeIntensity")
+@be.mapAttribute(be.READ, "activationValue")
+@be.mapAttribute(be.READ, "finalAttributeMultiplier")
 export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAttributeModifier
 {
 

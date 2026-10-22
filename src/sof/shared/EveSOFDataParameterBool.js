@@ -11,6 +11,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 /** Boolean shader parameter: broadcasts 1/0 to all four components. */
 @be.define("EveSOFDataParameterBool")
 @be.mapInterface(EveSOFDataParameter)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveSOFDataParameterBool extends EveSOFDataParameter
 {
   /**

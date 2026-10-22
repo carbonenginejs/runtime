@@ -11,6 +11,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 /** Float shader parameter: broadcasts the value to all four components. */
 @be.define("EveSOFDataParameterFloat")
 @be.mapInterface(EveSOFDataParameter)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveSOFDataParameterFloat extends EveSOFDataParameter
 {
   /**

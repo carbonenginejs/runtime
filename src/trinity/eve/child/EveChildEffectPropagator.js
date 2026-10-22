@@ -71,6 +71,8 @@ function SortByCircleDist(lhs, rhs)
 @be.mapInterface(EveEntity)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READ | be.PERSIST, "curveSets")
 export class EveChildEffectPropagator extends EveChildContainer
 {
 

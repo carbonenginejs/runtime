@@ -16,6 +16,13 @@ import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeMo
 })
 @blue.inherit(IInitialize)
 @blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize, INotify)
+@be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY, "attributeModifiers")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "attributeMultiplier")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "crossFadeDuration")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "crossFadeIntensity")
+@be.mapAttribute(be.READ, "activationValue")
+@be.mapAttribute(be.READ, "finalAttributeMultiplier")
 export class EveSmartLightAttributeModifierControllerVariableListener extends EveSmartLightAttributeModifierBucket
 {
 

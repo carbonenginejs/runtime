@@ -24,6 +24,14 @@ import { Tr2SphereShapeAttributeGenerator } from "../../particle/attribute/Tr2Sp
 @be.mapInterface(IEveSpaceObjectChild)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "translation")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "rotation")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "scaling")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "localTransform")
+@be.mapAttribute(be.READ, "worldTransform")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "useSRT")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticTransform")
 export class EveChildExplosion extends EveChildContainer
 {
 

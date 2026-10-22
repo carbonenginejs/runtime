@@ -46,6 +46,9 @@ import { ITr2DebugRenderable } from "#interfaces";
 @be.mapInterface(EveEntity)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READ, "worldTransform")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "useSRT")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticTransform")
 export class EveChildBehaviorSystem extends EveChildTransform
 {
 

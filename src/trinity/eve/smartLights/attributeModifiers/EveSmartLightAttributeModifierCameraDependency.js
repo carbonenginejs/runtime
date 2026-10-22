@@ -11,6 +11,10 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 @be.define("EveSmartLightAttributeModifierCameraDependency")
 @be.mapInterface(EveSmartLightAttributeModifierBucket)
 @be.mapInterface(IEveSmartLightGroupAttributeModifier)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY, "attributeModifiers")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "attributeMultiplier")
+@be.mapAttribute(be.READ, "finalAttributeMultiplier")
 export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLightAttributeModifierBucket
 {
 

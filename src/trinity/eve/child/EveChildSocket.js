@@ -37,6 +37,9 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @be.inherit(IEveEffectChildrenOwner, ITr2DebugRenderable, IShaderConfigurer, ITr2SoundEmitterOwner)
 @be.mapMethodAndWrap([ "RebuildLocalTransform", "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READ, "worldTransform")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "useSRT")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "staticTransform")
 export class EveChildSocket extends EveChildTransform
 {
 

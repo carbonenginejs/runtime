@@ -14,6 +14,7 @@ import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.j
 @be.define("EveSocketParameterColor")
 @be.mapInterface(IEveSocketParameter)
 @be.mapMethodAndWrap("Used")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveSocketParameterColor extends EveSocketParameterBindingBase
 {
 

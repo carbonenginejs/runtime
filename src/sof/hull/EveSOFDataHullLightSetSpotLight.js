@@ -11,6 +11,15 @@ import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 // rotation, innerAngle, and outerAngle (EveSOFData_Blue.cpp:1096-1114).
 @be.define("EveSOFDataHullLightSetSpotLight")
 @be.mapInterface(EveSOFDataHullLightSetItem)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "position")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "boneIndex")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "radius")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "innerRadius")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "brightness")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "noiseAmplitude")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "noiseFrequency")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "noiseOctaves")
 export class EveSOFDataHullLightSetSpotLight extends EveSOFDataHullLightSetItem
 {
 

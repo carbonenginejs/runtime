@@ -13,6 +13,8 @@ import { EveSocketParameterString } from "./EveSocketParameterString.js";
 @be.define("EveSocketParameterFilePath")
 @be.mapInterface(IEveSocketParameter)
 @be.mapMethodAndWrap([ "Used", "SetValueToDefault" ])
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "value")
 export class EveSocketParameterFilePath extends EveSocketParameterString
 {
 }

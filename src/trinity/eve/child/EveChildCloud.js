@@ -59,6 +59,7 @@ function updateBoundingSphere(cloud)
 @blue.interface(ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild)
 @be.mapMethodAndWrap([ "GetParent", "GetOwner" ])
 @be.mapPropertyReadOnly__Field("partTag")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveChildCloud extends EveSpaceObjectChild
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

@@ -19,6 +19,9 @@ import { Tr2PointLight } from "./Tr2PointLight.js";
 @be.mapInterface(Tr2Light)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY, "lightProfilePath")
+@be.mapAttribute(be.READ, "lightProfile")
 export class Tr2TexturedPointLight extends Tr2PointLight
 {
   @be.mapAttribute(be.READ)

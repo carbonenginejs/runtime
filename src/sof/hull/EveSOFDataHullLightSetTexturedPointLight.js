@@ -12,6 +12,15 @@ import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 @be.define("EveSOFDataHullLightSetTexturedPointLight")
 @be.mapInterface(EveSOFDataHullLightSetItem)
 @meta.hideInherited(["lightColor"])
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "position")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "boneIndex")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "radius")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "innerRadius")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "brightness")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "noiseAmplitude")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "noiseFrequency")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "noiseOctaves")
 export class EveSOFDataHullLightSetTexturedPointLight extends EveSOFDataHullLightSetItem
 {
 

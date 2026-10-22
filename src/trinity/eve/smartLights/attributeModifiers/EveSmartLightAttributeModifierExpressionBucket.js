@@ -19,6 +19,8 @@ import { EveSmartLightAttributeModifierExpressionBucketArguments } from "./EveSm
 @be.mapInterface(IEveSmartLightGroupAttributeModifier)
 @be.mapInterface(EveSmartLightBaseAttributeModifier)
 @be.mapInterface(IInitialize)
+@be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY, "attributeModifiers")
+@be.mapAttribute(be.READ, "finalAttributeMultiplier")
 export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLightAttributeModifierBucket
 {
 

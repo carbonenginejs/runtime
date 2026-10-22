@@ -11,6 +11,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 /** Color shader parameter: passes the four components through unchanged. */
 @be.define("EveSOFDataParameterColor")
 @be.mapInterface(EveSOFDataParameter)
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveSOFDataParameterColor extends EveSOFDataParameter
 {
   /**

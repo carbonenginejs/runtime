@@ -10,6 +10,7 @@ import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.j
 @be.define("EveSocketParameterVector2")
 @be.mapInterface(IEveSocketParameter)
 @be.mapMethodAndWrap("Used")
+@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
 {
 
