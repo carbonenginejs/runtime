@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 
 import { BlueResFileSystemRemote, CjsBluePaths, RemoteFileCache } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { normalizeResPath } from "../../npm/dist/global/utils/index.js";
 import { localFileSystem } from "../support/localFileSystem.js";
 
@@ -203,4 +204,18 @@ test("paths separates listed from here, and neither is the resource manager's", 
   const empty = new CjsBluePaths();
   assert.equal(empty.FileExists("res:/model/ship/hull.gr2"), false, "nothing installed, nothing exists");
   assert.equal(empty.FileExistsLocally("res:/model/ship/hull.gr2"), false);
+});
+
+test("GetStreamFromPathW is Carbon's method, exposed as GetStreamFromPath (RemoteFileCache_Blue.cpp:167-174)", async () =>
+{
+  const { fetch } = serve(new Map([ [ `http://primary/res/ab/ab01_${md5(HULL)}`, HULL ] ]));
+  const { cache } = createCache({ fetch });
+
+  assert.deepEqual(await cache.GetStreamFromPathW("res:/model/ship/hull.gr2"), HULL, "W returns the non-W call");
+  await assert.rejects(cache.GetStreamFromPathW("res:/unlisted.gr2"), /^Error: File does not exist on remote server$/u);
+
+  const row = CjsSchema.getMethod(RemoteFileCache, "GetStreamFromPathW");
+  assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP");
+  assert.equal(row.exposure.name, "GetStreamFromPath");
+  assert.equal(row.impl.status, "adapted");
 });

@@ -31,7 +31,7 @@
 // - `md5`: bytes to a lowercase hex digest. Runtime computes no digests
 //   (`global/utils/resFile.js`), so a host that verifies supplies one.
 import { exposure as be } from "#be";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { IRoot } from "./IRoot.js";
 import { normalizeResPath } from "#utils/path";
 import { BlueResFileSystemForm } from "./IBlueResFileSystem.js";
@@ -203,8 +203,33 @@ export class RemoteFileCache
 
   /**
    * `GetStreamFromPathW` - the file's bytes, from the cache folder when they
-   * are there and verify, otherwise downloaded, verified and cached
-   * (cpp:108-227).
+   * are there and verify, otherwise downloaded, verified and cached.
+   *
+   * Carbon: RemoteFileCache::GetStreamFromPathW (blue/src/RemoteFileCache.cpp:108-227;
+   * blue/src/RemoteFileCache.h:27). Exposed as "GetStreamFromPath"
+   * (blue/src/RemoteFileCache_Blue.cpp:167-174, MAP_METHOD_AND_WRAP).
+   *
+   * Carbon's `const wchar_t*` and a JS string are the same here, so the body
+   * lives in `GetStreamFromPath` (the exposed name, which callers use) and
+   * this returns that call. Adapted: asynchronous, returning the bytes and
+   * rejecting with Carbon's failure message where Carbon returns a
+   * `Be::Result` beside an out-stream (the out-stream is the return value).
+   *
+   * @param {string} resPath Res path.
+   * @returns {Promise<Uint8Array>} The file's bytes.
+   * @throws {Error} See `GetStreamFromPath`.
+   */
+  GetStreamFromPathW(resPath)
+  {
+    return this.GetStreamFromPath(resPath);
+  }
+
+  /**
+   * `GetStreamFromPath` - the body of `GetStreamFromPathW`, under the name
+   * Carbon exposes it by. Ours, not a Carbon method: callers (the remote file
+   * system) use this name.
+   *
+   * Carbon: RemoteFileCache::GetStreamFromPathW (blue/src/RemoteFileCache.cpp:108-227).
    *
    * Adapted: asynchronous, returning the bytes and rejecting with Carbon's
    * failure message where Carbon returns a `Be::Result` beside an out-stream.
@@ -540,7 +565,8 @@ CjsSchema.decorateMethod(RemoteFileCache, "AddFileIndex", be.mapMethodAndWrap(),
 CjsSchema.decorateMethod(RemoteFileCache, "SetCacheFolder", meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "SetServer", meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "SetPrefix", meta.implemented);
-CjsSchema.decorateMethod(RemoteFileCache, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "GetStreamFromPathW", be.mapMethodAndWrap("GetStreamFromPath"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "GetStreamFromPath", meta.cjs, meta.adapted);
 CjsSchema.decorateMethod(RemoteFileCache, "FileExists", be.mapMethodAndWrap(), meta.implemented);
 CjsSchema.decorateMethod(RemoteFileCache, "IsCachedLocally", meta.adapted);
 CjsSchema.decorateMethod(RemoteFileCache, "GetLocallyCachedName", meta.implemented);
