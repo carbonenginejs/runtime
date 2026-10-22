@@ -3,7 +3,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriLineSet.h
 // Source: trinity/trinity/TriLineSet.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { Topology } from "#consts/render-context";
@@ -370,5 +370,4 @@ CjsSchema.decorateMethod(TriLineSet, "AddCylinder");
 CjsSchema.decorateMethod(TriLineSet, "AddCone");
 CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox__MinMax", meta.renamed("AddOrientedBox"));
 CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox");
-CjsSchema.decorateMethod(TriLineSet, "Render", blue.method);
 CjsSchema.decorateMethod(TriLineSet, "SubmitGeometry");

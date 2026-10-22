@@ -1,4 +1,4 @@
-import { CjsSchema, type, blue, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 // Source: trinity/trinity/TriRenderBatch.h
 //   trinity/TriRenderBatch.cpp
 //
@@ -561,20 +561,22 @@ CjsSchema.decorateField(Tr2RenderBatch, "stride", type.array("uint32"));
 CjsSchema.decorateField(Tr2RenderBatch, "renderingMode", type.int32);
 CjsSchema.decorateField(Tr2RenderBatch, "topology", type.int32);
 CjsSchema.decorateField(Tr2RenderBatch, "material", type.rootRef("Tr2Material"));
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetMaterial", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetPriority", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__Allocation", blue.method, meta.renamed("SetGeometry"));
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__AllocationSecondStream", blue.method, meta.renamed("SetGeometry"));
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetVertexDeclaration", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetStreamSource", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetIndices", blue.method, meta.renamed("SetInidices"));
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetTopology", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetPerObjectData", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetDrawIndexedInstanced", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetDrawInstanced", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetRenderingMode", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData__MeshArea", blue.method, meta.renamed("SetPickingData"));
-CjsSchema.decorateMethod(Tr2RenderBatch, "IsValid", blue.method);
+// States: each setter is TriRenderBatch.cpp:75-170, IsValid is cpp:172-175. SetMaterial is adapted: a null material clears the shader where Carbon
+// dereferences it. SetStreamSource and SetIndices are adapted: only the buffer-and-stride overload is ported, not the suballocation one.
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetMaterial", meta.adapted);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPriority", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__Allocation", meta.implemented, meta.renamed("SetGeometry"));
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__AllocationSecondStream", meta.implemented, meta.renamed("SetGeometry"));
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetVertexDeclaration", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetStreamSource", meta.adapted);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetIndices", meta.adapted, meta.renamed("SetInidices"));
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetTopology", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPerObjectData", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetDrawIndexedInstanced", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetDrawInstanced", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetRenderingMode", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData__MeshArea", meta.implemented, meta.renamed("SetPickingData"));
+CjsSchema.decorateMethod(Tr2RenderBatch, "IsValid", meta.implemented);
 CjsSchema.meta.carbon("Tr2RenderBatch")(Tr2RenderBatch);

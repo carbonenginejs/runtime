@@ -1,5 +1,5 @@
 import { Tr2RenderBatch } from "./Tr2RenderBatch.js";
-import { CjsSchema, type, blue, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 // Source: trinity/trinity/TriRenderBatch.h
 import { DefaultKeyGenerator } from "./DefaultKeyGenerator.js";
 import { RenderBatchSortType } from "../../../generated/trinityCore/enums.js";
@@ -176,12 +176,14 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
 
 CjsSchema.decorateField(TriRenderBatchAccumulator, "batches", type.array(Tr2RenderBatch));
 CjsSchema.decorateField(TriRenderBatchAccumulator, "gdprBatches", type.array(Tr2RenderBatch));
-CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Clear", blue.method);
-CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Commit", blue.method);
-CjsSchema.decorateMethod(TriRenderBatchAccumulator, "TransferFrom", blue.method);
-CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetGdprBatches", blue.method);
-CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetBatches", blue.method);
-CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Finalize", blue.method);
-CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetBatchCount", blue.method);
-CjsSchema.decorateMethod(TriRenderBatchAccumulator, "IsChainedByEffect", blue.method);
+// States: TriRenderBatch.h:319-410. Commit is adapted: it stores the batch itself rather than a copy and returns whether it was accepted. Finalize is
+// adapted: one partition routine serves both sort types and Array.sort is always stable, where Carbon picks sort or stable_sort.
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Clear", meta.implemented);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Commit", meta.adapted);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "TransferFrom", meta.implemented);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetGdprBatches", meta.implemented);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetBatches", meta.implemented);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Finalize", meta.adapted);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetBatchCount", meta.implemented);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "IsChainedByEffect", meta.implemented);
 CjsSchema.meta.carbon("TriRenderBatchAccumulator")(TriRenderBatchAccumulator);

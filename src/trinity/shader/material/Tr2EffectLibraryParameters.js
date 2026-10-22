@@ -1,7 +1,7 @@
 import { meta } from "#schema";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
+import { type } from "#schema";
 import { Tr2ResourceSetAL, Tr2ResourceSetDescriptionAL } from "../../../trinityal/Tr2ResourceSetAL/index.js";
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
@@ -54,8 +54,10 @@ export class Tr2EffectLibraryParameters
   @type.boolean
   usedTexturesDirty = false;
 
+  // States: Tr2Material.cpp:108-117, statement for statement.
+
   /** Records a resource this library binds and marks the used-texture list stale. */
-  @blue.method
+  @meta.implemented
   AddUsedResource(resource)
   {
     this.usedResources.push(resource);
@@ -66,7 +68,7 @@ export class Tr2EffectLibraryParameters
    * Records a parameter whose value destination has been rerouted into this
    * library's storage.
    */
-  @blue.method
+  @meta.implemented
   AddReroutable(reroutable)
   {
     this.reroutedParameters.push(reroutable);

@@ -1,7 +1,7 @@
 import { meta } from "#schema";
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
+import { type } from "#schema";
 import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
 
 /** Organizes one shader stage's constants, parameters, textures, UAVs, and CPU-side constant mirror. */
@@ -41,11 +41,15 @@ export class Tr2MaterialStageInput
   @type.rawStruct("CcpMallocBuffer")
   constantMirror = null;
 
+  // States against Tr2Material.cpp:158-199, both adapted: no GPU constant buffer or shared-buffer table (Tr2SharedConstantBuffers) is involved, so
+  // AllocateConstants only sizes the zeroed mirror and GetSharedConstantBuffer keeps a copy of the contents where Carbon clears the mirror and
+  // shares a GPU buffer.
+
   /**
    * Allocates the CPU-side constant mirror rounded up to a 16-byte multiple and marks it dirty; a zero size clears the mirror instead. No GPU buffer is created.
    * @param size requested mirror size in bytes
    */
-  @blue.method
+  @meta.adapted
   AllocateConstants(size = 0)
   {
     const byteSize = Math.max(0, Number(size) || 0);
@@ -58,7 +62,7 @@ export class Tr2MaterialStageInput
    * Replaces the constant mirror with a copy of already-built buffer contents and clears the dirty flag; a zero size clears the mirror instead.
    * @param size byte count to copy, defaulting to the contents' own byte length
    */
-  @blue.method
+  @meta.adapted
   GetSharedConstantBuffer(contents, size = contents?.byteLength ?? contents?.length ?? 0)
   {
     const byteSize = Math.max(0, Number(size) || 0);

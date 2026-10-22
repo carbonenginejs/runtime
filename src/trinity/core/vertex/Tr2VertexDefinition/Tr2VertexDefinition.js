@@ -285,10 +285,12 @@ export class Tr2VertexDefinition
 
 CjsSchema.decorateField(Tr2VertexDefinition, "items", type.array(Tr2VertexDefinitionItem));
 CjsSchema.decorateField(Tr2VertexDefinition, "nextOffset", type.array("uint32"));
-CjsSchema.decorateMethod(Tr2VertexDefinition, "empty", blue.method);
-CjsSchema.decorateMethod(Tr2VertexDefinition, "Add", blue.method);
-CjsSchema.decorateMethod(Tr2VertexDefinition, "Find", blue.method);
-CjsSchema.decorateMethod(Tr2VertexDefinition, "Find__UsageIndex", blue.method, meta.renamed("Find"));
+// States: empty is Tr2VertexDefinition.h:145-148. Add, Find and Find__UsageIndex are adapted against Tr2VertexDefinition.cpp:64-94: usage
+// accepts a name as well as the code, and Add advances the offset ledger for any stream where Carbon skips streams past OFFSET_COUNT.
+CjsSchema.decorateMethod(Tr2VertexDefinition, "empty", meta.implemented);
+CjsSchema.decorateMethod(Tr2VertexDefinition, "Add", meta.adapted);
+CjsSchema.decorateMethod(Tr2VertexDefinition, "Find", meta.adapted);
+CjsSchema.decorateMethod(Tr2VertexDefinition, "Find__UsageIndex", meta.adapted, meta.renamed("Find"));
 blue.method(Tr2VertexDefinition, "getDataTypeSizeInMembers");
 meta.renamed("GetDataTypeSizeInMembers")(Tr2VertexDefinition, "getDataTypeSizeInMembers");
 blue.method(Tr2VertexDefinition, "getDataTypeSizeInBytes");

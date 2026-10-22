@@ -522,7 +522,10 @@ export class TriPoolAllocator
 
 }
 
-CjsSchema.decorateMethod(TriPoolAllocator, "Allocate", blue.method);
-CjsSchema.decorateMethod(TriPoolAllocator, "Clear", blue.method);
+// States: Clear is TriPoolAllocator.cpp:49-95 statement for statement (shrink under half, grow past one chunk, else rewind). Allocate is adapted:
+// Carbon's Allocate<T> sizes the block from the type, this takes a registered struct-layout name (cpp:26-47). #GetMoreSystemMemory keeps its
+// stamp: a private name cannot take a state decorator by call.
+CjsSchema.decorateMethod(TriPoolAllocator, "Allocate", meta.adapted);
+CjsSchema.decorateMethod(TriPoolAllocator, "Clear", meta.implemented);
 CjsSchema.decorateMethod(TriPoolAllocator, "#GetMoreSystemMemory", blue.method, meta.renamed("GetMoreSystemMemory"));
 CjsSchema.meta.carbon("TriPoolAllocator")(TriPoolAllocator);
