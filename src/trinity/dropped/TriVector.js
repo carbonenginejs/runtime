@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 import { meta, type, blue } from "#schema";
 
 /** Retains the retired Blue/Python vector wrapper identity superseded by runtime vec3 math. */
-@meta.define({ className: "TriVector", family: "trinityCore" })
+@meta.define({ className: "TriVector" })
 export class TriVector
 {
 

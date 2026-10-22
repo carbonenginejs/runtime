@@ -11,4 +11,4 @@ export class DownloadSettings
 
 }
 
-CjsSchema.define(DownloadSettings, { className: "DownloadSettings", carbon: "DownloadSettings", family: "tools", fields: {} });
+CjsSchema.define(DownloadSettings, { className: "DownloadSettings", carbon: "DownloadSettings", fields: {} });

@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the native double-precision four-component value identity represented at runtime by numeric arrays or `Float64Array` values. */
-@meta.define({ className: "Vector4d", family: "utilities" })
+@meta.define({ className: "Vector4d" })
 export class Vector4d
 {
 

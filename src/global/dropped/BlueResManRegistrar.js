@@ -26,5 +26,5 @@ export class BlueResManRegistrar
 }
 
 CjsSchema.define(BlueResManRegistrar, {
-  className: "BlueResManRegistrar", carbon: "BlueResManRegistrar", family: "blue", fields: {}
+  className: "BlueResManRegistrar", carbon: "BlueResManRegistrar", fields: {}
 });

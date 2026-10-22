@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the quarantined native Granny area-bounds record that readers replace with detached bounds and vertex-count data. */
-@meta.define({ className: "AreaBoundsInfo", family: "utilities" })
+@meta.define({ className: "AreaBoundsInfo" })
 export class AreaBoundsInfo
 {
 

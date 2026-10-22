@@ -11,4 +11,4 @@ export class Filter
 
 }
 
-CjsSchema.define(Filter, { className: "Filter", carbon: "Filter", family: "tools", fields: {} });
+CjsSchema.define(Filter, { className: "Filter", carbon: "Filter", fields: {} });

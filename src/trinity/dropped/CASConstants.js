@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the quarantined native CAS sharpening constants that renderer code replaces with packed numeric lanes. */
-@meta.define({ className: "CASConstants", family: "postProcess" })
+@meta.define({ className: "CASConstants" })
 export class CASConstants
 {
 

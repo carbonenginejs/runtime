@@ -11,4 +11,4 @@ export class PatchCreateParams
 
 }
 
-CjsSchema.define(PatchCreateParams, { className: "PatchCreateParams", carbon: "PatchCreateParams", family: "tools", fields: {} });
+CjsSchema.define(PatchCreateParams, { className: "PatchCreateParams", carbon: "PatchCreateParams", fields: {} });

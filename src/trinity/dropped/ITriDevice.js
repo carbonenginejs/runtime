@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the native device interface identity while maintained graph state and injected engines divide its former responsibilities. */
-@meta.define({ className: "ITriDevice", family: "include" })
+@meta.define({ className: "ITriDevice" })
 export class ITriDevice
 {
 

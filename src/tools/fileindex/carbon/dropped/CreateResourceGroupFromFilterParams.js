@@ -11,4 +11,4 @@ export class CreateResourceGroupFromFilterParams
 
 }
 
-CjsSchema.define(CreateResourceGroupFromFilterParams, { className: "CreateResourceGroupFromFilterParams", carbon: "CreateResourceGroupFromFilterParams", family: "tools", fields: {} });
+CjsSchema.define(CreateResourceGroupFromFilterParams, { className: "CreateResourceGroupFromFilterParams", carbon: "CreateResourceGroupFromFilterParams", fields: {} });

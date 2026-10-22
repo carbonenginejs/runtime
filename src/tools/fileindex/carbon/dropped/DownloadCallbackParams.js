@@ -11,4 +11,4 @@ export class DownloadCallbackParams
 
 }
 
-CjsSchema.define(DownloadCallbackParams, { className: "DownloadCallbackParams", carbon: "DownloadCallbackParams", family: "tools", fields: {} });
+CjsSchema.define(DownloadCallbackParams, { className: "DownloadCallbackParams", carbon: "DownloadCallbackParams", fields: {} });

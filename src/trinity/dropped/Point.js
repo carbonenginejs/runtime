@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the quarantined native integer point helper that adapter boundaries replace with plain x/y records. */
-@meta.define({ className: "Point", family: "include" })
+@meta.define({ className: "Point" })
 export class Point
 {
 

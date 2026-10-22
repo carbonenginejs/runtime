@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the retired Blue/Python matrix interface superseded by runtime mat4 values and schema matrix fields. */
-@meta.define({ className: "ITriMatrix", family: "include" })
+@meta.define({ className: "ITriMatrix" })
 export class ITriMatrix
 {
 

@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the native typed-pointer iterator identity superseded by typed-array indexing in CPU particle simulation. */
-@meta.define({ className: "Tr2ParticleStreamIterator", family: "particle" })
+@meta.define({ className: "Tr2ParticleStreamIterator" })
 export class Tr2ParticleStreamIterator
 {
 

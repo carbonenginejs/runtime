@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the incomplete scanner model for Carbon's seeded-noise utility, whose runtime behavior lives in maintained math functions. */
-@meta.define({ className: "TriPerlinNoise", family: "include" })
+@meta.define({ className: "TriPerlinNoise" })
 export class TriPerlinNoise
 {
 

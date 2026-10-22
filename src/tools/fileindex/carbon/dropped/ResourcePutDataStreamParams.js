@@ -11,4 +11,4 @@ export class ResourcePutDataStreamParams
 
 }
 
-CjsSchema.define(ResourcePutDataStreamParams, { className: "ResourcePutDataStreamParams", carbon: "ResourcePutDataStreamParams", family: "tools", fields: {} });
+CjsSchema.define(ResourcePutDataStreamParams, { className: "ResourcePutDataStreamParams", carbon: "ResourcePutDataStreamParams", fields: {} });

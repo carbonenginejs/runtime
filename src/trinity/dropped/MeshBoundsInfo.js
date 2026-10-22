@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the quarantined pointer-and-count Granny mesh-bounds record that readers replace with detached array-backed data. */
-@meta.define({ className: "MeshBoundsInfo", family: "utilities" })
+@meta.define({ className: "MeshBoundsInfo" })
 export class MeshBoundsInfo
 {
 

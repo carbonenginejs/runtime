@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the retired Blue/Python quaternion interface superseded by runtime quat values and schema quaternion fields. */
-@meta.define({ className: "ITriQuaternion", family: "include" })
+@meta.define({ className: "ITriQuaternion" })
 export class ITriQuaternion
 {
 

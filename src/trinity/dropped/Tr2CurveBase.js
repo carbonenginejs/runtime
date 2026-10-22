@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the rejected generic curve-template identity whose unresolved key types are represented by maintained concrete curves. */
-@meta.define({ className: "Tr2CurveBase", family: "include" })
+@meta.define({ className: "Tr2CurveBase" })
 export class Tr2CurveBase
 {
 

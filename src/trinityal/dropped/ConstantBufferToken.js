@@ -11,7 +11,7 @@
 import { meta, type } from "#schema";
 
 /** Carbon's atomic constant-arena token; dropped because the port carries it as a plain field on the constant buffer. */
-@meta.define({ className: "ConstantBufferToken", carbon: "ConstantBufferToken", family: "trinityal" })
+@meta.define({ className: "ConstantBufferToken", carbon: "ConstantBufferToken" })
 export class ConstantBufferToken
 {
 

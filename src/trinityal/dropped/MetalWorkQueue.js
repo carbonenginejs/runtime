@@ -20,7 +20,7 @@
 import { meta } from "#schema";
 
 /** Carbon's Metal command recorder; its encoder-lifetime half is ported as CjsWebgpuWorkQueue and the rest is distributed across the WebGPU backend. */
-@meta.define({ className: "MetalWorkQueue", carbon: "MetalWorkQueue", family: "trinityal" })
+@meta.define({ className: "MetalWorkQueue", carbon: "MetalWorkQueue" })
 export class MetalWorkQueue
 {
 

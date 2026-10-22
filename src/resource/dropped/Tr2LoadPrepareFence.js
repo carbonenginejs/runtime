@@ -19,7 +19,7 @@ export class Tr2LoadPrepareFence
 }
 
 CjsSchema.define(Tr2LoadPrepareFence, {
-  className: "Tr2LoadPrepareFence", family: "resources",
+  className: "Tr2LoadPrepareFence",
   fields: {
     resourceLoadCbId: type.unknown,
     resourcePrepCbId: type.unknown,

@@ -18,6 +18,6 @@ export class FrameOwner
 }
 
 CjsSchema.define(FrameOwner, {
-  className: "FrameOwner", carbon: "FrameOwner", family: "videoPlayer",
+  className: "FrameOwner", carbon: "FrameOwner",
   fields: {}
 });

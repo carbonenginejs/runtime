@@ -11,4 +11,4 @@ export class ExportResourceSettings
 
 }
 
-CjsSchema.define(ExportResourceSettings, { className: "ExportResourceSettings", carbon: "ExportResourceSettings", family: "tools", fields: {} });
+CjsSchema.define(ExportResourceSettings, { className: "ExportResourceSettings", carbon: "ExportResourceSettings", fields: {} });

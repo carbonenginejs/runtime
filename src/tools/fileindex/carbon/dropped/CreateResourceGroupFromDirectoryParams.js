@@ -11,4 +11,4 @@ export class CreateResourceGroupFromDirectoryParams
 
 }
 
-CjsSchema.define(CreateResourceGroupFromDirectoryParams, { className: "CreateResourceGroupFromDirectoryParams", carbon: "CreateResourceGroupFromDirectoryParams", family: "tools", fields: {} });
+CjsSchema.define(CreateResourceGroupFromDirectoryParams, { className: "CreateResourceGroupFromDirectoryParams", carbon: "CreateResourceGroupFromDirectoryParams", fields: {} });

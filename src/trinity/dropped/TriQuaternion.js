@@ -3,7 +3,7 @@
 import { meta, type, blue } from "#schema";
 
 /** Retains the retired Blue/Python quaternion wrapper identity superseded by runtime quat math. */
-@meta.define({ className: "TriQuaternion", family: "trinityCore" })
+@meta.define({ className: "TriQuaternion" })
 export class TriQuaternion
 {
 

@@ -20,7 +20,7 @@ CjsSchema.defineField(ChildModel, "name", "type", { kind: "string" });
 CjsSchema.defineField(ChildModel, "name", "edit", { persist: true });
 CjsSchema.defineField(ChildModel, "deleteRequested", "type", { kind: "boolean" });
 CjsSchema.defineField(ChildModel, "deleteRequested", "edit", { persist: true });
-CjsSchema.define(ChildModel, { className: "ChildMutationTestChild", family: "test" });
+CjsSchema.define(ChildModel, { className: "ChildMutationTestChild" });
 
 class ParentModel
 {
@@ -77,7 +77,7 @@ CjsSchema.defineField(ParentModel, "children", "type", {
 });
 CjsSchema.defineField(ParentModel, "children", "edit", { persist: true, notify: true });
 CjsSchema.defineField(ParentModel, "children", "lifecycle", { ownership: "owned" });
-CjsSchema.define(ParentModel, { className: "ChildMutationTestParent", family: "test" });
+CjsSchema.define(ParentModel, { className: "ChildMutationTestParent" });
 
 test("Schema child factories hydrate, append, notify and settle", () => {
     const parent = new ParentModel();
@@ -210,7 +210,7 @@ test("Schema child helpers reject non-child collections and values", () => {
 
     CjsSchema.defineField(InvalidParent, "bytes", "type", { kind: "typedArray", arrayType: "Uint8Array" });
     CjsSchema.defineField(InvalidParent, "value", "type", { kind: "float32" });
-    CjsSchema.define(InvalidParent, { className: "InvalidChildMutationParent", family: "test" });
+    CjsSchema.define(InvalidParent, { className: "InvalidChildMutationParent" });
 
     const parent = new InvalidParent();
     assert.throws(() => children.addChild({}, "missing", {}), /registered schema instance/);

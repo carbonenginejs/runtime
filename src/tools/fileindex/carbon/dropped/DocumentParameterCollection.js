@@ -12,4 +12,4 @@ export class DocumentParameterCollection
 
 }
 
-CjsSchema.define(DocumentParameterCollection, { className: "DocumentParameterCollection", carbon: "DocumentParameterCollection", family: "tools", fields: {} });
+CjsSchema.define(DocumentParameterCollection, { className: "DocumentParameterCollection", carbon: "DocumentParameterCollection", fields: {} });

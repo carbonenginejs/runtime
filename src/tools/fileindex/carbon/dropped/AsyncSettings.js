@@ -11,4 +11,4 @@ export class AsyncSettings
 
 }
 
-CjsSchema.define(AsyncSettings, { className: "AsyncSettings", carbon: "AsyncSettings", family: "tools", fields: {} });
+CjsSchema.define(AsyncSettings, { className: "AsyncSettings", carbon: "AsyncSettings", fields: {} });

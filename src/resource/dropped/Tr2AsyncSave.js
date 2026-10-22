@@ -28,7 +28,7 @@ export class Tr2AsyncSave
 }
 
 CjsSchema.define(Tr2AsyncSave, {
-  className: "Tr2AsyncSave", family: "resources",
+  className: "Tr2AsyncSave",
   fields: {
     prepareSaveCbId: type.unknown,
     saveFilename: type.string,

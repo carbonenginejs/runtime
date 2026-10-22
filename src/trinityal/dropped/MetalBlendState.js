@@ -11,7 +11,7 @@
 import { meta, type } from "#schema";
 
 /** Carbon's hashable Metal blend record; dropped because WebGPU folds blending into the render pipeline. */
-@meta.define({ className: "MetalBlendState", carbon: "MetalBlendState", family: "trinityal" })
+@meta.define({ className: "MetalBlendState", carbon: "MetalBlendState" })
 export class MetalBlendState
 {
 

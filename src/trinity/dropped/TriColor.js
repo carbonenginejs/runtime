@@ -3,7 +3,7 @@
 import { meta, type, blue } from "#schema";
 
 /** Retains the retired Blue/Python color wrapper identity superseded by runtime vec4 math. */
-@meta.define({ className: "TriColor", family: "trinityCore" })
+@meta.define({ className: "TriColor" })
 export class TriColor
 {
 

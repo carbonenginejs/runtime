@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the quarantined native integer rectangle helper that adapter boundaries replace with plain edge records. */
-@meta.define({ className: "Tr2Rect", family: "include" })
+@meta.define({ className: "Tr2Rect" })
 export class Tr2Rect
 {
 

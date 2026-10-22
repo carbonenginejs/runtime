@@ -13,7 +13,7 @@
 import { meta, type } from "#schema";
 
 /** Carbon's per-pass load/store/clear state; dropped because WebGPU carries the same fields on each attachment. */
-@meta.define({ className: "MetalClearState", carbon: "MetalClearState", family: "trinityal" })
+@meta.define({ className: "MetalClearState", carbon: "MetalClearState" })
 export class MetalClearState
 {
 

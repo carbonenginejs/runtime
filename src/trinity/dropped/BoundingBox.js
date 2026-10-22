@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the quarantined native Granny minimum/maximum bounds record that readers replace with math or plain data. */
-@meta.define({ className: "BoundingBox", family: "utilities" })
+@meta.define({ className: "BoundingBox" })
 export class BoundingBox
 {
 

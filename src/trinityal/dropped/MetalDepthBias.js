@@ -28,7 +28,7 @@
 import { meta, type } from "#schema";
 
 /** Carbon's Metal depth-bias triple; dropped because the authored render states already carry these values through Tr2RenderStateSetup into the pipeline. */
-@meta.define({ className: "MetalDepthBias", carbon: "MetalDepthBias", family: "trinityal" })
+@meta.define({ className: "MetalDepthBias", carbon: "MetalDepthBias" })
 export class MetalDepthBias
 {
 

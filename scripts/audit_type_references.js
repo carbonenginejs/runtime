@@ -107,7 +107,6 @@ for (const entry of classes.sort((a, b) =>
       references.push({
         layer: entry.layer,
         className: entry.className,
-        family: CjsSchema.getClassFamily(entry.Constructor) ?? "",
         field: field.name,
         kind: field.type?.kind ?? "",
         slot: key,

@@ -11,4 +11,4 @@ export class FilterGroup
 
 }
 
-CjsSchema.define(FilterGroup, { className: "FilterGroup", carbon: "FilterGroup", family: "tools", fields: {} });
+CjsSchema.define(FilterGroup, { className: "FilterGroup", carbon: "FilterGroup", fields: {} });

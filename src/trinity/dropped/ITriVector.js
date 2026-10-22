@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the retired Blue/Python vector interface superseded by runtime vec3 values and schema vector fields. */
-@meta.define({ className: "ITriVector", family: "include" })
+@meta.define({ className: "ITriVector" })
 export class ITriVector
 {
 

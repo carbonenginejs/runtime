@@ -27,7 +27,7 @@ export const BLUE_SCRIPT_CALLBACK_STATUS = Object.freeze({
 });
 
 /** The call outcome Carbon returns from every script callback invocation; dropped because JavaScript propagates the exception itself. */
-@meta.define({ className: "BlueScriptCallbackStatus", carbon: "BlueScriptCallbackStatus", family: "blue" })
+@meta.define({ className: "BlueScriptCallbackStatus", carbon: "BlueScriptCallbackStatus" })
 export class BlueScriptCallbackStatus
 {
 

@@ -54,7 +54,6 @@ export function capture() {
     const value = new Class();
     return [[name, {
       className: schema.className,
-      family: schema.family,
       fields: schema.fields.map(field => ({
         name: field.name,
         type: captureData(field.type),

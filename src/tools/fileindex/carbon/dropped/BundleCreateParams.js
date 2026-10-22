@@ -11,4 +11,4 @@ export class BundleCreateParams
 
 }
 
-CjsSchema.define(BundleCreateParams, { className: "BundleCreateParams", carbon: "BundleCreateParams", family: "tools", fields: {} });
+CjsSchema.define(BundleCreateParams, { className: "BundleCreateParams", carbon: "BundleCreateParams", fields: {} });

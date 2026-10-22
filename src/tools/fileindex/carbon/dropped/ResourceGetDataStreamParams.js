@@ -11,4 +11,4 @@ export class ResourceGetDataStreamParams
 
 }
 
-CjsSchema.define(ResourceGetDataStreamParams, { className: "ResourceGetDataStreamParams", carbon: "ResourceGetDataStreamParams", family: "tools", fields: {} });
+CjsSchema.define(ResourceGetDataStreamParams, { className: "ResourceGetDataStreamParams", carbon: "ResourceGetDataStreamParams", fields: {} });

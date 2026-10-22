@@ -10,7 +10,7 @@
 import { meta, type } from "#schema";
 
 /** Carbon's plain RGBA aggregate for Metal clear and blend colours; dropped because vec4 already is one. */
-@meta.define({ className: "MetalColor", carbon: "MetalColor", family: "trinityal" })
+@meta.define({ className: "MetalColor", carbon: "MetalColor" })
 export class MetalColor
 {
 

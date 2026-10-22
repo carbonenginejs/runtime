@@ -17,7 +17,7 @@
 import { meta, type } from "#schema";
 
 /** Carbon's deferred render-pass attachment record; ported as flattened colors/depth arguments rather than a struct. */
-@meta.define({ className: "MetalRenderPassHint", carbon: "MetalRenderPassHint", family: "trinityal" })
+@meta.define({ className: "MetalRenderPassHint", carbon: "MetalRenderPassHint" })
 export class MetalRenderPassHint
 {
 

@@ -11,4 +11,4 @@ export class CompressionCalculationSettings
 
 }
 
-CjsSchema.define(CompressionCalculationSettings, { className: "CompressionCalculationSettings", carbon: "CompressionCalculationSettings", family: "tools", fields: {} });
+CjsSchema.define(CompressionCalculationSettings, { className: "CompressionCalculationSettings", carbon: "CompressionCalculationSettings", fields: {} });

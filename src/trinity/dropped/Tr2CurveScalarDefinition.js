@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the native scalar-curve definition identity consumed as a plain method record by `Tr2CurveScalar`. */
-@meta.define({ className: "Tr2CurveScalarDefinition", family: "curves" })
+@meta.define({ className: "Tr2CurveScalarDefinition" })
 export class Tr2CurveScalarDefinition
 {
 

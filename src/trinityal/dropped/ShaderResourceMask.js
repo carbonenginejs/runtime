@@ -12,7 +12,7 @@
 import { meta, type } from "#schema";
 
 /** Carbon's per-stage bind masks; dropped because WebGPU resolves binding validity in the bind group layout. */
-@meta.define({ className: "ShaderResourceMask", carbon: "ShaderResourceMask", family: "trinityal" })
+@meta.define({ className: "ShaderResourceMask", carbon: "ShaderResourceMask" })
 export class ShaderResourceMask
 {
 

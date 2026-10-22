@@ -288,20 +288,6 @@ export class CjsSchema
         return getRegisteredClassName(Constructor);
     }
 
-    /** Returns the registered schema family for a constructor. */
-    static getClassFamily(Constructor)
-    {
-        let current = Constructor;
-        while (typeof current === "function")
-        {
-            const family = CLASS_SCHEMA.get(current)?.family || null;
-            if (family) return family;
-            current = Object.getPrototypeOf(current);
-        }
-        return null;
-    }
-
-
     /**
      * Every declared class name on a constructor's chain, nearest first.
      *
@@ -2271,7 +2257,6 @@ function defineClassMetadata(Constructor, definition)
         });
     }
     if (definition.struct) schema.structureSize = definition.struct.size;
-    if (definition.family) schema.family = definition.family;
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
     if (definition.carbon) schema.carbon = definition.carbon;
     if (definition.blue) schema.blue = true;
@@ -2742,7 +2727,6 @@ function mergeMemberMetadata(target, source)
  * @property {Array<object>} members Stored declarations, derived class first, without name merging.
  * @property {Array<object>} properties Live declarations, derived class first, without name merging.
  * @property {Array<object>} [methods] Method provenance metadata.
- * @property {string} [family] Registered schema family.
  * @property {object} [structureDefinition] Native struct offsets and stride. @impl JavaScript class-info extension.
  * @property {boolean} [abstract] This class's explicit registration policy, never inherited. Existing name registrations may retain another factory.
  */
@@ -2784,11 +2768,6 @@ function buildClassInfo(Constructor, namespaces)
 
     if (schema?.structureDefinition) result.structureDefinition = schema.structureDefinition;
 
-    const family = schema?.family || CjsSchema.getClassFamily(Constructor);
-    if (family)
-    {
-        result.family = family;
-    }
 
     if (schema?.sourceClass && schema.sourceClass !== result.className)
     {
@@ -2924,7 +2903,6 @@ function getOrCreateClassSchema(Constructor)
     {
         schema = {
             className: null,
-            family: null,
             sourceClass: null,
             carbon: null,
             aliases: null,
@@ -3094,6 +3072,8 @@ function normalizeClassDefinition(Constructor, definition)
     {
         throw new TypeError("CjsSchema.define abstract must be a boolean when provided.");
     }
+    // A class family was an invention; nothing reads it.
+    if (Object.hasOwn(result, "family")) throw new TypeError("Class family is retired; remove it from the define options.");
     // A class's purpose is prose: it lives in the class JSDoc.
     if (Object.hasOwn(result, "purpose")) throw new TypeError("Class purpose is retired; write it in the class JSDoc.");
     // Native identity is runtime metadata; donors are checked from class JSDoc.

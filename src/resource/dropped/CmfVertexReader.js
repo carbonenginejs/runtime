@@ -28,7 +28,7 @@ export class CmfVertexReader
 }
 
 CjsSchema.define(CmfVertexReader, {
-  className: "CmfVertexReader", family: "resources",
+  className: "CmfVertexReader",
   fields: {
     posElem: type.rootRef("cmf::VertexElement"),
     normElem: type.rootRef("cmf::VertexElement"),

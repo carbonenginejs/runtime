@@ -11,4 +11,4 @@ export class ResourceSourceSettings
 
 }
 
-CjsSchema.define(ResourceSourceSettings, { className: "ResourceSourceSettings", carbon: "ResourceSourceSettings", family: "tools", fields: {} });
+CjsSchema.define(ResourceSourceSettings, { className: "ResourceSourceSettings", carbon: "ResourceSourceSettings", fields: {} });

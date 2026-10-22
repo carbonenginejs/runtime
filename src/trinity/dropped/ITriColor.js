@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the retired Blue/Python color interface superseded by runtime vec4 values and schema color fields. */
-@meta.define({ className: "ITriColor", family: "include" })
+@meta.define({ className: "ITriColor" })
 export class ITriColor
 {
 

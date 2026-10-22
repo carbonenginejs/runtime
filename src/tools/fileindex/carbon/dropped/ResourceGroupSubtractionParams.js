@@ -11,4 +11,4 @@ export class ResourceGroupSubtractionParams
 
 }
 
-CjsSchema.define(ResourceGroupSubtractionParams, { className: "ResourceGroupSubtractionParams", carbon: "ResourceGroupSubtractionParams", family: "tools", fields: {} });
+CjsSchema.define(ResourceGroupSubtractionParams, { className: "ResourceGroupSubtractionParams", carbon: "ResourceGroupSubtractionParams", fields: {} });

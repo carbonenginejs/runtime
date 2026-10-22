@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the native per-area acceleration-structure helper identity whose state belongs to a ray-tracing engine backend. */
-@meta.define({ className: "Tr2RaytracingMeshArea", family: "raytracing" })
+@meta.define({ className: "Tr2RaytracingMeshArea" })
 export class Tr2RaytracingMeshArea
 {
 

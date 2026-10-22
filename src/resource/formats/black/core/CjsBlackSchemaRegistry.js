@@ -361,7 +361,6 @@ export class CjsBlackSchemaRegistry
         return {
             ...schema,
             className,
-            family: schema.family || null,
             fields,
             black: {
                 ...black,

@@ -342,7 +342,6 @@ test("registers classes, structs, schema metadata, and enums", () => {
     CjsSchema.defineField(DemoNode, "name", "type", { kind: "string" });
     CjsSchema.define(DemoNode, {
         className: "DemoNode",
-        family: "test",
         alias: "LegacyDemoNode"
     });
     CjsSchema.defineEnum(DemoEnum, {
@@ -353,9 +352,6 @@ test("registers classes, structs, schema metadata, and enums", () => {
     assert.equal(CjsSchema.getConstructor("LegacyDemoNode"), DemoNode);
     assert.equal(CjsSchema.getField(DemoNode, "name").type.kind, "string");
     assert.equal(CjsSchema.getEnum(DemoEnum).name, "DemoEnum");
-
-    class DemoChild extends DemoNode {}
-    assert.equal(CjsSchema.getClassFamily(DemoChild), "test");
 
     class InvalidPurpose {}
     assert.throws(
@@ -568,7 +564,7 @@ test("registers Carbon method provenance and implementation metadata", () => {
         {}
     }
 
-    CjsSchema.define(MethodNode, { className: "MethodNode", family: "test" });
+    CjsSchema.define(MethodNode, { className: "MethodNode" });
     CjsSchema.decorateMethod(
         MethodNode,
         "Reset",
@@ -606,7 +602,7 @@ test("records renamed Carbon method provenance", () => {
         {}
     }
 
-    CjsSchema.define(RenamedMethodNode, { className: "RenamedMethodNode", family: "test" });
+    CjsSchema.define(RenamedMethodNode, { className: "RenamedMethodNode" });
     CjsSchema.decorateMethod(
         RenamedMethodNode,
         "ReEvaluate",
@@ -636,7 +632,7 @@ test("registers component metadata and reads vector swizzles", () => {
             xyz: { name: "shipVisibleState" }
         })
     );
-    CjsSchema.define(PackedNode, { className: "PackedNode", family: "test" });
+    CjsSchema.define(PackedNode, { className: "PackedNode" });
 
     const field = CjsSchema.getField(PackedNode, "shipData");
     assert.equal(field.components.x.name, "boosterGlowIntensity");
@@ -655,7 +651,7 @@ test("exposes canonical model descriptors", () => {
 
     CjsSchema.decorateField(DescriptorNode, "child", schema.type.rootRef("DescriptorChild"));
     CjsSchema.decorateField(DescriptorNode, "payload", schema.type.rawStruct("NativePayload"));
-    CjsSchema.define(DescriptorNode, { className: "DescriptorNode", family: "test" });
+    CjsSchema.define(DescriptorNode, { className: "DescriptorNode" });
 
     assert.equal(CARBON_TYPE.ROOT_REF, "rootRef");
     assert.equal(CARBON_TYPE.MODEL, undefined);
@@ -698,8 +694,7 @@ test("stage-3 static method decorators register on the class constructor", () =>
     assert.deepEqual(initializers, []);
 
     CjsSchema.meta.define({
-        className: "StaticMethodNode",
-        family: "test"
+        className: "StaticMethodNode"
     })(StaticMethodNode, { kind: "class", metadata });
 
     const rasterize = CjsSchema.getMethod(StaticMethodNode, "Rasterize");
@@ -771,7 +766,7 @@ test("uses schema metadata as the default schema value shape", () => {
     }
 
     CjsSchema.defineField(SchemaChild, "label", "type", { kind: "string" });
-    CjsSchema.define(SchemaChild, { className: "SchemaChild", family: "test" });
+    CjsSchema.define(SchemaChild, { className: "SchemaChild" });
 
     CjsSchema.defineField(SchemaNode, "name", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "position", "type", { kind: "vec3" });
@@ -785,7 +780,7 @@ test("uses schema metadata as the default schema value shape", () => {
     CjsSchema.defineField(SchemaNode, "computed", "edit", { read: true });
     CjsSchema.defineField(SchemaNode, "uiLocked", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "uiLocked", "jessica", { readOnly: true });
-    CjsSchema.define(SchemaNode, { className: "SchemaNode", family: "test" });
+    CjsSchema.define(SchemaNode, { className: "SchemaNode" });
 
     const node = new SchemaNode();
     CjsSchema.setValues(node, {
@@ -843,7 +838,7 @@ test("hydrates canonical model fields and lists without constructing raw objects
     }
 
     CjsSchema.defineField(CanonicalChild, "label", "type", { kind: "string" });
-    CjsSchema.define(CanonicalChild, { className: "CanonicalChild", family: "test-model" });
+    CjsSchema.define(CanonicalChild, { className: "CanonicalChild" });
     CjsSchema.defineField(CanonicalParent, "child", "type", { kind: "rootRef", className: "CanonicalChild" });
     CjsSchema.defineField(CanonicalParent, "children", "type", {
         kind: "list",
@@ -857,7 +852,7 @@ test("hydrates canonical model fields and lists without constructing raw objects
         kind: "rootRef",
         className: "IRoot"
     });
-    CjsSchema.define(CanonicalParent, { className: "CanonicalParent", family: "test-model" });
+    CjsSchema.define(CanonicalParent, { className: "CanonicalParent" });
 
     const parent = CjsSchema.from(CjsSchema.getClassName(CanonicalParent), {
         child: { label: "one" },
@@ -942,9 +937,9 @@ test("hydrates list schema items as registered model classes", () => {
     }
 
     CjsSchema.defineField(ListedChild, "label", "type", { kind: "string" });
-    CjsSchema.define(ListedChild, { className: "ListedChild", family: "test-list" });
+    CjsSchema.define(ListedChild, { className: "ListedChild" });
     CjsSchema.defineField(ListedParent, "children", "type", { kind: "list", itemType: "ListedChild" });
-    CjsSchema.define(ListedParent, { className: "ListedParent", family: "test-list" });
+    CjsSchema.define(ListedParent, { className: "ListedParent" });
 
     const parent = CjsSchema.from(CjsSchema.getClassName(ListedParent), { children: [{ label: "nested" }] });
     assert.equal(parent.children[0] instanceof ListedChild, true);
@@ -1292,7 +1287,7 @@ test("records carbon.contextual tier provenance", () => {
         {}
     }
 
-    CjsSchema.define(ContextualNode, { className: "ContextualNode", family: "test" });
+    CjsSchema.define(ContextualNode, { className: "ContextualNode" });
     CjsSchema.decorateMethod(
         ContextualNode,
         "ApplyTransform",
@@ -1316,7 +1311,7 @@ test("records carbon.contextual tier provenance", () => {
     {
         ApplyTransform(abc, out = { readableProperty: true }) { return abc; }
     }
-    CjsSchema.define(MinifiedContextual, { className: "MinifiedContextual", family: "test" });
+    CjsSchema.define(MinifiedContextual, { className: "MinifiedContextual" });
     assert.doesNotThrow(() => CjsSchema.decorateMethod(MinifiedContextual,
         "ApplyTransform", CjsSchema.blue.contextual(["camera"])));
 
@@ -1325,7 +1320,7 @@ test("records carbon.contextual tier provenance", () => {
         Tick()
         {}
     }
-    CjsSchema.define(ZeroArgContextual, { className: "ZeroArgContextual", family: "test" });
+    CjsSchema.define(ZeroArgContextual, { className: "ZeroArgContextual" });
     // ARITY, not naming: a method taking nothing cannot have been given a
     // context, and `fn.length` survives minification where parameter NAMES do
     // not. Source lint, rather than runtime reflection, checks parameter names.

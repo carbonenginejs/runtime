@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the native rasterization destination identity consumed as a plain method record by `Tr2CurveScalar`. */
-@meta.define({ className: "Tr2CurveRasterizeDestination", family: "curves" })
+@meta.define({ className: "Tr2CurveRasterizeDestination" })
 export class Tr2CurveRasterizeDestination
 {
 

@@ -3,7 +3,7 @@
 import { meta, type } from "#schema";
 
 /** Retains the rejected generic key-template identity whose unresolved value type is represented by maintained concrete key classes. */
-@meta.define({ className: "Tr2Key", family: "curves" })
+@meta.define({ className: "Tr2Key" })
 export class Tr2Key
 {
 

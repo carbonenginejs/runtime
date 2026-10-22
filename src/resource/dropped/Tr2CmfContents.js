@@ -19,7 +19,7 @@ export class Tr2CmfContents
 }
 
 CjsSchema.define(Tr2CmfContents, {
-  className: "Tr2CmfContents", family: "resources",
+  className: "Tr2CmfContents",
   fields: {
     section: type.rawStruct("cmf::Section"),
     data: type.rawStruct("uint8_t[]"),

@@ -27,7 +27,7 @@ class LeafHolder
 
 CjsSchema.decorateField(LeafHolder, "name", type.string);
 CjsSchema.decorateField(LeafHolder, "res", type.resource("TestRes"));
-CjsSchema.define(LeafHolder, { className: "LeafHolder", family: "test" });
+CjsSchema.define(LeafHolder, { className: "LeafHolder" });
 
 
 class BranchHolder
@@ -38,7 +38,7 @@ class BranchHolder
 
 CjsSchema.decorateField(BranchHolder, "child", type.root(LeafHolder));
 CjsSchema.decorateField(BranchHolder, "res", type.resource("TestRes"));
-CjsSchema.define(BranchHolder, { className: "BranchHolder", family: "test" });
+CjsSchema.define(BranchHolder, { className: "BranchHolder" });
 
 
 /** Stands in for a Res class: what marks it is the static, as CjsResource does. */
@@ -73,7 +73,7 @@ CjsSchema.decorateField(DeclaredHolder, "texture", type.rootRef("TestRes"));
 CjsSchema.decorateField(DeclaredHolder, "geometry", type.rootRef("TestRes"));
 CjsSchema.decorateField(DeclaredHolder, "profiles", type.list("TestRes"));
 CjsSchema.decorateField(DeclaredHolder, "child", type.root(DeclaredHolder));
-CjsSchema.define(DeclaredHolder, { className: "DeclaredHolder", family: "test" });
+CjsSchema.define(DeclaredHolder, { className: "DeclaredHolder" });
 
 
 test("resources in declared fields are collected without any hook", () =>

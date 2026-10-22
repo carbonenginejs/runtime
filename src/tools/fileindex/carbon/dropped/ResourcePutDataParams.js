@@ -11,4 +11,4 @@ export class ResourcePutDataParams
 
 }
 
-CjsSchema.define(ResourcePutDataParams, { className: "ResourcePutDataParams", carbon: "ResourcePutDataParams", family: "tools", fields: {} });
+CjsSchema.define(ResourcePutDataParams, { className: "ResourcePutDataParams", carbon: "ResourcePutDataParams", fields: {} });
