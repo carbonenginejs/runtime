@@ -357,6 +357,10 @@ export class Tr2StateMachineState
 
   /**
    * Gets the linked state machine.
+   * Carbon: Tr2StateMachineState::GetStateMachine (trinity/trinity/Controllers/Tr2StateMachineState.cpp:258-261), the typed
+   * C++ getter. Carbon's exposure row (Tr2StateMachineState_Blue.cpp:22) names "GetStateMachine" but binds it to
+   * GetStateMachinePtr. Both return the same machine here, so the row sits on the method named like the exposed
+   * name, where the decorator lint resolves it.
    * @returns {Tr2StateMachine|null} Owning machine, or null while unlinked.
    */
   @be.mapMethodAndWrap()
@@ -364,6 +368,19 @@ export class Tr2StateMachineState
   GetStateMachine()
   {
     return this._stateMachine;
+  }
+
+  /**
+   * Gets the linked state machine as a raw root.
+   * Carbon: Tr2StateMachineState::GetStateMachinePtr (trinity/trinity/Controllers/Tr2StateMachineState.cpp:323-326),
+   * the function Carbon's "GetStateMachine" exposure row binds (Tr2StateMachineState_Blue.cpp:22). Native returns the
+   * raw root of the held state machine pointer, which in JavaScript is the machine itself.
+   * @returns {Tr2StateMachine|null} Owning machine, or null while unlinked.
+   */
+  @meta.implemented
+  GetStateMachinePtr()
+  {
+    return this.GetStateMachine();
   }
 
   /**
