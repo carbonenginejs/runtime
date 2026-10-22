@@ -35,6 +35,22 @@ const edgeAB = [ 0, 0, 0 ];
 const edgeAC = [ 0, 0, 0 ];
 
 /**
+ * A payload bounds object as Carbon's `std::pair<Vector3, Vector3>`: a new `[min, max]` pair of
+ * three-element arrays; zeros when there are no bounds.
+ *
+ * @param {{min: ArrayLike<number>, max: ArrayLike<number>}|null} bounds
+ * @returns {Array<number[]>}
+ */
+function boundsPair(bounds)
+{
+  if (!bounds) return [ [ 0, 0, 0 ], [ 0, 0, 0 ] ];
+  return [
+    [ bounds.min[0], bounds.min[1], bounds.min[2] ],
+    [ bounds.max[0], bounds.max[1], bounds.max[2] ]
+  ];
+}
+
+/**
  * Resource record that owns geometry payload facts (meshes, optional
  * skeletons and animations) and LOD-force metadata. Device buffers and vertex
  * declarations are allocated through the abstraction layer.
@@ -450,6 +466,91 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
+   * The bounding box of one area of one mesh, for script.
+   *
+   * Carbon: TriGeometryRes::GetAreaBoundingBoxFromScript (trinity/trinity/Resources/TriGeometryRes.cpp:2875-2894;
+   * TriGeometryRes.h:293). Exposed as "GetAreaBoundingBox"
+   * (TriGeometryRes_Blue.cpp:83-88, MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Carbon fills `bounds` (a `std::pair<Vector3, Vector3>`) and returns a
+   * `Be::Result`; the pair is the return value and a failed result is thrown
+   * as an `Error` with Carbon's message. Area `areaIx` of the first LOD is read
+   * from the payload (cpp:2884). A payload area that holds no bounds yields
+   * zeros, as an unfilled `Vector3` member does.
+   *
+   * @param {number} meshIx Mesh index.
+   * @param {number} areaIx Area index.
+   * @returns {Array<number[]>} `[min, max]`, each a three-element array.
+   * @throws {Error} "Mesh index out of range, or invalid mesh" or "Area index out of range".
+   */
+  GetAreaBoundingBoxFromScript(meshIx, areaIx)
+  {
+    const mesh = this.GetMeshData(meshIx);
+    if (!mesh) throw new Error("Mesh index out of range, or invalid mesh");
+
+    const areas = TriGeometryRes.getMeshAreas(mesh);
+    if (areaIx < 0 || !areas || areaIx >= areas.length) throw new Error("Area index out of range");
+
+    return boundsPair(TriGeometryRes.getBounds(areas[areaIx]));
+  }
+
+  /**
+   * The bounding box of one mesh, for script.
+   *
+   * Carbon: TriGeometryRes::GetBoundingBoxFromScript (trinity/trinity/Resources/TriGeometryRes.cpp:416-431;
+   * TriGeometryRes.h:326). Exposed as "GetBoundingBox"
+   * (TriGeometryRes_Blue.cpp:90-94, MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: the `std::pair<Vector3, Vector3>` out parameter is the return
+   * value and a failed `Be::Result` is thrown as an `Error` with Carbon's
+   * message. A payload mesh that holds no bounds yields zeros, as an unfilled
+   * `Vector3` member does. Unlike `GetBoundingBox` it never falls back to the
+   * payload's own bounds.
+   *
+   * @param {number} meshIx Mesh index.
+   * @returns {Array<number[]>} `[min, max]`, each a three-element array.
+   * @throws {Error} "Mesh index out of bounds" or "Invalid mesh".
+   */
+  GetBoundingBoxFromScript(meshIx)
+  {
+    const meshes = this.GetPayload()?.meshes;
+    if (!meshes || !(meshIx < meshes.length)) throw new Error("Mesh index out of bounds");
+
+    const mesh = meshes[meshIx];
+    if (!mesh) throw new Error("Invalid mesh");
+
+    return boundsPair(TriGeometryRes.getBounds(mesh));
+  }
+
+  /**
+   * The bounding sphere of one mesh, for script.
+   *
+   * Carbon: TriGeometryRes::GetBoundingSphereFromScript (trinity/trinity/Resources/TriGeometryRes.cpp:2896-2910;
+   * TriGeometryRes.h:329). Exposed as "GetBoundingSphere"
+   * (TriGeometryRes_Blue.cpp:95-99, MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: the `std::pair<Vector3, float>` out parameter is the return value
+   * and a failed `Be::Result` is thrown as an `Error` with Carbon's message.
+   * A mesh holding no sphere yields zeros, as a granny mesh does until
+   * `RecalculateBoundingSphere` (cpp:1019-1020).
+   *
+   * @param {number} meshIx Mesh index.
+   * @returns {Array} `[center, radius]`: a three-element array and a number.
+   * @throws {Error} "Mesh index out of range" or "Invalid mesh".
+   */
+  GetBoundingSphereFromScript(meshIx)
+  {
+    const meshes = this.GetPayload()?.meshes;
+    if (!meshes || !(meshIx < meshes.length)) throw new Error("Mesh index out of range");
+
+    const mesh = meshes[meshIx];
+    if (!mesh) throw new Error("Invalid mesh");
+
+    const sphere = TriGeometryRes.getSphere(mesh) || [ 0, 0, 0, 0 ];
+    return [ [ sphere[0], sphere[1], sphere[2] ], sphere[3] ];
+  }
+
+  /**
    * Get area bounding box from geometry payload data.
    *
    * @param {number} meshIndex
@@ -590,13 +691,26 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
-   * Intersect a ray with canonical CPU triangle data.
+   * The near intersection of a ray with the geometry, for script.
    *
-   * @param {ArrayLike<number>} position
-   * @param {ArrayLike<number>} direction
-   * @returns {object}
+   * Carbon: TriGeometryRes::GetIntersectionPointNormalBoneFromScript (trinity/trinity/Resources/TriGeometryRes.cpp:1511-1517;
+   * TriGeometryRes.h:319). Exposed as "GetIntersectionPointNormalBone"
+   * (TriGeometryRes_Blue.cpp:133-138, MAP_METHOD_AND_WRAP).
+   *
+   * Adapted: Carbon returns the nested pair `(hit, (boneIndex, (position,
+   * normal)))` built from `GetIntersectionPoints`; this returns the same facts
+   * as one object, the shape the CPU intersection already produces (`hit`,
+   * `boneIndex`, `position`, `normal`, with `point`, `unnormalizedNormal`,
+   * `distance`, `meshIndex` and `areaIndex` beside them). It intersects the
+   * resident CPU meshes directly, which is Carbon's legacy fallback
+   * (cpp:1635-1638), not the BVH of a prepared ray caster, and throws when no
+   * CPU geometry is resident.
+   *
+   * @param {ArrayLike<number>} position Ray origin.
+   * @param {ArrayLike<number>} direction Ray direction.
+   * @returns {object} The hit; `hit` is false with a zero position and normal and bone -1 on a miss.
    */
-  GetIntersectionPointNormalBone(position, direction)
+  GetIntersectionPointNormalBoneFromScript(position, direction)
   {
     return TriGeometryRes.intersectGeometry(
       this.RequireIntersectionMeshes(),
@@ -607,18 +721,28 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
-   * Intersect a ray with one area index across canonical CPU meshes.
+   * The near intersection of a ray with one area of the geometry, for script.
    *
-   * @param {ArrayLike<number>} position
-   * @param {ArrayLike<number>} direction
-   * @param {number} areaIndex
-   * @returns {object}
+   * Carbon: TriGeometryRes::GetAreaIntersectionPointNormalBoneFromScript (trinity/trinity/Resources/TriGeometryRes.cpp:1519-1537;
+   * TriGeometryRes.h:320). Exposed as "GetAreaIntersectionPointNormalBone"
+   * (TriGeometryRes_Blue.cpp:140-146, MAP_METHOD_AND_WRAP).
+   *
+   * Adapted as `GetIntersectionPointNormalBoneFromScript` is: one object for
+   * Carbon's nested pair, a failed `Be::Result` thrown. -1 is every area,
+   * Carbon's "legacy behavior" value (cpp:1523); Carbon's cast of the signed
+   * index to unsigned (cpp:1527-1529) is not needed, since -1 stays -1.
+   *
+   * @param {ArrayLike<number>} position Ray origin.
+   * @param {ArrayLike<number>} direction Ray direction.
+   * @param {number} areaIndex The mesh area index; -1 for all areas.
+   * @returns {object} See `GetIntersectionPointNormalBoneFromScript`.
+   * @throws {RangeError} "Invalid area index" below -1 (JS also refuses a non-integer).
    */
-  GetAreaIntersectionPointNormalBone(position, direction, areaIndex = -1)
+  GetAreaIntersectionPointNormalBoneFromScript(position, direction, areaIndex)
   {
     if (!Number.isInteger(areaIndex) || areaIndex < -1)
     {
-      throw new RangeError("TriGeometryRes area index must be -1 or a non-negative integer.");
+      throw new RangeError("Invalid area index");
     }
     return TriGeometryRes.intersectGeometry(
       this.RequireIntersectionMeshes(),
@@ -1498,14 +1622,17 @@ CjsSchema.blue.define(TriGeometryRes, {
     GetMeshLod__LodIndex: [ meta.renamed("GetMeshLod"), meta.adapted ],
     GetMeshName: [ be.mapMethodAndWrap(), meta.adapted ],
     GetMeshAreaName: [ be.mapMethodAndWrap(), meta.adapted ],
-    GetAreaBoundingBox: [ blue.method, meta.adapted ],
-    GetBoundingBox: [ blue.method, meta.adapted ],
-    GetBoundingSphere: [ blue.method, meta.adapted ],
+    GetAreaBoundingBox: [ meta.adapted ],
+    GetAreaBoundingBoxFromScript: [ be.mapMethodAndWrap("GetAreaBoundingBox"), meta.adapted ],
+    GetBoundingBox: [ meta.adapted ],
+    GetBoundingBoxFromScript: [ be.mapMethodAndWrap("GetBoundingBox"), meta.adapted ],
+    GetBoundingSphere: [ meta.adapted ],
+    GetBoundingSphereFromScript: [ be.mapMethodAndWrap("GetBoundingSphere"), meta.adapted ],
     CalculateBoundingBoxFromTransform: [ be.mapMethodAndWrap(), meta.adapted ],
     RecalculateBoundingSphere: [ be.mapMethodAndWrap(), meta.adapted ],
     Reload: [ be.mapMethodAndWrap(), meta.adapted ],
-    GetIntersectionPointNormalBone: [ blue.method, meta.renamed("GetIntersectionPointNormalBoneFromScript"), meta.adapted ],
-    GetAreaIntersectionPointNormalBone: [ blue.method, meta.renamed("GetAreaIntersectionPointNormalBoneFromScript"), meta.adapted ],
+    GetIntersectionPointNormalBoneFromScript: [ be.mapMethodAndWrap("GetIntersectionPointNormalBone"), meta.adapted ],
+    GetAreaIntersectionPointNormalBoneFromScript: [ be.mapMethodAndWrap("GetAreaIntersectionPointNormalBone"), meta.adapted ],
     PrepareRayCaster: [ be.mapMethodAndWrap(), meta.adapted ],
     ResetRayCaster: [ be.mapMethodAndWrap(), meta.adapted ],
     IsRayCasterReady: [ be.mapMethodAndWrap(), meta.adapted ],

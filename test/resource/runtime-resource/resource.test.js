@@ -1843,8 +1843,35 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
   assert.equal(geometry.GetBoundingSphere(0, sphere), true);
   assert.deepEqual(Array.from(sphere.subarray(0, 3)), [ 0.5, 0.5, 0 ]);
   assert.ok(Math.abs(sphere[3] - Math.SQRT1_2) < 1e-6);
+
+  // The FromScript members (TriGeometryRes.cpp:416-431, 2875-2910) answer Carbon's pairs and throw its Be::Result messages.
+  assert.deepEqual(geometry.GetBoundingBoxFromScript(0), [ [ 0, 0, 0 ], [ 1, 1, 0 ] ]);
+  assert.deepEqual(geometry.GetAreaBoundingBoxFromScript(0, 0), [ [ 0, 0, 0 ], [ 1, 1, 0 ] ]);
+  const [ center, radius ] = geometry.GetBoundingSphereFromScript(0);
+  assert.deepEqual(center, [ 0.5, 0.5, 0 ]);
+  assert.ok(Math.abs(radius - Math.SQRT1_2) < 1e-6);
+  assert.throws(() => geometry.GetBoundingBoxFromScript(1), /^Error: Mesh index out of bounds$/u);
+  assert.throws(() => geometry.GetBoundingSphereFromScript(1), /^Error: Mesh index out of range$/u);
+  assert.throws(() => geometry.GetAreaBoundingBoxFromScript(1, 0), /^Error: Mesh index out of range, or invalid mesh$/u);
+  assert.throws(() => geometry.GetAreaBoundingBoxFromScript(0, 1), /^Error: Area index out of range$/u);
+  assert.throws(() => geometry.GetAreaBoundingBoxFromScript(0, -1), /^Error: Area index out of range$/u);
+  assert.throws(() => geometry.GetAreaIntersectionPointNormalBoneFromScript([ 0, 0, 1 ], [ 0, 0, -1 ], -2), /^RangeError: Invalid area index$/u);
+  assert.equal(geometry.GetAreaIntersectionPointNormalBoneFromScript([ 0.25, 0.25, 1 ], [ 0, 0, -1 ], 0).hit, true);
+  assert.equal(geometry.GetAreaIntersectionPointNormalBoneFromScript([ 0.25, 0.25, 1 ], [ 0, 0, -1 ], 1).hit, false, "no area 1");
+  for (const [ member, exposed ] of [
+    [ "GetAreaBoundingBoxFromScript", "GetAreaBoundingBox" ],
+    [ "GetBoundingBoxFromScript", "GetBoundingBox" ],
+    [ "GetBoundingSphereFromScript", "GetBoundingSphere" ],
+    [ "GetIntersectionPointNormalBoneFromScript", "GetIntersectionPointNormalBone" ],
+    [ "GetAreaIntersectionPointNormalBoneFromScript", "GetAreaIntersectionPointNormalBone" ] ])
+  {
+    const row = CjsSchema.getMethod(TriGeometryRes, member);
+    assert.equal(row.exposure.macro, "MAP_METHOD_AND_WRAP", member);
+    assert.equal(row.exposure.name, exposed, member);
+    assert.equal(row.impl.status, "adapted", member);
+  }
   assert.deepEqual(
-    geometry.GetIntersectionPointNormalBone([ 0.25, 0.25, 1 ], [ 0, 0, -1 ]),
+    geometry.GetIntersectionPointNormalBoneFromScript([ 0.25, 0.25, 1 ], [ 0, 0, -1 ]),
     {
       hit: true,
       boneIndex: 7,
@@ -1880,12 +1907,12 @@ test("a geometry intersection query reports unavailable CPU data instead of a mi
 
   assert.equal(geometry.HasPayload(), false);
   assert.throws(
-    () => geometry.GetIntersectionPointNormalBone([ 0, 0, 1 ], [ 0, 0, -1 ]),
+    () => geometry.GetIntersectionPointNormalBoneFromScript([ 0, 0, 1 ], [ 0, 0, -1 ]),
     /CPU geometry is not resident/u,
     "an absent payload must not answer a ray query"
   );
   assert.throws(
-    () => geometry.GetAreaIntersectionPointNormalBone([ 0, 0, 1 ], [ 0, 0, -1 ], 0),
+    () => geometry.GetAreaIntersectionPointNormalBoneFromScript([ 0, 0, 1 ], [ 0, 0, -1 ], 0),
     /CPU geometry is not resident/u,
     "the area query fails the same way"
   );
@@ -1893,7 +1920,7 @@ test("a geometry intersection query reports unavailable CPU data instead of a mi
   // Negative control: the failure must be about residency, not about the ray.
   // An invalid ray still fails as an invalid ray.
   assert.throws(
-    () => geometry.GetAreaIntersectionPointNormalBone([ 0, 0, 1 ], [ 0, 0, -1 ], -2),
+    () => geometry.GetAreaIntersectionPointNormalBoneFromScript([ 0, 0, 1 ], [ 0, 0, -1 ], -2),
     RangeError,
     "an invalid area index is still a RangeError"
   );
