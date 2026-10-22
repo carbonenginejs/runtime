@@ -2257,7 +2257,6 @@ function defineClassMetadata(Constructor, definition)
         });
     }
     if (definition.struct) schema.structureSize = definition.struct.size;
-    if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
     if (definition.carbon) schema.carbon = definition.carbon;
     if (definition.blue) schema.blue = true;
     if (definition.interface) schema.interface = true;
@@ -2769,11 +2768,6 @@ function buildClassInfo(Constructor, namespaces)
     if (schema?.structureDefinition) result.structureDefinition = schema.structureDefinition;
 
 
-    if (schema?.sourceClass && schema.sourceClass !== result.className)
-    {
-        result.sourceClass = schema.sourceClass;
-    }
-
     if (schema?.carbon)
     {
         result.carbon = schema.carbon;
@@ -2903,7 +2897,6 @@ function getOrCreateClassSchema(Constructor)
     {
         schema = {
             className: null,
-            sourceClass: null,
             carbon: null,
             aliases: null,
             unused: null,
@@ -3072,7 +3065,8 @@ function normalizeClassDefinition(Constructor, definition)
     {
         throw new TypeError("CjsSchema.define abstract must be a boolean when provided.");
     }
-    // A class family was an invention; nothing reads it.
+    // A class family and a source class were inventions; nothing reads them.
+    if (Object.hasOwn(result, "sourceClass")) throw new TypeError("Class sourceClass is retired; remove it from the define options.");
     if (Object.hasOwn(result, "family")) throw new TypeError("Class family is retired; remove it from the define options.");
     // A class's purpose is prose: it lives in the class JSDoc.
     if (Object.hasOwn(result, "purpose")) throw new TypeError("Class purpose is retired; write it in the class JSDoc.");
@@ -3089,7 +3083,6 @@ function normalizeClassDefinition(Constructor, definition)
         else result.carbon = exposureName(result.carbon);
     }
 
-    if (!result.sourceClass && result.className) result.sourceClass = result.className;
     const aliases = [
         ...(result.aliases === undefined ? [] : Array.isArray(result.aliases) ? result.aliases : [result.aliases]),
         ...(result.alias === undefined ? [] : Array.isArray(result.alias) ? result.alias : [result.alias])

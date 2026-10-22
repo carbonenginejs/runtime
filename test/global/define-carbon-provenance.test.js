@@ -31,8 +31,8 @@ const METHODS = { Apply: [ meta.implemented ] };
  */
 function Anonymous(Constructor)
 {
-  const { className, sourceClass, carbon, modelledOn, donors, blue: stamp, ...rest } = CjsSchema.getSchema(Constructor);
-  void className; void sourceClass; void carbon; void modelledOn; void donors; void stamp;
+  const { className, carbon, modelledOn, donors, blue: stamp, ...rest } = CjsSchema.getSchema(Constructor);
+  void className; void carbon; void modelledOn; void donors; void stamp;
   return SelfAsToken(rest, Constructor);
 }
 
