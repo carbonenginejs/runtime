@@ -61,14 +61,8 @@ function boundsPair(bounds)
 
 export class TriGeometryRes extends CjsResource
 {
-  @type.boolean
-  @be.mapAttribute(be.READWRITE)
   forceLod = false;
-  @type.int32
-  @be.mapAttribute(be.READWRITE)
   forcedLodIndex = -1;
-  @type.string
-  @be.mapAttribute(be.READWRITE)
   name = "";
 
   _raycastGeometry = null;
@@ -194,8 +188,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @blue.method
-  @meta.implemented
   IsMemoryUsageKnown()
   {
     return !this.IsLoading();
@@ -209,8 +201,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {number} Bytes.
    */
-  @blue.method
-  @meta.adapted
   GetMemoryUsage()
   {
     return this._memoryUse;
@@ -233,7 +223,6 @@ export class TriGeometryRes extends CjsResource
    * @param {Uint8Array|object} bytes The .gr2 file or its decoded Granny graph.
    * @returns {object} The CMF-form payload.
    */
-  @meta.adapted
   ReadGrannyFile(bytes)
   {
     // Bounds from the vertices: a granny file carries no mesh-level box, and
@@ -260,7 +249,6 @@ export class TriGeometryRes extends CjsResource
    * @param {Uint8Array} bytes The .cmf file.
    * @returns {object} The CMF-form payload.
    */
-  @meta.adapted
   ReadCMFFile(bytes)
   {
     this._ForgetGrannyFile();
@@ -275,7 +263,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {object|null} The gr2 read.
    */
-  @meta.adapted
   GetGrannyInfo()
   {
     return this._grannyFile;
@@ -294,8 +281,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {number}
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   GetMeshCount()
   {
     return this.GetPayload()?.meshes?.length || 0;
@@ -306,7 +291,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {number}
    */
-  @meta.adapted
   GetAnimationCount()
   {
     return this.GetPayload()?.animations?.length || 0;
@@ -317,7 +301,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {number}
    */
-  @meta.adapted
   GetSkeletonCount()
   {
     return this.GetPayload()?.skeletons?.length || 0;
@@ -329,7 +312,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} skeletonIndex
    * @returns {*}
    */
-  @meta.adapted
   GetSkeletonData(skeletonIndex = 0)
   {
     const index = Number(skeletonIndex);
@@ -348,8 +330,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} meshIndex
    * @returns {number}
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   GetMeshAreaCount(meshIndex = 0)
   {
     const mesh = this.GetPayload()?.meshes?.[meshIndex];
@@ -357,14 +337,12 @@ export class TriGeometryRes extends CjsResource
   }
 
   /** Returns one decoded CPU mesh record, or null when the index is absent. */
-  @meta.adapted
   GetMeshData(meshIndex = 0)
   {
     return this.GetPayload()?.meshes?.[meshIndex] ?? null;
   }
 
   /** Returns the decoded CMF-shaped payload used by Carbon mesh consumers. */
-  @meta.adapted
   GetCMFData()
   {
     return this.GetPayload();
@@ -379,7 +357,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {boolean} True unless ReadGrannyFile loaded it.
    */
-  @meta.adapted
   IsUsingCMF()
   {
     return this._useCMF;
@@ -399,7 +376,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} screenSize
    * @returns {number}
    */
-  @meta.adapted
   GetLodIndexForScreenSize(meshIndex = 0, screenSize = Infinity)
   {
     const mesh = this.GetPayload()?.meshes?.[meshIndex];
@@ -439,8 +415,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} screenSize
    * @returns {object|null}
    */
-  @meta.renamed("GetMeshLod")
-  @meta.adapted
   GetMeshLod__ScreenSize(meshIndex, screenSize)
   {
     return this.GetMeshLod__LodIndex(meshIndex, this.GetLodIndexForScreenSize(meshIndex, screenSize));
@@ -454,8 +428,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} lodIndex
    * @returns {object|null}
    */
-  @meta.renamed("GetMeshLod")
-  @meta.adapted
   GetMeshLod__LodIndex(meshIndex, lodIndex)
   {
     const mesh = this.GetPayload()?.meshes?.[meshIndex];
@@ -476,8 +448,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} meshIndex
    * @returns {string}
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   GetMeshName(meshIndex = 0)
   {
     return this.GetPayload()?.meshes?.[meshIndex]?.name || "";
@@ -490,8 +460,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} areaIndex
    * @returns {string}
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   GetMeshAreaName(meshIndex = 0, areaIndex = 0)
   {
     return this.GetPayload()?.meshes?.[meshIndex]?.areas?.[areaIndex]?.name || "";
@@ -515,8 +483,6 @@ export class TriGeometryRes extends CjsResource
    * @returns {Array<number[]>} `[min, max]`, each a three-element array.
    * @throws {Error} "Mesh index out of range, or invalid mesh" or "Area index out of range".
    */
-  @be.mapMethodAndWrap("GetAreaBoundingBox")
-  @meta.adapted
   GetAreaBoundingBoxFromScript(meshIx, areaIx)
   {
     const mesh = this.GetMeshData(meshIx);
@@ -545,8 +511,6 @@ export class TriGeometryRes extends CjsResource
    * @returns {Array<number[]>} `[min, max]`, each a three-element array.
    * @throws {Error} "Mesh index out of bounds" or "Invalid mesh".
    */
-  @be.mapMethodAndWrap("GetBoundingBox")
-  @meta.adapted
   GetBoundingBoxFromScript(meshIx)
   {
     const meshes = this.GetPayload()?.meshes;
@@ -574,8 +538,6 @@ export class TriGeometryRes extends CjsResource
    * @returns {Array} `[center, radius]`: a three-element array and a number.
    * @throws {Error} "Mesh index out of range" or "Invalid mesh".
    */
-  @be.mapMethodAndWrap("GetBoundingSphere")
-  @meta.adapted
   GetBoundingSphereFromScript(meshIx)
   {
     const meshes = this.GetPayload()?.meshes;
@@ -597,7 +559,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>|null} outMax
    * @returns {*|boolean}
    */
-  @meta.adapted
   GetAreaBoundingBox(meshIndex = 0, areaIndex = 0, outMin = null, outMax = null)
   {
     const area = TriGeometryRes.getMeshAreas(this.GetPayload()?.meshes?.[meshIndex])?.[areaIndex];
@@ -612,7 +573,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>|null} outMax
    * @returns {*|boolean}
    */
-  @meta.adapted
   GetBoundingBox(meshIndex = 0, outMin = null, outMax = null)
   {
     const payload = this.GetPayload();
@@ -627,7 +587,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>|null} out
    * @returns {*|boolean}
    */
-  @meta.adapted
   GetBoundingSphere(meshIndex = 0, out = null)
   {
     const payload = this.GetPayload();
@@ -653,8 +612,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>} transform
    * @returns {{min: number[], max: number[]}|null}
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   CalculateBoundingBoxFromTransform(meshIndex = 0, transform = null)
   {
     if (!transform || transform.length < 16)
@@ -695,8 +652,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {boolean}
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   RecalculateBoundingSphere()
   {
     let updated = false;
@@ -730,8 +685,6 @@ export class TriGeometryRes extends CjsResource
    * @param {object} [options={}] Resource activity options.
    * @returns {boolean} Whether recovery started.
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   Reload(options = {})
   {
     return super.Reload(options);
@@ -757,8 +710,6 @@ export class TriGeometryRes extends CjsResource
    * @param {ArrayLike<number>} direction Ray direction.
    * @returns {object} The hit; `hit` is false with a zero position and normal and bone -1 on a miss.
    */
-  @be.mapMethodAndWrap("GetIntersectionPointNormalBone")
-  @meta.adapted
   GetIntersectionPointNormalBoneFromScript(position, direction)
   {
     return TriGeometryRes.intersectGeometry(
@@ -787,8 +738,6 @@ export class TriGeometryRes extends CjsResource
    * @returns {object} See `GetIntersectionPointNormalBoneFromScript`.
    * @throws {RangeError} "Invalid area index" below -1 (JS also refuses a non-integer).
    */
-  @be.mapMethodAndWrap("GetAreaIntersectionPointNormalBone")
-  @meta.adapted
   GetAreaIntersectionPointNormalBoneFromScript(position, direction, areaIndex)
   {
     if (!Number.isInteger(areaIndex) || areaIndex < -1)
@@ -804,8 +753,6 @@ export class TriGeometryRes extends CjsResource
   }
 
   /** Opens one borrowed CPU-raycast session over the resident geometry. */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   PrepareRayCaster()
   {
     this._raycastUsers++;
@@ -823,8 +770,6 @@ export class TriGeometryRes extends CjsResource
   }
 
   /** Closes exactly one raycast session and drops the derived acceleration resource at zero. */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   ResetRayCaster()
   {
     if (this._raycastUsers === 0)
@@ -840,16 +785,12 @@ export class TriGeometryRes extends CjsResource
   }
 
   /** Reports whether the reference-counted CPU raycast resource is ready. */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   IsRayCasterReady()
   {
     return this._raycastGeometry !== null;
   }
 
   /** Reports whether the current raycast preparation session failed. */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   HasRayCasterPreparationFailed()
   {
     // cpp:1597-1603. A release destroys the derived geometry without touching
@@ -868,7 +809,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @returns {TriGeometryRes} This resource.
    */
-  @meta.adapted
   DestroyRayCaster()
   {
     this._raycastGeometry = null;
@@ -887,7 +827,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} [storage=TriStorageFlags.TRISTORAGE_ALL] Carbon's TriStorage mask.
    * @returns {TriGeometryRes} This resource.
    */
-  @meta.adapted
   ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
     if (!(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return this;
@@ -898,7 +837,6 @@ export class TriGeometryRes extends CjsResource
   }
 
   /** Public Carbon query; requires a matching active raycast session. */
-  @meta.adapted
   GetIntersectionPoints(position, direction, result = {}, areaIndex = -1, rayLength = Infinity)
   {
     if (!this._raycastGeometry)
@@ -982,8 +920,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} meshIndex
    * @returns {Array<*>}
    */
-  @be.mapMethodAndWrap()
-  @meta.adapted
   GetMeshVertexElements(meshIndex = 0)
   {
     // The CMF reader emits the element list as `decl`, matching the CMF struct
@@ -996,7 +932,6 @@ export class TriGeometryRes extends CjsResource
   }
 
   /** Returns IsGood, as Carbon's ITr2InstanceData readiness does (cpp:2769-2772). */
-  @meta.implemented
   IsInstanceDataReady()
   {
     return this.IsGood();
@@ -1010,7 +945,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} screenSize Projected size for LOD selection.
    * @returns {object} Buffer, byte offset, byte stride and vertex count.
    */
-  @meta.adapted
   GetInstanceData(bufferIndex = 0, screenSize = Infinity)
   {
     const mesh = this.GetMeshData(bufferIndex);
@@ -1028,7 +962,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} bufferIndex Mesh index.
    * @returns {number} Vertex declaration handle.
    */
-  @meta.adapted
   GetInstanceBufferVertexDeclaration(bufferIndex = 0)
   {
     return this.GetMeshData(bufferIndex)?.vertexDeclarationHandle ?? 0xFFFFFFFF;
@@ -1041,7 +974,6 @@ export class TriGeometryRes extends CjsResource
    * @param {number} bufferIndex Mesh index.
    * @returns {object} Detached min/max vectors.
    */
-  @meta.adapted
   GetInstanceBufferBoundingBox(bufferIndex = 0)
   {
     const source = TriGeometryRes.getBounds(this.GetMeshData(bufferIndex));
@@ -1056,8 +988,6 @@ export class TriGeometryRes extends CjsResource
    *
    * @throws {Error}
    */
-  @be.mapMethodAndWrap()
-  @meta.notSupported
   SaveMesh()
   {
     throw resourceBoundaryError(
@@ -1666,6 +1596,51 @@ export class TriGeometryRes extends CjsResource
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
 
+CjsSchema.decorateField(TriGeometryRes, "forceLod", type.boolean, be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(TriGeometryRes, "forcedLodIndex", type.int32, be.mapAttribute(be.READWRITE));
+CjsSchema.decorateField(TriGeometryRes, "name", type.string, be.mapAttribute(be.READWRITE));
+CjsSchema.decorateMethod(TriGeometryRes, "ReadCMFFile", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetGrannyInfo", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshData", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetCMFData", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "IsUsingCMF", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "ReadGrannyFile", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshCount", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetAnimationCount", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetSkeletonCount", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetSkeletonData", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshAreaCount", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetLodIndexForScreenSize", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshLod__ScreenSize", meta.renamed("GetMeshLod"), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshLod__LodIndex", meta.renamed("GetMeshLod"), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshName", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshAreaName", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetAreaBoundingBox", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetAreaBoundingBoxFromScript", be.mapMethodAndWrap("GetAreaBoundingBox"), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingBox", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingBoxFromScript", be.mapMethodAndWrap("GetBoundingBox"), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingSphere", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetBoundingSphereFromScript", be.mapMethodAndWrap("GetBoundingSphere"), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "CalculateBoundingBoxFromTransform", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "RecalculateBoundingSphere", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "Reload", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetIntersectionPointNormalBoneFromScript", be.mapMethodAndWrap("GetIntersectionPointNormalBone"), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetAreaIntersectionPointNormalBoneFromScript", be.mapMethodAndWrap("GetAreaIntersectionPointNormalBone"), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "PrepareRayCaster", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "ResetRayCaster", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "IsRayCasterReady", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "HasRayCasterPreparationFailed", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "DestroyRayCaster", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "ReleaseResources", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "IsMemoryUsageKnown", blue.method, meta.implemented);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMemoryUsage", blue.method, meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetIntersectionPoints", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetMeshVertexElements", be.mapMethodAndWrap(), meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "IsInstanceDataReady", meta.implemented);
+CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceData", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceBufferVertexDeclaration", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceBufferBoundingBox", meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "SaveMesh", be.mapMethodAndWrap(), meta.notSupported);
 be.define("TriGeometryRes")(TriGeometryRes);
 blue.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriGeometryRes);
