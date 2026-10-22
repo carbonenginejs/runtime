@@ -70,7 +70,7 @@ function effectAt(path)
 /** Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising. */
 @blue.define({ className: "Tr2Denoiser", purpose: "Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising." })
 @blue.inherit(INotify)
-@blue.interface(INotify)
+@be.mapInterface(INotify)
 export class Tr2Denoiser extends IRoot
 {
 

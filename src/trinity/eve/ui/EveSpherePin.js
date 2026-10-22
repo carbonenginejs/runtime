@@ -43,7 +43,12 @@ const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
 @legacyBlue.define({ className: "EveSpherePin", members: pinColorMembers })
 @legacyBlue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify, Tr2DeviceResource)
-@legacyBlue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IEveTransform)
+@be.mapInterface(IEveSpaceObject2)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(INotify)
 export class EveSpherePin
 {
 

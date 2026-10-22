@@ -19,7 +19,7 @@ const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color
  * per-object shader data.
  */
 @blue.define({ className: "EveChildSpherePin", members: pinColorMembers })
-@blue.chainTo(EveChildMesh)
+@be.exposureChainTo(EveChildMesh)
 export class EveChildSpherePin extends EveChildMesh
 {
 

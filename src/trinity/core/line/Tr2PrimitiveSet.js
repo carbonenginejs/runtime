@@ -19,7 +19,9 @@ import { ITr2Pickable } from "../ITr2Pickable.js";
 /** A drawable set of primitives with a world transform, sort value and bounding sphere. */
 @blue.define({ className: "Tr2PrimitiveSet", abstract: true })
 @blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
-@blue.interface(ITr2Renderable, ITr2Pickable, INotify)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(ITr2Pickable)
+@be.mapInterface(INotify)
 export class Tr2PrimitiveSet extends IRoot
 {
 

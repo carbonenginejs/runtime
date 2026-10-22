@@ -20,7 +20,8 @@ import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 /** Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls. */
 @blue.define({ className: "EveStarfield", purpose: "Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls." })
 @blue.inherit(IInitialize, INotify)
-@blue.interface(IInitialize, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class EveStarfield
 {
 

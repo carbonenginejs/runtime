@@ -18,7 +18,8 @@ import { blue, INotify } from "#blue";
  */
 @legacyBlue.define({ className: "Tr2SpriteObjectBase", abstract: true })
 @legacyBlue.inherit(INotify)
-@legacyBlue.interface(ITr2SpriteObject, INotify)
+@be.mapInterface(ITr2SpriteObject)
+@be.mapInterface(INotify)
 export class Tr2SpriteObjectBase extends ITr2SpriteObject
 {
 

@@ -18,7 +18,7 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
  */
 @blue.define({ className: "EveVirtualCameraBehaviourVector3Base", abstract: true })
 @blue.inherit(INotify)
-@blue.interface(INotify)
+@be.mapInterface(INotify)
 export class EveVirtualCameraBehaviourVector3Base extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

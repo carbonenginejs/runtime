@@ -26,7 +26,9 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
   }
 })
 @blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify, ITr2SkinnedObject, ITr2DebugRenderable)
-@blue.interface(ITr2Renderable, IWorldPosition, IListNotify)
+@be.mapInterface(ITr2Renderable)
+@be.mapInterface(IWorldPosition)
+@be.mapInterface(IListNotify)
 export class Tr2SkinnedObject extends IRoot
 {
 

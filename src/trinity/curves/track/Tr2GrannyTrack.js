@@ -16,7 +16,9 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
  */
 @blue.define({ className: "Tr2GrannyTrack", abstract: true })
 @blue.inherit(ITriFunction, IInitialize, ITriCurveLength, INotify)
-@blue.interface(ITriFunction, IInitialize, INotify)
+@be.mapInterface(ITriFunction)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2GrannyTrack extends IRoot
 {
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Curves/Tr2GrannyTrack_Blue.cpp:16); chooser TriGR2Chooser (trinity/trinity/TriConstants.cpp:87). */

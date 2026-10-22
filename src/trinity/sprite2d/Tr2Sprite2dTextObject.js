@@ -9,7 +9,7 @@ import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sp
 
 /** Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag. */
 @blue.define({ className: "Tr2Sprite2dTextObject", purpose: "Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag." })
-@blue.chainTo(Tr2SpriteObject)
+@be.exposureChainTo(Tr2SpriteObject)
 @blue.inherit(ITr2FontMeasurerNotifyTarget)
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 {

@@ -52,7 +52,7 @@ const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Co
 /** Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map. */
 @legacyBlue.define({ className: "Tr2ReflectionProbe", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
 @legacyBlue.inherit(INotify)
-@legacyBlue.interface(INotify)
+@be.mapInterface(INotify)
 export class Tr2ReflectionProbe
 {
 

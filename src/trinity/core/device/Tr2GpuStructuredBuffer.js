@@ -13,7 +13,9 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
 @blue.define({ className: "Tr2GpuStructuredBuffer", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
 @blue.inherit(ITr2GpuBuffer, INotify, IInitialize)
-@blue.interface(INotify, IInitialize, ITr2GpuBuffer)
+@be.mapInterface(INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(ITr2GpuBuffer)
 export class Tr2GpuStructuredBuffer extends IRoot
 {
 

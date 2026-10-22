@@ -13,7 +13,7 @@ import { meta, type, blue } from "#schema";
  */
 @blue.define({ className: "EveVirtualCameraBehaviourFloatBase", abstract: true })
 @blue.inherit(INotify)
-@blue.interface(INotify)
+@be.mapInterface(INotify)
 export class EveVirtualCameraBehaviourFloatBase extends IRoot
 {
   @be.mapAttribute(be.READWRITE | be.PERSIST)

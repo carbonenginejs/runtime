@@ -16,7 +16,7 @@ import { FNV1_INITIAL, hashFnv1Identity } from "#utils/hash";
 /** Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it. */
 @blue.define({ className: "EveCloudVolumeTextureParameter", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
 @blue.inherit(ITriEffectResourceParameter)
-@blue.interface(ITriEffectResourceParameter)
+@be.mapInterface(ITriEffectResourceParameter)
 export class EveCloudVolumeTextureParameter extends IRoot
 {
 

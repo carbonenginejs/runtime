@@ -15,7 +15,11 @@ import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeMo
   fields: [{ name: "active", type: { kind: "boolean" }, edit: { read: true, write: false, persist: false, notify: false }, carbon: { member: true } }]
 })
 @blue.inherit(IInitialize)
-@blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize, INotify)
+@be.mapInterface(EveSmartLightAttributeModifierBucket)
+@be.mapInterface(IEveSmartLightGroupAttributeModifier)
+@be.mapInterface(EveSmartLightBaseAttributeModifier)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY, "attributeModifiers")
 @be.mapAttribute(be.READWRITE | be.PERSIST, "name")
 @be.mapAttribute(be.READWRITE | be.PERSIST, "attributeMultiplier")

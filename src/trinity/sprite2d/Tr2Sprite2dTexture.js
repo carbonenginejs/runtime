@@ -21,7 +21,9 @@ import { Tr2Sprite2dTextureSettings } from "../generated/sprite2d/enums.js";
  */
 @blue.define({ className: "Tr2Sprite2dTexture", purpose: "Describes a named 2D texture transform around separate rotation and scaling centers." })
 @blue.inherit(IInitialize, INotify, ITr2AtlasTextureNotifyTarget)
-@blue.interface(ITr2Sprite2dTexture, IInitialize, INotify)
+@be.mapInterface(ITr2Sprite2dTexture)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
 {
 

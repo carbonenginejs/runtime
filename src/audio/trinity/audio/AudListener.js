@@ -9,7 +9,7 @@ const FLOAT_MAX = 3.4028234663852886e38;
 
 /** Represents the singleton Carbon listener and its effective orientation and position. Its id is fixed at 4 and prioritization never culls it. */
 @blue.define({ className: "AudListener", abstract: true })
-@blue.chainTo(AudGameObjResource)
+@be.exposureChainTo(AudGameObjResource)
 export class AudListener extends AudGameObjResource
 {
 

@@ -255,7 +255,7 @@ function CopyToTexture(bitmap, texture, x, y, margin, renderContext)
  * space opens.
  */
 @blue.define({ className: "Tr2TextureAtlas", purpose: "Shares one AL texture between many atlas textures, allocating best-fit rectangles and tracking textures that did not fit." })
-@blue.interface(ITr2TextureProvider)
+@be.mapInterface(ITr2TextureProvider)
 export class Tr2TextureAtlas extends ITr2TextureProvider
 {
 

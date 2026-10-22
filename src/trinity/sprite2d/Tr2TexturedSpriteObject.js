@@ -8,7 +8,7 @@ import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarg
 
 /** Adds primary and secondary texture bindings to the shared 2D sprite render state. */
 @blue.define({ className: "Tr2TexturedSpriteObject", abstract: true, purpose: "Adds primary and secondary texture bindings to the shared 2D sprite render state." })
-@blue.chainTo(Tr2SpriteObject)
+@be.exposureChainTo(Tr2SpriteObject)
 @blue.inherit(ITr2Sprite2dTextureNotifyTarget)
 export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 {

@@ -20,7 +20,9 @@ const DEBUG_SPHERE = vec4.create();
 /** Groups line-path children beneath a shared transform with naming and visibility state. */
 @blue.define({ className: "EveLineChildContainer", purpose: "Groups line-path children beneath an EveChildTransform with shared naming and visibility state." })
 @blue.inherit(INotify, IListNotify)
-@blue.interface(IEveLineSetPath, INotify, IListNotify)
+@be.mapInterface(IEveLineSetPath)
+@be.mapInterface(INotify)
+@be.mapInterface(IListNotify)
 export class EveLineChildContainer extends IEveLineSetPath
 {
 

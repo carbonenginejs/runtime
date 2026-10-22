@@ -72,7 +72,9 @@ function NowMs()
  */
 @legacyBlue.define({ className: "AudGameObjResource", abstract: true })
 @legacyBlue.inherit(IInitialize, IListNotify, INotify, IPrioritizedObject)
-@legacyBlue.interface(IInitialize, IListNotify, INotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(IListNotify)
+@be.mapInterface(INotify)
 export class AudGameObjResource
 {
 

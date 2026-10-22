@@ -11,8 +11,8 @@ const spriteIndices = new Uint16Array([0, 1, 3, 3, 1, 2, 4, 5, 7, 7, 5, 6, 8, 9,
 
 /** Prepares and gathers sprite quads through the native Sprite2D renderer contract. */
 @blue.define({ className: "Tr2Sprite2d", purpose: "Adds opacity, saturation, texture-sized dimensions, and picking radius to a textured 2D sprite." })
-@blue.interface(INotify)
-@blue.chainTo(Tr2TexturedSpriteObject)
+@be.mapInterface(INotify)
+@be.exposureChainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2d extends Tr2TexturedSpriteObject
 {
 

@@ -19,7 +19,9 @@ const Status = Object.freeze({ Working: 0, StopRequested: 1, DataReady: 2, Abort
 /** Holds the editable voxel dimensions, bitmap and texture backing, control balls, and curve sets used to author a cloud volume. */
 @blue.define({ className: "EveCloudEditableVolume", purpose: "Holds the editable voxel dimensions, bitmap and texture backing, control balls, and curve sets used to author a cloud volume." })
 @blue.inherit(IInitialize, INotify, IListNotify)
-@blue.interface(IListNotify, IInitialize, INotify)
+@be.mapInterface(IListNotify)
+@be.mapInterface(IInitialize)
+@be.mapInterface(INotify)
 export class EveCloudEditableVolume
 {
 

@@ -104,7 +104,9 @@ const s_layerIndices = [0, 1, 3, 3, 1, 2];
   ]
 })
 @blue.inherit(INotify)
-@blue.interface(ITr2Scene, ITr2Updateable, INotify)
+@be.mapInterface(ITr2Scene)
+@be.mapInterface(ITr2Updateable)
+@be.mapInterface(INotify)
 export class Tr2Sprite2dScene extends ITr2Scene
 {
   /** Native wide-string scene label. @type {string} */
