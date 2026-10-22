@@ -273,13 +273,36 @@ export class Tr2BoneMatrixCurve extends ITriFunction
         return i;
       }
     }
-    const key = new Tr2MatrixKey();
-    key.time = time;
-    mat4.copy(key.value, keyValue);
-    Tr2BoneMatrixCurve._keyInterpolations.set(key, SPHERICAL_LINEAR);
-    keys.push(key);
+    this._AddKey_(time, keyValue);
+    const key = keys[keys.length - 1];
     this.Sort();
     return keys.indexOf(key);
+  }
+
+  /**
+   * Appends a matrix key at the given time, without sorting.
+   *
+   * Carbon: Tr2BoneMatrixCurve::AddKey_ (trinity/trinity/Curves/Tr2BoneMatrixCurve.cpp:64-76). Creates the
+   * key, copies the time and matrix, stamps the curve's m_interpolation (SPHERICAL_LINEAR from the constructor,
+   * cpp:31) and appends it with Insert( -1 ).
+   *
+   * Adapted: the key's unpersisted interpolation lives in the _keyInterpolations side table, because
+   * Tr2MatrixKey stores no interpolation field, and the curve has no m_interpolation member, so the
+   * constructor's SPHERICAL_LINEAR is stamped directly. Native returns without adding when CreateInstance
+   * fails; JavaScript construction cannot fail.
+   *
+   * @param {number} time Key time in seconds.
+   * @param {Float32Array} value Key matrix; copied into the new key.
+   * @returns {void}
+   */
+  @meta.adapted
+  _AddKey_(time, value)
+  {
+    const key = new Tr2MatrixKey();
+    key.time = time;
+    mat4.copy(key.value, value);
+    Tr2BoneMatrixCurve._keyInterpolations.set(key, SPHERICAL_LINEAR);
+    this.keys.push(key);
   }
 
   /** Gets the number of matrix keys. */
