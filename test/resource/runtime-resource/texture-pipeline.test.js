@@ -204,3 +204,26 @@ test("our Convert and Resize steps let Pack join a compressed source and a diffe
   assert.deepEqual([ ...result.GetMipRawData(0).subarray(0, 4) ], [ 0, 100, 255, 255 ]);
   assert.equal(compressed.GetFormat(), PixelFormat.PIXEL_FORMAT_BC1_UNORM, "the source bitmap was not changed");
 });
+
+test("Tr2TexturePipeline exposes its FromScript members under Carbon's names (Tr2TexturePipeline_Blue.cpp:20-30)", () =>
+{
+  const load = new Tr2TexturePipelineStepLoad();
+  load.path = "res:/z.png";
+  const pack = new Tr2TexturePipelineStepPack();
+  pack.r = Object.assign(new Tr2TexturePackChannel(), { path: "res:/a.png" });
+  const pipeline = new Tr2TexturePipeline();
+  pipeline.steps = [ load, pack ];
+
+  assert.deepEqual(pipeline.GetResourceDependenciesFromScript(), [ "res:/a.png", "res:/z.png" ], "the sorted std::vector copy of the std::set");
+
+  const dependencies = CjsSchema.getMethod(Tr2TexturePipeline, "GetResourceDependenciesFromScript");
+  assert.equal(dependencies.exposure.macro, "MAP_METHOD_AND_WRAP");
+  assert.equal(dependencies.exposure.name, "GetResourceDependencies");
+  assert.equal(dependencies.impl.status, "adapted");
+
+  const execute = CjsSchema.getMethod(Tr2TexturePipeline, "ExecuteFromScript");
+  assert.equal(execute.exposure.macro, "MAP_METHOD_AND_WRAP_OPTIONAL_ARGS");
+  assert.equal(execute.exposure.name, "Execute");
+  assert.equal(execute.impl.status, "notImplemented");
+  assert.throws(() => pipeline.ExecuteFromScript(0, 0), /Tr2HostBitmap\.CreateFromFile .* is not ported/u);
+});

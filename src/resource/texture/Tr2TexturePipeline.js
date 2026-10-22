@@ -34,6 +34,48 @@ export class Tr2TexturePipeline extends IRoot
 
 
   /**
+   * The res paths of this pipeline's resource dependencies, for script.
+   *
+   * Carbon: Tr2TexturePipeline::GetResourceDependenciesFromScript (trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.cpp:48-55;
+   * Tr2TexturePipeline.h:22). Exposed as "GetResourceDependencies"
+   * (Tr2TexturePipeline_Blue.cpp:20-23, MAP_METHOD_AND_WRAP).
+   *
+   * Carbon copies the sorted `std::set` that `GetResourceDependencies` fills into a
+   * `std::vector`. `GetResourceDependencies` already returns that sorted list here, so
+   * this returns its call.
+   *
+   * @returns {string[]} Resource dependency paths, sorted.
+   */
+  GetResourceDependenciesFromScript()
+  {
+    return this.GetResourceDependencies();
+  }
+
+  /**
+   * Loads every dependency, executes the pipeline against them and returns the resulting bitmap, for script.
+   *
+   * Carbon: Tr2TexturePipeline::ExecuteFromScript (trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.cpp:57-90;
+   * Tr2TexturePipeline.h:23). Exposed as "Execute"
+   * (Tr2TexturePipeline_Blue.cpp:24-30, MAP_METHOD_AND_WRAP_OPTIONAL_ARGS with 2 optional arguments).
+   *
+   * Not implemented: Carbon loads each dependency with `Tr2HostBitmap::CreateFromFile`
+   * (Tr2HostBitmap.cpp:486-510), which reads the file through `BePaths->GetFileContentsWithYield` and
+   * decodes it with `ImageIO::ReadImage`. Neither is available to this class: `Tr2HostBitmap` has no
+   * `CreateFromFile`, the resource layer has no global `BePaths` or `BeResMan`, and a JS file read is
+   * asynchronous where Carbon's yields. `TriTextureRes.LoadPipeline` loads the dependencies through a
+   * resource manager and runs `Execute`; use it.
+   *
+   * @param {number} _maxWidth Max resulting texture width.
+   * @param {number} _maxHeight Max resulting texture height.
+   * @returns {never}
+   * @throws {Error} Always.
+   */
+  ExecuteFromScript(_maxWidth, _maxHeight)
+  {
+    throw new Error("Tr2TexturePipeline.ExecuteFromScript: Tr2HostBitmap.CreateFromFile (BePaths file read and ImageIO::ReadImage) is not ported; use TriTextureRes.LoadPipeline.");
+  }
+
+  /**
    * Carbon Execute (cpp:24-45): run every step against one bitmap, then apply
    * the caller's size limit.
    *
@@ -97,6 +139,8 @@ CjsSchema.blue.inherit(IRoot)(Tr2TexturePipeline);
 
 CjsSchema.decorateField(Tr2TexturePipeline, "pipelineType", be.mapAttribute(be.READWRITE | be.PERSIST), type.string);
 CjsSchema.decorateField(Tr2TexturePipeline, "steps", be.mapAttribute(be.READ | be.PERSIST), type.list("ITr2TexturePipelineStep"));
-CjsSchema.decorateMethod(Tr2TexturePipeline, "Execute", blue.method, meta.adapted);
-CjsSchema.decorateMethod(Tr2TexturePipeline, "GetResourceDependencies", blue.method, meta.adapted);
+CjsSchema.decorateMethod(Tr2TexturePipeline, "Execute", meta.adapted);
+CjsSchema.decorateMethod(Tr2TexturePipeline, "ExecuteFromScript", be.mapMethodAndWrapOptionalArgs("Execute"), meta.notImplemented);
+CjsSchema.decorateMethod(Tr2TexturePipeline, "GetResourceDependencies", meta.adapted);
+CjsSchema.decorateMethod(Tr2TexturePipeline, "GetResourceDependenciesFromScript", be.mapMethodAndWrap("GetResourceDependencies"), meta.adapted);
 CjsSchema.exposure.define("Tr2TexturePipeline")(Tr2TexturePipeline);
