@@ -7,6 +7,7 @@ import { vec4 } from "#math/vec4";
 
 /** Configures screen-space subsurface scattering width, front-scatter color, scene presence, and enablement. */
 @be.define("Tr2SSSSS")
+@be.inherit(IRoot)
 export class Tr2SSSSS extends IRoot
 {
 

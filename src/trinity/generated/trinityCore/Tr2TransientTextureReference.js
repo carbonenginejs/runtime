@@ -12,7 +12,7 @@ export class Tr2TransientTextureReference extends IRoot
 {
 
   /** m_texture (Tr2TextureAL*) */
-  @type.rootRef("Tr2TextureAL")
+  @type.object.weak("Tr2TextureAL")
   texture = null;
 
   /** m_onTextureChange (OnTextureChangeEvent) */

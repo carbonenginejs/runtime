@@ -6,6 +6,7 @@ import { meta, type } from "#schema";
 
 /** Carries nested GPU timing zones, frame fences, messages, and capture state for one profiling owner. */
 @be.define("Tr2GpuProfiler")
+@be.inherit(IRoot)
 export class Tr2GpuProfiler extends IRoot
 {
 

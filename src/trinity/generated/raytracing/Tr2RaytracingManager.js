@@ -6,6 +6,7 @@ import { type } from "#schema";
 
 /** Carries shadow-effect, denoiser, enablement, and sun-angle state for Carbon's ray-tracing manager. */
 @be.define("Tr2RaytracingManager")
+@be.inherit(IRoot)
 export class Tr2RaytracingManager extends IRoot
 {
 

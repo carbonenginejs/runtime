@@ -8,6 +8,7 @@ import { TriDebugFont } from "../include/enums.js";
 
 /** Positions a displayable text label with its font and content inside a primitive scene. */
 @be.define("Tr2PrimitiveText")
+@be.inherit(IRoot)
 export class Tr2PrimitiveText extends IRoot
 {
 
