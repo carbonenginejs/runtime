@@ -84,6 +84,21 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
 
 
   /**
+   * Describes this resource for a device inventory.
+   *
+   * Carbon: Tr2ResourceSetAL::Describe (trinity/trinityal/stub/Tr2ResourceSetALStub.cpp:37)
+   *
+   * Carbon's stub leaves the map untouched, so there is nothing to write
+   * here either; it is stated rather than inherited from the base class so
+   * the donor method has a counterpart on this class.
+   *
+   * @param {object} _description Accumulator, keyed by name; left untouched.
+   */
+  Describe(_description)
+  {
+  }
+
+  /**
    * Names the resource set for a debugger.
    *
    * @param {string} _name The name Carbon would attach; the stub discards it.
@@ -113,4 +128,5 @@ CjsSchema.decorateMethod(Tr2ResourceSetALStub, "IsValid", meta.implemented);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Destroy", meta.adapted);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "GetMemoryClass", meta.implemented);
 CjsSchema.decorateMethod(Tr2ResourceSetALStub, "SetName", meta.implemented);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Describe", meta.implemented);
 CjsSchema.blue.define(Tr2ResourceSetALStub, { className: "Tr2ResourceSetALStub" });
