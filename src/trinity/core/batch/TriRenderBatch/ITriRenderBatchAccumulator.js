@@ -6,7 +6,7 @@
 // collects CPU batch data; dispatch to the device is not ported yet.
 import { exposure as be } from "#be";
 import { RenderingMode } from "#consts/graphics";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 
 
 /**
@@ -150,15 +150,9 @@ export class ITriRenderBatchAccumulator
   TransferFrom(_source) {}
 }
 
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Allocate", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "SetUserData", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "SetRenderingMode", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetRenderingMode", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Clear", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Commit", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetGdprBatches", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetBatches", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Finalize", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetBatchCount", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "IsChainedByEffect", blue.method);
-CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "TransferFrom", blue.method);
+// States: SetUserData, SetRenderingMode and GetRenderingMode are TriRenderBatch.h:273-287. Allocate is adapted: Carbon pool-allocates from the
+// allocator (h:241-251); the garbage collector owns lifetime here, so it constructs the object. The rest are pure virtuals (h:254-270).
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Allocate", meta.adapted);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "SetUserData", meta.implemented);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "SetRenderingMode", meta.implemented);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetRenderingMode", meta.implemented);

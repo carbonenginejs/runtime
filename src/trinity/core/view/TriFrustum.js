@@ -128,7 +128,7 @@ export class TriFrustum
    * @param {Float32Array} projection
    * @param {Object} viewport - TriViewport duck ({ width })
    */
-  @blue.method
+  @meta.implemented
   DeriveFrustum(view, viewPos, projection, viewport)
   {
     this.#CacheTransformationData(view, viewPos, projection, viewport);
@@ -147,7 +147,7 @@ export class TriFrustum
    * col3 = (2, 6, 10, 14), col4 = (3, 7, 11, 15).
    * @param {Float32Array} proj - composed view*projection (or projection alone)
    */
-  @blue.method
+  @meta.implemented
   ExtractFrustum(proj)
   {
     const planes = this.planes;
@@ -184,7 +184,7 @@ export class TriFrustum
    * @param {Boolean} [cullBackPlane]
    * @returns {Boolean}
    */
-  @blue.method
+  @meta.implemented
   IsSphereVisible(sphere, cullBackPlane = false)
   {
     return this.IsSphereVisible__CenterRadius(sphere, sphere[3], cullBackPlane);
@@ -201,7 +201,7 @@ export class TriFrustum
    * @param {Boolean} [cullBackPlane]
    * @returns {Boolean}
    */
-  @blue.method
+  @meta.implemented
   IsSphereVisible__CenterRadius(center, radius, cullBackPlane = false)
   {
     const sphereOrCenter = center;
@@ -228,7 +228,7 @@ export class TriFrustum
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
-  @blue.method
+  @meta.adapted
   SphereTest(sphere)
   {
     const packed = typeof sphere?.length === "number" && sphere.length >= 4;
@@ -257,7 +257,7 @@ export class TriFrustum
    * @param {Float32Array} point
    * @returns {Boolean}
    */
-  @blue.method
+  @meta.implemented
   IsPointVisible(point)
   {
     return this.IsSphereVisible__CenterRadius(point, 0);
@@ -269,7 +269,7 @@ export class TriFrustum
    * @param {Float32Array} aabb - box3
    * @returns {Boolean}
    */
-  @blue.method
+  @meta.implemented
   IsBoxVisible(aabb)
   {
     if (box3.isEmpty(aabb))
@@ -287,7 +287,7 @@ export class TriFrustum
    * @param {Float32Array} max - boundsMax
    * @returns {Boolean}
    */
-  @blue.method
+  @meta.implemented
   IsBoxVisible__BoundsMinMax(min, max)
   {
     for (let i = 0; i < TriFrustum.PLANE_COUNT; i++)
@@ -312,7 +312,7 @@ export class TriFrustum
    * @param {Float32Array} sphere
    * @returns {Number}
    */
-  @blue.method
+  @meta.implemented
   GetPixelSizeAccross(sphere)
   {
     return this.GetPixelSizeAccross__CenterRadius(sphere, sphere[3]);
@@ -324,7 +324,7 @@ export class TriFrustum
    * @param {{ center: Float32Array, radius: Number }} sphere
    * @returns {Number}
    */
-  @blue.method
+  @meta.implemented
   GetPixelSizeAccross__Sphere(sphere)
   {
     return this.GetPixelSizeAccrossEst__CenterRadius(sphere.center, sphere.radius);
@@ -337,7 +337,7 @@ export class TriFrustum
    * @param {Float32Array} box - box3
    * @returns {Number}
    */
-  @blue.method
+  @meta.implemented
   GetPixelSizeAccross__AxisAlignedBox(box)
   {
     if (box3.isEmpty(box)) return 0;
@@ -351,7 +351,7 @@ export class TriFrustum
    * @param {Float32Array} sphere
    * @returns {Number}
    */
-  @blue.method
+  @meta.implemented
   GetPixelSizeAccrossEst(sphere)
   {
     return this.GetPixelSizeAccrossEst__CenterRadius(sphere, sphere[3]);
@@ -364,7 +364,7 @@ export class TriFrustum
    * @param {Number} radius
    * @returns {Number}
    */
-  @blue.method
+  @meta.implemented
   GetPixelSizeAccross__CenterRadius(center, radius)
   {
     // Carbon: Vector3 d(center - m_viewPos); d = -d; => d = viewPos - center.
@@ -399,7 +399,7 @@ export class TriFrustum
    * @param {Number} radius
    * @returns {Number}
    */
-  @blue.method
+  @meta.implemented
   GetPixelSizeAccrossEst__CenterRadius(center, radius)
   {
     if (radius <= 0)
@@ -478,4 +478,7 @@ export class TriFrustum
   static #boxCenterScratch = vec3.create();
 }
 
+// States: each method is TriFrustum.cpp:26-325 statement for statement (DeconstructProjectionMatrix, MatrixUtils.cpp:48-59, inlined); #CacheTransformationData
+// keeps its stamp because a state decorator cannot address a private name by call. SphereTest is adapted:
+// Carbon takes a CcpMath::Sphere, this also accepts a packed vec4. The matrix products swap operands for gl-matrix, as everywhere here.
 CjsSchema.decorateMethod(TriFrustum, "#CacheTransformationData", blue.method, meta.renamed("CacheTransformationData"));

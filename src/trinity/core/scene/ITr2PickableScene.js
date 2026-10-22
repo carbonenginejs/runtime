@@ -1,6 +1,6 @@
 // Source: trinity/trinity/ITr2PickableScene.h
 // Source: trinity/trinity/ITr2PickableScene.cpp
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 import { TriBatchType, RenderingMode } from "#consts/graphics";
@@ -205,11 +205,3 @@ CjsSchema.decorateMethod(ITr2PickableScene, "PickObject");
 CjsSchema.decorateMethod(ITr2PickableScene, "SetupTransformsForPicking");
 CjsSchema.decorateMethod(ITr2PickableScene, "GetBatches");
 CjsSchema.decorateMethod(ITr2PickableScene, "RenderPicking");
-CjsSchema.decorateMethod(ITr2PickableScene, "SetPerFrameDataForPicking", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "GetPickingObjectsToRender", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "GetOpaquePickingBatchAccumulator", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "GetPickingBatchAccumulator", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "GetRequiredPasses", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "RenderPickingAreasForComponents", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "DecodeBufferPixel", blue.method);
-CjsSchema.decorateMethod(ITr2PickableScene, "GetPickBuffer", blue.method);

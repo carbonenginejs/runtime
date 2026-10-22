@@ -1,4 +1,4 @@
-import { CjsSchema, type, blue, meta } from "#schema";
+import { CjsSchema, type, meta } from "#schema";
 // Source: trinity/trinity/TriFrustumOrtho.h
 // Source: trinity/trinity/TriFrustumOrtho.cpp
 //
@@ -215,11 +215,13 @@ CjsSchema.decorateMethod(TriFrustumOrtho, "Copy", meta.renamed("operator="));
 CjsSchema.decorateField(TriFrustumOrtho, "view", type.mat4);
 CjsSchema.decorateField(TriFrustumOrtho, "boundsMin", type.vec3);
 CjsSchema.decorateField(TriFrustumOrtho, "boundsMax", type.vec3);
-CjsSchema.decorateMethod(TriFrustumOrtho, "DeriveFrustum", blue.method);
-CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleAndInsideNearPlane", blue.method);
-CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleAndInsideNearPlane__CenterRadius", blue.method);
-CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleIgnoreFarPlane", blue.method);
-CjsSchema.decorateMethod(TriFrustumOrtho, "SphereTestIgnoreFarPlane", blue.method);
-CjsSchema.decorateMethod(TriFrustumOrtho, "GetPixelSize", blue.method);
-CjsSchema.decorateMethod(TriFrustumOrtho, "GetEyePos", blue.method);
+// States: TriFrustumOrtho.cpp:7-130. IsSphereVisibleIgnoreFarPlane and SphereTestIgnoreFarPlane are adapted: Carbon takes (center, radius) and a
+// CcpMath::Sphere; these also accept a packed vec4.
+CjsSchema.decorateMethod(TriFrustumOrtho, "DeriveFrustum", meta.implemented);
+CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleAndInsideNearPlane", meta.implemented);
+CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleAndInsideNearPlane__CenterRadius", meta.implemented);
+CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleIgnoreFarPlane", meta.adapted);
+CjsSchema.decorateMethod(TriFrustumOrtho, "SphereTestIgnoreFarPlane", meta.adapted);
+CjsSchema.decorateMethod(TriFrustumOrtho, "GetPixelSize", meta.implemented);
+CjsSchema.decorateMethod(TriFrustumOrtho, "GetEyePos", meta.implemented);
 CjsSchema.meta.carbon("TriFrustumOrtho")(TriFrustumOrtho);
