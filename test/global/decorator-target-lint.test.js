@@ -103,6 +103,39 @@ test("baseline updates retire resolved findings but never absorb newly missing s
     assert.deepEqual(shrinkBaseline([],result).fingerprints,[]);
 });
 
+test("a declared rename carries its baselined finding and nothing else", () =>
+{
+    const old={rule:"required-state",source:"src/A.js",class:"A",member:"#Call",detail:"Missing"};
+    const renamed={...old,member:"_Call"};
+    const other={...old,member:"_Other"};
+    const baseline={version:1,fingerprints:[findingFingerprint(old)]};
+    const rename=[{class:"A",from:"#Call",to:"_Call"}];
+    assert.deepEqual(shrinkBaseline([renamed,other],baseline,rename).fingerprints,[findingFingerprint(renamed)]);
+    assert.deepEqual(shrinkBaseline([renamed,other],baseline).fingerprints,[]);
+    assert.deepEqual(shrinkBaseline([renamed],{version:1,fingerprints:[]},rename).fingerprints,[]);
+    assert.deepEqual(shrinkBaseline([{...renamed,class:"B"}],baseline,rename).fingerprints,[]);
+});
+
+test("a macro resolves to the member named by its C++ function before the exposed name", () =>
+{
+    const native={name:"Native",attributes:[],properties:[],interfaces:[{name:"Native"},{name:"IRoot"}],methods:[{name:"Render",function:"RenderFromScript",macro:"MAP_METHOD_AND_WRAP"}]};
+    const source=order=>`import {exposure as target} from '#be'; import {meta} from '#schema';
+        @meta.implemented @target.define('Native') class Example {${order}}`;
+    const render="@meta.implemented Render(){}";
+    const fromScript="@meta.implemented @target.mapMethodAndWrap('Render') RenderFromScript(){}";
+    for(const members of [render+fromScript,fromScript+render])
+    {
+        const root=fs.mkdtempSync(path.join(os.tmpdir(),"decorator-lint-"));
+        try
+        {
+            const file=path.join(root,"src/Example.js");fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,source(members));
+            const findings=auditDecorators(inventoryRuntime(root),[native],headers,{});
+            assert.equal(findings.filter(f=>f.rule==="exposure-declaration-missing").length,0,members);
+        }
+        finally { fs.rmSync(root,{recursive:true}); }
+    }
+});
+
 test("application package roots are excluded before source or oracle access", () =>
 {
     const root=fs.mkdtempSync(path.join(os.tmpdir(),"decorator-scope-"));

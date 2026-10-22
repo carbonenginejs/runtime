@@ -204,7 +204,10 @@ export function auditDecorators(inventory, oracle, headers, chooserBindings = {}
             for(const row of [...native.attributes,...native.properties,...native.methods])
             {
                 const names=[row.name,row.function].filter(Boolean);
-                const found=c.members.find(m=>names.includes(m.name)||m.decorators.some(d=>
+                // The C++ function name resolves first (MAP_METHOD_AND_WRAP( "Render", RenderFromScript )), so member order never decides which
+                // declaration a macro lands on; the exposed name is only a fallback.
+                const byFunction=row.function?c.members.find(m=>m.name===row.function):null;
+                const found=byFunction??c.members.find(m=>names.includes(m.name)||m.decorators.some(d=>
                     (["blue.attribute","blue.property"].includes(d.name)||d.name.startsWith("exposure.map"))&&d.args.some(a=>names.includes(a))));
                 const classLevel=c.decorators.some(d=>d.name.startsWith("exposure.map")&&[d.args[0],d.args[1],d.args[2]].flat().some(a=>names.includes(a)));
                 if(!found&&classLevel)continue;
@@ -238,11 +241,20 @@ export function findingFingerprint(f)
         (key,value)=>key === "line" ? undefined : typeof value === "string" ? value.replaceAll("\r\n","\n") : value)).digest("hex");
 }
 
-/** An update only retires resolved findings; new findings can never enter the baseline. */
-export function shrinkBaseline(findings, baseline)
+/**
+ * An update only retires resolved findings; new findings can never enter the baseline.
+ * A declared rename ({class,from,to}) carries a baselined finding to its new member name: the finding must exist under `to` now and its
+ * fingerprint with `from` substituted must already be in the baseline, so a genuinely new finding is never absorbed.
+ */
+export function shrinkBaseline(findings, baseline, renames=[])
 {
+    const known = new Set(baseline.fingerprints);
+    for(const rename of renames)
+        for(const f of findings)
+            if(f.class===rename.class&&f.member===rename.to&&known.has(findingFingerprint({...f,member:rename.from})))
+                known.add(findingFingerprint(f));
     const current = new Set(findings.map(findingFingerprint));
-    return {version:1,fingerprints:[...new Set(baseline.fingerprints)].filter(value=>current.has(value)).sort()};
+    return {version:1,fingerprints:[...known].filter(value=>current.has(value)).sort()};
 }
 
 /** Runtime-only report. Baseline updates shrink; missing states remain findings, never inferred states. */
@@ -264,11 +276,13 @@ export function run(argv)
     const read=name=>JSON.parse(fs.readFileSync(path.join(oracleDir,name),"utf8"));
     const findings=auditDecorators(inventoryRuntime(root),read("carbon-exposure.json"),read("carbon-headers.json"),args.has("--choosers")?JSON.parse(fs.readFileSync(args.get("--choosers"),"utf8")):{});
     const baselinePath=path.join(root,"scripts/baselines/decorator-target.json");
-    const previous=fs.existsSync(baselinePath)?JSON.parse(fs.readFileSync(baselinePath,"utf8")):null;
+    let previous=fs.existsSync(baselinePath)?JSON.parse(fs.readFileSync(baselinePath,"utf8")):null;
     if(args.has("--write-baseline"))
     {
         if(!previous)throw new Error("Shrink-only baseline update requires an existing baseline.");
-        fs.writeFileSync(baselinePath,JSON.stringify(shrinkBaseline(findings,previous),null,2)+"\n");
+        const renames=[args.get("--rename")].flat().filter(v=>typeof v==="string").flatMap(v=>v.split(",")).map(v=>{const [cls,pair]=v.split(":");const [from,to]=pair.split("=");return {class:cls,from,to};});
+        previous=shrinkBaseline(findings,previous,renames);
+        fs.writeFileSync(baselinePath,JSON.stringify(previous,null,2)+"\n");
     }
     const baseline=new Set(previous?.fingerprints??[]);
     const counts={};for(const f of findings){counts[f.rule]=(counts[f.rule]??0)+1;f.baselined=baseline.has(findingFingerprint(f));}
