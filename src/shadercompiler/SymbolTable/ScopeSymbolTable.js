@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:91-339
 
@@ -357,12 +357,13 @@ function matchParameter(parameter, argument, casts)
     return argumentType.CanImplicitCast(parameter.GetType(), casts);
 }
 
-CjsSchema.decorateMethod(ScopeSymbolTable, "Lookup", blue.method);
-CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunctionDeclaration", blue.method);
-CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunction", blue.method);
-CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol", blue.method);
+// States against SymbolTable.cpp:91-339, statement for statement (the quirks in the comments are Carbon's). LookupFunction is adapted only in that the diagnostic string and the cast count come back through { value } out objects.
+CjsSchema.decorateMethod(ScopeSymbolTable, "Lookup", meta.implemented);
+CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunctionDeclaration", meta.implemented);
+CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunction", meta.adapted);
+CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol", meta.implemented);
 CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol__Symbol", meta.renamed("AddSymbol"));
-CjsSchema.decorateMethod(ScopeSymbolTable, "AddScope", blue.method);
-CjsSchema.decorateMethod(ScopeSymbolTable, "GetParent", blue.method);
-CjsSchema.decorateMethod(ScopeSymbolTable, "ResetUsedFlag", blue.method);
+CjsSchema.decorateMethod(ScopeSymbolTable, "AddScope", meta.implemented);
+CjsSchema.decorateMethod(ScopeSymbolTable, "GetParent", meta.implemented);
+CjsSchema.decorateMethod(ScopeSymbolTable, "ResetUsedFlag", meta.implemented);
 CjsSchema.meta.carbon("ScopeSymbolTable")(ScopeSymbolTable);

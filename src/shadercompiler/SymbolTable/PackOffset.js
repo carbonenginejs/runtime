@@ -1,4 +1,4 @@
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:10-30
 
@@ -59,5 +59,6 @@ export class PackOffset
     }
 }
 
-CjsSchema.decorateMethod(PackOffset, "Create", blue.method);
+// State against SymbolTable.cpp:10-30: adapted - the register id comes back through an out object, and the method keeps Carbon's order of effects.
+CjsSchema.decorateMethod(PackOffset, "Create", meta.adapted);
 CjsSchema.meta.carbon("PackOffset")(PackOffset);

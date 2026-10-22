@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/md5.h
 // Source: trinity/shadercompiler/md5.cpp
 //
@@ -220,9 +220,10 @@ export class MD5
     static hashBytes = 16;
 }
 
-CjsSchema.decorateMethod(MD5, "reset", blue.method);
-CjsSchema.decorateMethod(MD5, "add", blue.method);
-CjsSchema.decorateMethod(MD5, "getHash", blue.method);
+// States: md5.cpp:10-20 (reset), 206-246 (add) and 323-340 (getHash returning the hex string) statement for statement.
+CjsSchema.decorateMethod(MD5, "reset", meta.implemented);
+CjsSchema.decorateMethod(MD5, "add", meta.implemented);
+CjsSchema.decorateMethod(MD5, "getHash", meta.implemented);
 CjsSchema.decorateMethod(MD5, "getHash__Bytes", meta.renamed("getHash"));
 CjsSchema.decorateMethod(MD5, "_processBuffer", meta.renamed("processBuffer"));
 CjsSchema.decorateMethod(MD5, "_processBlock", meta.renamed("processBlock"));

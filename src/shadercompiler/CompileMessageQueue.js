@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/CompileMessageQueue.h
 // Source: trinity/shadercompiler/CompileMessageQueue.cpp
 
@@ -161,9 +161,10 @@ function isSpace(code)
     return code === 32 || (code >= 9 && code <= 13);
 }
 
-CjsSchema.decorateMethod(CompileMessageQueue, "AddMessage", blue.method);
-CjsSchema.decorateMethod(CompileMessageQueue, "Flush", blue.method);
-CjsSchema.decorateMethod(CompileMessageQueue, "SetEntryFileName", blue.method);
-CjsSchema.decorateMethod(CompileMessageQueue, "GetEntryFileName", blue.method);
+// States against CompileMessageQueue.cpp:43-92: AddMessage takes the formatted text and Flush runs OutputMessages on the caller (the class head says why), so both are adapted; the entry-file-name pair is Carbon's.
+CjsSchema.decorateMethod(CompileMessageQueue, "AddMessage", meta.adapted);
+CjsSchema.decorateMethod(CompileMessageQueue, "Flush", meta.adapted);
+CjsSchema.decorateMethod(CompileMessageQueue, "SetEntryFileName", meta.implemented);
+CjsSchema.decorateMethod(CompileMessageQueue, "GetEntryFileName", meta.implemented);
 CjsSchema.decorateMethod(CompileMessageQueue, "_OutputMessages", meta.renamed("OutputMessages"));
 CjsSchema.meta.carbon("CompileMessageQueue")(CompileMessageQueue);

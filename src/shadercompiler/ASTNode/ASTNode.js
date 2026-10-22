@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/ASTNode.h
 // Source: trinity/shadercompiler/ASTNode.cpp
 
@@ -474,31 +474,32 @@ export class ASTNode
     });
 }
 
-CjsSchema.decorateMethod(ASTNode, "Copy", blue.method);
-CjsSchema.decorateMethod(ASTNode, "AddChild", blue.method);
-CjsSchema.decorateMethod(ASTNode, "InsertChild", blue.method);
-CjsSchema.decorateMethod(ASTNode, "ReplaceChild", blue.method);
+// States against ASTNode.cpp (whole file) and ASTNode.h:150-160 (Map), statement for statement. The bounds checks that throw stand where Carbon's unchecked index is undefined behaviour; ReplaceChild/RemoveChild's by-node overloads are the __Node methods.
+CjsSchema.decorateMethod(ASTNode, "Copy", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "AddChild", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "InsertChild", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "ReplaceChild", meta.implemented);
 CjsSchema.decorateMethod(ASTNode, "ReplaceChild__Node", meta.renamed("ReplaceChild"));
-CjsSchema.decorateMethod(ASTNode, "RemoveChild", blue.method);
+CjsSchema.decorateMethod(ASTNode, "RemoveChild", meta.implemented);
 CjsSchema.decorateMethod(ASTNode, "RemoveChild__Node", meta.renamed("RemoveChild"));
-CjsSchema.decorateMethod(ASTNode, "GetNodeType", blue.method);
-CjsSchema.decorateMethod(ASTNode, "SetNodeType", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetChildrenCount", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetChild", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetChildOrNull", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetChildren", blue.method);
-CjsSchema.decorateMethod(ASTNode, "MoveChildren", blue.method);
-CjsSchema.decorateMethod(ASTNode, "SetToken", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetToken", blue.method);
-CjsSchema.decorateMethod(ASTNode, "ClearToken", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetLocation", blue.method);
-CjsSchema.decorateMethod(ASTNode, "SetLocation", blue.method);
-CjsSchema.decorateMethod(ASTNode, "SetSymbol", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetSymbol", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetScope", blue.method);
-CjsSchema.decorateMethod(ASTNode, "SetType", blue.method);
-CjsSchema.decorateMethod(ASTNode, "GetType", blue.method);
-CjsSchema.decorateMethod(ASTNode, "FindNode", blue.method);
-CjsSchema.decorateMethod(ASTNode, "FindNodes", blue.method);
-CjsSchema.decorateMethod(ASTNode, "Map", blue.method);
+CjsSchema.decorateMethod(ASTNode, "GetNodeType", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "SetNodeType", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetChildrenCount", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetChild", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetChildOrNull", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetChildren", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "MoveChildren", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "SetToken", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetToken", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "ClearToken", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetLocation", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "SetLocation", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "SetSymbol", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetSymbol", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetScope", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "SetType", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "GetType", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "FindNode", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "FindNodes", meta.implemented);
+CjsSchema.decorateMethod(ASTNode, "Map", meta.implemented);
 CjsSchema.meta.carbon("ASTNode")(ASTNode);

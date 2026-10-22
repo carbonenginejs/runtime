@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:342-469
 
@@ -230,19 +230,20 @@ export class SymbolTable
     });
 }
 
-CjsSchema.decorateMethod(SymbolTable, "Lookup", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "LookupFunction", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "LookupFunctionDeclaration", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "LookupType", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "LookupBuffer", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "AddSymbol", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "AddTypeSymbol", blue.method);
+// States against SymbolTable.cpp:342-469, statement for statement; LookupFunction is adapted only in that the diagnostic string comes back through a { value } out object.
+CjsSchema.decorateMethod(SymbolTable, "Lookup", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "LookupFunction", meta.adapted);
+CjsSchema.decorateMethod(SymbolTable, "LookupFunctionDeclaration", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "LookupType", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "LookupBuffer", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "AddSymbol", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "AddTypeSymbol", meta.implemented);
 CjsSchema.decorateMethod(SymbolTable, "AddSymbol__Symbol", meta.renamed("AddSymbol"));
-CjsSchema.decorateMethod(SymbolTable, "AddBufferSymbol", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "EnterScope", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "LeaveScope", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "GetCurrentScope", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "ResetUsedFlag", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "LookupGlobal", blue.method);
-CjsSchema.decorateMethod(SymbolTable, "IsGlobal", blue.method);
+CjsSchema.decorateMethod(SymbolTable, "AddBufferSymbol", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "EnterScope", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "LeaveScope", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "GetCurrentScope", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "ResetUsedFlag", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "LookupGlobal", meta.implemented);
+CjsSchema.decorateMethod(SymbolTable, "IsGlobal", meta.implemented);
 CjsSchema.meta.carbon("SymbolTable")(SymbolTable);

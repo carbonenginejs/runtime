@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/Type.h
 // Source: trinity/shadercompiler/Type.cpp
 
@@ -810,21 +810,22 @@ function byteAddressLoad(method, returnType)
 }
 
 CjsSchema.decorateMethod(Type, "Equals", meta.renamed("operator=="));
-CjsSchema.decorateMethod(Type, "FromToken", blue.method);
-CjsSchema.decorateMethod(Type, "FromTokenType", blue.method);
-CjsSchema.decorateMethod(Type, "FromSymbol", blue.method);
-CjsSchema.decorateMethod(Type, "IsScalar", blue.method);
-CjsSchema.decorateMethod(Type, "IsVector", blue.method);
-CjsSchema.decorateMethod(Type, "IsMatrix", blue.method);
-CjsSchema.decorateMethod(Type, "IsStruct", blue.method);
-CjsSchema.decorateMethod(Type, "IsBindlessHandle", blue.method);
-CjsSchema.decorateMethod(Type, "IsScalarOrVector", blue.method);
-CjsSchema.decorateMethod(Type, "IsTexture", blue.method);
-CjsSchema.decorateMethod(Type, "IsTextureArray", blue.method);
-CjsSchema.decorateMethod(Type, "IsSampler", blue.method);
-CjsSchema.decorateMethod(Type, "IsBuffer", blue.method);
-CjsSchema.decorateMethod(Type, "GetMethodType", blue.method);
-CjsSchema.decorateMethod(Type, "ToString", blue.method);
-CjsSchema.decorateMethod(Type, "CanImplicitCast", blue.method);
-CjsSchema.decorateMethod(Type, "GetIndexedType", blue.method);
+// States against Type.cpp, branch for branch (GetMethodType and GetIndexedType write into the Type they are handed, as the C++ references do). CanImplicitCast is adapted only in that the int& cast counter is a { value } object.
+CjsSchema.decorateMethod(Type, "FromToken", meta.implemented);
+CjsSchema.decorateMethod(Type, "FromTokenType", meta.implemented);
+CjsSchema.decorateMethod(Type, "FromSymbol", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsScalar", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsVector", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsMatrix", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsStruct", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsBindlessHandle", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsScalarOrVector", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsTexture", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsTextureArray", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsSampler", meta.implemented);
+CjsSchema.decorateMethod(Type, "IsBuffer", meta.implemented);
+CjsSchema.decorateMethod(Type, "GetMethodType", meta.implemented);
+CjsSchema.decorateMethod(Type, "ToString", meta.implemented);
+CjsSchema.decorateMethod(Type, "CanImplicitCast", meta.adapted);
+CjsSchema.decorateMethod(Type, "GetIndexedType", meta.implemented);
 CjsSchema.meta.carbon("Type")(Type);

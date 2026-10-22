@@ -1,4 +1,4 @@
-import { CjsSchema, blue } from "#schema";
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/CachingIncludeHandler.h
 // Source: trinity/shadercompiler/CachingIncludeHandler.cpp
 
@@ -202,7 +202,8 @@ function canonicalize(path)
     return head + parts.join("/");
 }
 
-CjsSchema.decorateMethod(CachingIncludeHandler, "Open", blue.method);
-CjsSchema.decorateMethod(CachingIncludeHandler, "AddPrefix", blue.method);
-CjsSchema.decorateMethod(CachingIncludeHandler, "SetRootPath", blue.method);
+// States against CachingIncludeHandler.cpp:77-250: all three are adapted for the reasons in the class head (files come from a supplied reader, not disk, and paths are URL-style).
+CjsSchema.decorateMethod(CachingIncludeHandler, "Open", meta.adapted);
+CjsSchema.decorateMethod(CachingIncludeHandler, "AddPrefix", meta.adapted);
+CjsSchema.decorateMethod(CachingIncludeHandler, "SetRootPath", meta.adapted);
 CjsSchema.meta.carbon("CachingIncludeHandler")(CachingIncludeHandler);
