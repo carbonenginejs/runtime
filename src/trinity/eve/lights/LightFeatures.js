@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Lights/Tr2Light.h:11-18
 // Source: trinity/trinity/Lights/Tr2Light.cpp (LightFeatures::LightFeatures)
-import { type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * Carbon LightFeatures: what a light's owner contributes to its conversion -
@@ -8,7 +8,7 @@ import { type, blue } from "#schema";
  *
  * Carbon: LightFeatures (trinity/trinity/Lights/Tr2Light.h:11)
  */
-@blue.define({ className: "LightFeatures" })
+@meta.carbon("LightFeatures")
 export class LightFeatures
 {
 
