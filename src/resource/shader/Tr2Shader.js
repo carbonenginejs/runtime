@@ -167,6 +167,51 @@ export class Tr2Shader extends IRoot
   }
 
   /**
+   * Binds one pass's render states.
+   *
+   * Carbon: Tr2Shader::ApplyRenderStates (Shader/Tr2Shader.cpp:184-190; Tr2Shader.h:27):
+   * one `renderContext.m_esm.ApplyRenderStates( pass.renderStates )`. The same
+   * integer-handle reasoning as `ApplyAllStateForPass` applies: no device object is
+   * created or held here.
+   *
+   * @param {number} techniqueIndex Technique index.
+   * @param {number} passIndex Pass index within the technique.
+   * @param {object} renderContext The context whose state manager to bind on.
+   * @returns {void}
+   */
+  ApplyRenderStates(techniqueIndex, passIndex, renderContext)
+  {
+    const technique = this.effect.techniques[techniqueIndex];
+    const pass = technique.passes[passIndex];
+
+    renderContext.GetEffectStateManager().ApplyRenderStates(pass.renderStates);
+  }
+
+  /**
+   * Binds this pass's shader program combined with another shader's pass program.
+   *
+   * Carbon: Tr2Shader::ApplyShaderOverride (Shader/Tr2Shader.cpp:173-182; Tr2Shader.h:28).
+   * Takes this shader's program for `techniqueIndex`/`passIndex` and the override
+   * shader's technique-0 program for `overridePassIndex`, registers the pair with
+   * `Tr2EffectStateManager::RegisterShaderProgramOverride` and applies the combined
+   * program, returning its handle.
+   *
+   * Not implemented: `RegisterShaderProgramOverride` is absent from our
+   * Tr2EffectStateManager (see its head comment), so there is nothing to combine with.
+   *
+   * @param {number} _techniqueIndex Technique index.
+   * @param {number} _passIndex Pass index within the technique.
+   * @param {Tr2Shader} _overrideShader The shader whose program overrides.
+   * @param {number} _overridePassIndex Pass index within the override shader's technique 0.
+   * @param {object} _renderContext The context whose state manager to bind on.
+   * @returns {number} Never returns.
+   */
+  ApplyShaderOverride(_techniqueIndex, _passIndex, _overrideShader, _overridePassIndex, _renderContext)
+  {
+    throw new Error("Tr2Shader.ApplyShaderOverride requires Tr2EffectStateManager.RegisterShaderProgramOverride, which is not ported.");
+  }
+
+  /**
    * Pack the first technique/pass's renderer handles into Carbon's sort key.
    * Retains 0 while the stage handles are still 0xffffffff, which is the case
    * until shader registration assigns them; that is a missing table, not a
@@ -400,6 +445,8 @@ CjsSchema.decorateField(Tr2Shader, "sortValue", type.uint32);
 CjsSchema.decorateField(Tr2Shader, "effect", type.rawStruct("Tr2EffectDescription"));
 CjsSchema.decorateField(Tr2Shader, "hasVertexBufferAccessInRtShadow", type.boolean);
 CjsSchema.decorateMethod(Tr2Shader, "ApplyAllStateForPass", meta.adapted);
+CjsSchema.decorateMethod(Tr2Shader, "ApplyRenderStates", meta.implemented);
+CjsSchema.decorateMethod(Tr2Shader, "ApplyShaderOverride", meta.notImplemented);
 CjsSchema.decorateMethod(Tr2Shader, "GetTechniqueIndex", meta.adapted);
 CjsSchema.decorateMethod(Tr2Shader, "GetPassCount", meta.adapted);
 CjsSchema.decorateMethod(Tr2Shader, "GetConstant", meta.implemented);
