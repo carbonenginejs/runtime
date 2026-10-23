@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { HostBitmap, ImageUtility, BitmapDimensions } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat as F, TextureType as T } from "../../npm/dist/global/consts/renderContext/index.js";
+import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 
 const BGRA = F.PIXEL_FORMAT_B8G8R8A8_UNORM;
 const BGRX = F.PIXEL_FORMAT_B8G8R8X8_UNORM;
@@ -17,6 +18,83 @@ function bitmap(width, height, mips, format)
   const b = new HostBitmap();
   assert.equal(b.Create(width, height, mips, format), true);
   return b;
+}
+
+/** Replaces only synchronous byte allocation; restores the global before assertions run. */
+function withAllocationFailure(size, failure, action)
+{
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Uint8Array");
+  const replacement = new Proxy(descriptor.value, {
+    construct(target, args, newTarget)
+    {
+      if (args.length === 1 && args[0] === size) throw failure;
+      return Reflect.construct(target, args, newTarget);
+    }
+  });
+  Object.defineProperty(globalThis, "Uint8Array", { ...descriptor, value: replacement });
+  try
+  {
+    return action();
+  }
+  finally
+  {
+    Object.defineProperty(globalThis, "Uint8Array", descriptor);
+  }
+}
+
+for (const method of [ "Create", "Create2DArray" ])
+{
+  const arraySize = method === "Create" ? 1 : 3;
+  const args = method === "Create" ? [ 4, 2, 1, BGRA ] : [ 4, 2, 1, arraySize, BGRA ];
+  const size = 4 * 2 * 4 * arraySize;
+
+  test(`${method} allocation failure warns, destroys and returns false (HostBitmap.cpp:98-107,139-148)`, () =>
+  {
+    const b = bitmap(1, 1, 1, BGRA);
+    const records = [];
+    const sink = (channel, type, userData, message) => records.push({ channel, type, message });
+    CcpLog.RegisterLogEcho(sink);
+    let result;
+    try
+    {
+      result = withAllocationFailure(size, new RangeError("simulated allocation failure"), () => b[method](...args));
+    }
+    finally
+    {
+      CcpLog.UnregisterLogEcho(sink);
+    }
+
+    assert.equal(result, false);
+    assert.equal(b.IsValid(), false);
+    assert.equal(b.GetRawData(), null);
+    assert.equal(b.GetRawDataSize(), 0);
+    assert.equal(b.GetFormat(), F.PIXEL_FORMAT_UNKNOWN);
+    assert.equal(b.GetType(), T.TEX_TYPE_INVALID);
+    assert.equal(b.GetWidth(), 4, "Destroy retains the newly assigned dimensions");
+    assert.equal(b.GetHeight(), 2);
+    assert.equal(b.GetDepth(), 1);
+    assert.equal(b.GetMipCount(), 1);
+    assert.equal(b.GetArraySize(), arraySize);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].type, CcpLog.LogType.LOGTYPE_WARN);
+    assert.equal(records[0].channel.facility, "trinity");
+    assert.equal(records[0].message, `HostBitmap::Create failed to allocated ${size} bytes`);
+    assert.equal(b[method](...args), true, "a later allocation succeeds normally");
+    assert.equal(b.GetRawDataSize(), size);
+  });
+
+  test(`${method} propagates size-computation and non-allocation errors`, t =>
+  {
+    const b = new HostBitmap();
+    const sizingError = new RangeError("size computation failed");
+    const width = t.mock.method(b, "GetWidth", () => { throw sizingError; });
+    assert.throws(() => b[method](...args), error => error === sizingError);
+    width.mock.restore();
+
+    const programmingError = new TypeError("constructor programming error");
+    assert.throws(() => withAllocationFailure(size, programmingError, () => b[method](...args)),
+      error => error === programmingError);
+  });
 }
 
 test("a new bitmap is invalid and Destroy keeps the sizes (HostBitmap.cpp:230-240)", () =>

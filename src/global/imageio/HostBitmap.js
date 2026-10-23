@@ -166,6 +166,9 @@ export class HostBitmap extends BitmapDimensions
 
   /**
    * A 2D bitmap with one array element (HostBitmap.cpp:71-110).
+   * Carbon: Create (imageio/HostBitmap.cpp:71-110)
+   * Adapted: catchable JavaScript allocation RangeErrors replace Carbon's
+   * null-allocation check. Fatal out-of-memory failures cannot be recovered.
    *
    * @param {number} width Width of mip 0.
    * @param {number} height Height of mip 0.
@@ -197,13 +200,30 @@ export class HostBitmap extends BitmapDimensions
     this._arraySize = 1;
     this._type = TextureType.TEX_TYPE_2D;
 
-    this._data = new Uint8Array(GetDataSize(this));
+    const size = GetDataSize(this);
+    let data;
+    try
+    {
+      data = new Uint8Array(size);
+    }
+    catch (error)
+    {
+      if (!(error instanceof RangeError)) throw error;
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap::Create failed to allocated %d bytes", size);
+      this.Destroy();
+      return false;
+    }
+
+    this._data = data;
 
     return true;
   }
 
   /**
    * A 2D array bitmap (HostBitmap.cpp:112-151).
+   * Carbon: Create2DArray (imageio/HostBitmap.cpp:112-151)
+   * Adapted: catchable JavaScript allocation RangeErrors replace Carbon's
+   * null-allocation check. Fatal out-of-memory failures cannot be recovered.
    *
    * @param {number} width Width of mip 0.
    * @param {number} height Height of mip 0.
@@ -236,7 +256,21 @@ export class HostBitmap extends BitmapDimensions
     this._arraySize = arraySize;
     this._type = TextureType.TEX_TYPE_2D;
 
-    this._data = new Uint8Array(GetDataSize(this));
+    const size = GetDataSize(this);
+    let data;
+    try
+    {
+      data = new Uint8Array(size);
+    }
+    catch (error)
+    {
+      if (!(error instanceof RangeError)) throw error;
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap::Create failed to allocated %d bytes", size);
+      this.Destroy();
+      return false;
+    }
+
+    this._data = data;
 
     return true;
   }
@@ -1427,14 +1461,15 @@ export class HostBitmap extends BitmapDimensions
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-// States, against HostBitmap.cpp: implemented are Create to CreateCube (71-182), CreateFromBitmapDimensions to ChangeFormat (215-258), GetPitch to
+// States, against HostBitmap.cpp: Create and Create2DArray adapt allocation failure to JS RangeError (71-151).
+// Implemented are CreateCube (153-182), CreateFromBitmapDimensions to ChangeFormat (215-258), GetPitch to
 // GetArrayElementSize (477-532), PopulateMargin (539-595), CopyChannel (597-643) and DropMipMaps (1176-1198). Adapted: CreateVolume also refuses a
 // zero height or depth where Carbon checks only the width (184-213); ConvertFormat reads the red byte for R8 where Carbon keeps byte 0 (270-403,
 // see the comment in the body); Crop with nothing left returns false and leaves the bitmap, where Carbon destroys it and returns true (745-785).
 // Still stamped, not yet compared line by line: Downsample2x2, RotateFaceClockwise, ConvertCrossmapToCubemap, ConvertToVolume, GenerateMipMaps and
 // _GenerateMipLevel.
-CjsSchema.decorateMethod(HostBitmap, "Create", meta.implemented);
-CjsSchema.decorateMethod(HostBitmap, "Create2DArray", meta.implemented);
+CjsSchema.decorateMethod(HostBitmap, "Create", meta.adapted);
+CjsSchema.decorateMethod(HostBitmap, "Create2DArray", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "CreateCube", meta.implemented);
 CjsSchema.decorateMethod(HostBitmap, "CreateVolume", meta.adapted);
 CjsSchema.decorateMethod(HostBitmap, "CreateFromBitmapDimensions", meta.implemented);
