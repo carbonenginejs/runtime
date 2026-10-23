@@ -205,6 +205,39 @@ object's batches through `RenderBatchesWithOverride`) and the outline with
 the effects' buffers, states and parameters; the WebGPU tests render the
 outline pass over a mask with Dawn and check the line's width.
 
+The active WebGPU demo uses its private `demoSelectionOutline` composition,
+not `TnyOutlineHelper`. Graphene supplies the same planet-aware picker to the
+editor and hover outline. For planets and moons, the demo draws the native
+surface children returned by `EvePlanet.GetRenderables`, with
+`EveSpaceScene.CreatePlanetViewMatrix` and the native planet clip range
+0.01–100000 (Carbon `EveSpaceScene::RenderPlanets`). Children are already
+scaled; drawing the planet container or scaling them again is incorrect.
+
+`planet_selectionmask.fx` is a selection-only extension. It retains native
+planet clip coordinates and writes main-scene reverse depth through
+`SV_Depth`. Given the actual reversed projection matrices M (main) and P
+(planet), and C = `planetCameraScale`, the conversion is:
+
+`factor = M[14] / C / P[14]`,
+`offset = -M[10] + factor * P[10]`,
+`depth = clamp(nativeDepth * factor + offset, 0, 1)`.
+
+This follows reverse perspective depth `-P[10] + P[14] / distance`.
+There is no planetary depth bias: relative bias can admit foreground ships
+at large distances. The stable silhouette omits jitter; the visibility mask
+retains it. Renderer view, projection and per-frame data are restored even
+if a child draw fails. The depth remap is a dynamic effect parameter; an
+authored constant with the same name would shadow per-frame updates and
+leave the visibility shader writing zero depth.
+
+The main scene clears planetary background depth before drawing foreground
+objects. Consequently this late selection pass respects foreground ship
+depth but cannot reconstruct occlusion by another distant planet whose depth
+was cleared. Clamping beyond the main far plane also cannot distinguish two
+surfaces represented by zero depth. No retained or replayed planet-depth pass
+is provided. Unequal planet and camera scales describe the surface actually
+rendered; an original-world z-only proxy need not coincide with that surface.
+
 The library also holds `mesh/Skinning.fxh` (the shipped quad family's
 one-bone skinning) and `mesh/Tangents.fxh` (Carbon's `UnpackTangentsLegacy`,
 checked on the GPU against `PackTangentsLegacy`).

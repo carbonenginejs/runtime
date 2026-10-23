@@ -126,6 +126,31 @@ test("the selection effects compile, every permutation, to WGSL that Dawn accept
     }
 });
 
+test("planet selection writes remapped fragment depth and links with scene depth", async () =>
+{
+    const { bytes, messages, results } = compile("/selection/planet_selectionmask.fx");
+    assert.deepEqual(messages, []);
+    assert.ok(bytes);
+    const device = await getDevice();
+    for (const pass of passesOf(results))
+    {
+        const vs = pass.stages.find(stage => stage.type === 0);
+        const ps = pass.stages.find(stage => stage.type === 1);
+        assert.match(ps.shaderData, /@builtin\(frag_depth\)/u);
+        assert.deepEqual(await wgslErrors(vs.shaderData), []);
+        assert.deepEqual(await wgslErrors(ps.shaderData), []);
+        device.pushErrorScope("validation");
+        device.createRenderPipeline({
+            layout: "auto",
+            vertex: { module: device.createShaderModule({ code: vs.shaderData }), entryPoint: "main", buffers: buffersFor(vs) },
+            fragment: { module: device.createShaderModule({ code: ps.shaderData }), entryPoint: "main", targets: [{ format: "r8unorm" }] },
+            depthStencil: { format: "depth32float", depthWriteEnabled: false, depthCompare: "greater-equal" },
+            primitive: { topology: "triangle-list" }
+        });
+        assert.equal(await device.popErrorScope(), null);
+    }
+});
+
 test("the skinned mask binds its bone buffer at its declared t0", () =>
 {
     const { results } = compile(OUTLINES[1]);
@@ -362,4 +387,54 @@ test("the selection outline draws a solid line of the set width around the mask,
     {
         assert.deepEqual(at(x, y), [0, 0, 0, 0], `no line at ${x},${y}`);
     }
+});
+
+
+test("planet fragment depth preserves foreground occlusion, far coverage and zero-bias proxy equality", async () =>
+{
+    const { results } = compile("/selection/planet_selectionmask.fx");
+    const pass = passesOf(results)[0];
+    const ps = pass.stages.find(stage => stage.type === 1);
+    const binding = readBackendBlock(pass.backendBlock).bindGroups[0].bindings.find(b => b.visibility.includes("fragment"));
+    const device = await getDevice();
+    const parameters = new Float32Array(Number(/array<vec4<f32>, (\d+)>/u.exec(binding.type)[1]) * 4);
+    const channel = ps.constants.find(c => c.name === "SelectionChannel");
+    const remap = ps.constants.find(c => c.name === "SelectionDepthRemap");
+    parameters.set([1, 0, 0, 0], channel.offset / 4);
+    const uniform = device.createBuffer({ size: parameters.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const target = device.createTexture({ size: [1, 1], format: "r8unorm", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
+    const depth = device.createTexture({ size: [1, 1], format: "depth32float", usage: GPUTextureUsage.RENDER_ATTACHMENT });
+    const readback = device.createBuffer({ size: 256, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    const factor = Math.fround(0.0010000008828937384), offset = Math.fround(-0.00000095355510701145);
+    const mainB = Math.fround(10.000009536743164), mainA = -Math.fround(0.00000095367431640625);
+    const nativeAtMillion = Math.fround(-Math.fround(0.00000011920928955078125) + Math.fround(0.010000000707805157));
+    const proxyDepth = Math.fround(mainA + mainB / 1e6);
+    const cases = [
+        { name: "planet against cleared background", native: nativeAtMillion, depth: 0, remap: [factor, offset], visible: true },
+        { name: "nearby foreground ship", native: nativeAtMillion, depth: mainA + mainB / 999500, remap: [factor, offset], visible: false },
+        { name: "background ship", native: nativeAtMillion, depth: mainA + mainB / 1000500, remap: [factor, offset], visible: true },
+        { name: "beyond main far against background", native: 0.00001, depth: 0, remap: [factor, offset], visible: true },
+        { name: "beyond main far behind foreground", native: 0.00001, depth: 1e-9, remap: [factor, offset], visible: false },
+        { name: "native proxy equal depth", native: proxyDepth, depth: proxyDepth, remap: [1, 0], visible: true },
+        { name: "native proxy behind adjacent depth", native: proxyDepth, depth: proxyDepth * (1 + 2 ** -22), remap: [1, 0], visible: false }
+    ];
+    for (const sample of cases)
+    {
+        parameters.set([...sample.remap, 0, 0], remap.offset / 4);
+        device.queue.writeBuffer(uniform, 0, parameters);
+        const vertex = '@vertex fn main(@builtin(vertex_index) i:u32)->@builtin(position) vec4f { let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));return vec4f(p[i],'+sample.native+',1); }';
+        const pipeline = device.createRenderPipeline({layout:"auto",vertex:{module:device.createShaderModule({code:vertex}),entryPoint:"main"},
+            fragment:{module:device.createShaderModule({code:ps.shaderData}),entryPoint:"main",targets:[{format:"r8unorm"}]},
+            depthStencil:{format:"depth32float",depthWriteEnabled:false,depthCompare:"greater-equal"}});
+        const group = device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[{binding:binding.binding,resource:{buffer:uniform}}]});
+        const encoder=device.createCommandEncoder();
+        const render=encoder.beginRenderPass({colorAttachments:[{view:target.createView(),loadOp:"clear",storeOp:"store",clearValue:[0,0,0,0]}],
+            depthStencilAttachment:{view:depth.createView(),depthLoadOp:"clear",depthStoreOp:"store",depthClearValue:sample.depth}});
+        render.setPipeline(pipeline);render.setBindGroup(0,group);render.draw(3);render.end();
+        encoder.copyTextureToBuffer({texture:target},{buffer:readback,bytesPerRow:256},[1,1]);
+        device.queue.submit([encoder.finish()]);await readback.mapAsync(GPUMapMode.READ);
+        const value=new Uint8Array(readback.getMappedRange())[0];readback.unmap();
+        assert.equal(value,sample.visible?255:0,sample.name);
+    }
+    uniform.destroy();target.destroy();depth.destroy();readback.destroy();
 });

@@ -20,14 +20,16 @@
 // process, which the engine does not offer; the demo wraps the driver's
 // _PostProcess, as it already patches post-process methods (demo.js:1414).
 
-import { EveEffectRoot2, EvePlanet, EveSpaceObject2, TriStepRenderObject, TriViewport } from "../../../../npm/dist/trinity/index.js";
+import { EveCamera, EveEffectRoot2, EvePlanet, EveSpaceObject2, TriStepRenderObject, TriViewport } from "../../../../npm/dist/trinity/index.js";
 import { Tr2Renderer } from "../../../../npm/dist/trinity/core/index.js";
 import { PixelFormat, Tr2GpuUsage } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2BitmapDimensions, Tr2TextureAL } from "../../../../npm/dist/trinityal/index.js";
+import { mat4 } from "../../../../npm/dist/global/math/index.js";
 import { CjsSchema } from "../../../../npm/dist/global/schema/index.js";
 
 /** The selection effects, as effect file paths. */
 const MASK = "res:/graphics/effect/cjs/selection/selectionmask.fx";
+const PLANET_MASK = "res:/graphics/effect/cjs/selection/planet_selectionmask.fx";
 const SKINNED_MASK = "res:/graphics/effect/cjs/selection/skinned_selectionmask.fx";
 const OUTLINE = "res:/graphics/effect/cjs/selection/selectionvisibleoutline.fx";
 
@@ -73,15 +75,28 @@ export function createDemoSelectionOutline({ canvas, target, getScene, getView, 
     let disposed = false;
     let pending = null;
     let picking = false;
+    let pickObject = null;
     let mask = null;
     let silhouette = null;
     const visibilityOffset = [0, 0, 0, 0];
     const targetSize = [0, 0, 0, 0];
     const savedProjection = new Float32Array(16);
+    const savedView = new Float32Array(16);
+    const planetView = new Float32Array(16);
+    const planetProjection = new Float32Array(16);
+    const mainReversed = new Float32Array(16);
+    const planetReversed = new Float32Array(16);
+    const depthRemap = [0, 0, 0, 0];
 
     // The effects, loaded once through resMan.
     const effects = {};
     const loading = Promise.all([
+        material(effectPath(PLANET_MASK)).then(effect => {
+            // The remap changes with the camera; an authored constant would shadow updates.
+            effect.SetParameter__Vector4("SelectionDepthRemap", depthRemap);
+            effect.RebuildCachedData();
+            effects.planetMask = effect;
+        }),
         material(effectPath(MASK)).then(effect => { effects.mask = effect; }),
         material(effectPath(SKINNED_MASK)).then(effect => { effects.skinnedMask = effect; }),
         material(effectPath(MASK.replace('selectionmask', 'selectionsilhouette'))).then(effect => { effects.silhouette = effect; }),
@@ -133,12 +148,12 @@ export function createDemoSelectionOutline({ canvas, target, getScene, getView, 
     {
         const object = getObject ? getObject() : hovered;
         if (!enabled || !object || object === ignoreObject() || !effects.mask || !effects.skinnedMask || !effects.silhouette || !effects.skinnedSilhouette) return false;
-        // A planet draws in the scene's own planet pass, at planet scale with its
-        // own projection, so this main-pass mask cannot trace it; the gizmo marks it.
-        // Effect roots contain volumetric children rather than an overrideable mesh. The gizmo marks their selection.
-        if (CjsSchema.cast(object, EvePlanet) || CjsSchema.cast(object, EveEffectRoot2)) return false;
+        const planet = CjsSchema.cast(object, EvePlanet);
+        // Effect roots contain volumetric children rather than an overrideable mesh.
+        if (!planet && CjsSchema.cast(object, EveEffectRoot2)) return false;
         const scene = getScene();
         if (!scene) return false;
+        if (planet) return renderPlanetMask(planet, scene, offscreen, renderContext);
         const depth = offscreen.depth.Get();
         const target = maskFor(depth, renderContext);
         const esm = renderContext.GetEffectStateManager();
@@ -173,6 +188,71 @@ export function createDemoSelectionOutline({ canvas, target, getScene, getView, 
         step.effectOverride = IsSkinned(object) ? effects.skinnedMask : effects.mask;
         step.Execute(0, 0, renderContext);
         step.renderable = null;
+        return true;
+    }
+
+    /**
+     * Draws the native planet surface children with RenderPlanets' scaled view
+     * and clip planes (Carbon EveSpaceScene.cpp, RenderPlanets). The selection
+     * extension remaps fragment depth to the main scene; it does not change
+     * native rendering. Other planets' cleared background depth is unavailable.
+     */
+    function renderPlanetMask(planet, scene, offscreen, renderContext)
+    {
+        if (!effects.planetMask) return false;
+        const visible = [];
+        planet.GetRenderables(visible);
+        if (!visible.length) return false;
+        const depth = offscreen.depth.Get();
+        const target = maskFor(depth, renderContext);
+        const esm = renderContext.GetEffectStateManager();
+        savedProjection.set(Tr2Renderer.GetProjectionTransform());
+        savedView.set(Tr2Renderer.GetViewTransform());
+        Tr2Renderer.GetReversedDepthProjectionTransform(mainReversed);
+        visibilityOffset[0] = scene.jitter[0] * target.GetWidth() * 0.5;
+        visibilityOffset[1] = -scene.jitter[1] * target.GetHeight() * 0.5;
+        try
+        {
+            // GetRenderables returns children already transformed at planet scale.
+            scene.CreatePlanetViewMatrix(savedView, planetView);
+            Tr2Renderer.SetViewTransform(planetView);
+            EveCamera.ModifyClipPlanes(scene.projection, 0.01, 1e5, planetProjection);
+            Tr2Renderer.SetProjectionTransform(planetProjection);
+            scene.PopulateAndApplyPerFrameData(renderContext);
+            driver._BeginRenderPass(esm, [silhouette], depth);
+            renderContext.Clear({ clearColor: true, color: [0, 0, 0, 0] });
+            step.effectOverride = effects.silhouette;
+            for (const child of visible)
+            {
+                step.renderable = child;
+                step.Execute(0, 0, renderContext);
+            }
+
+            mat4.multiply(planetProjection, scene.jitterMatrix, planetProjection);
+            Tr2Renderer.SetProjectionTransform(planetProjection);
+            Tr2Renderer.GetReversedDepthProjectionTransform(planetReversed);
+            // Reverse perspective depth is -P[10] + P[14] / distance.
+            // Convert the rendered planet distance back to main-camera units.
+            depthRemap[0] = mainReversed[14] / scene.planetCameraScale / planetReversed[14];
+            depthRemap[1] = -mainReversed[10] + depthRemap[0] * planetReversed[10];
+            effects.planetMask.SetParameter__Vector4("SelectionDepthRemap", depthRemap);
+            scene.PopulateAndApplyPerFrameData(renderContext);
+            driver._BeginRenderPass(esm, [target], depth);
+            renderContext.Clear({ clearColor: true, color: [0, 0, 0, 0] });
+            step.effectOverride = effects.planetMask;
+            for (const child of visible)
+            {
+                step.renderable = child;
+                step.Execute(0, 0, renderContext);
+            }
+        }
+        finally
+        {
+            step.renderable = null;
+            Tr2Renderer.SetViewTransform(savedView);
+            Tr2Renderer.SetProjectionTransform(savedProjection);
+            scene.PopulateAndApplyPerFrameData(renderContext);
+        }
         return true;
     }
 
@@ -222,8 +302,11 @@ export function createDemoSelectionOutline({ canvas, target, getScene, getView, 
                 const view = getView();
                 viewport.width = canvas.width;
                 viewport.height = canvas.height;
-                const object = scene ? await scene.PickObject(x, y, view.projection, view.view, viewport) : null;
-                hovered = enabled && object ? CjsSchema.cast(object, EveSpaceObject2) : null;
+                const object = scene ? await (pickObject
+                    ? pickObject(x, y, { ...view, viewport })
+                    : scene.PickObject(x, y, view.projection, view.view, viewport)) : null;
+                hovered = enabled && !disposed && object
+                    ? CjsSchema.cast(object, EvePlanet) ?? CjsSchema.cast(object, EveSpaceObject2) : null;
             }
         }
         finally
@@ -271,6 +354,7 @@ export function createDemoSelectionOutline({ canvas, target, getScene, getView, 
         loading,
         width: () => settings[1],
         setWidth,
+        setPickObject(callback) { pickObject = callback; },
         setEnabled(value) { enabled = !!value; if (!enabled) { pending = null; hovered = null; } },
         setColour(value) {
             colour.splice(0, 4, ...value);

@@ -17,6 +17,15 @@
 #include "../mesh/Skinning.fxh"
 #endif
 
+#ifdef PLANET
+// Selection-only conversion from native planetary reverse depth to main depth.
+float4 SelectionDepthRemap
+<
+    bool SasUiVisible = false;
+    string SasUiDescription = "Planet depth scale, offset, unused, unused";
+> = float4( 1.0, 0.0, 0.0, 0.0 );
+#endif
+
 // How far toward the camera the mask is pushed, in reverse-Z depth units: far
 // smaller than any gap between the hull and what is in front of it.
 #define SELECTION_DEPTH_BIAS 0.00002
@@ -42,14 +51,36 @@ float4 SelectionMaskVS( SelectionMaskVSInput input ) : SV_Position
     // in and out of the mask. Nudge the mask toward the camera: the scene
     // draws reverse-Z (EveSpaceSceneRenderDriver, SetInvertedDepthTest), so
     // nearer is larger.
+    #ifndef PLANET
     clip.z += SELECTION_DEPTH_BIAS * clip.w;
+    #endif
     return clip;
 }
 
+#ifdef PLANET
+struct PlanetMaskOutput
+{
+    float4 colour : SV_Target;
+    float depth : SV_Depth;
+};
+
+PlanetMaskOutput SelectionMaskPS(float4 position : SV_Position)
+{
+    PlanetMaskOutput result;
+    result.colour = SelectionChannel;
+    // Keep native clip coordinates for distant surfaces. A distant surface
+    // beyond main far maps to cleared depth (0); foreground main depth wins.
+    // No bias: even a small relative bias admits nearby foreground ships.
+    result.depth = saturate(position.z * SelectionDepthRemap.x + SelectionDepthRemap.y);
+    return result;
+}
+#else
 float4 SelectionMaskPS() : SV_Target
 {
     return SelectionChannel;
 }
+
+#endif
 
 technique Main
 {
@@ -61,6 +92,9 @@ technique Main
         ZEnable = true;
         #endif
         ZWriteEnable = false;
+        #ifdef PLANET
+        ZFunc = LESSEQUAL;
+        #endif
         // Additive UNORM union preserves the other mode and overlapping hulls.
         AlphaBlendEnable = true;
         SrcBlend = ONE;
