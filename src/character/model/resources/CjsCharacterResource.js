@@ -19,27 +19,27 @@ export class CjsCharacterResource extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterPartType")
+    @type.object.ref("CjsCharacterPartType")
     partType = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterModifierLocation")
+    @type.object.ref("CjsCharacterModifierLocation")
     clothingAlsoCoversCategory = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterModifierLocation")
+    @type.object.ref("CjsCharacterModifierLocation")
     clothingAlsoCoversCategory2 = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterModifierLocation")
+    @type.object.ref("CjsCharacterModifierLocation")
     clothingRemovesCategory = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterModifierLocation")
+    @type.object.ref("CjsCharacterModifierLocation")
     clothingRemovesCategory2 = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)

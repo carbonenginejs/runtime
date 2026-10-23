@@ -254,7 +254,10 @@ export class Tr2GrannyAnimation extends IRoot
 
   /** m_boneOffset (PGrannyBoneOffset) [READ] */
   @be.mapAttribute(be.READ)
-  @type.rootRef("GrannyBoneOffset")
+  /** Carbon: m_boneOffset (trinity/trinity/Tr2GrannyAnimation.h:194).
+   * P-prefixed TYPEDEF_BLUECLASS storage is embedded (BlueClass.h:250-254), not a pointer.
+   */
+  @type.object.embed("GrannyBoneOffset")
   boneOffset = new GrannyBoneOffset();
 
   /**

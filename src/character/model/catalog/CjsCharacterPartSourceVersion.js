@@ -20,7 +20,7 @@ export class CjsCharacterPartSourceVersion
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterPartMetadata")
+    @type.object.ref("CjsCharacterPartMetadata")
     metadata = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)

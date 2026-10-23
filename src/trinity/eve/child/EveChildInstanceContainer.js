@@ -149,7 +149,9 @@ export class EveChildInstanceContainer extends EveChildTransform
    */
   @be.mapAttribute(be.PERSISTONLY, "source")
 
-  @type.rootRef("IEveSpaceObjectChild")
+  /** Carbon: m_source (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h:154).
+   */
+  @type.object.ref("IEveSpaceObjectChild")
   _source = null;
 
   /**

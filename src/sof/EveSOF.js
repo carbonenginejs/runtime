@@ -332,7 +332,10 @@ export class EveSOF extends IRoot
    * @type {EveSOFDataMgr}
    */
   @be.mapAttribute(be.READ)
-  @type.rootRef("EveSOFDataMgr")
+  /** Carbon: m_dataMgr (trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h:165).
+   * P-prefixed TYPEDEF_BLUECLASS storage is embedded (BlueClass.h:250-254), not a pointer.
+   */
+  @type.object.embed("EveSOFDataMgr")
   dataMgr = new EveSOFDataMgr();
 
   /**

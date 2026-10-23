@@ -7,6 +7,7 @@ import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRendera
 import "#consts/trinity";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { EveUpdateContext } from "../EveUpdateContext.js";
 import { IEveTransform } from "../IEveTransform.js";
 import { isNumber } from "#utils/is";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
@@ -793,6 +794,36 @@ export class EveTransform extends Tr2Transform
     let duration = 0;
     for (const curveSet of this.curveSets) if (curveSet.GetName() === name) duration = Math.max(duration, curveSet.GetRangeDuration(rangeName));
     return duration;
+  }
+
+  /**
+   * Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/EveTransform.cpp:434-441).
+   * Adapts the native time constructor with the existing context fields and SetTime;
+   * the context's JS default LOD factors are zero, while that native constructor sets one.
+   */
+  @meta.adapted
+  UpdateModelCenterWorldPosition(position, t)
+  {
+    const context = new EveUpdateContext();
+    context.lodFactor = 1;
+    context.invLodFactor = 1;
+    context.SetTime(t);
+    this.Update__UpdateContext(context);
+    mat4.getTranslation(position, this.worldTransform);
+  }
+
+  /** Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/EveTransform.cpp:453-456). Copies the current translation without updating. */
+  @meta.implemented
+  GetModelCenterWorldPosition(position)
+  {
+    mat4.getTranslation(position, this.worldTransform);
+  }
+
+  /** Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/EveTransform.h:65-68). Copies the world matrix into caller storage. */
+  @meta.implemented
+  GetLocalToWorldTransform(transform)
+  {
+    mat4.copy(transform, this.worldTransform);
   }
 
   /**

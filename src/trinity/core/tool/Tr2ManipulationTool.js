@@ -36,7 +36,11 @@ export class Tr2ManipulationTool extends IRoot
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rootRef("PyObject")
+  /** Carbon: m_pythonUserData (trinity/trinity/Tr2ManipulationTool.h:59).
+   * Adapted: Python values use ordinary JavaScript values; they are not IRoot objects.
+   */
+  @meta.adapted
+  @type.unknown
   _userData = null;
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */

@@ -19,7 +19,10 @@ export class EveInstancedMeshManagerMeshKey
 {
 
   /** geometry (TriGeometryRes*). Carbon initializes it to nullptr. */
-  @type.rootRef("TriGeometryRes")
+  /** Carbon: geometry (trinity/trinity/Eve/EveInstancedMeshManager.h:169).
+   * Carbon holds a raw, non-owning pointer.
+   */
+  @type.object.weak("TriGeometryRes")
   geometry = null;
 
   /** materialHash (uint64_t). */

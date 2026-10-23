@@ -28,7 +28,9 @@ export class EveShip2 extends EveMobile
    */
   @be.mapAttribute(be.PERSISTONLY, "boosters")
 
-  @type.rootRef("EveBoosterSet2")
+  /** Carbon: m_boosters (trinity/trinity/Eve/SpaceObject/EveShip2.h:69).
+   */
+  @type.object.ref("EveBoosterSet2")
   _boosters = null;
 
   /** Live booster property; persistence reads and writes the backing member directly. */

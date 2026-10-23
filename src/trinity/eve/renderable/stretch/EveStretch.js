@@ -667,6 +667,39 @@ export class EveStretch extends IEveFiringEffectElement
     }
   }
 
+  /** Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:49). Leaves position untouched. */
+  @meta.implemented
+  UpdateModelCenterWorldPosition(position, t)
+  {
+  }
+
+  /** Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:50). Leaves position untouched. */
+  @meta.implemented
+  GetModelCenterWorldPosition(position)
+  {
+  }
+
+  /** Carbon: GetLocalBoundingBox (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:51-54). No local box; leaves outputs untouched. */
+  @meta.implemented
+  GetLocalBoundingBox(min, max)
+  {
+    return false;
+  }
+
+  /** Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:55-58). Writes identity into caller storage. */
+  @meta.implemented
+  GetLocalToWorldTransform(transform)
+  {
+    mat4.identity(transform);
+  }
+
+  /** Carbon: GetLODLevel (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:76-79). Returns the stored LOD. */
+  @meta.implemented
+  GetLODLevel()
+  {
+    return this.lodLevel;
+  }
+
   static Tr2Lod = Tr2Lod;
   static _identity = mat4.create();
   /** The audio as Carbon's Tr2AudioStretchAuto, or null; the audio layer registers the class. */

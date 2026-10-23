@@ -73,11 +73,12 @@ test("Tr2ImageRes memory accounting follows the load state (cpp:14-27)", () =>
   assert.equal(typeof image.IsMemoryUsageKnown(), "boolean");
 });
 
-test("Tr2SSAO.hash is Carbon's uint32 bit-mix (cpp:535)", () =>
+test("Tr2SSAO._Hash is Carbon's private instance uint32 bit-mix (h:115, cpp:535)", () =>
 {
-  assert.equal(Tr2SSAO.hash(1), 1);
-  assert.equal(Tr2SSAO.hash(0xFFFFFFFF), 131072, "wraps as C++ uint32, via imul");
-  assert.equal(Tr2SSAO.hash(0), 0);
+  const ssao = new Tr2SSAO();
+  assert.equal(ssao._Hash(1), 1);
+  assert.equal(ssao._Hash(0xFFFFFFFF), 131072, "wraps as C++ uint32, via imul");
+  assert.equal(ssao._Hash(0), 0);
 });
 
 test("Tr2MainWindowState.ToString carries Carbon's name over the same description", () =>

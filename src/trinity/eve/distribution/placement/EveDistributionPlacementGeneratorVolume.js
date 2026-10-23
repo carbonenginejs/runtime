@@ -55,7 +55,9 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    */
   @be.mapAttribute(be.PERSISTONLY, "volume")
 
-  @type.rootRef("IEveVolume")
+  /** Carbon: m_volume (trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorVolume.h:39).
+   */
+  @type.object.ref("IEveVolume")
   _volume = null;
 
   /**

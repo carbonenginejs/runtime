@@ -18,7 +18,9 @@ export class EveChildInstancedMeshArea
 {
 
   @meta.attribute(meta.PERSIST)
-  @type.rootRef("Tr2Effect")
+  /** Carbon: effect (trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h:76).
+   */
+  @type.object.ref("Tr2Effect")
   effect = null;
 
   @meta.attribute(meta.PERSIST)

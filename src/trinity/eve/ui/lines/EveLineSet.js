@@ -12,6 +12,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
+import { Tr2Lod } from "#consts/trinity";
 import { TriBatchType } from "#consts/graphics";
 import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../../trinityal/ALResult.js";
@@ -478,6 +479,39 @@ export class EveLineSet
     definition.Add("FLOAT32_3", "POSITION");
     definition.Add("FLOAT32_4", "TEXCOORD");
     return definition;
+  }
+
+  /** Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/UI/EveLineSet.h:61-63). Leaves position untouched. */
+  @meta.implemented
+  UpdateModelCenterWorldPosition(position, t)
+  {
+  }
+
+  /** Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/UI/EveLineSet.h:64-66). Leaves position untouched. */
+  @meta.implemented
+  GetModelCenterWorldPosition(position)
+  {
+  }
+
+  /** Carbon: GetLocalBoundingBox (trinity/trinity/Eve/UI/EveLineSet.h:67-70). No local box; leaves outputs untouched. */
+  @meta.implemented
+  GetLocalBoundingBox(min, max)
+  {
+    return false;
+  }
+
+  /** Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/UI/EveLineSet.h:71-74). Writes identity into caller storage. */
+  @meta.implemented
+  GetLocalToWorldTransform(transform)
+  {
+    mat4.identity(transform);
+  }
+
+  /** Carbon: GetLODLevel (trinity/trinity/Eve/UI/EveLineSet.h:92-95). Always returns high LOD. */
+  @meta.implemented
+  GetLODLevel()
+  {
+    return Tr2Lod.TR2_LOD_HIGH;
   }
 
   static scratch = {

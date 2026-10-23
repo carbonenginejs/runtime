@@ -417,7 +417,7 @@ export class Tr2SSAO extends IRoot
     {
       for (let i = 0; i < 4; i++)
       {
-        this._cortaoRandSeeds[i] = Tr2SSAO.hash(this._cortaoRandSeeds[i] + carbonRandom.crtRand());
+        this._cortaoRandSeeds[i] = this._Hash(this._cortaoRandSeeds[i] + carbonRandom.crtRand());
       }
     }
 
@@ -451,14 +451,13 @@ export class Tr2SSAO extends IRoot
   }
 
   /**
-   * Carbon Hash (Tr2SSAO.cpp:535): `n * (n ^ (n >> 15))` - the integer
-   * bit-mix that decorrelates per-frame/per-pixel sampling. Static in
-   * Carbon (a file-local-style helper on the class), uint32 wrap preserved
-   * with imul.
+   * Carbon: Hash (trinity/trinity/Tr2SSAO.h:115).
+   * Carbon: Hash (trinity/trinity/Tr2SSAO.cpp:535-538).
+   * Private instance bit-mix for per-frame/per-pixel sampling, preserving
+   * uint32 multiplication wrap with imul.
    */
-
-
-  static hash(n)
+  @meta.implemented
+  _Hash(n)
   {
     const value = n >>> 0;
     return Math.imul(value, value ^ (value >>> 15)) >>> 0;

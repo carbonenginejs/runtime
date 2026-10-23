@@ -18,17 +18,17 @@ export class CjsCharacterColorSelection
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterColorLocation")
+    @type.object.ref("CjsCharacterColorLocation")
     colorID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterColorName")
+    @type.object.ref("CjsCharacterColorName")
     colorNameA = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterColorName")
+    @type.object.ref("CjsCharacterColorName")
     colorNameBC = null;
 
 }

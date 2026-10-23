@@ -33,12 +33,12 @@ export class CjsCharacterAppearanceBinding
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterBindingAlpha")
+    @type.object.ref("CjsCharacterBindingAlpha")
     alpha = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterOrigin")
+    @type.object.ref("CjsCharacterOrigin")
     origin = null;
 
 }

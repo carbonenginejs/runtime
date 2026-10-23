@@ -13,7 +13,10 @@ export class ITr2GenericEmitterUpdateArguments
   @type.float64
   time = 0;
 
-  @type.rootRef("Tr2GpuParticleSystem")
+  /** Carbon: system (trinity/trinity/Particle/ITr2GenericEmitter.h:44).
+   * Carbon holds a raw, non-owning pointer.
+   */
+  @type.object.weak("Tr2GpuParticleSystem")
   system = null;
 
   @type.mat4

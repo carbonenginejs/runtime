@@ -41,9 +41,19 @@ export class Tr2VolumetricsRendererFogViewDependentResources
 CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "useTemporalFroxels", type.boolean);
 CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "currentTemporalFroxels", type.boolean);
 CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "froxelJitter", type.vec3);
-CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "calculateFroxels", type.rootRef("Tr2Effect"));
-CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "rtCalculateFroxels", type.rootRef("Tr2Effect"));
-CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "filterFroxels", type.rootRef("Tr2Effect"));
-CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "raymarchFroxels", type.rootRef("Tr2Effect"));
-CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "applyFroxels", type.rootRef("Tr2Effect"));
+/** Carbon: calculateFroxels (trinity/trinity/Tr2VolumetricsRenderer.h:159).
+ */
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "calculateFroxels", type.object.ref("Tr2Effect"));
+/** Carbon: rtCalculateFroxels (trinity/trinity/Tr2VolumetricsRenderer.h:160).
+ */
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "rtCalculateFroxels", type.object.ref("Tr2Effect"));
+/** Carbon: filterFroxels (trinity/trinity/Tr2VolumetricsRenderer.h:161).
+ */
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "filterFroxels", type.object.ref("Tr2Effect"));
+/** Carbon: raymarchFroxels (trinity/trinity/Tr2VolumetricsRenderer.h:162).
+ */
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "raymarchFroxels", type.object.ref("Tr2Effect"));
+/** Carbon: applyFroxels (trinity/trinity/Tr2VolumetricsRenderer.h:163).
+ */
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "applyFroxels", type.object.ref("Tr2Effect"));
 CjsSchema.meta.define(Tr2VolumetricsRendererFogViewDependentResources, { className: "Tr2VolumetricsRendererFogViewDependentResources", carbon: "Tr2VolumetricsRenderer::FogViewDependentResources" });

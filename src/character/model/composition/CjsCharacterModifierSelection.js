@@ -8,12 +8,12 @@ export class CjsCharacterModifierSelection
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterModifierLocation")
+    @type.object.ref("CjsCharacterModifierLocation")
     modifierLocationID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterResource")
+    @type.object.ref("CjsCharacterResource")
     paperdollResourceID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)

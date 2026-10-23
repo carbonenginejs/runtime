@@ -147,7 +147,9 @@ export class EveChildTurret extends EveChildMesh
    */
   @be.mapAttribute(be.HIDDEN, "firingEffect")
 
-  @type.rootRef("EveTurretFiringFX")
+  /** Carbon: m_firingEffect (trinity/trinity/Eve/SpaceObject/Children/EveChildTurret.h:135).
+   */
+  @type.object.ref("EveTurretFiringFX")
   _firingEffect = null;
 
   /**

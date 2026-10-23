@@ -255,6 +255,8 @@ export class TriEventCurve extends ITriFunction
 
   /**
    * Creates and inserts a callable event key.
+   * Carbon: AddCallableKey (trinity/trinity/Curves/TriEventCurve.cpp:147-159).
+   * Normalize arguments before storage, as Carbon does when creating its tuple.
    * JavaScript functions and argument arrays replace Python objects; omitted arguments remain an empty array.
    * @param {number} time Key time in seconds.
    * @param {Function} callable Function to queue.
@@ -268,7 +270,7 @@ export class TriEventCurve extends ITriFunction
     const key = new TriEventKey();
     key.time = time;
     key.callable = callable;
-    key.callableArgs = args === undefined ? [] : args;
+    key.callableArgs = TriEventCurve._normalizeCallableArgs(args);
     this.InsertKey(key);
   }
 

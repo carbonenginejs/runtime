@@ -198,7 +198,7 @@ export class CjsCharacterLibrary
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterLibraryDocuments")
+    @type.object.ref("CjsCharacterLibraryDocuments")
     documents = new CjsCharacterLibraryDocuments();
 
     /**

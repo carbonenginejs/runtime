@@ -89,7 +89,9 @@ export class EveTurretSet extends EveEntity
    */
   @be.mapAttribute(be.HIDDEN, "firingEffect")
 
-  @type.rootRef("EveTurretFiringFX")
+  /** Carbon: m_firingEffect (trinity/trinity/Eve/Turret/EveTurretSet.h:439).
+   */
+  @type.object.ref("EveTurretFiringFX")
   _firingEffect = null;
 
   /**
@@ -117,7 +119,9 @@ export class EveTurretSet extends EveEntity
    */
   @be.mapAttribute(be.PERSISTONLY, "ambientEffect")
 
-  @type.rootRef("EveSpaceObjectChild")
+  /** Carbon: m_ambientEffect (trinity/trinity/Eve/Turret/EveTurretSet.h:451).
+   */
+  @type.object.ref("EveSpaceObjectChild")
   _ambientEffect = null;
 
   /**

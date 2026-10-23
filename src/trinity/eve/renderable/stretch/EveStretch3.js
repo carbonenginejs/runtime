@@ -110,7 +110,9 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapAttribute(be.PERSISTONLY, "destObject")
 
-  @type.rootRef("EveSpaceObjectChild")
+  /** Carbon: m_destObject (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:173).
+   */
+  @type.object.ref("EveSpaceObjectChild")
   _destObject = null;
 
   /** Live destObject property. */
@@ -133,7 +135,9 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapAttribute(be.PERSISTONLY, "sourceObject")
 
-  @type.rootRef("EveSpaceObjectChild")
+  /** Carbon: m_sourceObject (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:172).
+   */
+  @type.object.ref("EveSpaceObjectChild")
   _sourceObject = null;
 
   /** Live sourceObject property. */
@@ -156,7 +160,9 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapAttribute(be.PERSISTONLY, "stretchObject")
 
-  @type.rootRef("EveSpaceObjectChild")
+  /** Carbon: m_stretchObject (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:174).
+   */
+  @type.object.ref("EveSpaceObjectChild")
   _stretchObject = null;
 
   /** Live stretchObject property. */
@@ -187,7 +193,9 @@ export class EveStretch3 extends IEveFiringEffectElement
    */
   @be.mapAttribute(be.PERSISTONLY, "moveObject")
 
-  @type.rootRef("EveSpaceObjectChild")
+  /** Carbon: m_moveObject (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:175).
+   */
+  @type.object.ref("EveSpaceObjectChild")
   _moveObject = null;
 
   /** Live moveObject property. */

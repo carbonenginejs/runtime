@@ -136,8 +136,11 @@ export class TriDevice extends IRoot
   /** mViewport (PTriViewport) [READ, PERSIST] */
   @be.mapAttribute(be.READ | be.PERSIST)
 
-  @type.rootRef("TriViewport")
-  viewport = null;
+  /** Carbon: mViewport (trinity/trinity/TriDevice.h:63).
+   * P-prefixed TYPEDEF_BLUECLASS storage is embedded (BlueClass.h:250-254), not a pointer.
+   */
+  @type.object.embed("TriViewport")
+  viewport = new TriViewport();
 
   /** mDisplayMode.width (Tr2DisplayModeInfo) [READ] */
   @be.mapAttribute(be.READ)
@@ -894,9 +897,7 @@ export class TriDevice extends IRoot
   {
     if (!this.DeviceExists()) return false;
 
-    const viewport = new TriViewport();
-    viewport.__init__(0, 0, this.width, this.height, 0, 1);
-    this.viewport = viewport;
+    this.viewport.__init__(0, 0, this.width, this.height, 0, 1);
 
     this.#deviceLost = false;
     this.#hasDevice = true;

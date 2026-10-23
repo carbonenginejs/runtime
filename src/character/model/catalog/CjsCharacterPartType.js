@@ -51,7 +51,7 @@ export class CjsCharacterPartType extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterPartSource")
+    @type.object.ref("CjsCharacterPartSource")
     partSource = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)

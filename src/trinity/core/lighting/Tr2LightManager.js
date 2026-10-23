@@ -735,19 +735,27 @@ export class Tr2LightManager
   // had been sampling a constant zero.
 
   /** m_effect (Tr2EffectPtr): computelightlists (EveSpaceScene.cpp:1380), Clear then Main. */
-  @type.rootRef("Tr2Effect")
+  /** Carbon: m_effect (trinity/trinity/Tr2LightManager.h:189).
+   */
+  @type.object.ref("Tr2Effect")
   _effect = new Tr2Effect();
 
   /** m_lightBuffer (Tr2GpuStructuredBufferPtr): one PerLightData per light. */
-  @type.rootRef("Tr2GpuStructuredBuffer")
+  /** Carbon: m_lightBuffer (trinity/trinity/Tr2LightManager.h:184).
+   */
+  @type.object.ref("Tr2GpuStructuredBuffer")
   _lightBuffer = new Tr2GpuStructuredBuffer();
 
   /** m_indexBuffer (Tr2GpuStructuredBufferPtr): tile headers, then list nodes. */
-  @type.rootRef("Tr2GpuStructuredBuffer")
+  /** Carbon: m_indexBuffer (trinity/trinity/Tr2LightManager.h:185).
+   */
+  @type.object.ref("Tr2GpuStructuredBuffer")
   _indexBuffer = new Tr2GpuStructuredBuffer();
 
   /** m_indexBufferCounter (Tr2GpuBufferPtr): LightIndexCount, the kernel's node allocator. */
-  @type.rootRef("Tr2GpuBuffer")
+  /** Carbon: m_indexBufferCounter (trinity/trinity/Tr2LightManager.h:187).
+   */
+  @type.object.ref("Tr2GpuBuffer")
   _indexBufferCounter = new Tr2GpuBuffer();
 
   /** m_perFrameData (Tr2ConstantBufferAL, Tr2LightManager.h:188): PerFrameData for the dispatch, by value. */

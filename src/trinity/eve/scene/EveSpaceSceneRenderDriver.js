@@ -169,7 +169,9 @@ export class EveSpaceSceneRenderDriver
    */
   @be.mapAttribute(be.PERSISTONLY, "scene")
 
-  @type.rootRef("EveSpaceScene")
+  /** Carbon: m_scene (trinity/trinity/Eve/EveSpaceSceneRenderDriver.h:115).
+   */
+  @type.object.ref("EveSpaceScene")
   _scene = null;
 
   /**

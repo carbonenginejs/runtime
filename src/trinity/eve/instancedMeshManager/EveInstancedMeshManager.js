@@ -285,7 +285,9 @@ export class EveInstancedMeshManager
   _sphereGroups = [];
 
   /** m_perObjectDataBuffer (Tr2GpuStructuredBufferPtr, h:288): created on the first frame with per-object data. */
-  @type.rootRef("Tr2GpuStructuredBuffer")
+  /** Carbon: m_perObjectDataBuffer (trinity/trinity/Eve/EveInstancedMeshManager.h:288).
+   */
+  @type.object.ref("Tr2GpuStructuredBuffer")
   _perObjectDataBuffer = null;
 
   /** m_staticInstanceBuffer (InstanceBuffer, h:289), embedded by value. */

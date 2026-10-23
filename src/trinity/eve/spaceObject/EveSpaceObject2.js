@@ -4279,6 +4279,23 @@ export class EveSpaceObject2 extends EveEntity
     return velocity;
   }
 
+  /** Carbon: IsPickable (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp:4082-4085). Returns the authored picking flag. */
+  @meta.implemented
+  IsPickable()
+  {
+    return this.isPickable;
+  }
+
+  /** Carbon: IsVisible (trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp:1814-1819). Tests the current context, independently of cached display/visibility flags. */
+  @meta.implemented
+  IsVisible(updateContext)
+  {
+    const frustum = updateContext.GetFrustum();
+    return frustum.IsSphereVisible__CenterRadius(this.modelWorldPosition, this._boundingSphereWorldRadius)
+      && frustum.GetPixelSizeAccrossEst__CenterRadius(this.modelWorldPosition, this._boundingSphereWorldRadius)
+        >= updateContext.GetVisibilityThreshold();
+  }
+
   /** Reports the result of the latest Carbon visibility update. */
   @meta.implemented
   IsInFrustum()

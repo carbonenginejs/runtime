@@ -344,7 +344,9 @@ export class EveSpaceScene
    */
   @be.mapAttribute(be.PERSISTONLY, "shLightingManager")
 
-  @type.rootRef("Tr2ShLightingManager")
+  /** Carbon: m_shLightingManager (trinity/trinity/Eve/EveSpaceScene.h:625).
+   */
+  @type.object.ref("Tr2ShLightingManager")
   _shLightingManager = null;
 
   /**

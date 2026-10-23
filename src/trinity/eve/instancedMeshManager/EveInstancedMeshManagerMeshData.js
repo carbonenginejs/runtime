@@ -19,7 +19,10 @@ export class EveInstancedMeshManagerMeshData
   meshGroups = [];
 
   /** material (Tr2Effect*). Carbon initializes it to nullptr. */
-  @type.rootRef("Tr2Effect")
+  /** Carbon: material (trinity/trinity/Eve/EveInstancedMeshManager.h:241).
+   * Carbon holds a raw, non-owning pointer.
+   */
+  @type.object.weak("Tr2Effect")
   material = null;
 
   /** radius (float): the mesh's bounding-sphere radius plus its centre's distance from the origin. */

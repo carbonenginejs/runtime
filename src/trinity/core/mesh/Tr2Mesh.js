@@ -12,12 +12,15 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 /**
  * A mesh backed by a geometry resource, adding the resource path plus the
  * morph-target weights and baked-morph state on top of Tr2MeshBase.
+ * Carbon: PyGetAreas (trinity/trinity/Tr2Mesh_Blue.cpp:26-52)
+ * Blue maps the inherited area-list query as GetAreas; JS already returns the list directly.
  */
 @be.define("Tr2Mesh")
 @be.inherit(IInitialize, INotify)
 @be.mapInterface(IInitialize)
 @be.mapInterface(INotify)
 @be.exposureChainTo(Tr2MeshBase)
+@be.mapMethod("GetAreas")
 export class Tr2Mesh extends Tr2MeshBase
 {
   _morphAnimations = new Map();
@@ -43,7 +46,9 @@ export class Tr2Mesh extends Tr2MeshBase
 
   /** m_lowResGeometryResource: the stand-in rendered while the authored mesh loads. */
   @legacyBlue.read
-  @type.rootRef("TriGeometryRes")
+  /** Carbon: m_lowResGeometryResource (trinity/trinity/Tr2Mesh.h:93).
+   */
+  @type.object.ref("TriGeometryRes")
   lowResGeometry = null;
 
   /**
@@ -190,12 +195,12 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /**
-   * Carbon SetGeometryRes (cpp:60-74): detach from the old resource, bind the
+   * Carbon: SetGeometryRes (trinity/trinity/Tr2Mesh.cpp:60-74).
+   * Detach from the old resource, bind the
    * new one, attach to it with AddNotifyTarget, whose contract is that an
    * already-prepared resource calls back immediately (BlueAsyncRes.cpp:274-276),
    * so a resource that is already good rebuilds here rather than on a later frame.
    */
-  @legacyBlue.method
   @meta.implemented
   SetGeometryRes(resource)
   {
@@ -263,10 +268,11 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /**
-   * Carbon PySetGeometryRes (cpp:202-206): binding a resource by hand clears
+   * Carbon: PySetGeometryRes (trinity/trinity/Tr2Mesh.cpp:202-206).
+   * Binding a resource by hand clears
    * the authored path first, so the next notification does not refetch it.
    */
-  @legacyBlue.method
+  @be.mapMethodAndWrap("SetGeometryRes")
   @meta.implemented
   PySetGeometryRes(resource)
   {

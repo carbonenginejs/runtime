@@ -47,7 +47,9 @@ export class EveInstancedMeshManagerMeshGroup
   ownerIndex = 0;
 
   /** owner (IRootPtr): the picking owner. */
-  @type.rootRef("IRoot")
+  /** Carbon: owner (trinity/trinity/Eve/EveInstancedMeshManager.h:203).
+   */
+  @type.object.ref("IRoot")
   owner = null;
 
   /**

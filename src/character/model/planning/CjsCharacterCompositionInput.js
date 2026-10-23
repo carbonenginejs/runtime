@@ -13,7 +13,7 @@ export class CjsCharacterCompositionInput
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterTextureAsset")
+    @type.object.ref("CjsCharacterTextureAsset")
     texture = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)

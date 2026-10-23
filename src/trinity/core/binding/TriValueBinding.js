@@ -52,7 +52,9 @@ export class TriValueBinding extends INotify
    */
   @be.mapAttribute(be.PERSISTONLY, "sourceObject")
 
-  @type.rootRef("IRoot")
+  /** Carbon: m_sourceObject (trinity/trinity/TriValueBinding.h:61).
+   */
+  @type.object.ref("IRoot")
   _sourceObject = null;
 
   // Native MAP_ATTRIBUTE storage and MAP_PROPERTY access remain separate.
@@ -92,7 +94,9 @@ export class TriValueBinding extends INotify
    */
   @be.mapAttribute(be.PERSISTONLY, "destinationObject")
 
-  @type.rootRef("IRoot")
+  /** Carbon: m_destinationObject (trinity/trinity/TriValueBinding.h:63).
+   */
+  @type.object.ref("IRoot")
   _destinationObject = null;
 
   // Native MAP_ATTRIBUTE storage and MAP_PROPERTY access remain separate.

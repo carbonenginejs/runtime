@@ -162,7 +162,9 @@ export class Tr2VolumetricsRenderer
   _fogReflectionResources = new Tr2VolumetricsRendererFogViewDependentResources(false);
 
   /** m_froxel3DNoise (cpp:80-98): 64³ signed random noise, created in the constructor. */
-  @type.rootRef("Tr2TextureReference")
+  /** Carbon: m_froxel3DNoise (trinity/trinity/Tr2VolumetricsRenderer.h:213).
+   */
+  @type.object.ref("Tr2TextureReference")
   _froxel3DNoise = new Tr2TextureReference();
 
   /** m_godRayNoiseMatrix (cpp:100-102): a double-precision matrix kept aligned with the sun. */
@@ -170,7 +172,9 @@ export class Tr2VolumetricsRenderer
   _godRayNoiseMatrix = new Float64Array([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]); // alloc: Carbon double[16]; no double-precision math type
 
   /** m_updateMieEnvironmentMap and the environment map's update state (cpp:104-122). */
-  @type.rootRef("Tr2Effect")
+  /** Carbon: m_updateMieEnvironmentMap (trinity/trinity/Tr2VolumetricsRenderer.h:224).
+   */
+  @type.object.ref("Tr2Effect")
   _updateMieEnvironmentMap = new Tr2Effect();
   @type.vec2
   _environmentJitter = vec2.create();

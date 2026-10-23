@@ -27,7 +27,9 @@ export class EveFiringEffectElementContainer extends EveEntity
    */
   @be.mapAttribute(be.PERSISTONLY, "element")
 
-  @type.rootRef("IEveFiringEffectElement")
+  /** Carbon: m_element (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.h:58).
+   */
+  @type.object.ref("IEveFiringEffectElement")
   _element = null;
 
   /**
@@ -348,6 +350,39 @@ export class EveFiringEffectElementContainer extends EveEntity
   UnRegisterComponents()
   {
     this._element?.UnRegister(this.GetComponentRegistry());
+  }
+
+  /** Carbon: GetBoundingSphere (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:60-63). No bounds; leaves the output untouched. */
+  @meta.implemented
+  GetBoundingSphere(sphere, query = 0)
+  {
+    return false;
+  }
+
+  /** Carbon: UpdateModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:65-67). Intentionally leaves position untouched. */
+  @meta.implemented
+  UpdateModelCenterWorldPosition(position, t)
+  {
+  }
+
+  /** Carbon: GetModelCenterWorldPosition (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:69-71). Intentionally leaves position untouched. */
+  @meta.implemented
+  GetModelCenterWorldPosition(position)
+  {
+  }
+
+  /** Carbon: GetLocalBoundingBox (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:73-76). No bounds; leaves both outputs untouched. */
+  @meta.implemented
+  GetLocalBoundingBox(min, max)
+  {
+    return false;
+  }
+
+  /** Carbon: GetLocalToWorldTransform (trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp:78-81). Writes identity into caller storage. */
+  @meta.implemented
+  GetLocalToWorldTransform(transform)
+  {
+    mat4.identity(transform);
   }
 
   static _zero = vec3.create();

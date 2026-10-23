@@ -14,12 +14,12 @@ export class CjsCharacterAppearanceLayer
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterAppearanceSelection")
+    @type.object.ref("CjsCharacterAppearanceSelection")
     owner = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterResolvedPart")
+    @type.object.ref("CjsCharacterResolvedPart")
     contributor = null;
 
     /** Authored contribution weight when the dependency carries one. */
@@ -30,7 +30,7 @@ export class CjsCharacterAppearanceLayer
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterOrigin")
+    @type.object.ref("CjsCharacterOrigin")
     origin = null;
 
 }

@@ -229,11 +229,15 @@ export class Tr2DebugRenderer
 {
 
   /** m_effect (Tr2EffectPtr): DebugPrimitive.fx, created with the renderer (cpp:141-142). */
-  @type.rootRef("Tr2Effect")
+  /** Carbon: m_effect (trinity/trinity/Tr2DebugRenderer.h:126).
+   */
+  @type.object.ref("Tr2Effect")
   _effect = null;
 
   /** m_pickingEffect (Tr2EffectPtr): DebugPrimitivePicking.fx (cpp:143-144). */
-  @type.rootRef("Tr2Effect")
+  /** Carbon: m_pickingEffect (trinity/trinity/Tr2DebugRenderer.h:127).
+   */
+  @type.object.ref("Tr2Effect")
   _pickingEffect = null;
 
   /** m_lines (std::vector<Vertex>): two vertices per line. */

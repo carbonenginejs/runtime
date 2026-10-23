@@ -204,7 +204,7 @@ export class CjsCharacterPaperdoll extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterPortraitResource")
+    @type.object.ref("CjsCharacterPortraitResource")
     backgroundID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)

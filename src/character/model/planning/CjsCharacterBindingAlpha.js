@@ -13,7 +13,7 @@ export class CjsCharacterBindingAlpha
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
-    @type.rootRef("CjsCharacterCoverage")
+    @type.object.ref("CjsCharacterCoverage")
     coverage = null;
 
 }

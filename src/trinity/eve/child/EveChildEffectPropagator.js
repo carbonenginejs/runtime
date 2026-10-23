@@ -131,7 +131,9 @@ export class EveChildEffectPropagator extends EveChildContainer
   @be.mapAttribute(be.PERSISTONLY | be.NOTIFY, "effect")
 
 
-  @type.rootRef("EveChildInstanceContainer")
+  /** Carbon: m_effect (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h:100).
+   */
+  @type.object.ref("EveChildInstanceContainer")
   _effect = null;
 
   /**

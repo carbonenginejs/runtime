@@ -1,4 +1,5 @@
 import { exposure as be } from "#be";
+import { Tr2TexturePackChannel } from "./Tr2TexturePackChannel.js";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h
 //   trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
@@ -26,16 +27,16 @@ export class Tr2TexturePipelineStepPack extends IRoot
   format = 87;
 
   /** m_a (PTr2TexturePackChannel) [READ, PERSIST] */
-  a = null;
+  a = new Tr2TexturePackChannel();
 
   /** m_b (PTr2TexturePackChannel) [READ, PERSIST] */
-  b = null;
+  b = new Tr2TexturePackChannel();
 
   /** m_g (PTr2TexturePackChannel) [READ, PERSIST] */
-  g = null;
+  g = new Tr2TexturePackChannel();
 
   /** m_r (PTr2TexturePackChannel) [READ, PERSIST] */
-  r = null;
+  r = new Tr2TexturePackChannel();
 
   /**
    * Carbon GetResourceDependencies (cpp:39-57), the ITr2TexturePipelineStep
@@ -261,10 +262,22 @@ export class Tr2TexturePipelineStepPack extends IRoot
 
 
 CjsSchema.decorateField(Tr2TexturePipelineStepPack, "format", be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.ImageIO.PixelFormat"), type.int32, type.enum("trinity.ImageIO.PixelFormat"));
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "a", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "b", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "g", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
-CjsSchema.decorateField(Tr2TexturePipelineStepPack, "r", be.mapAttribute(be.READ | be.PERSIST), type.rootRef("Tr2TexturePackChannel"));
+/** Carbon: m_a (trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h:53).
+ * P-prefixed TYPEDEF_BLUECLASS storage is embedded (BlueClass.h:250-254), not a pointer.
+ */
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "a", be.mapAttribute(be.READ | be.PERSIST), type.object.embed("Tr2TexturePackChannel"));
+/** Carbon: m_b (trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h:52).
+ * P-prefixed TYPEDEF_BLUECLASS storage is embedded (BlueClass.h:250-254), not a pointer.
+ */
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "b", be.mapAttribute(be.READ | be.PERSIST), type.object.embed("Tr2TexturePackChannel"));
+/** Carbon: m_g (trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h:51).
+ * P-prefixed TYPEDEF_BLUECLASS storage is embedded (BlueClass.h:250-254), not a pointer.
+ */
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "g", be.mapAttribute(be.READ | be.PERSIST), type.object.embed("Tr2TexturePackChannel"));
+/** Carbon: m_r (trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h:50).
+ * P-prefixed TYPEDEF_BLUECLASS storage is embedded (BlueClass.h:250-254), not a pointer.
+ */
+CjsSchema.decorateField(Tr2TexturePipelineStepPack, "r", be.mapAttribute(be.READ | be.PERSIST), type.object.embed("Tr2TexturePackChannel"));
 CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "GetResourceDependencies", meta.implemented);
 CjsSchema.decorateMethod(Tr2TexturePipelineStepPack, "Execute", meta.adapted);
 meta.implemented(Tr2TexturePipelineStepPack, "swapRedBlue");

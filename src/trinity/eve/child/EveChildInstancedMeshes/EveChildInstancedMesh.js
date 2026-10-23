@@ -64,7 +64,9 @@ export class EveChildInstancedMesh
   ownedLocatorSets = [];
 
   @meta.attribute(meta.PERSIST)
-  @type.rootRef("Tr2Effect")
+  /** Carbon: armorDamageShader (trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.h:164).
+   */
+  @type.object.ref("Tr2Effect")
   armorDamageShader = null;
 
   @meta.attribute(meta.PERSIST)
