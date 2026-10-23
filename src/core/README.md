@@ -6,7 +6,9 @@ Audience: Runtime integrators
 Summary: Compose existing resource registrations and settings through CjsLibrary.
 
 `DefaultConfiguration` is explicit JavaScript data containing classes and reader
-functions. Construction copies those defaults and overrides without registering
+functions. Keep the defaults as one literal object with every entry written out,
+not generated maps, spreads or registration helper calls. Construction copies
+those defaults and overrides without registering
 anything. `Initialize` selects the supplied Blue services, registers the existing
 host-pumped resource tick hook, and submits configuration to those actual owners.
 The standard Blue tick registration does not pump or request resources. A custom

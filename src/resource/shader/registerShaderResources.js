@@ -84,6 +84,18 @@ export function RegisterShaderResources(resourceManager, options = {})
   return resourceManager;
 }
 
+/**
+ * Passes retained container bytes to Tr2EffectRes, which decodes its own payload.
+ * This is the existing untranslated loader, named for direct configuration use.
+ *
+ * @param {Uint8Array|ArrayBuffer} bytes The compiled shader container.
+ * @returns {Uint8Array|ArrayBuffer} The same container bytes.
+ */
+export function ReadShaderResource(bytes)
+{
+  return bytes;
+}
+
 /** Creates the existing byte/permutation loader for an explicit configuration entry. */
 export function CreateShaderResourceLoader({ translator = null, permutations = "onDemand", translates = () => true } = {})
 {
@@ -117,7 +129,7 @@ export function CreateShaderResourceLoader({ translator = null, permutations = "
         return loaded.bytes;
       };
   const loader = !translating
-    ? bytes => bytes
+    ? ReadShaderResource
     : (bytes, context) => (translates(context.path) ? translating(bytes, context) : bytes);
 
   return loader;
