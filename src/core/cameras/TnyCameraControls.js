@@ -60,6 +60,7 @@ export class TnyCameraControls
   _listeners = new Set();
   _initial = null;
   _framedOnce = false;
+  /** A zero-size fit remains pending only until newer camera input or cancellation. */
   _pendingFrame = false;
   _viewportWidth = 0;
   _viewportHeight = 0;
@@ -242,6 +243,7 @@ export class TnyCameraControls
   {
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
     this._flight = null;
+    this._pendingFrame = false;
     const settings = this.preferences;
     this.camera.OrbitParent(dx * settings.orbitSensitivity * (settings.invertX ? -1 : 1),
       dy * settings.orbitSensitivity * (settings.invertY ? 1 : -1));
@@ -253,6 +255,7 @@ export class TnyCameraControls
     const view = this.#Project(), camera = this.camera;
     if (!view || !Number.isFinite(dx) || !Number.isFinite(dy)) return false;
     this._flight = null;
+    this._pendingFrame = false;
     const x = -dx * this.preferences.panSensitivity * 2 * camera.translationFromParent / (this._projection[0] * view.width);
     const y = dy * this.preferences.panSensitivity * 2 * camera.translationFromParent / (this._projection[5] * view.height);
     camera.useExtraTranslation = true;
@@ -272,6 +275,7 @@ export class TnyCameraControls
   {
     if (!Number.isFinite(delta)) return;
     this._flight = null;
+    this._pendingFrame = false;
     const camera = this.camera, radius = Math.max(0.001, this.getBounds ? this.getBounds().radius : 0);
     const minimum = Math.max(1, camera.frontClip, radius * 0.01), maximum = Math.max(minimum, this.preferences.maxDistance);
     // Seed multiplicative zoom from a usable distance, including poses edited to zero.
@@ -288,6 +292,7 @@ export class TnyCameraControls
   SetFieldOfView(radians)
   {
     if (!Number.isFinite(radians)) throw new RangeError("Field of view must be finite radians.");
+    this._pendingFrame = false;
     this.camera.zoomCurve = null;
     this.camera.fieldOfView = Math.min(this.preferences.maxFieldOfView, Math.max(this.preferences.minFieldOfView, radians));
     this.#Changed();
@@ -508,6 +513,7 @@ export class TnyCameraControls
   {
     this._gesture = null;
     this._flight = null;
+    this._pendingFrame = false;
     this._gestureCaptured = false;
     this._held.clear();
     this.camera.SetOrbit(this.camera.yaw, this.camera.pitch);
