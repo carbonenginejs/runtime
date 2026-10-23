@@ -16,6 +16,9 @@ import { fileURLToPath } from "node:url";
 import { Tr2ConstantBufferAL, Tr2RenderContextALStub, Tr2ShaderProgramAL, Tr2VertexLayoutAL } from "../../npm/dist/trinityal/index.js";
 import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/internal.js";
 import { Tr2RenderContextALWebgl2 } from "../../npm/dist/trinityal/webgl2/index.js";
+import { ALResult } from "../../npm/dist/trinityal/ALResult.js";
+import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
+import { Tr2RenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { FakeWebgl2 } from "./webgl2/fakeWebgl2.js";
 
 /**
@@ -119,3 +122,41 @@ test("no caller tests a render-context verb's ALResult as a boolean", () =>
 
   assert.deepEqual(offenders, [], "wrap each in Failed(...) or Succeeded(...)");
 });
+
+// Carbon stub header:171-178; a created headless device still cannot compute.
+test("stub compute dispatches fail before and after device creation", () =>
+{
+  const al = new Tr2RenderContextALStub();
+  const assertFailure = () =>
+  {
+    assert.equal(al.RunComputeShader(2, 3, 4), ALResult.E_FAIL);
+    assert.equal(al.RunComputeShaderIndirect(null, 0), ALResult.E_FAIL);
+  };
+  assertFailure();
+  al.CreateDevice();
+  assertFailure();
+});
+
+for (const indirect of [false, true])
+{
+  test(`renderer propagates stub ${indirect ? "indirect" : "direct"} compute failure and stops subsequent passes`, () =>
+  {
+    const context = new Tr2RenderContext();
+    const applied = [];
+    const pass = { stageInputs: [null, null, { exists: true }] };
+    const shader = {
+      GetEffectDescription: () => ({ techniques: [{ passes: [pass, pass] }] }),
+      ApplyAllStateForPass: (technique, index) => applied.push(["shader", technique, index])
+    };
+    const effect = {
+      IsGood: () => true,
+      GetShaderStateInterface: () => shader,
+      ApplyMaterialDataForPass: (technique, index) => applied.push(["material", technique, index])
+    };
+    const result = indirect
+      ? Tr2Renderer.runComputeShaderIndirect(effect, null, 0, context)
+      : Tr2Renderer.runComputeShader(effect, 2, 3, 4, context);
+    assert.equal(result, false);
+    assert.deepEqual(applied, [["shader", 0, 0], ["material", 0, 0]]);
+  });
+}

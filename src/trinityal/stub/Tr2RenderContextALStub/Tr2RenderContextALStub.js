@@ -1231,19 +1231,23 @@ export class Tr2RenderContextALStub
 
 
   /**
-   * Counts a compute dispatch without running one.
-   *
-   * @returns {number} `S_OK`.
+   * Carbon: RunComputeShader (trinity/trinityal/stub/Tr2RenderContextStub.h:171-174).
+   * The stub cannot execute compute work and reports failure.
+   * @returns {number} `E_FAIL`.
    */
   RunComputeShader()
   {
-    return ALResult.S_OK;
+    return ALResult.E_FAIL;
   }
 
-  /** @see RunComputeShader */
+  /**
+   * Carbon: RunComputeShaderIndirect (trinity/trinityal/stub/Tr2RenderContextStub.h:175-178).
+   * The stub cannot execute indirect compute work and reports failure.
+   * @returns {number} `E_FAIL`.
+   */
   RunComputeShaderIndirect()
   {
-    return ALResult.S_OK;
+    return ALResult.E_FAIL;
   }
 
   /**
@@ -1635,7 +1639,7 @@ CjsSchema.decorateField(Tr2RenderContextALStub, "_isValid", type.boolean);
 CjsSchema.decorateField(Tr2RenderContextALStub, "_boundRenderTargets", type.array({ kind: "rawStruct", className: "Tr2TextureAL" }));
 CjsSchema.decorateField(Tr2RenderContextALStub, "_defaultBackBuffer", type.rawStruct("Tr2TextureAL"));
 CjsSchema.decorateField(Tr2RenderContextALStub, "_viewport", type.rawStruct("Tr2Viewport"));
-// States against stub/Tr2RenderContextStub.cpp:25-465 and .h:89-298 (the stub context: every drawing, state and upscaling call succeeds or fails exactly as Carbon's stub does). Adapted: the device calls that this port records (render targets, depth stencil, viewport, render states, clear and draw counters, stack sizes, which Carbon's stub reports as 0), CreateDevice/SetPresentParameters (no adapter or window argument, no OnContextCreated event), the out-parameter getters (GetRenderTargetSize, GetViewport, GetUpscalingSetup return their values), RenderPassHint and DrawIndexedInstanced/DrawIndexedPrimitiveUP (Carbon's overloads are one method). RunComputeShader and RunComputeShaderIndirect return S_OK where Carbon's stub returns E_FAIL (h:171-178); that is a divergence to revisit.
+// States against stub/Tr2RenderContextStub.cpp:25-465 and .h:89-298 (the stub context: every drawing, state and upscaling call succeeds or fails exactly as Carbon's stub does). Adapted: the device calls that this port records (render targets, depth stencil, viewport, render states, clear and draw counters, stack sizes, which Carbon's stub reports as 0), CreateDevice/SetPresentParameters (no adapter or window argument, no OnContextCreated event), the out-parameter getters (GetRenderTargetSize, GetViewport, GetUpscalingSetup return their values), RenderPassHint and DrawIndexedInstanced/DrawIndexedPrimitiveUP (Carbon's overloads are one method). RunComputeShader and RunComputeShaderIndirect return E_FAIL, matching Carbon's stub (h:171-178).
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "SetPrimaryRenderContext", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "GetPrimaryRenderContext", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "GetPrimaryRenderContextPointer", meta.implemented);
@@ -1680,8 +1684,8 @@ CjsSchema.decorateMethod(Tr2RenderContextALStub, "PopGpuMarker", meta.implemente
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "SupportsBindlessTextures", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "SetRenderState", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "SetRenderStates", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALStub, "RunComputeShader", meta.adapted);
-CjsSchema.decorateMethod(Tr2RenderContextALStub, "RunComputeShaderIndirect", meta.adapted);
+CjsSchema.decorateMethod(Tr2RenderContextALStub, "RunComputeShader", meta.implemented);
+CjsSchema.decorateMethod(Tr2RenderContextALStub, "RunComputeShaderIndirect", meta.implemented);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "DrawIndexedInstanced", meta.adapted);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "DrawInstanced", meta.adapted);
 CjsSchema.decorateMethod(Tr2RenderContextALStub, "DrawIndexedPrimitive", meta.adapted);
