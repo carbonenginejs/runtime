@@ -1,5 +1,10 @@
 # Camera controls and deferred fitting
 
+Status: Evolving
+Scope: TnyCameraControls and the Graphene viewport
+Audience: Runtime and editor maintainers
+Summary: Deferred camera-fit ownership, native aspect behavior, and verified viewport stability.
+
 TnyCameraControls owns editor input around Carbon's EveCamera. A Frame request
 made while the viewport has zero size is deferred until Resize sees a usable
 viewport. That request remains valid only until newer camera intent supersedes
