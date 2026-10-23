@@ -71,7 +71,12 @@ resource manager with the host-pumped Blue clock. It does not load a catalog,
 initialize playback, create a device or start a host loop. Concurrent and repeated
 initialization uses the first configuration until `Shutdown`; a second active
 root is rejected. Shutdown restores the previous service references and tick
-activation without destroying borrowed providers.
+activation without destroying borrowed providers. `SetConfiguration` centralizes
+explicit JS defaults and owner overrides; `GetConfiguration` distinguishes requests
+from successful owner submissions. Resource owners retain loaders and registry
+semantics, and shutdown does not undo their registrations. Backend configuration
+is requested data, not evidence of an active device. See the core source README
+for configuration shapes and partial-failure behavior.
 
 `global/blue` exports the process-wide `blue` instance and its `CjsBlue` class.
 The holder delegates `Fetch`: DNA to its installed SOF, other inputs to its

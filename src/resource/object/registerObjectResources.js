@@ -18,7 +18,7 @@ export const ObjectResourceExtensions = Object.freeze([ "black", "red" ]);
  * The builder for one compiled object file: Carbon keeps a BlackReader per file
  * and builds a new object from it on every LoadObject (BlueResMan.cpp:722-773).
  */
-function CreateBlackObjectBuilder(bytes, context)
+export function CreateBlackObjectBuilder(bytes, context)
 {
   if (!CjsBlackFormat.probeSupport(bytes))
   {

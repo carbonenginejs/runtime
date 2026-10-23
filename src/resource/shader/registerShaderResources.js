@@ -73,7 +73,19 @@ export const ShaderResourceExtensions = Object.freeze([
  * @param {(path: string) => boolean} [options.translates] Whether a resource path's bytes need the translator; every path by default.
  * @returns {object} The same manager, for chaining.
  */
-export function RegisterShaderResources(resourceManager, { translator = null, permutations = "onDemand", translates = () => true } = {})
+export function RegisterShaderResources(resourceManager, options = {})
+{
+  const loader = CreateShaderResourceLoader(options);
+  for (const extension of ShaderResourceExtensions)
+  {
+    resourceManager.RegisterObjectLoader(extension, loader);
+    resourceManager.RegisterExtension(extension, Tr2EffectRes);
+  }
+  return resourceManager;
+}
+
+/** Creates the existing byte/permutation loader for an explicit configuration entry. */
+export function CreateShaderResourceLoader({ translator = null, permutations = "onDemand", translates = () => true } = {})
 {
   if (translator !== null && typeof translator?.buildEffect !== "function")
   {
@@ -108,13 +120,7 @@ export function RegisterShaderResources(resourceManager, { translator = null, pe
     ? bytes => bytes
     : (bytes, context) => (translates(context.path) ? translating(bytes, context) : bytes);
 
-  for (const extension of ShaderResourceExtensions)
-  {
-    resourceManager.RegisterObjectLoader(extension, loader);
-    resourceManager.RegisterExtension(extension, Tr2EffectRes);
-  }
-
-  return resourceManager;
+  return loader;
 }
 
 

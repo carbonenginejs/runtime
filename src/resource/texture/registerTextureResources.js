@@ -51,7 +51,7 @@ export const TextureResourceExtensions = Object.freeze([
  * @param {object} context The manager's prepare context.
  * @returns {Promise<HostBitmap>} The decoded bitmap.
  */
-async function ReadImageResource(bytes, context, compression = {})
+export async function ReadImageResource(bytes, context, compression = {})
 {
   // Snapshot before decoding: LOAD changes affect later loads, never this one.
   const texture = CjsSchema.cast(context.resource, TriTextureRes);

@@ -6,17 +6,156 @@ import { TnyCameraControls } from "./cameras/TnyCameraControls.js";
 import { TnyTransformGizmo } from "./gizmos/TnyTransformGizmo.js";
 import { CjsOverlay2D } from "./overlay/CjsOverlay2D.js";
 
+import { IBlueResFileSystem } from "../global/blue/IBlueResFileSystem.js";
+import { DefaultConfiguration } from "./configuration.js";
+import { ImageIO } from "../resource/imageio/ImageIO.js";
+import { TriSettingsRegistrar } from "../trinity/core/TriSettingsRegistrar.js";
+
 let activeLibrary = null;
 
 /**
  * Application composition root. This service-installation boundary implements
  * Blue startup; rendering/device and user-facing wrappers remain separate work.
  * Construction is inert. Providers supplied to Initialize are preconfigured,
- * borrowed references: installation does not mutate their configuration or start
- * playback, load SOF data, create a device or pump a host loop.
+ * borrowed references. Explicit configuration is applied to the selected owners;
+ * initialization does not start playback, load SOF data, create a device or pump a host loop.
  */
 export class CjsLibrary
 {
+  /** Requested entries; construction does not apply them to any owner. */
+  _configuration = null;
+  /** Entries whose owner call returned successfully; not a claim of GPU activation. */
+  _configured = {};
+  /** Actual instances selected by Initialize, retained for truthful readback. */
+  _configurationOwners = null;
+  /** A failed owner call may have mutated its owner before throwing. */
+  _configurationFailure = null;
+
+  /** Copies explicit defaults and overrides without installing or starting anything. */
+  constructor(configuration = {})
+  {
+    this._configuration = CopyConfiguration(DefaultConfiguration);
+    this.SetConfiguration(configuration);
+  }
+
+  /**
+   * Replaces supplied named entries, retaining omitted entries without deep merge.
+   * Before Initialize this records requests only. Afterwards it forwards only the
+   * supplied entries to their existing owners. Global append-only registrations
+   * cannot be replaced or reset through this API. A failure is rethrown unchanged;
+   * prior successful calls remain recorded and are not rolled back.
+   */
+  SetConfiguration(configuration)
+  {
+    ValidateConfiguration(configuration);
+    if (this._initialization) throw new Error("Configuration cannot change during initialization.");
+    if (this._previousServices) this._ValidateConfigurationOwners(configuration);
+    const patch = CopyConfiguration(configuration);
+    for (const [section, entries] of Object.entries(patch))
+      this._configuration[section] = { ...this._configuration[section], ...entries };
+    if (this._previousServices) this._ApplyConfiguration(patch);
+    return this;
+  }
+
+  /**
+   * Returns requested data and successful owner submissions, plus the last failure.
+   * Configured CREATE/LOAD settings affect later owner work, not existing devices
+   * or resources. Backend data is requested only; the host consumes it at its
+   * existing setup boundary. Shutdown does not undo global registry mutations.
+   */
+  GetConfiguration()
+  {
+    return { requested: CopyConfiguration(this._configuration), configured: CopyConfiguration(this._configured),
+      initialized: this._previousServices !== null, owners: this._configurationOwners ? { ...this._configurationOwners } : null,
+      failure: this._configurationFailure ? { ...this._configurationFailure } : null };
+  }
+
+  /** Checks owner-supported constraints before any entry in a patch is applied. */
+  _ValidateConfigurationOwners(configuration)
+  {
+    const { settings, resMan } = this._configurationOwners;
+    for (const [extension, loader] of Object.entries(configuration.objectLoaders || {}))
+    {
+      const route = resMan.GetExtensionRoute(extension);
+      if (route?.loader && route.loader !== loader && !Object.hasOwn(configuration.extensions || {}, extension))
+        throw new Error(`objectLoaders.${extension}: submit the corresponding extension route in the same patch; its loader is captured.`);
+    }
+    for (const [name, value] of Object.entries(configuration.settings || {}))
+    {
+      const entry = settings.FindSetting(name);
+      if (!entry) throw new RangeError(`Setting '${name}' is not registered`);
+      if (typeof value !== entry.valueType) throw new TypeError(`Setting '${name}' requires ${entry.valueType}`);
+    }
+    for (const section of ["imageHandlers", "paths", "formats"])
+    {
+      for (const [key, value] of Object.entries(configuration[section] || {}))
+      {
+        const previous = this._configured[section]?.[key];
+        const oldIdentity = section === "formats" ? previous?.Format || previous : previous;
+        const newIdentity = section === "formats" ? value.Format || value : value;
+        if (previous && oldIdentity !== newIdentity)
+          throw new Error(`${section}.${key}: owner supports append, not replacement of this registration. Use a new entry name.`);
+      }
+    }
+  }
+
+  /** Applies entries through fixed existing owners; records each successful call. */
+  _ApplyConfiguration(configuration)
+  {
+    const { resMan, paths, settings } = this._configurationOwners;
+    this._ValidateConfigurationOwners(configuration);
+    this._configurationFailure = null;
+    for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes",
+      "resourceConstructors", "imageHandlers", "paths", "settings"])
+    {
+      const entries = configuration[section] || {};
+      if (section === "resMan" && Object.keys(entries).length)
+      {
+        try
+        {
+          // Register consumes related options together (for example cacheSize/cacheCleanup).
+          const options = { ...entries };
+          if (Object.hasOwn(options, "cacheSize") && !Object.hasOwn(options, "cacheCleanup")
+            && Object.hasOwn(this._configuration.resMan, "cacheCleanup")) options.cacheCleanup = this._configuration.resMan.cacheCleanup;
+          resMan.Register(options);
+          this._configured.resMan = { ...this._configured.resMan, ...entries };
+        }
+        catch (error)
+        {
+          for (const key of Object.keys(entries)) delete this._configured.resMan?.[key];
+          this._configurationFailure = { section, key: null, error };
+          throw error;
+        }
+        continue;
+      }
+      for (const [key, value] of Object.entries(entries))
+      {
+        try
+        {
+          if (["formats", "resourceTypes", "objectLoaders", "extensions"].includes(section))
+            resMan.Register({ [section]: { [key]: value } });
+          else if (section === "objectBuilders") resMan.RegisterObjectBuilder(key, value);
+          else if (section === "resourceConstructors")
+            resMan.RegisterResourceConstructor(key, typeof value === "function" ? new value(resMan) : value);
+          else if (section === "imageHandlers") ImageIO.registerImageHandler(value);
+          else if (section === "paths")
+          {
+            if (!paths.IsFileSystemRegistered(value)) paths.RegisterFileSystem(value);
+          }
+          else if (section === "settings") settings.SetValue(key, value);
+          (this._configured[section] ??= {})[key] = value;
+        }
+        catch (error)
+        {
+          delete this._configured[section]?.[key];
+          this._configurationFailure = { section, key, error };
+          throw error;
+        }
+      }
+    }
+  }
+
+
   /** Creates an inert input manager; the caller owns attachment and disposal. */
   CreateInputManager()
   {
@@ -81,11 +220,26 @@ export class CjsLibrary
           services.sof = new EveSOF();
         }
         this._previousServices = installBlueServices(services);
+        if (this._configurationOwners?.resMan !== blue.resMan)
+        {
+          for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes", "resourceConstructors"])
+            delete this._configured[section];
+        }
+        if (this._configurationOwners?.paths !== blue.paths) delete this._configured.paths;
+        this._configurationOwners = { resMan: blue.resMan, paths: blue.paths, settings: TriSettingsRegistrar.getSettings() };
+        this._ApplyConfiguration(this._configuration);
         return this;
       }
       catch (error)
       {
         if (activeLibrary === this) activeLibrary = null;
+        if (this._previousServices)
+        {
+          const previous = this._previousServices;
+          this._previousServices = null;
+          try { installBlueServices(previous, previous.running); }
+          catch (restoreError) { throw new AggregateError([error, restoreError], "Configuration failed and service restoration failed.", { cause: error }); }
+        }
         throw error;
       }
     });
@@ -114,9 +268,75 @@ export class CjsLibrary
 CjsSchema.meta.define(CjsLibrary, {
   className: "CjsLibrary",
   fields: {},
-  methods: { Initialize: [], Shutdown: [], Fetch: [],
+  methods: { Initialize: [], Shutdown: [], Fetch: [], SetConfiguration: [], GetConfiguration: [],
     CreateOutlineHelper: [], CreateInputManager: [], CreateCameraControls: [], CreateTransformGizmo: [],
     CreateOverlay2D: [] }
 });
 
 export default CjsLibrary;
+
+/** Copies configuration containers, preserving borrowed providers and executable identities. */
+function CopyConfiguration(configuration)
+{
+  return Object.fromEntries(Object.entries(configuration).map(([section, entries]) => [section,
+    Object.fromEntries(Object.entries(entries).map(([key, value]) => [key,
+      ["paths", "resourceConstructors", "imageHandlers", "objectLoaders", "objectBuilders"].includes(section)
+        || (section === "resMan" && ["motherLode", "source", "mainThreadLoader", "workerLoader"].includes(key))
+        ? value : CopyConfigurationData(value)]))]));
+}
+
+/** Detaches plain option data; classes, functions and class instances remain references. */
+function CopyConfigurationData(value)
+{
+  if (Array.isArray(value)) return value.map(CopyConfigurationData);
+  if (value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype)
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, CopyConfigurationData(item)]));
+  return value;
+}
+
+/** Validates this bounded configuration vocabulary before invoking any owner. */
+function ValidateConfiguration(configuration)
+{
+  const plain = value => value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
+  const options = new Set(["motherLode", "cacheSize", "cacheCleanup", "autoPurgePolicy", "source", "mainThreadLoader",
+    "workerLoader", "useWorkerLoading", "maxConcurrentLoads", "maxPrepareTime", "maxPrepareItemsPerTick",
+    "autoPumpMainThreadQueue", "queueScheduler", "urgentResourceLoads"]);
+  if (!plain(configuration)) throw new TypeError("Configuration must contain named sections.");
+  for (const [section, entries] of Object.entries(configuration))
+  {
+    if (!Object.hasOwn(DefaultConfiguration, section)) throw new TypeError(`Unsupported configuration section: ${section}`);
+    if (!plain(entries)) throw new TypeError(`Configuration ${section} must contain named entries; reset is not supported.`);
+    for (const [key, value] of Object.entries(entries))
+    {
+      if (!key || ["__proto__", "prototype", "constructor"].includes(key)) throw new TypeError("Invalid configuration entry name.");
+      let valid = true;
+      if (["objectLoaders", "objectBuilders"].includes(section)) valid = typeof value === "function";
+      else if (section === "formats")
+      {
+        const Format = typeof value === "function" ? value : value?.Format;
+        valid = typeof Format === "function" && Array.isArray(Format.extensions) && Format.extensions.length > 0;
+      }
+      else if (section === "resourceTypes") valid = typeof value === "function" || typeof value?.Constructor === "function";
+      else if (section === "extensions")
+      {
+        const Handler = typeof value === "function" ? value : value?.Handler;
+        valid = typeof Handler === "function" && !!Handler.handlerMode;
+      }
+      else if (section === "imageHandlers") valid = typeof value === "function" && typeof value.checkExtension === "function";
+      else if (section === "resourceConstructors") valid = typeof value === "function" || typeof value?.GetResource === "function";
+      else if (section === "paths") valid = !!CjsSchema.cast(value, IBlueResFileSystem);
+      else if (section === "settings") valid = ["string", "boolean", "number"].includes(typeof value)
+        && (typeof value !== "number" || Number.isFinite(value));
+      else if (section === "backends") valid = plain(value);
+      else if (section === "resMan")
+      {
+        valid = options.has(key) && value !== undefined;
+        if (["cacheSize", "maxConcurrentLoads", "maxPrepareTime", "maxPrepareItemsPerTick"].includes(key))
+          valid = typeof value === "number" && Number.isFinite(value) && value >= 0 && (key !== "maxConcurrentLoads" || value > 0);
+        if (["useWorkerLoading", "autoPumpMainThreadQueue", "urgentResourceLoads"].includes(key)) valid = typeof value === "boolean";
+        if (key === "queueScheduler") valid = value === null || typeof value === "function";
+      }
+      if (!valid) throw new TypeError(`Invalid configuration entry: ${section}.${key}`);
+    }
+  }
+}
