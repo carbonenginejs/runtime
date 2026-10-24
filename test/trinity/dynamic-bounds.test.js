@@ -9,7 +9,7 @@ import {Tr2GrannyAnimation, EveShip2} from "../../npm/dist/trinity/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
 import {CjsGr2Format} from "../../npm/dist/resource/formats/gr2/index.js";
 import {CjsCmfFormat} from "../../npm/dist/resource/formats/cmf/index.js";
-import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
+import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
 import {EveSOF} from "../../npm/dist/sof/index.js";
 import {blue} from "../../npm/dist/global/blue/index.js";
 import "../../npm/dist/audio/index.js";

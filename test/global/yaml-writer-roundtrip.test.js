@@ -6,7 +6,7 @@ import { parse } from "yaml";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { YamlWriter, BeObjectMetadata, blue } from "../../npm/dist/global/blue/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "../../npm/dist/global/blue/dictionaryDeclarations.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
 import { CjsYamlFormat } from "../../npm/dist/resource/formats/yaml/index.js";
 import "../../npm/dist/trinity/index.js";

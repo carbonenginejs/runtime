@@ -20,7 +20,7 @@ import { writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { clientResources } from "../../test/support/clientResources.js";
 import { composeStubResMan } from "../../test/support/stubResMan.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import "../../npm/dist/trinity/index.js";
 import "../../npm/dist/sof/index.js";

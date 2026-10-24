@@ -6,7 +6,7 @@ import { IList } from "../../npm/dist/global/blue/IList.js";
 import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
-import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
 
 const { BELIST_UNLOADSTART, BELIST_LOADFINISHED } = BLUELISTEVENT;
 let setup, lastOwner;

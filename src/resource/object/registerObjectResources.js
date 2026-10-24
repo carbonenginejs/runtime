@@ -9,7 +9,7 @@
 // blue/src/BlueFileUtil.cpp:374-387; ours in BlueResFileSystemRemote). A source
 // standing in for that file system must do the same swap. YAML .red (authoring
 // source) is not read here, which keeps the YAML reader out of this route.
-import { CjsBlackFormat } from "../formats/black/index.js";
+import { CjsBlackFormat } from "../../global/blue/formats/black/index.js";
 
 /** The object file extensions Carbon's LoadObject reads. */
 export const ObjectResourceExtensions = Object.freeze([ "black", "red" ]);

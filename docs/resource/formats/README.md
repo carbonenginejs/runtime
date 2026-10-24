@@ -121,7 +121,7 @@ directly. See [geometry interchange](geometry-interchange.md).
 |---|---|---|
 | Resource index CSV | `CjsResFileIndexFormat` | `@carbonenginejs/runtime/resource/formats/resfileindex` |
 | ResourceGroup JSON / YAML interchange | `CjsResourceGroupFormat` | `@carbonenginejs/runtime/resource/formats/resourcegroup` |
-| Black (`.black`) | `CjsBlackFormat` | `@carbonenginejs/runtime/resource/formats/black` |
+| Black (`.black`) | `CjsBlackFormat` | `@carbonenginejs/runtime/blue/formats/black` |
 | Wwise soundbank (`.bnk`) | `CjsBnkFormat` | `@carbonenginejs/runtime/resource/formats/bnk` |
 | [BMP images](bmp.md) (`.bmp`) | `CjsBmpFormat` | `@carbonenginejs/runtime/resource/formats/bmp` |
 | CMF (`.cmf`) | `CjsCmfFormat` | `@carbonenginejs/runtime/resource/formats/cmf` |
@@ -147,7 +147,7 @@ directly. See [geometry interchange](geometry-interchange.md).
 | Python pickle (`.pickle`, protocol 0 data subset) | `CjsPickleFormat` | `@carbonenginejs/runtime/resource/formats/pickle` |
 | PNG (`.png`) | `CjsPngFormat` | `@carbonenginejs/runtime/resource/formats/png` |
 | [PSD merged images](psd.md) (`.psd`) | `CjsPsdFormat` | `@carbonenginejs/runtime/resource/formats/psd` |
-| Red (`.red`) | `CjsRedFormat` | `@carbonenginejs/runtime/resource/formats/red` |
+| Red (`.red`) | `CjsRedFormat` | `@carbonenginejs/runtime/blue/formats/red` |
 | Schema-bound containers (layout in a sibling schema) | `CjsSchemaBoundFormat` | `@carbonenginejs/runtime/resource/formats/schemabound` |
 | SQLite 3 (`.sqlite`/`.db`) | `CjsSqliteFormat` | `@carbonenginejs/runtime/resource/formats/sqlite` |
 | Client static data (`.static`, identification) | `CjsStaticFormat` | `@carbonenginejs/runtime/resource/formats/static` |
@@ -167,3 +167,11 @@ Byte-level specifications that span several modules:
 recorded in `format-notices/`.
 
 The resource-index CSV, ResourceGroup YAML and their JSON persistence are specified in [resource-index formats](resource-index.md).
+
+## Blue object formats
+
+Black, Red, Graph and GraphBinary belong to Blue. Import their individual
+`@carbonenginejs/runtime/blue/formats/black`, `/red`, `/graph` or `/graphbinary`
+subpaths. Their former `resource/formats` exports are removed. These readers
+do not import Trinity; callers supply the class registrations needed for
+object hydration. Plain-data output remains available where the format supports it.

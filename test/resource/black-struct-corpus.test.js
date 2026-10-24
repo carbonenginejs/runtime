@@ -5,8 +5,8 @@ import { createHash } from "node:crypto";
 import { join } from "node:path";
 import "../../npm/dist/trinity/index.js";
 import "../../npm/dist/sof/index.js";
-import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
-import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/core/CjsBlackPropertyReaders.js";
+import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackPropertyReaders } from "../../npm/dist/global/blue/formats/black/core/CjsBlackPropertyReaders.js";
 
 // Existing build3503375 cache assets; no game bytes are committed. This covers
 // six nonempty struct families. The cached3503375/3542233 corpus contains no

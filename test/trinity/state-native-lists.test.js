@@ -9,7 +9,7 @@ import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
 import { ExecuteMainThreadActions } from "../../npm/dist/trinity/core/continueOnMainThread.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";

@@ -5,7 +5,7 @@ import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import {createHash} from "node:crypto";
 import {blue} from "../../npm/dist/global/blue/index.js";
-import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
+import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
 import {Tr2ParticleSystem,Tr2ParticleElementDeclaration,Tr2GpuSharedEmitter,Tr2GpuUniqueEmitter,
   ITr2GenericEmitterUpdateArguments,EveChildContainer,Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/index.js";
 import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";

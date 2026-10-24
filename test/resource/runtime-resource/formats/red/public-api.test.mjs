@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import CjsRedFormat, * as entry from "../../../../../npm/dist/resource/formats/red/index.js";
+import CjsRedFormat, * as entry from "../../../../../npm/dist/global/blue/formats/red/index.js";
 import { CjsFormat } from "../../../../../npm/dist/resource/format/CjsFormat.js";
 import { CjsSchema } from "../../../../../npm/dist/global/schema/index.js";
 import { YamlReader } from "../../../../../npm/dist/global/blue/YamlReader.js";

@@ -113,6 +113,6 @@ export class CjsGraphFormat extends CjsFormat
         catch { return false; }
     }
 }
-import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsFormat } from "../../../../resource/format/CjsFormat.js";
 
 CjsSchema.meta.define("CjsGraphFormat")(CjsGraphFormat);

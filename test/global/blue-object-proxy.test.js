@@ -233,7 +233,7 @@ test("CcpTime.timeFromDouble scales whole and fractional seconds separately (Ccp
 
 test("CjsBlackReader is an IBlueObjectBuilder, as Carbon's BlackReader is (BlackReader.h:16-19)", async () =>
 {
-  const { CjsBlackReader } = await import("../../src/resource/formats/black/core/CjsBlackReader.js");
+  const { CjsBlackReader } = await import("../../src/global/blue/formats/black/core/CjsBlackReader.js");
   const reader = Object.create(CjsBlackReader.prototype);
   assert.equal(CjsSchema.cast(reader, IBlueObjectBuilder), reader);
   // The interface's empty bodies (IBlueObjectBuilder.h:19-22); the proxy calls them directly.

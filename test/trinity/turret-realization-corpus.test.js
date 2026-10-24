@@ -12,7 +12,7 @@ import "../../npm/dist/sof/index.js"; // data.black hydrates EveSOFData classes.
 import test from "node:test";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 import { TriGeometryResSkeletonData } from "../../npm/dist/trinity/resources/geometry/TriGeometryResSkeletonData.js";
 import { EveShip2, EveLocator2, EveTurretSet, EveTurretAiming, EveTurretFiringFX, EveComponentRegistry, Tr2RenderContext, Tr2RingBuffer, TriDevice, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";

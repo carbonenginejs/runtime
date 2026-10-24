@@ -1,7 +1,7 @@
 import { CjsSchema } from "#schema/CjsSchema";
-import { DictReader } from "../../global/blue/DictReader.js";
-import { ICustomPersist } from "../../global/blue/ICustomPersist.js";
-import { readDictionaryValue } from "../../global/blue/dictionaryDeclarations.js";
+import { DictReader } from "./DictReader.js";
+import { ICustomPersist } from "./ICustomPersist.js";
+import { readDictionaryValue } from "./dictionaryDeclarations.js";
 import { resolveHydrationAdapter } from "#schema/hydration";
 import {
     CARBON_TYPE,
@@ -9,7 +9,7 @@ import {
     normalizeCarbonValue
 } from "#schema/types";
 
-import { CjsReader } from "./CjsReader.js";
+import { CjsReader } from "../../resource/format/CjsReader.js";
 
 /**
  * Shared output and hydration backend for Blue persistence readers.

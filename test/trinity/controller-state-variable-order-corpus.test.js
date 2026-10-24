@@ -22,7 +22,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import "../../npm/dist/audio/index.js";
 import { ExecuteMainThreadActions, Tr2ControllerExpression } from "../../npm/dist/trinity/index.js";
 import { StubResMan } from "../support/stubResMan.js";

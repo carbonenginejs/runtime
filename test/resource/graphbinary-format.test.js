@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsGraphBinaryFormat as Format, opaqueBytes } from "../../src/resource/formats/graphbinary/index.js";
+import { CjsGraphBinaryFormat as Format, opaqueBytes } from "../../src/global/blue/formats/graphbinary/index.js";
 import { fixtures } from "./graph-fixtures.js";
 
 const { Node } = fixtures("GraphBinary");

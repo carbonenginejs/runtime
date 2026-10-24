@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
 import { normalizeCarbonValue, coerceCarbonMathInto } from "../../src/global/schema/types/carbonTypes.js";
-import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsBlackSchemaRegistry } from "../../src/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 
 test("math values compare at the declared storage precision before reporting a change", () =>
 {

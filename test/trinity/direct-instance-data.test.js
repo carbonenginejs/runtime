@@ -7,7 +7,7 @@ import { Tr2DirectInstanceData, Tr2InstancedMesh, Tr2EffectStateManager, Tr2Vert
   Tr2RenderContext_GetMainThreadRenderContext, TriDevice, EveShip2, ITr2InstanceData } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub, ALResult } from "../../npm/dist/trinityal/index.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 import "../../npm/dist/audio/index.js";
 import { clientResources } from "../support/clientResources.js";

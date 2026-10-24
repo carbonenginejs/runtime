@@ -1,6 +1,6 @@
 import { CjsSchema, meta } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
-import { CjsBlackFormat } from "#resource/formats/black";
+import { CjsBlackFormat } from "#blue/formats/black";
 import { EveSOFData } from "./EveSOFData.js";
 import * as CcpLog from "../global/logging/ccpLog.js";
 

@@ -5,7 +5,7 @@ import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema, type, blue } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
 import { EveBoosterSet2, EveEntity, EveMobile, EveShip2, EveSpaceObject2, TriDevice, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 import { ITr2ShLightingReceiver } from "../../npm/dist/trinity/core/lighting/ITr2ShLightingReceiver.js";
 import { ITr2SecondaryLightSource } from "../../npm/dist/trinity/core/lighting/ITr2SecondaryLightSource.js";

@@ -13,7 +13,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { TriBatchType } from "#consts/graphics";
-import { CjsBlackFormat } from "#resource/formats/black";
+import { CjsBlackFormat } from "#blue/formats/black";
 import { EveSOFDataHullDecalSetItem } from "./hull/EveSOFDataHullDecalSetItem.js";
 import { EveSOFDataHullBanner } from "./hull/EveSOFDataHullBanner.js";
 import { EveSOFDataHullBannerSetItem } from "./hull/EveSOFDataHullBannerSetItem.js";

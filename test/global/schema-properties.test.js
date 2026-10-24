@@ -9,8 +9,8 @@ import { blue } from "../../src/global/blue/index.js";
 import { DictReader } from "../../src/global/blue/DictReader.js";
 import { INotify } from "../../src/global/blue/INotify.js";
 import { DictWriter } from "../../src/global/blue/DictWriter.js";
-import { CjsBlackReader } from "../../src/resource/formats/black/core/CjsBlackReader.js";
-import { CjsGraphFormat } from "../../src/resource/formats/graph/index.js";
+import { CjsBlackReader } from "../../src/global/blue/formats/black/core/CjsBlackReader.js";
+import { CjsGraphFormat } from "../../src/global/blue/formats/graph/index.js";
 import { YamlReader } from "../../src/global/blue/YamlReader.js";
 
 /** BlueTypes.h EDITFLAGS: READ 0x1, WRITE 0x2, PERSIST 0x10. */

@@ -1,4 +1,4 @@
-import { toJsonAcyclic } from "../../../format/jsonPolicies.js";
+import { toJsonAcyclic } from "../../../../../resource/format/jsonPolicies.js";
 
 export const OUTPUT_JSON = "json";
 export const OUTPUT_PAYLOAD = "payload";

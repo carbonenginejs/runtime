@@ -9,7 +9,7 @@ import {blue} from "../../npm/dist/global/blue/index.js";
 import {mat4} from "../../npm/dist/global/math/mat4.js";
 import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
-import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
+import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
 import {Tr2InstancedMesh,Tr2RuntimeInstanceData,Tr2MeshArea,Tr2ParticleSystem,Tr2ParticleElementDeclaration,Tr2EffectStateManager,
   TriDevice,EveChildParticleSystem,EveChildContainer,EveShip2,EveUpdateContext,ExecuteMainThreadActions,
   Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/index.js";

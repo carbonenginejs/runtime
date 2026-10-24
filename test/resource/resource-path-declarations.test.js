@@ -3,10 +3,10 @@ import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2Mesh, Tr2ActionSetValue } from "../../npm/dist/trinity/index.js";
 import { EveSOFDataTexture } from "../../npm/dist/sof/index.js";
-import { CjsBlueReader } from "../../src/resource/format/CjsBlueReader.js";
-import { CjsBlackBinaryReader } from "../../src/resource/formats/black/core/CjsBlackBinaryReader.js";
-import { CjsBlackPropertyReaders } from "../../src/resource/formats/black/core/CjsBlackPropertyReaders.js";
-import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsBlueReader } from "../../src/global/blue/CjsBlueReader.js";
+import { CjsBlackBinaryReader } from "../../src/global/blue/formats/black/core/CjsBlackBinaryReader.js";
+import { CjsBlackPropertyReaders } from "../../src/global/blue/formats/black/core/CjsBlackPropertyReaders.js";
+import { CjsBlackSchemaRegistry } from "../../src/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 
 function readField(Type, name, value, pathHandler)
 {

@@ -6,8 +6,8 @@ import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { carbonInterfaceDecorator } from "../../src/global/compose/interface.js";
 import { IInitialize } from "../../src/global/blue/IInitialize.js";
 import { INotify } from "../../src/global/blue/INotify.js";
-import { CjsBlackReader } from "../../src/resource/formats/black/core/CjsBlackReader.js";
-import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsBlackReader } from "../../src/global/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackSchemaRegistry } from "../../src/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 
 const member = (name, kind, extra = {}) => ({
     name, key: name, role: "member", type: { kind }, edit: { persist: true }, ...extra

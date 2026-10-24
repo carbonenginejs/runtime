@@ -1,7 +1,7 @@
 # Graph formats
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime/resource/formats/graph` and `graphbinary`, v1
+Scope: `@carbonenginejs/runtime/blue/formats/graph` and `graphbinary`, v1
 Audience: Users and integrators
 Summary: Encoding, identity, selection and failure rules for the graph formats.
 
@@ -11,8 +11,8 @@ Both implement `CjsFormat`; importing either registers nothing. Neither claims
 any file extension in v1, including `.json`.
 
 ```js
-import { CjsGraphFormat } from "@carbonenginejs/runtime/resource/formats/graph";
-import { CjsGraphBinaryFormat } from "@carbonenginejs/runtime/resource/formats/graphbinary";
+import { CjsGraphFormat } from "@carbonenginejs/runtime/blue/formats/graph";
+import { CjsGraphBinaryFormat } from "@carbonenginejs/runtime/blue/formats/graphbinary";
 
 const authored = {
     _type: "ExampleScene",
@@ -84,7 +84,7 @@ values are rejected in both formats.
 Custom types require an explicit handler pair in each operation/profile:
 
 ```js
-import { opaqueBytes } from "@carbonenginejs/runtime/resource/formats/graph";
+import { opaqueBytes } from "@carbonenginejs/runtime/blue/formats/graph";
 const options = { customHandlers: { state: opaqueBytes("state") } };
 const saved = CjsGraphFormat.write(instance, options);
 const loaded = CjsGraphFormat.read(saved, { ...options, emit: "runtime" });

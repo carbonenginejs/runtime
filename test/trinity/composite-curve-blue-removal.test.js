@@ -8,7 +8,7 @@ import { blue, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLen
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
 import { Tr2CurveVector2 } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector2.js";
 import { Tr2CurveVector3 } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector3.js";
 import { Tr2CurveColor } from "../../npm/dist/trinity/curves/curve/Tr2CurveColor.js";

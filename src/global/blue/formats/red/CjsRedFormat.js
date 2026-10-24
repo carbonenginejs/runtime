@@ -1,7 +1,7 @@
 import { parseDocument, isMap, isScalar } from "yaml";
 import { CjsSchema } from "#schema/CjsSchema";
-import { YamlReader } from "../../../global/blue/YamlReader.js";
-import { CjsFormat } from "../../format/CjsFormat.js";
+import { YamlReader } from "../../YamlReader.js";
+import { CjsFormat } from "../../../../resource/format/CjsFormat.js";
 
 /**
  * Resource adapter for Carbon's YamlReader.

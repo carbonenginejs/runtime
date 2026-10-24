@@ -6,7 +6,7 @@ import { Copier } from "../../npm/dist/global/blue/index.js";
 import { DictReader, CreateAnchorTable } from "../../npm/dist/global/blue/DictReader.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
-import { CjsBlackSchemaRegistry } from "../../npm/dist/resource/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsBlackSchemaRegistry } from "../../npm/dist/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 import "../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 

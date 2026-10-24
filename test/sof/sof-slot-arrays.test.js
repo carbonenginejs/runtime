@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { DictReader, DictWriter } from "../../npm/dist/global/blue/index.js";
-import { CjsGraphFormat } from "../../npm/dist/resource/formats/graph/index.js";
+import { CjsGraphFormat } from "../../npm/dist/global/blue/formats/graph/index.js";
 import { EveSOFDataArea } from "../../npm/dist/sof/shared/EveSOFDataArea.js";
 import { EveSOFDataAreaMaterial } from "../../npm/dist/sof/shared/EveSOFDataAreaMaterial.js";
 import { EveSOFDataLogoSet } from "../../npm/dist/sof/shared/EveSOFDataLogoSet.js";

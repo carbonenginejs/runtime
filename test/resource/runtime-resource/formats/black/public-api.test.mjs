@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import "../../../../../npm/dist/global/blue/values.js";
 import { CjsSchema } from "../../../../../npm/dist/global/schema/CjsSchema.js";
 
-import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/resource/formats/black/index.js";
+import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/global/blue/formats/black/index.js";
 
 /** A reader payload: a null-prototype data dictionary. */
 const bag = values => Object.assign(Object.create(null), values);
@@ -50,7 +50,7 @@ const sampleSchema = {
 
 test("package root exports one public class", async () =>
 {
-    const mod = await import("../../../../../npm/dist/resource/formats/black/index.js");
+    const mod = await import("../../../../../npm/dist/global/blue/formats/black/index.js");
 
     assert.deepEqual(Object.keys(mod).sort(), [ "CjsBlackFormat", "default" ]);
     assert.equal(mod.default, CjsBlackFormat);

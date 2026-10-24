@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsStorage, CjsStorageFormatCodec } from "../../../npm/dist/resource/storage/index.js";
-import { CjsGraphFormat } from "../../../npm/dist/resource/formats/graph/index.js";
-import { CjsGraphBinaryFormat } from "../../../npm/dist/resource/formats/graphbinary/index.js";
+import { CjsGraphFormat } from "../../../npm/dist/global/blue/formats/graph/index.js";
+import { CjsGraphBinaryFormat } from "../../../npm/dist/global/blue/formats/graphbinary/index.js";
 
 for (const format of [CjsGraphFormat, CjsGraphBinaryFormat])
 {

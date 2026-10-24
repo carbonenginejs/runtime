@@ -1,6 +1,6 @@
 import { CjsSchema } from "#schema/CjsSchema";
 
-import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsFormat } from "../../../../resource/format/CjsFormat.js";
 import { CLASS_KEYS } from "./core/schema.js";
 import {
     DEFAULT_VALUES,

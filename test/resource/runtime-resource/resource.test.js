@@ -9,8 +9,8 @@ import {
 import { CjsSchema, blue } from "../../../npm/dist/global/schema/index.js";
 import { ICacheable } from "../../../npm/dist/global/blue/index.js";
 import * as runtimeResource from "../../../npm/dist/resource/index.js";
-import { CjsBlackFormat } from "../../../npm/dist/resource/formats/black/index.js";
-import { CjsRedFormat } from "../../../npm/dist/resource/formats/red/index.js";
+import { CjsBlackFormat } from "../../../npm/dist/global/blue/formats/black/index.js";
+import { CjsRedFormat } from "../../../npm/dist/global/blue/formats/red/index.js";
 import { CjsEventEmitter, Tr2ImageRes, TriGeometryRes, TriTextureRes, CjsMotherLode, CjsLoadingObject, CjsBlueResMan, CjsResource, CjsResourceProbe, ResourceHandlerMode, Tr2GrannyStateRes, Tr2LightProfileRes, TriGrannyRes, getMotherLodeKey } from "../../../npm/dist/resource/index.js";
 import { Tr2EffectRes, Tr2MaterialRes } from "../../../npm/dist/trinity/shader/index.js";
 import { LoadData } from "../../support/loadData.js";

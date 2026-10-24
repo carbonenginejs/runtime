@@ -2308,7 +2308,7 @@ test("runtime-SOF async boundary introduces no engine or format-layer imports", 
   }
   // The Black format reader is the sole sanctioned resource edge. Resource
   // management, Trinity, audio, and engine layers remain outside SOF.
-  const allowed = new Set(["#resource/formats/black"]);
+  const allowed = new Set(["#blue/formats/black"]);
   const forbidden = /(?:^#(?:resource|trinity|audio|engine)(?:\/|$))|(?:^|[/@_-])(?:engine|runtime-(?:engine|trinity|resource|audio)|webgl|webgpu|shader-format|format-shader|dxbc|hlsl)(?:$|[/_-])/iu;
   assert.deepEqual(specifiers.filter(specifier => forbidden.test(specifier) && !allowed.has(specifier)), []);
   assert.doesNotMatch(importDeclarations.join("\n"), /\b(?:CjsLibrary|CjsBlueResMan)\b/u);

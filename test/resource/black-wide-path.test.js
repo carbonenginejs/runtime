@@ -4,8 +4,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { CjsBlackSchemaRegistry } from "../../npm/dist/resource/formats/black/core/CjsBlackSchemaRegistry.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
+import { CjsBlackSchemaRegistry } from "../../npm/dist/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
 import { EveSOFDataHullLightSetTexturedPointLight } from "../../npm/dist/sof/index.js";
 import { clientResources } from "../support/clientResources.js";
 

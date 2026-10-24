@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
 import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
 import "../../npm/dist/global/blue/values.js";
-import { CjsGraphFormat } from "../../npm/dist/resource/formats/graph/CjsGraphFormat.js";
+import { CjsGraphFormat } from "../../npm/dist/global/blue/formats/graph/CjsGraphFormat.js";
 import { EveVirtualCameraBehaviourVector3Damping } from "../../npm/dist/trinity/index.js";
 import { TriStepToggleCubemap } from "../../npm/dist/trinity/renderJob/index.js";
 

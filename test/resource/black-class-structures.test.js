@@ -1,13 +1,13 @@
 // Struct-list layouts derived from the runtime's decorated classes
-// (resource/formats/black/core/blackClassStructures.js).
+// (global/blue/formats/black/core/blackClassStructures.js).
 import assert from "node:assert/strict";
 import test from "node:test";
 
 import "../../npm/dist/trinity/index.js";
 import "../../npm/dist/sof/index.js";
-import { classStructureLayout } from "../../npm/dist/resource/formats/black/core/blackClassStructures.js";
-import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/core/CjsBlackPropertyReaders.js";
-import { CjsBlackBinaryReader } from "../../npm/dist/resource/formats/black/core/CjsBlackBinaryReader.js";
+import { classStructureLayout } from "../../npm/dist/global/blue/formats/black/core/blackClassStructures.js";
+import { CjsBlackPropertyReaders } from "../../npm/dist/global/blue/formats/black/core/CjsBlackPropertyReaders.js";
+import { CjsBlackBinaryReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackBinaryReader.js";
 
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
 import { type } from "../../npm/dist/global/schema/index.js";

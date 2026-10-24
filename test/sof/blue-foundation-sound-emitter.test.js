@@ -4,7 +4,7 @@ import test from "node:test";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
 import { EveSOFDataHullSoundEmitter } from "../../npm/dist/sof/hull/EveSOFDataHullSoundEmitter.js";
 
 const members = [ "name", "prefix", "position", "rotation", "attenuationScalingFactor" ];

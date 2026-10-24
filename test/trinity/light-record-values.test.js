@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { LightData, EveBannerLight, EveHazeSetLight, EvePlaneLight, EveSpotlightLight, EveSpriteLight } from "../../npm/dist/trinity/index.js";
 import { clientResources } from "../support/clientResources.js";
 

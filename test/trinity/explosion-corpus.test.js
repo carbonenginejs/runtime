@@ -7,7 +7,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveChildContainer, EveChildExplosion, EveComponentRegistry, EveUpdateContext, Tr2QuadRenderer } from "../../npm/dist/trinity/index.js";

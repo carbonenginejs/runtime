@@ -7,7 +7,7 @@ import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
+import { CjsBlackReader } from "../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
 import { EveBoosterSet2, EveComponentRegistry, EveComponentType, EveShip2, TriDevice, Tr2Renderer } from "../../npm/dist/trinity/index.js";
 
 test("EveShip2 preserves distinct native stored and live booster declarations", () =>

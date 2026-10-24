@@ -1,10 +1,10 @@
 // Our graph grammar; no Carbon reader/writer or values-transport implementation is reused.
-import { CjsSchema } from "../../../../global/schema/CjsSchema.js";
+import { CjsSchema } from "../../../../schema/CjsSchema.js";
 // These leaves hold canonical schema registrations and schema-installed interface declarations.
-import { getClassRegistration } from "../../../../global/blue/classes/registry.js";
-import { mappedInterfaces } from "../../../../global/compose/interface.js";
+import { getClassRegistration } from "../../../classes/registry.js";
+import { mappedInterfaces } from "../../../../compose/interface.js";
 // Object metadata lives in Blue's table, not on the object (BlueObjectMetadata.cpp:8).
-import { BeObjectMetadata } from "../../../../global/blue/BlueObjectMetadata.js";
+import { BeObjectMetadata } from "../../../BlueObjectMetadata.js";
 import { dataType, isRecord, memberPath, put } from "./dataTypes.js";
 
 const RESERVED = new Set(["_type", "_id", "_ref", "__bluemetadata__"]);

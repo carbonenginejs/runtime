@@ -8,7 +8,7 @@ import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { CjsSchema, meta, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
-import { CjsBlueReader } from "../../npm/dist/resource/format/CjsBlueReader.js";
+import { CjsBlueReader } from "../../npm/dist/global/blue/CjsBlueReader.js";
 import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
 import "../../npm/dist/global/blue/values.js";
 

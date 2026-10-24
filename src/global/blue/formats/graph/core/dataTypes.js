@@ -1,4 +1,4 @@
-import { CARBON_TYPE } from "../../../../global/schema/types/carbonTypes.js";
+import { CARBON_TYPE } from "../../../../schema/types/carbonTypes.js";
 
 /**
  * A resolved or declared graph data type. `kind` names the storage handler; the other fields apply to the

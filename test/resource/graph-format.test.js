@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsGraphFormat as Format, opaqueBytes } from "../../src/resource/formats/graph/index.js";
+import { CjsGraphFormat as Format, opaqueBytes } from "../../src/global/blue/formats/graph/index.js";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { registerClass } from "../../src/global/blue/classes/registry.js";
 import { fixtures } from "./graph-fixtures.js";

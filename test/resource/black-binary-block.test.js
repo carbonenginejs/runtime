@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { Copier, ICustomPersist } from "../../npm/dist/global/blue/index.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { YamlReader } from "../../npm/dist/global/blue/YamlReader.js";
 import "../../npm/dist/global/blue/values.js";
 import { EveSOFDataDecalIndexBuffer } from "../../npm/dist/sof/index.js";

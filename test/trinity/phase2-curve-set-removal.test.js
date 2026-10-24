@@ -24,7 +24,7 @@ import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
 import { Tr2CurveSetRange } from "../../npm/dist/trinity/curves/Tr2CurveSetRange.js";
 import { EveShip2 } from "../../npm/dist/trinity/eve/spaceObject/EveShip2.js";
 import { EveMeshOverlayEffect } from "../../npm/dist/trinity/eve/overlays/EveMeshOverlayEffect.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 
 class SampleFunction extends ITriFunction

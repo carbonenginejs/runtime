@@ -75,8 +75,10 @@ function closure(entry)
 
 const shown = file => relative(SOURCE, file).split(sep).join("/");
 
-const formats = readdirSync(join(SOURCE, "resource/formats"))
-  .filter(name => existsSync(join(SOURCE, "resource/formats", name, "index.js")));
+const formats = [ "resource/formats", "global/blue/formats" ].flatMap(folder =>
+  readdirSync(join(SOURCE, folder))
+    .filter(name => existsSync(join(SOURCE, folder, name, "index.js")))
+    .map(name => `${folder}/${name}`));
 
 test("every format is importable without the engine or a library barrel", () =>
 {
@@ -84,7 +86,7 @@ test("every format is importable without the engine or a library barrel", () =>
   const failures = [];
   for (const name of formats)
   {
-    for (const [ file, parent ] of closure(join(SOURCE, "resource/formats", name, "index.js")))
+    for (const [ file, parent ] of closure(join(SOURCE, name, "index.js")))
     {
       const path = shown(file);
       const tree = path.split("/")[0];

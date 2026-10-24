@@ -8,7 +8,7 @@ import test from "node:test";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { num } from "../../npm/dist/global/math/num.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../npm/dist/global/blue/formats/black/index.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { EveShip2, EveUpdateContext } from "../../npm/dist/trinity/index.js";
 import { Tr2Lod } from "../../npm/dist/global/consts/trinity.js";

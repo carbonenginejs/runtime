@@ -3,9 +3,9 @@ import test from "node:test";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { type } from "../../src/global/schema/index.js";
 import { Copier } from "../../src/global/blue/Copier.js";
-import { CjsBlackReader } from "../../src/resource/formats/black/core/CjsBlackReader.js";
-import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
-import { classStructureLayout } from "../../src/resource/formats/black/core/blackClassStructures.js";
+import { CjsBlackReader } from "../../src/global/blue/formats/black/core/CjsBlackReader.js";
+import { CjsBlackSchemaRegistry } from "../../src/global/blue/formats/black/core/CjsBlackSchemaRegistry.js";
+import { classStructureLayout } from "../../src/global/blue/formats/black/core/blackClassStructures.js";
 
 
 const member = (name, kind, extra = {}) => ({

@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import {createHash} from "node:crypto";
-import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
+import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 import { EveEffectRoot2, EvePlanet, IEveSpaceObject2ParentData, LightData, EveSpaceObject2, EveSpaceScene, Tr2PointLight, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";

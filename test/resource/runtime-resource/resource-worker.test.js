@@ -398,7 +398,7 @@ test("CjsBlueResMan sends worker-safe reads off the main queue and publishes on 
 
 test("Black, BNK, and WEM format facades declare worker module identities", async () => {
   const [{ CjsBlackFormat }, { CjsBnkFormat }, { CjsWemFormat }] = await Promise.all([
-    import("../../../npm/dist/resource/formats/black/index.js"),
+    import("../../../npm/dist/global/blue/formats/black/index.js"),
     import("../../../npm/dist/resource/formats/bnk/index.js"),
     import("../../../npm/dist/resource/formats/wem/index.js")
   ]);

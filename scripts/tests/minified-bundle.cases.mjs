@@ -9,7 +9,7 @@ import * as runtime from "../../npm/dist/carbonenginejs.min.js";
 // minified test builds only to decode bytes. The SHIPPED DictReader performs
 // Black class construction and field population using its own declarations.
 // Red uses the shipped YamlReader and the values service's DictWriter.
-import { CjsBlackFormat } from "../../.cache/minified-test/dist/resource/formats/black/index.js";
+import { CjsBlackFormat } from "../../.cache/minified-test/dist/global/blue/formats/black/index.js";
 
 async function fixture(variable)
 {

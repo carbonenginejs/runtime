@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CjsSchema} from "../../npm/dist/global/schema/index.js";
 import {BehaviorGroup,EveChildBehaviorSystem,EveUpdateContext,TriDevice} from "../../npm/dist/trinity/index.js";
-import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
+import {CjsBlackFormat} from "../../npm/dist/global/blue/formats/black/index.js";
 
 // Carbon EveUpdateContext.h:51-58 converts 100ns ticks to seconds;
 // BehaviorGroup.cpp:524,600-620 clamps dt and integrates acceleration/velocity.
