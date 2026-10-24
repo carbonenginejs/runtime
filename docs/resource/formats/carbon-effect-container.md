@@ -54,9 +54,7 @@ retains bytes and caches runtime `Tr2Shader` instances. Its decoding delegates
 to this same format. Compiler output and WebGPU/WebGL packaging use the shared
 writer; backend block encoders and program translation remain separate.
 
-The historical `CjsHlslFormat` export aliases this class. Its JSON/metadata
-projections are preserved, but its internal raw output is now the reader,
-not a `Tr2EffectRes`. Advanced `readEffectAnalysis` returns `reader`, `header`,
+Its internal raw output is the reader, not a `Tr2EffectRes`. Advanced `readEffectAnalysis` returns `reader`, `header`,
 `selection`, `effectDescription` and `bindingManifest`; it no longer returns a
 runtime resource or shader. Use `readDescription` for additional bodies.
 

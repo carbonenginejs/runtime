@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { CjsCarbonEffectFormat } from "../../../../../src/resource/formats/carbonEffect/index.js";
-import { readEffectAnalysis } from "../../../../../src/resource/formats/hlsl/core/analysis.js";
+import { readEffectAnalysis } from "../../../../../src/resource/formats/carbonEffect/core/analysis.js";
 import { buildEffectBytes } from "./synthetic.js";
 
 test("static read and instance Read share one code path", () =>

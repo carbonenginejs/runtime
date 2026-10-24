@@ -2,7 +2,6 @@ import { writeBackendBlock } from "../../../../../src/resource/format/carbonEffe
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCarbonEffectFormat } from "../../../../../src/resource/formats/carbonEffect/index.js";
-import { CjsHlslFormat } from "../../../../../src/resource/formats/hlsl/index.js";
 import { CjsCarbonEffectReader } from "../../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { CjsCarbonEffectWriter } from "../../../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { buildSyntheticDescription } from "../../format/carbonEffectSynthetic.js";
@@ -51,9 +50,8 @@ for (const backend of [false, true])
     });
 }
 
-test("historical HLSL format name is an alias, not a second implementation", () =>
+test("the compiled effect format registers under its class name", () =>
 {
-    assert.equal(CjsHlslFormat, CjsCarbonEffectFormat);
     assert.equal(CjsCarbonEffectFormat.className, "CjsCarbonEffectFormat");
 });
 

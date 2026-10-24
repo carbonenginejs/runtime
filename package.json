@@ -85,7 +85,6 @@
     "./resource/formats/ies": "./src/resource/formats/ies/index.js",
     "./resource/formats/dxbc": "./src/resource/formats/dxbc/index.js",
     "./resource/formats/carbonEffect": "./src/resource/formats/carbonEffect/index.js",
-    "./resource/formats/hlsl": "./src/resource/formats/hlsl/index.js",
     "./resource/formats/webgl": "./src/resource/formats/webgl/index.js",
     "./resource/formats/webgpu": "./src/resource/formats/webgpu/index.js",
     "./resource/formats/fbx": "./src/resource/formats/fbx/index.js",

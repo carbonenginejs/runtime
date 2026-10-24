@@ -2,7 +2,7 @@ import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { EveChildContainer, EveChildInstanceContainer, EveChildUpdateParams, EveChildModifierAttachToBone, EveUpdateContext, Tr2Lod } from "../../npm/dist/trinity/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
-import { CjsHlslFormat } from "../../npm/dist/resource/formats/hlsl/CjsHlslFormat.js";
+import { CjsCarbonEffectFormat } from "../../npm/dist/resource/formats/carbonEffect/CjsCarbonEffectFormat.js";
 import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/internal.js";
 import assert from "node:assert/strict";
@@ -448,7 +448,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   assert.ok(TriDevice.GetResourcesRegistered().includes(set),"native Tr2DeviceResource base registration");
   const bytes=await client.Read("res:/graphics/effect.dx11/managed/space/turret/v5/quadv5.sm_depth");
   assert.equal(createHash("md5").update(bytes).digest("hex"),"352fc276516262e229648fa98310bb17");
-  const metadata=CjsHlslFormat.read(bytes,{emit:"metadata",source:"quadv5.sm_depth",permutation:[{name:"SPACE_OBJECT_CLIPPING",value:"SOC_DISABLED"},{name:"V5_DEBUG",value:"OFF"}]});
+  const metadata=CjsCarbonEffectFormat.read(bytes,{emit:"metadata",source:"quadv5.sm_depth",permutation:[{name:"SPACE_OBJECT_CLIPPING",value:"SOC_DISABLED"},{name:"V5_DEBUG",value:"OFF"}]});
   const inputs=metadata.effect.techniques.find(item=>item.name==="Main").passes[0].stageInputs.find(item=>item?.stageName==="vertex").signature.pipelineInputs;
   const idInput=inputs.find(item=>item.usage===5&&item.usageIndex===2);
   assert.equal(idInput.registerIndex,5);assert.equal(idInput.usedMask,1);

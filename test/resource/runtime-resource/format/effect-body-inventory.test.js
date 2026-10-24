@@ -2,7 +2,7 @@ import { effectHeader } from "../../../../src/resource/format/effect/effectHeade
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { CjsHlslFormat } from "../../../../src/resource/formats/hlsl/index.js";
+import { CjsCarbonEffectFormat } from "../../../../src/resource/formats/carbonEffect/index.js";
 import { enumerateUniqueEffectBodies } from "../../../../src/resource/format/effect/effectBodyInventory.js";
 import {
     buildEffectBytes,
@@ -24,7 +24,7 @@ import {
 test("body inventory deduplicates exact aliases before decoding", () =>
 {
     const bytes = buildPortableReflectionEffectBytes();
-    const effectRes = CjsHlslFormat.read(bytes, {
+    const effectRes = CjsCarbonEffectFormat.read(bytes, {
         emit: "raw",
         source: "inventory.sm_depth"
     });
@@ -58,14 +58,14 @@ test("body inventory deduplicates exact aliases before decoding", () =>
     const distinctBytes = Uint8Array.from(bytes);
     distinctBytes[header.records[1].offset + header.records[1].size - 1]
         ^= 0xff;
-    const distinct = CjsHlslFormat.read(distinctBytes, {
+    const distinct = CjsCarbonEffectFormat.read(distinctBytes, {
         emit: "raw"
     });
     assert.equal(enumerateUniqueEffectBodies(effectHeader(distinct)).length, 2);
 
     assert.throws(
         () => enumerateUniqueEffectBodies(
-            effectHeader(CjsHlslFormat.read(buildEffectBytes({ version: 8 }), {
+            effectHeader(CjsCarbonEffectFormat.read(buildEffectBytes({ version: 8 }), {
                 emit: "raw"
             }))
         ),

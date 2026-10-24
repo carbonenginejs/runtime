@@ -127,7 +127,7 @@ directly. See [geometry interchange](geometry-interchange.md).
 | CMF (`.cmf`) | `CjsCmfFormat` | `@carbonenginejs/runtime/resource/formats/cmf` |
 | DDS (`.dds`) | `CjsDdsFormat` | `@carbonenginejs/runtime/resource/formats/dds` |
 | DXBC (shader bytecode) | `CjsDxbcFormat` | `@carbonenginejs/runtime/resource/formats/dxbc` |
-| Compiled effect (`.sm_hi`, `.sm_lo`, `.sm_depth`) | `CjsHlslFormat` | `@carbonenginejs/runtime/resource/formats/hlsl` |
+| Compiled effect (`.sm_hi`, `.sm_lo`, `.sm_depth`) | `CjsCarbonEffectFormat` | `@carbonenginejs/runtime/resource/formats/carbonEffect` |
 | Carbon WebGL effect package | `CjsWebglFormat` | `@carbonenginejs/runtime/resource/formats/webgl` |
 | Carbon WebGPU effect package (`.carbonwebgpu`) | `CjsWebgpuFormat` | `@carbonenginejs/runtime/resource/formats/webgpu` |
 | FBX (`.fbx`) | `CjsFbxFormat` | `@carbonenginejs/runtime/resource/formats/fbx` |
