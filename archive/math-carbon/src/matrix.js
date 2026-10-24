@@ -1,7 +1,7 @@
 import { quaternion } from "./quaternion.js";
 
 /**
- * Carbon Matrix, ported literally from math
+ * Carbon Matrix algorithms with allocation-free hot-path implementations from math
  * (Matrix.h, Matrix_inline.h, src\Matrix.cpp).
  *
  * Storage is a plain Float32Array of 16 floats in Carbon's row-major order:
@@ -9,7 +9,7 @@ import { quaternion } from "./quaternion.js";
  * rows X/Y/Z are [0..2]/[4..6]/[8..10] and translation _41 _42 _43 is
  * [12..14]. This is byte-identical to the gl-matrix column-major mat4 layout
  * (comment only; nothing here calls gl-matrix). Carbon composes row-vector
- * style: `a * b` applies a first - multiply ports the C++ loop literally with
+ * style: `a * b` applies a first - multiply unrolls the C++ loop with
  * no operand swap.
  *
  * `out` may alias inputs; locals are used wherever the C++ relied on
@@ -19,7 +19,7 @@ import { quaternion } from "./quaternion.js";
  * - Inverse(m) / Inverse(out, m) / Inverse(out, det, m) fold to
  *   inverse(out, m) (singular copies m to out, as Matrix.cpp:7) and
  *   inverseDet(out, m) which returns the determinant and leaves out
- *   untouched when singular (truthiness of the return is Carbon's bool).
+ *   untouched when singular (compare the determinant with zero, including for NaN).
  * - TransformationMatrix's 6-pointer overload is transformationMatrixCentered.
  * - Transform's Vector4/Vector3/Vector2 overloads dispatch on input length.
  * - The four TransformCoords batch overloads fold to one explicit
@@ -73,16 +73,6 @@ function v3Cross(out3, ax, ay, az, bx, by, bz)
     out3[2] = ax * by - ay * bx;
     return out3;
 } // Vector3_inline.h:195
-
-/** Vector4 triple cross product (writes [x, y, z, w] into out4) */
-function v4Cross(out4, v1, v2, v3)
-{
-    out4[0] = v1[1] * (v2[2] * v3[3] - v3[2] * v2[3]) - v1[2] * (v2[1] * v3[3] - v3[1] * v2[3]) + v1[3] * (v2[1] * v3[2] - v2[2] * v3[1]);
-    out4[1] = -(v1[0] * (v2[2] * v3[3] - v3[2] * v2[3]) - v1[2] * (v2[0] * v3[3] - v3[0] * v2[3]) + v1[3] * (v2[0] * v3[2] - v3[0] * v2[2]));
-    out4[2] = v1[0] * (v2[1] * v3[3] - v3[1] * v2[3]) - v1[1] * (v2[0] * v3[3] - v3[0] * v2[3]) + v1[3] * (v2[0] * v3[1] - v3[0] * v2[1]);
-    out4[3] = -(v1[0] * (v2[1] * v3[2] - v3[1] * v2[2]) - v1[1] * (v2[0] * v3[2] - v3[0] * v2[2]) + v1[2] * (v2[0] * v3[1] - v3[0] * v2[1]));
-    return out4;
-} // Vector4_inline.h:186
 
 // ---------------------------------------------------------------------------
 // Construction / element access
@@ -171,7 +161,9 @@ matrix.subtract = function (out, a, b)
 }; // Matrix_inline.h:79
 
 /**
- * Multiplies matrices: Carbon `a * b` (row-vector: a applied first), ported literally - do not swap
+ * Carbon: Matrix::operator* (math/include/Matrix_inline.h:193-204)
+ * Multiplies matrices in Carbon order: a applied first, then b.
+ * Adapted: Unrolled double arithmetic with cached operands and caller-owned output.
  * @param {matrix} out - may alias a or b
  * @param {matrix} a
  * @param {matrix} b
@@ -602,8 +594,11 @@ matrix.orthographicProjection = function (out, width, height, zNear, zFar)
 }; // Matrix_inline.h:549
 
 /**
+ * Carbon: TransformationMatrix (math/include/Matrix_inline.h:662-668)
  * Transformation matrix from scaling, rotation quaternion and translation:
- * ScalingMatrix(s) * RotationMatrix(r) * TranslationMatrix(t) (row-vector: scale first)
+ * ScalingMatrix(s) * RotationMatrix(r) * TranslationMatrix(t) (row-vector: scale first).
+ * Adapted: Cached scalar intermediates replace temporary matrices; float32 matrix
+ * storage boundaries and all zero terms are retained. No temporary allocation.
  * @param {matrix} out
  * @param {Float32Array} scaling - 3 floats
  * @param {Float32Array} rotation - quaternion
@@ -612,11 +607,58 @@ matrix.orthographicProjection = function (out, width, height, zNear, zFar)
  */
 matrix.transformationMatrix = function (out, scaling, rotation, translation)
 {
-    const s = matrix.scalingMatrix(new Float32Array(16), scaling);
-    const r = matrix.rotationMatrix(new Float32Array(16), rotation);
-    const t = matrix.translationMatrix(new Float32Array(16), translation);
-    matrix.multiply(out, s, r);
-    return matrix.multiply(out, out, t);
+    const f = Math.fround;
+    const sx = f(scaling[0]), sy = f(scaling[1]), sz = f(scaling[2]);
+    const x = rotation[0], y = rotation[1], z = rotation[2], w = rotation[3];
+    const tx = f(translation[0]), ty = f(translation[1]), tz = f(translation[2]);
+
+    // RotationMatrix stores each component as float before S * R.
+    const r0 = f(1 - 2 * (y * y + z * z));
+    const r1 = f(2 * (x * y + z * w));
+    const r2 = f(2 * (x * z - y * w));
+    const r4 = f(2 * (x * y - z * w));
+    const r5 = f(1 - 2 * (x * x + z * z));
+    const r6 = f(2 * (y * z + x * w));
+    const r8 = f(2 * (x * z + y * w));
+    const r9 = f(2 * (y * z - x * w));
+    const r10 = f(1 - 2 * (x * x + y * y));
+
+    // Keep zero terms: removing them changes non-finite and signed-zero behavior.
+    const sr0 = f(sx * r0 + 0 * r4 + 0 * r8 + 0 * 0);
+    const sr1 = f(sx * r1 + 0 * r5 + 0 * r9 + 0 * 0);
+    const sr2 = f(sx * r2 + 0 * r6 + 0 * r10 + 0 * 0);
+    const sr3 = f(sx * 0 + 0 * 0 + 0 * 0 + 0 * 1);
+    const sr4 = f(0 * r0 + sy * r4 + 0 * r8 + 0 * 0);
+    const sr5 = f(0 * r1 + sy * r5 + 0 * r9 + 0 * 0);
+    const sr6 = f(0 * r2 + sy * r6 + 0 * r10 + 0 * 0);
+    const sr7 = f(0 * 0 + sy * 0 + 0 * 0 + 0 * 1);
+    const sr8 = f(0 * r0 + 0 * r4 + sz * r8 + 0 * 0);
+    const sr9 = f(0 * r1 + 0 * r5 + sz * r9 + 0 * 0);
+    const sr10 = f(0 * r2 + 0 * r6 + sz * r10 + 0 * 0);
+    const sr11 = f(0 * 0 + 0 * 0 + sz * 0 + 0 * 1);
+    const sr12 = f(0 * r0 + 0 * r4 + 0 * r8 + 1 * 0);
+    const sr13 = f(0 * r1 + 0 * r5 + 0 * r9 + 1 * 0);
+    const sr14 = f(0 * r2 + 0 * r6 + 0 * r10 + 1 * 0);
+    const sr15 = f(0 * 0 + 0 * 0 + 0 * 0 + 1 * 1);
+
+    // All inputs are captured before output writes, including aliased TRS views.
+    out[0] = sr0 * 1 + sr1 * 0 + sr2 * 0 + sr3 * tx;
+    out[1] = sr0 * 0 + sr1 * 1 + sr2 * 0 + sr3 * ty;
+    out[2] = sr0 * 0 + sr1 * 0 + sr2 * 1 + sr3 * tz;
+    out[3] = sr0 * 0 + sr1 * 0 + sr2 * 0 + sr3 * 1;
+    out[4] = sr4 * 1 + sr5 * 0 + sr6 * 0 + sr7 * tx;
+    out[5] = sr4 * 0 + sr5 * 1 + sr6 * 0 + sr7 * ty;
+    out[6] = sr4 * 0 + sr5 * 0 + sr6 * 1 + sr7 * tz;
+    out[7] = sr4 * 0 + sr5 * 0 + sr6 * 0 + sr7 * 1;
+    out[8] = sr8 * 1 + sr9 * 0 + sr10 * 0 + sr11 * tx;
+    out[9] = sr8 * 0 + sr9 * 1 + sr10 * 0 + sr11 * ty;
+    out[10] = sr8 * 0 + sr9 * 0 + sr10 * 1 + sr11 * tz;
+    out[11] = sr8 * 0 + sr9 * 0 + sr10 * 0 + sr11 * 1;
+    out[12] = sr12 * 1 + sr13 * 0 + sr14 * 0 + sr15 * tx;
+    out[13] = sr12 * 0 + sr13 * 1 + sr14 * 0 + sr15 * ty;
+    out[14] = sr12 * 0 + sr13 * 0 + sr14 * 1 + sr15 * tz;
+    out[15] = sr12 * 0 + sr13 * 0 + sr14 * 0 + sr15 * 1;
+    return out;
 }; // Matrix_inline.h:662
 
 /**
@@ -940,44 +982,62 @@ matrix.determinant = function (m)
 }; // Matrix_inline.h:505
 
 /**
- * Inverts a matrix into a scratch (shared by inverse/inverseDet); assumes det != 0
- * @param {matrix} out - must not alias m
- * @param {matrix} m
- * @param {number} det
+ * Carbon: Inverse (math/src/Matrix.cpp:7-46)
+ * Unrolls the donor row gathers and Vector4 Cross expressions into caller-owned storage.
+ * Adapted: Double scalar intermediates; preserve the returned Matrix's float32 storage.
+ * Cache all input elements before writing so out may overlap the input.
+ * @param {matrix} out Receiving matrix.
+ * @param {matrix} m Input matrix.
+ * @param {number} det Determinant; zero copies m, NaN follows the donor arithmetic path.
+ * @returns {matrix} out
  */
 function inverseInto(out, m, det)
 {
-    const v = [0, 0, 0, 0];
-    const vec = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
-    for (let i = 0; i < 4; i++)
+    const f = Math.fround;
+    const m0 = m[0], m1 = m[1], m2 = m[2], m3 = m[3];
+    const m4 = m[4], m5 = m[5], m6 = m[6], m7 = m[7];
+    const m8 = m[8], m9 = m[9], m10 = m[10], m11 = m[11];
+    const m12 = m[12], m13 = m[13], m14 = m[14], m15 = m[15];
+
+    if (det === 0)
     {
-        let signedDet = (i & 1) ? -1 : 1;
-        signedDet /= det;
-        for (let j = 0; j < 4; j++)
-        {
-            if (j !== i)
-            {
-                let a = j;
-                if (j > i)
-                {
-                    a = a - 1;
-                }
-                vec[a][0] = m[j * 4];
-                vec[a][1] = m[j * 4 + 1];
-                vec[a][2] = m[j * 4 + 2];
-                vec[a][3] = m[j * 4 + 3];
-            }
-        }
-        v4Cross(v, vec[0], vec[1], vec[2]);
-        out[i] = signedDet * v[0];
-        out[4 + i] = signedDet * v[1];
-        out[8 + i] = signedDet * v[2];
-        out[12 + i] = signedDet * v[3];
+        out[0] = m0; out[1] = m1; out[2] = m2; out[3] = m3;
+        out[4] = m4; out[5] = m5; out[6] = m6; out[7] = m7;
+        out[8] = m8; out[9] = m9; out[10] = m10; out[11] = m11;
+        out[12] = m12; out[13] = m13; out[14] = m14; out[15] = m15;
+        return out;
     }
-} // Matrix.cpp:7 (loop body)
+
+    const signedDet0 = 1 / det;
+    out[0] = f(signedDet0 * (m5 * (m10 * m15 - m14 * m11) - m6 * (m9 * m15 - m13 * m11) + m7 * (m9 * m14 - m10 * m13)));
+    out[4] = f(signedDet0 * (-(m4 * (m10 * m15 - m14 * m11) - m6 * (m8 * m15 - m12 * m11) + m7 * (m8 * m14 - m12 * m10))));
+    out[8] = f(signedDet0 * (m4 * (m9 * m15 - m13 * m11) - m5 * (m8 * m15 - m12 * m11) + m7 * (m8 * m13 - m12 * m9)));
+    out[12] = f(signedDet0 * (-(m4 * (m9 * m14 - m13 * m10) - m5 * (m8 * m14 - m12 * m10) + m6 * (m8 * m13 - m12 * m9))));
+
+    const signedDet1 = -1 / det;
+    out[1] = f(signedDet1 * (m1 * (m10 * m15 - m14 * m11) - m2 * (m9 * m15 - m13 * m11) + m3 * (m9 * m14 - m10 * m13)));
+    out[5] = f(signedDet1 * (-(m0 * (m10 * m15 - m14 * m11) - m2 * (m8 * m15 - m12 * m11) + m3 * (m8 * m14 - m12 * m10))));
+    out[9] = f(signedDet1 * (m0 * (m9 * m15 - m13 * m11) - m1 * (m8 * m15 - m12 * m11) + m3 * (m8 * m13 - m12 * m9)));
+    out[13] = f(signedDet1 * (-(m0 * (m9 * m14 - m13 * m10) - m1 * (m8 * m14 - m12 * m10) + m2 * (m8 * m13 - m12 * m9))));
+
+    const signedDet2 = 1 / det;
+    out[2] = f(signedDet2 * (m1 * (m6 * m15 - m14 * m7) - m2 * (m5 * m15 - m13 * m7) + m3 * (m5 * m14 - m6 * m13)));
+    out[6] = f(signedDet2 * (-(m0 * (m6 * m15 - m14 * m7) - m2 * (m4 * m15 - m12 * m7) + m3 * (m4 * m14 - m12 * m6))));
+    out[10] = f(signedDet2 * (m0 * (m5 * m15 - m13 * m7) - m1 * (m4 * m15 - m12 * m7) + m3 * (m4 * m13 - m12 * m5)));
+    out[14] = f(signedDet2 * (-(m0 * (m5 * m14 - m13 * m6) - m1 * (m4 * m14 - m12 * m6) + m2 * (m4 * m13 - m12 * m5))));
+
+    const signedDet3 = -1 / det;
+    out[3] = f(signedDet3 * (m1 * (m6 * m11 - m10 * m7) - m2 * (m5 * m11 - m9 * m7) + m3 * (m5 * m10 - m6 * m9)));
+    out[7] = f(signedDet3 * (-(m0 * (m6 * m11 - m10 * m7) - m2 * (m4 * m11 - m8 * m7) + m3 * (m4 * m10 - m8 * m6))));
+    out[11] = f(signedDet3 * (m0 * (m5 * m11 - m9 * m7) - m1 * (m4 * m11 - m8 * m7) + m3 * (m4 * m9 - m8 * m5)));
+    out[15] = f(signedDet3 * (-(m0 * (m5 * m10 - m9 * m6) - m1 * (m4 * m10 - m8 * m6) + m2 * (m4 * m9 - m8 * m5))));
+    return out;
+}
 
 /**
- * Inverts a matrix; a singular matrix is copied through unchanged (Carbon Matrix Inverse(m))
+ * Carbon: Inverse (math/src/Matrix.cpp:7-46)
+ * Inverts a matrix; a singular matrix is copied through unchanged.
+ * Adapted: Caller-owned output, double scalar intermediates, float32 result storage.
  * @param {matrix} out - may alias m
  * @param {matrix} m
  * @returns {matrix} out
@@ -985,18 +1045,14 @@ function inverseInto(out, m, det)
 matrix.inverse = function (out, m)
 {
     const det = matrix.determinant(m);
-    if (!det)
-    {
-        return matrix.copy(out, m);
-    }
-    const tmp = new Float32Array(16);
-    inverseInto(tmp, m, det);
-    return matrix.copy(out, tmp);
+    return inverseInto(out, m, det);
 }; // Matrix.cpp:7
 
 /**
+ * Carbon: Inverse (math/src/Matrix.cpp:49-62)
  * Inverts a matrix and returns the determinant; when singular (0) out is left
- * untouched - the return's truthiness is Carbon's bool Inverse(out, det, m)
+ * untouched. Adapted: Returns the determinant in place of the C++ output reference;
+ * test it against zero, not JS truthiness (NaN still takes the inversion path).
  * @param {matrix} out - may alias m
  * @param {matrix} m
  * @returns {number} determinant
@@ -1004,13 +1060,11 @@ matrix.inverse = function (out, m)
 matrix.inverseDet = function (out, m)
 {
     const det = matrix.determinant(m);
-    if (!det)
+    if (det === 0)
     {
         return det;
     }
-    const tmp = new Float32Array(16);
-    inverseInto(tmp, m, det);
-    matrix.copy(out, tmp);
+    inverseInto(out, m, det);
     return det;
 }; // Matrix.cpp:49 (bool Inverse(out, det, m); Matrix_inline.h:524 folds here)
 

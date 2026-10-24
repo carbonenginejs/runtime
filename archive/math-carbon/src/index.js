@@ -1,7 +1,7 @@
 // Carbon math, ported. Every function carries Carbon's name (camelCased),
-// Carbon's argument order after the leading `out`, and Carbon's arithmetic
-// ported literally from math - branch thresholds and epsilons
-// included - so numerics match Carbon, not gl-matrix.
+// Carbon's argument order after the leading `out`, and donor algorithms/branches.
+// Scalar arithmetic uses double intermediates; float storage boundaries alone
+// do not establish native float arithmetic parity.
 //
 // Storage is plain Float32Array in Carbon's row-major flat order, which is
 // byte-identical to gl-matrix's column-major layout: element _rc sits at
