@@ -71,6 +71,8 @@ export * from "./CcpTime.js";
 export * from "./IBlueResMan.js";
 export * from "./IBlueResManNotifications.js";
 export * from "./IBlueResource.js";
+export * from "./IBlueAsyncResNotifyTarget.js";
+export * from "./BlueAsyncRes.js";
 export * from "./IPythonMethods.js";
 export * from "./ICacheable.js";
 export * from "./IRoot.js";
