@@ -1,3 +1,4 @@
+import { CjsPaperDollSkin } from "./CjsPaperDollSkin.js";
 import { meta, type } from "#schema";
 import { CjsPaperDollArchetype } from "./CjsPaperDollArchetype.js";
 import { CjsPaperDollEyes } from "./CjsPaperDollEyes.js";
@@ -29,6 +30,11 @@ export class CjsPaperDoll
     @type.object.embed("CjsPaperDollArchetype")
     archetype = new CjsPaperDollArchetype();
 
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollSkin")
+    skin = new CjsPaperDollSkin();
+
+    _appliedSkin = null;
     _appliedFoundation = null;
     _dirty = true;
     _headDirty = true;
@@ -41,6 +47,7 @@ export class CjsPaperDoll
     {
         this._dirty = true;
         this.archetype.Rebuild();
+        this.skin.Rebuild();
         this.eyes.Rebuild(); this.eyebrows.Rebuild(); this.blush.Rebuild();
     }
 
@@ -64,10 +71,10 @@ export class CjsPaperDoll
     }
 
     /**
-     * Collects edits once, then applies foundation, eyes and the combined head binding.
+     * Collects edits once, then applies foundation, skin, eyes and the combined head binding.
      * Successful groups are acknowledged independently; failed groups retry.
      * Edits made during either callback remain dirty for the following pass.
-     * @param {{foundation: Function, eyes: Function, head: Function}} bindings Prepared synchronous bindings.
+     * @param {{foundation: Function, skin: Function, eyes: Function, head: Function}} bindings Prepared synchronous bindings.
      * @returns {boolean} Whether any output was rebuilt.
      */
     Update(bindings)
@@ -75,15 +82,26 @@ export class CjsPaperDoll
         if (this._applying) return false;
         const foundationPending = this.archetype.IsDirty();
         const foundation = foundationPending ? this.archetype.Resolve() : this._appliedFoundation;
-        const eyesPending = foundationPending || this._dirty || this.eyes.IsDirty();
-        const headPending = foundationPending || this._dirty || this._headDirty || this.eyebrows.IsDirty() || this.blush.IsDirty();
-        if (!eyesPending && !headPending) return false;
+        // A geometry-only strength edit must not rebuild skin or cosmetic maps.
+        const foundationChanged = this.archetype.IsFoundationDirty();
+        const skinPending = foundationChanged || this._dirty || this.skin.IsDirty() || !this._appliedSkin;
+        const skin = skinPending ? this._Capture(this.skin) : this._appliedSkin;
+        const skinChanged = Boolean(skinPending && (skin.option || this._appliedSkin?.option)
+            && (foundationChanged || this._dirty || this._Changed(skin, this._appliedSkin)));
+        const eyesPending = foundationChanged || this._dirty || this.eyes.IsDirty();
+        const headPending = skinChanged || foundationChanged || this._dirty || this._headDirty || this.eyebrows.IsDirty() || this.blush.IsDirty();
+        if (!foundationPending && !eyesPending && !headPending)
+        {
+            this.skin.ClearDirty();
+            this._appliedSkin = skin;
+            return false;
+        }
 
         const eyes = this._Capture(this.eyes);
         const head = { eyebrows: this._Capture(this.eyebrows), blush: this._Capture(this.blush) };
         head.blush.weight = head.blush.option ? this.blush.weight : 0;
-        const eyesChanged = eyesPending && (foundationPending || this._dirty || this._Changed(eyes, this._appliedEyes));
-        const headChanged = headPending && (foundationPending || this._dirty || this._headDirty || !this._appliedHead
+        const eyesChanged = eyesPending && (foundationChanged || this._dirty || this._Changed(eyes, this._appliedEyes));
+        const headChanged = headPending && (skinChanged || foundationChanged || this._dirty || this._headDirty || !this._appliedHead
             || this._Changed(head.eyebrows, this._appliedHead.eyebrows)
             || this._Changed(head.blush, this._appliedHead.blush)
             || head.blush.weight !== this._appliedHead.blush.weight);
@@ -91,12 +109,15 @@ export class CjsPaperDoll
         this._dirty = false;
         this._headDirty = false;
         this.archetype.ClearDirty();
+        this.skin.ClearDirty();
         this.eyes.ClearDirty(); this.eyebrows.ClearDirty(); this.blush.ClearDirty();
         this._applying = true;
         try
         {
             if (foundationPending) bindings.foundation(foundation);
             this._appliedFoundation = foundation;
+            if (skinChanged) bindings.skin(skin);
+            this._appliedSkin = skin;
             if (eyesChanged) bindings.eyes(eyes);
             this._appliedEyes = eyes;
             if (headChanged) bindings.head(head);
@@ -105,12 +126,13 @@ export class CjsPaperDoll
         catch (error)
         {
             if (foundationPending && this._appliedFoundation !== foundation) this.archetype.Rebuild();
+            if (this._appliedSkin !== skin) { this._appliedSkin = null; this.skin.Rebuild(); }
             // Do not discard a later group's pending edits if an earlier apply fails.
             if (this._appliedEyes !== eyes) { this._appliedEyes = null; this.eyes.Rebuild(); }
             if (this._appliedHead !== head) { this._appliedHead = null; this.eyebrows.Rebuild(); this.blush.Rebuild(); }
             throw error;
         }
         finally { this._applying = false; }
-        return eyesChanged || headChanged;
+        return foundationPending || eyesChanged || headChanged;
     }
 }

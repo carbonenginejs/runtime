@@ -13,3 +13,6 @@ export { CjsPaperDollBlush } from "./CjsPaperDollBlush.js";
 export { CjsPaperDollBlushItem } from "./CjsPaperDollBlushItem.js";
 
 export { CjsPaperDollArchetype } from "./CjsPaperDollArchetype.js";
+
+export { CjsPaperDollSkin } from "./CjsPaperDollSkin.js";
+export { CjsPaperDollSkinItem } from "./CjsPaperDollSkinItem.js";

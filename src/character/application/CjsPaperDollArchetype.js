@@ -8,6 +8,7 @@ export class CjsPaperDollArchetype
     _option = "";
     _defaultOption = "";
     _dirty = false;
+    _foundationDirty = false;
     _strength = 1;
     _defaultStrength = 1;
 
@@ -20,7 +21,7 @@ export class CjsPaperDollArchetype
     set option(value)
     {
         if (!this._options.has(value)) throw new RangeError("Unknown prepared archetype");
-        if (value !== this._option) { this._option = value; this._dirty = true; }
+        if (value !== this._option) { this._option = value; this._dirty = true; this._foundationDirty = true; }
     }
 
     /** User-selected shape weight, independent of retained authored dependency weights. */
@@ -54,6 +55,7 @@ export class CjsPaperDollArchetype
         this._options = prepared;
         this._defaultOption = option;
         this._option = option;
+        this._foundationDirty = true;
         this._dirty = true;
     }
 
@@ -69,11 +71,14 @@ export class CjsPaperDollArchetype
     /** Reports an unapplied foundation selection. */
     IsDirty() { return this._dirty; }
 
+    /** Distinguishes foundation replacement/forced rebuilding from a shape-only edit. */
+    IsFoundationDirty() { return this._foundationDirty; }
+
     /** Acknowledges the captured selection before invoking a prepared binding. */
-    ClearDirty() { this._dirty = false; }
+    ClearDirty() { this._dirty = false; this._foundationDirty = false; }
 
     /** Requests reapplication of the selected foundation. */
-    Rebuild() { if (this._option) this._dirty = true; }
+    Rebuild() { if (this._option) { this._dirty = true; this._foundationDirty = true; } }
 
     /**
      * Resolves an explicitly prepared foundation graph, never filename heuristics.

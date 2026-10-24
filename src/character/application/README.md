@@ -85,3 +85,28 @@ threshold and rejects packed tangent layouts. It uses canonical absolute morph
 targets after the GR2 converter has resolved delta/sparse storage. CPU picking
 retains the base geometry; this does not provide deformed picking or automatic
 character-bound expansion. Other native bake overloads remain unimplemented.
+
+
+## Shared skin colour and shape-only updates
+
+CjsPaperDollSkin retains one authored palette for head and body. Its decorated
+item exposes palette selection; prepared colour-area capabilities control the
+captured values. The current UI does not claim meaningful names for the three
+skin areas or expose manual area colours. Enable/disable preserves the palette.
+
+For a configured skin component provide Update({ foundation, skin, eyes, head }).
+The skin binding publishes both region outputs before the combined head binding
+adds cosmetic layers. Unconfigured skin requires no binding. Failed groups retry
+without discarding later edits. Skin values remain independent of archetype
+strength. Foundation replacement/forced rebuilding still invalidates textures;
+strength-only edits call the foundation binding without invoking skin, eyes or
+head texture bindings. A full doll Rebuild still forces all configured outputs.
+
+TriGrannyRes caches canonical morph source channels by projected payload identity.
+The cache cannot carry channels across payload replacement, and destination
+geometry remains independently cloned. Multiple slider events before Update
+collapse to the latest component value; unchanged strength does not rebake.
+
+Skin palette eligibility is independent of archetype identity. Any editor rule
+restricting palettes by archetype is UI policy only; the backend neither filters
+palettes by archetype nor resets the selected skin colour when archetype changes.

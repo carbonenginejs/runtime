@@ -20,6 +20,23 @@ const FLOAT_MIN = 1.1754943508222875e-38;
 
 const f = Math.fround;
 
+// The JS GR2 projection needs canonical conversion; native CMF already owns
+// decoded channels. Cache by payload identity so replacing/releasing a payload
+// cannot reuse stale channels, and a drag never reconverts every mesh.
+const canonicalMorphSources = new WeakMap();
+
+/** Returns immutable canonical source channels for this projected payload. */
+function CanonicalMorphSource(payload)
+{
+  let source = canonicalMorphSources.get(payload);
+  if (!source)
+  {
+    source = CjsCmfFormat.loadShared(payload);
+    canonicalMorphSources.set(payload, source);
+  }
+  return source;
+}
+
 /**
  * Moller-Trumbore ray / triangle test.
  *
@@ -1000,7 +1017,7 @@ export class TriGrannyRes extends CjsResource
   CreateGeometryRes()
   {
     const geometry = new TriGeometryRes();
-    geometry.SetPayload(structuredClone(CjsCmfFormat.loadShared(this.GetPayload())));
+    geometry.SetPayload(structuredClone(CanonicalMorphSource(this.GetPayload())));
     geometry.MarkPrepared();
     return geometry;
   }
@@ -1062,7 +1079,7 @@ export class TriGrannyRes extends CjsResource
    */
   BakeBlendshapeFromScript(meshIx, weights, geom)
   {
-    const source = CjsCmfFormat.loadShared(this.GetPayload()).meshes[meshIx];
+    const source = CanonicalMorphSource(this.GetPayload()).meshes[meshIx];
     const destination = geom.GetMeshData(meshIx);
     const lod = geom.GetMeshLod__LodIndex(meshIx, 0);
     if (!source || !destination || !lod?.allocationsValid) throw new Error("Blendshape requires a valid allocated destination LOD");
