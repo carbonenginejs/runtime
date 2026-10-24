@@ -1,6 +1,5 @@
 import {
   getResourceExtension,
-  normalizeResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
 import { CjsSchema, meta, type } from "#schema";
@@ -105,8 +104,8 @@ export class CjsResource
   path = "";
 
   /**
-   * Resource extension without its leading dot, used to resolve format routes.
-   * Initialize derives it from path or normalizes an explicit override; empty when absent.
+   * Carbon's m_ext: the request suffix, such as "raw", not the file extension.
+   * The ordinary resource request uses an empty suffix.
    * @type {string}
    */
   ext = "";
@@ -212,8 +211,8 @@ export class CjsResource
   }
 
   /**
-   * `IBlueResource::Initialize` (`blue/include/IBlueResource.h:14`): sets the
-   * resource identity from a path and optional extension.
+   * Carbon: BlueAsyncRes::InitializeImpl (blue/src/BlueAsyncRes.cpp:191-206).
+   * Sets the resource path and request suffix independently.
    *
    * Adapted: adds a third `requirement` argument, the lowercase semantic
    * outcome the caller asked for, which selects the resource class
@@ -221,13 +220,13 @@ export class CjsResource
    * returns this resource, where Carbon's returns void.
    *
    * @param {string} path Resource path.
-   * @param {string|null} [ext] Extension override; derived from the path when absent.
+   * @param {string|null} [ext=""] Request suffix; never derived from the path.
    * @param {string|null} [requirement] Semantic requirement; normalized to lowercase.
    * @returns {CjsResource} This resource.
    */
-  Initialize(path, ext = null, requirement = "") {
+  Initialize(path, ext = "", requirement = "") {
     this.path = normalizeResourcePath(path);
-    this.ext = ext ? normalizeResourceExtension(ext) : getResourceExtension(this.path);
+    this.ext = ext ?? "";
     this.requirement = requirement === null || requirement === undefined
       ? ""
       : String(requirement).trim().toLowerCase();
@@ -246,7 +245,8 @@ export class CjsResource
   }
 
   /**
-   * Get the normalized resource extension.
+   * Carbon: BlueAsyncRes::GetExt (blue/include/BlueAsyncRes.h:77-80).
+   * Returns the request suffix supplied to Initialize, not the file extension.
    *
    * @returns {string}
    */
@@ -636,7 +636,7 @@ export class CjsResource
         output: options.output || null
       });
     }
-    return this.GetFormatStore()?.Resolve(this.ext, data, {
+    return this.GetFormatStore()?.Resolve(getResourceExtension(this.path), data, {
       output: options?.output || null
     }) || null;
   }
@@ -1142,7 +1142,7 @@ CjsSchema.meta.define(CjsResource, {
     Reload: [ meta.adapted ],
     Initialize: [ meta.adapted ],
     GetPath: [ meta.adapted ],
-    GetExt: [ meta.adapted ],
+    GetExt: [ meta.implemented ],
     IsLoading: [ meta.adapted ],
     HasLoaded: [ meta.adapted ],
     IsPrepared: [ meta.adapted ],

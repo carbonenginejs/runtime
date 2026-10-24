@@ -727,7 +727,7 @@ test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
   assert.equal(Object.prototype.hasOwnProperty.call(resource.__state, "dirty"), false);
   assert.equal(Object.prototype.hasOwnProperty.call(resource.__state, "rebuild"), false);
   assert.equal(resource.GetPath(), "res:/texture/ship.dds");
-  assert.equal(resource.GetExt(), "dds");
+  assert.equal(resource.GetExt(), "", "BlueAsyncRes::GetExt returns the supplied suffix, not .dds");
   assert.equal(resource.state, CjsResource.State.EMPTY);
   assert.equal(CjsResource.isValidState(CjsResource.State.EMPTY), true);
   assert.equal(CjsResource.isTerminalState(CjsResource.State.EMPTY), false);

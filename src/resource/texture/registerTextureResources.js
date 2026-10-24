@@ -21,6 +21,7 @@ import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
 import { ResourceRequirement } from "#blue";
 import { CjsSchema } from "#schema";
+import { getResourceExtension } from "#utils/path";
 
 /** Stable reader identity preserves the caller's requested DDS decode sharing. */
 const DDS_BITMAP_DESCRIPTOR = { Format: CjsDdsFormat, defaults: { emit: "bitmap" } };
@@ -59,7 +60,7 @@ export async function ReadImageResource(bytes, context, compression = {})
     backend: compression.backend, features: Array.from(compression.features ?? []),
     role: compression.resolveRole ? compression.resolveRole(context.path) : null } : null;
   let bitmap;
-  if (context.resource.GetExt() === "dds")
+  if (getResourceExtension(context.resource.GetPath()) === "dds")
   {
     const packet = await context.resMan.ReadFormatOnce(context.resource, DDS_BITMAP_DESCRIPTOR, bytes, {
       ...context, emit: "bitmap"

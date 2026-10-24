@@ -1427,7 +1427,7 @@ export class CjsBlueResMan
     const resource = this.CreateResource(
       Constructor,
       key,
-      ext,
+      "",
       options,
       existing && options.reload === true ? existing : null,
       extensionRoute
@@ -1729,7 +1729,7 @@ export class CjsBlueResMan
   _IsObjectBuilderResource(resource)
   {
     return !this._resourceExtensionRoutes.has(resource)
-      && this._objectBuilderLoaders.has(this.GetObjectLoader(resource.GetExt()));
+      && this._objectBuilderLoaders.has(this.GetObjectLoader(getResourceExtension(resource.GetPath())));
   }
 
   /**
@@ -2433,12 +2433,14 @@ export class CjsBlueResMan
    */
   _ResolveResourceObjectRead(resource, bytes, options) {
     const route = this._resourceExtensionRoutes.get(resource) || null;
-    const explicitLoader = route?.loader || (!route && this.GetObjectLoader(resource.GetExt()));
+    // GetExt is Carbon's request suffix. The reader consumes the source file.
+    const extension = normalizeResourceExtension(options.ext || getResourceExtension(resource.GetPath()));
+    const explicitLoader = route?.loader || (!route && this.GetObjectLoader(extension));
     if (explicitLoader)
     {
       if (options.emit !== undefined)
       {
-        throw createObjectLoaderOutputMissingError(resource.GetExt(), options.emit);
+        throw createObjectLoaderOutputMissingError(extension, options.emit);
       }
       return { loader: explicitLoader, descriptor: null, route };
     }
@@ -2448,10 +2450,10 @@ export class CjsBlueResMan
       descriptor: route
         ? resolveOrderedExtensionFormatDescriptor(
           route.formats,
-          resource.GetExt(),
+          extension,
           { ...options, bytes, filename: resource.GetPath() }
         )
-        : this.ResolveFormatDescriptor(resource.GetExt(), { ...options, bytes, filename: resource.GetPath() }),
+        : this.ResolveFormatDescriptor(extension, { ...options, bytes, filename: resource.GetPath() }),
       route
     };
   }
@@ -3473,7 +3475,7 @@ export class CjsBlueResMan
    *
    * @param {Function} Constructor Resource constructor selected for the outcome.
    * @param {string} path Normalized Carbon-style resource path.
-   * @param {string} ext Normalized resource extension.
+   * @param {string} ext Carbon request suffix, independent of the source extension.
    * @param {object} [options={}] Constructor values, requested output, semantic requirement, and source provenance.
    * @param {object|Function|null} [disallowedAlias=null] Existing owner that a staged candidate must not reuse.
    * @param {object|null} [extensionRoute=null] Immutable explicit extension route captured for this handle.

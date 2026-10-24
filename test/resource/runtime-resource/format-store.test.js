@@ -338,6 +338,17 @@ test("a resource's requirement is not a format output, and must not filter route
 });
 
 
+test("a Carbon request suffix does not replace the source container extension", () =>
+{
+  const store = new CjsFormatStore().Register(CjsDdsFormat);
+  const resource = new TriTextureRes()
+    .Initialize("res:/texture/hull.dds?detail=1", "raw")
+    .SetFormatStore(store);
+  assert.equal(resource.GetExt(), "raw", "BlueAsyncRes.h:77-80 returns m_ext");
+  assert.equal(resource.GetPath(), "res:/texture/hull.dds?detail=1");
+  assert.ok(resource.ResolveFormat(), "raw still reads the DDS source container");
+});
+
 test("routing accepts only the boolean is contract", () =>
 {
   // A stale report object must not become a match merely because it is truthy.

@@ -76,11 +76,11 @@ export class TriTextureRes extends CjsResource
    * rasterizes gradient_1d paths through GradientTextureConstructor.
    *
    * @param {string} path Resource path.
-   * @param {string|null} [ext] Extension override.
+   * @param {string|null} [ext=""] Carbon request suffix, independent of the file extension.
    * @param {string} [requirement] Semantic requirement.
    * @returns {TriTextureRes} This resource.
    */
-  Initialize(path, ext = null, requirement = "") {
+  Initialize(path, ext = "", requirement = "") {
     super.Initialize(path, ext, requirement);
     if (IsSolidColorTexturePath(this.path)) this._RasterizeProceduralTexture(RasterizeSolidColor);
     return this;
