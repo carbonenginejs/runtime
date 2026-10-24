@@ -4,8 +4,8 @@
 // only 0x7fff/0xffff decode as NaN (0x7c00 decodes to 65536, not Infinity), and
 // values in [65520, 131072) encode with exponent 31 rather than clamping to INF.
 // Halves are JS numbers holding uint16 bit patterns; packed vectors are Uint16Arrays.
-// One divergence forced by JS: the sign bit of a NaN input is not observable, so a
-// negative NaN encodes as 0x7fff instead of 0xffff (Carbon reads the sign via copysign).
+// NaN signs are preserved through typed storage on engines that retain them across
+// Number boundaries. JavaScript does not guarantee that retention or a NaN payload.
 
 const f32 = Math.fround;
 
@@ -15,7 +15,12 @@ const f32 = Math.fround;
  */
 export const float16 = {};
 
-/** Converts a float32 to Carbon's 16-bit half representation (uint16) */
+/**
+ * Carbon: Float_16::Float32To16 (math/src/Float16.cpp:83-176)
+ * Converts to the native uint16 encoding, retaining the stored float32 sign.
+ * @param {number} value Native float input.
+ * @returns {number} Packed uint16 value.
+ */
 float16.float32To16 = function (value)
 {
     const inF = f32(value);
@@ -30,7 +35,8 @@ float16.float32To16 = function (value)
     }
     if (Number.isNaN(inF))
     {
-        return sign ? 0xffff : 0x7fff;
+        scratch.float32_0[0] = value;
+        return scratch.uint32_0[0] >>> 31 ? 0xffff : 0x7fff;
     }
     if (inF === 0)
     {
@@ -109,7 +115,12 @@ float16.float32To16 = function (value)
     return ret >>> 0;
 }; // Float16.cpp:83
 
-/** Converts Carbon's 16-bit half representation (uint16) to a float32 number */
+/**
+ * Carbon: Float_16::Float16To32 (math/src/Float16.cpp:179-207)
+ * Decodes the native half encoding; NaN sign retention depends on the JS engine.
+ * @param {number} value Packed uint16 value.
+ * @returns {number} Float32 value; native NaN payload matching is not promised.
+ */
 float16.float16To32 = function (value)
 {
     const u = value & 0xffff;
@@ -120,7 +131,8 @@ float16.float16To32 = function (value)
 
     if ((u & ~0x8000 & 0xffff) === 0x7fff)
     {
-        return NaN;
+        scratch.uint32_0[0] = s ? 0xffc00000 : 0x7fc00000;
+        return scratch.float32_0[0];
     }
 
     if (e === 0)
@@ -247,3 +259,12 @@ vector4_16.toVector4 = function (out, a)
     out[3] = float16.float16To32(a[3]);
     return out;
 }; // Float16_inline.h:149
+
+/**
+ * Private overlapping bit views; four bytes of payload, allocated once.
+ * Dirty on entry: each codec writes before reading and caches values before reuse.
+ * Never returned or retained by callers; no callbacks or nested scratch users.
+ */
+const scratch = {};
+scratch.float32_0 = new Float32Array(1);
+scratch.uint32_0 = new Uint32Array(scratch.float32_0.buffer);
