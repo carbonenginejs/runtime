@@ -8,6 +8,11 @@ import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { CjsGr2Format } from "../../../../resource/formats/gr2/CjsGr2Format.js";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../../../resource/resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
+import { Failed } from "../../../../trinityal/ALResult.js";
+import { TriGeometryRes } from "../TriGeometryRes.js";
+import { CjsCmfFormat } from "../../../../resource/formats/cmf/index.js";
+import { PackLodGeometry } from "../packGeometry.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2GrannyIntersectionResult } from "./Tr2GrannyIntersectionResult.js";
 
 // std::numeric_limits<float>::min()
@@ -986,17 +991,18 @@ export class TriGrannyRes extends CjsResource
   }
 
   /**
-   * A `TriGeometryRes` made from this resource, for baking blendshapes.
-   *
-   * Carbon: TriGrannyRes::CreateGeometryRes (trinity/trinity/Resources/TriGrannyRes.cpp:1737-1752;
-   * TriGrannyRes.h:111). Exposed (TriGrannyRes_Blue.cpp:36-41, MAP_METHOD_AND_WRAP). Not implemented:
-   * it calls `TriGeometryRes::PrepareFromGrannyRes`, which `TriGeometryRes` does not have.
-   *
-   * @throws {Error} Always.
+   * Creates independent geometry for script-owned blendshape baking.
+   * Carbon: TriGrannyRes.cpp:1737-1752. Adapted: the projected Granny graph
+   * passes through the canonical CMF converter; device allocation remains lazy.
+   * Cached source geometry is never modified or shared with this destination.
+   * @returns {TriGeometryRes} An independently owned prepared resource.
    */
   CreateGeometryRes()
   {
-    throw new Error("TriGrannyRes.CreateGeometryRes is not implemented in CarbonEngineJS.");
+    const geometry = new TriGeometryRes();
+    geometry.SetPayload(structuredClone(CjsCmfFormat.loadShared(this.GetPayload())));
+    geometry.MarkPrepared();
+    return geometry;
   }
 
   /**
@@ -1042,17 +1048,51 @@ export class TriGrannyRes extends CjsResource
   }
 
   /**
-   * Bakes a blendshape into a geometry resource, for script.
-   *
-   * Carbon: TriGrannyRes::BakeBlendshapeFromScript (trinity/trinity/Resources/TriGrannyRes.cpp:1754-1798;
-   * TriGrannyRes.h:112). Exposed as "BakeBlendshape" (TriGrannyRes_Blue.cpp:42-49, MAP_METHOD_AND_WRAP).
-   * Not implemented: it needs the geometry resource's LOD vertex allocation and `BakeBlendshape`.
-   *
-   * @throws {Error} Always.
+   * Bakes weights from immutable source channels into an allocated destination.
+   * Carbon: TriGrannyRes.cpp:423-565,1754-1798. Adapted: Granny is normalized
+   * to CMF by the JS reader, so its absolute-target arithmetic is used even
+   * for GR2 input. Unsupported packed frames fail before upload. Float32
+   * operations retain the native threshold and do not clamp weights above one.
+   * As in Carbon, CPU source channels stay immutable; only the destination
+   * vertex allocation is rewritten. Picking retains the source geometry.
+   * @param {number} meshIx Source and destination mesh index.
+   * @param {ArrayLike<number>} weights Weights in exact source target order.
+   * @param {TriGeometryRes} geom Independently owned destination geometry.
+   * @returns {boolean} True after a successful vertex upload.
    */
-  BakeBlendshapeFromScript(_meshIx, _weights, _geom)
+  BakeBlendshapeFromScript(meshIx, weights, geom)
   {
-    throw new Error("TriGrannyRes.BakeBlendshapeFromScript is not implemented in CarbonEngineJS.");
+    const source = CjsCmfFormat.loadShared(this.GetPayload()).meshes[meshIx];
+    const destination = geom.GetMeshData(meshIx);
+    const lod = geom.GetMeshLod__LodIndex(meshIx, 0);
+    if (!source || !destination || !lod?.allocationsValid) throw new Error("Blendshape requires a valid allocated destination LOD");
+    if (weights.length !== source.morphTargets.targets.length) throw new RangeError("Blendshape weight count does not match targets");
+    if (source.decl.some(element => /PackedTangent/.test(element.usage))) throw new Error("Packed tangent blendshape baking is not implemented");
+    const base = source.lods[0].vertex;
+    if (!base.position || !lod.vertex || lod.vertex.position.length !== base.position.length) throw new Error("Blendshape destination layout mismatch");
+    const vertex = Object.fromEntries(Object.entries(base).map(([key, value]) => [key, value.slice()]));
+
+    for (let index = 0; index < weights.length; index++)
+    {
+      const weight = f(weights[index]);
+      if (!Number.isFinite(weight)) throw new TypeError("Blendshape weights must be finite float32 values");
+      if (weight < f(1e-4)) continue;
+      const target = source.lods[0].morphTargets[index].vertex;
+      for (const channel of ["position", "normal", "tangent", "binormal"])
+      {
+        if (!target[channel]) continue;
+        if (!base[channel] || target[channel].length !== base[channel].length) throw new Error("Blendshape channel layout mismatch");
+        for (let i = 0; i < vertex[channel].length; i++)
+          vertex[channel][i] = f(vertex[channel][i] + f(weight * f(target[channel][i] - base[channel][i])));
+      }
+    }
+    const packed = PackLodGeometry({ ...source, lods: [{ ...source.lods[0], vertex }] }, 0);
+    if (packed.vertex.stride !== destination.bytesPerVertex || packed.vertex.count !== lod.vertexCount) throw new Error("Blendshape destination buffer mismatch");
+    if (Failed(lod.vertexAllocation.Update(packed.vertex.bytes, Tr2RenderContext_GetMainThreadRenderContext())))
+    {
+      throw new Error("Blendshape vertex upload failed");
+    }
+    return true;
   }
 
   /**
@@ -1149,11 +1189,11 @@ CjsSchema.decorateMethod(TriGrannyRes, "GetEventTrackCount", be.mapMethodAndWrap
 CjsSchema.decorateMethod(TriGrannyRes, "GetEventTrackName", be.mapMethodAndWrap(), meta.notImplemented);
 CjsSchema.decorateMethod(TriGrannyRes, "RayIntersection", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriGrannyRes, "_FindAreaIndex", meta.cjs, meta.adapted);
-CjsSchema.decorateMethod(TriGrannyRes, "CreateGeometryRes", be.mapMethodAndWrap(), meta.notImplemented);
+CjsSchema.decorateMethod(TriGrannyRes, "CreateGeometryRes", be.mapMethodAndWrap(), meta.adapted);
 CjsSchema.decorateMethod(TriGrannyRes, "BakeBlendshape__NameToWeight", meta.notImplemented);
 CjsSchema.decorateMethod(TriGrannyRes, "BakeBlendshape__Weights", meta.notImplemented);
 CjsSchema.decorateMethod(TriGrannyRes, "_BakeBlendshape__DeltaOnly", meta.notImplemented);
-CjsSchema.decorateMethod(TriGrannyRes, "BakeBlendshapeFromScript", be.mapMethodAndWrap("BakeBlendshape"), meta.notImplemented);
+CjsSchema.decorateMethod(TriGrannyRes, "BakeBlendshapeFromScript", be.mapMethodAndWrap("BakeBlendshape"), meta.adapted);
 CjsSchema.decorateMethod(TriGrannyRes, "GetCMFData", meta.notSupported);
 CjsSchema.decorateMethod(TriGrannyRes, "GetCMFViewData", meta.notSupported);
 CjsSchema.decorateMethod(TriGrannyRes, "GetCMFContents", meta.notSupported);

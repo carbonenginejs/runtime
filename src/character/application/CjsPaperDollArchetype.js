@@ -8,6 +8,8 @@ export class CjsPaperDollArchetype
     _option = "";
     _defaultOption = "";
     _dirty = false;
+    _strength = 1;
+    _defaultStrength = 1;
 
     /** Selected prepared foundation identity. */
     @meta.property()
@@ -21,8 +23,21 @@ export class CjsPaperDollArchetype
         if (value !== this._option) { this._option = value; this._dirty = true; }
     }
 
+    /** User-selected shape weight, independent of retained authored dependency weights. */
+    @meta.property()
+    @type.float32
+    @meta.ui.description("Archetype strength")
+    get strength() { return this._strength; }
+    /** Marks the foundation dirty without resetting any other component selection. */
+    set strength(value)
+    {
+        const weight = Math.fround(value);
+        if (!Number.isFinite(weight) || weight < 0) throw new RangeError("Archetype strength must be a finite nonnegative float");
+        if (weight !== this._strength) { this._strength = weight; this._dirty = true; }
+    }
+
     /** Validates every prepared foundation before replacing the selection catalog. */
-    Configure(options, { option } = {})
+    Configure(options, { option, strength = 1 } = {})
     {
         const prepared = new Map();
         for (const entry of options)
@@ -32,6 +47,10 @@ export class CjsPaperDollArchetype
                 foundation: CjsPaperDollArchetype.resolve(entry) });
         }
         if (!prepared.has(option)) throw new RangeError("An explicit prepared archetype is required");
+        const weight = Math.fround(strength);
+        if (!Number.isFinite(weight) || weight < 0) throw new RangeError("Invalid initial archetype strength");
+        this._strength = weight;
+        this._defaultStrength = weight;
         this._options = prepared;
         this._defaultOption = option;
         this._option = option;
@@ -42,10 +61,10 @@ export class CjsPaperDollArchetype
     GetOptions() { return [...this._options.values()].map(({ id, label }) => ({ id, label })); }
 
     /** Returns an owned snapshot; callers cannot mutate the retained foundation. */
-    Resolve() { return this._option ? structuredClone(this._options.get(this._option).foundation) : null; }
+    Resolve() { return this._option ? { ...structuredClone(this._options.get(this._option).foundation), strength: this._strength } : null; }
 
     /** Restores the configured initial foundation without resetting modifier values. */
-    Reset() { if (this._defaultOption) this.option = this._defaultOption; }
+    Reset() { if (this._defaultOption) { this.option = this._defaultOption; this.strength = this._defaultStrength; } }
 
     /** Reports an unapplied foundation selection. */
     IsDirty() { return this._dirty; }

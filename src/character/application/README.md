@@ -69,3 +69,19 @@ geometry/material resources; it is responsible for compatibility validation.
 Failure keeps pending work for retry. Unconfigured dolls retain the earlier
 eyes/head-only integration. Async preparation and general archetype switching
 are host work, not implied by a successful source-graph resolution.
+
+
+Archetype also exposes decorated float32 strength. It is independent of authored
+source weights, survives option changes and is included in Resolve. Configure
+accepts an initial strength (default 1); Reset restores it. Nonfinite and negative
+values are rejected; weights above one are supported. A changed strength follows
+the foundation-first update path while retaining modifier settings.
+
+For the projected GR2 path, TriGrannyRes.CreateGeometryRes produces independent
+geometry and BakeBlendshapeFromScript rewrites an allocated LOD-0 vertex buffer
+from immutable source channels. The current implementation supports unpacked
+position/normal/tangent/binormal channels, preserves the native small-weight
+threshold and rejects packed tangent layouts. It uses canonical absolute morph
+targets after the GR2 converter has resolved delta/sparse storage. CPU picking
+retains the base geometry; this does not provide deformed picking or automatic
+character-bound expansion. Other native bake overloads remain unimplemented.
