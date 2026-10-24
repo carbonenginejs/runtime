@@ -133,3 +133,6 @@ function intersectsRay(outIntersection, box, ray)
 const FLT_MAX = 3.4028234663852886e38;
 /** Private dirty scratch, written before read; synchronous, non-reentrant and never returned. */
 const scratch = { vec3_0: new Float32Array(3) };
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(axisAlignedBoxFloat32);

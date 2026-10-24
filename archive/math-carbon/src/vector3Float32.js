@@ -185,3 +185,6 @@ function computeBoundingSphere(outCenter, array, offset, stride, count)
     }
     return f(Math.sqrt(radius));
 }
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(vector3Float32);

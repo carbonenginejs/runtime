@@ -74,3 +74,6 @@ ray.copy = function (out, r)
     out[5] = r[5];
     return out;
 };
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(ray);

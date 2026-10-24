@@ -186,3 +186,6 @@ const scratch = {
     vec3_1: new Float32Array(3),
     box_0: new Float32Array(6)
 };
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(sphereFloat32);

@@ -166,3 +166,6 @@ color.saturate = function (out, a, saturation)
     out[3] = al + f32(f32(al - al) * t);
     return out;
 }; // Color_inline.h:161
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(color);

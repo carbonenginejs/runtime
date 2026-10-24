@@ -31,3 +31,6 @@ function normalize(out, a)
     out[1] = f(y * magnitude);
     return out;
 }
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(vector2Float32);

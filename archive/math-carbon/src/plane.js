@@ -187,3 +187,6 @@ plane.dotNormal = function (p, v)
 {
     return p[0] * v[0] + p[1] * v[1] + p[2] * v[2];
 };
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(plane);

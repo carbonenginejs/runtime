@@ -566,3 +566,6 @@ function minValue(a, b)
 {
     return a > b ? b : a;
 }
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(axisAlignedBox);

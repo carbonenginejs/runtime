@@ -36,3 +36,6 @@ function cross(out, a, b, c)
     out[3] = -(f(f(f(ax * f(f(by * cz) - f(cy * bz))) - f(ay * f(f(bx * cz) - f(cx * bz)))) + f(az * f(f(bx * cy) - f(cx * by)))));
     return out;
 }
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(vector4Float32);

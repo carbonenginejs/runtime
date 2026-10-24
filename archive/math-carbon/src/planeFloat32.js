@@ -101,3 +101,6 @@ function normalize(out, p)
 {
     return multiplyScalar(out, p, Math.fround(1 / vector3Float32.length(p)));
 }
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(planeFloat32);

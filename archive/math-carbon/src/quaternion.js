@@ -265,6 +265,7 @@ quaternion.conjugate = function (out, q)
 }; // Quaternion_inline.h:191
 
 /**
+ * Carbon: Exp (math/include/Quaternion_inline.h:202-224)
  * Quaternion exponential (of a pure/vector quaternion; w input is ignored, as C++)
  * @param {quaternion} out
  * @param {quaternion} q
@@ -273,7 +274,7 @@ quaternion.conjugate = function (out, q)
 quaternion.exp = function (out, q)
 {
     const norm = Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2]);
-    if (norm)
+    if (norm !== 0)
     {
         const s = Math.sin(norm);
         out[0] = s * q[0] / norm;
@@ -473,3 +474,6 @@ quaternion.getAxisAngle = function (outAxis, q)
     outAxis[2] = q[2];
     return Math.acos(q[3]) * 2;
 }; // Quaternion_inline.h:270
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(quaternion);

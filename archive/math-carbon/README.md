@@ -14,7 +14,8 @@ determinant. Caller-owned output may overlap the inputs for these operations.
 
 `src/matrixFloat32.js` prepares the float32 implementations of multiply,
 determinant, inverse, scale/rotation/translation composition, vector transforms,
-scalar scaling/division and arithmetic projections.
+scalar scaling/division, arithmetic projections, basis/look-at construction, centered
+composition, decomposition and batched transforms.
 `src/quaternionFloat32.js` prepares multiply, dot, length, normalization, inverse
 and scalar scaling/division.
 The vector2/3/4 float32 tables prepare length, normalization, dot, clamp, triple-cross,
@@ -22,11 +23,31 @@ Hermite interpolation, sphere probes and bounding-sphere kernels.
 `src/planeFloat32.js` prepares scalar arithmetic, dot products, line intersection and normalization.
 The sphere, axis-aligned box and ellipsoid float32 tables prepare compound construction,
 containment, growth, transform and ray operations while preserving native edge cases.
-These partial tables are internal and absent from the archive barrel and runtime exports. This is
-preparation for our initialization-time precision option, not an active setting:
-fast double intermediates will be the default; float32 will be selected once,
-immutably, without a precision branch in each math call. Other operations and
-initialization wiring remain unfinished.
+These partial float32 tables are internal and absent from the archive barrel and runtime exports.
+The archive barrel now exports `initializeMath`; only its default double mode is available:
+
+```js
+import { initializeMath } from "./src/index.js";
+
+const math = initializeMath({ precision: "double" }); // Also the default when omitted.
+const result = math.matrix.create();
+math.matrix.identityMatrix(result);
+```
+
+Selection is immutable per initializer module instance. Repeating the same selection returns
+the same frozen API; a conflicting selection throws. Calls use direct function tables without
+wrappers or per-operation precision branches. All archive operation tables, including legacy
+direct imports and internal float32 tables, are frozen when their modules load. Numeric results
+remain writable. Persistent values retain Float32Array storage (Uint16Array for half vectors);
+double intermediates do not imply a Float64Array value contract. Workers and separately loaded
+module instances have independent initialization state.
+
+Requesting `precision: "float32"` before initialization throws `CARBON_FLOAT32_UNAVAILABLE`
+without committing state or silently falling back. Complete native CRT/DirectXMath agreement
+has not been established, including native transcendental functions. The double initializer
+does not import the internal float32 tables or retain their scratch. Options must be an object;
+unknown enumerable own string keys and unsupported precision values are rejected. This is an
+archive-only entry point, not an exported runtime package setting.
 
 Float32 kernels have been checked against an unmodified native Carbon build for
 the specified operations: MSVC x64, `/Od /fp:strict`, including singular and
@@ -34,11 +55,13 @@ exceptional-value fixtures. This is a bounded compiler/profile comparison;
 NaN payload bits, other native profiles and transcendental functions are not
 certified. Float storage alone does not reproduce native float intermediates.
 
-All hot-path temporaries use scalar locals, reusable typed scratch or pools.
+Algorithm bodies use scalar locals or reusable typed scratch instead of explicit temporary construction.
 Constructors allocate owned results; repeated temporary typed-array allocation
 causes garbage-collection pressure and is not the pattern for operations.
 The source allocation inventory leaves only initialization, owned-result factories
-and explicitly returned views; remaining operations still require native precision review.
+and explicitly returned views. This is not a zero-VM-allocation claim: bounded Chrome
+measurements still observe collections during centered transforms. Exact-mode completion
+requires a verified native-math backend and complete-table validation.
 
 CarbonEngine supplies the donor source, owned by Fenris Creations (CCP Games).
 This JavaScript port is not affiliated with or endorsed by Fenris Creations or CCP Games.

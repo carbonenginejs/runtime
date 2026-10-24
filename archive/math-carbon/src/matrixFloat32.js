@@ -1,4 +1,5 @@
 import { matrix } from "./matrix.js";
+import { vector3Float32 } from "./vector3Float32.js";
 
 // Source: math/include/Matrix_inline.h
 // Source: math/include/Vector4_inline.h
@@ -12,7 +13,7 @@ import { matrix } from "./matrix.js";
  */
 export const matrixFloat32 = { multiply, determinant, inverse, inverseDet, transformationMatrix,
     transformCoord, transformNormal, transform, transformByTranspose, scale, divide,
-    orthographicProjection, orthoMatrix, perspectiveOffCenterMatrix, orthoOffCenterMatrix };
+    orthographicProjection, orthoMatrix, perspectiveOffCenterMatrix, orthoOffCenterMatrix, orthoNormalBasisZ, lookAtMatrix, transformationMatrixCentered, decompose, transformCoords };
 
 /**
  * Carbon: Matrix::operator* (math/include/Matrix_inline.h:193-204)
@@ -86,11 +87,29 @@ function determinant(m)
  * All inputs are cached before output writes, including the singular-copy path.
  * @param {Float32Array} out Receiving matrix.
  * @param {Float32Array} m Input matrix.
- * @param {number} det Float32 determinant.
+ * @param {number} [det] Optional precomputed float32 determinant.
  * @returns {Float32Array} out
  */
 function inverseInto(out, m, det)
 {
+    // Inline the donor determinant when no scalar return is needed.
+    if (det === undefined)
+    {
+        const f = Math.fround;
+        const a0 = f(f(m[0] * m[5]) - f(m[1] * m[4]));
+        const a1 = f(f(m[0] * m[6]) - f(m[2] * m[4]));
+        const a2 = f(f(m[0] * m[7]) - f(m[3] * m[4]));
+        const a3 = f(f(m[1] * m[6]) - f(m[2] * m[5]));
+        const a4 = f(f(m[1] * m[7]) - f(m[3] * m[5]));
+        const a5 = f(f(m[2] * m[7]) - f(m[3] * m[6]));
+        const b0 = f(f(m[8] * m[13]) - f(m[9] * m[12]));
+        const b1 = f(f(m[8] * m[14]) - f(m[10] * m[12]));
+        const b2 = f(f(m[8] * m[15]) - f(m[11] * m[12]));
+        const b3 = f(f(m[9] * m[14]) - f(m[10] * m[13]));
+        const b4 = f(f(m[9] * m[15]) - f(m[11] * m[13]));
+        const b5 = f(f(m[10] * m[15]) - f(m[11] * m[14]));
+        det = f(f(f(f(f(f(a0 * b5) - f(a1 * b4)) + f(a2 * b3)) + f(a3 * b2)) - f(a4 * b1)) + f(a5 * b0));
+    }
     const f = Math.fround;
     const m0 = m[0], m1 = m[1], m2 = m[2], m3 = m[3];
     const m4 = m[4], m5 = m[5], m6 = m[6], m7 = m[7];
@@ -141,7 +160,7 @@ function inverseInto(out, m, det)
  */
 function inverse(out, m)
 {
-    return inverseInto(out, m, determinant(m));
+    return inverseInto(out, m);
 }
 
 /**
@@ -516,3 +535,387 @@ function orthoOffCenterMatrix(out, l, r, b, t, zn, zf)
     out[14] = f(zn / f(zn - zf));
     return out;
 }
+
+/**
+ * Carbon: OrthoNormalBasisZ (math/include/Matrix_inline.h:531-546)
+ * Ortho-normal basis whose Z row is the (normalized) given direction
+ * @param {Float32Array} out
+ * @param {Float32Array} z - 3 floats (may alias out)
+ * @returns {Float32Array} out
+ */
+function orthoNormalBasisZ(out, z)
+{
+    const vec3_0 = v3Normalize(scratch.vec3_0, z[0], z[1], z[2]);
+    matrix.identityMatrix(out);
+    out[8] = vec3_0[0];
+    out[9] = vec3_0[1];
+    out[10] = vec3_0[2];
+    let xx, xy, xz;
+    if (Math.abs(out[8]) > Math.fround(0.99))
+    {
+        xx = 0; xy = 1; xz = 0;
+    }
+    else
+    {
+        xx = 1; xy = 0; xz = 0;
+    }
+    const vec3_1 = v3Cross(scratch.vec3_1, xx, xy, xz, out[8], out[9], out[10]);
+    const vec3_2 = v3Normalize(scratch.vec3_2, vec3_1[0], vec3_1[1], vec3_1[2]);
+    out[4] = vec3_2[0];
+    out[5] = vec3_2[1];
+    out[6] = vec3_2[2];
+    const vec3_3 = v3Cross(scratch.vec3_3, out[4], out[5], out[6], out[8], out[9], out[10]);
+    out[0] = vec3_3[0];
+    out[1] = vec3_3[1];
+    out[2] = vec3_3[2];
+    return out;
+}
+
+/**
+ * Carbon: LookAtMatrix (math/include/Matrix_inline.h:671-701)
+ * Look-at view matrix (eye, target, up)
+ * @param {Float32Array} out
+ * @param {Float32Array} peye - 3 floats
+ * @param {Float32Array} pat - 3 floats
+ * @param {Float32Array} pup - 3 floats
+ * @returns {Float32Array} out
+ */
+function lookAtMatrix(out, peye, pat, pup)
+{
+    const ex = peye[0], ey = peye[1], ez = peye[2];
+    const vec2x = Math.fround(pat[0] - ex), vec2y = Math.fround(pat[1] - ey), vec2z = Math.fround(pat[2] - ez);
+    const vec3_0 = v3Normalize(scratch.vec3_0, vec2x, vec2y, vec2z);
+    const vec3_1 = v3Cross(scratch.vec3_1, pup[0], pup[1], pup[2], vec3_0[0], vec3_0[1], vec3_0[2]);
+    const vec3_2 = v3Cross(scratch.vec3_2, vec3_0[0], vec3_0[1], vec3_0[2], vec3_1[0], vec3_1[1], vec3_1[2]);
+    const vec3_3 = v3Normalize(scratch.vec3_3, vec3_1[0], vec3_1[1], vec3_1[2]);
+    const vec3_4 = v3Normalize(scratch.vec3_4, vec3_2[0], vec3_2[1], vec3_2[2]);
+    out[0] = -vec3_3[0];
+    out[4] = -vec3_3[1];
+    out[8] = -vec3_3[2];
+    out[12] = v3Dot(vec3_3[0], vec3_3[1], vec3_3[2], ex, ey, ez);
+    out[1] = vec3_4[0];
+    out[5] = vec3_4[1];
+    out[9] = vec3_4[2];
+    out[13] = -v3Dot(vec3_4[0], vec3_4[1], vec3_4[2], ex, ey, ez);
+    out[2] = -vec3_0[0];
+    out[6] = -vec3_0[1];
+    out[10] = -vec3_0[2];
+    out[14] = v3Dot(vec3_0[0], vec3_0[1], vec3_0[2], ex, ey, ez);
+    out[3] = 0.0;
+    out[7] = 0.0;
+    out[11] = 0.0;
+    out[15] = 1.0;
+    return out;
+}
+
+/**
+ * Carbon: TransformationMatrix (math/src/Matrix.cpp:66-144)
+ * Transformation matrix with centers (Carbon's 6-pointer overload; any argument may be null):
+ * T(-sc) * SR^-1 * S * SR * T(sc - rc) * R * T(rc + t)
+ * @param {Float32Array} out
+ * @param {?Float32Array} scalingCenter - 3 floats or null
+ * @param {?Float32Array} scalingRotation - quaternion or null
+ * @param {?Float32Array} scaling - 3 floats or null
+ * @param {?Float32Array} rotationCenter - 3 floats or null
+ * @param {?Float32Array} rotation - quaternion or null
+ * @param {?Float32Array} translation - 3 floats or null
+ * @returns {Float32Array} out
+ */
+function transformationMatrixCentered(out, scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation)
+{
+    const { mat4_0, mat4_1, mat4_2, mat4_3, mat4_4, mat4_5, mat4_6 } = scratch;
+
+    let pscx = 0, pscy = 0, pscz = 0;
+    if (scalingCenter)
+    {
+        pscx = scalingCenter[0];
+        pscy = scalingCenter[1];
+        pscz = scalingCenter[2];
+    }
+    let prcx = 0, prcy = 0, prcz = 0;
+    if (rotationCenter)
+    {
+        prcx = rotationCenter[0];
+        prcy = rotationCenter[1];
+        prcz = rotationCenter[2];
+    }
+    let ptx = 0, pty = 0, ptz = 0;
+    if (translation)
+    {
+        ptx = translation[0];
+        pty = translation[1];
+        ptz = translation[2];
+    }
+    matrix.identityMatrix(mat4_0);
+    mat4_0[12] = -pscx;
+    mat4_0[13] = -pscy;
+    mat4_0[14] = -pscz;
+    if (!scalingRotation)
+    {
+        matrix.identityMatrix(mat4_1);
+        matrix.identityMatrix(mat4_3);
+    }
+    else
+    {
+        rotationMatrixQuaternion(mat4_3, scalingRotation);
+        inverse(mat4_1, mat4_3);
+    }
+    if (!scaling)
+    {
+        matrix.identityMatrix(mat4_2);
+    }
+    else
+    {
+        matrix.scalingMatrix(mat4_2, scaling);
+    }
+    if (!rotation)
+    {
+        matrix.identityMatrix(mat4_5);
+    }
+    else
+    {
+        rotationMatrixQuaternion(mat4_5, rotation);
+    }
+    matrix.identityMatrix(mat4_4);
+    mat4_4[12] = pscx - prcx;
+    mat4_4[13] = pscy - prcy;
+    mat4_4[14] = pscz - prcz;
+    matrix.identityMatrix(mat4_6);
+    mat4_6[12] = prcx + ptx;
+    mat4_6[13] = prcy + pty;
+    mat4_6[14] = prcz + ptz;
+    multiply(out, mat4_0, mat4_1);
+    multiply(out, out, mat4_2);
+    multiply(out, out, mat4_3);
+    multiply(out, out, mat4_4);
+    multiply(out, out, mat4_5);
+    return multiply(out, out, mat4_6);
+}
+
+/**
+ * Carbon: Decompose (math/src/Matrix.cpp:225-270)
+ * Decomposes a matrix into scaling, rotation quaternion and translation (Carbon's argument order)
+ * @param {Float32Array} scaling - receiving vec3
+ * @param {Float32Array} rotation - receiving quaternion
+ * @param {Float32Array} translation - receiving vec3
+ * @param {Float32Array} m
+ */
+function decompose(scaling, rotation, translation, m)
+{
+    scaling[0] = v3Length(m[0], m[1], m[2]);
+    scaling[1] = v3Length(m[4], m[5], m[6]);
+    scaling[2] = v3Length(m[8], m[9], m[10]);
+
+    translation[0] = m[12];
+    translation[1] = m[13];
+    translation[2] = m[14];
+
+    if (scaling[0] === 0.0 || scaling[1] === 0.0 || scaling[2] === 0.0)
+    {
+        rotation[0] = 0.0;
+        rotation[1] = 0.0;
+        rotation[2] = 0.0;
+        rotation[3] = 1.0;
+    }
+    else
+    {
+        const mat4_7 = matrix.identityMatrix(scratch.mat4_7);
+        mat4_7[0] = m[0] / scaling[0];
+        mat4_7[1] = m[1] / scaling[0];
+        mat4_7[2] = m[2] / scaling[0];
+        mat4_7[4] = m[4] / scaling[1];
+        mat4_7[5] = m[5] / scaling[1];
+        mat4_7[6] = m[6] / scaling[1];
+        mat4_7[8] = m[8] / scaling[2];
+        mat4_7[9] = m[9] / scaling[2];
+        mat4_7[10] = m[10] / scaling[2];
+        rotationQuaternionMatrix(rotation, mat4_7);
+    }
+}
+
+/**
+ * Carbon: TransformCoords (math/include/Matrix_inline.h:620-660)
+ * Batch TransformCoord over strided arrays (folds Carbon's four TransformCoords
+ * overloads; offsets/strides are in floats, out may be the same array as in).
+ * Overlapping batches retain native sequential mutations, not whole-batch snapshots.
+ * @param {Float32Array} outArray
+ * @param {number} outOffset
+ * @param {number} outStride
+ * @param {Float32Array} inArray
+ * @param {number} inOffset
+ * @param {number} inStride
+ * @param {number} count
+ * @param {Float32Array} m
+ * @returns {Float32Array} outArray
+ */
+function transformCoords(outArray, outOffset, outStride, inArray, inOffset, inStride, count, m)
+{
+    const { vec3_0 } = scratch;
+    for (let i = 0; i < count; ++i)
+    {
+        const src = inOffset + i * inStride;
+        const dst = outOffset + i * outStride;
+        vec3_0[0] = inArray[src];
+        vec3_0[1] = inArray[src + 1];
+        vec3_0[2] = inArray[src + 2];
+        transformCoord(vec3_0, vec3_0, m);
+        outArray[dst] = vec3_0[0];
+        outArray[dst + 1] = vec3_0[1];
+        outArray[dst + 2] = vec3_0[2];
+    }
+    return outArray;
+}
+
+/**
+ * Carbon: Dot (math/include/Vector3_inline.h:163-166)
+ * Uses scalar operands without creating vector views.
+ * @param {number} ax First X.
+ * @param {number} ay First Y.
+ * @param {number} az First Z.
+ * @param {number} bx Second X.
+ * @param {number} by Second Y.
+ * @param {number} bz Second Z.
+ * @returns {number} Float32 dot product.
+ */
+function v3Dot(ax, ay, az, bx, by, bz)
+{
+    const f = Math.fround;
+    return f(f(f(ax * bx) + f(ay * by)) + f(az * bz));
+}
+
+/**
+ * Carbon: Length (math/include/Vector3_inline.h:175-178)
+ * Rounds the sum and square root.
+ * @param {number} x X component.
+ * @param {number} y Y component.
+ * @param {number} z Z component.
+ * @returns {number} Float32 length.
+ */
+function v3Length(x, y, z)
+{
+    return Math.fround(Math.sqrt(v3Dot(x, y, z, x, y, z)));
+}
+
+/**
+ * Carbon: Normalize (math/include/Vector3_inline.h:181-192)
+ * Stores the input vector before invoking the native rounded normalization.
+ * @param {Float32Array} out Receiving vector.
+ * @param {number} x X component.
+ * @param {number} y Y component.
+ * @param {number} z Z component.
+ * @returns {Float32Array} out
+ */
+function v3Normalize(out, x, y, z)
+{
+    out[0] = x; out[1] = y; out[2] = z;
+    return vector3Float32.normalize(out, out);
+}
+
+/**
+ * Carbon: Cross (math/include/Vector3_inline.h:195-199)
+ * Rounds each product before subtraction.
+ * @param {Float32Array} out Receiving vector.
+ * @param {number} ax First X.
+ * @param {number} ay First Y.
+ * @param {number} az First Z.
+ * @param {number} bx Second X.
+ * @param {number} by Second Y.
+ * @param {number} bz Second Z.
+ * @returns {Float32Array} out
+ */
+function v3Cross(out, ax, ay, az, bx, by, bz)
+{
+    const f = Math.fround;
+    out[0] = f(f(ay * bz) - f(az * by));
+    out[1] = f(f(az * bx) - f(ax * bz));
+    out[2] = f(f(ax * by) - f(ay * bx));
+    return out;
+}
+
+/**
+ * Carbon: RotationMatrix (math/include/Matrix_inline.h:365-385)
+ * Private quaternion overload; the public axis/angle overload remains gated.
+ * @param {Float32Array} out Receiving matrix; may overlap q.
+ * @param {Float32Array} q Quaternion, not normalized first.
+ * @returns {Float32Array} out
+ */
+function rotationMatrixQuaternion(out, q)
+{
+    const f = Math.fround;
+    const x = q[0], y = q[1], z = q[2], w = q[3];
+    out[0] = f(1 - f(2 * f(f(y * y) + f(z * z))));
+    out[1] = f(2 * f(f(x * y) + f(z * w)));
+    out[2] = f(2 * f(f(x * z) - f(y * w)));
+    out[3] = 0;
+    out[4] = f(2 * f(f(x * y) - f(z * w)));
+    out[5] = f(1 - f(2 * f(f(x * x) + f(z * z))));
+    out[6] = f(2 * f(f(y * z) + f(x * w)));
+    out[7] = 0;
+    out[8] = f(2 * f(f(x * z) + f(y * w)));
+    out[9] = f(2 * f(f(y * z) - f(x * w)));
+    out[10] = f(1 - f(2 * f(f(x * x) + f(y * y))));
+    out[11] = 0; out[12] = 0; out[13] = 0; out[14] = 0; out[15] = 1;
+    return out;
+}
+
+/**
+ * Carbon: RotationQuaternion (math/src/Quaternion.cpp:7-57)
+ * Private matrix overload with native trace and strict diagonal-tie branches.
+ * @param {Float32Array} out Receiving quaternion; may overlap m.
+ * @param {Float32Array} m Matrix.
+ * @returns {Float32Array} out
+ */
+function rotationQuaternionMatrix(out, m)
+{
+    const f = Math.fround;
+    const m00 = m[0], m01 = m[1], m02 = m[2], m10 = m[4], m11 = m[5], m12 = m[6], m20 = m[8], m21 = m[9], m22 = m[10];
+    const trace = f(f(f(m00 + m11) + m22) + 1);
+    let x, y, z, w;
+    if (trace > 1)
+    {
+        const root = f(Math.sqrt(trace)), denominator = f(2 * root);
+        x = f(f(m12 - m21) / denominator);
+        y = f(f(m20 - m02) / denominator);
+        z = f(f(m01 - m10) / denominator);
+        w = f(root / 2);
+    }
+    else
+    {
+        let index = 0, diagonal = m00;
+        if (m11 > diagonal) { index = 1; diagonal = m11; }
+        if (m22 > diagonal) index = 2;
+        if (index === 0)
+        {
+            const t = f(2 * f(Math.sqrt(f(f(f(1 + m00) - m11) - m22))));
+            x = f(0.25 * t); y = f(f(m01 + m10) / t); z = f(f(m02 + m20) / t); w = f(f(m12 - m21) / t);
+        }
+        else if (index === 1)
+        {
+            const t = f(2 * f(Math.sqrt(f(f(f(1 + m11) - m00) - m22))));
+            x = f(f(m01 + m10) / t); y = f(0.25 * t); z = f(f(m12 + m21) / t); w = f(f(m20 - m02) / t);
+        }
+        else
+        {
+            const t = f(2 * f(Math.sqrt(f(f(f(1 + m22) - m00) - m11))));
+            x = f(f(m02 + m20) / t); y = f(f(m12 + m21) / t); z = f(0.25 * t); w = f(f(m01 - m10) / t);
+        }
+    }
+    out[0] = x; out[1] = y; out[2] = z; out[3] = w;
+    return out;
+}
+
+/**
+ * Private dirty scratch, fully initialized before read and never returned.
+ * Builder calls use disjoint slots; multiply/inverse/conversion helpers use scalar locals.
+ * No callbacks or nested entry into a builder while its scratch is in use.
+ */
+const scratch = {
+    vec3_0: new Float32Array(3), vec3_1: new Float32Array(3), vec3_2: new Float32Array(3),
+    vec3_3: new Float32Array(3), vec3_4: new Float32Array(3),
+    mat4_0: new Float32Array(16), mat4_1: new Float32Array(16), mat4_2: new Float32Array(16),
+    mat4_3: new Float32Array(16), mat4_4: new Float32Array(16), mat4_5: new Float32Array(16),
+    mat4_6: new Float32Array(16), mat4_7: new Float32Array(16)
+};
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(matrixFloat32);

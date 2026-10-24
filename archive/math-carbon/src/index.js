@@ -24,3 +24,5 @@ export * from "./axisAlignedEllipsoid.js";
 export * from "./ray.js";
 export * from "./color.js";
 export * from "./float16.js";
+
+export { initializeMath } from "./initialize.js";

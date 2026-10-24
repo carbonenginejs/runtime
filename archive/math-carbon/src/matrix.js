@@ -1,7 +1,7 @@
 import { quaternion } from "./quaternion.js";
 
 /**
- * Carbon Matrix algorithms with allocation-free hot-path implementations from math
+ * Carbon Matrix algorithms with no explicit per-call temporary construction from math
  * (Matrix.h, Matrix_inline.h, src\Matrix.cpp).
  *
  * Storage is a plain Float32Array of 16 floats in Carbon's row-major order:
@@ -701,7 +701,10 @@ matrix.transformationMatrixCentered = function (out, scalingCenter, scalingRotat
         pty = translation[1];
         ptz = translation[2];
     }
-    matrix.translationMatrix(mat4_0, -pscx, -pscy, -pscz);
+    matrix.identityMatrix(mat4_0);
+    mat4_0[12] = -pscx;
+    mat4_0[13] = -pscy;
+    mat4_0[14] = -pscz;
     if (!scalingRotation)
     {
         matrix.identityMatrix(mat4_1);
@@ -728,8 +731,14 @@ matrix.transformationMatrixCentered = function (out, scalingCenter, scalingRotat
     {
         matrix.rotationMatrix(mat4_5, rotation);
     }
-    matrix.translationMatrix(mat4_4, pscx - prcx, pscy - prcy, pscz - prcz);
-    matrix.translationMatrix(mat4_6, prcx + ptx, prcy + pty, prcz + ptz);
+    matrix.identityMatrix(mat4_4);
+    mat4_4[12] = pscx - prcx;
+    mat4_4[13] = pscy - prcy;
+    mat4_4[14] = pscz - prcz;
+    matrix.identityMatrix(mat4_6);
+    mat4_6[12] = prcx + ptx;
+    mat4_6[13] = prcy + pty;
+    mat4_6[14] = prcz + ptz;
     matrix.multiply(out, mat4_0, mat4_1);
     matrix.multiply(out, out, mat4_2);
     matrix.multiply(out, out, mat4_3);
@@ -775,7 +784,10 @@ matrix.transformation2DMatrix = function (out, scalingCenter, scalingRotation, s
         pty = translation[1];
     }
     const ptz = 0;
-    matrix.translationMatrix(mat4_0, -pscx, -pscy, -pscz);
+    matrix.identityMatrix(mat4_0);
+    mat4_0[12] = -pscx;
+    mat4_0[13] = -pscy;
+    mat4_0[14] = -pscz;
     if (scalingRotation === 0)
     {
         matrix.identityMatrix(mat4_1);
@@ -802,8 +814,14 @@ matrix.transformation2DMatrix = function (out, scalingCenter, scalingRotation, s
     {
         matrix.rotationZMatrix(mat4_5, rotation);
     }
-    matrix.translationMatrix(mat4_4, pscx - prcx, pscy - prcy, pscz - prcz);
-    matrix.translationMatrix(mat4_6, prcx + ptx, prcy + pty, prcz + ptz);
+    matrix.identityMatrix(mat4_4);
+    mat4_4[12] = pscx - prcx;
+    mat4_4[13] = pscy - prcy;
+    mat4_4[14] = pscz - prcz;
+    matrix.identityMatrix(mat4_6);
+    mat4_6[12] = prcx + ptx;
+    mat4_6[13] = prcy + pty;
+    mat4_6[14] = prcz + ptz;
     matrix.multiply(out, mat4_0, mat4_1);
     matrix.multiply(out, out, mat4_2);
     matrix.multiply(out, out, mat4_3);
@@ -989,11 +1007,28 @@ matrix.determinant = function (m)
  * Cache all input elements before writing so out may overlap the input.
  * @param {matrix} out Receiving matrix.
  * @param {matrix} m Input matrix.
- * @param {number} det Determinant; zero copies m, NaN follows the donor arithmetic path.
+ * @param {number} [det] Optional precomputed determinant; zero copies m, NaN follows the donor arithmetic path.
  * @returns {matrix} out
  */
 function inverseInto(out, m, det)
 {
+    // Inline the donor determinant when no scalar return is needed.
+    if (det === undefined)
+    {
+        const a0 = m[0] * m[5] - m[1] * m[4];
+        const a1 = m[0] * m[6] - m[2] * m[4];
+        const a2 = m[0] * m[7] - m[3] * m[4];
+        const a3 = m[1] * m[6] - m[2] * m[5];
+        const a4 = m[1] * m[7] - m[3] * m[5];
+        const a5 = m[2] * m[7] - m[3] * m[6];
+        const b0 = m[8] * m[13] - m[9] * m[12];
+        const b1 = m[8] * m[14] - m[10] * m[12];
+        const b2 = m[8] * m[15] - m[11] * m[12];
+        const b3 = m[9] * m[14] - m[10] * m[13];
+        const b4 = m[9] * m[15] - m[11] * m[13];
+        const b5 = m[10] * m[15] - m[11] * m[14];
+        det = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
+    }
     const f = Math.fround;
     const m0 = m[0], m1 = m[1], m2 = m[2], m3 = m[3];
     const m4 = m[4], m5 = m[5], m6 = m[6], m7 = m[7];
@@ -1045,8 +1080,7 @@ function inverseInto(out, m, det)
  */
 matrix.inverse = function (out, m)
 {
-    const det = matrix.determinant(m);
-    return inverseInto(out, m, det);
+    return inverseInto(out, m);
 }; // Matrix.cpp:7
 
 /**
@@ -1289,3 +1323,6 @@ const scratch = {
     mat4_6: matrix.create(),
     mat4_7: matrix.create()
 };
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(matrix);

@@ -121,3 +121,6 @@ vector2.normalize = function (out, a)
     out[1] = y * length;
     return out;
 }; // Vector2_inline.h:164
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(vector2);

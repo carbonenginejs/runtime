@@ -144,3 +144,6 @@ vector4.cross = function (out, a, b, c)
     out[3] = -(ax * (by * cz - cy * bz) - ay * (bx * cz - cx * bz) + az * (bx * cy - cx * by));
     return out;
 }; // Vector4_inline.h:186
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(vector4);

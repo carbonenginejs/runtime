@@ -268,3 +268,9 @@ vector4_16.toVector4 = function (out, a)
 const scratch = {};
 scratch.float32_0 = new Float32Array(1);
 scratch.uint32_0 = new Uint32Array(scratch.float32_0.buffer);
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(float16);
+Object.freeze(vector2_16);
+Object.freeze(vector3_16);
+Object.freeze(vector4_16);

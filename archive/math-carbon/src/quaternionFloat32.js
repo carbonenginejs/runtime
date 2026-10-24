@@ -132,3 +132,6 @@ function divide(out, a, divisor)
     const f = Math.fround;
     return scale(out, a, f(1 / f(divisor)));
 }
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(quaternionFloat32);

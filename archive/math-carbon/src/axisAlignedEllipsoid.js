@@ -248,3 +248,6 @@ axisAlignedEllipsoid.scaleVector = function (e, scale)
     e[2] *= scale[2];
     return e;
 };
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(axisAlignedEllipsoid);

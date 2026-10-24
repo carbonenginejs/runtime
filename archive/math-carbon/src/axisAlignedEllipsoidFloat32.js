@@ -128,3 +128,6 @@ function scaleScalar(e, scale)
  * IncludeSphere owns box_1 while nested IncludeBox owns box_0; no callback re-entry.
  */
 const scratch = { box_0: new Float32Array(6), box_1: new Float32Array(6) };
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(axisAlignedEllipsoidFloat32);

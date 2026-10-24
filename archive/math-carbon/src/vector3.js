@@ -313,3 +313,6 @@ vector3.computeBoundingSphere = function (outCenter, array, offset, stride, coun
     }
     return f32(Math.sqrt(radius));
 }; // Vector3.cpp:7
+
+// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
+Object.freeze(vector3);
