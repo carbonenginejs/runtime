@@ -48,11 +48,11 @@ const sampleSchema = {
     ]
 };
 
-test("package root exports one public class", async () =>
+test("package root exports the format and object builder", async () =>
 {
     const mod = await import("../../../../../npm/dist/global/blue/formats/black/index.js");
 
-    assert.deepEqual(Object.keys(mod).sort(), [ "CjsBlackFormat", "default" ]);
+    assert.deepEqual(Object.keys(mod).sort(), [ "CjsBlackFormat", "CreateBlackObjectBuilder", "default" ]);
     assert.equal(mod.default, CjsBlackFormat);
     assert.equal(mod.CjsBlackFormat, CjsBlackFormat);
     assert.equal(NamedCjsBlackFormat, CjsBlackFormat);

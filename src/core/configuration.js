@@ -7,7 +7,7 @@ import { TriGeometryRes } from "../trinity/resources/geometry/TriGeometryRes.js"
 import { Tr2EffectRes } from "../trinity/shader/Tr2EffectRes.js";
 import { ReadImageResource } from "../trinity/resources/texture/registerTextureResources.js";
 import { CreateShaderResourceLoader } from "../trinity/shader/registerShaderResources.js";
-import { CreateBlackObjectBuilder } from "../resource/object/registerObjectResources.js";
+import { CreateBlackObjectBuilder } from "../global/blue/formats/black/CreateBlackObjectBuilder.js";
 import { SolidColorTextureConstructor } from "../trinity/resources/procedural/SolidColorTextureConstructor.js";
 import { CjsTextureArrayConstructor } from "../trinity/resources/texture/CjsTextureArrayConstructor.js";
 import { CjsTexturePackConstructor } from "../trinity/resources/texture/CjsTexturePackConstructor.js";

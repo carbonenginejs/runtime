@@ -6,7 +6,7 @@ import { ImageIO } from "../../../npm/dist/resource/imageio/ImageIO.js";
 import { CjsPngFormat } from "../../../npm/dist/resource/formats/png/CjsPngFormat.js";
 import { CjsVtaFormat } from "../../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
 import { TriSettingsRegistrar } from "../../../npm/dist/trinity/core/TriSettingsRegistrar.js";
-import { CreateBlackObjectBuilder } from "../../../npm/dist/resource/object/registerObjectResources.js";
+import { CreateBlackObjectBuilder } from "../../../npm/dist/global/blue/formats/black/CreateBlackObjectBuilder.js";
 import { ReadImageResource } from "../../../npm/dist/trinity/resources/texture/registerTextureResources.js";
 import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
 
