@@ -198,7 +198,7 @@ Replaced defaults are retained until that final ownership decision so sharing
 cannot turn a later reinitialization into premature destruction.
 
 Sphere pins share a CPU triangle index per decoded geometry resource. The
-resource layer supplies positions and indices; Trinity selects the subset and
+geometry resource supplies positions and indices; Trinity selects the subset and
 combines its own AL index buffer with the shared vertex allocation. The ordinary
 batch path uploads one pin payload to the distinct vertex and pixel registers.
 Scene retirement accounts for pin buffers and effects, including replaced
@@ -231,9 +231,9 @@ TEXCOORD0..6; the instanced mesh adds eight when merging stream 1, so the shader
 receives TEXCOORD8..14. CPU publication before device creation does not imply
 render readiness; device preparation allocates and uploads the retained rows.
 
-Carbon prepares geometry at resource load; the resource layer here cannot import
-Trinity, so the instanced mesh prepares loaded and assigned geometry providers
-through the existing LOD allocation helper at first use. The selected instance
+Carbon prepares geometry at resource load; here the instanced mesh prepares loaded
+and assigned geometry providers through the existing LOD allocation helper at
+first use. The selected instance
 LOD supplies its buffer, byte offset, aligned stride and vertex count. An already
 prepared declaration does not require allocating an unrelated full-detail LOD.
 
