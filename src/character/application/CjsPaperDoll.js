@@ -14,6 +14,9 @@ import { CjsPaperDollBottomUnderwear } from "./CjsPaperDollBottomUnderwear.js";
 import { CjsPaperDollTopUnderwear } from "./CjsPaperDollTopUnderwear.js";
 import { CjsPaperDollEyeshadow } from "./CjsPaperDollEyeshadow.js";
 import { CjsPaperDollAugmentations } from "./CjsPaperDollAugmentations.js";
+import { CjsPaperDollBodyAugmentation } from "./CjsPaperDollBodyAugmentation.js";
+import { CjsPaperDollArmLeft } from "./CjsPaperDollArmLeft.js";
+import { CjsPaperDollArmRight } from "./CjsPaperDollArmRight.js";
 import { CjsPaperDollEyeliner } from "./CjsPaperDollEyeliner.js";
 import { PaperDollPass } from "./paperDollOrder.js";
 
@@ -77,6 +80,18 @@ export class CjsPaperDoll
     augmentations = new CjsPaperDollAugmentations();
 
     @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollBodyAugmentation")
+    bodyAugmentation = new CjsPaperDollBodyAugmentation();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollArmLeft")
+    armLeft = new CjsPaperDollArmLeft();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollArmRight")
+    armRight = new CjsPaperDollArmRight();
+
+    @meta.attribute(meta.READ)
     @type.object.embed("CjsPaperDollEyeshadow")
     eyeshadow = new CjsPaperDollEyeshadow();
 
@@ -93,7 +108,7 @@ export class CjsPaperDoll
     topUnderwear = new CjsPaperDollTopUnderwear();
 
     /** The collected parts, by member name. Each pass composes its parts by bake rank, not by this order. */
-    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear" ];
+    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear" ];
 
     /**
      * The passes after the foundation, in binding order. `whenSelected` skips a

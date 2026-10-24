@@ -23,6 +23,10 @@ export const PaperDollLayer = Object.freeze({
     BLUSH: 70,
     /** Before every garment; its place among the makeup is unconfirmed. */
     AUGMENTATIONS: 80,
+    /** Body augmentations: before every garment. */
+    BODYAUGMENTATION: 82,
+    ARMLEFT: 84,
+    ARMRIGHT: 86,
     EYESHADOW: 90,
     EYELINER: 100,
     LIPSTICK: 110,
