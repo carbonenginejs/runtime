@@ -18,6 +18,7 @@ export { CjsPaperDollSkin } from "./CjsPaperDollSkin.js";
 export { CjsPaperDollSkinItem } from "./CjsPaperDollSkinItem.js";
 
 export { CjsPaperDollFreckles } from "./CjsPaperDollFreckles.js";
+export { CjsPaperDollTattoo } from "./CjsPaperDollTattoo.js";
 export { CjsPaperDollAging } from "./CjsPaperDollAging.js";
 export { CjsPaperDollScarring } from "./CjsPaperDollScarring.js";
 export { CjsPaperDollScars } from "./CjsPaperDollScars.js";

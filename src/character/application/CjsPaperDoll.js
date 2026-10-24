@@ -8,6 +8,7 @@ import { CjsPaperDollArchetype } from "./CjsPaperDollArchetype.js";
 import { CjsPaperDollEyes } from "./CjsPaperDollEyes.js";
 import { CjsPaperDollEyebrows } from "./CjsPaperDollEyebrows.js";
 import { CjsPaperDollBlush } from "./CjsPaperDollBlush.js";
+import { CjsPaperDollTattoo } from "./CjsPaperDollTattoo.js";
 
 /**
  * Application-owned foundation and appearance coordinator.
@@ -55,6 +56,10 @@ export class CjsPaperDoll
     @type.object.embed("CjsPaperDollScars")
     scars = new CjsPaperDollScars();
 
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollTattoo")
+    tattoo = new CjsPaperDollTattoo();
+
     _appliedSurface = null;
     _appliedSkin = null;
     _appliedFoundation = null;
@@ -73,6 +78,7 @@ export class CjsPaperDoll
         this.freckles.Rebuild();
         this.aging.Rebuild(); this.scarring.Rebuild(); this.scars.Rebuild();
         this.eyes.Rebuild(); this.eyebrows.Rebuild(); this.blush.Rebuild();
+        this.tattoo.Rebuild();
     }
 
     /** Invalidates the shared output when a prepared external layer changes. */
@@ -118,7 +124,9 @@ export class CjsPaperDoll
         const surfaceChanged = Boolean(surfacePending && surfaceActive && (foundationChanged || this._dirty || !this._appliedSurface
             || this._Changed(surface.scars, this._appliedSurface.scars) || this._Changed(surface.aging, this._appliedSurface.aging) || this._Changed(surface.scarring, this._appliedSurface.scarring)));
         const eyesPending = foundationChanged || this._dirty || this.eyes.IsDirty();
-        const headPending = skinChanged || foundationChanged || this._dirty || this._headDirty || this.eyebrows.IsDirty() || this.blush.IsDirty() || this.freckles.IsDirty() || this.scars.IsDirty();
+        // A tattoo is baked from the morphed face, so any foundation edit (strength included) rebakes it.
+        const tattooShape = foundationPending && this.tattoo.enabled && this.tattoo.option !== "";
+        const headPending = skinChanged || foundationChanged || tattooShape || this._dirty || this._headDirty || this.eyebrows.IsDirty() || this.blush.IsDirty() || this.freckles.IsDirty() || this.scars.IsDirty() || this.tattoo.IsDirty();
         if (!foundationPending && !eyesPending && !headPending && !surfaceChanged)
         {
             this.skin.ClearDirty();
@@ -128,21 +136,22 @@ export class CjsPaperDoll
         }
 
         const eyes = this._Capture(this.eyes);
-        const head = { scars: this._Capture(this.scars), freckles: this._Capture(this.freckles), eyebrows: this._Capture(this.eyebrows), blush: this._Capture(this.blush) };
+        const head = { scars: this._Capture(this.scars), freckles: this._Capture(this.freckles), eyebrows: this._Capture(this.eyebrows), blush: this._Capture(this.blush), tattoo: this._Capture(this.tattoo) };
         head.blush.weight = head.blush.option ? this.blush.weight : 0;
         const eyesChanged = eyesPending && (foundationChanged || this._dirty || this._Changed(eyes, this._appliedEyes));
-        const headChanged = headPending && (skinChanged || foundationChanged || this._dirty || this._headDirty || !this._appliedHead
+        const headChanged = headPending && (skinChanged || foundationChanged || tattooShape || this._dirty || this._headDirty || !this._appliedHead
             || this._Changed(head.eyebrows, this._appliedHead.eyebrows)
             || this._Changed(head.blush, this._appliedHead.blush)
             || this._Changed(head.scars, this._appliedHead.scars)
             || this._Changed(head.freckles, this._appliedHead.freckles)
+            || this._Changed(head.tattoo, this._appliedHead.tattoo)
             || head.blush.weight !== this._appliedHead.blush.weight);
 
         this._dirty = false;
         this._headDirty = false;
         this.archetype.ClearDirty();
         this.skin.ClearDirty();
-        this.freckles.ClearDirty(); this.scars.ClearDirty();
+        this.freckles.ClearDirty(); this.scars.ClearDirty(); this.tattoo.ClearDirty();
         this.aging.ClearDirty(); this.scarring.ClearDirty();
         this.eyes.ClearDirty(); this.eyebrows.ClearDirty(); this.blush.ClearDirty();
         this._applying = true;
@@ -166,7 +175,7 @@ export class CjsPaperDoll
             if (this._appliedSurface !== surface) { this._appliedSurface = null; this.aging.Rebuild(); this.scarring.Rebuild(); }
             // Do not discard a later group's pending edits if an earlier apply fails.
             if (this._appliedEyes !== eyes) { this._appliedEyes = null; this.eyes.Rebuild(); }
-            if (this._appliedHead !== head) { this._appliedHead = null; this.eyebrows.Rebuild(); this.blush.Rebuild(); this.freckles.Rebuild(); this.scars.Rebuild(); }
+            if (this._appliedHead !== head) { this._appliedHead = null; this.eyebrows.Rebuild(); this.blush.Rebuild(); this.freckles.Rebuild(); this.scars.Rebuild(); this.tattoo.Rebuild(); }
             throw error;
         }
         finally { this._applying = false; }
