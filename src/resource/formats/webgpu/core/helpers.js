@@ -450,7 +450,7 @@ function analyzeStage(stage, options)
  */
 export function buildEffectAnalysis(resolved, options = {})
 {
-    const source = options.source || resolved.effectRes?.GetPath() || "memory";
+    const source = options.source || resolved.reader.source || "memory";
     const decodeBytecode = options.decodeBytecode !== undefined ? !!options.decodeBytecode : true;
     const decodeInstructions = options.decodeInstructions !== undefined ? !!options.decodeInstructions : true;
     const manifest = resolved.bindingManifest?.toJSON?.() ?? null;

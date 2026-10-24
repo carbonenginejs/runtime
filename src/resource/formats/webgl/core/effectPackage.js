@@ -1,6 +1,6 @@
 import { effectHeader } from "../../../format/effect/effectHeader.js";
 import { asUint8Array } from "#utils/bytes";
-import { CjsHlslFormat } from "../../hlsl/index.js";
+import { CjsCarbonEffectFormat } from "../../carbonEffect/index.js";
 import { buildEffectBindingManifest } from "../../../format/effect/effectBindingManifest.js";
 import { Tr2EffectResource } from "../../../shader/reflection/Tr2EffectResource.js";
 import { ShaderType as RenderContext } from "#consts/render-context";
@@ -64,24 +64,24 @@ export function buildEffectPackage(input, options = {})
     // Resolved before any translation work, so an unwritable version is refused
     // up front. What lands in `info.containerVersion` is what was emitted.
     const containerVersion = resolveWriteVersion(options.version);
-    const effectRes = CjsHlslFormat.read(values.sourceBytes, {
+    const reader = CjsCarbonEffectFormat.read(values.sourceBytes, {
         emit: "raw",
         source: values.source
     });
 
-const sourceIdentity = normalizeSourceIdentity(values);
+    const sourceIdentity = normalizeSourceIdentity(values);
     // One INFO version means one contract, and that contract requires complete
     // source reflection, which only version-15 input can supply.
-    if (effectHeader(effectRes).version !== 15)
+    if (effectHeader(reader).version !== 15)
     {
         throw new Error(
             "Effect package requires a version-15 compiled effect, got version "
-            + (effectHeader(effectRes).version ?? "unknown")
+            + (effectHeader(reader).version ?? "unknown")
         );
     }
 
-    const permutationGraph = buildEffectPermutationGraph(effectHeader(effectRes));
-    const variants = buildExportVariants(effectRes, values.allPermutations);
+    const permutationGraph = buildEffectPermutationGraph(effectHeader(reader));
+    const variants = buildExportVariants(reader, values.allPermutations);
     const bodyMap = new Map();
     const stageMap = new Map();
     const shaderMap = new Map();
@@ -93,24 +93,23 @@ const sourceIdentity = normalizeSourceIdentity(values);
             continue;
         }
 
-        const shader = effectRes.GetShader(toShaderOptions(variant.options));
+        const effectDescription = CjsCarbonEffectFormat.readDescription(reader, variant.permutationIndex);
 
-        if (!shader)
+        if (!effectDescription)
         {
             bodyMap.set(variant.bodyKey, {
                 key: variant.bodyKey,
                 bodyOffset: variant.bodyOffset,
                 bodySize: variant.bodySize,
                 firstVariantKey: variant.key,
-                error: "Tr2EffectRes.GetShader returned null",
+                error: "Effect description is unavailable",
                 manifest: null,
                 stages: []
             });
             continue;
         }
 
-        const effectDescription = shader.GetEffectDescription();
-        const manifest = buildEffectBindingManifest(effectDescription, { version: effectHeader(effectRes).version, effectName: values.source });
+        const manifest = buildEffectBindingManifest(effectDescription, { version: effectHeader(reader).version, effectName: values.source });
         const collection = collectStages(effectDescription, values.selection);
         const body = {
             key: variant.bodyKey,
@@ -222,8 +221,8 @@ const sourceIdentity = normalizeSourceIdentity(values);
         flags: null,
         selection: values.selection,
         permutationMode: values.allPermutations ? "all" : "selected",
-        defaultPermutationIndex: defaultPermutationIndex(effectHeader(effectRes).permutations),
-        sourceEffectVersion: effectHeader(effectRes).version,
+        defaultPermutationIndex: defaultPermutationIndex(effectHeader(reader).permutations),
+        sourceEffectVersion: effectHeader(reader).version,
         sourceBodyCoverage: "all-unique",
         backendBodyCoverage: values.allPermutations ? "all" : "selected",
         backendProgramCoverage: selectionCoversWholeEffect(values.selection)
@@ -252,7 +251,7 @@ const sourceIdentity = normalizeSourceIdentity(values);
         allowFailures: values.allowFailures,
         completeness: {
             packageValid: true,
-            sourceComplete: effectHeader(effectRes).version === 15,
+            sourceComplete: effectHeader(reader).version === 15,
             backendComplete: false,
             runtimeComplete: false
         }
@@ -261,17 +260,17 @@ const sourceIdentity = normalizeSourceIdentity(values);
         generatedAt: values.generatedAt,
         sourcePath: values.source,
         effectResource: {
-            version: effectHeader(effectRes).version,
-            compilerVersion: effectHeader(effectRes).compilerVersion,
-            compilerVersionBytes: effectHeader(effectRes).compilerVersionBytes,
+            version: effectHeader(reader).version,
+            compilerVersion: effectHeader(reader).compilerVersion,
+            compilerVersionBytes: effectHeader(reader).compilerVersionBytes,
             sourcePath: values.source,
-            stringTableSize: effectHeader(effectRes).stringTableSize,
-            offsetCount: effectHeader(effectRes).records.length,
-            permutations: effectHeader(effectRes).permutations,
-            offsets: effectHeader(effectRes).records,
+            stringTableSize: effectHeader(reader).stringTableSize,
+            offsetCount: effectHeader(reader).records.length,
+            permutations: effectHeader(reader).permutations,
+            offsets: effectHeader(reader).records,
             loadError: null
         },
-        permutations: effectRes.GetPermutationDescription(),
+        permutations: effectHeader(reader).permutations,
         variants,
         bodies: bodies.map((body) => ({
             key: body.key,
@@ -335,10 +334,10 @@ const sourceIdentity = normalizeSourceIdentity(values);
         permutationGraph
     });
     const container = buildGlslEffectContainer(
-        effectRes,
+        reader,
         permutationGraph,
         backendBodySet,
-        { compilerVersion: effectHeader(effectRes).compilerVersionBytes, version: containerVersion }
+        { compilerVersion: effectHeader(reader).compilerVersionBytes, version: containerVersion }
     );
 
     const bytes = container.bytes;
@@ -549,16 +548,11 @@ function decodePermutationOptions(permutations, permutationIndex)
     });
 }
 
-function toShaderOptions(options)
-{
-    return options.map((option) => ({ name: option.name, value: option.value }));
-}
-
-function buildExportVariants(effectRes, allPermutations)
+function buildExportVariants(reader, allPermutations)
 {
     if (allPermutations)
     {
-        return effectHeader(effectRes).records.map((record, variantIndex) =>
+        return effectHeader(reader).records.map((record, variantIndex) =>
         {
             const permutationIndex = Number.isInteger(record.index)
                 ? record.index
@@ -573,7 +567,7 @@ function buildExportVariants(effectRes, allPermutations)
                 bodyOffset: record.offset,
                 bodySize: record.size,
                 options: decodePermutationOptions(
-                    effectHeader(effectRes).permutations,
+                    effectHeader(reader).permutations,
                     permutationIndex
                 ),
                 tableIndexMatchesPermutationIndex:
@@ -582,8 +576,8 @@ function buildExportVariants(effectRes, allPermutations)
         });
     }
 
-    const permutationIndex = defaultPermutationIndex(effectHeader(effectRes).permutations);
-    const record = effectHeader(effectRes).records[permutationIndex];
+    const permutationIndex = defaultPermutationIndex(effectHeader(reader).permutations);
+    const record = effectHeader(reader).records[permutationIndex];
 
     if (!record)
     {
@@ -598,7 +592,7 @@ function buildExportVariants(effectRes, allPermutations)
         bodyKey: bodyKey(record),
         bodyOffset: record.offset,
         bodySize: record.size,
-        options: decodePermutationOptions(effectHeader(effectRes).permutations, permutationIndex),
+        options: decodePermutationOptions(effectHeader(reader).permutations, permutationIndex),
         tableIndexMatchesPermutationIndex: Number.isInteger(record.index)
             ? record.index === permutationIndex
             : true

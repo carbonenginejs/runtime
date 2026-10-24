@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import CjsHlslFormat from "../../../../../../src/resource/formats/hlsl/index.js";
+import CjsCarbonEffectFormat from "../../../../../../src/resource/formats/carbonEffect/index.js";
 import CjsDxbcFormat from "../../../../../../src/resource/formats/dxbc/index.js";
 import CjsWebgpuFormat from "../../../../../../src/resource/formats/webgpu/index.js";
 import { buildResourceTransformPlan } from "../../../../../../src/resource/formats/webgpu/core/wgsl/buildResourceTransformPlan.js";
@@ -485,7 +485,7 @@ function serializePassVariants(variants)
 async function qualifyBackend(label, sourcePath)
 {
     const bytes = await readFile(sourcePath);
-    const effect = CjsHlslFormat.read(bytes, { emit: "raw", source: sourcePath });
+    const effect = CjsCarbonEffectFormat.read(bytes, { emit: "raw", source: sourcePath });
     const axes = normalizeAxes(effect);
     const selections = enumerateEffectPermutations(axes);
     const offsets = Array.isArray(effectHeader(effect).records) ? effectHeader(effect).records : [];
@@ -502,7 +502,7 @@ async function qualifyBackend(label, sourcePath)
         let description;
         try
         {
-            description = effect.GetShader(selection.options).GetEffectDescription();
+            description = CjsCarbonEffectFormat.readDescription(effect, selection.bodyIndex);
             if (!description || !Array.isArray(description.techniques) || !description.techniques.length)
             {
                 throw new Error("resolved body has no effect techniques");

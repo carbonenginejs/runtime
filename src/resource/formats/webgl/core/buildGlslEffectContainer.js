@@ -55,7 +55,7 @@ export const GLSL_CONTAINER_BACKEND = { encodeProgram, encodeBackendBlock };
 /**
  * Builds the complete WebGL 2 effect container.
  *
- * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
+ * @param {object} reader Carbon effect container reader.
  * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).
  * @param {object} backendBodySet Translated GLSL bodies.
  * @param {object} [options] Container options.
@@ -66,14 +66,14 @@ export const GLSL_CONTAINER_BACKEND = { encodeProgram, encodeBackendBlock };
  * @returns {{bytes:Uint8Array, permutationCount:number, bodyCount:number}} Container and its body accounting.
  */
 export function buildGlslEffectContainer(
-    effectRes,
+    reader,
     permutationGraph,
     backendBodySet,
     options = {}
 )
 {
     return buildCarbonEffectContainer(
-        effectRes,
+        reader,
         permutationGraph,
         backendBodySet,
         GLSL_CONTAINER_BACKEND,

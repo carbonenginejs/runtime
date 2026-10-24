@@ -1,3 +1,4 @@
+import { CjsCarbonEffectFormat } from "../formats/carbonEffect/index.js";
 import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
@@ -303,9 +304,7 @@ export class Tr2Shader extends IRoot
   static fromCarbonBinary(reader, index, backend = null)
   {
     const shader = new this();
-    shader.effect = Tr2EffectDescription.fromCarbonBinary(
-      reader.readDescription(index, backend === null ? {} : { backend })
-    );
+    shader.effect = CjsCarbonEffectFormat.readDescription(reader, index, backend === null ? {} : { backend });
     shader.ProcessEffect();
     return shader;
   }

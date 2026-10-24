@@ -6,7 +6,7 @@ import { CjsSchema, meta } from "#schema";
 import { CjsResource } from "#blue/CjsResource";
 import { ICacheable } from "#blue/ICacheable";
 import { validateResourcePayload } from "../resourceBoundary.js";
-import { CjsCarbonEffectReader } from "../format/carbonEffect/CjsCarbonEffectReader.js";
+import { CjsCarbonEffectFormat } from "../formats/carbonEffect/index.js";
 import { Tr2Shader } from "./Tr2Shader.js";
 import { ResourceRequirement } from "#consts/resourceRequirement";
 import { EffectCarriesBackendBlock } from "#utils/effectPath";
@@ -63,7 +63,7 @@ export class Tr2EffectRes extends CjsResource
    */
   DoLoad(data, options = null)
   {
-    const reader = new CjsCarbonEffectReader(data);
+    const reader = CjsCarbonEffectFormat.read(data, { emit: "raw" });
     this._shaders.clear();
     this._permutationReaders.clear();
     this._reader = reader;
@@ -318,7 +318,7 @@ export class Tr2EffectRes extends CjsResource
     }
 
     const result = this._translatePermutation(this._PermutationOf(index));
-    const reader = new CjsCarbonEffectReader(result.bytes);
+    const reader = CjsCarbonEffectFormat.read(result.bytes, { emit: "raw" });
 
     for (const translated of result.indices)
     {

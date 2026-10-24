@@ -1,4 +1,4 @@
-import { CjsCarbonEffectReader } from "../../../format/carbonEffect/CjsCarbonEffectReader.js";
+import { CjsCarbonEffectFormat } from "../../carbonEffect/index.js";
 import { readGlslBackendBlock } from "./glslBackendBlock.js";
 import {
     CARBON_BACKEND_ENGINE_ID,
@@ -105,7 +105,7 @@ function backendStages(pass, passKey, source)
 export function readGlslEffectContainer(input, values = {})
 {
     const source = values.source ?? "memory";
-    const reader = new CjsCarbonEffectReader(input, { source });
+    const reader = CjsCarbonEffectFormat.read(input, { emit: "raw", source });
 
     const stages = [];
     const shaders = [];

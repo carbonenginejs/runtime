@@ -3,7 +3,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import CjsHlslFormat from "../../../../src/resource/formats/hlsl/index.js";
+import CjsCarbonEffectFormat from "../../../../src/resource/formats/carbonEffect/index.js";
 
 const COMMAND_METADATA = "metadata";
 
@@ -59,8 +59,8 @@ async function runMetadata(args)
         : defaultMetadataOutputPath(resolvedInput);
 
     const input = await readFile(resolvedInput);
-    const metadata = CjsHlslFormat.read(input, {
-        emit: CjsHlslFormat.OUTPUT_METADATA,
+    const metadata = CjsCarbonEffectFormat.read(input, {
+        emit: "metadata",
         source: resolvedInput
     });
 

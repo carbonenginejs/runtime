@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import CjsFormatHlsl from "../../../../src/resource/formats/hlsl/index.js";
+import CjsFormatHlsl from "../../../../src/resource/formats/carbonEffect/index.js";
 import CjsFormatDxbc from "../../../../src/resource/formats/dxbc/index.js";
 import CjsFormatWebgpu from "../../../../src/resource/formats/webgpu/index.js";
 import { buildResourceTransformPlan } from "../../../../src/resource/formats/webgpu/core/wgsl/buildResourceTransformPlan.js";
@@ -502,7 +502,7 @@ async function qualifyBackend(label, sourcePath)
         let description;
         try
         {
-            description = effect.GetShader(selection.options).GetEffectDescription();
+            description = CjsCarbonEffectFormat.readDescription(effect, selection.bodyIndex);
             if (!description || !Array.isArray(description.techniques) || !description.techniques.length)
             {
                 throw new Error("resolved body has no effect techniques");

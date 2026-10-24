@@ -1,3 +1,4 @@
+import { CjsCarbonEffectFormat } from "../../carbonEffect/index.js";
 import { effectHeader } from "../../../format/effect/effectHeader.js";
 import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
 import { buildEffectBindingManifest } from "../../../format/effect/effectBindingManifest.js";
@@ -92,18 +93,17 @@ function collectBodyStageBytecode(effectDescription)
     return bytecodeByKey;
 }
 
-function resolveBody(effectRes, permutationIndex, source)
+function resolveBody(reader, permutationIndex, source)
 {
-    const shader = effectRes.GetShaderByIndex(permutationIndex);
+    const effectDescription = CjsCarbonEffectFormat.readDescription(reader, permutationIndex);
 
-    if (!shader)
+    if (!effectDescription)
     {
         throw new Error(
             `Effect body at permutation ${permutationIndex} could not be decoded`
         );
     }
 
-    const effectDescription = shader.GetEffectDescription();
 
     if (!effectDescription)
     {
@@ -113,12 +113,11 @@ function resolveBody(effectRes, permutationIndex, source)
     }
 
     const resolved = {
-        effectRes,
-        header: effectHeader(effectRes),
-        shader,
+        reader,
+        header: effectHeader(reader),
         selection: { bodyIndex: permutationIndex, selectedOptions: [] },
         effectDescription,
-        bindingManifest: buildEffectBindingManifest(effectDescription, { version: effectHeader(effectRes).version, effectName: source }),
+        bindingManifest: buildEffectBindingManifest(effectDescription, { version: effectHeader(reader).version, effectName: source }),
         stageBytecodeByKey: collectBodyStageBytecode(effectDescription)
     };
 
@@ -227,17 +226,17 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy)
  * The caller (`buildEffectPackage`, mode `"all"`) has already required the
  * resolved selection to translate before this runs.
  *
- * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
+ * @param {object} reader Carbon effect container reader.
  * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).
  * @param {object} [options] Source label, stage selection, and binding policy.
  * @returns {object} `CJS_WGSL_BODY_SET` document.
  */
-export function buildEffectBackendBodySet(effectRes, permutationGraph, options = {})
+export function buildEffectBackendBodySet(reader, permutationGraph, options = {})
 {
     const source = options.source || "memory";
     const selection = options.selection ?? null;
     const bindingPolicy = options.bindingPolicy ?? null;
-    const groups = enumerateUniqueEffectBodies(effectHeader(effectRes));
+    const groups = enumerateUniqueEffectBodies(effectHeader(reader));
 
     if (groups.length !== permutationGraph.bodies.length)
     {
@@ -279,7 +278,7 @@ export function buildEffectBackendBodySet(effectRes, permutationGraph, options =
 
         try
         {
-            resolvedBody = resolveBody(effectRes, group.permutationIndex, source);
+            resolvedBody = resolveBody(reader, group.permutationIndex, source);
 
             // One IR cache per body, so a stage shared by two passes lowers once
             // and the effect-profile preflight can seed it exactly as the

@@ -1,5 +1,5 @@
 import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
-import { readEffectAnalysis as readHlslEffectAnalysis } from "../../hlsl/core/analysis.js";
+import { readEffectAnalysis as readCarbonEffectAnalysis } from "../../carbonEffect/core/analysis.js";
 
 /**
  * Copy supported byte containers into an independent active byte view.
@@ -97,7 +97,7 @@ function collectStageBytecodeByKey(effectDescription)
 /**
  * Resolve one compiled-effect permutation for WebGPU packaging.
  *
- * format-hlsl owns source parsing, selected-permutation resolution, and the
+ * The Carbon effect format owns container parsing, selected-permutation resolution, and the
  * binding manifest. This adapter adds only a validated transient byte index.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Tr2 effect bytes.
@@ -106,7 +106,7 @@ function collectStageBytecodeByKey(effectDescription)
  */
 export function readEffectAnalysis(input, options = {})
 {
-    const resolved = readHlslEffectAnalysis(input, options);
+    const resolved = readCarbonEffectAnalysis(input, options);
 
     return {
         ...resolved,

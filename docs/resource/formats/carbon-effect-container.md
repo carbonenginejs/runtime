@@ -28,6 +28,38 @@ per-pass backend block. Neither carries a private magic or chunk layout.
 | `src/resource/format/carbonEffect/CjsCarbonEffectReader.js` | container reader and structural checks |
 | `src/resource/format/carbonEffect/CjsCarbonEffectWriter.js` | container writer, offset arithmetic and alias dedupe |
 
+## Shared format API
+
+`CjsCarbonEffectFormat` is exported from
+`@carbonenginejs/runtime/resource/formats/carbonEffect`. It wraps the existing
+binary reader/writer and shared reflection classes; it does not compile HLSL,
+translate instructions, construct runtime resources, or create GPU objects.
+
+- `read(bytes, options)` / `Read(bytes, options)` provide the existing JSON,
+  metadata and raw projections. Raw output is a `CjsCarbonEffectReader`.
+- `readDescription(reader, index, options)` decodes an exact permutation using
+  the shared reflection classes. Pass `backend: true` for browser containers,
+  `false` for native containers, or omit it for context-free inspection.
+- `write(parts, options)` / `Write(parts, options)` assemble indexed description
+  records with the existing writer. `parts` contains `version`,
+  `compilerVersion`, `sourceHash`, `backend`, `permutations`, and
+  `bodies: [{ index, description }]`. Writer options can override header values.
+- `inspect` / `Inspect` summarize the selected body; `toJSON` / `ToJSON` convert
+  values into JSON-compatible data. The JSON projection is for inspection; it
+  is not the writer's description-record input or an HLSL source parser.
+
+Permutation choices passed to a format are explicit. Formats do not read
+Trinity's global effect options. `Tr2EffectRes` still applies those options,
+retains bytes and caches runtime `Tr2Shader` instances. Its decoding delegates
+to this same format. Compiler output and WebGPU/WebGL packaging use the shared
+writer; backend block encoders and program translation remain separate.
+
+The historical `CjsHlslFormat` export aliases this class. Its JSON/metadata
+projections are preserved, but its internal raw output is now the reader,
+not a `Tr2EffectRes`. Advanced `readEffectAnalysis` returns `reader`, `header`,
+`selection`, `effectDescription` and `bindingManifest`; it no longer returns a
+runtime resource or shader. Use `readDescription` for additional bodies.
+
 ## Versioning
 
 ### What this reader does: reads 8 through 15, writes 15

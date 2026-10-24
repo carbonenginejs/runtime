@@ -132,11 +132,11 @@ export function buildEffectPackage(input, options = {})
 
     // One INFO version means one contract, and that contract requires complete
     // source reflection, which only version-15 input can supply.
-    if (effectHeader(resolved.effectRes).version !== 15)
+    if (effectHeader(resolved.reader).version !== 15)
     {
         throw new Error(
             "Effect package requires a version-15 compiled effect, got version "
-            + (effectHeader(resolved.effectRes).version ?? "unknown")
+            + (effectHeader(resolved.reader).version ?? "unknown")
         );
     }
 
@@ -249,11 +249,11 @@ export function buildEffectPackage(input, options = {})
     }));
     const wgsl = buildWgslSet(shaderEntries);
     const wgslSelection = buildWgslSelectionMetadata(selection, selectedStages);
-    const permutationGraph = buildEffectPermutationGraph(effectHeader(resolved.effectRes));
+    const permutationGraph = buildEffectPermutationGraph(effectHeader(resolved.reader));
     // The source is complete when it is a version-15 container. This used to be
     // read off a built reflection document, which made the document look load
     // bearing when it was only ever a consequence of the same version check.
-    const sourceComplete = effectHeader(resolved.effectRes).version === 15;
+    const sourceComplete = effectHeader(resolved.reader).version === 15;
     if (mode === "all" && !sourceComplete)
     {
         throw new Error(
@@ -262,7 +262,7 @@ export function buildEffectPackage(input, options = {})
     }
 
     const backendBodySet = mode === "all"
-        ? buildEffectBackendBodySet(resolved.effectRes, permutationGraph, {
+        ? buildEffectBackendBodySet(resolved.reader, permutationGraph, {
             source,
             selection,
             bindingPolicy: options.bindingPolicy
@@ -346,11 +346,11 @@ export function buildEffectPackage(input, options = {})
     const emittedBodySet = backendBodySet
         ?? selectedModeBodySet(permutationGraph, wgsl, analysis.bodyIndex);
     const container = buildCarbonEffectContainer(
-        resolved.effectRes,
+        resolved.reader,
         permutationGraph,
         emittedBodySet,
         {
-            compilerVersion: effectHeader(resolved.effectRes).compilerVersionBytes,
+            compilerVersion: effectHeader(resolved.reader).compilerVersionBytes,
             version: containerVersion
         }
     );

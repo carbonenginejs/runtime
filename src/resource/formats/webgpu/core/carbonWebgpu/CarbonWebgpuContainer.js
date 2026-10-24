@@ -1,5 +1,5 @@
+import { CjsCarbonEffectFormat } from "../../../carbonEffect/index.js";
 import {
-    CjsCarbonEffectReader,
     readBackendBlock
 } from "../../../../format/carbonEffect/index.js";
 import { WGSL_ENTRY_POINT } from "../buildCarbonEffectContainer.js";
@@ -162,7 +162,8 @@ export class CarbonWebgpuContainer
                     : new Uint8Array(source.buffer, source.byteOffset, source.byteLength));
 
             this.bytes = bytes;
-            this.carbon = new CjsCarbonEffectReader(bytes, {
+            this.carbon = CjsCarbonEffectFormat.read(bytes, {
+                emit: "raw",
                 source: this.sourcePath || "CARBON_WEBGPU"
             });
             this.containerVersion = this.carbon.version;

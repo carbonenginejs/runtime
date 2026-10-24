@@ -50,3 +50,5 @@ export { CjsWebmFormat } from "./webm/index.js";
 export { CjsWebpFormat } from "./webp/index.js";
 export { CjsWemFormat } from "./wem/index.js";
 export { CjsYamlFormat } from "./yaml/index.js";
+
+export { CjsCarbonEffectFormat } from "./carbonEffect/index.js";

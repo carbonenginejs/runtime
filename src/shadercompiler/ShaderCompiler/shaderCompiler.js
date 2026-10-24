@@ -18,7 +18,7 @@
 // /mtime (PrintOutOfDateFiles), listings and PDBs, which belong to the
 // native tool and its D3D compilers.
 
-import { CjsCarbonEffectWriter } from "../../resource/format/index.js";
+import { CjsCarbonEffectFormat } from "../../resource/formats/carbonEffect/index.js";
 import { InlineString } from "../InlineString.js";
 import { CachingIncludeHandler } from "../CachingIncludeHandler/index.js";
 import { CompileMessageQueue } from "../CompileMessageQueue.js";
@@ -317,12 +317,14 @@ export function CompileEffectFile(shaderPath, { read, compilers, defines = [], i
     // and the WebGL2 path with no fallback (runtime carbon-effect-container.md,
     // "The optional trailing block").
     const platform = GetPlatform(defines, session);
-    const writer = new CjsCarbonEffectWriter({
+    const output = {
         version: DATA_VERSION,
         compilerVersion: ShaderCompilerVersion,
         sourceHash: GetSourceHash(shaderPath, defines, session),
-        backend: platform === Platform.PLATFORM_WEBGPU || platform === Platform.PLATFORM_WEBGL2
-    });
+        backend: platform === Platform.PLATFORM_WEBGPU || platform === Platform.PLATFORM_WEBGL2,
+        permutations: [],
+        bodies: []
+    };
     for (const permutation of permutations)
     {
         // Carbon writes the default's index only when an option has the
@@ -333,7 +335,7 @@ export function CompileEffectFile(shaderPath, { read, compilers, defines = [], i
         {
             throw new Error(`ShaderCompiler: permutation ${permutation.name} has no option named ${permutation.defaultOption}`);
         }
-        writer.addPermutation({
+        output.permutations.push({
             name: permutation.name,
             defaultOption,
             description: permutation.description,
@@ -343,7 +345,7 @@ export function CompileEffectFile(shaderPath, { read, compilers, defines = [], i
     }
     for (const [index, data] of [...session.compiledEffects].sort((a, b) => a[0] - b[0]))
     {
-        writer.addBody(index, toDescriptionRecord(data));
+        output.bodies.push({ index, description: toDescriptionRecord(data) });
     }
-    return done(writer.toBytes());
+    return done(CjsCarbonEffectFormat.write(output));
 }

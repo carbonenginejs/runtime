@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { readFile, readdir } from "node:fs/promises";
 import { CjsCarbonEffectReader } from "../../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
-import { CjsHlslFormat } from "../../../../../src/resource/formats/hlsl/index.js";
+import { CjsCarbonEffectFormat } from "../../../../../src/resource/formats/carbonEffect/index.js";
 import { float32ToBits } from "../../../../../src/global/utils/bytes.js";
 
 const directory = process.env.CARBON_EFFECT_CORPUS_DIR;
@@ -48,16 +48,14 @@ test("canonical resource retains every opted-in corpus body and caches exact sel
     {
         const bytes = new Uint8Array(await readFile(file));
         const wire = new CjsCarbonEffectReader(bytes);
-        const resource = CjsHlslFormat.read(bytes, { emit: "raw", source: file });
+        const resource = CjsCarbonEffectFormat.read(bytes, { emit: "raw", source: file });
         const seen = new Set();
         for (const [index, row] of wire.records.entries())
         {
             const identity = `${row.offset}:${row.size}`;
             if (seen.has(identity)) continue;
             seen.add(identity);
-            const shader = resource.GetShaderByIndex(index);
-            assert.equal(resource.GetShaderByIndex(index), shader);
-            const reflected = shader.GetEffectDescription();
+            const reflected = CjsCarbonEffectFormat.readDescription(resource, index);
             const record = wire.readDescription(index);
             assert.equal(reflected.techniques.length, record.techniques.length);
             for (const [techniqueIndex, technique] of record.techniques.entries())

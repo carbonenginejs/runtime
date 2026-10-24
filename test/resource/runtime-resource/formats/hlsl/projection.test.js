@@ -8,7 +8,7 @@ import { Tr2EffectRes, GetGlobalEffectOptions, ModifyGlobalEffectOptions } from 
 import { buildEffectBindingManifest } from "../../../../../src/resource/format/effect/effectBindingManifest.js";
 import { effectHeader } from "../../../../../src/resource/format/effect/effectHeader.js";
 import { effectiveConstantDefaults } from "../../../../../src/resource/format/effect/effectProjection.js";
-import { CjsHlslFormat, readEffectAnalysis } from "../../../../../src/resource/formats/hlsl/index.js";
+import { CjsCarbonEffectFormat, readEffectAnalysis } from "../../../../../src/resource/formats/carbonEffect/index.js";
 import { buildSyntheticDescription, stage, blob, str } from "../../format/carbonEffectSynthetic.js";
 import { buildEffectBytes } from "./synthetic.js";
 
@@ -25,8 +25,8 @@ function write(description, axes = [])
 /** Read the canonical resource and return its cached description. */
 function load(description)
 {
-    const resource = CjsHlslFormat.read(write(description), { emit: "raw", source: "synthetic" });
-    return { resource, description: resource.GetShaderByIndex(0).GetEffectDescription() };
+    const resource = CjsCarbonEffectFormat.read(write(description), { emit: "raw", source: "synthetic" });
+    return { resource, description: CjsCarbonEffectFormat.readDescription(resource, 0) };
 }
 
 test("canonical projection matches the frozen pre-removal semantic manifest", () =>
@@ -118,18 +118,18 @@ test("heap views derive from parameter annotations without a resource-set instan
 
 test("header projection shares bytes and never decodes bodies", () =>
 {
-    const resource = CjsHlslFormat.read(write(buildSyntheticDescription()), { emit: "raw" });
-    assert.equal(resource.constructor, Tr2EffectRes);
-    resource.GetShaderByIndex = () => { throw new Error("header decoded a body"); };
+    const resource = CjsCarbonEffectFormat.read(write(buildSyntheticDescription()), { emit: "raw" });
+    assert.equal(resource.constructor, CjsCarbonEffectReader);
+    resource.readDescription = () => { throw new Error("header decoded a body"); };
     const header = effectHeader(resource);
-    assert.equal(header.bytes, resource.GetContainerBytes());
-    assert.equal(header.bytes.buffer, resource.GetContainerBytes().buffer);
+    assert.equal(header.bytes, resource.bytes);
+    assert.equal(header.bytes.buffer, resource.bytes.buffer);
     assert.equal(effectHeader(resource), header);
     assert.equal(header.version, 15);
     assert.deepEqual(header.compilerVersionBytes, [ 1, 2, 3, 4 ]);
 });
 
-test("format selection shares canonical globals and exact-index caching bypasses them", () =>
+test("format choices ignore runtime globals while Trinity retains its own selection and cache", () =>
 {
     const prior = GetGlobalEffectOptions();
     for (const option of prior) ModifyGlobalEffectOptions([ { name: option.name, value: "" } ]);
@@ -138,18 +138,21 @@ test("format selection shares canonical globals and exact-index caching bypasses
     ]);
     try
     {
-        const raw = CjsHlslFormat.read(bytes, { emit: "raw" });
-        const exact = raw.GetShaderByIndex(0);
-        assert.equal(raw.GetShaderByIndex(0), exact);
+        const resource = new Tr2EffectRes();
+        resource.DoLoad(bytes);
+        const exact = resource.GetShaderByIndex(0);
+        assert.equal(resource.GetShaderByIndex(0), exact);
         ModifyGlobalEffectOptions([ { name: "MODE", value: "OFF" } ]);
         const analysis = readEffectAnalysis(bytes, { permutation: [ { name: "MODE", value: "ON" } ] });
-        assert.equal(analysis.selection.bodyIndex, 0);
-        assert.equal(analysis.selection.selectedOptions[0].source, "global");
-        assert.equal(raw.GetShader([ { name: "MODE", value: "ON" } ]), exact);
+        assert.equal(analysis.selection.bodyIndex, 1);
+        assert.equal(analysis.selection.selectedOptions[0].source, "local");
+        assert.equal("effectRes" in analysis, false);
+        assert.equal("shader" in analysis, false);
+        assert.equal(resource.GetShader([ { name: "MODE", value: "ON" } ]), exact);
+        assert.equal(readEffectAnalysis(bytes).selection.bodyIndex, 1);
         ModifyGlobalEffectOptions([ { name: "MODE", value: "invalid" } ]);
-        assert.equal(readEffectAnalysis(bytes, { permutation: [ { name: "MODE", value: "OFF" } ] }).selection.bodyIndex, 1);
-        assert.equal(raw.GetShaderByIndex(0), exact);
-        ModifyGlobalEffectOptions([ { name: "MODE", value: "" } ]);
+        assert.equal(readEffectAnalysis(bytes, { permutation: [ { name: "MODE", value: "OFF" } ] }).selection.bodyIndex, 0);
+        assert.equal(resource.GetShader([ { name: "MODE", value: "OFF" } ]), resource.GetShaderByIndex(1));
         assert.equal(readEffectAnalysis(bytes, {
             permutation: [ { name: "MODE", value: "ON" }, { name: "MODE", value: "OFF" } ]
         }).selection.bodyIndex, 0);
@@ -170,7 +173,7 @@ test("libraries retain programs, exports and both canonical inputs", () =>
     assert.equal(library.globalInput.constants[0].name, "AGConstant");
     assert.equal(library.localInput.constants[0].name, "ALConstant");
     assert.equal(library.localInput.constantValues.length, 0);
-    const emitted = CjsHlslFormat.read(write(source), { source: "synthetic" });
+    const emitted = CjsCarbonEffectFormat.read(write(source), { source: "synthetic" });
     assert.deepEqual(emitted.effect.techniques[1].libraries[0].sourceProgram.bytes, Array.from(library.sourceProgram.bytes));
     assert.equal(emitted.effect.techniques[1].libraries[0].closestHitName, "ClosestHit");
 });
@@ -188,11 +191,11 @@ for (let version = 8; version <= 15; version++)
     test(`format header and malformed body handling retain version ${version}`, () =>
     {
         const bytes = buildEffectBytes({ version });
-        const raw = CjsHlslFormat.read(bytes, { emit: "raw" });
+        const raw = CjsCarbonEffectFormat.read(bytes, { emit: "raw" });
         assert.equal(effectHeader(raw).version, version);
-        assert.equal(CjsHlslFormat.read(bytes).effect, null);
+        assert.equal(CjsCarbonEffectFormat.read(bytes).effect, null);
         const bad = bytes.slice();
         new DataView(bad.buffer).setUint32(0, 99, true);
-        assert.throws(() => CjsHlslFormat.read(bad), /version/i);
+        assert.throws(() => CjsCarbonEffectFormat.read(bad), /version/i);
     });
 }

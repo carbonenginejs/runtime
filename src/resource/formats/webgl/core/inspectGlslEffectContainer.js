@@ -1,4 +1,4 @@
-import { CjsCarbonEffectReader } from "../../../format/carbonEffect/CjsCarbonEffectReader.js";
+import { CjsCarbonEffectFormat } from "../../carbonEffect/index.js";
 import { shaderStageName } from "../../../format/effect/shaderStageNames.js";
 
 /**
@@ -94,7 +94,7 @@ function inspectBodies(reader)
 export function inspectGlslEffectContainer(input, values = {})
 {
     const source = values.source ?? "memory";
-    const reader = new CjsCarbonEffectReader(input, { source });
+    const reader = CjsCarbonEffectFormat.read(input, { emit: "raw", source });
     const bodies = inspectBodies(reader);
 
     return {

@@ -78,7 +78,7 @@ export const WGSL_CONTAINER_BACKEND = { encodeProgram, encodeBackendBlock };
 /**
  * Builds the complete WebGPU effect container.
  *
- * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
+ * @param {object} reader Carbon effect container reader.
  * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).
  * @param {object} backendBodySet Translated backend bodies.
  * @param {object} [options] Container options.
@@ -89,14 +89,14 @@ export const WGSL_CONTAINER_BACKEND = { encodeProgram, encodeBackendBlock };
  * @returns {{bytes:Uint8Array, permutationCount:number, bodyCount:number}} Container and its body accounting.
  */
 export function buildCarbonEffectContainer(
-    effectRes,
+    reader,
     permutationGraph,
     backendBodySet,
     options = {}
 )
 {
     return buildContainer(
-        effectRes,
+        reader,
         permutationGraph,
         backendBodySet,
         WGSL_CONTAINER_BACKEND,

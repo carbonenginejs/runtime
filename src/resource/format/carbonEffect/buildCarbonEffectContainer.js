@@ -1,7 +1,6 @@
-import { CjsCarbonEffectWriter } from "./CjsCarbonEffectWriter.js";
+import { CjsCarbonEffectFormat } from "../../formats/carbonEffect/index.js";
 import { effectHeader } from "../effect/effectHeader.js";
 import { shaderStageNames } from "../effect/shaderStageNames.js";
-import { Tr2EffectDescription } from "../../shader/reflection/Tr2EffectDescription.js";
 import { Tr2EffectParameterAnnotation } from "../../shader/reflection/Tr2EffectParameterAnnotation.js";
 import {
     CARBON_TYPED_VIEWS,
@@ -80,19 +79,16 @@ function unitsByPassKey(body, unitsByKey)
  * Full portable source reflection remains in the in-memory build result, not
  * in this emitted body.
  *
- * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
+ * @param {object} reader Carbon effect container reader.
  * @param {number} permutationIndex Representative permutation for this body.
  * @param {Map<string, object>|null} passUnits Units by pass key, or null when unsupported.
  * @param {object} backend Backend encoders.
  * @returns {object} Description record tree.
  */
-function describeBody(effectRes, permutationIndex, passUnits, backend)
+function describeBody(reader, permutationIndex, passUnits, backend)
 {
-    // Clone the cached canonical body through its existing wire projection.
-    // Program substitution must not mutate the resource's source reflection.
-    const effect = Tr2EffectDescription.fromCarbonBinary(
-        effectRes.GetShaderByIndex(permutationIndex).GetEffectDescription().toCarbonBinary()
-    );
+    // Decode a fresh description for program substitution; the source bytes stay unchanged.
+    const effect = CjsCarbonEffectFormat.readDescription(reader, permutationIndex);
 
     for (const technique of effect.techniques)
     {
@@ -175,7 +171,7 @@ function annotateTypedViews(effect)
 /**
  * Builds a complete backend effect container.
  *
- * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
+ * @param {object} reader Carbon effect container reader.
  * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).
  * @param {object} backendBodySet Translated backend bodies.
  * @param {object} backend Backend encoders.
@@ -190,7 +186,7 @@ function annotateTypedViews(effect)
  * @returns {{bytes:Uint8Array, permutationCount:number, bodyCount:number}} Container and its body accounting.
  */
 export function buildCarbonEffectContainer(
-    effectRes,
+    reader,
     permutationGraph,
     backendBodySet,
     backend,
@@ -205,31 +201,22 @@ export function buildCarbonEffectContainer(
         );
     }
 
-    // Header metadata uses the same bytes; body decoding stays in the resource.
-    const reader = effectHeader(effectRes);
+    // Header projection reuses the same retained reader.
+    const header = effectHeader(reader);
     const unitsByKey = new Map(backendBodySet.passUnits.map((unit) => [ unit.key, unit ]));
     const bodyByKey = new Map(backendBodySet.bodies.map((body) => [ body.bodyKey, body ]));
-    const writer = new CjsCarbonEffectWriter({
+    const writeOptions = {
         backend: true,
         // Not defaulted from the SOURCE effect's version. The source can be any
         // version the reader accepts; what we emit is a version we have a
         // writer for. Conflating the two would have us claim to emit whatever
         // we happened to read.
         ...(options.version === undefined ? {} : { version: options.version }),
-        compilerVersion: options.compilerVersion ?? reader.compilerVersionBytes ?? [ 0, 0, 0, 0 ],
+        compilerVersion: options.compilerVersion ?? header.compilerVersionBytes ?? [ 0, 0, 0, 0 ],
         ...(options.sourceHash ? { sourceHash: options.sourceHash } : {})
-    });
+    };
 
-    for (const axis of permutationGraph.axes)
-    {
-        writer.addPermutation({
-            name: axis.name,
-            defaultOption: axis.defaultOption,
-            description: axis.description,
-            type: axis.type,
-            options: axis.options
-        });
-    }
+    const bodies = [];
 
     // Build one emitted description per source body key and reuse it for each
     // matching permutation. The writer may dedupe additional descriptions when
@@ -245,7 +232,7 @@ export function buildCarbonEffectContainer(
         {
             const body = bodyByKey.get(variant.bodyKey);
             description = describeBody(
-                effectRes,
+                reader,
                 body?.representativePermutationIndex ?? permutationIndex,
                 body?.status === "translated" ? unitsByPassKey(body, unitsByKey) : null,
                 backend
@@ -253,11 +240,11 @@ export function buildCarbonEffectContainer(
             describedByBodyKey.set(variant.bodyKey, description);
         }
 
-        writer.addBody(permutationIndex, description);
+        bodies.push({ index: permutationIndex, description });
     }
 
     return {
-        bytes: writer.toBytes(),
+        bytes: CjsCarbonEffectFormat.write({ ...writeOptions, permutations: permutationGraph.axes, bodies }),
         permutationCount: permutationGraph.variants.length,
         bodyCount: describedByBodyKey.size
     };

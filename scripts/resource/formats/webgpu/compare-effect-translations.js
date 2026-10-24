@@ -1,3 +1,4 @@
+import { CjsCarbonEffectFormat } from "../../../../src/resource/formats/carbonEffect/index.js";
 import { effectHeader } from "../../../../src/resource/format/effect/effectHeader.js";
 // CPU-only exact regression comparison over every unique body and complete pass.
 // Capture before editing the translator; compare afterward using identical inputs.
@@ -64,18 +65,18 @@ for (const file of files) {
   try {
     rejectRefusedEffect(source);
     const {
-      effectRes
+      reader
     } = readEffectAnalysis(bytes, {
       source
     });
-    const graph = buildEffectPermutationGraph(effectHeader(effectRes)),
-      groups = enumerateUniqueEffectBodies(effectHeader(effectRes));
+    const graph = buildEffectPermutationGraph(effectHeader(reader)),
+      groups = enumerateUniqueEffectBodies(effectHeader(reader));
     record.permutations = graph.variants.length;
     record.uniqueBodies = groups.length;
     record.graph = graph;
     const selections = new Map();
     for (const group of groups) {
-      const effect = effectRes.GetShaderByIndex(group.permutationIndex).GetEffectDescription();
+      const effect = CjsCarbonEffectFormat.readDescription(reader, group.permutationIndex);
       for (const technique of effect.techniques) for (let passIndex = 0; passIndex < technique.passes.length; passIndex++) selections.set(technique.name + '.pass' + passIndex, {
         techniqueName: technique.name,
         passIndex
@@ -83,7 +84,7 @@ for (const file of files) {
     }
     for (const [passKey, selection] of selections) {
       try {
-        const set = buildEffectBackendBodySet(effectRes, graph, {
+        const set = buildEffectBackendBodySet(reader, graph, {
           source,
           selection
         });

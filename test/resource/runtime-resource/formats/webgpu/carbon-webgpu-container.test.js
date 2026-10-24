@@ -227,7 +227,7 @@ test(
             const built = buildEffectPackage(bytes, { mode: "all", source: file });
             const resolved = readEffectAnalysis(bytes, { source: file });
             const container = buildCarbonEffectContainer(
-                resolved.effectRes,
+                resolved.reader,
                 built.permutationGraph,
                 built.backendBodySet
             );
