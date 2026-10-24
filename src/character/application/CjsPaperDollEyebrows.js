@@ -16,13 +16,13 @@ export class CjsPaperDollEyebrows extends CjsPaperDollComponent
 
     @meta.property()
     @type.boolean
-    @meta.ui.description("Eyebrow modifier")
+    @meta.ui.description("Eyebrows")
     get enabled() { return super.enabled; }
     set enabled(value) { super.enabled = value; }
 
     @meta.property()
     @type.string
-    @meta.ui.description("Eyebrow option")
+    @meta.ui.description("Style")
     get option() { return super.option; }
     set option(value) { super.option = value; }
 

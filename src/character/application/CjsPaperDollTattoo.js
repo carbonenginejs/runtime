@@ -25,13 +25,13 @@ export class CjsPaperDollTattoo extends CjsPaperDollComponent
 
     @meta.property()
     @type.boolean
-    @meta.ui.description("Tattoo")
+    @meta.ui.description("Tattoos")
     get enabled() { return super.enabled; }
     set enabled(value) { super.enabled = value; }
 
     @meta.property()
     @type.string
-    @meta.ui.description("Tattoo option")
+    @meta.ui.description("Tattoo")
     get option() { return super.option; }
     set option(value) { super.option = value; }
 

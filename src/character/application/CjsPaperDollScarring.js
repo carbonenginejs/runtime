@@ -3,7 +3,7 @@ import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
 import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
-/** Application-owned minor scar settings; edits invalidate the doll's update pass. */
+/** Application-owned scarring settings (the creator's Complexion "Scarring": relief and shine only); edits invalidate the doll's update pass. */
 @meta.define("CjsPaperDollScarring")
 export class CjsPaperDollScarring extends CjsPaperDollComponent
 {
@@ -15,13 +15,13 @@ export class CjsPaperDollScarring extends CjsPaperDollComponent
 
     @meta.property()
     @type.boolean
-    @meta.ui.description("Minor scar modifier")
+    @meta.ui.description("Scarring")
     get enabled() { return super.enabled; }
     set enabled(value) { super.enabled = value; }
 
     @meta.property()
     @type.string
-    @meta.ui.description("Minor scar option")
+    @meta.ui.description("Level")
     get option() { return super.option; }
     set option(value) { super.option = value; }
 

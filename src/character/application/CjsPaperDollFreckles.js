@@ -15,13 +15,13 @@ export class CjsPaperDollFreckles extends CjsPaperDollComponent
 
     @meta.property()
     @type.boolean
-    @meta.ui.description("Freckle modifier")
+    @meta.ui.description("Freckles")
     get enabled() { return super.enabled; }
     set enabled(value) { super.enabled = value; }
 
     @meta.property()
     @type.string
-    @meta.ui.description("Freckle option")
+    @meta.ui.description("Level")
     get option() { return super.option; }
     set option(value) { super.option = value; }
 

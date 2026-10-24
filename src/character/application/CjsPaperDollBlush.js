@@ -16,13 +16,13 @@ export class CjsPaperDollBlush extends CjsPaperDollComponent
 
     @meta.property()
     @type.boolean
-    @meta.ui.description("Blush modifier")
+    @meta.ui.description("Blush")
     get enabled() { return super.enabled; }
     set enabled(value) { super.enabled = value; }
 
     @meta.property()
     @type.string
-    @meta.ui.description("Blush option")
+    @meta.ui.description("Style")
     get option() { return super.option; }
     set option(value) { super.option = value; }
 
@@ -35,7 +35,7 @@ export class CjsPaperDollBlush extends CjsPaperDollComponent
 
     @meta.property()
     @type.float32
-    @meta.ui.description("Blush amount")
+    @meta.ui.description("Opacity")
     get weight() { return this._weight; }
     set weight(value)
     {

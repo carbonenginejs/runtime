@@ -15,13 +15,13 @@ export class CjsPaperDollEyes extends CjsPaperDollComponent
 
     @meta.property()
     @type.boolean
-    @meta.ui.description("Eye modifier")
+    @meta.ui.description("Eyes")
     get enabled() { return super.enabled; }
     set enabled(value) { super.enabled = value; }
 
     @meta.property()
     @type.string
-    @meta.ui.description("Eye option")
+    @meta.ui.description("Style")
     get option() { return super.option; }
     set option(value) { super.option = value; }
 

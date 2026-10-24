@@ -30,7 +30,7 @@ export class CjsPaperDollLipstick extends CjsPaperDollComponent
 
     @meta.property()
     @type.string
-    @meta.ui.description("Lipstick style")
+    @meta.ui.description("Style")
     get option() { return super.option; }
     set option(value) { super.option = value; }
 
@@ -48,19 +48,19 @@ export class CjsPaperDollLipstick extends CjsPaperDollComponent
 
     @meta.property()
     @type.color
-    @meta.ui.description("Lip colour")
+    @meta.ui.description("Colour")
     get color1() { return this.GetColors()[0]; }
     set color1(value) { this.SetColor(0, value); }
 
     @meta.property()
     @type.color
-    @meta.ui.description("Lip second colour")
+    @meta.ui.description("Secondary colour")
     get color2() { return this.GetColors()[1]; }
     set color2(value) { this.SetColor(1, value); }
 
     @meta.property()
     @type.color
-    @meta.ui.description("Lip third colour")
+    @meta.ui.description("Third colour")
     get color3() { return this.GetColors()[2]; }
     set color3(value) { this.SetColor(2, value); }
 

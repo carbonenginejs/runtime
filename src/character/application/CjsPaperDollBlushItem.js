@@ -19,7 +19,7 @@ export class CjsPaperDollBlushItem extends CjsPaperDollItem
 
     @meta.property()
     @type.color
-    @meta.ui.description("Blush colour")
+    @meta.ui.description("Colour")
     get color1() { return this._GetColor(0); }
     set color1(value) { this._SetColor(0, value); }
 }

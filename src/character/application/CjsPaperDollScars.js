@@ -16,7 +16,7 @@ export class CjsPaperDollScars extends CjsPaperDollComponent
     /** Whether this retained selection contributes to composition. */
     @meta.property()
     @type.boolean
-    @meta.ui.description("Large scar modifier")
+    @meta.ui.description("Scars")
     get enabled() { return super.enabled; }
     /** Enable or disable without discarding the selected option. */
     set enabled(value) { super.enabled = value; }
@@ -24,7 +24,7 @@ export class CjsPaperDollScars extends CjsPaperDollComponent
     /** Selected prepared scar option identifier. */
     @meta.property()
     @type.string
-    @meta.ui.description("Large scar option")
+    @meta.ui.description("Scar")
     get option() { return super.option; }
     /** Select a configured option and invalidate dependent outputs. */
     set option(value) { super.option = value; }

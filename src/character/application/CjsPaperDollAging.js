@@ -15,13 +15,13 @@ export class CjsPaperDollAging extends CjsPaperDollComponent
 
     @meta.property()
     @type.boolean
-    @meta.ui.description("Ageing modifier")
+    @meta.ui.description("Aging")
     get enabled() { return super.enabled; }
     set enabled(value) { super.enabled = value; }
 
     @meta.property()
     @type.string
-    @meta.ui.description("Ageing option")
+    @meta.ui.description("Level")
     get option() { return super.option; }
     set option(value) { super.option = value; }
 
