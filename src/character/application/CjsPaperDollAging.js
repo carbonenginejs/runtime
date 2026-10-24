@@ -1,0 +1,27 @@
+import { meta, type } from "#schema";
+import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
+
+/** Application-owned ageing settings; edits invalidate the doll's update pass. */
+@meta.define("CjsPaperDollAging")
+export class CjsPaperDollAging extends CjsPaperDollComponent
+{
+    _item = new CjsPaperDollItem(this);
+    _itemClasses = new Map([["", CjsPaperDollItem]]);
+
+    @meta.property()
+    @type.boolean
+    @meta.ui.description("Ageing modifier")
+    get enabled() { return super.enabled; }
+    set enabled(value) { super.enabled = value; }
+
+    @meta.property()
+    @type.string
+    @meta.ui.description("Ageing option")
+    get option() { return super.option; }
+    set option(value) { super.option = value; }
+
+    @meta.property()
+    @type.object.embed("CjsPaperDollItem")
+    get item() { return this._item; }
+}

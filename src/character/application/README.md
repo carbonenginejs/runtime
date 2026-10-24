@@ -116,3 +116,11 @@ controls. It retains the selected option while disabled. Its captured state is
 passed to the shared head binding, which may also publish the option's companion
 body contribution. Freckles edits do not invalidate skin or eye bindings; the
 consumer recomposes from completed skin outputs rather than accumulating pixels.
+
+CjsPaperDollAging and CjsPaperDollScarring expose non-colourable selections.
+When either contributes, supply a synchronous surface binding alongside skin,
+eyes and head. Update runs foundation, skin, surface, eyes and head in that order.
+Surface-only edits rebuild neither diffuse nor eye outputs. The surface binding
+must regenerate normal/specular outputs from the current foundation, including
+restoration when both modifiers are disabled. Unconfigured/inactive components
+require no surface binding. Failed surface work retries without losing later work.
