@@ -456,6 +456,7 @@ function rotationMatrixQuaternion(out, q)
 } // Matrix_inline.h:365
 
 /**
+ * Carbon: RotationMatrix (math/include/Matrix_inline.h:388-413)
  * Rotation matrix from an axis (normalized internally) and an angle
  * @param {matrix} out
  * @param {Float32Array} axis - 3 floats
@@ -464,8 +465,8 @@ function rotationMatrixQuaternion(out, q)
  */
 function rotationMatrixAxisAngle(out, axis, angle)
 {
-    const n = v3Normalize([0, 0, 0], axis[0], axis[1], axis[2]);
-    const nx = n[0], ny = n[1], nz = n[2];
+    const vec3_0 = v3Normalize(scratch.vec3_0, axis[0], axis[1], axis[2]);
+    const nx = vec3_0[0], ny = vec3_0[1], nz = vec3_0[2];
 
     const sinAngle = Math.sin(angle);
     const cosAngle = Math.cos(angle);
@@ -541,6 +542,7 @@ matrix.rotationZMatrix = function (out, angle)
 }; // Matrix_inline.h:468
 
 /**
+ * Carbon: OrthoNormalBasisZ (math/include/Matrix_inline.h:531-546)
  * Ortho-normal basis whose Z row is the (normalized) given direction
  * @param {matrix} out
  * @param {Float32Array} z - 3 floats (may alias out)
@@ -548,11 +550,11 @@ matrix.rotationZMatrix = function (out, angle)
  */
 matrix.orthoNormalBasisZ = function (out, z)
 {
-    const zn = v3Normalize([0, 0, 0], z[0], z[1], z[2]);
+    const vec3_0 = v3Normalize(scratch.vec3_0, z[0], z[1], z[2]);
     matrix.identityMatrix(out);
-    out[8] = zn[0];
-    out[9] = zn[1];
-    out[10] = zn[2];
+    out[8] = vec3_0[0];
+    out[9] = vec3_0[1];
+    out[10] = vec3_0[2];
     let xx, xy, xz;
     if (Math.abs(out[8]) > 0.99)
     {
@@ -562,15 +564,15 @@ matrix.orthoNormalBasisZ = function (out, z)
     {
         xx = 1; xy = 0; xz = 0;
     }
-    const cy = v3Cross([0, 0, 0], xx, xy, xz, out[8], out[9], out[10]);
-    const yn = v3Normalize([0, 0, 0], cy[0], cy[1], cy[2]);
-    out[4] = yn[0];
-    out[5] = yn[1];
-    out[6] = yn[2];
-    const cx = v3Cross([0, 0, 0], out[4], out[5], out[6], out[8], out[9], out[10]);
-    out[0] = cx[0];
-    out[1] = cx[1];
-    out[2] = cx[2];
+    const vec3_1 = v3Cross(scratch.vec3_1, xx, xy, xz, out[8], out[9], out[10]);
+    const vec3_2 = v3Normalize(scratch.vec3_2, vec3_1[0], vec3_1[1], vec3_1[2]);
+    out[4] = vec3_2[0];
+    out[5] = vec3_2[1];
+    out[6] = vec3_2[2];
+    const vec3_3 = v3Cross(scratch.vec3_3, out[4], out[5], out[6], out[8], out[9], out[10]);
+    out[0] = vec3_3[0];
+    out[1] = vec3_3[1];
+    out[2] = vec3_3[2];
     return out;
 }; // Matrix_inline.h:531
 
@@ -662,6 +664,7 @@ matrix.transformationMatrix = function (out, scaling, rotation, translation)
 }; // Matrix_inline.h:662
 
 /**
+ * Carbon: TransformationMatrix (math/src/Matrix.cpp:66-143)
  * Transformation matrix with centers (Carbon's 6-pointer overload; any argument may be null):
  * T(-sc) * SR^-1 * S * SR * T(sc - rc) * R * T(rc + t)
  * @param {matrix} out
@@ -675,9 +678,7 @@ matrix.transformationMatrix = function (out, scaling, rotation, translation)
  */
 matrix.transformationMatrixCentered = function (out, scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation)
 {
-    const m1 = new Float32Array(16), m2 = new Float32Array(16), m3 = new Float32Array(16),
-        m4 = new Float32Array(16), m5 = new Float32Array(16), m6 = new Float32Array(16),
-        m7 = new Float32Array(16);
+    const { mat4_0, mat4_1, mat4_2, mat4_3, mat4_4, mat4_5, mat4_6 } = scratch;
 
     let pscx = 0, pscy = 0, pscz = 0;
     if (scalingCenter)
@@ -700,44 +701,45 @@ matrix.transformationMatrixCentered = function (out, scalingCenter, scalingRotat
         pty = translation[1];
         ptz = translation[2];
     }
-    matrix.translationMatrix(m1, -pscx, -pscy, -pscz);
+    matrix.translationMatrix(mat4_0, -pscx, -pscy, -pscz);
     if (!scalingRotation)
     {
-        matrix.identityMatrix(m2);
-        matrix.identityMatrix(m4);
+        matrix.identityMatrix(mat4_1);
+        matrix.identityMatrix(mat4_3);
     }
     else
     {
-        matrix.rotationMatrix(m4, scalingRotation);
-        matrix.inverse(m2, m4);
+        matrix.rotationMatrix(mat4_3, scalingRotation);
+        matrix.inverse(mat4_1, mat4_3);
     }
     if (!scaling)
     {
-        matrix.identityMatrix(m3);
+        matrix.identityMatrix(mat4_2);
     }
     else
     {
-        matrix.scalingMatrix(m3, scaling);
+        matrix.scalingMatrix(mat4_2, scaling);
     }
     if (!rotation)
     {
-        matrix.identityMatrix(m6);
+        matrix.identityMatrix(mat4_5);
     }
     else
     {
-        matrix.rotationMatrix(m6, rotation);
+        matrix.rotationMatrix(mat4_5, rotation);
     }
-    matrix.translationMatrix(m5, pscx - prcx, pscy - prcy, pscz - prcz);
-    matrix.translationMatrix(m7, prcx + ptx, prcy + pty, prcz + ptz);
-    matrix.multiply(out, m1, m2);
-    matrix.multiply(out, out, m3);
-    matrix.multiply(out, out, m4);
-    matrix.multiply(out, out, m5);
-    matrix.multiply(out, out, m6);
-    return matrix.multiply(out, out, m7);
+    matrix.translationMatrix(mat4_4, pscx - prcx, pscy - prcy, pscz - prcz);
+    matrix.translationMatrix(mat4_6, prcx + ptx, prcy + pty, prcz + ptz);
+    matrix.multiply(out, mat4_0, mat4_1);
+    matrix.multiply(out, out, mat4_2);
+    matrix.multiply(out, out, mat4_3);
+    matrix.multiply(out, out, mat4_4);
+    matrix.multiply(out, out, mat4_5);
+    return matrix.multiply(out, out, mat4_6);
 }; // Matrix.cpp:66
 
 /**
+ * Carbon: Transformation2DMatrix (math/src/Matrix.cpp:147-222)
  * 2D transformation matrix (Carbon's Vector2 overload; vector arguments may be null, rotations are scalars)
  * @param {matrix} out
  * @param {?Float32Array} scalingCenter - 2 floats or null
@@ -750,9 +752,7 @@ matrix.transformationMatrixCentered = function (out, scalingCenter, scalingRotat
  */
 matrix.transformation2DMatrix = function (out, scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation)
 {
-    const m1 = new Float32Array(16), m2 = new Float32Array(16), m3 = new Float32Array(16),
-        m4 = new Float32Array(16), m5 = new Float32Array(16), m6 = new Float32Array(16),
-        m7 = new Float32Array(16);
+    const { mat4_0, mat4_1, mat4_2, mat4_3, mat4_4, mat4_5, mat4_6 } = scratch;
 
     let pscx = 0, pscy = 0;
     if (scalingCenter)
@@ -775,44 +775,45 @@ matrix.transformation2DMatrix = function (out, scalingCenter, scalingRotation, s
         pty = translation[1];
     }
     const ptz = 0;
-    matrix.translationMatrix(m1, -pscx, -pscy, -pscz);
-    if (!scalingRotation)
+    matrix.translationMatrix(mat4_0, -pscx, -pscy, -pscz);
+    if (scalingRotation === 0)
     {
-        matrix.identityMatrix(m2);
-        matrix.identityMatrix(m4);
+        matrix.identityMatrix(mat4_1);
+        matrix.identityMatrix(mat4_3);
     }
     else
     {
-        matrix.rotationZMatrix(m4, scalingRotation);
-        matrix.inverse(m2, m4);
+        matrix.rotationZMatrix(mat4_3, scalingRotation);
+        matrix.inverse(mat4_1, mat4_3);
     }
     if (!scaling)
     {
-        matrix.identityMatrix(m3);
+        matrix.identityMatrix(mat4_2);
     }
     else
     {
-        matrix.scalingMatrix(m3, scaling[0], scaling[1], 1.0);
+        matrix.scalingMatrix(mat4_2, scaling[0], scaling[1], 1.0);
     }
-    if (!rotation)
+    if (rotation === 0)
     {
-        matrix.identityMatrix(m6);
+        matrix.identityMatrix(mat4_5);
     }
     else
     {
-        matrix.rotationZMatrix(m6, rotation);
+        matrix.rotationZMatrix(mat4_5, rotation);
     }
-    matrix.translationMatrix(m5, pscx - prcx, pscy - prcy, pscz - prcz);
-    matrix.translationMatrix(m7, prcx + ptx, prcy + pty, prcz + ptz);
-    matrix.multiply(out, m1, m2);
-    matrix.multiply(out, out, m3);
-    matrix.multiply(out, out, m4);
-    matrix.multiply(out, out, m5);
-    matrix.multiply(out, out, m6);
-    return matrix.multiply(out, out, m7);
+    matrix.translationMatrix(mat4_4, pscx - prcx, pscy - prcy, pscz - prcz);
+    matrix.translationMatrix(mat4_6, prcx + ptx, prcy + pty, prcz + ptz);
+    matrix.multiply(out, mat4_0, mat4_1);
+    matrix.multiply(out, out, mat4_2);
+    matrix.multiply(out, out, mat4_3);
+    matrix.multiply(out, out, mat4_4);
+    matrix.multiply(out, out, mat4_5);
+    return matrix.multiply(out, out, mat4_6);
 }; // Matrix.cpp:147
 
 /**
+ * Carbon: LookAtMatrix (math/include/Matrix_inline.h:671-701)
  * Look-at view matrix (eye, target, up)
  * @param {matrix} out
  * @param {Float32Array} peye - 3 floats
@@ -824,23 +825,23 @@ matrix.lookAtMatrix = function (out, peye, pat, pup)
 {
     const ex = peye[0], ey = peye[1], ez = peye[2];
     const vec2x = pat[0] - ex, vec2y = pat[1] - ey, vec2z = pat[2] - ez;
-    const vec = v3Normalize([0, 0, 0], vec2x, vec2y, vec2z);
-    const right = v3Cross([0, 0, 0], pup[0], pup[1], pup[2], vec[0], vec[1], vec[2]);
-    const up = v3Cross([0, 0, 0], vec[0], vec[1], vec[2], right[0], right[1], right[2]);
-    const rightn = v3Normalize([0, 0, 0], right[0], right[1], right[2]);
-    const upn = v3Normalize([0, 0, 0], up[0], up[1], up[2]);
-    out[0] = -rightn[0];
-    out[4] = -rightn[1];
-    out[8] = -rightn[2];
-    out[12] = v3Dot(rightn[0], rightn[1], rightn[2], ex, ey, ez);
-    out[1] = upn[0];
-    out[5] = upn[1];
-    out[9] = upn[2];
-    out[13] = -v3Dot(upn[0], upn[1], upn[2], ex, ey, ez);
-    out[2] = -vec[0];
-    out[6] = -vec[1];
-    out[10] = -vec[2];
-    out[14] = v3Dot(vec[0], vec[1], vec[2], ex, ey, ez);
+    const vec3_0 = v3Normalize(scratch.vec3_0, vec2x, vec2y, vec2z);
+    const vec3_1 = v3Cross(scratch.vec3_1, pup[0], pup[1], pup[2], vec3_0[0], vec3_0[1], vec3_0[2]);
+    const vec3_2 = v3Cross(scratch.vec3_2, vec3_0[0], vec3_0[1], vec3_0[2], vec3_1[0], vec3_1[1], vec3_1[2]);
+    const vec3_3 = v3Normalize(scratch.vec3_3, vec3_1[0], vec3_1[1], vec3_1[2]);
+    const vec3_4 = v3Normalize(scratch.vec3_4, vec3_2[0], vec3_2[1], vec3_2[2]);
+    out[0] = -vec3_3[0];
+    out[4] = -vec3_3[1];
+    out[8] = -vec3_3[2];
+    out[12] = v3Dot(vec3_3[0], vec3_3[1], vec3_3[2], ex, ey, ez);
+    out[1] = vec3_4[0];
+    out[5] = vec3_4[1];
+    out[9] = vec3_4[2];
+    out[13] = -v3Dot(vec3_4[0], vec3_4[1], vec3_4[2], ex, ey, ez);
+    out[2] = -vec3_0[0];
+    out[6] = -vec3_0[1];
+    out[10] = -vec3_0[2];
+    out[14] = v3Dot(vec3_0[0], vec3_0[1], vec3_0[2], ex, ey, ez);
     out[3] = 0.0;
     out[7] = 0.0;
     out[11] = 0.0;
@@ -1171,6 +1172,7 @@ matrix.transformByTranspose = function (out, p, m)
 }; // Matrix_inline.h:304
 
 /**
+ * Carbon: TransformCoords (math/include/Matrix_inline.h:620-660)
  * Batch TransformCoord over strided arrays (folds Carbon's four TransformCoords
  * overloads; offsets/strides are in floats, out may be the same array as in)
  * @param {Float32Array} outArray
@@ -1185,23 +1187,24 @@ matrix.transformByTranspose = function (out, p, m)
  */
 matrix.transformCoords = function (outArray, outOffset, outStride, inArray, inOffset, inStride, count, m)
 {
-    const tmp = [0, 0, 0];
+    const { vec3_0 } = scratch;
     for (let i = 0; i < count; ++i)
     {
         const src = inOffset + i * inStride;
         const dst = outOffset + i * outStride;
-        tmp[0] = inArray[src];
-        tmp[1] = inArray[src + 1];
-        tmp[2] = inArray[src + 2];
-        matrix.transformCoord(tmp, tmp, m);
-        outArray[dst] = tmp[0];
-        outArray[dst + 1] = tmp[1];
-        outArray[dst + 2] = tmp[2];
+        vec3_0[0] = inArray[src];
+        vec3_0[1] = inArray[src + 1];
+        vec3_0[2] = inArray[src + 2];
+        matrix.transformCoord(vec3_0, vec3_0, m);
+        outArray[dst] = vec3_0[0];
+        outArray[dst + 1] = vec3_0[1];
+        outArray[dst + 2] = vec3_0[2];
     }
     return outArray;
 }; // Matrix_inline.h:620 (also :631, :640, :650)
 
 /**
+ * Carbon: Decompose (math/src/Matrix.cpp:225-269)
  * Decomposes a matrix into scaling, rotation quaternion and translation (Carbon's argument order)
  * @param {Float32Array} scaling - receiving vec3
  * @param {Float32Array} rotation - receiving quaternion
@@ -1227,16 +1230,36 @@ matrix.decompose = function (scaling, rotation, translation, m)
     }
     else
     {
-        const normalized = matrix.identityMatrix(new Float32Array(16));
-        normalized[0] = m[0] / scaling[0];
-        normalized[1] = m[1] / scaling[0];
-        normalized[2] = m[2] / scaling[0];
-        normalized[4] = m[4] / scaling[1];
-        normalized[5] = m[5] / scaling[1];
-        normalized[6] = m[6] / scaling[1];
-        normalized[8] = m[8] / scaling[2];
-        normalized[9] = m[9] / scaling[2];
-        normalized[10] = m[10] / scaling[2];
-        quaternion.rotationQuaternion(rotation, normalized);
+        const mat4_7 = matrix.identityMatrix(scratch.mat4_7);
+        mat4_7[0] = m[0] / scaling[0];
+        mat4_7[1] = m[1] / scaling[0];
+        mat4_7[2] = m[2] / scaling[0];
+        mat4_7[4] = m[4] / scaling[1];
+        mat4_7[5] = m[5] / scaling[1];
+        mat4_7[6] = m[6] / scaling[1];
+        mat4_7[8] = m[8] / scaling[2];
+        mat4_7[9] = m[9] / scaling[2];
+        mat4_7[10] = m[10] / scaling[2];
+        quaternion.rotationQuaternion(rotation, mat4_7);
     }
 }; // Matrix.cpp:225
+
+// Private, dirty scratch: every used component is written before it is read.
+// These algorithms do not call one another or pass callbacks while holding slots.
+// Float64 vectors preserve the fast implementation's double intermediates; matrices
+// preserve Carbon's float32 storage boundaries. Scratch never escapes this module.
+const scratch = {
+    vec3_0: new Float64Array(3),
+    vec3_1: new Float64Array(3),
+    vec3_2: new Float64Array(3),
+    vec3_3: new Float64Array(3),
+    vec3_4: new Float64Array(3),
+    mat4_0: matrix.create(),
+    mat4_1: matrix.create(),
+    mat4_2: matrix.create(),
+    mat4_3: matrix.create(),
+    mat4_4: matrix.create(),
+    mat4_5: matrix.create(),
+    mat4_6: matrix.create(),
+    mat4_7: matrix.create()
+};
