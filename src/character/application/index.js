@@ -23,6 +23,7 @@ export { CjsPaperDollLipstick } from "./CjsPaperDollLipstick.js";
 export { CjsPaperDollAging } from "./CjsPaperDollAging.js";
 export { CjsPaperDollScarring } from "./CjsPaperDollScarring.js";
 export { CjsPaperDollScars } from "./CjsPaperDollScars.js";
+export { CjsPaperDollAugmentations } from "./CjsPaperDollAugmentations.js";
 export { CjsPaperDollEyeshadow } from "./CjsPaperDollEyeshadow.js";
 export { CjsPaperDollEyeliner } from "./CjsPaperDollEyeliner.js";
 export { CjsPaperDollBottomUnderwear } from "./CjsPaperDollBottomUnderwear.js";
