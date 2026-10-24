@@ -29,7 +29,7 @@ function Doll()
 function Bindings()
 {
     const heads = [], surfaces = [];
-    return { heads, surfaces, foundation() {}, skin() {}, eyes() {}, head(value) { heads.push(value); }, surface(value) { surfaces.push(value); } };
+    return { heads, surfaces, foundation() {}, skin() {}, body() {}, eyes() {}, head(value) { heads.push(value); }, surface(value) { surfaces.push(value); } };
 }
 
 test("every collected part declares the passes it feeds", () =>
@@ -43,7 +43,7 @@ test("the head pass composes its parts in bake order and hands that order to the
     const doll = Doll();
     const head = [ "tattoo", "eyebrows", "freckles", "blush", "lipstick", "scars" ];
     assert.deepEqual(doll.GetLayerOrder(PaperDollPass.HEAD), head);
-    assert.deepEqual(doll.GetLayerOrder(PaperDollPass.SURFACE), [ "aging", "scarring", "lipstick", "scars" ]);
+    assert.deepEqual(doll.GetLayerOrder(PaperDollPass.SURFACE), [ "aging", "scarring", "lipstick", "scars", "bottomUnderwear", "topUnderwear" ]);
 
     const bindings = Bindings();
     doll.Update(bindings);

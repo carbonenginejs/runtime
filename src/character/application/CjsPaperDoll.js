@@ -10,6 +10,8 @@ import { CjsPaperDollEyebrows } from "./CjsPaperDollEyebrows.js";
 import { CjsPaperDollBlush } from "./CjsPaperDollBlush.js";
 import { CjsPaperDollTattoo } from "./CjsPaperDollTattoo.js";
 import { CjsPaperDollLipstick } from "./CjsPaperDollLipstick.js";
+import { CjsPaperDollBottomUnderwear } from "./CjsPaperDollBottomUnderwear.js";
+import { CjsPaperDollTopUnderwear } from "./CjsPaperDollTopUnderwear.js";
 import { PaperDollPass } from "./paperDollOrder.js";
 
 /**
@@ -67,8 +69,16 @@ export class CjsPaperDoll
     @type.object.embed("CjsPaperDollLipstick")
     lipstick = new CjsPaperDollLipstick();
 
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollBottomUnderwear")
+    bottomUnderwear = new CjsPaperDollBottomUnderwear();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollTopUnderwear")
+    topUnderwear = new CjsPaperDollTopUnderwear();
+
     /** The collected parts, by member name. Each pass composes its parts by bake rank, not by this order. */
-    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "lipstick" ];
+    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "lipstick", "bottomUnderwear", "topUnderwear" ];
 
     /**
      * The passes after the foundation, in binding order. `whenSelected` skips a
@@ -79,7 +89,8 @@ export class CjsPaperDoll
         { pass: PaperDollPass.SKIN, binding: "skin", whenSelected: true, reads: 0 },
         { pass: PaperDollPass.SURFACE, binding: "surface", whenSelected: true, reads: 0 },
         { pass: PaperDollPass.EYES, binding: "eyes", whenSelected: false, reads: 0 },
-        { pass: PaperDollPass.HEAD, binding: "head", whenSelected: false, reads: PaperDollPass.SKIN }
+        { pass: PaperDollPass.HEAD, binding: "head", whenSelected: false, reads: PaperDollPass.SKIN },
+        { pass: PaperDollPass.BODY, binding: "body", whenSelected: false, reads: PaperDollPass.SKIN }
     ];
 
     _appliedFoundation = null;
@@ -162,7 +173,7 @@ export class CjsPaperDoll
      * `passOrder`, calling a pass's binding only when its captured settings
      * changed. Successful passes are acknowledged independently; failed passes
      * retry. Edits made during a binding remain dirty for the following Update.
-     * @param {{foundation: Function, skin: Function, surface: Function, eyes: Function, head: Function}} bindings Prepared synchronous bindings.
+     * @param {{foundation: Function, skin: Function, surface: Function, eyes: Function, head: Function, body: Function}} bindings Prepared synchronous bindings.
      * @returns {boolean} Whether any output was rebuilt.
      */
     Update(bindings)

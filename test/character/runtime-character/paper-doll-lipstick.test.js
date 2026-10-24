@@ -36,7 +36,7 @@ function Doll()
 function Bindings()
 {
     const heads = [], surfaces = [];
-    return { heads, surfaces, foundation() {}, skin() {}, eyes() {}, head(value) { heads.push(value); }, surface(value) { surfaces.push(value); } };
+    return { heads, surfaces, foundation() {}, skin() {}, body() {}, eyes() {}, head(value) { heads.push(value); }, surface(value) { surfaces.push(value); } };
 }
 
 test("a lipstick style reaches the head (diffuse) and surface (specular and gloss) passes", () =>

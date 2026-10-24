@@ -26,7 +26,10 @@ export const PaperDollLayer = Object.freeze({
     EYESHADOW: 90,
     EYELINER: 100,
     LIPSTICK: 110,
-    SCARS: 120
+    SCARS: 120,
+    /** Body: over the skin and its freckles; the bra goes over the underpants. */
+    BOTTOMUNDERWEAR: 130,
+    TOPUNDERWEAR: 140
 });
 
 /**
@@ -46,5 +49,7 @@ export const PaperDollPass = Object.freeze({
     /** The eye material. */
     EYES: 8,
     /** The composed head diffuse. */
-    HEAD: 16
+    HEAD: 16,
+    /** The composed body diffuse. */
+    BODY: 32
 });

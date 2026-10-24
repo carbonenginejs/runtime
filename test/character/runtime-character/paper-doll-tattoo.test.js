@@ -36,7 +36,7 @@ function Doll()
 function Bindings()
 {
     const heads = [];
-    return { heads, foundation() {}, skin() {}, surface() {}, eyes() {}, head(value) { heads.push(value); } };
+    return { heads, foundation() {}, skin() {}, body() {}, surface() {}, eyes() {}, head(value) { heads.push(value); } };
 }
 
 test("tattoo controls offer only the colour slots the selected profile's zone uses", () =>

@@ -8,7 +8,7 @@ import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 export class CjsPaperDollFreckles extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.FRECKLES;
-    static passes = PaperDollPass.HEAD;
+    static passes = PaperDollPass.HEAD | PaperDollPass.BODY;
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);
