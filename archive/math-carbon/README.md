@@ -20,6 +20,8 @@ and scalar scaling/division.
 The vector2/3/4 float32 tables prepare length, normalization, dot, clamp, triple-cross,
 Hermite interpolation, sphere probes and bounding-sphere kernels.
 `src/planeFloat32.js` prepares scalar arithmetic, dot products, line intersection and normalization.
+The sphere, axis-aligned box and ellipsoid float32 tables prepare compound construction,
+containment, growth, transform and ray operations while preserving native edge cases.
 These partial tables are internal and absent from the archive barrel and runtime exports. This is
 preparation for our initialization-time precision option, not an active setting:
 fast double intermediates will be the default; float32 will be selected once,
