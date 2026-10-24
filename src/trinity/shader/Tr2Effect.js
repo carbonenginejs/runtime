@@ -909,6 +909,9 @@ export class Tr2Effect extends Tr2Material
     const resource = blue.resMan.GetResource(this.actualEffectFilePath);
 
     this.effectResource = resource;
+    // Carbon (Tr2Effect.cpp:397-402): GetResource can answer nothing, and only
+    // a resource it did return is subscribed.
+    if (!resource) return;
     this._acquiredEffectResource = resource;
     this._acquiredEffectPath = this.actualEffectFilePath;
     resource.AddNotifyTarget(this);
