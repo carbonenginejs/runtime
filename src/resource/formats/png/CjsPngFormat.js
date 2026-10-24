@@ -5,8 +5,8 @@ import { decompressBytes } from "#utils/compression";
 import { crc32 } from "#utils/checksum";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
-import { TextureType } from "#consts/render-context";
-import { ImageIOResult } from "#imageio";
+import { TextureType, PixelFormat } from "#consts/render-context";
+import { ImageIOResult, Cutout } from "#imageio";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
@@ -308,16 +308,48 @@ export class CjsPngFormat extends CjsImageFormat
      * Adapted: platform deflate decode is asynchronous. Cutout and pre-IDAT
      * text follow ImageIO's Read (imageio/Tr2PngHandler.cpp:228-255).
      *
+     * An explicit R8G8_UNORM request preserves 8-bit luminance/alpha as (L,A),
+     * matching native GetFormat (imageio/Tr2PngHandler.cpp:125-136). Default
+     * reads retain expanded RGBA compatibility; shader callers request packing.
+     *
      * @param {Uint8Array|ArrayBuffer} input Image bytes.
-     * @param {object} _loadParameters Load parameters.
+     * @param {object} loadParameters Load parameters, including requestedFormat.
      * @param {object} bitmap Destination HostBitmap.
      * @param {object|null} [metadata] Optional Metadata out.
      * @returns {Promise<object>} ImageIOResult.
      */
-    static async readImageNativeAsync(input, _loadParameters, bitmap, metadata = null)
+    static async readImageNativeAsync(input, loadParameters, bitmap, metadata = null)
     {
         const payload = await this.readAsync(input, { emit: "rgba" });
-        const result = this.readImageFromRgbaPayload(payload, bitmap, metadata);
+        const info = this.inspect(input);
+        let result;
+        if (loadParameters.requestedFormat === PixelFormat.PIXEL_FORMAT_R8G8_UNORM
+            && info.colorType === 4 && info.bitDepth === 8)
+        {
+            if (!bitmap.Create(payload.width, payload.height, 1, PixelFormat.PIXEL_FORMAT_R8G8_UNORM))
+            {
+                return new ImageIOResult(ImageIOResult.Code.ERROR_CREATING_BITMAP);
+            }
+
+            const target = bitmap.GetRawData();
+            const stride = payload.strideBytes || payload.width * 4;
+            for (let y = 0; y < payload.height; y++)
+            {
+                for (let x = 0; x < payload.width; x++)
+                {
+                    const source = y * stride + x * 4;
+                    const destination = (y * payload.width + x) * 2;
+                    target[destination] = payload.data[source];
+                    target[destination + 1] = payload.data[source + 3];
+                }
+            }
+            if (metadata) metadata.cutout = new Cutout();
+            result = new ImageIOResult(ImageIOResult.Code.OK);
+        }
+        else
+        {
+            result = this.readImageFromRgbaPayload(payload, bitmap, metadata);
+        }
         if (result.IsOk() && metadata) await this._readMetadata(input, metadata);
         return result;
     }
