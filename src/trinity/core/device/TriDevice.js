@@ -14,7 +14,7 @@ import {
 } from "../view/pickRay.js";
 import { blue, CjsScriptCallback, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
-import { TriGeometryRes } from "#resource/geometry";
+import { TriGeometryRes } from "#trinity/resources/geometry";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { DestroyDeviceResources } from "../../../trinityal/Tr2DeviceResourceAL/Tr2BaseDeviceResourceAL.js";
 import { TriViewport } from "../view/TriViewport.js";

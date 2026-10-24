@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2SuballocatedBuffer, SHARED_BUFFER_BLOCK_SIZE } from "../../npm/dist/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js";
 import { CreateLodAllocations, SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 import { Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { StubContext } from "../support/stubContext.js";
 

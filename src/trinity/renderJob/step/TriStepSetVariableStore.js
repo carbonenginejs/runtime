@@ -8,7 +8,7 @@ import { TriVariable } from "../../core/variable/TriVariable.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { ITr2TextureProvider } from "../../core/ITr2TextureProvider.js";
 import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
-import { TriTextureRes } from "#resource/texture";
+import { TriTextureRes } from "#trinity/resources/texture";
 
 /** A render step that writes one named value into the variable store shaders read. */
 @be.define("TriStepSetVariableStore")

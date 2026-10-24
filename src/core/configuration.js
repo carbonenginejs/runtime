@@ -1,19 +1,19 @@
 import { CjsPngFormat } from "../resource/formats/png/CjsPngFormat.js";
 import { CjsVtaFormat } from "../resource/formats/vta/CjsVtaFormat.js";
 import { CjsGr2Format } from "../resource/formats/gr2/CjsGr2Format.js";
-import { TriTextureRes } from "../resource/texture/TriTextureRes.js";
-import { Tr2ImageRes } from "../resource/texture/Tr2ImageRes.js";
-import { TriGeometryRes } from "../resource/geometry/TriGeometryRes.js";
+import { TriTextureRes } from "../trinity/resources/texture/TriTextureRes.js";
+import { Tr2ImageRes } from "../trinity/resources/texture/Tr2ImageRes.js";
+import { TriGeometryRes } from "../trinity/resources/geometry/TriGeometryRes.js";
 import { Tr2EffectRes } from "../resource/shader/Tr2EffectRes.js";
-import { ReadImageResource } from "../resource/texture/registerTextureResources.js";
+import { ReadImageResource } from "../trinity/resources/texture/registerTextureResources.js";
 import { CreateShaderResourceLoader } from "../resource/shader/registerShaderResources.js";
 import { CreateBlackObjectBuilder } from "../resource/object/registerObjectResources.js";
-import { SolidColorTextureConstructor } from "../resource/texture/SolidColorTextureConstructor.js";
-import { CjsTextureArrayConstructor } from "../resource/texture/CjsTextureArrayConstructor.js";
-import { CjsTexturePackConstructor } from "../resource/texture/CjsTexturePackConstructor.js";
+import { SolidColorTextureConstructor } from "../trinity/resources/procedural/SolidColorTextureConstructor.js";
+import { CjsTextureArrayConstructor } from "../trinity/resources/texture/CjsTextureArrayConstructor.js";
+import { CjsTexturePackConstructor } from "../trinity/resources/texture/CjsTexturePackConstructor.js";
 import { CjsIESFormat } from "../resource/formats/ies/CjsIESFormat.js";
-import { Tr2LightProfileRes } from "../resource/Tr2LightProfileRes.js";
-import { TriGrannyRes } from "../resource/geometry/granny/TriGrannyRes.js";
+import { Tr2LightProfileRes } from "../trinity/resources/Tr2LightProfileRes.js";
+import { TriGrannyRes } from "../trinity/resources/geometry/granny/TriGrannyRes.js";
 
 const shaderLoader = CreateShaderResourceLoader();
 

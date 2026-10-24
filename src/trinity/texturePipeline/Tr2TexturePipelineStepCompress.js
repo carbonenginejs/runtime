@@ -4,7 +4,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by the runtime resource layer.
 import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsDdsFormat } from "#resource/formats/dds";
-import { createDdsBitmap } from "./ddsBitmap.js";
+import { createDdsBitmap } from "../../resource/formats/dds/ddsBitmap.js";
 import { PixelFormat as P } from "#consts/render-context";
 import { Tr2DxtCompressionFormat as F } from "#consts/trinity";
 

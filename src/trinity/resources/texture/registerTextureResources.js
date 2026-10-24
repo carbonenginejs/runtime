@@ -12,11 +12,11 @@
 // formats need it: PNG and VTA decode through `DecompressionStream`, which is
 // asynchronous, and `SetPayload` is not. The loader therefore does what
 // Carbon's DoLoad does, and hands the resource the finished bitmap.
-import * as CcpLog from "../../global/logging/ccpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { HostBitmap, LoadParameters, Metadata } from "#imageio";
-import { ImageIO } from "../imageio/ImageIO.js";
-import { createDdsBitmap } from "./ddsBitmap.js";
-import { CjsDdsFormat } from "../formats/dds/CjsDdsFormat.js";
+import { ImageIO } from "../../../resource/imageio/ImageIO.js";
+import { createDdsBitmap } from "../../../resource/formats/dds/ddsBitmap.js";
+import { CjsDdsFormat } from "../../../resource/formats/dds/CjsDdsFormat.js";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
 import { ResourceRequirement } from "#blue";

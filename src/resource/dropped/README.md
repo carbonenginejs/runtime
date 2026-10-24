@@ -15,7 +15,7 @@ is not needed.
 Replacement surfaces:
 
 - `src/formats/*` writer methods, including CMF and STL writers
-- `src/resource/texture/TriTextureRes.js` save/status compatibility methods
+- `src/trinity/resources/texture/TriTextureRes.js` save/status compatibility methods
 
 ## Tr2LoadPrepareFence
 

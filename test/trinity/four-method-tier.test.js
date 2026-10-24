@@ -19,7 +19,7 @@ import {
   TriVectorSequencer
 } from "../../npm/dist/trinity/index.js";
 import { Tr2MainWindowState } from "../../npm/dist/input/index.js";
-import { Tr2ImageRes } from "../../npm/dist/resource/texture/index.js";
+import { Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
 import { EveSOFDataDecalIndexBuffer } from "../../npm/dist/sof/shared/index.js";
 
 /**

@@ -8,7 +8,7 @@ import { CjsSchema } from "#schema/CjsSchema";
 // side effect fires on import rather than on composition and cannot be tested in
 // isolation. Whoever composes a manager calls RegisterSolidColorTexture.
 import { IBlueDynamicResourceConstructor } from "#blue";
-import { TriTextureRes } from "./TriTextureRes.js";
+import { TriTextureRes } from "../texture/TriTextureRes.js";
 import { ColorPrefix } from "./solidColorTexture.js";
 
 /**
@@ -46,7 +46,7 @@ export class SolidColorTextureConstructor extends IBlueDynamicResourceConstructo
 /**
  * Registers the `color` dynamic constructor on one manager.
  *
- * @param {import("../../global/blue/IBlueResMan.js").IBlueResMan} resourceManager
+ * @param {import("../../../global/blue/IBlueResMan.js").IBlueResMan} resourceManager
  *   Any IBlueResMan; only RegisterResourceConstructor is called.
  * @returns {object} The same manager, for chaining.
  */

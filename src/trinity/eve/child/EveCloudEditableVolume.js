@@ -8,7 +8,7 @@ import { BlueList, CjsBlueOS, IInitialize, INotify, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { PixelFormat } from "#consts/render-context";
 import { num } from "#math/num";
-import { TriTextureRes } from "#resource/texture";
+import { TriTextureRes } from "#trinity/resources/texture";
 import { Tr2HostBitmap } from "../../core/Tr2HostBitmap.js";
 import { EveCloudVolumeBall } from "./EveCloudVolumeBall.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";

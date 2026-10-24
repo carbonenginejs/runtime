@@ -17,7 +17,7 @@
 // The narrow subpath, not the geometry barrel: the barrel carries decorated
 // model classes, and the engine graph is loaded untranspiled by the harness
 // that drives a real device. Reaching a payload FACT must not drag a schema in.
-import { VertexElementType } from "#resource/geometry/vertex";
+import { VertexElementType } from "#trinityal/vertexElementType";
 
 
 /** The 32-bit formats, which alone exist at every width. */

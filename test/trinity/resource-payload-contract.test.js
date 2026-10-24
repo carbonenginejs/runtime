@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2GrannyAnimation } from "../../npm/dist/trinity/index.js";
-import { TriGrannyRes } from "../../npm/dist/resource/geometry/granny/TriGrannyRes.js";
+import { TriGrannyRes } from "../../npm/dist/trinity/resources/geometry/granny/TriGrannyRes.js";
 
 for (const [name, create, read, data, absent] of [
   ["Granny animation", resource => Object.assign(new Tr2GrannyAnimation(), { grannyRes: resource }), owner => owner.GetFileInfo(), { animations: [{ name: "idle" }] }, null]

@@ -2,15 +2,15 @@
 import { exposure as be } from "#be";
 import { CjsSchema, meta } from "#schema";
 import { CjsResource, ICacheable, blue as blueService } from "#blue";
-import { assertResourcePayloadObject } from "./resourceBoundary.js";
+import { assertResourcePayloadObject } from "../../resource/resourceBoundary.js";
 import { HostBitmap, LoadParameters } from "#imageio";
 import { PixelFormat, TextureType } from "#consts/render-context";
 import { ResourceRequirement } from "#blue";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
-import { CjsIESFormat } from "./formats/ies/CjsIESFormat.js";
-import { ImageIO } from "./imageio/ImageIO.js";
+import { CjsIESFormat } from "../../resource/formats/ies/CjsIESFormat.js";
+import { ImageIO } from "../../resource/imageio/ImageIO.js";
 
 /** PROFILE_LIGHTMAP_SIZE (Tr2LightProfileRes.cpp:14): the profile strip's width. */
 const PROFILE_LIGHTMAP_SIZE = 1024;

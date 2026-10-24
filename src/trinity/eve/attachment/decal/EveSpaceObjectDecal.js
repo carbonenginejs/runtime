@@ -15,7 +15,7 @@ import { MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { MeshDecalData } from "#resource/geometry";
+import { MeshDecalData } from "#trinity/resources/geometry";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";

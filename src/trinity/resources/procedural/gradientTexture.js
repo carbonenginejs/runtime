@@ -4,13 +4,10 @@
 // `dynamic:/gradient_1d/<base64>` names a width x 1 texture rasterized from four
 // scalar curves - Carbon's second procedural texture, beside `dynamic:/color/`.
 //
-// WHY THIS IS IN TRINITY AND THE COLOUR ONE IS NOT. Carbon rasterizes both
-// inside TriTextureRes::Initialize (TriTextureRes.cpp:223-236), because its
-// TriTextureRes sits in trinity beside the curves. Ours is in the resource
-// layer, which may not import trinity (layers.json), and a gradient needs
-// Tr2CurveScalar. So the gradient is rasterized here and published by the
-// constructor beside this file, while the colour - which needs nothing but a
-// parse - stays in TriTextureRes.Initialize as Carbon has it.
+// Carbon rasterizes both gradients and solid colors in TriTextureRes::Initialize
+// (TriTextureRes.cpp:223-236). Our gradient constructor currently rasterizes and
+// publishes the bitmap, while solid-color initialization remains on the resource.
+// Both now live beside their owner; the relocation does not change that flow.
 //
 // Not ported, for want of a consumer: CurveToGradientPath (the writer).
 import { HostBitmap } from "#imageio";

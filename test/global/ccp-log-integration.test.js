@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 import { CcpLog as PublicLog } from "../../npm/dist/global/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/HostBitmap.js";
-import { Tr2TexturePipelineStepLoad } from "../../npm/dist/resource/texture/Tr2TexturePipelineStepLoad.js";
-import { Tr2TexturePipelineStepPack } from "../../npm/dist/resource/texture/Tr2TexturePipelineStepPack.js";
+import { Tr2TexturePipelineStepLoad } from "../../npm/dist/trinity/texturePipeline/Tr2TexturePipelineStepLoad.js";
+import { Tr2TexturePipelineStepPack } from "../../npm/dist/trinity/texturePipeline/Tr2TexturePipelineStepPack.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 
 test("public CcpLog and resource/image diagnostics share the host-injected sink", () =>

@@ -7,7 +7,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { BlueList, IListNotify } from "#blue";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { TriGeometryRes } from "#resource/geometry";
+import { TriGeometryRes } from "#trinity/resources/geometry";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";

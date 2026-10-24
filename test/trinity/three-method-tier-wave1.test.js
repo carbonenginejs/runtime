@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
@@ -13,7 +13,7 @@ import {
   TriStepRenderAtlas
 } from "../../npm/dist/trinity/index.js";
 import { AudGameObjResource } from "../../npm/dist/audio/index.js";
-import { Tr2RaycastGeometryRes } from "../../npm/dist/resource/geometry/index.js";
+import { Tr2RaycastGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { box3 } from "../../npm/dist/global/math/box3.js";
 

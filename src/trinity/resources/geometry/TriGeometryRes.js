@@ -13,14 +13,14 @@ import { vec4 } from "#math/vec4";
 import { CjsResource, ICacheable } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
-import { CjsGr2Format } from "../formats/gr2/index.js";
-import { CjsCmfFormat } from "../formats/cmf/index.js";
+import { CjsGr2Format } from "../../../resource/formats/gr2/index.js";
+import { CjsCmfFormat } from "../../../resource/formats/cmf/index.js";
 import {
   assertResourcePayloadArray,
   assertResourcePayloadObject,
   resourceBoundaryError,
   resourcePayloadError
-} from "../resourceBoundary.js";
+} from "../../../resource/resourceBoundary.js";
 
 // Scratch edges for the picking cross product. Picking is synchronous and the
 // result is consumed before the next hit, so one pair is enough.

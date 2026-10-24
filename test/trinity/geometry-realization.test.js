@@ -4,7 +4,7 @@ import test from "node:test";
 import { Tr2RenderBatch, Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { Tr2SuballocatedBuffer } from "../../npm/dist/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js";
 import { CreateLodAllocations, RealizeBatchGeometry, SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 import { Tr2BufferAL, Tr2BufferALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { ALResult } from "../../npm/dist/trinityal/index.js";

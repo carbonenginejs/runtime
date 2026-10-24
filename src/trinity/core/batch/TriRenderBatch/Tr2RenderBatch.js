@@ -10,7 +10,7 @@ import { CjsSchema, type, meta } from "#schema";
 
 import { RenderingMode } from "#consts/graphics";
 import { Topology } from "#consts/render-context";
-import { TriGeometryRes } from "#resource/geometry";
+import { TriGeometryRes } from "#trinity/resources/geometry";
 
 // Carbon sorts batches on raw pointer identity of shader/vertex-stream objects.
 // JS has no pointer order, so we assign each distinct reference a stable id on

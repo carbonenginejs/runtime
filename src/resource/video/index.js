@@ -7,4 +7,4 @@ export * from "./PcmFrame.js";
 export * from "./VideoFrame.js";
 export * from "./VideoMetadata.js";
 export { ParserError, DecoderError, StreamType } from "./enums.js";
-export * from "./VideoPlaylistController.js";
+export * from "../../core/platform/VideoPlaylistController.js";

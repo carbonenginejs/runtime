@@ -5,7 +5,7 @@
 // core/utils/vertex.js (readElementComponent), which is where the normalized
 // divisors are decided.
 //
-// This lives in the geometry layer rather than beside the CMF reader because a
+// This lives in the shared abstraction layer rather than beside the CMF reader because a
 // backend must not import a format's internals to read a decl - the engine
 // reading format chunks directly is a known layering defect and this does not
 // add another. A geometry payload is CMF-shaped whichever reader produced it
@@ -15,7 +15,7 @@
 // NO BACKEND VOCABULARY APPEARS HERE. `Float16` is a fact; `float16x2` is
 // WebGPU's name for a use of it, and WebGL2 spells the same use differently and
 // with different restrictions. Each backend projects.
-import { elementTypeSize } from "../formats/cmf/core/utils/vertex.js";
+import { elementTypeSize } from "../resource/formats/cmf/core/utils/vertex.js";
 
 
 /**

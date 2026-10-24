@@ -6,12 +6,12 @@ import { CjsSchema } from "#schema/CjsSchema";
 import { IBlueDynamicResourceConstructor } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 import { TriTextureRes } from "./TriTextureRes.js";
-import { Tr2TexturePipeline } from "./Tr2TexturePipeline.js";
-import { CjsTexturePipelineStepPack } from "./CjsTexturePipelineStepPack.js";
-import { Tr2TexturePackChannel } from "./Tr2TexturePackChannel.js";
-import { Tr2TexturePipelineStepGenerateMips } from "./Tr2TexturePipelineStepGenerateMips.js";
-import { CjsTexturePipelineStepConvert } from "./CjsTexturePipelineStepConvert.js";
-import { CjsTexturePipelineStepResize } from "./CjsTexturePipelineStepResize.js";
+import { Tr2TexturePipeline } from "../../texturePipeline/Tr2TexturePipeline.js";
+import { CjsTexturePipelineStepPack } from "../../texturePipeline/CjsTexturePipelineStepPack.js";
+import { Tr2TexturePackChannel } from "../../texturePipeline/Tr2TexturePackChannel.js";
+import { Tr2TexturePipelineStepGenerateMips } from "../../texturePipeline/Tr2TexturePipelineStepGenerateMips.js";
+import { CjsTexturePipelineStepConvert } from "../../texturePipeline/CjsTexturePipelineStepConvert.js";
+import { CjsTexturePipelineStepResize } from "../../texturePipeline/CjsTexturePipelineStepResize.js";
 
 /** The prefix a pack path starts with. */
 export const TexturePackPrefix = "dynamic:/texturepack/";

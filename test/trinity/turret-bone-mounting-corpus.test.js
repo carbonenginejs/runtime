@@ -7,7 +7,7 @@ import test from "node:test";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";
 import { EveShip2, EveTurretSet, EveUpdateContext, EveComponentRegistry, Tr2Controller, TriDevice, EveChildMesh, Tr2Mesh, Tr2MeshArea } from "../../npm/dist/trinity/index.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";

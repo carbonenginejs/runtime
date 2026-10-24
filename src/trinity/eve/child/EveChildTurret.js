@@ -17,7 +17,7 @@ import { EveTurretAiming } from "../attachment/turrets/EveTurretAiming.js";
 import { EveTurretFiringFX } from "../attachment/turrets/EveTurretFiringFX.js";
 import { EveTurretSet } from "../attachment/turrets/EveTurretSet.js";
 import { EveTurretTarget } from "../attachment/turrets/EveTurretTarget.js";
-import { TriGeometryResSkeletonData } from "../../../resource/geometry/TriGeometryResSkeletonData.js";
+import { TriGeometryResSkeletonData } from "../../resources/geometry/TriGeometryResSkeletonData.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 
 // Carbon file-scope constants (EveChildTurret.cpp:12-16).

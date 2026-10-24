@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsBlueResMan, IBlueResource, ICacheable } from "../../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { TriTextureRes, Tr2ImageRes } from "../../../npm/dist/resource/texture/index.js";
+import { TriTextureRes, Tr2ImageRes } from "../../../npm/dist/trinity/resources/texture/index.js";
 import { Tr2LightProfileRes } from "../../../npm/dist/resource/index.js";
 import { DefaultConfiguration } from "../../../npm/dist/core/configuration.js";
 

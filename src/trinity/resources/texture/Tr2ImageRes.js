@@ -2,12 +2,12 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
 import { exposure as be } from "#be";
-import * as CcpLog from "../../global/logging/ccpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
-import { resourcePayloadError, validateResourcePayload } from "../resourceBoundary.js";
+import { resourcePayloadError, validateResourcePayload } from "../../../resource/resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
 
 /**

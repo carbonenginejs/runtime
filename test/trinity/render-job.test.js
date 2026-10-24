@@ -7,7 +7,7 @@ import { ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, Tr2Render
 import { ALResult, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2RenderTarget } from "../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
 import { PixelFormat, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
-import { TriTextureRes } from "../../npm/dist/resource/texture/TriTextureRes.js";
+import { TriTextureRes } from "../../npm/dist/trinity/resources/texture/TriTextureRes.js";
 import { Tr2RenderJobs, TriRenderJob, TriRenderStep, TriStepClear, TriStepCopyRenderTarget, TriStepEnableWireframeMode, TriStepGenerateMipMaps, TriStepPopDepthStencil, TriStepPopRenderTarget, TriStepPresentSwapChain, TriStepPushDepthStencil, TriStepPushRenderTarget, TriStepRemoteSync, TriStepResolve, TriStepRunJob, TriStepSetDepthStencil, TriStepSetProjection, TriStepSetRenderState, TriStepSetRenderTarget, TriStepSetStdRndStates, TriStepSetView, TriStepSetViewport, TriStepSetVisualizationMode } from "../../npm/dist/trinity/renderJob/index.js";
 import { TriStepFilterVisibilityResults } from "../../npm/dist/trinity/renderJob/index.js";
 import { TriStepPythonCB } from "../../npm/dist/trinity/renderJob/index.js";

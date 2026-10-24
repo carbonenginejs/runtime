@@ -3,11 +3,11 @@ import { CjsSchema } from "#schema/CjsSchema";
 // Not Carbon: `dynamic:/texturearray` is ours.
 import { IBlueDynamicResourceConstructor } from "#blue";
 import { TriTextureRes } from "./TriTextureRes.js";
-import { Tr2TexturePipeline } from "./Tr2TexturePipeline.js";
-import { Tr2TexturePipelineStepGenerateMips } from "./Tr2TexturePipelineStepGenerateMips.js";
-import { CjsTexturePipelineStepConvert } from "./CjsTexturePipelineStepConvert.js";
-import { CjsTexturePipelineStepResize } from "./CjsTexturePipelineStepResize.js";
-import { CjsTexturePipelineStepArray } from "./CjsTexturePipelineStepArray.js";
+import { Tr2TexturePipeline } from "../../texturePipeline/Tr2TexturePipeline.js";
+import { Tr2TexturePipelineStepGenerateMips } from "../../texturePipeline/Tr2TexturePipelineStepGenerateMips.js";
+import { CjsTexturePipelineStepConvert } from "../../texturePipeline/CjsTexturePipelineStepConvert.js";
+import { CjsTexturePipelineStepResize } from "../../texturePipeline/CjsTexturePipelineStepResize.js";
+import { CjsTexturePipelineStepArray } from "../../texturePipeline/CjsTexturePipelineStepArray.js";
 
 /** The prefix an array path starts with. */
 export const TextureArrayPrefix = "dynamic:/texturearray/";

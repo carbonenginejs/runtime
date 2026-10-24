@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2Mesh } from "../../npm/dist/trinity/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 
 test("mesh isLoading reads its fence even when resource loading disagrees", () =>
 {

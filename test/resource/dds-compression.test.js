@@ -8,8 +8,8 @@ import { BitmapDimensions, HostBitmap } from "../../npm/dist/global/imageio/inde
 import { TextureType as T } from "../../npm/dist/global/consts/renderContext/index.js";
 import { getRawDataSize } from "../../npm/dist/resource/formats/dds/core/dxtCompression.js";
 import { Tr2DxtCompressControl, Tr2DxtCompressor, Tr2HostBitmap } from "../../npm/dist/trinity/core/index.js";
-import { Tr2TexturePipeline, Tr2TexturePipelineStepLoad, Tr2TexturePipelineStepCompress } from "../../npm/dist/resource/texture/index.js";
-import { RegisterTextureResources, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/texture/index.js";
+import { Tr2TexturePipeline, Tr2TexturePipelineStepLoad, Tr2TexturePipelineStepCompress } from "../../npm/dist/trinity/resources/texture/index.js";
+import { RegisterTextureResources, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
 
 const vectors = JSON.parse(readFileSync(new URL("./fixtures/libsquish-1.15.json", import.meta.url)));
 

@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { TriStorageFlags } from "../../../npm/dist/global/consts/graphics/index.js";
 import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
 import { CjsResource } from "../../../npm/dist/global/blue/CjsResource.js";
-import { TriGeometryRes } from "../../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/index.js";
 
 // One triangle is enough: the raycaster only has to build, not hit anything.
 function loadedGeometry()

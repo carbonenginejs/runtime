@@ -9,7 +9,7 @@ import {
   Tr2RotationTool
 } from "../../npm/dist/trinity/index.js";
 import { Tr2SphereShapeAttributeGenerator } from "../../npm/dist/trinity/particle/index.js";
-import { Tr2TexturePipelineStepPack, Tr2TexturePackChannel } from "../../npm/dist/resource/texture/index.js";
+import { Tr2TexturePipelineStepPack, Tr2TexturePackChannel } from "../../npm/dist/trinity/resources/texture/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";

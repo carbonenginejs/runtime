@@ -1,12 +1,12 @@
-import { createDdsBitmap } from "../../npm/dist/resource/texture/ddsBitmap.js";
+import { createDdsBitmap } from "../../npm/dist/resource/formats/dds/ddsBitmap.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Worker } from "node:worker_threads";
 import { CjsBlueResMan, CjsResManWorkerLoader, CjsResManQueue } from "../../npm/dist/global/blue/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
-import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
-import { RegisterTextureResources, RegisterTextureArray, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/texture/index.js";
+import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
+import { RegisterTextureResources, RegisterTextureArray, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";

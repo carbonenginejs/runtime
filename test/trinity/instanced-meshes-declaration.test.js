@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 import { EveChildInstancedMeshes } from "../../npm/dist/trinity/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/Tr2EffectStateManager.js";
 

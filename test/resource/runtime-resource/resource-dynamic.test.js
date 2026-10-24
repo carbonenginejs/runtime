@@ -169,7 +169,7 @@ test("a dynamic constructor registered under a backslash path still resolves", (
 test("each dynamic constructor declares its cache policy; Carbon's default is not to keep it", async () =>
 {
   const { IBlueDynamicResourceConstructor } = await import("../../../npm/dist/global/blue/index.js");
-  const { GradientTextureConstructor } = await import("../../../npm/dist/trinity/core/procedural/GradientTextureConstructor.js");
+  const { GradientTextureConstructor } = await import("../../../npm/dist/trinity/resources/procedural/GradientTextureConstructor.js");
 
   // Carbon inserts every dynamic resource CACHING_NOT_ALLOWED (BlueResMan.cpp:233).
   assert.equal(new IBlueDynamicResourceConstructor().IsCacheable(), false);

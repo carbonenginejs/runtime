@@ -3,9 +3,9 @@ import { random as carbonRandom } from "#math/random";
 // One host-defined playlist owns one texture, player and colour sampler.
 import { IBlueDynamicResourceConstructor } from "#blue";
 import { CjsSchema, meta } from "#schema";
-import { TriTextureRes } from "../texture/TriTextureRes.js";
-import { State } from "./enums.js";
-import { ColorPrefix } from "../texture/solidColorTexture.js";
+import { TriTextureRes } from "../../trinity/resources/texture/TriTextureRes.js";
+import { State } from "../../resource/video/enums.js";
+import { ColorPrefix } from "../../trinity/resources/procedural/solidColorTexture.js";
 
 const registrations = new WeakMap();
 

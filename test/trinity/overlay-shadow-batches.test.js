@@ -9,7 +9,7 @@ import {
   Tr2MeshArea,
   TriRenderBatchAccumulator
 } from "../../npm/dist/trinity/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 import { CarbonVertexElements } from "../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 

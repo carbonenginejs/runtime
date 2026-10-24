@@ -8,7 +8,7 @@
 // thread retains the Granny read for animation and projects the geometry into
 // the CMF graph the mesh draw path consumes (TriGeometryRes::DoLoad, cpp:548-582).
 import { TriGeometryRes } from "./TriGeometryRes.js";
-import { CjsGr2Format } from "../formats/gr2/CjsGr2Format.js";
+import { CjsGr2Format } from "../../../resource/formats/gr2/CjsGr2Format.js";
 
 /** The extensions Carbon loads as geometry resources. */
 export const GeometryResourceExtensions = Object.freeze([ "gr2" ]);

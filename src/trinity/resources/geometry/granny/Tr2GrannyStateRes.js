@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
 import { CjsSchema, meta } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
-import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../resourceBoundary.js";
+import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../../../resource/resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
 
 /**

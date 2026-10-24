@@ -6,7 +6,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { ALResult, Failed, Tr2TextureSubresource } from "#trinityal";
-import { TriTextureRes } from "#resource";
+import { TriTextureRes } from "#trinity/resources";
 import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
 
 

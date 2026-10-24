@@ -14,7 +14,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsSchema, meta, type, blue } from "#schema";
-import { TriTextureRes } from "#resource";
+import { TriTextureRes } from "#trinity/resources";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
 import { EvePlaneSetVolatileData } from "./EvePlaneSetVolatileData.js";

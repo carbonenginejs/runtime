@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildCmfFromShared } from "../../../../../src/resource/formats/cmf/core/shared.js";
-import { PackLodGeometry } from "../../../../../src/resource/geometry/packGeometry.js";
+import { PackLodGeometry } from "../../../../../src/trinity/resources/geometry/packGeometry.js";
 
 test("explicit vertex count preserves four-component instance channels and their values",()=>{
   const mesh={vertexCount:2,vertex:{position:[1,2,3,4,5,6,7,8],texcoord0:[9,10,11,12,13,14,15,16]},indices:[]};

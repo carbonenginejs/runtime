@@ -1,2 +1,2 @@
-export * from "./GradientTextureConstructor.js";
-export * from "./gradientTexture.js";
+export * from "../../resources/procedural/GradientTextureConstructor.js";
+export * from "../../resources/procedural/gradientTexture.js";

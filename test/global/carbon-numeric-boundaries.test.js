@@ -7,7 +7,7 @@ import { CjsBlueOS } from "../../npm/dist/global/blue/CjsBlueOS.js";
 import { SpatialAudioSettings } from "../../npm/dist/audio/trinity/audio/SpatialAudioSettings.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";
 import { Tr2CurveScalar } from "../../npm/dist/trinity/curves/curve/Tr2CurveScalar.js";
-import { TriGeometryResMeshData } from "../../npm/dist/resource/geometry/TriGeometryResMeshData.js";
+import { TriGeometryResMeshData } from "../../npm/dist/trinity/resources/geometry/TriGeometryResMeshData.js";
 
 // math/src/Float16.cpp:83-220 uses round-to-even and a non-IEEE exponent 31.
 test("Carbon half storage preserves ties, subnormals and native special encodings", () =>

@@ -9,7 +9,7 @@ import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveSOF } from "../../npm/dist/sof/index.js";

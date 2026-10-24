@@ -2,7 +2,7 @@
 import { CjsSchema, meta, type } from "#schema";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
-import { CjsImageFormat } from "../format/CjsImageFormat.js";
+import { CjsImageFormat } from "../../resource/format/CjsImageFormat.js";
 
 /**
  * Converts the pipeline's INPUTS to one pixel format before a later step reads

@@ -714,7 +714,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon m_geometryResFromMesh: the mesh geometry the updater last borrowed.
    * Geometry resource last borrowed from the mesh by the animation updater.
-   * @type {import("../../../resource/geometry/TriGeometryRes.js").TriGeometryRes|null}
+   * @type {import("../../resources/geometry/TriGeometryRes.js").TriGeometryRes|null}
    */
   _geometryResFromMesh = null;
 
@@ -819,7 +819,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Prepared geometry and object-to-geometry transforms used by damage-locator raycasts.
-   * @type {Array<{geometry: import("../../../resource/geometry/TriGeometryRes.js").TriGeometryRes, fromObject: Float32Array, areaStart: number, areaCount: number}>}
+   * @type {Array<{geometry: import("../../resources/geometry/TriGeometryRes.js").TriGeometryRes, fromObject: Float32Array, areaStart: number, areaCount: number}>}
    */
   _damageFilterOccluders = [];
 

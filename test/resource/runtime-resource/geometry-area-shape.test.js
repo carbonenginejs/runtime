@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { TriGeometryRes } from "../../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../../npm/dist/trinity/resources/geometry/index.js";
 
 // Trinity decorator syntax requires the compiled package. Resource declarations
 // use CjsSchema.define and can also be imported directly from source.

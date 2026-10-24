@@ -22,8 +22,8 @@
 // reader) and re-strides to a multiple of four.
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
-import { PackLodGeometry, PackLodIndices } from "#resource/geometry/pack";
-import { TriGeometryRes } from "#resource/geometry";
+import { PackLodGeometry, PackLodIndices } from "#trinity/resources/geometry/pack";
+import { TriGeometryRes } from "#trinity/resources/geometry";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { Tr2GpuUsage } from "#consts/render-context";
 import { Tr2SuballocatedBuffer } from "../device/Tr2SuballocatedBuffer/index.js";

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2ParticleElementDeclaration, Tr2ParticleSystem, Tr2RenderContext_GetMainThreadRenderContext, Tr2StaticEmitter } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 
 /** Resource creation is allowed only with a live main-thread context (Tr2Renderer.IsResourceCreationAllowed). */
 function liveContext(t)

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { CjsResource } from '../../npm/dist/global/blue/index.js';
 import { HostBitmap } from '../../npm/dist/global/imageio/index.js';
 import { PixelFormat } from '../../npm/dist/global/consts/renderContext/index.js';
-import { Tr2ImageRes } from '../../npm/dist/resource/texture/Tr2ImageRes.js';
+import { Tr2ImageRes } from '../../npm/dist/trinity/resources/texture/Tr2ImageRes.js';
 import { Tr2Sprite2dPickingMask, Tr2Sprite2dTexture, Tr2Sprite2dContainerBase, Tr2Sprite2d } from '../../npm/dist/trinity/index.js';
 import { ITr2Sprite2dTextureNotifyTarget } from '../../npm/dist/trinity/sprite2d/ITr2Sprite2dTextureNotifyTarget.js';
 

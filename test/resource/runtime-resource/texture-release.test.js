@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { TriTextureRes } from "../../../npm/dist/resource/texture/TriTextureRes.js";
+import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
 import { CjsMotherLode } from "../../../npm/dist/global/blue/CjsMotherLode.js";
 import { CjsResource } from "../../../npm/dist/global/blue/CjsResource.js";
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";

@@ -12,7 +12,7 @@
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta, type } from "#schema";
-import { TriGeometryRes } from "#resource/geometry";
+import { TriGeometryRes } from "#trinity/resources/geometry";
 import { EveComponentType } from "../EntityComponents.js";
 import { Tr2GpuStructuredBuffer } from "../../core/device/Tr2GpuStructuredBuffer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";

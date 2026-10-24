@@ -1,22 +1,16 @@
 /**
- * The GPU-free resource layer: canonical Carbon resource classes (texture,
- * geometry, effect and shader reflection, image, Granny, light profile and
- * audio, plus video decoding interfaces), the CjsFormat base and payload
- * contracts, and CPU-only texture pipeline steps. Format readers are
- * separate tree-shakeable `resource/formats/<name>` subpaths and are not
- * registered from here.
- *
- * The manager core (CjsBlueResMan, CjsResource, CjsMotherLode, format routing and
- * worker loaders) lives in Blue and is only re-exported below. Backend
- * allocation, upload and device-loss recovery belong to the abstraction layer
- * in `trinityal/<backend>`; audio playback belongs to the audio layer.
+ * Compatibility aggregate for the resource API. Geometry, textures and light
+ * profiles now live in Trinity; their exports retain the same class identities.
+ * Shader readers and reflection remain together until their standalone format
+ * dependencies are separated. Import individual formats through their subpaths.
+ * Resource management and lifecycle are owned by Blue.
  */
 export * from "./resourceBoundary.js";
-export * from "./Tr2LightProfileRes.js";
+export * from "../trinity/resources/Tr2LightProfileRes.js";
 export * from "./audio/index.js";
 export * from "./geometry/index.js";
 export * from "./shader/index.js";
-export * from "./texture/index.js";
+export * from "../trinity/resources/texture/index.js";
 export * from "./video/index.js";
 export * from "./format/CjsResourceProbe.js";
 export * from "./format/CjsFormat.js";

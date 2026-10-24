@@ -10,7 +10,7 @@
 // This is the geometry layer's half of realization. It produces BYTES and a
 // stride; it names no format, no attribute and no buffer usage, because those
 // are the backend's and the two backends differ.
-import { packVertexBuffer, packIndexBuffer } from "../formats/cmf/core/pack.js";
+import { packVertexBuffer, packIndexBuffer } from "../../../resource/formats/cmf/core/pack.js";
 
 
 /** WebGPU's `arrayStride` alignment, which WebGL2 also satisfies trivially. */

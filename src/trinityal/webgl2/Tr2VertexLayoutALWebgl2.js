@@ -32,7 +32,7 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { resolveBindingPlan } from "../vertexLayoutMatch.js";
-import { IsVertexElementType, VertexElementType } from "#resource/geometry/vertex";
+import { IsVertexElementType, VertexElementType } from "#trinityal/vertexElementType";
 
 
 /**

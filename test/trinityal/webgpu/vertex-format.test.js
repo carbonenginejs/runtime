@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { WebgpuVertexFormat, WebgpuVertexBufferLayout } from "../../../npm/dist/trinityal/webgpu/index.js";
-import { VertexElementType } from "../../../npm/dist/resource/geometry/index.js";
+import { VertexElementType } from "../../../npm/dist/trinityal/vertexElementType.js";
 import { resolveBindingPlan } from "../../../npm/dist/trinityal/index.js";
 import { Tr2VertexDefinition } from "../../../npm/dist/trinity/core/index.js";
 

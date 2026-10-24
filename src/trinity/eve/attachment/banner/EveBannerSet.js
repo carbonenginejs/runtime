@@ -12,7 +12,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
-import { TriTextureRes } from "#resource";
+import { TriTextureRes } from "#trinity/resources";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";

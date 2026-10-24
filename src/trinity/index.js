@@ -32,3 +32,4 @@ export * from "./raytracing/index.js";
 export * from "./generated/index.js";
 export * from "./font/index.js";
 export * from "./trinity.js";
+export * from "./resources/index.js";

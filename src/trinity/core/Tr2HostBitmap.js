@@ -12,7 +12,7 @@ import * as CcpLog from "../../global/logging/ccpLog.js";
 import { ALResult } from "../../trinityal/ALResult.js";
 import { ImageIO } from "../../resource/imageio/ImageIO.js";
 import { CjsDdsFormat } from "#resource/formats/dds";
-import { createDdsBitmap } from "../../resource/texture/ddsBitmap.js";
+import { createDdsBitmap } from "../../resource/formats/dds/ddsBitmap.js";
 
 /**
  * Whether a pixel accessor may touch this bitmap: the guard Tr2HostBitmap::SetPixel, GetPixel,

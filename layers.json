@@ -47,7 +47,8 @@
         "input",
         "core",
         "global/logging",
-        "global/audio"
+        "global/audio",
+        "trinityal"
       ]
     },
     "global/index.js": {
@@ -60,6 +61,47 @@
         "global/schema",
         "global/model",
         "global/logging"
+      ]
+    },
+    "resource/index.js": {
+      "mayImport": [
+        "resource",
+        "global/model",
+        "global/blue",
+        "trinity",
+        "trinityal",
+        "character",
+        "core"
+      ],
+      "why": [
+        "Legacy public aggregate preserves resource exports during the ownership migration; standalone formats do not import this barrel."
+      ]
+    },
+    "resource/geometry/index.js": {
+      "mayImport": [
+        "trinity",
+        "trinityal",
+        "character"
+      ],
+      "why": [
+        "Legacy public geometry entry preserves existing exports; runtime consumers use their owning layer."
+      ]
+    },
+    "resource/texture/index.js": {
+      "mayImport": [
+        "trinity"
+      ],
+      "why": [
+        "Legacy public texture entry re-exports the same Trinity classes."
+      ]
+    },
+    "resource/video/index.js": {
+      "mayImport": [
+        "resource",
+        "core"
+      ],
+      "why": [
+        "Legacy video entry preserves playlist exports; the controller now lives beside VideoPlayer."
       ]
     }
   },
@@ -198,17 +240,9 @@
     },
     "resource": {
       "//": [
-        "Trinity MAY import resource, and importing one Res class has never been",
-        "the problem - resource/texture/** reaches only consts, imageio and the",
-        "payload validators. Preferring the FILE over resource/index.js is a",
-        "nicety, not a rule: the root barrel pulls CjsBlueResMan, the worker loaders",
-        "and every format reader, which a bundler mostly shakes out again. It",
-        "would only matter to someone wanting the audio engine without trinity.",
-        "",
-        "The rule in the other direction is real: resource may NOT import",
-        "trinity, so a resource cannot reach a render context. That is why a",
-        "texture is created on first bind (Tr2ImageIOHelpers.RealizeTexture)",
-        "rather than in DoPrepare as Carbon does."
+        "Standalone readers and shared CPU payload helpers remain here.",
+        "Concrete geometry, texture and light-profile resources live in Trinity.",
+        "Only the named compatibility barrels may re-export their former public APIs."
       ],
       "mayImport": [
         "global"

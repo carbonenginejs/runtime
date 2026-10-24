@@ -4,9 +4,9 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/TriGrannyRes_Blue.cpp
 import { CjsSchema, meta, type } from "#schema";
 import { CjsResource, ICacheable, blue as blueService } from "#blue";
-import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { CjsGr2Format } from "../../formats/gr2/CjsGr2Format.js";
-import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
+import * as CcpLog from "../../../../global/logging/ccpLog.js";
+import { CjsGr2Format } from "../../../../resource/formats/gr2/CjsGr2Format.js";
+import { assertResourcePayloadObject, resourcePayloadError } from "../../../../resource/resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
 import { Tr2GrannyIntersectionResult } from "./Tr2GrannyIntersectionResult.js";
 

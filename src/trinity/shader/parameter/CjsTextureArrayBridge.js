@@ -9,7 +9,7 @@ import { CjsSchema } from "#schema";
 // stands in the merged register's slot: it reads the members' current paths
 // and binds the one texture made from them.
 import { Tr2ColorSpace } from "#consts/render-context";
-import { TextureArrayPrefix, TexturePackPrefix } from "#resource";
+import { TextureArrayPrefix, TexturePackPrefix } from "#trinity/resources";
 import { blue } from "#blue";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";

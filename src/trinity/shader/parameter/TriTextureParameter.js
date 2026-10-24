@@ -7,7 +7,7 @@ import { INotify } from "#blue";
 import { IInitialize } from "#blue";
 
 import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
-import { TriTextureRes } from "#resource/texture";
+import { TriTextureRes } from "#trinity/resources/texture";
 import { blue, CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1String } from "#utils/hash";

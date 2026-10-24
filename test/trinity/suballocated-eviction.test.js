@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { TriGeometryRes as SourceTriGeometryRes } from "../../src/resource/geometry/TriGeometryRes.js";
+import { TriGeometryRes as SourceTriGeometryRes } from "../../src/trinity/resources/geometry/TriGeometryRes.js";
 import { CjsMotherLode as SourceCjsMotherLode } from "../../src/global/blue/CjsMotherLode.js";
 import { Tr2VirtualAllocator } from "../../src/trinity/core/device/Tr2VirtualAllocator.js";
 import { Tr2SuballocatedBuffer } from "../../npm/dist/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js";

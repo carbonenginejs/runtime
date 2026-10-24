@@ -10,7 +10,7 @@ import { Tr2Sprite2dPickingMask } from "../../npm/dist/trinity/sprite2d/Tr2Sprit
 import { Tr2Sprite2dTransform } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dTransform.js";
 import { Tr2Sprite2dContainerBase } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dContainerBase.js";
 import { Tr2Sprite2dRenderJob } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dRenderJob.js";
-import { Tr2ImageRes } from "../../npm/dist/resource/texture/Tr2ImageRes.js";
+import { Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/Tr2ImageRes.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 const image = new Tr2ImageRes();

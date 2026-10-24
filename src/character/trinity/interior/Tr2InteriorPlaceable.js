@@ -10,7 +10,7 @@ import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 import { meta, type, blue as legacyBlue } from "#schema";
 import { blue, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { WodPlaceableRes } from "../../../resource/geometry/WodPlaceableRes.js";
+import { WodPlaceableRes } from "../wod/WodPlaceableRes.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";

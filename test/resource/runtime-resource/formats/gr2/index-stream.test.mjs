@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import {projectShared} from '../../../../../src/resource/formats/gr2/core/shared.js';
 import {buildCmfFromShared} from '../../../../../src/resource/formats/cmf/core/shared.js';
 import {packGraphBuffers} from '../../../../../src/resource/formats/cmf/core/pack.js';
-import {PackLodGeometry} from '../../../../../src/resource/geometry/packGeometry.js';
+import {PackLodGeometry} from '../../../../../src/trinity/resources/geometry/packGeometry.js';
 
 function fixture(wide = false) {
   const vertices = Array.from({length: 6}, (_, i) => ({Position: [i % 3, Math.floor(i / 3), 0]}));

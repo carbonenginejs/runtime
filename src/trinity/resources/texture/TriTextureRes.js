@@ -6,15 +6,14 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { HostBitmap } from "#imageio";
 import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
 import { CjsResource, ICacheable } from "#blue";
-import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
+import { IsSolidColorTexturePath, RasterizeSolidColor } from "../procedural/solidColorTexture.js";
 import { ResourceRequirement } from "#blue";
-// TriTextureRes moves to trinity/resources (docs: projects/resources-move.md); until then it imports the event file directly.
 import { Tr2Event } from "#trinity/core/Tr2Event";
 import {
   resourceBoundaryError,
   resourceFormatRequiredError,
   resourcePayloadError
-} from "../resourceBoundary.js";
+} from "../../../resource/resourceBoundary.js";
 
 /** INVALID_LOD (TriTextureRes.cpp:76): no mip has been requested. */
 const INVALID_LOD = 0xffffffff;
@@ -24,8 +23,8 @@ const INVALID_LOD = 0xffffffff;
  * HostBitmap data with mirrored dimension/format
  * metadata, while engine packages decide what those facts become on a device.
  *
- * The resource never CREATES a backend texture - it cannot reach a render
- * context - but it RETAINS the one Trinity makes for it, as Carbon's does
+ * Device realization currently creates the backend texture; this resource
+ * RETAINS the one Trinity makes for it, as Carbon's does
  * (`m_texture`), so every parameter sharing the resource binds one texture.
  */
 export class TriTextureRes extends CjsResource
@@ -229,7 +228,7 @@ export class TriTextureRes extends CjsResource
    * and waits on a fence; no shipped build has a .ctr, so the pipeline is handed in, the
    * manager passed, and the fence is a promise.
    *
-   * @param {import("./Tr2TexturePipeline.js").Tr2TexturePipeline} pipeline The recipe.
+   * @param {import("../../texturePipeline/Tr2TexturePipeline.js").Tr2TexturePipeline} pipeline The recipe.
    * @param {object} resourceManager The `CjsBlueResMan` that loads its inputs.
    * @param {string} [ex="raw"] Carbon resource suffix. The
    * WebGPU detail-array extension uses the empty suffix to reuse its named parameters'

@@ -9,7 +9,7 @@ import { CreateTexture, DescribeTexturePayload, RealizeTexture } from "../../npm
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
-import { TriTextureRes } from "../../npm/dist/resource/texture/TriTextureRes.js";
+import { TriTextureRes } from "../../npm/dist/trinity/resources/texture/TriTextureRes.js";
 import { Tr2ResourceSetDescriptionAL, Tr2RegisterMapAL, Tr2TextureAL, Tr2TextureALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
 

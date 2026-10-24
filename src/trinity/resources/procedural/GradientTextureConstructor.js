@@ -4,7 +4,7 @@
 // (GradientTexture.cpp:26-44). As with RegisterShaderResources and
 // RegisterSolidColorTexture, registration here is an explicit composition call.
 import { IBlueDynamicResourceConstructor } from "#blue";
-import { TriTextureRes } from "#resource";
+import { TriTextureRes } from "#trinity/resources";
 import { GradientPrefix, RasterizeGradient } from "./gradientTexture.js";
 
 /**
@@ -12,9 +12,9 @@ import { GradientPrefix, RasterizeGradient } from "./gradientTexture.js";
  * `dynamic:/gradient_1d/<query>` path names.
  *
  * Carbon's constructor only creates the resource and calls Initialize, which
- * rasterizes (TriTextureRes.cpp:223-229). Ours rasterizes here, because
- * TriTextureRes is in the resource layer and cannot reach the curves - see the
- * head comment of gradientTexture.js.
+ * rasterizes (TriTextureRes.cpp:223-229). Ours still rasterizes here and
+ * publishes the bitmap. Relocating these classes preserves that behavior;
+ * moving rasterization into Initialize is separate lifecycle work.
  */
 export class GradientTextureConstructor extends IBlueDynamicResourceConstructor
 {

@@ -15,7 +15,7 @@ import { CreateLodAllocations, SharedGeometryBuffer } from "../../../core/mesh/T
 import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
-import { TriGeometryRes } from "#resource/geometry";
+import { TriGeometryRes } from "#trinity/resources/geometry";
 import { EveTrailsSetSingleTrailData } from "./EveTrailsSetSingleTrailData.js";
 
 /** sizeof( InstanceVertex ): the booster's position and size as one float4. */

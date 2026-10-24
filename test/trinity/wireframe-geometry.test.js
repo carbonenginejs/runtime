@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { Tr2RenderBatch, Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { CreateLodWireframeIndices, SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
-import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { ALResult } from "../../npm/dist/trinityal/index.js";
 

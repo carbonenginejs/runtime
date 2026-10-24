@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { box3 } from "#math/box3";
 import { CjsSchema, meta, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
-import { TriGeometryRes } from "#resource";
+import { TriGeometryRes } from "#trinity/resources";
 import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Mesh } from "./Tr2Mesh.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";

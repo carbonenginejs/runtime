@@ -39,12 +39,12 @@ import { SharedGeometryBuffer, CreateLodAllocations } from "../../../core/mesh/T
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
-import { TriGeometryRes } from "#resource/geometry/TriGeometryRes";
+import { TriGeometryRes } from "#trinity/resources/geometry/TriGeometryRes";
 import { Tr2GrannyAnimation } from "../../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { IsMatch, blue, EnumRegistrationType, CjsBlueClasses } from "#blue";
-import { TriGeometryResSkeletonData } from "#resource/geometry/TriGeometryResSkeletonData";
+import { TriGeometryResSkeletonData } from "#trinity/resources/geometry/TriGeometryResSkeletonData";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
  * center = TransformCoord(center, tf); radius *= max of the basis row lengths

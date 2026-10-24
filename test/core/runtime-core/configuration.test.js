@@ -7,8 +7,8 @@ import { CjsPngFormat } from "../../../npm/dist/resource/formats/png/CjsPngForma
 import { CjsVtaFormat } from "../../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
 import { TriSettingsRegistrar } from "../../../npm/dist/trinity/core/TriSettingsRegistrar.js";
 import { CreateBlackObjectBuilder } from "../../../npm/dist/resource/object/registerObjectResources.js";
-import { ReadImageResource } from "../../../npm/dist/resource/texture/registerTextureResources.js";
-import { TriTextureRes } from "../../../npm/dist/resource/texture/TriTextureRes.js";
+import { ReadImageResource } from "../../../npm/dist/trinity/resources/texture/registerTextureResources.js";
+import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
 
 /** Isolated real Blue owners; no host loop, fetch or device is started. */
 function services()
