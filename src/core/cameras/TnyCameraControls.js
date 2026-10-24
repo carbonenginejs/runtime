@@ -84,10 +84,13 @@ export class TnyCameraControls
       minFieldOfView: 5 * Math.PI / 180, maxFieldOfView: 120 * Math.PI / 180, frameMargin: 1.1,
       // Farthest wheel/key zoom, in metres: past any solar system (~670 AU).
       maxDistance: 1e14,
+      // Null retains bounds-aware spacing; zero permits unrestricted close-ups.
+      minDistance: null,
       // Seconds a fly-to (KeyD) takes.
       flyDuration: 1.5,
       ...preferences
     };
+    if (this.preferences.minDistance !== null && (!Number.isFinite(this.preferences.minDistance) || this.preferences.minDistance < 0)) throw new RangeError("Minimum camera distance must be null or a nonnegative finite number.");
     this.SetKeyBindings(keyBindings);
     this._baseBackClip = camera.backClip;
     this._initial = this.GetPose();
@@ -269,7 +272,8 @@ export class TnyCameraControls
    * Dolly. Zooming out stops at preferences.maxDistance and pushes the far clip
    * out to keep the bounds in view, as Frame does; it is not capped by the far
    * clip, which left a large selection (whose 1% floor passes the far clip) or
-   * a far-away body unreachable.
+   * a far-away body unreachable. A minDistance override permits close-ups;
+   * the camera's own minimumDistance must also allow the requested distance.
    */
   Dolly(delta)
   {
@@ -277,10 +281,10 @@ export class TnyCameraControls
     this._flight = null;
     this._pendingFrame = false;
     const camera = this.camera, radius = Math.max(0.001, this.getBounds ? this.getBounds().radius : 0);
-    const minimum = Math.max(1, camera.frontClip, radius * 0.01), maximum = Math.max(minimum, this.preferences.maxDistance);
+    const minimum = this.preferences.minDistance ?? Math.max(1, camera.frontClip, radius * 0.01), maximum = Math.max(minimum, this.preferences.maxDistance);
     // Seed multiplicative zoom from a usable distance, including poses edited to zero.
-    // Match EveCamera.Update's floor so the next frame cannot erase outward motion.
-    const start = Math.max(minimum, camera.translationFromParent);
+    // A zero policy still needs a positive seed for multiplicative outward motion.
+    const start = Math.max(Number.EPSILON, minimum, camera.translationFromParent);
     const distance = Math.min(maximum, Math.max(minimum,
       start * Math.exp(Math.max(-20, Math.min(20, delta * this.preferences.dollySensitivity)))));
     this.#FitBackClip(distance + radius);

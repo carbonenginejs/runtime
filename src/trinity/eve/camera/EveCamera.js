@@ -329,6 +329,14 @@ export class EveCamera extends IRoot
   @type.float32
   translationFromParent = 20;
 
+  /**
+   * Application override for close-up inspection; null retains Carbon's
+   * max(1, frontClip) floor (EveCamera.cpp:257-260). Zero removes that floor.
+   * This optional policy is not a Carbon member.
+   * @type {number|null}
+   */
+  minimumDistance = null;
+
   /** m_minPitch (float) [READWRITE, PERSIST] */
   @be.mapAttribute(be.READWRITE | be.PERSIST)
 
@@ -643,7 +651,9 @@ export class EveCamera extends IRoot
    * as argument zero for TriStepSetView compatibility.
    *
    * Adapted: Receives Carbon's global device aspect ratio and real clock as optional
-   * arguments so the camera remains GPU- and platform-free.
+   * arguments so the camera remains GPU- and platform-free. An application
+   * minimumDistance override permits character close-ups; null preserves the
+   * native distance floor.
    */
 
   @meta.adapted
@@ -673,9 +683,10 @@ export class EveCamera extends IRoot
       vec3.add(parentPosition, parentPosition, this.extraTranslation);
     }
 
-    if (this.translationFromParent < Math.max(1, this.frontClip))
+    const minimumDistance = this.minimumDistance ?? Math.max(1, this.frontClip);
+    if (this.translationFromParent < minimumDistance)
     {
-      this.translationFromParent = Math.max(1, this.frontClip);
+      this.translationFromParent = minimumDistance;
     }
     if (!Number.isFinite(this.translationFromParent))
     {
