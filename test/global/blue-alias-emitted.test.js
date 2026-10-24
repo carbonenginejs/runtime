@@ -32,9 +32,14 @@ test("every #blue/* import target is emitted to npm/dist", () =>
     }
   }
   assert.ok(targets.size > 0, "the scan found the known #blue/* imports");
+  // Node resolves an exact "imports" key before the "#blue/*" pattern.
+  const { imports } = JSON.parse(fs.readFileSync(path.join(root, "npm", "package.json"), "utf8"));
   for (const target of targets)
   {
-    const emitted = path.join(root, "npm", "dist", "global", "blue", `${target}.js`);
-    assert.ok(fs.existsSync(emitted), `#blue/${target} has no emitted npm/dist/global/blue/${target}.js; add it to privateInputs in rollup.config.mjs`);
+    const exact = imports[`#blue/${target}`];
+    const emitted = exact
+      ? path.join(root, "npm", exact)
+      : path.join(root, "npm", "dist", "global", "blue", `${target}.js`);
+    assert.ok(fs.existsSync(emitted), `#blue/${target} has no emitted ${path.relative(root, emitted)}; add it to privateInputs in rollup.config.mjs`);
   }
 });

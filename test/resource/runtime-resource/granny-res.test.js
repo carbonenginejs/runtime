@@ -281,10 +281,16 @@ test("rows and states: Carbon's exposure names and what the projection cannot an
 
   for (const name of [ "GetGrannySkeleton", "GetGrannyVertexType", "GetVertexSize", "GetVertexComponentOffset", "GetMeshVertexElements",
     "GetTrackGroupCount", "GetTrackGroupName", "GetVectorTrackCount", "GetVectorTrackName", "GetEventTrackCount", "GetEventTrackName",
-    "CreateGeometryRes", "BakeBlendshape__NameToWeight", "BakeBlendshape__Weights", "BakeBlendshapeFromScript" ])
+    "BakeBlendshape__NameToWeight", "BakeBlendshape__Weights" ])
   {
     assert.equal(row(name).impl.status, "notImplemented", name);
     assert.throws(() => new TriGrannyRes()[name](), /is not implemented in CarbonEngineJS/u, name);
+  }
+
+  // Ported for character morph baking (CPU blendshape bake into independent geometry).
+  for (const name of [ "CreateGeometryRes", "BakeBlendshapeFromScript" ])
+  {
+    assert.equal(row(name).impl.status, "adapted", name);
   }
 
   for (const name of [ "GetGrannyFile", "GetCMFData", "GetCMFViewData", "GetCMFContents" ])

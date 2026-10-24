@@ -650,6 +650,8 @@ test("buildEffectAnalysis validates transient raw stage identity and bytes", () 
         bindings: []
     };
     const resolved = {
+        // readEffectAnalysis always returns its reader; only its source label is read here.
+        reader: { source: "fixture.sm_hi" },
         header: { version: 8, compilerVersion: 1 },
         effectDescription: { version: 8, effectName: "fixture" },
         selection: { bodyIndex: 0, selectedOptions: [] },

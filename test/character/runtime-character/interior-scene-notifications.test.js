@@ -6,7 +6,6 @@ import {Tr2InteriorScene} from '../../../npm/dist/character/index.js';
 import {Tr2RenderContext,Tr2RenderContext_GetMainThreadRenderContext,Tr2VariableStore} from '../../../npm/dist/trinity/index.js';
 import {Tr2RenderContextALStub} from '../../../npm/dist/trinityal/index.js';
 import {PixelFormat,Tr2GpuUsage} from '../../../npm/dist/global/consts/renderContext/index.js';
-import {ResourceRequirement} from '../../../npm/dist/resource/index.js';
 import {StubResMan} from '../../support/stubResMan.js';
 
 function setup(t) {
@@ -20,9 +19,10 @@ test('interior scene initialization acquires cubemap and native white shadows an
   const {scene,manager}=setup(t),s=scene(),effect={};s.backgroundCubemapPath='res:/environment.dds';s.backgroundEffect=effect;
   assert.equal(CjsSchema.cast(s,IInitialize),s);assert.equal(CjsSchema.cast(s,INotify),s);assert.equal(s.Initialize(),true);
   assert.equal(s.backgroundCubemapRes,manager.resources.get('res:/environment.dds'));
-  assert.equal(manager.requests[0].options.requirement,ResourceRequirement.TEXTURE);assert.equal(s.backgroundEffect,effect);
+  // Carbon requests by path alone; the extension picks the factory (Tr2InteriorScene.cpp:181,1399).
+  assert.equal(manager.requests[0].path,'res:/environment.dds');assert.equal(s.backgroundEffect,effect);
   assert.equal(s._whiteTexture,manager.resources.get('res:/texture/global/white.dds'));
-  assert.equal(manager.requests[1].options.requirement,ResourceRequirement.TEXTURE);
+  assert.equal(manager.requests[1].path,'res:/texture/global/white.dds');
   for(let i=0;i<4;i++)assert.equal(Tr2VariableStore.globalStore().FindVariable(`SpotlightShadow${i}`).GetValue(),s._whiteTexture);
   assert.deepEqual(s.lightRenderTargets,[]);assert.equal(s._lightDepthStencil,null);
   CjsSchema.setValues(s,{backgroundCubemapPath:''});assert.equal(s.backgroundCubemapRes,null);assert.equal(manager.requests.length,2);

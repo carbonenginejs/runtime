@@ -68,12 +68,20 @@ test("published package resolves root, family, and deep generated exports", () =
       "Tr2EffectConstant", "Tr2EffectDefine", "Tr2EffectDescription",
       "Tr2EffectLibrary", "Tr2EffectParameterAnnotation", "Tr2EffectResource",
       "Tr2EffectStageInput", "Tr2EffectTechnique", "Tr2Pass",
-      "Tr2SamplerSetup", "Tr2Shader"
+      "Tr2SamplerSetup"
     ])
     {
       if (aggregate[name] !== resource[name] || packageRoot[name] !== resource[name])
       {
         throw new Error(name + " must retain resource ownership");
+      }
+    }
+    // Runtime shader classes belong to Trinity, not the resource family.
+    for (const name of ["Tr2Shader", "Tr2EffectRes"])
+    {
+      if (!packageRoot[name] || aggregate[name] !== packageRoot[name] || name in resource)
+      {
+        throw new Error(name + " must be owned by trinity");
       }
     }
     for (const invalidName of ["_className", "ITriDevice", "Tr2CurveBase", "Tr2Key"])
