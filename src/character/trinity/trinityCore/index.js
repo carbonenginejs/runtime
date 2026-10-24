@@ -3,6 +3,8 @@ export * from "./ITr2SkinnedObject.js";
 export * from "./Tr2GStateAnimation.js";
 export * from "./Tr2GStateParameter.js";
 export * from "./Tr2Model.js";
+export * from "./Tr2PerObjectDataSkinned.js";
+export * from "./Tr2PerAreaDataSkinned.js";
 export * from "./Tr2SkinnedModel.js";
 export * from "./Tr2SkinnedObject.js";
 export * from "./Tr2SkinnedObjectLod.js";

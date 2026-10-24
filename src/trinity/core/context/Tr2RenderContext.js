@@ -1191,16 +1191,12 @@ export class Tr2RenderContext
           (_unused, slot) => this.GetConstantBuffer(slot)
         );
 
-        // STATIC, TAKING THE DATA. Carbon dispatches this on the per-object
-        // data's subclass, so the port was written as a method call on
-        // `batch.objectData` - but almost nothing here IS a `Tr2PerObjectData`:
-        // every renderable's `GetPerObjectData` returns a plain `{ vs, ps }`
-        // pair of `RawData` records, which is why the method beside the data is
-        // static and takes it. Calling it on the data threw `TypeError` for
-        // every batch that carried any, so NO REAL RENDERABLE COULD DRAW - the
-        // existing tests walk batches with no per-object data at all, and a
-        // real hull found it in one frame.
-        Tr2PerObjectData.setPerObjectDataToDevice(batch.objectData, buffers, shaderMask, this);
+        // Native instances need virtual dispatch: skinned area data writes a
+        // partial palette and delegates the object's PS upload. The static
+        // payload path remains for producers returning RawData or { vs, ps }.
+        const objectData = CjsSchema.cast(batch.objectData, Tr2PerObjectData);
+        if (objectData) objectData.SetPerObjectDataToDevice(buffers, shaderMask, this);
+        else Tr2PerObjectData.setPerObjectDataToDevice(batch.objectData, buffers, shaderMask, this);
         currentObjectData = batch.objectData;
       }
 

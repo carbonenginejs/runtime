@@ -3,7 +3,7 @@ import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2SkinnedObject } from "./ITr2SkinnedObject.js";
 // Source: trinity/trinity/Tr2SkinnedObject.h
-import { meta, type } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IsMatch, IListNotify, INotify } from "#blue";
 import { IWorldPosition } from "../../../trinity/core/IWorldPosition.js";
 import { mat4 } from "#math/mat4";
@@ -40,6 +40,73 @@ export class Tr2SkinnedObject extends IRoot
 
   @meta.implemented
   GetPerObjectData(_accumulator) { return null; }
+
+  /** Carbon GetBatches (h:113, cpp:592-601): guarded delegation to the model. */
+  @blue.method
+  @meta.implemented
+  GetBatches(batches, batchType, perObjectData, _reason)
+  {
+    if (this.visualModel && perObjectData && this.DoDisplay())
+    {
+      this.visualModel.GetBatches(batches, batchType, this.GetSkinningTransform(), perObjectData);
+    }
+  }
+
+  /** Native protected visibility hook (Tr2SkinnedObject.h:161-164). */
+  @blue.method
+  @meta.implemented
+  DoDisplay()
+  {
+    return this.display;
+  }
+
+  /**
+   * Carbon GetSkinningTransform (h:50, cpp:732-740).
+   * Adapted: the existing immediate CPU skinning path has no delayed transform
+   * queue, so this returns the native empty-queue value, the current transform.
+   */
+  @blue.method
+  @meta.adapted
+  GetSkinningTransform()
+  {
+    return this.transform;
+  }
+
+  /** Carbon's UpdatePerObjectData body is empty (h:150, cpp:612-614). */
+  @blue.method
+  @meta.implemented
+  UpdatePerObjectData()
+  {
+  }
+
+  /** Native dynamic bounds start unavailable (cpp:40-44); pose updates own validity. */
+  _hasDynamicBounds = false;
+
+  /** m_minDynamicBounds, retained local-space bound. */
+  _minDynamicBounds = vec3.create(); // alloc: retained native bound
+
+  /** m_maxDynamicBounds, retained local-space bound. */
+  _maxDynamicBounds = vec3.create(); // alloc: retained native bound
+
+  /** Carbon GetLocalBoundingBox (h:74, cpp:616-638), preserving bounds precedence. */
+  @blue.method
+  @meta.implemented
+  GetLocalBoundingBox(min, max)
+  {
+    if (this.useExplicitBounds)
+    {
+      vec3.copy(min, this.explicitMinBounds);
+      vec3.copy(max, this.explicitMaxBounds);
+      return true;
+    }
+    if (this.useDynamicBounds && this._hasDynamicBounds)
+    {
+      vec3.copy(min, this._minDynamicBounds);
+      vec3.copy(max, this._maxDynamicBounds);
+      return true;
+    }
+    return this.visualModel ? this.visualModel.GetBoundingBox(min, max) : false;
+  }
 
   /** World position awaits the maintained TriMatrix storage conversion contract. */
 
@@ -390,14 +457,17 @@ export class Tr2SkinnedObject extends IRoot
   /**
    * Carbon native method UpdateBones.
    *
-   * Adapted: Implements the immediate CPU rig mapping and 3x4 palette; native cloth
-   * synchronization, delayed queues, dynamic bounds, and backend upload remain outside the
-   * character layer.
+   * Adapted: Implements the immediate CPU rig mapping, 3x4 palette and dynamic
+   * bounds. Native cloth synchronization, delayed queues and backend upload
+   * remain outside this update. Bounds validity resets before early returns
+   * and follows current animation transforms (cpp:134,263-268).
    */
 
   @meta.adapted
   UpdateBones(_time = 0, _apexScene = null)
   {
+    this._hasDynamicBounds = false;
+
     const model = this.visualModel;
     const skeleton = model?.GetSkeleton();
 
@@ -454,14 +524,13 @@ export class Tr2SkinnedObject extends IRoot
       model.ResetBindings();
     }
 
-    let transforms = null;
-
-    if (usesAnimationRig)
+    const animationTransforms = this.animationUpdater ? this.animationUpdater.GetAnimationTransforms() : null;
+    if (animationTransforms)
     {
-      transforms = this.animationUpdater.GetAnimationTransforms();
+      this._hasDynamicBounds = model.GetDynamicBoundingBox(animationTransforms, this._minDynamicBounds, this._maxDynamicBounds);
     }
 
-    this._rigBinding.Update(transforms);
+    this._rigBinding.Update(usesAnimationRig ? animationTransforms : null);
   }
 
   /**

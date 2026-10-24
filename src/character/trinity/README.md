@@ -24,8 +24,10 @@ depth-stencil wrappers through the supplied or application-installed render
 context. The scene chooses native dimensions/formats and owns wrapper lifetime;
 resource acquisition and backend texture realization remain in their existing
 owners. Final `Destruct` releases the scene's shadow surfaces. Initializing the
-scene acquires the cubemap only. List lifecycle and scene render passes remain
-unported, so allocation tests do not establish rendered interior shadows.
+scene acquires the cubemap only. Dynamic add/remove/rebuild membership now
+uses native list callbacks and a unique pending-load set. Admission checks the
+mapped interface before side effects. Physics updates and scene render passes
+remain unported, so allocation tests do not establish rendered interior shadows.
 
 ## Placeable resource ownership
 
@@ -52,21 +54,20 @@ Carbon's `ITr2Interior.h` declares four `BLUE_INTERFACE`s:
 | Carbon interface | Here |
 | --- | --- |
 | `ITr2InteriorCullable` | `interior/ITr2InteriorCullable.js` |
-| `ITr2Interior` | not represented |
-| `ITr2InteriorDynamic` | not represented |
+| `ITr2Interior` | `interior/ITr2Interior.js` |
+| `ITr2InteriorDynamic` | `interior/ITr2InteriorDynamic.js` |
 | `ITr2InteriorLight` | `interior/ITr2InteriorLight.js` |
 
-The light and culling interfaces are registered nominal identities with abstract
+These interfaces are registered nominal identities with abstract
 methods and no persisted fields. Their registration supports native casts and
 composition; it does not turn the nested `LightSourceItem` helper into a model.
-The other two interfaces remain unrepresented.
 
-## Skinned per-object data (not ported)
+## Skinned per-object data
 
 Carbon's `Tr2PerObjectDataSkinned` (extends `Tr2PerObjectDataPSBuffer`) and
 `Tr2PerAreaDataSkinned` (extends `Tr2PerObjectData`) are allocated only on
 skinned and interior paths (`Tr2IntSkinnedObject`, `Tr2SkinnedModel`). They
-have no JS class. Their vertex buffer binds the per-object VS register 3 and
+now have maintained JS classes under `trinityCore/`. Their vertex buffer binds the per-object VS register 3 and
 is `(TR2_MAX_BONES_PER_MESHAREA * 3 + 5 + 4) * 16` bytes, with
 `TR2_MAX_BONES_PER_MESHAREA = 69`:
 
@@ -82,13 +83,25 @@ creates and locks it, calls its object's `UpdateVertexShaderCBMirror` to place
 the world and mirror matrices, then copies `jointCount * 3 * 16` bytes of its
 own joints at offset 0 (`jointCount` is asserted and clamped to 69). It then
 removes the vertex-stage bits from the mask and hands the rest, including the
-pixel payload, to the object's `SetPerObjectDataToDevice`. Porting it needs
-that instance relationship, not a helper over a `{ vs, ps }` record.
+pixel payload, to the object's `SetPerObjectDataToDevice`. The port preserves
+that instance relationship and uses virtual dispatch on normal render batches.
+`Tr2SkinnedModel` creates a separate remapped palette per area, skips areas
+above 69 joints, and uses 69 identity matrices when mapping is unavailable.
 
 The object writes the world and mirror matrices as raw bytes, with no
 transpose, unlike the per-object data of `EveSpaceObject2`. Its world matrix
 comes from `Tr2IntSkinnedObject` untouched and its mirror is the identity. It
 stores `m_worldPos` but never uploads it. Check the interior skinned shader's
 matrix orientation before reusing the `SetAndTranspose` rule of
-`../../trinity/core/rawData/perObjectData/`, and test with rotation and
-non-uniform scale.
+`../../trinity/core/rawData/perObjectData/`. CPU verification covers rotation,
+non-uniform scale, the 69th joint, partial writes, stage masks and normal batch
+submission. The interior object's producer now clears and fills the native
+79-register PS block, including cached light records and already-transposed
+spotlight matrices. Its batch traversal validates mesh indices, remaps area
+palettes and computes the native float32 transparent depth key. World-bounds
+queries transform all eight corners, preserving native float32 arithmetic and
+zero-W behavior; frustum queries and scene-readiness checks consume those
+bounds. Bone updates refresh dynamic bounds from the current animation
+transforms and clear validity before an unavailable model or pose can reuse
+stale bounds. Indirect draws and scene submission remain open; this direct batch
+path is not a complete character renderer.

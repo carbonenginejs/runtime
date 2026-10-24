@@ -5,7 +5,12 @@ import { blue, IsMatch, IInitialize, INotify, IListNotify, ResourceRequirement }
 import { meta, type, blue as legacyBlue } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
+import { mat4 } from "#math/mat4";
 import { BLUELISTEVENT } from "#consts/blue";
+import { Tr2PerAreaDataSkinned } from "./Tr2PerAreaDataSkinned.js";
+import { TR2_MAX_BONES_PER_MESHAREA } from "./Tr2PerObjectDataSkinned.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
+import { CreateLodAllocations } from "../../../trinity/core/mesh/TriGeometryResAllocations.js";
 
 /** Carbon NO_SKELETON (Tr2SkinnedModel.cpp:10). */
 const NO_SKELETON = 0xffffffff;
@@ -17,8 +22,7 @@ const FLT_MAX = 3.4028234663852886e38;
  * Carbon's Tr2SkinnedModel (Tr2SkinnedModel.h:20-108): a model whose meshes are skinned to a named skeleton in its
  * geometry resource, and bound to an animation rig's bone list.
  *
- * Not ported: GetBatches and GetBatchesForArea (cpp:32-139), which need Carbon's Tr2PerObjectDataSkinned and
- * Tr2PerAreaDataSkinned (see the character README); until then Tr2Model's batches are used.
+ * Each batch owns its area's remapped palette through Tr2PerAreaDataSkinned.
  */
 @be.define("Tr2SkinnedModel")
 @be.inherit(IInitialize, INotify, IListNotify)
@@ -27,6 +31,71 @@ const FLT_MAX = 3.4028234663852886e38;
 @be.exposureChainTo(Tr2Model)
 export class Tr2SkinnedModel extends Tr2Model
 {
+  /** Identity fallback is consumed synchronously while building one area's palette. */
+  static scratch = { mat4_0: mat4.create() };
+
+  /**
+   * Carbon GetBatches (h:36, cpp:107-137), preserving authored mesh traversal.
+   * Adapted: no arena copy of the matrix is needed; the native helper never reads it.
+   */
+  @legacyBlue.method
+  @meta.adapted
+  GetBatches(batches, batchType, m, data)
+  {
+    for (const mesh of this.meshes)
+    {
+      if (!mesh) continue;
+      const areas = mesh.GetAreas(batchType);
+      if (areas) this._GetBatchesForArea(areas, mesh, batches, m, data);
+    }
+  }
+
+  /**
+   * Carbon's private GetBatchesForArea (h:104, cpp:32-105).
+   * Adapted: geometry allocation uses the existing lazy Trinity owner, as in
+   * Tr2Model; JS constructs area objects instead of leasing native arena memory.
+   */
+  @legacyBlue.method
+  @meta.adapted
+  _GetBatchesForArea(areas, mesh, batches, _pm, skinnedData)
+  {
+    if (!mesh.GetDisplay()) return;
+    const geometry = mesh.GetGeometryResource();
+    if (!geometry || !geometry.IsGood()) return;
+    const meshIndex = mesh.GetMeshIndex();
+    const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);
+    if (!lod || !CreateLodAllocations(geometry, meshIndex, lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
+
+    for (const area of areas)
+    {
+      if (!area.GetDisplay() || !area.GetMaterialInterface()) continue;
+      const count = area.GetJointCount();
+      if (count > TR2_MAX_BONES_PER_MESHAREA) continue;
+
+      const areaData = new Tr2PerAreaDataSkinned();
+      areaData.SetPickingPointer(skinnedData.GetPickingPointer());
+      const mapping = area.GetJointMappingAnimRig();
+      if (this._skeletonIx !== NO_SKELETON && mapping !== null)
+      {
+        areaData.SetJointCount(count);
+        for (let joint = 0; joint < count; joint++)
+        {
+          areaData.SetJointTransform(joint, skinnedData.GetSkinningMatrix(mapping[joint]));
+        }
+      }
+      else
+      {
+        areaData.SetJointCount(TR2_MAX_BONES_PER_MESHAREA);
+        const { mat4_0 } = Tr2SkinnedModel.scratch;
+        mat4.identity(mat4_0);
+        // The first twelve identity lanes match the native packed identity.
+        for (let joint = 0; joint < TR2_MAX_BONES_PER_MESHAREA; joint++) areaData.SetJointTransform(joint, mat4_0);
+      }
+      areaData.SetPerObjectData(skinnedData);
+      const batch = mesh.CreateGeometryBatch(geometry, area, areaData, false, lod);
+      if (batch) batches.Commit(batch);
+    }
+  }
 
   /** m_pBoneList: the bone list the meshes were last bound to. */
   _boneList = null;

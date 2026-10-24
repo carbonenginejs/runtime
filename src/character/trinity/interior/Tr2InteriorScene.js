@@ -4,7 +4,7 @@ import { ITr2VisualizationModeRenderer } from "../../../trinity/core/ITr2Visuali
 import { ITr2Updateable } from "../../../trinity/core/ITr2Updateable.js";
 import { ITr2MultiPassScene } from "../../../trinity/core/ITr2MultiPassScene.js";
 import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
-import { BlueList, IListNotify } from "#blue";
+import { BlueList, CjsBlueClasses, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
@@ -31,6 +31,7 @@ import { Tr2ConstantBufferAL } from "#trinityal";
 import { PER_FRAME_VS, Tr2Renderer } from "../../../trinity/core/Tr2Renderer.js";
 import { Tr2RenderUtils } from "../../../trinity/core/Tr2RenderUtils.js";
 import { RawData } from "../../../trinity/core/rawData/RawData.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 
 /**
  * Interior-scene state record for authored dynamics, lights, environment, fog,
@@ -238,12 +239,33 @@ export class Tr2InteriorScene
     throw new Error("Tr2InteriorScene.PickObject is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method AddDynamic (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon AddDynamic (h:113, cpp:970-992): add a unique dynamic and retain
+   * unavailable members in the pending-load list. The Blue list observer also
+   * calls AddToScene, as native OnListModified does; do not suppress that call.
+   * Adapted: validate the JS interface argument before the native typed call.
+   * @param {ITr2InteriorDynamic|null} dynamic Dynamic object to attach.
+   * @returns {void}
+   */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
-  AddDynamic(...args)
+  @meta.adapted
+  AddDynamic(dynamic)
   {
-    throw new Error("Tr2InteriorScene.AddDynamic is not implemented in CarbonEngineJS.");
+    if (!dynamic)
+    {
+      CcpLog.CCP_LOGERR("Attempt to add NULL dynamic to interior scene!");
+      return;
+    }
+    if (typeof dynamic !== "object" || blue.classes.QueryThisInterface(dynamic, ITr2InteriorDynamic, dynamic.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
+      throw new TypeError("Tr2InteriorScene.AddDynamic requires ITr2InteriorDynamic.");
+
+    if (this.dynamics.FindKey(dynamic) === -1)
+    {
+      if (!dynamic.AddToScene(this._apexScene) && !this._dynamicsPendingLoad.includes(dynamic))
+        this._dynamicsPendingLoad.push(dynamic);
+
+      this.dynamics.Insert(-1, dynamic);
+    }
   }
 
   /** Carbon method AddLightSource (MAP_METHOD_AND_WRAP). */
@@ -286,20 +308,46 @@ export class Tr2InteriorScene
     throw new Error("Tr2InteriorScene.PickObjectUV is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method RebuildSceneData (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon RebuildSceneData (h:106, cpp:1402-1422): rebuild dynamic membership
+   * and its unique pending-load set without replacing the authored list.
+   * @returns {void}
+   */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
-  RebuildSceneData(...args)
+  @meta.implemented
+  RebuildSceneData()
   {
-    throw new Error("Tr2InteriorScene.RebuildSceneData is not implemented in CarbonEngineJS.");
+    this._dynamicsPendingLoad.length = 0;
+    for (const dynamic of this.dynamics)
+    {
+      dynamic.RemoveFromScene();
+      if (!dynamic.AddToScene(this._apexScene) && !this._dynamicsPendingLoad.includes(dynamic))
+        this._dynamicsPendingLoad.push(dynamic);
+    }
   }
 
-  /** Carbon method RemoveDynamic (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon RemoveDynamic (h:115, cpp:1004-1022): remove scene membership and
+   * pending load. Blue-list removal also delivers the native observer callback.
+   * @param {ITr2InteriorDynamic|null} dynamic Dynamic object to remove.
+   * @returns {void}
+   */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
-  RemoveDynamic(...args)
+  @meta.implemented
+  RemoveDynamic(dynamic)
   {
-    throw new Error("Tr2InteriorScene.RemoveDynamic is not implemented in CarbonEngineJS.");
+    const index = this.dynamics.FindKey(dynamic);
+    if (index === -1)
+    {
+      CcpLog.CCP_LOG("Tr2InteriorScene::RemoveDynamic() - interiorDynamic not found in the scene!");
+      return;
+    }
+
+    dynamic.RemoveFromScene();
+    this.dynamics.Remove(index);
+
+    const pending = this._dynamicsPendingLoad.indexOf(dynamic);
+    if (pending !== -1) this._dynamicsPendingLoad.splice(pending, 1);
   }
 
   /** Carbon method RemoveLightSource (MAP_METHOD_AND_WRAP). */

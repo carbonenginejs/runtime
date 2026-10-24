@@ -19,6 +19,25 @@ const { Identity: IDENTITY, Types } = CjsConstantLayout;
  */
 export class CjsTr2PerObjectLayout
 {
+  /**
+   * Interior/Tr2InteriorConstantBufferFormats.h:37-48. The ten six-register
+   * light structs form one packed span; the native character light producer
+   * writes those lanes without adding a nested layout mechanism.
+   */
+  static interiorStructConfig = Object.freeze({
+    ps: {
+      struct: "Tr2InteriorPerObjectPSData",
+      fields: {
+        lightCount: { type: Types.INT32 },
+        padding: { type: Types.INT32, count: 3 },
+        pointLights: { type: Types.VECTOR4, count: 60 },
+        shadowCaster0: { type: Types.VECTOR4 },
+        shadowCaster1: { type: Types.VECTOR4 },
+        spotLights: { type: Types.MATRIX4, count: 4 }
+      }
+    }
+  });
+
   static structConfig = Object.freeze({
     vs: {
         struct: "Tr2PerObjectVSData",

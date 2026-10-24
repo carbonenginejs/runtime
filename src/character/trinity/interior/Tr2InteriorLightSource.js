@@ -23,6 +23,10 @@ import { Tr2KelvinColor } from "../../../trinity/core/lighting/Tr2KelvinColor.js
 @be.mapInterface(ITr2InteriorLight)
 export class Tr2InteriorLightSource extends IRoot
 {
+  /** Native public m_viewProjection (h:83, cpp:40), already packed by the scene. */
+  @type.mat4
+  viewProjection = mat4.create(); // alloc: retained native spotlight transform
+
   /** PopulateLightData's AsRGB result. */
   static _kelvinScratch = vec4.create();
 

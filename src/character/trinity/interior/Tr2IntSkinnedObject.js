@@ -8,6 +8,11 @@ import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 import { meta, type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
+import { Tr2PerObjectDataSkinned, TR2_MAX_BONES_PER_MESHAREA } from "../trinityCore/Tr2PerObjectDataSkinned.js";
+import { Tr2PerAreaDataSkinned } from "../trinityCore/Tr2PerAreaDataSkinned.js";
+import { Tr2Renderer } from "../../../trinity/core/Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
+import { CreateLodAllocations } from "../../../trinity/core/mesh/TriGeometryResAllocations.js";
 import { Tr2VariableStore } from "../../../trinity/core/variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../../../trinity/generated/trinityCore/enums.js";
 import { Tr2InteriorLightSet } from "./Tr2InteriorLightSet.js";
@@ -118,7 +123,119 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 
   /** Scratch for the transform decompositions in SetRotation and SetScaling. */
   @meta.adapted
-  static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), quat_0: quat.create(), quat_1: quat.create() };
+  static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), quat_0: quat.create(), quat_1: quat.create(), mat4_0: mat4.create() };
+
+  /** Carbon GetPerObjectData (h:75, cpp:173-180): display-gated local lighting. */
+  @blue.method
+  @meta.implemented
+  GetPerObjectData(accumulator)
+  {
+    return this.visualModel && this.DoDisplay()
+      ? this.GetPerObjectDataGpuSkinning(accumulator, this._lightSet, this.GetSkinningTransform())
+      : null;
+  }
+
+  /** Carbon per-instance override (h:56-59, cpp:387-398), independent of display. */
+  @blue.method
+  @meta.implemented
+  GetPerObjectDataWithPerInstanceLighting(accumulator, lightSet, objectToWorldMatrix)
+  {
+    return this.visualModel ? this.GetPerObjectDataGpuSkinning(accumulator, lightSet, objectToWorldMatrix) : null;
+  }
+
+  /**
+   * Carbon GetPerObjectDataGpuSkinning (h:126-129, cpp:315-349).
+   * Adapted: the existing per-object allocator leases the uploadable RawData,
+   * removing the native stack-struct memcpy. Explicit zeroing preserves memset,
+   * including unused light slots and non-identity unused spotlight matrices.
+   */
+  @blue.method
+  @meta.adapted
+  GetPerObjectDataGpuSkinning(accumulator, lightSet, objectToWorldMatrix)
+  {
+    this.UpdatePerObjectData();
+    const data = Tr2PerObjectDataSkinned.alloc(accumulator, "Tr2InteriorPerObjectPSData");
+    data.SetSkinningMatrices(this.skinningMatrixCount, this.GetSkinningMatrices());
+    data.SetWorldMatrix(objectToWorldMatrix);
+    const { mat4_0 } = Tr2IntSkinnedObject.scratch;
+    mat4.identity(mat4_0);
+    data.SetMirrorMatrix(mat4_0);
+    data.ps.GetData().fill(0);
+    if (lightSet) lightSet.PopulateLightData(data.ps);
+    return data;
+  }
+
+  /**
+   * Carbon GetBatches (h:76, cpp:184-302), including interior transparent depth.
+   * Adapted: uses the shared lazy geometry allocator and JS area objects in
+   * place of native arena allocations. Scratch bounds start at zero rather
+   * than retaining a previous object's data if a producer has no valid bounds.
+   */
+  @blue.method
+  @meta.adapted
+  GetBatches(batches, batchType, perObjectData, _reason)
+  {
+    if (!this.DoDisplay()) return;
+    let depth = 0xffffffff;
+    if (batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT)
+    {
+      const { vec3_0, vec3_1 } = Tr2IntSkinnedObject.scratch;
+      vec3.set(vec3_0, 0, 0, 0);
+      vec3.set(vec3_1, 0, 0, 0);
+      this.GetLocalBoundingBox(vec3_0, vec3_1);
+      vec3.add(vec3_0, vec3_0, vec3_1);
+      vec3.scale(vec3_0, vec3_0, 0.5);
+      vec3.transformMat4(vec3_0, vec3_0, this.transform);
+      vec3.subtract(vec3_0, vec3_0, Tr2Renderer.GetViewPosition());
+      // Vector3_inline.h:163-177: scalar float Dot then float sqrt, before
+      // depthOffset is added. Rounding only the final ratio changes sort keys.
+      const f32 = Math.fround;
+      const lengthSquared = f32(f32(f32(vec3_0[0] * vec3_0[0]) + f32(vec3_0[1] * vec3_0[1])) + f32(vec3_0[2] * vec3_0[2]));
+      const distance = f32(Math.sqrt(lengthSquared));
+      const z = Math.min(Math.max(f32(f32(distance + this.depthOffset) / Tr2Renderer.GetFrustumRadius()), 0), 1);
+      depth = f32(f32(0xfffffff) * f32(1 - z)) >>> 0;
+    }
+    for (const mesh of this.visualModel.GetMeshes())
+    {
+      if (!mesh || !mesh.GetDisplay()) continue;
+      const areas = mesh.GetAreas(batchType);
+      if (!areas) continue;
+      const geometry = mesh.GetGeometryResource();
+      if (!geometry || !geometry.IsGood()) continue;
+      const meshIndex = mesh.GetMeshIndex();
+      if (meshIndex < 0 || meshIndex >= geometry.GetMeshCount()) continue;
+      const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);
+      if (!lod || !CreateLodAllocations(geometry, meshIndex, lod, Tr2RenderContext_GetMainThreadRenderContext())) continue;
+      for (const area of areas)
+      {
+        if (!area.GetDisplay() || !area.GetMaterialInterface()) continue;
+        const count = area.GetJointCount();
+        if (count > TR2_MAX_BONES_PER_MESHAREA) continue;
+        const data = new Tr2PerAreaDataSkinned();
+        data.SetPickingPointer(perObjectData.GetPickingPointer());
+        const mapping = area.GetJointMappingAnimRig();
+        if (this.visualModel.GetSkeleton() !== null && mapping !== null)
+        {
+          data.SetJointCount(count);
+          for (let joint = 0; joint < count; joint++) data.SetJointTransform(joint, perObjectData.GetSkinningMatrix(mapping[joint]));
+        }
+        else
+        {
+          data.SetJointCount(TR2_MAX_BONES_PER_MESHAREA);
+          const { mat4_0 } = Tr2IntSkinnedObject.scratch;
+          mat4.identity(mat4_0);
+          for (let joint = 0; joint < TR2_MAX_BONES_PER_MESHAREA; joint++) data.SetJointTransform(joint, mat4_0);
+        }
+        data.SetPerObjectData(perObjectData);
+        const batch = mesh.CreateGeometryBatch(geometry, area, data, false, lod);
+        if (batch)
+        {
+          batch.depth = depth;
+          batches.Commit(batch);
+        }
+      }
+    }
+  }
 
   /**
    * Carbon IInitialize hook populates the owner's LOD proxies.
@@ -246,19 +363,68 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   }
 
   /**
-   * Carbon: Tr2IntSkinnedObject::IsBoundingBoxReady (Tr2IntSkinnedObject.cpp:150-154).
-   *
-   * Not implemented: Carbon asks its own GetWorldBoundingBox, which transforms
-   * Tr2SkinnedObject::GetLocalBoundingBox by GetSkinningTransform (cpp:138-148). Neither
-   * exists on Tr2SkinnedObject yet, so the base's inline false stub would answer instead and
-   * report a skinned object that has a box as not ready.
-   *
-   * @returns {boolean} Never returns.
+   * Carbon GetWorldBoundingBox (h:92, cpp:138-148), using all eight corners as
+   * Utilities/BoundingBox.cpp:211-265 does. A single matrix has the same byte
+   * layout in the row-vector donor and column-vector runtime convention.
+   * Adapted: one retained vec3 scratch replaces the temporary corner array.
+   * Matrix_inline.h:560-576 TransformCoord requires float32 intermediates and
+   * a zero result when homogeneous W is zero; gl-matrix's W fallback differs.
+   * @param {vec3} min Receives the world minimum.
+   * @param {vec3} max Receives the world maximum.
+   * @returns {boolean} Whether local bounds were available.
    */
-  @meta.notImplemented
+  @blue.method
+  @meta.adapted
+  GetWorldBoundingBox(min, max)
+  {
+    if (!this.GetLocalBoundingBox(min, max)) return false;
+
+    const minX = min[0], minY = min[1], minZ = min[2];
+    const maxX = max[0], maxY = max[1], maxZ = max[2];
+    const transform = this.GetSkinningTransform();
+    const { vec3_2 } = Tr2IntSkinnedObject.scratch;
+    const f32 = Math.fround;
+
+    for (let i = 0; i < 8; i++)
+    {
+      const x = i & 1 ? maxX : minX;
+      const y = i & 2 ? maxY : minY;
+      const z = i & 4 ? maxZ : minZ;
+      const norm = f32(f32(f32(f32(transform[3] * x) + f32(transform[7] * y)) + f32(transform[11] * z)) + transform[15]);
+
+      if (norm === 0)
+      {
+        vec3.set(vec3_2, 0, 0, 0);
+      }
+      else
+      {
+        for (let axis = 0; axis < 3; axis++)
+        {
+          const coordinate = f32(f32(f32(f32(x * transform[axis]) + f32(y * transform[axis + 4])) + f32(z * transform[axis + 8])) + transform[axis + 12]);
+          vec3_2[axis] = f32(coordinate / norm);
+        }
+      }
+
+      if (i === 0)
+      {
+        vec3.copy(min, vec3_2);
+        vec3.copy(max, vec3_2);
+      }
+      else
+      {
+        vec3.min(min, min, vec3_2);
+        vec3.max(max, max, vec3_2);
+      }
+    }
+    return true;
+  }
+
+  /** Carbon IsBoundingBoxReady (h:93, cpp:150-154): query the world box. */
+  @meta.implemented
   IsBoundingBoxReady()
   {
-    throw new Error("Tr2IntSkinnedObject.IsBoundingBoxReady requires Tr2IntSkinnedObject.GetWorldBoundingBox, which needs the unported Tr2SkinnedObject.GetLocalBoundingBox and GetSkinningTransform.");
+    const { vec3_0, vec3_1 } = Tr2IntSkinnedObject.scratch;
+    return this.GetWorldBoundingBox(vec3_0, vec3_1);
   }
 
   /**
@@ -294,15 +460,17 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   /**
    * Carbon: Tr2IntSkinnedObject::AddToScene (Tr2IntSkinnedObject.cpp:354-364).
    *
-   * Not implemented: it gates on IsBoundingBoxReady, which is not implemented (see there).
-   *
-   * @param {object|null} _apexScene Physics scene.
-   * @returns {boolean} Never returns.
+   * Requires available bounds before adding the object to the physics scene.
+   * @param {object|null} apexScene Physics scene.
+   * @returns {boolean} Whether the object was ready to enter the scene.
    */
-  @meta.notImplemented
-  AddToScene(_apexScene)
+  @meta.implemented
+  AddToScene(apexScene)
   {
-    throw new Error("Tr2IntSkinnedObject.AddToScene requires Tr2IntSkinnedObject.IsBoundingBoxReady.");
+    if (!this.IsBoundingBoxReady()) return false;
+
+    this.AddToApexScene(apexScene);
+    return true;
   }
 
   /**
@@ -454,24 +622,24 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   /**
    * Carbon: Tr2IntSkinnedObject::IsInFrustum (Tr2IntSkinnedObject.cpp:491-500), ITr2InteriorCullable.
    *
-   * Not implemented: it tests the box GetWorldBoundingBox returns, which is not implemented
-   * (see IsBoundingBoxReady).
-   *
-   * @param {TriFrustum} _frustum The frustum to test against.
-   * @param {mat4} _objectToWorld Receives the transform.
-   * @returns {boolean} Never returns.
+   * Tests the world box, writing the current transform only when a box exists.
+   * @param {TriFrustum} frustum The frustum to test against.
+   * @param {mat4} objectToWorld Receives the transform.
+   * @returns {boolean} Whether the box is visible.
    */
-  @meta.notImplemented
-  IsInFrustum(_frustum, _objectToWorld)
+  @meta.implemented
+  IsInFrustum(frustum, objectToWorld)
   {
-    throw new Error("Tr2IntSkinnedObject.IsInFrustum requires Tr2IntSkinnedObject.GetWorldBoundingBox, which needs the unported Tr2SkinnedObject.GetLocalBoundingBox and GetSkinningTransform.");
+    const { vec3_0, vec3_1 } = Tr2IntSkinnedObject.scratch;
+    if (!this.GetWorldBoundingBox(vec3_0, vec3_1)) return false;
+
+    mat4.copy(objectToWorld, this.transform);
+    return frustum.IsBoxVisible__BoundsMinMax(vec3_0, vec3_1);
   }
 
   /**
    * Carbon: Tr2IntSkinnedObject::GetPickingBatches (Tr2IntSkinnedObject.cpp:502-517), ITr2Pickable.
-   * Gathers batches for each requested pick category; this class's GetBatches
-   * (Tr2IntSkinnedObject.cpp:184-302) is not ported yet, so the call reaches the inherited
-   * ITr2Renderable.GetBatches and throws as an unimplemented abstract.
+   * Gathers native skinned area batches for each requested pick category.
    *
    * @param {object} batches The batch accumulator.
    * @param {number} pickTypes A Tr2PickType bit mask.
@@ -506,4 +674,4 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 
 }
 
-// Interior rendering, picking and placement contracts remain outside the maintained CPU LOD port.
+// Whole-scene submission and physics remain open beyond the direct batch path.

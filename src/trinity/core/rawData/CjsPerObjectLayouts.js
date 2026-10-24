@@ -85,6 +85,7 @@ const GROUPS = Object.freeze({
     EveTurretSet: CjsEveTurretSetLayout.structConfig,
     EveSpacePerObject: CjsEveSpacePerObjectLayout.structConfig,
     Tr2PerObject: CjsTr2PerObjectLayout.structConfig,
+    Tr2InteriorPerObject: CjsTr2PerObjectLayout.interiorStructConfig,
     Tr2VolumetricsRenderer: CjsTr2VolumetricsRendererLayout.structConfig
 });
 

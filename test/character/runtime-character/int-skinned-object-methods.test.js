@@ -61,7 +61,7 @@ test("Tr2IntSkinnedObject reflection maps and apex scene membership", () =>
   object.RemoveFromScene();
   assert.equal(object.GetID(0), object);
 
-  assert.throws(() => object.IsBoundingBoxReady(), /GetLocalBoundingBox/);
-  assert.throws(() => object.AddToScene(null), /IsBoundingBoxReady/);
+  assert.equal(object.IsBoundingBoxReady(), false);
+  assert.equal(object.AddToScene(null), false);
   assert.throws(() => object.PostPhysicsUpdate(0, null), /Tr2SkinnedObject/);
 });

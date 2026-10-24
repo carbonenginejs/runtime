@@ -3,6 +3,7 @@ import { blue, NotifyModified } from "../../../npm/dist/global/blue/index.js";
 import * as distBlue from "../../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { Tr2Mesh } from "../../../npm/dist/trinity/index.js";
+import { RawData } from "../../../npm/dist/trinity/core/index.js";
 import { StubResMan } from "../../support/stubResMan.js";
 import "../../../npm/dist/trinity/index.js";
 import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
@@ -543,17 +544,19 @@ test("interior constant-buffer records preserve native fixed-array cardinalities
 test("interior light sets and sort keys expose only their real source surface", () =>
 {
   const lights = new Tr2InteriorLightSet();
-  lights.AddLight({ name: "first" });
-  lights.AddLight({ name: "second" });
+  lights.AddLight(new Tr2InteriorLightSource());
+  lights.AddLight(new Tr2InteriorLightSource());
   assert.equal(lights.GetNumOfActiveLights(), 2);
   assert.equal(CjsSchema.getField(Tr2InteriorLightSet, "lightSource"), null);
   assert.equal(CjsSchema.getField(Tr2InteriorLightSet, "lightDataValid"), null);
   assert.equal(CjsSchema.getField(Tr2InteriorLightSet, "lightData"), null);
-  assert.throws(() => lights.PopulateLightData(), /not implemented/);
+  const lightData = RawData.create("Tr2InteriorPerObjectPSData");
+  lights.PopulateLightData(lightData);
+  assert.equal(new Int32Array(lightData.GetData().buffer, lightData.GetData().byteOffset, 1)[0], 2);
   assert.equal(CjsSchema.getMethod(Tr2InteriorLightSet, "AddLight")?.impl?.status, "implemented");
   assert.equal(CjsSchema.getMethod(Tr2InteriorLightSet, "Clear")?.impl?.status, "implemented");
   assert.equal(CjsSchema.getMethod(Tr2InteriorLightSet, "GetNumOfActiveLights")?.impl?.status, "implemented");
-  assert.equal(CjsSchema.getMethod(Tr2InteriorLightSet, "PopulateLightData")?.impl?.status, "notImplemented");
+  assert.equal(CjsSchema.getMethod(Tr2InteriorLightSet, "PopulateLightData")?.impl?.status, "adapted");
   lights.Clear();
   assert.equal(lights.GetNumOfActiveLights(), 0);
 
