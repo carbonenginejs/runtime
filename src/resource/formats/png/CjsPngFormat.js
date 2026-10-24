@@ -1,6 +1,8 @@
 import { CjsSchema } from "#schema/CjsSchema";
 
 import { asUint8Array } from "#utils/bytes";
+import { decompressBytes } from "#utils/compression";
+import { crc32 } from "#utils/checksum";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
 import { TextureType } from "#consts/render-context";
@@ -303,6 +305,8 @@ export class CjsPngFormat extends CjsImageFormat
 
     /**
      * Fill a HostBitmap through this format's asynchronous RGBA8 output.
+     * Adapted: platform deflate decode is asynchronous. Cutout and pre-IDAT
+     * text follow ImageIO's Read (imageio/Tr2PngHandler.cpp:228-255).
      *
      * @param {Uint8Array|ArrayBuffer} input Image bytes.
      * @param {object} _loadParameters Load parameters.
@@ -312,7 +316,122 @@ export class CjsPngFormat extends CjsImageFormat
      */
     static async readImageNativeAsync(input, _loadParameters, bitmap, metadata = null)
     {
-        return this.readImageFromRgbaPayload(await this.readAsync(input, { emit: "rgba" }), bitmap, metadata);
+        const payload = await this.readAsync(input, { emit: "rgba" });
+        const result = this.readImageFromRgbaPayload(payload, bitmap, metadata);
+        if (result.IsOk() && metadata) await this._readMetadata(input, metadata);
+        return result;
+    }
+
+    /**
+     * Fills native metadata without changing the inspection record's raw facts.
+     * Carbon ignores chunk units, rejects both offsets when either is negative,
+     * and performs the millionths multiplication in float32. Its png_get_text
+     * runs after read_info and before pixels, so only pre-IDAT strings belong here.
+     * @param {Uint8Array|ArrayBuffer} input Original PNG bytes.
+     * @param {object} metadata Native Metadata output, whose Cutout was reset.
+     * @returns {Promise<void>}
+     */
+    static async _readMetadata(input, metadata)
+    {
+        const scale = Math.fround(1 / 1000000);
+        metadata.metadata = [];
+        const bytes = asUint8Array(input, "PNG metadata");
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        let hasOffset = false;
+        let hasPhysical = false;
+        for (let cursor = 8; cursor + 12 <= bytes.length;)
+        {
+            const length = view.getUint32(cursor, false);
+            const end = cursor + 8 + length;
+            if (end + 4 > bytes.length) break;
+            const type = view.getUint32(cursor + 4, false);
+            // libpng read_info stops at the first IDAT; IEND ends an empty file.
+            if (type === 0x49444154 || type === 0x49454e44) break;
+            // libpng's default ancillary CRC action discards the corrupt chunk.
+            if (crc32(bytes.subarray(cursor + 4, end)) !== view.getUint32(end, false))
+            {
+                cursor = end + 4;
+                continue;
+            }
+            if (type === 0x6f464673 && length === 9 && !hasOffset)
+            {
+                hasOffset = true;
+                const x = view.getInt32(cursor + 8, false);
+                const y = view.getInt32(cursor + 12, false);
+                if (x >= 0 && y >= 0)
+                {
+                    metadata.cutout.x = Math.fround(Math.fround(x) * scale);
+                    metadata.cutout.y = Math.fround(Math.fround(y) * scale);
+                }
+            }
+            else if (type === 0x70485973 && length === 9 && !hasPhysical)
+            {
+                hasPhysical = true;
+                metadata.cutout.width = Math.fround(Math.fround(view.getUint32(cursor + 8, false)) * scale);
+                metadata.cutout.height = Math.fround(Math.fround(view.getUint32(cursor + 12, false)) * scale);
+            }
+            if (type === 0x74455874 || type === 0x7a545874 || type === 0x69545874)
+            {
+                const data = bytes.subarray(cursor + 8, end);
+                const separator = data.indexOf(0);
+                if (separator > 0 && separator <= 79)
+                {
+                    const key = this._decodeText(data.subarray(0, separator));
+                    let text = null;
+                    if (type === 0x74455874)
+                    {
+                        text = this._decodeText(data.subarray(separator + 1));
+                    }
+                    else
+                    {
+                        let start = separator + 2;
+                        let compressed = true;
+                        let valid = separator + 1 < data.length && data[separator + 1] === 0;
+                        const international = type === 0x69545874;
+                        if (international)
+                        {
+                            compressed = data[separator + 1] === 1;
+                            valid = separator + 2 < data.length && data[separator + 1] <= 1 && (!compressed || data[separator + 2] === 0);
+                            const languageEnd = data.indexOf(0, separator + 3);
+                            const translatedEnd = languageEnd < 0 ? -1 : data.indexOf(0, languageEnd + 1);
+                            valid &&= translatedEnd >= 0;
+                            start = translatedEnd + 1;
+                        }
+                        if (valid)
+                        {
+                            try
+                            {
+                                const textBytes = compressed ? await decompressBytes(data.subarray(start), "deflate") : data.subarray(start);
+                                text = international ? new TextDecoder("utf-8", { ignoreBOM: true }).decode(textBytes).split("\0", 1)[0] : this._decodeText(textBytes);
+                            }
+                            catch
+                            {
+                                // libpng treats an invalid compressed ancillary text chunk as a warning.
+                            }
+                        }
+                    }
+                    if (text !== null) metadata.metadata.push([ key, text ]);
+                }
+            }
+            cursor = end + 4;
+        }
+    }
+
+    /**
+     * PNG's Latin-1 text is byte-valued; TextDecoder("latin1") is Windows-1252.
+     * Native std::string construction stops at the first NUL.
+     * @param {Uint8Array} bytes Text bytes.
+     * @returns {string} Text with the native byte-to-character mapping.
+     */
+    static _decodeText(bytes)
+    {
+        let text = "";
+        for (const byte of bytes)
+        {
+            if (byte === 0) break;
+            text += String.fromCharCode(byte);
+        }
+        return text;
     }
 
     static extensions = [ ".png" ];

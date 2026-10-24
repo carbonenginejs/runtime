@@ -156,7 +156,8 @@ export class CjsImageFormat extends CjsFormat
    * adapted: Carbon's PNG/TGA handlers keep an opaque RGB image as BGRX and a
    * grey one as R8 (Tr2PngHandler.cpp:125-160, Tr2TgaHandler.cpp:98-110); our
    * decoders report RGBA only, so those arrive as BGRA with their alpha. The
-   * metadata cutout is the default: the PNG cutout chunk is not read yet.
+   * metadata cutout starts at the full image; the PNG handler then fills its
+   * native placement and text metadata from the decoded source.
    *
    * @param {object} payload An RGBA8 payload: width, height, data, strideBytes.
    * @param {object} bitmap Destination HostBitmap.
