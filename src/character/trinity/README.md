@@ -26,8 +26,10 @@ resource acquisition and backend texture realization remain in their existing
 owners. Final `Destruct` releases the scene's shadow surfaces. Initializing the
 scene acquires the cubemap only. Dynamic add/remove/rebuild membership now
 uses native list callbacks and a unique pending-load set. Admission checks the
-mapped interface before side effects. Physics updates and scene render passes
-remain unported, so allocation tests do not establish rendered interior shadows.
+mapped interface before side effects. The forward scene path performs primary
+visibility, fills per-frame buffers and submits native opaque/decal/transparent
+batches through the normal render context. Physics updates and shadow rendering
+remain unported; the forward path currently requires shadows to be disabled.
 
 ## Placeable resource ownership
 
@@ -44,8 +46,9 @@ Model resource bounds require every mesh to finish preparing; the public local
 query aggregates whichever mesh bounds are available. A placeable resource caches
 its first successful bounds. The mesh readiness adaptation observes its selected
 request through completion, including failure and low-detail fallback; it does
-not reproduce Carbon's queue-wide load fence. Whole interior-scene rendering,
-placeable world bounds and the unresolved TriMatrix boundary remain unported.
+not reproduce Carbon's queue-wide load fence. Placeable world bounds and the
+unresolved TriMatrix boundary remain unported;
+the implemented forward scene path does not establish complete placeable support.
 
 ## Interior interfaces
 
@@ -103,5 +106,6 @@ queries transform all eight corners, preserving native float32 arithmetic and
 zero-W behavior; frustum queries and scene-readiness checks consume those
 bounds. Bone updates refresh dynamic bounds from the current animation
 transforms and clear validity before an unavailable model or pose can reuse
-stale bounds. Indirect draws and scene submission remain open; this direct batch
-path is not a complete character renderer.
+stale bounds. Native forward scene submission now consumes this direct batch
+path. Indirect draws, shadows, physics updates and complete character lifecycle
+remain open.
