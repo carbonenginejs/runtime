@@ -1,5 +1,6 @@
 import { CjsSchema, meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
 /**
@@ -15,6 +16,9 @@ import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 @meta.define("CjsPaperDollLipstick")
 export class CjsPaperDollLipstick extends CjsPaperDollComponent
 {
+    static layer = PaperDollLayer.LIPSTICK;
+    static passes = PaperDollPass.HEAD | PaperDollPass.SURFACE;
+
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([ [ "", CjsPaperDollItem ], [ "1", CjsPaperDollItem ], [ "1,2", CjsPaperDollItem ] ]);
 
@@ -59,6 +63,18 @@ export class CjsPaperDollLipstick extends CjsPaperDollComponent
     @meta.ui.description("Lip third colour")
     get color3() { return this.GetColors()[2]; }
     set color3(value) { this.SetColor(2, value); }
+
+    /**
+     * The head pass reads the diffuse colours. The surface pass reads only the
+     * style and the palette its specular colours and gloss come from, so a custom
+     * colour edit does not rebuild the specular.
+     */
+    Capture(pass)
+    {
+        const state = super.Capture(pass);
+        if (pass !== PaperDollPass.SURFACE) return state;
+        return { option: state.option, palette: state.option ? this.palette : "", colorAreas: [], colors: [] };
+    }
 
     /** The palette, the custom switch and the colour slots the selected style's zone map uses. */
     GetControls()

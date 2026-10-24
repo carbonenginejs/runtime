@@ -1,5 +1,6 @@
 import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollEyeItem } from "./CjsPaperDollEyeItem.js";
 import { eyeItemClasses } from "./eyeItemClasses.js";
 
@@ -7,6 +8,8 @@ import { eyeItemClasses } from "./eyeItemClasses.js";
 @meta.define("CjsPaperDollEyes")
 export class CjsPaperDollEyes extends CjsPaperDollComponent
 {
+    static passes = PaperDollPass.EYES;
+
     _item = new CjsPaperDollEyeItem(this);
     _itemClasses = eyeItemClasses;
 

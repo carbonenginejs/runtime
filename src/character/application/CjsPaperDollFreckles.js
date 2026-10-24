@@ -1,11 +1,15 @@
 import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
 /** Application-owned freckle settings; edits invalidate the doll's update pass. */
 @meta.define("CjsPaperDollFreckles")
 export class CjsPaperDollFreckles extends CjsPaperDollComponent
 {
+    static layer = PaperDollLayer.FRECKLES;
+    static passes = PaperDollPass.HEAD;
+
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);
 

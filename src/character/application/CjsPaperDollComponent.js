@@ -1,15 +1,26 @@
 import { CjsSchema, meta } from "#schema";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
+import { PaperDollPass } from "./paperDollOrder.js";
 
 /**
  * Editable component selection for the application-owned PaperDoll API.
  * This is the operator-approved application layer, not a Carbon class port.
  * Prepared options supply verified colour areas; this class never reads pixels
  * or mutates effects. Property setters invalidate state for the doll's Update.
+ *
+ * Each part class stamps what the doll needs to collect it: its bake rank,
+ * the passes it feeds and whether a shape edit rebuilds it.
  */
 @meta.define("CjsPaperDollComponent")
 export class CjsPaperDollComponent
 {
+    /** Bake rank among the skin layers (`PaperDollLayer`); null for a part that is not a skin layer. */
+    static layer = null;
+    /** The update passes this part's settings feed, as `PaperDollPass` bits. */
+    static passes = 0;
+    /** Whether a foundation shape edit rebuilds this part's output while it is selected. */
+    static shapeDependent = false;
+
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);
     _defaultOption = "";
@@ -120,6 +131,18 @@ export class CjsPaperDollComponent
 
     /** Marks pending work without changing an effect or scheduling a draw. */
     Rebuild() { this._dirty = true; }
+
+    /**
+     * The settings one pass reads, copied so later edits cannot reach them: the
+     * selected option (empty while disabled), its colour areas and their colours.
+     * @param {PaperDollPass} pass The pass being captured.
+     * @returns {{option: string, colorAreas: number[], colors: Float32Array[]}}
+     */
+    Capture(pass = PaperDollPass.HEAD)
+    {
+        const option = this.enabled ? this.option : "";
+        return { option, colors: this.GetColors().map(value => Float32Array.from(value)), colorAreas: option ? [...this.GetColorAreas()] : [] };
+    }
 
     /** Restores the original foundation and clears remembered manual values. */
     Reset()

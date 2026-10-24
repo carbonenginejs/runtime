@@ -1,5 +1,6 @@
 import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 import { CjsPaperDollBlushItem } from "./CjsPaperDollBlushItem.js";
 
@@ -7,6 +8,9 @@ import { CjsPaperDollBlushItem } from "./CjsPaperDollBlushItem.js";
 @meta.define("CjsPaperDollBlush")
 export class CjsPaperDollBlush extends CjsPaperDollComponent
 {
+    static layer = PaperDollLayer.BLUSH;
+    static passes = PaperDollPass.HEAD;
+
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem], ["1", CjsPaperDollBlushItem]]);
 
@@ -47,6 +51,14 @@ export class CjsPaperDollBlush extends CjsPaperDollComponent
         super.Configure(options, palettes, { option });
         this._defaultWeight = Math.fround(weight);
         this.weight = weight;
+    }
+
+    /** The captured selection plus its amount, zero while no blush is selected. */
+    Capture(pass)
+    {
+        const state = super.Capture(pass);
+        state.weight = state.option ? this.weight : 0;
+        return state;
     }
 
     /** Restores the authored option, palette and amount. */

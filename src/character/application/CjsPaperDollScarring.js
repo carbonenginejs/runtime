@@ -1,11 +1,15 @@
 import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
 /** Application-owned minor scar settings; edits invalidate the doll's update pass. */
 @meta.define("CjsPaperDollScarring")
 export class CjsPaperDollScarring extends CjsPaperDollComponent
 {
+    static layer = PaperDollLayer.SCARRING;
+    static passes = PaperDollPass.SURFACE;
+
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);
 

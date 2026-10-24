@@ -1,5 +1,6 @@
 import { CjsSchema, meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
 /**
@@ -15,6 +16,10 @@ import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 @meta.define("CjsPaperDollTattoo")
 export class CjsPaperDollTattoo extends CjsPaperDollComponent
 {
+    static layer = PaperDollLayer.TATTOO;
+    static passes = PaperDollPass.HEAD;
+    static shapeDependent = true;
+
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([ [ "", CjsPaperDollItem ], [ "1", CjsPaperDollItem ] ]);
 

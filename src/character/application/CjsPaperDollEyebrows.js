@@ -1,5 +1,6 @@
 import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 import { CjsPaperDollEyebrowsItem } from "./CjsPaperDollEyebrowsItem.js";
 
@@ -7,6 +8,9 @@ import { CjsPaperDollEyebrowsItem } from "./CjsPaperDollEyebrowsItem.js";
 @meta.define("CjsPaperDollEyebrows")
 export class CjsPaperDollEyebrows extends CjsPaperDollComponent
 {
+    static layer = PaperDollLayer.EYEBROWS;
+    static passes = PaperDollPass.HEAD;
+
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem], ["1", CjsPaperDollEyebrowsItem]]);
 

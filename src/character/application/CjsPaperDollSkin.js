@@ -1,5 +1,6 @@
 import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
+import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 import { CjsPaperDollSkinItem } from "./CjsPaperDollSkinItem.js";
 
@@ -7,6 +8,9 @@ import { CjsPaperDollSkinItem } from "./CjsPaperDollSkinItem.js";
 @meta.define("CjsPaperDollSkin")
 export class CjsPaperDollSkin extends CjsPaperDollComponent
 {
+    static layer = PaperDollLayer.SKINTONE;
+    static passes = PaperDollPass.SKIN;
+
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem], ...["1", "2", "3", "1,2", "1,3", "2,3", "1,2,3"].map(key => [key, CjsPaperDollSkinItem])]);
 

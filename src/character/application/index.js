@@ -23,3 +23,4 @@ export { CjsPaperDollLipstick } from "./CjsPaperDollLipstick.js";
 export { CjsPaperDollAging } from "./CjsPaperDollAging.js";
 export { CjsPaperDollScarring } from "./CjsPaperDollScarring.js";
 export { CjsPaperDollScars } from "./CjsPaperDollScars.js";
+export { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
