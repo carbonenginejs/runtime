@@ -22,8 +22,10 @@ const FORMAT_NAME = "CjsCarbonEffectFormat";
 /**
  * Read, write and inspect Carbon effect containers without runtime resources.
  *
- * Carbon: Tr2EffectRes::DoLoad/GetShader (Resources/Tr2EffectRes.cpp:68-137,182-260)
- * and file assembly (shadercompiler/ShaderCompiler.cpp:746-845).
+ * Carbon: Tr2EffectRes::DoLoad (trinity/trinity/Resources/Tr2EffectRes.cpp:138-314)
+ * Carbon: Tr2EffectRes::GetShader (trinity/trinity/Resources/Tr2EffectRes.cpp:51-136)
+ * Carbon: main (trinity/shadercompiler/ShaderCompiler.cpp:746-845)
+ * The last range is the compiler's file assembly ("Saving").
  * Adapted: a standalone JS format utility shares those binary operations with
  * tooling and Trinity. It neither compiles source nor owns GPU state, resource
  * lifecycle, global effect options or a runtime shader cache.

@@ -1,5 +1,10 @@
 # PNG ImageIO formats
 
+Status: Evolving
+Scope: `@carbonenginejs/runtime/resource/formats/png`
+Audience: Format and ImageIO consumers
+Summary: Storage formats ImageIO and texture loads select from a PNG's channels and sample depth.
+
 Ordinary ImageIO and texture-resource loads select storage from PNG channels and
 sample depth. No shader-specific load request or second file read is required.
 

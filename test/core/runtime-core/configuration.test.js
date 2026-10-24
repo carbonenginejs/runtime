@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsLibrary, DefaultConfiguration } from "../../../npm/dist/core/index.js";
-import { blue, CjsBlueResMan, CjsBluePaths, CjsBlueOS, CjsBlueResFileSystemCallback } from "../../../npm/dist/global/blue/index.js";
+import { blue, CjsBlueResMan, CjsBluePaths, CjsBlueOS, CjsBlueResFileSystemCallback, IBlueDynamicResourceConstructor } from "../../../npm/dist/global/blue/index.js";
 import { ImageIO } from "../../../npm/dist/resource/imageio/ImageIO.js";
 import { CjsPngFormat } from "../../../npm/dist/resource/formats/png/CjsPngFormat.js";
 import { CjsVtaFormat } from "../../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
@@ -201,7 +201,7 @@ test("failed initial policy installation can retry on the same resource manager"
 test("plain provider objects remain borrowed references including readback", async t =>
 {
   const source = { value: 1, Read() { return this.value; } };
-  const dynamic = { value: 2, GetResource() { return this.value; } };
+  const dynamic = new (class extends IBlueDynamicResourceConstructor { value = 2; GetResource() { return this.value; } })();
   const owners = services(), library = new CjsLibrary({ resMan: { source }, resourceConstructors: { custom: dynamic } });
   t.after(() => library.Shutdown());
   assert.equal(library.GetConfiguration().requested.resMan.source, source);

@@ -7,6 +7,7 @@ import { TnyTransformGizmo } from "./gizmos/TnyTransformGizmo.js";
 import { CjsOverlay2D } from "./overlay/CjsOverlay2D.js";
 
 import { IBlueResFileSystem } from "../global/blue/IBlueResFileSystem.js";
+import { IBlueDynamicResourceConstructor } from "../global/blue/IBlueDynamicResourceConstructor.js";
 import { DefaultConfiguration } from "./configuration.js";
 import { ImageIO } from "../resource/imageio/ImageIO.js";
 import { TriSettingsRegistrar } from "../trinity/core/TriSettingsRegistrar.js";
@@ -366,14 +367,18 @@ function ValidateConfiguration(configuration)
         const Format = typeof value === "function" ? value : value?.Format;
         valid = typeof Format === "function" && Array.isArray(Format.extensions) && Format.extensions.length > 0;
       }
-      else if (section === "resourceTypes") valid = typeof value === "function" || typeof value?.Constructor === "function";
+      else if (section === "resourceTypes")
+      {
+        const Constructor = typeof value === "function" ? value : value?.Constructor;
+        valid = typeof Constructor === "function";
+      }
       else if (section === "extensions")
       {
         const Handler = typeof value === "function" ? value : value?.Handler;
         valid = typeof Handler === "function" && !!Handler.handlerMode;
       }
-      else if (section === "imageHandlers") valid = typeof value === "function" && typeof value.checkExtension === "function";
-      else if (section === "resourceConstructors") valid = typeof value === "function" || typeof value?.GetResource === "function";
+      else if (section === "imageHandlers") valid = typeof value === "function";
+      else if (section === "resourceConstructors") valid = typeof value === "function" || !!CjsSchema.cast(value, IBlueDynamicResourceConstructor);
       else if (section === "paths") valid = !!CjsSchema.cast(value, IBlueResFileSystem);
       else if (section === "settings") valid = ["string", "boolean", "number"].includes(typeof value)
         && (typeof value !== "number" || Number.isFinite(value));
