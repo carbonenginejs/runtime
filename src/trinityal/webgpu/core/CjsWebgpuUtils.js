@@ -56,6 +56,8 @@ const PIXEL_FORMATS = [
   [ PixelFormat.PIXEL_FORMAT_R8G8B8A8_SNORM, "rgba8snorm" ],
   [ PixelFormat.PIXEL_FORMAT_R8G8B8A8_SINT, "rgba8sint" ],
   [ PixelFormat.PIXEL_FORMAT_R16G16_FLOAT, "rg16float" ],
+  // Same filterable UNORM substitution as R16/RGBA16; native LA PNG uploads.
+  [ PixelFormat.PIXEL_FORMAT_R16G16_UNORM, "rg16float" ],
   [ PixelFormat.PIXEL_FORMAT_R16G16_UINT, "rg16uint" ],
   [ PixelFormat.PIXEL_FORMAT_R16G16_SINT, "rg16sint" ],
   [ PixelFormat.PIXEL_FORMAT_D32_FLOAT, "depth32float" ],
@@ -131,6 +133,7 @@ function Unorm16ToHalf(bytes)
  */
 const UPLOAD_CONVERSIONS = new Map([
   [ PixelFormat.PIXEL_FORMAT_R16_UNORM, Unorm16ToHalf ],
+  [ PixelFormat.PIXEL_FORMAT_R16G16_UNORM, Unorm16ToHalf ],
   [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM, Unorm16ToHalf ]
 ]);
 

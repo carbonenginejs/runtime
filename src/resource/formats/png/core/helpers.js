@@ -290,7 +290,13 @@ function inspectPNG(bytes)
     };
 }
 
-async function decodePngToRgba(bytes, metadata)
+/** Decode PNG samples, retaining 16-bit precision for native ImageIO reads.
+ * @param {Uint8Array} bytes PNG bytes.
+ * @param {object} metadata Inspected header.
+ * @param {boolean} [nativePrecision=false] Preserve sixteen-bit samples.
+ * @returns {Promise<object>} RGBA sample payload.
+ */
+export async function decodePngToRgba(bytes, metadata, nativePrecision = false)
 {
     const support = pngRgbaSupport(metadata);
     if (!support.supported)
@@ -310,7 +316,9 @@ async function decodePngToRgba(bytes, metadata)
     const compressed = concatBytes(chunks.idat);
     const inflated = await decompressBytes(compressed, "deflate");
     const channels = pngChannels(metadata.colorType);
-    const rgba = new Uint8Array(metadata.width * metadata.height * 4);
+    const rgba = nativePrecision && metadata.bitDepth === 16
+        ? new Uint16Array(metadata.width * metadata.height * 4)
+        : new Uint8Array(metadata.width * metadata.height * 4);
     if (metadata.interlaceMethod === 0)
     {
         const bytesPerSample = metadata.bitDepth >= 8 ? Math.ceil(metadata.bitDepth / 8) : 1;
@@ -338,8 +346,8 @@ async function decodePngToRgba(bytes, metadata)
         mimeType: "image/png",
         width: metadata.width,
         height: metadata.height,
-        pixelFormat: "rgba8unorm",
-        strideBytes: metadata.width * 4,
+        pixelFormat: rgba.BYTES_PER_ELEMENT === 2 ? "rgba16unorm" : "rgba8unorm",
+        strideBytes: metadata.width * 4 * rgba.BYTES_PER_ELEMENT,
         origin: "top-left",
         colorSpace: chunks.srgb ? "srgb" : "unknown",
         alphaMode: [ 4, 6 ].includes(metadata.colorType) || chunks.trns ? "straight" : "opaque",
@@ -521,28 +529,31 @@ function decodePngRow(rows, rowOffset, output, outputOffset, metadata, rowWidth,
 {
     const channels = pngChannels(metadata.colorType);
     const bitDepth = metadata.bitDepth;
+    const maximum = output.BYTES_PER_ELEMENT === 2 ? 65535 : 255;
+    const samples = new Uint16Array(channels);
     for (let x = 0; x < rowWidth; x++)
     {
-        const samples = [];
         for (let channel = 0; channel < channels; channel++)
         {
-            samples.push(readPngSample(rows, rowOffset, x * channels + channel, bitDepth));
+            samples[channel] = readPngSample(rows, rowOffset, x * channels + channel, bitDepth);
         }
         const out = outputOffset + x * xStep * 4;
         if (metadata.colorType === 0)
         {
-            const gray = scalePngSample(samples[0], bitDepth);
+            const gray = scalePngSample(samples[0], bitDepth, maximum);
             output[out] = gray;
             output[out + 1] = gray;
             output[out + 2] = gray;
-            output[out + 3] = pngTransparentGray(metadata, samples[0]) ? 0 : 255;
+            output[out + 3] = pngTransparentGray(metadata, samples[0]) ? 0 : maximum;
         }
         else if (metadata.colorType === 2)
         {
-            output[out] = scalePngSample(samples[0], bitDepth);
-            output[out + 1] = scalePngSample(samples[1], bitDepth);
-            output[out + 2] = scalePngSample(samples[2], bitDepth);
-            output[out + 3] = 255;
+            output[out] = scalePngSample(samples[0], bitDepth, maximum);
+            output[out + 1] = scalePngSample(samples[1], bitDepth, maximum);
+            output[out + 2] = scalePngSample(samples[2], bitDepth, maximum);
+            const transparent = metadata.__pngTransparency;
+            output[out + 3] = transparent && samples[0] === readU16BE(transparent, 0)
+                && samples[1] === readU16BE(transparent, 2) && samples[2] === readU16BE(transparent, 4) ? 0 : maximum;
         }
         else if (metadata.colorType === 3)
         {
@@ -555,18 +566,18 @@ function decodePngRow(rows, rowOffset, output, outputOffset, metadata, rowWidth,
         }
         else if (metadata.colorType === 4)
         {
-            const gray = scalePngSample(samples[0], bitDepth);
+            const gray = scalePngSample(samples[0], bitDepth, maximum);
             output[out] = gray;
             output[out + 1] = gray;
             output[out + 2] = gray;
-            output[out + 3] = scalePngSample(samples[1], bitDepth);
+            output[out + 3] = scalePngSample(samples[1], bitDepth, maximum);
         }
         else
         {
-            output[out] = scalePngSample(samples[0], bitDepth);
-            output[out + 1] = scalePngSample(samples[1], bitDepth);
-            output[out + 2] = scalePngSample(samples[2], bitDepth);
-            output[out + 3] = scalePngSample(samples[3], bitDepth);
+            output[out] = scalePngSample(samples[0], bitDepth, maximum);
+            output[out + 1] = scalePngSample(samples[1], bitDepth, maximum);
+            output[out + 2] = scalePngSample(samples[2], bitDepth, maximum);
+            output[out + 3] = scalePngSample(samples[3], bitDepth, maximum);
         }
     }
 }
@@ -631,10 +642,10 @@ function readPngSample(rows, rowOffset, sampleIndex, bitDepth)
     return (rows[offset] >>> shift) & ((1 << bitDepth) - 1);
 }
 
-function scalePngSample(value, bitDepth)
+function scalePngSample(value, bitDepth, maximum = 255)
 {
     const max = (1 << Math.min(bitDepth, 16)) - 1;
-    return Math.round(value * 255 / max);
+    return Math.round(value * maximum / max);
 }
 
 function pngTransparentGray(metadata, value)

@@ -8,6 +8,7 @@ import { CjsImageFormat } from "../../format/CjsImageFormat.js";
 import { TextureType, PixelFormat } from "#consts/render-context";
 import { ImageIOResult, Cutout } from "#imageio";
 import {
+    decodePngToRgba,
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
     OUTPUT_RAW,
@@ -304,13 +305,14 @@ export class CjsPngFormat extends CjsImageFormat
     }
 
     /**
-     * Fill a HostBitmap through this format's asynchronous RGBA8 output.
+     * Fill a HostBitmap in the PNG's native channel width and precision.
      * Adapted: platform deflate decode is asynchronous. Cutout and pre-IDAT
      * text follow ImageIO's Read (imageio/Tr2PngHandler.cpp:228-255).
      *
-     * An explicit R8G8_UNORM request preserves 8-bit luminance/alpha as (L,A),
-     * matching native GetFormat (imageio/Tr2PngHandler.cpp:125-136). Default
-     * reads retain expanded RGBA compatibility; shader callers request packing.
+     * Native GetFormat (imageio/Tr2PngHandler.cpp:115-165) selects R/RG for
+     * grayscale and grayscale-alpha, BGRX/BGRA for eight-bit colour, and
+     * RGBA16 for sixteen-bit colour. Palette and transparency expand first.
+     * Explicit conversion remains owned by CjsImageFormat after this read.
      *
      * @param {Uint8Array|ArrayBuffer} input Image bytes.
      * @param {object} loadParameters Load parameters, including requestedFormat.
@@ -320,38 +322,41 @@ export class CjsPngFormat extends CjsImageFormat
      */
     static async readImageNativeAsync(input, loadParameters, bitmap, metadata = null)
     {
-        const payload = await this.readAsync(input, { emit: "rgba" });
-        const info = this.inspect(input);
-        let result;
-        if (loadParameters.requestedFormat === PixelFormat.PIXEL_FORMAT_R8G8_UNORM
-            && info.colorType === 4 && info.bitDepth === 8)
+        const bytes = asUint8Array(input);
+        const info = this.inspect(bytes);
+        const payload = await decodePngToRgba(bytes, info, true);
+        const alpha = payload.alphaMode === "straight";
+        const gray = info.colorType === 0 || info.colorType === 4;
+        const wide = info.bitDepth === 16;
+        const channels = gray ? (alpha ? 2 : 1) : 4;
+        const format = wide
+            ? (gray ? (alpha ? PixelFormat.PIXEL_FORMAT_R16G16_UNORM : PixelFormat.PIXEL_FORMAT_R16_UNORM)
+                : PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM)
+            : (gray ? (alpha ? PixelFormat.PIXEL_FORMAT_R8G8_UNORM : PixelFormat.PIXEL_FORMAT_R8_UNORM)
+                : (alpha ? PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM : PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM));
+        if (!bitmap.Create(payload.width, payload.height, 1, format))
         {
-            if (!bitmap.Create(payload.width, payload.height, 1, PixelFormat.PIXEL_FORMAT_R8G8_UNORM))
-            {
-                return new ImageIOResult(ImageIOResult.Code.ERROR_CREATING_BITMAP);
-            }
-
-            const target = bitmap.GetRawData();
-            const stride = payload.strideBytes || payload.width * 4;
-            for (let y = 0; y < payload.height; y++)
-            {
-                for (let x = 0; x < payload.width; x++)
-                {
-                    const source = y * stride + x * 4;
-                    const destination = (y * payload.width + x) * 2;
-                    target[destination] = payload.data[source];
-                    target[destination + 1] = payload.data[source + 3];
-                }
-            }
-            if (metadata) metadata.cutout = new Cutout();
-            result = new ImageIOResult(ImageIOResult.Code.OK);
+            return new ImageIOResult(ImageIOResult.Code.ERROR_CREATING_BITMAP);
         }
-        else
+        const target = bitmap.GetRawData();
+        const view = new DataView(target.buffer, target.byteOffset, target.byteLength);
+        for (let pixel = 0; pixel < payload.width * payload.height; pixel++)
         {
-            result = this.readImageFromRgbaPayload(payload, bitmap, metadata);
+            for (let channel = 0; channel < channels; channel++)
+            {
+                const source = gray ? (channel === 1 ? 3 : 0) : (!wide && channel < 3 ? 2 - channel : channel);
+                const value = payload.data[pixel * 4 + source];
+                const destination = pixel * channels + channel;
+                if (wide) view.setUint16(destination * 2, value, true);
+                else target[destination] = value;
+            }
         }
-        if (result.IsOk() && metadata) await this._readMetadata(input, metadata);
-        return result;
+        if (metadata)
+        {
+            metadata.cutout = new Cutout();
+            await this._readMetadata(input, metadata);
+        }
+        return new ImageIOResult(ImageIOResult.Code.OK);
     }
 
     /**
