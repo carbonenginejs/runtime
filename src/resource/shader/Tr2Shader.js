@@ -1,6 +1,4 @@
-import { DictReader } from "#blue/DictReader";
 import { IRoot } from "#blue/IRoot";
-import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
 import { CjsSchema, meta, type } from "#schema";
@@ -258,34 +256,6 @@ export class Tr2Shader extends IRoot
   HasVertexBufferAccessInRtShadow()
   {
     return this.hasVertexBufferAccessInRtShadow;
-  }
-
-  /**
-   * Construct a canonical shader graph from JS/JSON model values.
-   *
-   * @param {object} values Canonical model values.
-   * @param {object} options Schema import options.
-   * @returns {Tr2Shader} Hydrated shader graph.
-   */
-  static from(values = {}, options = {})
-  {
-    if (!CjsSchema.assertValues(values, "Tr2Shader.from")) values = {};
-    let normalized = values;
-    if (values?.effect
-      && !(values.effect instanceof Tr2EffectDescription))
-    {
-      normalized = {
-        ...values,
-        effect: Tr2EffectDescription.from(values.effect, options)
-      };
-    }
-    const shader = new this();
-    new DictReader(options).ReadInto(shader, normalized, null);
-    if (!Object.hasOwn(values ?? {}, "sortValue"))
-    {
-      shader.ProcessEffect();
-    }
-    return shader;
   }
 
   /**

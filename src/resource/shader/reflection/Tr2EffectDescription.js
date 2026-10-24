@@ -1,5 +1,3 @@
-import { DictReader } from "#blue/DictReader";
-import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
@@ -18,50 +16,6 @@ export class Tr2EffectDescription
 
   /** annotations (Tr2EffectAnnotationMap) */
   annotations = new Map();
-
-  /**
-   * Construct a canonical effect description from JS/JSON model values.
-   *
-   * @param {object} values Canonical model values.
-   * @param {object} options Schema import options.
-   * @returns {Tr2EffectDescription} Hydrated description.
-   */
-  static from(values = {}, options = {})
-  {
-    if (!CjsSchema.assertValues(values, "Tr2EffectDescription.from")) values = {};
-    let normalized = values;
-    let annotations = null;
-    if (values && Object.hasOwn(values, "annotations"))
-    {
-      const entries = values.annotations instanceof Map
-        ? values.annotations
-        : Object.entries(values.annotations ?? {});
-      annotations = new Map();
-      for (const [ parameterName, records ] of entries)
-      {
-        if (!Array.isArray(records))
-        {
-          throw new TypeError(
-            `Effect annotations for "${parameterName}" must be an array`
-          );
-        }
-        annotations.set(
-          String(parameterName),
-          records.map(record => record instanceof Tr2EffectParameterAnnotation
-            ? record
-            : CjsSchema.from("Tr2EffectParameterAnnotation", record, options))
-        );
-      }
-      normalized = { ...values, annotations };
-    }
-    const effect = new this();
-    new DictReader(options).ReadInto(effect, normalized, null);
-    if (annotations)
-    {
-      effect.annotations = annotations;
-    }
-    return effect;
-  }
 
   /**
    * Build one complete effect description from its Carbon v15 record tree.

@@ -1183,8 +1183,8 @@ test("a material seeds its pass description with sampler states on first apply, 
   stage.stageType = PIXEL;
   stage.exists = true;
   stage.samplers = new Map([
-    [ 2, Tr2SamplerSetup.from({ name: "DiffuseSampler", isDynamic: false, sampler: { minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1, maxAnisotropy: 1 } }) ],
-    [ 5, Tr2SamplerSetup.from({ name: "PatternSampler", isDynamic: true, sampler: { minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1, maxAnisotropy: 1 } }) ]
+    [ 2, Object.assign(new Tr2SamplerSetup(), { name: "DiffuseSampler", hasName: true, isDynamic: false, sampler: { minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1, maxAnisotropy: 1 } }) ],
+    [ 5, Object.assign(new Tr2SamplerSetup(), { name: "PatternSampler", hasName: true, isDynamic: true, sampler: { minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1, maxAnisotropy: 1 } }) ]
   ]);
   shader.effect.techniques[0].passes[0].stageInputs[PIXEL] = stage;
   shader.effect.techniques[0].passes[0].stageInputs[0].exists = true;

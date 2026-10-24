@@ -1,13 +1,8 @@
-import { DictReader } from "#blue/DictReader";
-import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, meta, type } from "#schema";
 import { copyBytes } from "#utils/bytes";
-import {
-  isUint32
-} from "#utils/is";
 import { Tr2SamplerSetup } from "../sampler/Tr2SamplerSetup.js";
 import { Tr2EffectConstant } from "./Tr2EffectConstant.js";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
@@ -129,54 +124,6 @@ export class Tr2EffectStageInput
     }
 
     return Math.max(size, this.constantValueSize);
-  }
-
-  /**
-   * Construct one canonical stage input from JS/JSON model values.
-   *
-   * @param {object} values Canonical model values.
-   * @param {object} options Schema import options.
-   * @returns {Tr2EffectStageInput} Hydrated stage input.
-   */
-  static from(values = {}, options = {})
-  {
-    if (!CjsSchema.assertValues(values, "Tr2EffectStageInput.from")) values = {};
-    let normalized = values;
-    // JSON carries program bytes as numbers; restore the owned byte buffer
-    // before the raw source-program record crosses the dictionary reader.
-    if (Array.isArray(values.sourceProgram?.bytes))
-    {
-      normalized = {
-        ...values,
-        sourceProgram: { ...values.sourceProgram, bytes: new Uint8Array(values.sourceProgram.bytes) } // alloc: owned variable-length program bytes.
-      };
-    }
-    const maps = new Map();
-    for (const [ field, Constructor ] of [
-      [ "resources", Tr2EffectResource ],
-      [ "uavs", Tr2EffectResource ],
-      [ "samplers", Tr2SamplerSetup ]
-    ])
-    {
-      if (values && Object.hasOwn(values, field))
-      {
-        normalized = normalized === values ? { ...values } : normalized;
-        normalized[field] = this.readCanonicalRegisterMap(
-          values[field],
-          Constructor,
-          options,
-          field
-        );
-        maps.set(field, normalized[field]);
-      }
-    }
-    const stage = new this();
-    new DictReader(options).ReadInto(stage, normalized, null);
-    for (const [ field, value ] of maps)
-    {
-      stage[field] = value;
-    }
-    return stage;
   }
 
   /**
@@ -461,45 +408,6 @@ export class Tr2EffectStageInput
     return stage;
   }
 
-  /**
-   * Normalize one register-indexed collection into its canonical typed map.
-   *
-   * @param {Map|object} values Register-indexed source values.
-   * @param {Function} Constructor Entry constructor exposing `from`.
-   * @param {object} options Hydration options passed to entry construction.
-   * @param {string} field Diagnostic field name.
-   * @returns {Map<number, *>} Canonical register map.
-   */
-  static readCanonicalRegisterMap(values, Constructor, options, field)
-  {
-    const entries = values instanceof Map
-      ? values
-      : Object.entries(values ?? {});
-    const result = new Map();
-    for (const [ key, value ] of entries)
-    {
-      const registerIndex = Number(key);
-      if (!isUint32(registerIndex))
-      {
-        throw new RangeError(
-          `Effect ${field} register index must fit uint32`
-        );
-      }
-      if (result.has(registerIndex))
-      {
-        throw new Error(
-          `Effect ${field} register ${registerIndex} is duplicated`
-        );
-      }
-      result.set(
-        registerIndex,
-        value instanceof Constructor
-          ? value
-          : CjsSchema.from(CjsSchema.getClassName(Constructor), value, options)
-      );
-    }
-    return result;
-  }
 
 }
 

@@ -1,5 +1,3 @@
-import { DictReader } from "#blue/DictReader";
-import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, meta, type } from "#schema";
@@ -36,31 +34,6 @@ export class Tr2SamplerSetup
    * declarations before an engine creates sampler state.
    */
   isDynamic = false;
-
-  /**
-   * Construct a canonical sampler record from JS/JSON model values.
-   *
-   * @param {object} values Canonical model values.
-   * @param {object} options Schema import options.
-   * @returns {Tr2SamplerSetup} Hydrated sampler.
-   */
-  static from(values = {}, options = {})
-  {
-    if (!CjsSchema.assertValues(values, "Tr2SamplerSetup.from")) values = {};
-    let normalized = values;
-    if (values && Object.hasOwn(values, "name")
-      && !Object.hasOwn(values, "hasName"))
-    {
-      normalized = {
-        ...values,
-        hasName: values.name !== null,
-        name: values.name === null ? "" : values.name
-      };
-    }
-    const sampler = new this();
-    new DictReader(options).ReadInto(sampler, normalized, null);
-    return sampler;
-  }
 
   /**
    * Build one dynamic sampler from its Carbon v15 description record.

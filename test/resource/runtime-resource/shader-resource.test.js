@@ -82,12 +82,9 @@ function loaded(axes, describe = null)
   return new Tr2EffectRes().DoLoad(buildContainer(axes, describe));
 }
 
-test("Tr2Shader.from recursively hydrates canonical JSON component identity", () =>
+test("binary shader loading constructs canonical component identity", () =>
 {
-  // The round trip that replaces every bespoke JSON path: GetValues out,
-  // from() back in, with every nested class reconstructed as its own type.
-  const source = loaded([ QUALITY ]).GetShaderByIndex(0);
-  const shader = Tr2Shader.from(CjsSchema.getValues(source));
+  const shader = loaded([ QUALITY ]).GetShaderByIndex(0);
 
   const effect = shader.effect;
   const technique = effect.techniques[0];
@@ -109,10 +106,9 @@ test("Tr2Shader.from recursively hydrates canonical JSON component identity", ()
   assert.equal(technique.name, "Main");
 });
 
-test("a raytracing library survives the JSON round trip as its own class", () =>
+test("binary shader loading constructs raytracing libraries and their inputs", () =>
 {
-  const source = loaded([ QUALITY ]).GetShaderByIndex(0);
-  const shader = Tr2Shader.from(CjsSchema.getValues(source));
+  const shader = loaded([ QUALITY ]).GetShaderByIndex(0);
   const library = shader.effect.techniques[1].libraries[0];
 
   assert.ok(library instanceof Tr2EffectLibrary);
@@ -121,26 +117,13 @@ test("a raytracing library survives the JSON round trip as its own class", () =>
   assert.equal(library.hitGroupName, "HitGroup");
 });
 
-test("annotations survive the JSON round trip keyed by parameter", () =>
+test("binary shader loading retains annotations keyed by parameter", () =>
 {
-  const source = loaded([ QUALITY ]).GetShaderByIndex(0);
-  const shader = Tr2Shader.from(CjsSchema.getValues(source));
+  const shader = loaded([ QUALITY ]).GetShaderByIndex(0);
   const annotations = shader.effect.annotations.get("P0DiffuseMap");
 
   assert.ok(annotations[0] instanceof Tr2EffectParameterAnnotation);
   assert.equal(annotations[0].name, "IsHeapView");
-});
-
-test("Tr2Shader.from preserves authored canonical sort values", () =>
-{
-  const shader = Tr2Shader.from({
-    sortValue: 123,
-    effect: {
-      annotations: {},
-      techniques: []
-    }
-  });
-  assert.equal(shader.sortValue, 123);
 });
 
 test("an annotation's raw bits survive values a float cannot round-trip", () =>
@@ -260,16 +243,13 @@ test("Tr2Shader lookups match Carbon pass-stage traversal", () =>
   const shader = loaded([ QUALITY ]).GetShaderByIndex(0);
   const technique = shader.effect.techniques[0];
   const pass = technique.passes[0];
-  pass.stageInputs[0].uavs.set(3, CjsSchema.from("Tr2EffectResource", { name: "Collision" }));
-  pass.stageInputs[1].resources.set(4, CjsSchema.from("Tr2EffectResource", {
-    name: "Collision"
-  }));
+  pass.stageInputs[0].uavs.set(3, Object.assign(new Tr2EffectResource(), { name: "Collision" }));
+  pass.stageInputs[1].resources.set(4, Object.assign(new Tr2EffectResource(), { name: "Collision" }));
 
-  const libraryInput = Tr2EffectStageInput.from({
-    constants: [ { name: "LibraryOnly" } ],
-    resources: { 5: { name: "LibraryResource" } }
-  });
-  technique.libraries = [ Tr2EffectLibrary.from({
+  const libraryInput = new Tr2EffectStageInput();
+  libraryInput.constants = [ Object.assign(new Tr2EffectConstant(), { name: "LibraryOnly" }) ];
+  libraryInput.resources.set(5, Object.assign(new Tr2EffectResource(), { name: "LibraryResource" }));
+  technique.libraries = [ Object.assign(new Tr2EffectLibrary(), {
     globalInput: libraryInput,
     localInput: libraryInput
   }) ];
@@ -336,7 +316,7 @@ test("stage input sizes its constant buffer from every constant, not from the de
   // Carbon: "This has to be done even if the constant isn't set, as the shader
   // may still sample it and expect to get some kind of default (usually zero)."
   // (Tr2Effect.cpp:1799-1800), so every constant participates.
-  const stage = Tr2EffectStageInput.from({
+  const stage = Object.assign(new Tr2EffectStageInput(), {
     stageType: 1,
     exists: true,
     constants: [
@@ -358,7 +338,7 @@ test("stage input never reports a buffer smaller than its authored defaults", ()
   // Carbon grows constantValueSize to cover autoregister sampler-index
   // constants (Tr2EffectDescription.cpp:629-632), so the default blob can
   // legitimately reach past the constants this stage declares.
-  const stage = Tr2EffectStageInput.from({
+  const stage = Object.assign(new Tr2EffectStageInput(), {
     stageType: 1,
     exists: true,
     constants: [ { name: "A", offset: 0, size: 16, type: 0, dimension: 4, elements: 0 } ],
