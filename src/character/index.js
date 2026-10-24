@@ -16,3 +16,4 @@ export * from "./model/index.js";
 export { CjsCharacterRigBinding } from "./controls/CjsCharacterRigBinding.js";
 export * from "./generated/index.js";
 export * from "./trinity/index.js";
+export * from "./application/index.js";
