@@ -19,7 +19,7 @@ export class CjsPaperDollEyeItemOneColor extends CjsPaperDollEyeItem
 
     @meta.property()
     @type.color
-    @meta.ui.description("Eye colour 1")
+    @meta.ui.description("Iris outer (ciliary zone)")
     get color1() { return this._GetColor(0); }
     set color1(value) { this._SetColor(0, value); }
 }

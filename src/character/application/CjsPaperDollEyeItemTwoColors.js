@@ -7,7 +7,7 @@ export class CjsPaperDollEyeItemTwoColors extends CjsPaperDollEyeItemOneColor
 {
     @meta.property()
     @type.color
-    @meta.ui.description("Eye colour 2")
+    @meta.ui.description("Sclera")
     get color2() { return this._GetColor(1); }
     set color2(value) { this._SetColor(1, value); }
 }
