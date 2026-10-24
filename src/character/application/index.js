@@ -11,3 +11,5 @@ export { CjsPaperDollEyebrows } from "./CjsPaperDollEyebrows.js";
 export { CjsPaperDollEyebrowsItem } from "./CjsPaperDollEyebrowsItem.js";
 export { CjsPaperDollBlush } from "./CjsPaperDollBlush.js";
 export { CjsPaperDollBlushItem } from "./CjsPaperDollBlushItem.js";
+
+export { CjsPaperDollArchetype } from "./CjsPaperDollArchetype.js";

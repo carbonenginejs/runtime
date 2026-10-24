@@ -1,7 +1,7 @@
 # PaperDoll application controls
 
 These are application-owned editable settings, not ports of native Carbon
-classes. A single CjsPaperDoll owns eyes, eyebrows and blush. It coordinates
+classes. A single CjsPaperDoll owns archetype, eyes, eyebrows and blush. It coordinates
 separate eye output and one shared head output; it does not implement a general
 appearance dependency graph or replace library appearance plans.
 
@@ -46,3 +46,26 @@ The private adapter rebuilds eye diffuse for colour edits and D/N/S for styles.
 Head edits rebuild facial diffuse and the separate alpha-bearing brow carrier
 together; they retain facial normal/specular and select the brow's own N/S.
 The adapter determines these target dependencies, not the editable components.
+
+## Explicit foundation
+
+CjsPaperDollArchetype owns a required selection once configured. It is distinct
+from the catalog activity-archetype record. Configure accepts prepared records
+with separate archetype/head/generic-head/body identities, skeleton, parts and
+explicit per-channel fallback owners. The resolver validates dependency closure,
+cycles, unique part identities, model availability and complete head/body D/N/S.
+Generic support textures remain separate from selected skin textures.
+
+Part records retain metadata, inventory and exact dependency weights. These
+weights are source evidence, not automatically texture opacity or applied morphs.
+The input adapter owns resource acquisition, format decoding, role assignment and
+LOD selection; the resolver does not infer those from filenames. Resolve returns
+an owned snapshot. Only qualified, prepared options belong in Configure.
+
+For configured dolls call Update({ foundation, eyes, head }). A changed or forced
+foundation runs first and invalidates both modifier outputs without resetting
+their settings. The synchronous foundation binding must publish already prepared
+geometry/material resources; it is responsible for compatibility validation.
+Failure keeps pending work for retry. Unconfigured dolls retain the earlier
+eyes/head-only integration. Async preparation and general archetype switching
+are host work, not implied by a successful source-graph resolution.
