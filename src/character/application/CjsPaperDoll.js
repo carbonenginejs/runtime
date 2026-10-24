@@ -9,6 +9,7 @@ import { CjsPaperDollEyes } from "./CjsPaperDollEyes.js";
 import { CjsPaperDollEyebrows } from "./CjsPaperDollEyebrows.js";
 import { CjsPaperDollBlush } from "./CjsPaperDollBlush.js";
 import { CjsPaperDollTattoo } from "./CjsPaperDollTattoo.js";
+import { CjsPaperDollLipstick } from "./CjsPaperDollLipstick.js";
 
 /**
  * Application-owned foundation and appearance coordinator.
@@ -60,6 +61,10 @@ export class CjsPaperDoll
     @type.object.embed("CjsPaperDollTattoo")
     tattoo = new CjsPaperDollTattoo();
 
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollLipstick")
+    lipstick = new CjsPaperDollLipstick();
+
     _appliedSurface = null;
     _appliedSkin = null;
     _appliedFoundation = null;
@@ -78,7 +83,7 @@ export class CjsPaperDoll
         this.freckles.Rebuild();
         this.aging.Rebuild(); this.scarring.Rebuild(); this.scars.Rebuild();
         this.eyes.Rebuild(); this.eyebrows.Rebuild(); this.blush.Rebuild();
-        this.tattoo.Rebuild();
+        this.tattoo.Rebuild(); this.lipstick.Rebuild();
     }
 
     /** Invalidates the shared output when a prepared external layer changes. */
@@ -89,6 +94,14 @@ export class CjsPaperDoll
     {
         const option = component.enabled ? component.option : "";
         return { option, colors: component.GetColors().map(value => Float32Array.from(value)), colorAreas: option ? [...component.GetColorAreas()] : [] };
+    }
+
+    /** Lipstick's surface state: the captured style plus the palette its specular colours and gloss come from. */
+    _CaptureLipstickSurface()
+    {
+        const state = this._Capture(this.lipstick);
+        state.palette = state.option ? this.lipstick.palette : "";
+        return state;
     }
 
     /** Compares only fields which can affect the selected component's output. */
@@ -118,15 +131,17 @@ export class CjsPaperDoll
         const skin = skinPending ? this._Capture(this.skin) : this._appliedSkin;
         const skinChanged = Boolean(skinPending && (skin.option || this._appliedSkin?.option)
             && (foundationChanged || this._dirty || this._Changed(skin, this._appliedSkin)));
-        const surfacePending = foundationChanged || this._dirty || this.aging.IsDirty() || this.scarring.IsDirty() || this.scars.IsDirty() || !this._appliedSurface;
-        const surface = surfacePending ? { scars: this._Capture(this.scars), aging: this._Capture(this.aging), scarring: this._Capture(this.scarring) } : this._appliedSurface;
-        const surfaceActive = surface.scars.option || surface.aging.option || surface.scarring.option || this._appliedSurface?.scars.option || this._appliedSurface?.aging.option || this._appliedSurface?.scarring.option;
+        const surfacePending = foundationChanged || this._dirty || this.aging.IsDirty() || this.scarring.IsDirty() || this.scars.IsDirty() || this.lipstick.IsDirty() || !this._appliedSurface;
+        const surface = surfacePending ? { scars: this._Capture(this.scars), aging: this._Capture(this.aging), scarring: this._Capture(this.scarring), lipstick: this._CaptureLipstickSurface() } : this._appliedSurface;
+        const surfaceActive = surface.scars.option || surface.aging.option || surface.scarring.option || surface.lipstick.option
+            || this._appliedSurface?.scars.option || this._appliedSurface?.aging.option || this._appliedSurface?.scarring.option || this._appliedSurface?.lipstick?.option;
         const surfaceChanged = Boolean(surfacePending && surfaceActive && (foundationChanged || this._dirty || !this._appliedSurface
-            || this._Changed(surface.scars, this._appliedSurface.scars) || this._Changed(surface.aging, this._appliedSurface.aging) || this._Changed(surface.scarring, this._appliedSurface.scarring)));
+            || this._Changed(surface.scars, this._appliedSurface.scars) || this._Changed(surface.aging, this._appliedSurface.aging) || this._Changed(surface.scarring, this._appliedSurface.scarring)
+            || surface.lipstick.option !== this._appliedSurface.lipstick?.option || surface.lipstick.palette !== this._appliedSurface.lipstick?.palette));
         const eyesPending = foundationChanged || this._dirty || this.eyes.IsDirty();
         // A tattoo is baked from the morphed face, so any foundation edit (strength included) rebakes it.
         const tattooShape = foundationPending && this.tattoo.enabled && this.tattoo.option !== "";
-        const headPending = skinChanged || foundationChanged || tattooShape || this._dirty || this._headDirty || this.eyebrows.IsDirty() || this.blush.IsDirty() || this.freckles.IsDirty() || this.scars.IsDirty() || this.tattoo.IsDirty();
+        const headPending = skinChanged || foundationChanged || tattooShape || this._dirty || this._headDirty || this.eyebrows.IsDirty() || this.blush.IsDirty() || this.freckles.IsDirty() || this.scars.IsDirty() || this.tattoo.IsDirty() || this.lipstick.IsDirty();
         if (!foundationPending && !eyesPending && !headPending && !surfaceChanged)
         {
             this.skin.ClearDirty();
@@ -136,7 +151,7 @@ export class CjsPaperDoll
         }
 
         const eyes = this._Capture(this.eyes);
-        const head = { scars: this._Capture(this.scars), freckles: this._Capture(this.freckles), eyebrows: this._Capture(this.eyebrows), blush: this._Capture(this.blush), tattoo: this._Capture(this.tattoo) };
+        const head = { scars: this._Capture(this.scars), freckles: this._Capture(this.freckles), eyebrows: this._Capture(this.eyebrows), blush: this._Capture(this.blush), tattoo: this._Capture(this.tattoo), lipstick: this._Capture(this.lipstick) };
         head.blush.weight = head.blush.option ? this.blush.weight : 0;
         const eyesChanged = eyesPending && (foundationChanged || this._dirty || this._Changed(eyes, this._appliedEyes));
         const headChanged = headPending && (skinChanged || foundationChanged || tattooShape || this._dirty || this._headDirty || !this._appliedHead
@@ -145,13 +160,14 @@ export class CjsPaperDoll
             || this._Changed(head.scars, this._appliedHead.scars)
             || this._Changed(head.freckles, this._appliedHead.freckles)
             || this._Changed(head.tattoo, this._appliedHead.tattoo)
+            || this._Changed(head.lipstick, this._appliedHead.lipstick)
             || head.blush.weight !== this._appliedHead.blush.weight);
 
         this._dirty = false;
         this._headDirty = false;
         this.archetype.ClearDirty();
         this.skin.ClearDirty();
-        this.freckles.ClearDirty(); this.scars.ClearDirty(); this.tattoo.ClearDirty();
+        this.freckles.ClearDirty(); this.scars.ClearDirty(); this.tattoo.ClearDirty(); this.lipstick.ClearDirty();
         this.aging.ClearDirty(); this.scarring.ClearDirty();
         this.eyes.ClearDirty(); this.eyebrows.ClearDirty(); this.blush.ClearDirty();
         this._applying = true;
@@ -172,10 +188,10 @@ export class CjsPaperDoll
         {
             if (foundationPending && this._appliedFoundation !== foundation) this.archetype.Rebuild();
             if (this._appliedSkin !== skin) { this._appliedSkin = null; this.skin.Rebuild(); }
-            if (this._appliedSurface !== surface) { this._appliedSurface = null; this.aging.Rebuild(); this.scarring.Rebuild(); }
+            if (this._appliedSurface !== surface) { this._appliedSurface = null; this.aging.Rebuild(); this.scarring.Rebuild(); this.lipstick.Rebuild(); }
             // Do not discard a later group's pending edits if an earlier apply fails.
             if (this._appliedEyes !== eyes) { this._appliedEyes = null; this.eyes.Rebuild(); }
-            if (this._appliedHead !== head) { this._appliedHead = null; this.eyebrows.Rebuild(); this.blush.Rebuild(); this.freckles.Rebuild(); this.scars.Rebuild(); this.tattoo.Rebuild(); }
+            if (this._appliedHead !== head) { this._appliedHead = null; this.eyebrows.Rebuild(); this.blush.Rebuild(); this.freckles.Rebuild(); this.scars.Rebuild(); this.tattoo.Rebuild(); this.lipstick.Rebuild(); }
             throw error;
         }
         finally { this._applying = false; }
