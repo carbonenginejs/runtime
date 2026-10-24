@@ -8,7 +8,8 @@
  * Arithmetic rounds at each native float operation; native parity depends on
  * the verified compiler/FP environment and is not universal across native builds.
  */
-export const matrixFloat32 = { multiply, determinant, inverse, inverseDet, transformationMatrix };
+export const matrixFloat32 = { multiply, determinant, inverse, inverseDet, transformationMatrix,
+    transformCoord, transformNormal, transform, transformByTranspose };
 
 /**
  * Carbon: Matrix::operator* (math/include/Matrix_inline.h:193-204)
@@ -222,5 +223,130 @@ function transformationMatrix(out, scaling, rotation, translation)
     out[13] = f(f(f(f(sr12 * 0) + f(sr13 * 1)) + f(sr14 * 0)) + f(sr15 * ty));
     out[14] = f(f(f(f(sr12 * 0) + f(sr13 * 0)) + f(sr14 * 1)) + f(sr15 * tz));
     out[15] = f(f(f(f(sr12 * 0) + f(sr13 * 0)) + f(sr14 * 0)) + f(sr15 * 1));
+    return out;
+}
+
+/**
+ * Carbon: TransformCoord (math/include/Matrix_inline.h:560-577)
+ * Applies the donor transform with float32 arithmetic and cached output values.
+ * @param {Float32Array} out Receiving vector; may overlap either input.
+ * @param {Float32Array} coord Input vector.
+ * @param {Float32Array} transform Carbon row-major matrix.
+ * @returns {Float32Array} out
+ */
+function transformCoord(out, coord, transform)
+{
+    const f = Math.fround;
+    const x = coord[0], y = coord[1], z = coord[2];
+    const norm = f(f(f(f(transform[3] * x) + f(transform[7] * y)) + f(transform[11] * z)) + transform[15]);
+    if (norm !== 0)
+    {
+        const result0 = f(f(f(f(f(x * transform[0]) + f(y * transform[4])) + f(z * transform[8])) + transform[12]) / norm);
+        const result1 = f(f(f(f(f(x * transform[1]) + f(y * transform[5])) + f(z * transform[9])) + transform[13]) / norm);
+        const result2 = f(f(f(f(f(x * transform[2]) + f(y * transform[6])) + f(z * transform[10])) + transform[14]) / norm);
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+    }
+    else
+    {
+        out[0] = 0.0;
+        out[1] = 0.0;
+        out[2] = 0.0;
+    }
+    return out;
+}
+
+/**
+ * Carbon: TransformNormal (math/include/Matrix_inline.h:580-586)
+ * Applies the donor transform with float32 arithmetic and cached output values.
+ * @param {Float32Array} out Receiving vector; may overlap either input.
+ * @param {Float32Array} normal Input vector.
+ * @param {Float32Array} transform Carbon row-major matrix.
+ * @returns {Float32Array} out
+ */
+function transformNormal(out, normal, transform)
+{
+    const f = Math.fround;
+    const x = normal[0], y = normal[1], z = normal[2];
+    const result0 = f(f(f(x * transform[0]) + f(y * transform[4])) + f(z * transform[8]));
+    const result1 = f(f(f(x * transform[1]) + f(y * transform[5])) + f(z * transform[9]));
+    const result2 = f(f(f(x * transform[2]) + f(y * transform[6])) + f(z * transform[10]));
+    out[0] = result0;
+    out[1] = result1;
+    out[2] = result2;
+    return out;
+}
+
+/**
+ * Carbon: Transform (math/include/Matrix_inline.h:589-617)
+ * Applies the donor transform with float32 arithmetic and cached output values.
+ * @param {Float32Array} out Receiving vector; may overlap either input.
+ * @param {Float32Array} point Input vector.
+ * @param {Float32Array} m Carbon row-major matrix.
+ * @returns {Float32Array} out
+ */
+function transform(out, point, m)
+{
+    const f = Math.fround;
+    const x = point[0], y = point[1];
+    if (point.length >= 4)
+    {
+        const z = point[2], w = point[3];
+        const result0 = f(f(f(f(x * m[0]) + f(y * m[4])) + f(z * m[8])) + f(w * m[12]));
+        const result1 = f(f(f(f(x * m[1]) + f(y * m[5])) + f(z * m[9])) + f(w * m[13]));
+        const result2 = f(f(f(f(x * m[2]) + f(y * m[6])) + f(z * m[10])) + f(w * m[14]));
+        const result3 = f(f(f(f(x * m[3]) + f(y * m[7])) + f(z * m[11])) + f(w * m[15]));
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
+    } // Matrix_inline.h:589 (and :293, identical arithmetic)
+    else if (point.length === 3)
+    {
+        const z = point[2];
+        const result0 = f(f(f(f(x * m[0]) + f(y * m[4])) + f(z * m[8])) + m[12]);
+        const result1 = f(f(f(f(x * m[1]) + f(y * m[5])) + f(z * m[9])) + m[13]);
+        const result2 = f(f(f(f(x * m[2]) + f(y * m[6])) + f(z * m[10])) + m[14]);
+        const result3 = f(f(f(m[3] + m[7]) + m[11]) + m[15]);
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
+    } // Matrix_inline.h:599 (w is the plain column sum, as C++)
+    else
+    {
+        const result0 = f(f(f(x * m[0]) + f(y * m[4])) + m[12]);
+        const result1 = f(f(f(x * m[1]) + f(y * m[5])) + m[13]);
+        const result2 = f(f(f(x * m[2]) + f(y * m[6])) + m[14]);
+        const result3 = f(f(f(x * m[3]) + f(y * m[7])) + m[15]);
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
+    } // Matrix_inline.h:609
+    return out;
+}
+
+/**
+ * Carbon: Matrix::operator* (math/include/Matrix_inline.h:304-311)
+ * Applies the donor transform with float32 arithmetic and cached output values.
+ * @param {Float32Array} out Receiving vector; may overlap either input.
+ * @param {Float32Array} p Input vector.
+ * @param {Float32Array} m Carbon row-major matrix.
+ * @returns {Float32Array} out
+ */
+function transformByTranspose(out, p, m)
+{
+    const f = Math.fround;
+    const x = p[0], y = p[1], z = p[2], w = p[3];
+    const result0 = f(f(f(f(m[0] * x) + f(m[1] * y)) + f(m[2] * z)) + f(m[3] * w));
+    const result1 = f(f(f(f(m[4] * x) + f(m[5] * y)) + f(m[6] * z)) + f(m[7] * w));
+    const result2 = f(f(f(f(m[8] * x) + f(m[9] * y)) + f(m[10] * z)) + f(m[11] * w));
+    const result3 = f(f(f(f(m[12] * x) + f(m[13] * y)) + f(m[14] * z)) + f(m[15] * w));
+    out[0] = result0;
+    out[1] = result1;
+    out[2] = result2;
+    out[3] = result3;
     return out;
 }

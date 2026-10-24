@@ -1074,8 +1074,9 @@ matrix.inverseDet = function (out, m)
 // ---------------------------------------------------------------------------
 
 /**
+ * Carbon: TransformCoord (math/include/Matrix_inline.h:560-577)
  * Transforms a coordinate (row-vector v * M with perspective divide; zero norm yields the origin)
- * @param {Float32Array} out - receiving vec3 (may alias coord)
+ * @param {Float32Array} out - receiving vec3 (may alias coord or the matrix)
  * @param {Float32Array} coord - 3 floats
  * @param {matrix} transform
  * @returns {Float32Array} out
@@ -1086,9 +1087,12 @@ matrix.transformCoord = function (out, coord, transform)
     const norm = transform[3] * x + transform[7] * y + transform[11] * z + transform[15];
     if (norm !== 0)
     {
-        out[0] = (x * transform[0] + y * transform[4] + z * transform[8] + transform[12]) / norm;
-        out[1] = (x * transform[1] + y * transform[5] + z * transform[9] + transform[13]) / norm;
-        out[2] = (x * transform[2] + y * transform[6] + z * transform[10] + transform[14]) / norm;
+        const result0 = (x * transform[0] + y * transform[4] + z * transform[8] + transform[12]) / norm;
+        const result1 = (x * transform[1] + y * transform[5] + z * transform[9] + transform[13]) / norm;
+        const result2 = (x * transform[2] + y * transform[6] + z * transform[10] + transform[14]) / norm;
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
     }
     else
     {
@@ -1100,8 +1104,9 @@ matrix.transformCoord = function (out, coord, transform)
 }; // Matrix_inline.h:560
 
 /**
+ * Carbon: TransformNormal (math/include/Matrix_inline.h:580-586)
  * Transforms a normal (row-vector v * M, rotation part only)
- * @param {Float32Array} out - receiving vec3 (may alias normal)
+ * @param {Float32Array} out - receiving vec3 (may alias normal or the matrix)
  * @param {Float32Array} normal - 3 floats
  * @param {matrix} transform
  * @returns {Float32Array} out
@@ -1109,17 +1114,21 @@ matrix.transformCoord = function (out, coord, transform)
 matrix.transformNormal = function (out, normal, transform)
 {
     const x = normal[0], y = normal[1], z = normal[2];
-    out[0] = x * transform[0] + y * transform[4] + z * transform[8];
-    out[1] = x * transform[1] + y * transform[5] + z * transform[9];
-    out[2] = x * transform[2] + y * transform[6] + z * transform[10];
+    const result0 = x * transform[0] + y * transform[4] + z * transform[8];
+    const result1 = x * transform[1] + y * transform[5] + z * transform[9];
+    const result2 = x * transform[2] + y * transform[6] + z * transform[10];
+    out[0] = result0;
+    out[1] = result1;
+    out[2] = result2;
     return out;
 }; // Matrix_inline.h:580
 
 /**
+ * Carbon: Transform (math/include/Matrix_inline.h:589-617)
  * Row-vector transform p * m (Carbon operator*(Vector4, Matrix) and the free
  * Transform overloads; dispatches on point.length: 4, 3 or 2 - each branch
  * ported literally, including the Vector3 overload's w term)
- * @param {Float32Array} out - receiving vec4 (may alias point)
+ * @param {Float32Array} out - receiving vec4 (may alias point or the matrix)
  * @param {Float32Array} point - 4, 3 or 2 floats
  * @param {matrix} m
  * @returns {Float32Array} out
@@ -1130,33 +1139,46 @@ matrix.transform = function (out, point, m)
     if (point.length >= 4)
     {
         const z = point[2], w = point[3];
-        out[0] = x * m[0] + y * m[4] + z * m[8] + w * m[12];
-        out[1] = x * m[1] + y * m[5] + z * m[9] + w * m[13];
-        out[2] = x * m[2] + y * m[6] + z * m[10] + w * m[14];
-        out[3] = x * m[3] + y * m[7] + z * m[11] + w * m[15];
+        const result0 = x * m[0] + y * m[4] + z * m[8] + w * m[12];
+        const result1 = x * m[1] + y * m[5] + z * m[9] + w * m[13];
+        const result2 = x * m[2] + y * m[6] + z * m[10] + w * m[14];
+        const result3 = x * m[3] + y * m[7] + z * m[11] + w * m[15];
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
     } // Matrix_inline.h:589 (and :293, identical arithmetic)
     else if (point.length === 3)
     {
         const z = point[2];
-        out[0] = x * m[0] + y * m[4] + z * m[8] + m[12];
-        out[1] = x * m[1] + y * m[5] + z * m[9] + m[13];
-        out[2] = x * m[2] + y * m[6] + z * m[10] + m[14];
-        out[3] = m[3] + m[7] + m[11] + m[15];
+        const result0 = x * m[0] + y * m[4] + z * m[8] + m[12];
+        const result1 = x * m[1] + y * m[5] + z * m[9] + m[13];
+        const result2 = x * m[2] + y * m[6] + z * m[10] + m[14];
+        const result3 = m[3] + m[7] + m[11] + m[15];
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
     } // Matrix_inline.h:599 (w is the plain column sum, as C++)
     else
     {
-        out[0] = x * m[0] + y * m[4] + m[12];
-        out[1] = x * m[1] + y * m[5] + m[13];
-        out[2] = x * m[2] + y * m[6] + m[14];
-        out[3] = x * m[3] + y * m[7] + m[15];
+        const result0 = x * m[0] + y * m[4] + m[12];
+        const result1 = x * m[1] + y * m[5] + m[13];
+        const result2 = x * m[2] + y * m[6] + m[14];
+        const result3 = x * m[3] + y * m[7] + m[15];
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
     } // Matrix_inline.h:609
     return out;
 };
 
 /**
+ * Carbon: Matrix::operator* (math/include/Matrix_inline.h:304-311)
  * Carbon operator*(Matrix, Vector4): dots the matrix ROWS with p - the
  * transpose of matrix.transform, deliberately a different function
- * @param {Float32Array} out - receiving vec4 (may alias p)
+ * @param {Float32Array} out - receiving vec4 (may alias p or the matrix)
  * @param {Float32Array} p - 4 floats
  * @param {matrix} m
  * @returns {Float32Array} out
@@ -1164,10 +1186,14 @@ matrix.transform = function (out, point, m)
 matrix.transformByTranspose = function (out, p, m)
 {
     const x = p[0], y = p[1], z = p[2], w = p[3];
-    out[0] = m[0] * x + m[1] * y + m[2] * z + m[3] * w;
-    out[1] = m[4] * x + m[5] * y + m[6] * z + m[7] * w;
-    out[2] = m[8] * x + m[9] * y + m[10] * z + m[11] * w;
-    out[3] = m[12] * x + m[13] * y + m[14] * z + m[15] * w;
+    const result0 = m[0] * x + m[1] * y + m[2] * z + m[3] * w;
+    const result1 = m[4] * x + m[5] * y + m[6] * z + m[7] * w;
+    const result2 = m[8] * x + m[9] * y + m[10] * z + m[11] * w;
+    const result3 = m[12] * x + m[13] * y + m[14] * z + m[15] * w;
+    out[0] = result0;
+    out[1] = result1;
+    out[2] = result2;
+    out[3] = result3;
     return out;
 }; // Matrix_inline.h:304
 

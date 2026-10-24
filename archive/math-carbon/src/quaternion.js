@@ -214,18 +214,25 @@ quaternion.length = function (q)
 }; // Quaternion_inline.h:171
 
 /**
- * Normalizes a quaternion (Carbon scales by 1/Length; zero length yields Infinity, as C++)
+ * Carbon: Normalize (math/include/Quaternion_inline.h:177-181)
+ * Normalizes a quaternion (Carbon scales by 1/Length; a zero quaternion yields NaNs)
  * @param {quaternion} out
  * @param {quaternion} q
  * @returns {quaternion} out
  */
 quaternion.normalize = function (out, q)
 {
+    const x = q[0], y = q[1], z = q[2], w = q[3];
     const l = 1.0 / quaternion.length(q);
-    return quaternion.scale(out, q, l);
+    out[0] = x * l;
+    out[1] = y * l;
+    out[2] = z * l;
+    out[3] = w * l;
+    return out;
 }; // Quaternion_inline.h:177
 
 /**
+ * Carbon: Inverse (math/include/Quaternion_inline.h:184-188)
  * Inverts a quaternion (conjugate over squared length)
  * @param {quaternion} out
  * @param {quaternion} q
@@ -233,11 +240,12 @@ quaternion.normalize = function (out, q)
  */
 quaternion.inverse = function (out, q)
 {
+    const x = q[0], y = q[1], z = q[2], w = q[3];
     const l = 1.0 / quaternion.lengthSq(q);
-    out[0] = -q[0] * l;
-    out[1] = -q[1] * l;
-    out[2] = -q[2] * l;
-    out[3] = q[3] * l;
+    out[0] = -x * l;
+    out[1] = -y * l;
+    out[2] = -z * l;
+    out[3] = w * l;
     return out;
 }; // Quaternion_inline.h:184
 
