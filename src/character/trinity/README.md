@@ -24,7 +24,10 @@ depth-stencil wrappers through the supplied or application-installed render
 context. The scene chooses native dimensions/formats and owns wrapper lifetime;
 resource acquisition and backend texture realization remain in their existing
 owners. Final `Destruct` releases the scene's shadow surfaces. Initializing the
-scene acquires the cubemap only. Dynamic add/remove/rebuild membership now
+scene acquires the cubemap and the native white texture for the four spotlight
+shadow bindings. The host must initialize the scene after registering its
+resource handlers. Light add/remove preserves native list notifications and
+shadow-target refreshes. Dynamic add/remove/rebuild membership now
 uses native list callbacks and a unique pending-load set. Admission checks the
 mapped interface before side effects. The forward scene path performs primary
 visibility, fills per-frame buffers and submits native opaque/decal/transparent

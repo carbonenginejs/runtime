@@ -3,7 +3,7 @@ import test from 'node:test';
 import {blue,INotify,IInitialize,NotifyModified} from '../../../npm/dist/global/blue/index.js';
 import {CjsSchema} from '../../../npm/dist/global/schema/index.js';
 import {Tr2InteriorScene} from '../../../npm/dist/character/index.js';
-import {Tr2RenderContext,Tr2RenderContext_GetMainThreadRenderContext} from '../../../npm/dist/trinity/index.js';
+import {Tr2RenderContext,Tr2RenderContext_GetMainThreadRenderContext,Tr2VariableStore} from '../../../npm/dist/trinity/index.js';
 import {Tr2RenderContextALStub} from '../../../npm/dist/trinityal/index.js';
 import {PixelFormat,Tr2GpuUsage} from '../../../npm/dist/global/consts/renderContext/index.js';
 import {ResourceRequirement} from '../../../npm/dist/resource/index.js';
@@ -16,13 +16,16 @@ function setup(t) {
   return {context,al,manager:blue.resMan,scene:()=>{const scene=new Tr2InteriorScene();scenes.push(scene);return scene;}};
 }
 
-test('interior scene initialization acquires only its cubemap and preserves the assigned effect',t=>{
+test('interior scene initialization acquires cubemap and native white shadows and preserves the assigned effect',t=>{
   const {scene,manager}=setup(t),s=scene(),effect={};s.backgroundCubemapPath='res:/environment.dds';s.backgroundEffect=effect;
   assert.equal(CjsSchema.cast(s,IInitialize),s);assert.equal(CjsSchema.cast(s,INotify),s);assert.equal(s.Initialize(),true);
   assert.equal(s.backgroundCubemapRes,manager.resources.get('res:/environment.dds'));
   assert.equal(manager.requests[0].options.requirement,ResourceRequirement.TEXTURE);assert.equal(s.backgroundEffect,effect);
+  assert.equal(s._whiteTexture,manager.resources.get('res:/texture/global/white.dds'));
+  assert.equal(manager.requests[1].options.requirement,ResourceRequirement.TEXTURE);
+  for(let i=0;i<4;i++)assert.equal(Tr2VariableStore.globalStore().FindVariable(`SpotlightShadow${i}`).GetValue(),s._whiteTexture);
   assert.deepEqual(s.lightRenderTargets,[]);assert.equal(s._lightDepthStencil,null);
-  CjsSchema.setValues(s,{backgroundCubemapPath:''});assert.equal(s.backgroundCubemapRes,null);assert.equal(manager.requests.length,1);
+  CjsSchema.setValues(s,{backgroundCubemapPath:''});assert.equal(s.backgroundCubemapRes,null);assert.equal(manager.requests.length,2);
 });
 
 test('coalesced background, count and size edits acquire once and allocate final shadow dimensions once',t=>{

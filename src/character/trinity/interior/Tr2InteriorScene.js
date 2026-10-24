@@ -78,6 +78,9 @@ export class Tr2InteriorScene
   _perFrameVSData = RawData.create("Tr2PerFrameVSData");
   _perFramePSData = RawData.create("Tr2PerFramePSData");
   _perFramePSBuffer = new Tr2ConstantBufferAL();
+
+  /** Native m_whiteTexture (h:282), retained by the scene and shadow variables. */
+  _whiteTexture = null;
   /**
    * Carbon Tr2InteriorScene.cpp:229-284 updates lights and dynamic membership.
    * Adapted: array identity search replaces FindKey; JS has no QI reference unlock.
@@ -108,7 +111,8 @@ export class Tr2InteriorScene
   /**
    * Installs native list observers and forward-render variable registrations
    * (cpp:133-168). JS states each variable's native type explicitly.
-   * Physics, picking preparation and constructor texture acquisition remain open.
+   * Physics, picking preparation and noise acquisition remain open. The native
+   * white shadow texture is acquired during Initialize after host registration.
    */
   constructor()
   {
@@ -311,12 +315,27 @@ export class Tr2InteriorScene
     }
   }
 
-  /** Carbon method AddLightSource (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon AddLightSource (h:109, cpp:912-930): retain one light identity and
+   * refresh shadow targets even when it was already present. Blue-list insertion
+   * also invokes SetupShadowMaps through the native observer. Adapted: validate
+   * the JS argument against Blue-list interface admission before side effects.
+   * @param {ITr2InteriorLight|null} lightSource Light to attach.
+   * @returns {void}
+   */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
-  AddLightSource(...args)
+  @meta.adapted
+  AddLightSource(lightSource)
   {
-    throw new Error("Tr2InteriorScene.AddLightSource is not implemented in CarbonEngineJS.");
+    if (!lightSource)
+    {
+      CcpLog.CCP_LOGERR("Attempt to add NULL light source to interior scene!");
+      return;
+    }
+    if (typeof lightSource !== "object" || blue.classes.QueryThisInterface(lightSource, ITr2InteriorLight, lightSource.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
+      throw new TypeError("Tr2InteriorScene.AddLightSource requires ITr2InteriorLight.");
+    if (this.lights.FindKey(lightSource) === -1) this.lights.Insert(-1, lightSource);
+    this.SetupShadowMaps();
   }
 
   /** Carbon method Pick -> PyPick (MAP_METHOD). */
@@ -393,12 +412,29 @@ export class Tr2InteriorScene
     if (pending !== -1) this._dynamicsPendingLoad.splice(pending, 1);
   }
 
-  /** Carbon method RemoveLightSource (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon RemoveLightSource (h:111, cpp:941-962): remove a present light and
+   * refresh shadow targets, including the Blue-list observer's own refresh.
+   * @param {ITr2InteriorLight|null} lightSource Light to detach.
+   * @returns {void}
+   */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
-  RemoveLightSource(...args)
+  @meta.implemented
+  RemoveLightSource(lightSource)
   {
-    throw new Error("Tr2InteriorScene.RemoveLightSource is not implemented in CarbonEngineJS.");
+    if (!lightSource)
+    {
+      CcpLog.CCP_LOGERR("Attempt to remove a NULL light source from interior scene!");
+      return;
+    }
+    const index = this.lights.FindKey(lightSource);
+    if (index === -1)
+    {
+      CcpLog.CCP_LOGERR("Tr2InteriorScenel::RemoveLightSource() - interiorLightSource not found in the scene!");
+      return;
+    }
+    this.lights.Remove(index);
+    this.SetupShadowMaps();
   }
 
   /** Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP). */
@@ -674,12 +710,20 @@ export class Tr2InteriorScene
     esm.EndManagedRendering();
   }
 
-  /** Native initialization acquires the background, without allocating shadows. */
-
-  @meta.implemented
+  /**
+   * Acquires the background and native unshadowed spotlight texture, without
+   * allocating shadow targets (cpp:181-185). Adapted: constructor acquisition
+   * moves to Initialize so browser hosts can install their resource handlers
+   * before any request; the four variables retain the normal loading handle.
+   * @returns {boolean} Whether initialization was accepted.
+   */
+  @meta.adapted
   Initialize()
   {
     this.SetBackgroundCubemapResPath();
+    this._whiteTexture = blue.resMan.GetResource("res:/texture/global/white.dds", { requirement: ResourceRequirement.TEXTURE });
+    const store = Tr2VariableStore.globalStore();
+    for (let i = 0; i < 4; i++) store.FindVariable(`SpotlightShadow${i}`).SetValue(this._whiteTexture);
     return true;
   }
 
@@ -891,6 +935,7 @@ export class Tr2InteriorScene
     if (this._lightDepthStencil) this._lightDepthStencil.Destroy();
     this._lightDepthStencil = null;
     this.backgroundCubemapRes = null;
+    this._whiteTexture = null;
   }
 
   static VisualizeMethod = VisualizeMethod;
