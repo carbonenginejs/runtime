@@ -86,7 +86,15 @@ export function capture() {
     }]);
   }
 
+  // Owned children point back at their owner (a paper doll item's _owner), so
+  // an object met again is recorded by its class name instead of re-walked.
+  const seen = new WeakSet();
   return JSON.parse(JSON.stringify(Object.fromEntries(entries), (_key, value) => {
+    if (value && typeof value === "object" && !ArrayBuffer.isView(value))
+    {
+      if (seen.has(value)) return "[seen " + (CjsSchema.getClassName(value.constructor) ?? "object") + "]";
+      seen.add(value);
+    }
     if (value instanceof Map) return Object.fromEntries(value);
     if (ArrayBuffer.isView(value)) return Array.from(value);
     return value;
