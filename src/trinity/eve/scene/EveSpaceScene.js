@@ -47,7 +47,6 @@ import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
 import { Tr2RingBuffer } from "../../core/device/Tr2RingBuffer/Tr2RingBuffer.js";
-import { ResourceRequirement } from "#resource";
 import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
@@ -2022,7 +2021,7 @@ export class EveSpaceScene
     {
       this._staticEnvMapTextureRes = null;
       if (this._staticEnvMapHandle)
-        this._staticEnvMapTextureRes = blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE });
+        this._staticEnvMapTextureRes = blue.resMan.GetResource(this.envMapResPath);
       if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
       {
         this._envMapTextureRes = this.reflectionProbe.GetReflection();
@@ -2036,7 +2035,7 @@ export class EveSpaceScene
       if (!IsMatch(property, field + "ResPath")) continue;
       this[field] = null;
       if (this[field + "ResPath"])
-        this[field] = blue.resMan.GetResource(this[field + "ResPath"], { requirement: ResourceRequirement.TEXTURE });
+        this[field] = blue.resMan.GetResource(this[field + "ResPath"]);
     }
     if ((IsMatch(property, "reflectionBackLightingColor") || IsMatch(property, "reflectionBackLightingContrast"))
       && this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
@@ -2198,7 +2197,7 @@ export class EveSpaceScene
   Initialize(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     this._staticEnvMapTextureRes = this.envMapResPath
-      ? blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE })
+      ? blue.resMan.GetResource(this.envMapResPath)
       : null;
 
     if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
@@ -2215,15 +2214,15 @@ export class EveSpaceScene
     // cpp:3228-3239: the scene's extra environment maps.
     if (this.envMap1ResPath)
     {
-      this.envMap1 = blue.resMan.GetResource(this.envMap1ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap1 = blue.resMan.GetResource(this.envMap1ResPath);
     }
     if (this.envMap2ResPath)
     {
-      this.envMap2 = blue.resMan.GetResource(this.envMap2ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap2 = blue.resMan.GetResource(this.envMap2ResPath);
     }
     if (this.envMap3ResPath)
     {
-      this.envMap3 = blue.resMan.GetResource(this.envMap3ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap3 = blue.resMan.GetResource(this.envMap3ResPath);
     }
 
     // cpp:3252-3257: a reader stored the persisted manager without its

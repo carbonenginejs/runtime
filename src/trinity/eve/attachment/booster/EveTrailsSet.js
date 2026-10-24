@@ -5,7 +5,6 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { mat4 } from "#math/mat4";
 import { IsMatch, blue } from "#blue";
-import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
 import { INotify } from "#blue";
 import { meta, type } from "#schema";
@@ -112,7 +111,7 @@ export class EveTrailsSet
     this.Cleanup();
 
     this.geometryResource = this.geometryResPath
-      ? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+      ? blue.resMan.GetResource(this.geometryResPath)
       : null;
 
     this.geometryResource?.AddNotifyTarget(this);

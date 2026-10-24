@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { blue } from "../../npm/dist/global/blue/index.js";
-import { ResourceRequirement } from "../../npm/dist/resource/index.js";
 import { TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 import { localFileSystem } from "../support/localFileSystem.js";
@@ -36,7 +35,7 @@ test("a path change fetches the texture through the resource manager", () =>
     parameter.SetResourcePath("res:/texture/a.dds");
 
     assert.deepEqual(stub.requests.map(r => r.path), [ "res:/texture/a.dds" ]);
-    assert.equal(stub.requests[0].options.requirement, ResourceRequirement.TEXTURE);
+    assert.equal(stub.requests[0].options, undefined);
     assert.equal(parameter.GetResource(), stub.resources.get("res:/texture/a.dds"));
   });
 });

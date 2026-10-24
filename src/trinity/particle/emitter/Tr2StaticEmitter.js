@@ -3,7 +3,6 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp
 import { blue, IsMatch, INotify } from "#blue";
-import { ResourceRequirement } from "#resource";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -318,14 +317,16 @@ export class Tr2StaticEmitter extends IRoot
   }
 
   /**
-   * Carbon's `BeResMan->GetResource( path, "raw", ... )`.
+   * Carbon: Initialize / OnModified (trinity/trinity/Particle/Tr2StaticEmitter.cpp:35-42, 60-67).
+   * Adapted: Requests ordinary TriGeometryRes rather than Carbon's "raw" suffix;
+   * the emitter consumes its decoded mesh channels instead of Granny SDK handles.
    *
    * @param {string} path Geometry path.
    * @returns {object|null} The TriGeometryRes, or null for an empty path.
    */
   static GetGeometry(path)
   {
-    return path ? blue.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY }) : null;
+    return path ? blue.resMan.GetResource(path) : null;
   }
 
 }

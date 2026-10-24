@@ -142,8 +142,13 @@ export function RegisterTextureResources(resourceManager, options = {})
 
   for (const extension of TextureResourceExtensions)
   {
-    resourceManager.RegisterObjectLoader(extension, (bytes, context) => ReadImageResource(bytes, context, options.compression));
+    const loader = (bytes, context) => ReadImageResource(bytes, context, options.compression);
+    resourceManager.RegisterObjectLoader(extension, loader);
     resourceManager.RegisterExtension(extension, Handler);
+    // Carbon: Tr2ImageRes registers ddsraw (Resources/Tr2ImageRes_Blue.cpp:16).
+    // Browser ImageIO also accepts the other configured image containers.
+    resourceManager.RegisterObjectLoader(`${extension}raw`, loader);
+    resourceManager.RegisterExtension(`${extension}raw`, Tr2ImageRes);
   }
 
   // Carbon asks for the same file as a texture or as a "raw" image; the

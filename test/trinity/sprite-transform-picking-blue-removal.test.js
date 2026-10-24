@@ -11,7 +11,6 @@ import { Tr2Sprite2dTransform } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2
 import { Tr2Sprite2dContainerBase } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dContainerBase.js";
 import { Tr2Sprite2dRenderJob } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dRenderJob.js";
 import { Tr2ImageRes } from "../../npm/dist/resource/texture/Tr2ImageRes.js";
-import { ResourceRequirement } from "../../npm/dist/resource/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 const image = new Tr2ImageRes();
@@ -41,7 +40,7 @@ test("PickingMask declarations preserve native property order, chooser and held 
 
 test("direct writes run the live resource acquisition property, which the dictionary does not carry",()=>{
  const mask=new Tr2Sprite2dPickingMask();const count=stub.requests.length;
- mask.maskPath="res:/test/pick-mask.png";assert.equal(mask.GetMaskPath(),mask.maskPath);assert.equal(mask.mask,image);assert.equal(stub.requests.length,count+1);assert.equal(stub.requests.at(-1).options.requirement,ResourceRequirement.IMAGE);
+ mask.maskPath="res:/test/pick-mask.png";assert.equal(mask.GetMaskPath(),mask.maskPath);assert.equal(mask.mask,image);assert.equal(stub.requests.length,count+1);assert.equal(stub.requests.at(-1).options.ex,"raw");
  mask.SetMaskPath(mask.maskPath);assert.equal(stub.requests.length,count+1);assert.equal(mask.mask,image);
  // maskPath is a MAP_PROPERTY, not PERSIST (DictReader.cpp:706).
  assert.throws(()=>new DictReader({declarations:true}).ReadInto(mask,{maskPath:"res:/test/other-mask.png"}),/Invalid attribute/);

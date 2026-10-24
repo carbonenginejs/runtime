@@ -11,7 +11,7 @@ import { clientResources } from "../support/clientResources.js";
 import "../../npm/dist/sof/index.js"; // data.black hydrates EveSOFData classes.
 import test from "node:test";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { blue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
 import { TriGeometryResSkeletonData } from "../../npm/dist/resource/geometry/TriGeometryResSkeletonData.js";
@@ -85,7 +85,7 @@ async function assets(t)
   assert.equal(createHash("sha256").update(turretBytes).digest("hex"),"dc7be4c9cf75bd167b36f807837488ef04cab90a8c5479f86bbd7e34ae65fdd9");
   const previous=blue.resMan,manager=new StubResMan(),base=manager.GetResource.bind(manager),resources=new Map(),requests=[];
   manager.GetResource=(path,options)=>{
-    if(options?.requirement===ResourceRequirement.GEOMETRY){requests.push(path);return resources.get(path.toLowerCase())??null;}
+    if(/\.(?:gr2|cmf)(?:[?#]|$)/iu.test(path) && !options?.ex){requests.push(path);return resources.get(path.toLowerCase())??null;}
     return base(path,options);
   };
   blue.resMan=manager;t.after(()=>{blue.resMan=previous;});

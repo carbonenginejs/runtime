@@ -3,7 +3,6 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
 import { meta, type, blue as legacyBlue } from "#schema";
-import { ResourceRequirement } from "#resource";
 import { IsMatch, blue, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
@@ -126,7 +125,7 @@ export class Tr2Mesh extends Tr2MeshBase
       return;
     }
 
-    const request = path => blue.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY });
+    const request = path => blue.resMan.GetResource(path);
 
     // Carbon cpp:113-127: when the authored file is NOT there but a
     // <base>_lowdetail<ext> sibling is, take the low-detail one to render with

@@ -3,7 +3,6 @@ import { blue } from "#blue";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { vec4 } from "#math/vec4";
 import { PixelFormat, TextureType } from "#consts/render-context";
-import { ResourceRequirement } from "#resource";
 import { Tr2RenderTarget } from "../../trinity/core/device/Tr2RenderTarget.js";
 import { Tr2Effect } from "../../trinity/shader/Tr2Effect.js";
 import { Tr2EffectStateManager } from "../../trinity/shader/Tr2EffectStateManager.js";
@@ -112,7 +111,7 @@ export class TnyOutlineHelper extends ITr2RenderNode
   {
     await Promise.all(Object.entries(EFFECTS).map(async ([name, path]) =>
     {
-      const resource = blue.resMan.GetResource(Tr2Effect.convertEffectPath(path), { requirement: ResourceRequirement.SHADER });
+      const resource = blue.resMan.GetResource(Tr2Effect.convertEffectPath(path));
       await resource.Ready();
       if (this._destroyed) return;
       const effect = new Tr2Effect();

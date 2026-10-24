@@ -97,7 +97,11 @@ export class Tr2LightProfileRes extends CjsResource
    */
   bitmap = new HostBitmap();
 
-  /** Updates payload in the current resource payload lifecycle. */
+  /**
+   * Carbon: Tr2LightProfileRes::DoLoad (trinity/trinity/Resources/Tr2LightProfileRes.cpp:64-92).
+   * Accepts the DDS bitmap or the IES reader's baked strip. Adapted: configured
+   * readers may run asynchronously before this owning-thread publication step.
+   */
   SetPayload(payload = null)
   {
     if (payload === null)
@@ -115,7 +119,10 @@ export class Tr2LightProfileRes extends CjsResource
       return this;
     }
     assertResourcePayloadObject("Tr2LightProfileRes", payload);
-    this.bitmap = Tr2LightProfileRes.bitmapFromBake(payload);
+    const bitmap = CjsSchema.cast(payload, HostBitmap) || Tr2LightProfileRes.bitmapFromBake(payload);
+    if (!IsCompatibleBitmap(bitmap))
+      throw new Error("Tr2LightProfileRes requires a 1024x1 R16F light profile with 11 mip levels.");
+    this.bitmap = bitmap;
     super.SetPayload(payload);
     return this;
   }
@@ -475,3 +482,5 @@ CjsSchema.decorateMethod(Tr2LightProfileRes, "GetThumbnail", be.mapMethodAndWrap
 CjsSchema.exposure.define("Tr2LightProfileRes")(Tr2LightProfileRes);
 be.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2LightProfileRes);
+// Carbon: Tr2LightProfileRes::ExposeToBlue (trinity/trinity/Resources/Tr2LightProfileRes_Blue.cpp:44).
+CjsSchema.blue.chainTo(CjsResource)(Tr2LightProfileRes);

@@ -73,3 +73,5 @@ CjsSchema.decorateMethod(Tr2RaycastGeometryRes, "_DoPrepare", meta.implemented);
 CjsSchema.decorateField(Tr2RaycastGeometryRes, "lodIndices", type.list("int32_t"));
 CjsSchema.decorateField(Tr2RaycastGeometryRes, "bvh", type.rawStruct("BVH::BoundingVolumeHierarchy"));
 CjsSchema.exposure.define("Tr2RaycastGeometryRes")(Tr2RaycastGeometryRes);
+// Carbon: Tr2RaycastGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:33).
+CjsSchema.blue.chainTo(CjsResource)(Tr2RaycastGeometryRes);

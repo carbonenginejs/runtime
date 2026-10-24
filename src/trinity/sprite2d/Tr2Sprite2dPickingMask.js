@@ -7,7 +7,6 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Hand-maintained from Carbon source, promoted out of generated intake
 // 2026-09-06.
 import { meta, type, blue as legacyBlue } from "#schema";
-import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 
@@ -98,12 +97,10 @@ export class Tr2Sprite2dPickingMask extends IRoot
   }
 
   /**
-   * Carbon SetMaskPath (cpp:23-31): guard the redundant set, clear the mask
-   * and refetch it through the process-wide manager (BeResMan's L"raw"
-   * image fetch is the IMAGE requirement here, through be.resMan as
-   * Tr2TexturedPointLight does). Empty paths retain the existing no-fetch adapter.
+   * Carbon: SetMaskPath (trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask.cpp:23-31).
+   * Guard the redundant set, clear the mask and request the "raw" image suffix.
    *
-   * Adapted: Uses the composed IMAGE resource route, coerces paths to strings and clears
+   * Adapted: Coerces paths to strings and clears
    * empty paths without acquisition.
    *
    * @param {string} path Image resource path.
@@ -118,7 +115,7 @@ export class Tr2Sprite2dPickingMask extends IRoot
     this.mask = null;
     if (!this._maskPath) return;
     this.mask = blue.resMan.GetResource(this._maskPath, {
-      requirement: ResourceRequirement.IMAGE
+      ex: "raw"
     });
   }
 

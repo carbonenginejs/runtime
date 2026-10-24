@@ -206,3 +206,5 @@ CjsSchema.exposure.mapICacheableMethods()(Tr2ImageRes);
 be.define("Tr2ImageRes")(Tr2ImageRes);
 be.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2ImageRes);
+// Carbon: Tr2ImageRes::ExposeToBlue (trinity/trinity/Resources/Tr2ImageRes_Blue.cpp:52).
+CjsSchema.blue.chainTo(CjsResource)(Tr2ImageRes);

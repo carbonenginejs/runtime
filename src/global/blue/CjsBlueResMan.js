@@ -10,6 +10,9 @@ import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { CjsSchema, meta, blue } from "#schema";
 import { IBlueResMan } from "./IBlueResMan.js";
 import { IBlueEvents } from "./IBlueEvents.js";
+import { IRoot } from "./IRoot.js";
+import { IBlueResource } from "./IBlueResource.js";
+import * as CcpLog from "../logging/ccpLog.js";
 import { hasOwnThen } from "#utils/object";
 import {
   getResourceExtension,
@@ -33,8 +36,12 @@ import {
 /** @type {WeakMap<object, CjsResourceReadContext>} */
 const READ_CONTEXTS = new WeakMap();
 
+/** BLUEQIOPT::BEQI_SILENT (BlueTypes.h); avoids the BlueClasses service import cycle. */
+const BEQI_SILENT = 1;
+
 /** Small request fields retained only so a released payload can be rebuilt. */
 const RESOURCE_REQUEST_OPTION_KEYS = [
+  "ex",
   "variant",
   "requirement",
   "payload",
@@ -47,6 +54,7 @@ const RESOURCE_REQUEST_OPTION_KEYS = [
 
 /** Requested-output fields pinned by a bound resource handle. */
 const RESOURCE_OUTPUT_OPTION_KEYS = [
+  "ex",
   "outputStreams",
   "variant",
   "emit",
@@ -1324,12 +1332,17 @@ export class CjsBlueResMan
    *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Promised output, semantic resource, source provenance, and reload settings.
+   * @param {string} [options.ex=""] Carbon factory suffix, appended to the source extension.
+   * @param {Function} [options.iid=IBlueResource] Carbon interface identity, checked after factory selection.
+   * Carbon: BlueResMan::GetResourceW/GetResourceHelper (blue/src/BlueResMan.cpp:143-290).
+   * Adapted: JavaScript constructors represent interface identities; the result is
+   * the resource or null rather than a boolean and an output pointer.
    * Adapted: for an object file (.black/.red, a RegisterObjectBuilder
    * extension) Carbon logs "No factory found for extension" and returns null
    * (BlueResMan.cpp:269-272); ours throws, because an object file through
    * GetResource is always a caller bug.
    *
-   * @returns {CjsResource} Canonical handle, or an off-registry reload candidate.
+   * @returns {CjsResource|null} Canonical handle, reload candidate, or null for an unsupported factory/interface.
    * @throws {TypeError} If the path is an object file, or the path, identity settings, or resource constructor are invalid.
    * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
    */
@@ -1340,11 +1353,16 @@ export class CjsBlueResMan
     // those are LoadObject's, which builds a new object per call. Handing out
     // the cached builder would let a caller hold what every load builds from.
     if (typeof path === "string" && path
+      && !options?.ex
       && this._objectBuilderLoaders.has(this.GetObjectLoader(options?.ext || getResourceExtension(normalizeResourcePath(path)))))
     {
       throw new TypeError(`CjsBlueResMan.GetResource: ${path} is an object file; load it with LoadObject.`);
     }
-    return this._GetResource(path, options);
+    const resource = this._GetResource(path, options);
+    // Carbon: BlueResMan::GetResourceW (blue/src/BlueResMan.cpp:143-163).
+    // The requested interface validates the selected resource; it never selects
+    // another factory or changes MotherLode identity.
+    return resource ? IRoot.prototype.QueryInterface.call(resource, options.iid || IBlueResource, BEQI_SILENT) : null;
   }
 
   /**
@@ -1381,7 +1399,8 @@ export class CjsBlueResMan
     }
     const key = normalizeResourcePath(path);
     const variant = this.GetResourceVariant(options);
-    const ext = normalizeResourceExtension(options.ext || getResourceExtension(key));
+    const ex = options.ex ?? "";
+    const ext = normalizeResourceExtension((options.ext || getResourceExtension(key)) + ex);
     const cacheKey = getMotherLodeKey(key, variant);
     const existing = this.motherLode.Lookup(cacheKey);
     const extensionRoute = existing
@@ -1418,16 +1437,25 @@ export class CjsBlueResMan
     {
       return this._CreateDynamicResource(key, cacheKey);
     }
+    // Carbon: BlueResMan::GetResourceHelper (blue/src/BlueResMan.cpp:248-272).
+    // A suffixed request must name a registered factory. Do not fall back to
+    // the ordinary file reader or construct a generic resource for that suffix.
+    if (ex && !extensionRoute)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"),
+        "BlueResMan::GetResourceW: No factory found for extension (%s, %s)", path, ex);
+      return null;
+    }
     if (!existing && options.reload === true)
     {
       this.InvalidateReadCache(key, { source: options.source || this.source });
     }
 
-    const Constructor = this.ResolveResourceConstructor(options, extensionRoute);
+    const Constructor = ex ? extensionRoute.Handler : this.ResolveResourceConstructor(options, extensionRoute);
     const resource = this.CreateResource(
       Constructor,
       key,
-      "",
+      ex,
       options,
       existing && options.reload === true ? existing : null,
       extensionRoute
@@ -1775,6 +1803,7 @@ export class CjsBlueResMan
   async FetchResource(path, options = {})
   {
     const resource = this.GetResource(path, options);
+    if (!resource) throw new Error(`No resource factory or requested interface for ${path} (${options.ex || ""}).`);
     const readinessOptions = options.reload === true
       ? { ...options, reload: false }
       : options;
@@ -2113,7 +2142,7 @@ export class CjsBlueResMan
     const cacheKey = getMotherLodeKey(normalizedPath, variant);
     const existing = this.motherLode.Lookup(cacheKey);
     const ext = normalizeResourceExtension(
-      options.ext || getResourceExtension(normalizedPath)
+      (options.ext || getResourceExtension(normalizedPath)) + (options.ex ?? "")
     );
     const route = existing
       ? this._resourceExtensionRoutes.get(existing) || null
@@ -3572,6 +3601,19 @@ export class CjsBlueResMan
     {
       throw new TypeError("CjsBlueResMan resource variant options must be an object.");
     }
+    if (Object.hasOwn(options, "ex"))
+    {
+      if (typeof options.ex !== "string" || options.ex.includes("\u0000"))
+        throw new TypeError("CjsBlueResMan ex must be a string without a null character.");
+      for (const name of [ "ext", "variant", "requirement", "payload", "emit", "outputStreams" ])
+      {
+        if (options[name] !== undefined)
+          throw new TypeError(`CjsBlueResMan ex cannot be combined with legacy ${name} selection.`);
+      }
+      // Carbon lowercases the factory key, but retains the supplied suffix in
+      // cache identity (blue/src/BlueResMan.cpp:179-181, 259-264).
+      return options.ex;
+    }
     const streams = getRequestedStreams(options);
     const suffix = streams ? `|streams:${streams}` : "";
     if (Object.hasOwn(options, "variant")
@@ -4398,6 +4440,12 @@ function getResourceRequestOptions(options = {})
   {
     if (options[key] !== undefined) request[key] = options[key];
   }
+  // The omitted suffix is still an identity. Capture it so Ready overrides
+  // cannot turn the ordinary resource into a raw/profile request. Legacy
+  // selectors retain their own identity until their remaining callers migrate.
+  if (options.ext === undefined &&
+    !RESOURCE_REQUEST_OPTION_KEYS.some(key => key !== "ex" && options[key] !== undefined))
+    request.ex = options.ex ?? "";
   return request;
 }
 

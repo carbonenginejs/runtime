@@ -6,7 +6,6 @@ import { ICopierCustomAssignment } from "#blue";
 import { INotify } from "#blue";
 import { IInitialize } from "#blue";
 
-import { ResourceRequirement } from "#resource";
 import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
 import { TriTextureRes } from "#resource/texture";
 import { blue, CjsResource } from "#blue";
@@ -440,7 +439,7 @@ export class TriTextureParameter extends ITriEffectTextureParameter
 
     if (this.resourcePath)
     {
-      const request = path => blue.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE });
+      const request = path => blue.resMan.GetResource(path);
 
       // Carbon cpp:214-228, asking the same service: BePaths->FileExistsLocally
       // is be.paths.FileExistsLocally, which in a browser means "already

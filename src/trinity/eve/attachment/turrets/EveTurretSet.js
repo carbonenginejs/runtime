@@ -43,7 +43,7 @@ import { TriGeometryRes } from "#resource/geometry/TriGeometryRes";
 import { Tr2GrannyAnimation } from "../../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { IsMatch, blue, EnumRegistrationType, ResourceRequirement, CjsBlueClasses } from "#blue";
+import { IsMatch, blue, EnumRegistrationType, CjsBlueClasses } from "#blue";
 import { TriGeometryResSkeletonData } from "#resource/geometry/TriGeometryResSkeletonData";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
@@ -1207,7 +1207,7 @@ export class EveTurretSet extends EveEntity
     this.Cleanup();
     if (this.lodLevel !== EveTurretSet.LOD.LOD_DISABLED && this.lodLevel !== EveTurretSet.LOD.LOD_HIGHEST) return;
     if (!this.geometryResPath) return;
-    const resource = blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+    const resource = blue.resMan.GetResource(this.geometryResPath);
     this.geometryResource = resource;
     if (resource) resource.AddNotifyTarget(this);
   }

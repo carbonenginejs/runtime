@@ -647,3 +647,5 @@ CjsSchema.decorateMethod(Tr2EffectRes, "GetDescription", meta.adapted);
 be.define("Tr2EffectRes")(Tr2EffectRes);
 be.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);
+// Carbon: Tr2EffectRes::ExposeToBlue (trinity/trinity/Resources/Tr2EffectRes_Blue.cpp:87).
+CjsSchema.blue.chainTo(CjsResource)(Tr2EffectRes);

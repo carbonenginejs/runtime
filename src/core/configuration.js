@@ -6,12 +6,16 @@ import { Tr2ImageRes } from "../resource/texture/Tr2ImageRes.js";
 import { TriGeometryRes } from "../resource/geometry/TriGeometryRes.js";
 import { Tr2EffectRes } from "../resource/shader/Tr2EffectRes.js";
 import { ReadImageResource } from "../resource/texture/registerTextureResources.js";
-import { ReadShaderResource } from "../resource/shader/registerShaderResources.js";
+import { CreateShaderResourceLoader } from "../resource/shader/registerShaderResources.js";
 import { CreateBlackObjectBuilder } from "../resource/object/registerObjectResources.js";
 import { SolidColorTextureConstructor } from "../resource/texture/SolidColorTextureConstructor.js";
 import { CjsTextureArrayConstructor } from "../resource/texture/CjsTextureArrayConstructor.js";
 import { CjsTexturePackConstructor } from "../resource/texture/CjsTexturePackConstructor.js";
-import { ResourceRequirement } from "../global/consts/resourceRequirement.js";
+import { CjsIESFormat } from "../resource/formats/ies/CjsIESFormat.js";
+import { Tr2LightProfileRes } from "../resource/Tr2LightProfileRes.js";
+import { TriGrannyRes } from "../resource/geometry/granny/TriGrannyRes.js";
+
+const shaderLoader = CreateShaderResourceLoader();
 
 /**
  * Explicit Trinity resource defaults. Importing this data installs nothing.
@@ -24,11 +28,6 @@ export const DefaultConfiguration = {
     vta: CjsVtaFormat
   },
 
-  resourceTypes: {
-    [ResourceRequirement.TEXTURE]: TriTextureRes,
-    [ResourceRequirement.IMAGE]: Tr2ImageRes
-  },
-
   extensions: {
     dds: TriTextureRes,
     png: TriTextureRes,
@@ -37,6 +36,21 @@ export const DefaultConfiguration = {
     tga: TriTextureRes,
     vta: TriTextureRes,
     gif: TriTextureRes,
+
+    // Native factory suffix: the source remains .dds (Tr2ImageRes_Blue.cpp:16).
+    ddsraw: Tr2ImageRes,
+    pngraw: Tr2ImageRes,
+    jpgraw: Tr2ImageRes,
+    jpegraw: Tr2ImageRes,
+    tgaraw: Tr2ImageRes,
+    vtaraw: Tr2ImageRes,
+    gifraw: Tr2ImageRes,
+
+    // Carbon: Tr2LightProfileRes_Blue.cpp:25-26. No compression policy applies
+    // to these R16F profile strips; the light-profile resource checks the bitmap.
+    ddslp: Tr2LightProfileRes,
+    ieslp: { Handler: Tr2LightProfileRes, Format: CjsIESFormat, defaults: { emit: "lightProfile" } },
+    gr2raw: { Handler: TriGrannyRes, Format: CjsGr2Format, defaults: { emit: "json" } },
 
     sm_hi: Tr2EffectRes,
     sm_lo: Tr2EffectRes,
@@ -66,16 +80,24 @@ export const DefaultConfiguration = {
     tga: ReadImageResource,
     vta: ReadImageResource,
     gif: ReadImageResource,
+    ddsraw: ReadImageResource,
+    pngraw: ReadImageResource,
+    jpgraw: ReadImageResource,
+    jpegraw: ReadImageResource,
+    tgaraw: ReadImageResource,
+    vtaraw: ReadImageResource,
+    gifraw: ReadImageResource,
+    ddslp: ReadImageResource,
 
-    sm_hi: ReadShaderResource,
-    sm_lo: ReadShaderResource,
-    sm_depth: ReadShaderResource,
-    sm_3_0_hi: ReadShaderResource,
-    sm_3_0_lo: ReadShaderResource,
-    sm_3_0_depth: ReadShaderResource,
-    sm_2_0_hi: ReadShaderResource,
-    sm_2_0_lo: ReadShaderResource,
-    sm_1_1: ReadShaderResource
+    sm_hi: shaderLoader,
+    sm_lo: shaderLoader,
+    sm_depth: shaderLoader,
+    sm_3_0_hi: shaderLoader,
+    sm_3_0_lo: shaderLoader,
+    sm_3_0_depth: shaderLoader,
+    sm_2_0_hi: shaderLoader,
+    sm_2_0_lo: shaderLoader,
+    sm_1_1: shaderLoader
   },
 
   objectBuilders: {

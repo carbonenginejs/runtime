@@ -13,7 +13,7 @@ import { VisualizeMethod, VisibilityQueryType, Tr2InteriorBatchGroup } from "../
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
 import { CjsSchema, meta, type } from "#schema";
-import { blue, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
+import { blue, IInitialize, INotify, IsMatch } from "#blue";
 import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
 import { Tr2DepthStencil } from "../../../trinity/core/device/Tr2DepthStencil.js";
@@ -721,7 +721,7 @@ export class Tr2InteriorScene
   Initialize()
   {
     this.SetBackgroundCubemapResPath();
-    this._whiteTexture = blue.resMan.GetResource("res:/texture/global/white.dds", { requirement: ResourceRequirement.TEXTURE });
+    this._whiteTexture = blue.resMan.GetResource("res:/texture/global/white.dds");
     const store = Tr2VariableStore.globalStore();
     for (let i = 0; i < 4; i++) store.FindVariable(`SpotlightShadow${i}`).SetValue(this._whiteTexture);
     return true;
@@ -752,7 +752,7 @@ export class Tr2InteriorScene
     this.backgroundCubemapRes = null;
     if (this.backgroundCubemapPath)
     {
-      this.backgroundCubemapRes = resMan.GetResource(this.backgroundCubemapPath, { requirement: ResourceRequirement.TEXTURE });
+      this.backgroundCubemapRes = resMan.GetResource(this.backgroundCubemapPath);
     }
   }
 

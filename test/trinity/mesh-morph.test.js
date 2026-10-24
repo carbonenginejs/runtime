@@ -157,7 +157,7 @@ test("a mesh res path loads its geometry through the resource manager", async ()
   const requested = [];
   const geometry = CreateGeometry([ "Smile" ]);
   // The slot names the contract, not CjsBlueResMan, so the spy IS the manager.
-  composeStubResMan((path, options) => { requested.push([ path, options?.requirement ]); return geometry; });
+  composeStubResMan((path, options) => { requested.push([ path, options?.ex ]); return geometry; });
   try
   {
     const mesh = new Tr2Mesh();

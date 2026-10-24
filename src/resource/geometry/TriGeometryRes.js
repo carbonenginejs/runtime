@@ -1645,3 +1645,5 @@ CjsSchema.decorateMethod(TriGeometryRes, "SaveMesh", be.mapMethodAndWrap(), meta
 be.define("TriGeometryRes")(TriGeometryRes);
 be.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriGeometryRes);
+// Carbon: TriGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:175).
+CjsSchema.blue.chainTo(CjsResource)(TriGeometryRes);

@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { box3 } from "#math/box3";
 import { CjsSchema, meta, type } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
-import { TriGeometryRes, ResourceRequirement } from "#resource";
+import { TriGeometryRes } from "#resource";
 import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Mesh } from "./Tr2Mesh.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -115,7 +115,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   {
     if (!this.deferGeometryLoad && this.instanceGeometryResPath)
     {
-      this._loadedGeometryResource = blue.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+      this._loadedGeometryResource = blue.resMan.GetResource(this.instanceGeometryResPath);
     }
     return super.Initialize();
   }
@@ -224,7 +224,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
       if (!this.deferGeometryLoad)
       {
         this.SetInstanceGeometryRes(this.instanceGeometryResPath
-          ? blue.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+          ? blue.resMan.GetResource(this.instanceGeometryResPath)
           : null);
       }
     }

@@ -12,7 +12,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
-import { blue, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
+import { blue, IInitialize, INotify, IsMatch } from "#blue";
 import { CcpTime } from "../../../global/blue/CcpTime.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriBatchType } from "#consts/graphics";
@@ -263,7 +263,7 @@ export class EveSpherePin
   {
     this._tree = null;
     this._geometryResource = this.geometryResPath
-      ? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+      ? blue.resMan.GetResource(this.geometryResPath)
       : null;
   }
 
@@ -333,7 +333,7 @@ export class EveSpherePin
     if (!this._tree && this.geometryResPath)
     {
       const geometry = this._geometryResource
-        ?? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+        ?? blue.resMan.GetResource(this.geometryResPath);
       if (geometry)
       {
         let tree = treeMap.get(geometry);

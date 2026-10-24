@@ -8,7 +8,6 @@ import { meta, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, ShaderType, Tr2GpuUsage } from "#consts/render-context";
 import { Failed, Tr2BitmapDimensions, Tr2ConstantBufferAL } from "#trinityal";
-import { ResourceRequirement } from "#resource";
 import { SSAOQuality } from "../generated/trinityCore/enums.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { PER_OBJECT_VS, Tr2Renderer } from "../core/Tr2Renderer.js";
@@ -216,7 +215,7 @@ export class Tr2SSAO extends IRoot
       this._cortaoBlurEffect = new Tr2Effect();
       this._cortaoBlurEffect.SetEffectPathName(CORTAO_BLUR_EFFECT_PATH);
 
-      this._cortaoLookupTable = blue.resMan.GetResource(CORTAO_LOOKUP_TABLE_PATH, { requirement: ResourceRequirement.TEXTURE });
+      this._cortaoLookupTable = blue.resMan.GetResource(CORTAO_LOOKUP_TABLE_PATH);
 
       this._cortaoInitialized = true;
     }

@@ -5,6 +5,7 @@ import {
 import { CjsSchema, meta, type } from "#schema";
 import { CjsFormatRoute } from "./CjsFormatStore.js";
 import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
+import { IBlueResource } from "./IBlueResource.js";
 
 /**
  * Deterministic activity values accepted by resource-facing lease methods.
@@ -1156,6 +1157,12 @@ CjsSchema.meta.define(CjsResource, {
     DestroyAdapterResources: []
   }
 });
+
+// Carbon: BlueAsyncRes maps IBlueResource (blue/src/BlueAsyncRes_Blue.cpp:10-11).
+// Composition retains our event/lifecycle implementation while exposing the
+// native interface to Blue's explicit QueryInterface table.
+CjsSchema.blue.inherit(IBlueResource)(CjsResource, { kind: "class" });
+CjsSchema.blue.interface(IBlueResource)(CjsResource);
 
 /**
  * Release one adapter value, whatever it calls its teardown.

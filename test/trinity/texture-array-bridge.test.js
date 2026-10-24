@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Tr2Effect, TriTextureParameter } from "../../npm/dist/trinity/shader/index.js";
-import { ResourceRequirement, ShaderStageType } from "../../npm/dist/resource/index.js";
+import { ShaderStageType } from "../../npm/dist/resource/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 
 // A browser container merges Detail1Map..Detail3Map into the register of the
@@ -76,7 +76,7 @@ test("a merged register binds the array made from its members' paths", () =>
 
     const [ request ] = dynamicRequests(stub);
     assert.equal(request.path, "dynamic:/texturearray/res:/a.dds;res:/b.dds;res:/c.dds");
-    assert.equal(request.options.requirement, ResourceRequirement.TEXTURE);
+    assert.equal(request.options, undefined);
     assert.equal(bound.register, 5);
     // Not prepared: an empty AL binding selects the backend fallback.
     assert.equal(bound.resource, null);

@@ -1,7 +1,7 @@
 import { CjsSchema } from "#schema/CjsSchema";
 
 // Not Carbon: `dynamic:/texturearray` is ours.
-import { IBlueDynamicResourceConstructor, ResourceRequirement } from "#blue";
+import { IBlueDynamicResourceConstructor } from "#blue";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2TexturePipeline } from "./Tr2TexturePipeline.js";
 import { Tr2TexturePipelineStepGenerateMips } from "./Tr2TexturePipelineStepGenerateMips.js";
@@ -76,7 +76,7 @@ export class CjsTextureArrayConstructor extends IBlueDynamicResourceConstructor
     // The named material parameters already request these paths as textures.
     // Their CPU bitmaps are also pipeline inputs; requesting raw images here
     // created a second cache identity and repeated each layer's fetch/decode.
-    texture.LoadPipeline(pipeline, this._resourceManager, ResourceRequirement.TEXTURE);
+    texture.LoadPipeline(pipeline, this._resourceManager, "");
     return texture;
   }
 

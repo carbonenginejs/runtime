@@ -2,7 +2,7 @@ import { createDdsBitmap } from "../../npm/dist/resource/texture/ddsBitmap.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Worker } from "node:worker_threads";
-import { CjsBlueResMan, CjsResManWorkerLoader, CjsResManQueue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
+import { CjsBlueResMan, CjsResManWorkerLoader, CjsResManQueue } from "../../npm/dist/global/blue/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
@@ -117,7 +117,7 @@ test("DDS texture and image routes execute in the worker", async t =>
   const manager = new CjsBlueResMan({workerLoader:loader,source:{Read:()=>ddsBytes()}});
   RegisterTextureResources(manager);
   const texture = await manager.FetchResource("res:/test.dds");
-  const image = await manager.FetchResource("res:/test.dds", {requirement:ResourceRequirement.IMAGE});
+  const image = await manager.FetchResource("res:/test.dds", {ex:"raw"});
   assert.ok(CjsSchema.cast(texture,TriTextureRes));
   assert.ok(CjsSchema.cast(image,Tr2ImageRes));
   assert.ok(messages.some(x=>x.operation === "format.read"));
@@ -136,7 +136,7 @@ test("detail arrays and named texture parameters fetch and decode each cached DD
     RegisterTextureArray(manager);
     const paths = [ "res:/detail1.dds", "res:/detail2.dds", "res:/detail3.dds" ];
     const start = messages.length;
-    const parameters = () => Promise.all(paths.map(path => manager.FetchResource(path, { requirement: ResourceRequirement.TEXTURE })));
+    const parameters = () => Promise.all(paths.map(path => manager.FetchResource(path)));
     const array = () => manager.GetResource("dynamic:/texturearray/" + paths.join(";")).Ready();
     if (order === "parameters-first") { await parameters(); await array(); }
     else if (order === "array-first") { await array(); await parameters(); }
@@ -147,8 +147,8 @@ test("detail arrays and named texture parameters fetch and decode each cached DD
     assert.equal(messages.slice(start).filter(x => x.operation === "format.read").length, 3, order);
     for (const path of paths)
     {
-      assert.equal(manager.Lookup(path, { requirement: ResourceRequirement.IMAGE }), null, "no duplicate raw-image owner");
-      assert.equal(manager.Lookup(path, { requirement: ResourceRequirement.TEXTURE }).GetBitmap().GetRawData()[0], 73, "array conversion does not mutate its inputs");
+      assert.equal(manager.Lookup(path, { ex: "raw" }), null, "no duplicate raw-image owner");
+      assert.equal(manager.Lookup(path).GetBitmap().GetRawData()[0], 73, "array conversion does not mutate its inputs");
     }
     manager.Clear();
   }
@@ -164,7 +164,7 @@ test("DDS loader honors the selected source and explicit shared decode policy", 
   const options = { source, cacheSource: true, cacheFormat: true };
   const [ texture, image ] = await Promise.all([
     manager.FetchResource("res:/shared.dds", options),
-    manager.FetchResource("res:/shared.dds", { ...options, requirement: ResourceRequirement.IMAGE })
+    manager.FetchResource("res:/shared.dds", { ...options, ex: "raw" })
   ]);
   assert.equal(reads, 1);
   assert.equal(messages.filter(x => x.operation === "format.read").length, 1);

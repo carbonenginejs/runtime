@@ -5,7 +5,6 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { color } from "#math/color";
 import { meta, type, blue as legacyBlue } from "#schema";
-import { ResourceRequirement } from "#resource";
 import { IsMatch, blue, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { Tr2LightFlags } from "#consts/graphics";
@@ -296,10 +295,9 @@ export class Tr2Light
   }
 
   /**
-   * Carbon's shared body for both call sites: an empty path clears the
-   * profile, otherwise the manager supplies it - `BeResMan->GetResource(
-   * m_lightProfilePath, L"lp", profile )`, where the extension is its own
-   * argument and the requested TYPE is deduced from the destination.
+   * Carbon: Initialize / OnModified (trinity/trinity/Lights/Tr2Light.cpp:165-188).
+   * Shared request body: an empty path clears the profile, otherwise the "lp"
+   * request suffix selects the light-profile factory for the original file.
    */
   _ResolveLightProfile()
   {
@@ -309,8 +307,7 @@ export class Tr2Light
       return;
     }
     this.lightProfile = blue.resMan.GetResource(this.lightProfilePath, {
-      ext: "lp",
-      requirement: ResourceRequirement.LIGHT_PROFILE
+      ex: "lp"
     });
   }
 

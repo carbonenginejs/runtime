@@ -4,7 +4,6 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Lights/Tr2TexturedPointLight_Blue.cpp
 import { IsMatch, IInitialize, INotify } from "#blue";
 import { meta, type } from "#schema";
-import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { color } from "#math/color";
 import { Tr2Light } from "./Tr2Light.js";
@@ -116,9 +115,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   {
     this.texture = null;
     if (!path) return;
-    this.texture = blue.resMan.GetResource(path, {
-      requirement: ResourceRequirement.TEXTURE
-    });
+    this.texture = blue.resMan.GetResource(path);
   }
 
   /**

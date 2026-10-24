@@ -4,7 +4,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet_Blue.cpp
 // Hand-maintained after promotion from generated intake.
 import { meta, type } from "#schema";
-import { blue, IInitialize, IsMatch, ResourceRequirement } from "#blue";
+import { blue, IInitialize, IsMatch } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage, Topology } from "#consts/render-context";
 import { decodeTangentFrame } from "#math/tangent";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
@@ -39,7 +39,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   @type.boolean
   renderSolid = false;
 
-  /** The GEOMETRY route supplies TriGeometryRes in JS, replacing the raw SDK handle. */
+  /** The ordinary geometry factory supplies TriGeometryRes, replacing the raw SDK handle. */
   @be.mapAttribute(be.READ)
   @type.object.ref("TriGeometryRes")
   grannyRes = null;
@@ -90,9 +90,11 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /**
-   * Uses the existing typed geometry route and persistent resource events in
-   * place of Blue notify targets (cpp:214-237). A pending nonempty replacement
-   * retains the old primitive buffers until it succeeds, as native does.
+   * Carbon: SetGrannyResource (trinity/trinity/Tr2GrannyPrimitiveSet.cpp:214-237).
+   * Adapted: Requests ordinary TriGeometryRes rather than Carbon's "raw" suffix;
+   * this implementation reads its decoded mesh channels rather than SDK handles.
+   * A pending nonempty replacement retains the old primitive buffers until it
+   * succeeds, as native does.
    */
 
   @meta.adapted
@@ -106,7 +108,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
       this.ReleaseCachedData(null);
       return;
     }
-    const resource = blue.resMan.GetResource(this.grannyResPath, { requirement: ResourceRequirement.GEOMETRY });
+    const resource = blue.resMan.GetResource(this.grannyResPath);
     this.grannyRes = resource;
     // Carbon registers a notify target here; a resource that has already
     // finished calls RebuildCachedData at once.

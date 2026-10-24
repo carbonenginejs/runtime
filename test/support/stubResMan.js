@@ -1,20 +1,31 @@
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { getResourceExtension, normalizeResourcePath } from "../../npm/dist/global/utils/path.js";
 import {
-  CjsAudioRes, CjsResource, ResourceRequirement, Tr2EffectRes,
-  Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriTextureRes
+  CjsAudioRes, CjsResource, Tr2EffectRes, Tr2ImageRes,
+  Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes,
+  ShaderResourceExtensions
 } from "../../npm/dist/resource/index.js";
 
-// A real manager answers with the class the route asks for, and callers check:
-// Tr2Effect refuses anything that is not a Tr2EffectRes. So the stub resolves
-// the same way, from the requirement the caller passed.
-const RESOURCE_BY_REQUIREMENT = new Map([
-  [ ResourceRequirement.SHADER, Tr2EffectRes ],
-  [ ResourceRequirement.GEOMETRY, TriGeometryRes ],
-  [ ResourceRequirement.TEXTURE, TriTextureRes ],
-  [ ResourceRequirement.IMAGE, TriTextureRes ],
-  [ ResourceRequirement.LIGHT_PROFILE, Tr2LightProfileRes ],
-  [ ResourceRequirement.GRANNY_STATE, Tr2GrannyStateRes ],
-  [ ResourceRequirement.AUDIO, CjsAudioRes ]
+// Carbon: GetResourceHelper (blue/src/BlueResMan.cpp:249-278).
+// The source extension plus request suffix selects the class. Unknown keys
+// have no factory; the stub must not hide missing registrations with a base res.
+const RESOURCE_BY_EXTENSION = new Map([
+  ...["dds", "png", "sdd", "tga", "jpg", "jpeg", "bmp", "ecs", "ctr", "vta", "gif"].map(key => [key, TriTextureRes]),
+  ...ShaderResourceExtensions.map(key => [key, Tr2EffectRes]),
+  [ "gr2", TriGeometryRes ],
+  [ "cmf", TriGeometryRes ],
+  [ "pngraw", Tr2ImageRes ],
+  [ "ddsraw", Tr2ImageRes ],
+  [ "sddraw", Tr2ImageRes ],
+  [ "tgaraw", Tr2ImageRes ],
+  [ "ddslp", Tr2LightProfileRes ],
+  [ "ieslp", Tr2LightProfileRes ],
+  [ "gr2raw", TriGrannyRes ],
+  [ "cmfraw", TriGrannyRes ],
+  [ "gsfraw", Tr2GrannyStateRes ],
+  [ "wem", CjsAudioRes ],
+  [ "ogg", CjsAudioRes ],
+  [ "wav", CjsAudioRes ]
 ]);
 
 // WHY THIS EXISTS. `be.resMan` used to be `CjsBlueResMan.GetGlobal()`, a static
@@ -45,21 +56,27 @@ export class StubResMan extends IBlueResMan
     this.resources = new Map();
   }
 
-  /** One resource per path, of the class the requirement names, as a manager's cache gives you. */
+  /** One resource per path and suffix, selected by the registered factory key. */
   #resourceFor(path, options)
   {
-    let resource = this.resources.get(path);
+    const ex = options?.ex ?? "";
+    const normalizedPath = normalizeResourcePath(path);
+    const key = ex ? `${normalizedPath}\0${ex}` : normalizedPath;
+    let resource = this.resources.get(key);
     if (!resource)
     {
-      const Resource = RESOURCE_BY_REQUIREMENT.get(options?.requirement) || CjsResource;
+      const extension = getResourceExtension(normalizedPath);
+      const dynamicTexture = /^dynamic:\/(?:color|texturearray|texturepack)\//u.test(normalizedPath);
+      const Resource = dynamicTexture && !ex ? TriTextureRes : RESOURCE_BY_EXTENSION.get((extension + ex).toLowerCase());
+      if (!Resource) return null;
       resource = new Resource();
-      resource.Initialize(path, options?.ext ?? null);
+      resource.Initialize(normalizedPath, ex);
       // A test manager has no pipeline behind it, so a caller that asks the
       // resource for its object must not start a real load. Carbon's manager
       // always has one; this one answers nothing rather than throwing about a
       // loader the test never configured.
       resource.SetObjectLoader(() => null);
-      this.resources.set(path, resource);
+      this.resources.set(key, resource);
     }
     return resource;
   }
@@ -84,7 +101,17 @@ export class StubResMan extends IBlueResMan
   {
     this.requests.push({ path, load: true });
     if (this.resolve) return this.resolve(path, { load: true });
-    return this.#resourceFor(path, null);
+    // Preserve the stub's object-loading fixture independently of the factory
+    // table: LoadObject callers can supply their graph through the resolver.
+    let resource = this.resources.get(path);
+    if (!resource)
+    {
+      resource = new CjsResource();
+      resource.Initialize(path);
+      resource.SetObjectLoader(() => null);
+      this.resources.set(path, resource);
+    }
+    return resource;
   }
 }
 

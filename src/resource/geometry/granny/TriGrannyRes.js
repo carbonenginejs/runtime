@@ -1162,3 +1162,5 @@ CjsSchema.decorateMethod(TriGrannyRes, "_GetValidMesh", meta.cjs, meta.adapted);
 CjsSchema.exposure.define("TriGrannyRes")(TriGrannyRes);
 be.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriGrannyRes);
+// Carbon: TriGrannyRes::ExposeToBlue (trinity/trinity/Resources/TriGrannyRes_Blue.cpp:173).
+CjsSchema.blue.chainTo(CjsResource)(TriGrannyRes);

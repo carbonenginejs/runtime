@@ -6,7 +6,6 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue as legacyBlue } from "#schema";
-import { ResourceRequirement } from "#resource";
 import { IsMatch, blue } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
@@ -325,10 +324,9 @@ export class EveSmartLightPointLight extends EveEntity
   }
 
   /**
-   * Carbon's body for both call sites: an empty path clears the profile,
-   * otherwise the manager supplies it - `BeResMan->GetResource(
-   * m_lightProfilePath, L"lp", profile )`, the extension being its own
-   * argument and the requested type deduced from the destination.
+   * Carbon: Initialize / OnModified (trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.cpp:18-40).
+   * Shared request body: an empty path clears the profile, otherwise the "lp"
+   * request suffix selects the light-profile factory for the original file.
    */
   _ResolveLightProfile()
   {
@@ -338,8 +336,7 @@ export class EveSmartLightPointLight extends EveEntity
       return;
     }
     this.lightProfile = blue.resMan.GetResource(this.lightProfilePath, {
-      ext: "lp",
-      requirement: ResourceRequirement.LIGHT_PROFILE
+      ex: "lp"
     });
   }
 

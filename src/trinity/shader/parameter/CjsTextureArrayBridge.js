@@ -9,7 +9,7 @@ import { CjsSchema } from "#schema";
 // stands in the merged register's slot: it reads the members' current paths
 // and binds the one texture made from them.
 import { Tr2ColorSpace } from "#consts/render-context";
-import { ResourceRequirement, TextureArrayPrefix, TexturePackPrefix } from "#resource";
+import { TextureArrayPrefix, TexturePackPrefix } from "#resource";
 import { blue } from "#blue";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
@@ -79,7 +79,7 @@ export class CjsTextureArrayBridge
     if (path !== this._path)
     {
       this._path = path;
-      this._resource = path ? blue.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE }) : null;
+      this._resource = path ? blue.resMan.GetResource(path) : null;
       // Told once when it finishes; the resource then releases the target.
       if (this._resource && !this._resource.HasCompleted()) this._resource.AddNotifyTarget(this._completionTarget);
     }

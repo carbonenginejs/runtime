@@ -208,7 +208,7 @@ export class TriTextureRes extends CjsResource
    * (`TriTextureRes.cpp:238-258` then `ResourcePrepFinished`, `:296-340`).
    *
    * By default every path the pipeline names is a raw `Tr2ImageRes` (Carbon asks
-   * for the `"raw"` requirement; ours is `ResourceRequirement.IMAGE`), the
+   * with the `"raw"` suffix), the
    * pipeline runs once they have all settled, and the result becomes this
    * texture's bitmap. An input that failed to load reaches the pipeline as
    * null, exactly as Carbon passes it, so the step that needed it fails.
@@ -231,28 +231,28 @@ export class TriTextureRes extends CjsResource
    *
    * @param {import("./Tr2TexturePipeline.js").Tr2TexturePipeline} pipeline The recipe.
    * @param {object} resourceManager The `CjsBlueResMan` that loads its inputs.
-   * @param {string} [requirement=ResourceRequirement.IMAGE] Input resource kind. The
-   * WebGPU detail-array extension uses TEXTURE to reuse its named parameters'
+   * @param {string} [ex="raw"] Carbon resource suffix. The
+   * WebGPU detail-array extension uses the empty suffix to reuse its named parameters'
    * already decoded bitmaps; Carbon's raw-image pipeline remains the default.
    * @returns {Promise<boolean>} Whether the pipeline produced a bitmap.
    */
-  async LoadPipeline(pipeline, resourceManager, requirement = ResourceRequirement.IMAGE) {
+  async LoadPipeline(pipeline, resourceManager, ex = "raw") {
     this.MarkLoading();
 
     const images = new Map();
 
     for (const path of pipeline.GetResourceDependencies()) {
-      images.set(path, resourceManager.GetResource(path, { requirement }));
+      images.set(path, resourceManager.GetResource(path, { ex }));
     }
 
     // Carbon's m_pipelineFence: wait for every input, whatever became of it.
-    await Promise.allSettled([ ...images.values() ].map(image => image.Ready()));
+    await Promise.allSettled([ ...images.values() ].filter(Boolean).map(image => image.Ready()));
 
     // Carbon: it->second && it->second->IsGood() ? &it->second->GetBitmap() : nullptr
     const inputs = new Map();
 
     for (const [ path, image ] of images) {
-      inputs.set(path, image.IsGood() ? image.GetBitmap() : null);
+      inputs.set(path, image?.IsGood() ? image.GetBitmap() : null);
     }
 
     const result = new HostBitmap();
@@ -931,5 +931,7 @@ CjsSchema.decorateMethod(TriTextureRes, "ReleasePayload", meta.adapted);
 be.define("TriTextureRes")(TriTextureRes);
 be.inherit(ICacheable)(TriTextureRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(TriTextureRes);
+// Carbon: TriTextureRes::ExposeToBlue (trinity/trinity/Resources/TriTextureRes_Blue.cpp:318).
+CjsSchema.blue.chainTo(CjsResource)(TriTextureRes);
 // Carbon maps these in TriTextureRes_Blue.cpp:227-229 although BlueAsyncRes (CjsResource) declares them.
 be.mapMethodAndWrap([ "IsPrepared", "IsLoading", "IsGood" ])(TriTextureRes);
