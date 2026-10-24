@@ -21,15 +21,15 @@ export const PaperDollLayer = Object.freeze({
     SCARRING: 50,
     FRECKLES: 60,
     BLUSH: 70,
-    /** Before every garment; its place among the makeup is unconfirmed. */
-    AUGMENTATIONS: 80,
-    /** Body augmentations: before every garment. */
-    BODYAUGMENTATION: 82,
-    ARMLEFT: 84,
-    ARMRIGHT: 86,
     EYESHADOW: 90,
     EYELINER: 100,
     LIPSTICK: 110,
+    /** Over the lipstick (operator, in game) and before every garment; its place against the scars is unconfirmed. */
+    AUGMENTATIONS: 112,
+    /** Body augmentations: with the face ones, before every garment. */
+    BODYAUGMENTATION: 114,
+    ARMLEFT: 116,
+    ARMRIGHT: 118,
     SCARS: 120,
     /** Body: over the skin and its freckles; the bra goes over the underpants. */
     BOTTOMUNDERWEAR: 130,

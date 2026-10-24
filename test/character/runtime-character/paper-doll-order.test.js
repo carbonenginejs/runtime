@@ -41,9 +41,9 @@ test("every collected part declares the passes it feeds", () =>
 test("the head pass composes its parts in bake order and hands that order to the binding", () =>
 {
     const doll = Doll();
-    const head = [ "tattoo", "eyebrows", "freckles", "blush", "augmentations", "eyeshadow", "eyeliner", "lipstick", "scars" ];
+    const head = [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "eyeliner", "lipstick", "augmentations", "scars" ];
     assert.deepEqual(doll.GetLayerOrder(PaperDollPass.HEAD), head);
-    assert.deepEqual(doll.GetLayerOrder(PaperDollPass.SURFACE), [ "aging", "scarring", "augmentations", "bodyAugmentation", "armLeft", "armRight", "lipstick", "scars", "bottomUnderwear", "topUnderwear" ]);
+    assert.deepEqual(doll.GetLayerOrder(PaperDollPass.SURFACE), [ "aging", "scarring", "lipstick", "augmentations", "bodyAugmentation", "armLeft", "armRight", "scars", "bottomUnderwear", "topUnderwear" ]);
 
     const bindings = Bindings();
     doll.Update(bindings);
@@ -61,12 +61,12 @@ test("a layer override reorders and rebuilds only the passes the part feeds, and
 
     doll.SetLayer("blush", PaperDollLayer.TATTOO - 1);
     assert.equal(doll.Update(bindings), true);
-    assert.deepEqual(bindings.heads.at(-1).order, [ "blush", "tattoo", "eyebrows", "freckles", "augmentations", "eyeshadow", "eyeliner", "lipstick", "scars" ]);
+    assert.deepEqual(bindings.heads.at(-1).order, [ "blush", "tattoo", "eyebrows", "freckles", "eyeshadow", "eyeliner", "lipstick", "augmentations", "scars" ]);
     assert.equal(bindings.surfaces.length, 0, "blush feeds only the head pass");
 
     doll.ResetLayers();
     doll.Update(bindings);
     assert.equal(doll.GetLayer("blush"), PaperDollLayer.BLUSH);
-    assert.deepEqual(bindings.heads.at(-1).order, [ "tattoo", "eyebrows", "freckles", "blush", "augmentations", "eyeshadow", "eyeliner", "lipstick", "scars" ]);
+    assert.deepEqual(bindings.heads.at(-1).order, [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "eyeliner", "lipstick", "augmentations", "scars" ]);
     assert.throws(() => doll.SetLayer("blush", NaN), RangeError);
 });

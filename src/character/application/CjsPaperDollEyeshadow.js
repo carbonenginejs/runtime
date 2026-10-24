@@ -4,11 +4,14 @@ import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
 import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
 /**
- * Application-owned eye shadow settings: the style, its palette, custom
- * colours and opacity. A colourised head layer; edits invalidate the doll's
- * head pass.
+ * Application-owned eye shadow settings: the style, two independent swatch
+ * picks, custom colours and opacity. A colourised head layer; edits invalidate
+ * the doll's head pass.
  *
- * The colour slots are this component's own properties, offered by
+ * As in the game's creator, Colour and Secondary colour are separate picks:
+ * `palette` is an A swatch (`<name>_a.color`), which supplies colour area 1,
+ * and `secondaryPalette` a BC swatch (`<name>_bc.color`), which supplies areas
+ * 2 and 3. The colour slots are this component's own properties, offered by
  * `GetControls` only as the selected style's zone map uses them.
  */
 @meta.define("CjsPaperDollEyeshadow")
@@ -21,6 +24,7 @@ export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
     _itemClasses = new Map([ "", "1", "2", "3", "1,2", "1,3", "2,3", "1,2,3" ].map(key => [ key, CjsPaperDollItem ]));
     _weight = 1;
     _defaultWeight = 1;
+    _secondary = "";
 
     @meta.property()
     @type.boolean
@@ -32,7 +36,13 @@ export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
     @type.string
     @meta.ui.description("Style")
     get option() { return super.option; }
-    set option(value) { super.option = value; }
+    set option(value)
+    {
+        super.option = value;
+        // A style chosen before any secondary pick starts from its default secondary swatch.
+        const fallback = this._options.get(this._option)?.defaultSecondaryPalette;
+        if (!this._secondary && fallback) { this._secondary = fallback; this._ApplySecondary(); }
+    }
 
     @meta.property()
     @type.float32
@@ -47,9 +57,44 @@ export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
 
     @meta.property()
     @type.string
-    @meta.ui.description("Palette")
+    @meta.ui.description("Colour")
     get palette() { return super.palette; }
     set palette(value) { super.palette = value; }
+
+    @meta.property()
+    @type.string
+    @meta.ui.description("Secondary colour")
+    get secondaryPalette() { return this._secondary; }
+    set secondaryPalette(value)
+    {
+        if (value !== "" && !this._palettes.has(value)) throw new RangeError("Unknown secondary swatch");
+        this._secondary = value;
+        this._ApplySecondary();
+        this._custom = false;
+        this.Rebuild();
+    }
+
+    /** The selected style's secondary swatches. */
+    GetSecondaryPalettes() { return [...(this._options.get(this._option)?.secondaryPalettes ?? [])]; }
+
+    /** Sets the primary swatch's colours, then the secondary swatch's over areas 2 and 3. */
+    _SetPreset(id)
+    {
+        super._SetPreset(id);
+        this._ApplySecondary();
+    }
+
+    /** Copies the secondary swatch's colours into areas 2 and 3 of the preset. */
+    _ApplySecondary()
+    {
+        if (!this._secondary) return;
+        const colors = this._palettes.get(this._secondary);
+        for (const index of [ 1, 2 ])
+        {
+            this._preset[index].set(colors[index]);
+            if (!this._initialized) this._colors[index].set(this._preset[index]);
+        }
+    }
 
     @meta.property()
     @type.boolean
@@ -59,19 +104,19 @@ export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
 
     @meta.property()
     @type.color
-    @meta.ui.description("Colour")
+    @meta.ui.description("Custom colour")
     get color1() { return this.GetColors()[0]; }
     set color1(value) { this.SetColor(0, value); }
 
     @meta.property()
     @type.color
-    @meta.ui.description("Secondary colour")
+    @meta.ui.description("Custom secondary colour")
     get color2() { return this.GetColors()[1]; }
     set color2(value) { this.SetColor(1, value); }
 
     @meta.property()
     @type.color
-    @meta.ui.description("Third colour")
+    @meta.ui.description("Custom third colour")
     get color3() { return this.GetColors()[2]; }
     set color3(value) { this.SetColor(2, value); }
 
@@ -92,19 +137,19 @@ export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
         return state;
     }
 
-    /** The palette, the custom switch and the colour slots the selected style's zone map uses. */
+    /** The two swatch picks, the custom switch and the colour slots the selected style's zone map uses. */
     GetControls()
     {
         const areas = this.GetColorAreas();
         if (!areas.length) return [];
 
-        const order = [ "palette", "customColors", "color1", "color2", "color3" ];
+        const order = [ "palette", "secondaryPalette", "customColors", "color1", "color2", "color3" ];
         return CjsSchema.getSchema(this.constructor).properties
             .filter(property => order.includes(property.key))
             .filter(property => !/^color\d$/.test(property.key) || areas.includes(Number(property.key.slice(5))))
             .sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
     }
 
-    /** Restores the default style, palette and opacity. */
-    Reset() { super.Reset(); this.weight = this._defaultWeight; }
+    /** Restores the default style, swatches and opacity. */
+    Reset() { this._secondary = ""; super.Reset(); this.weight = this._defaultWeight; }
 }
