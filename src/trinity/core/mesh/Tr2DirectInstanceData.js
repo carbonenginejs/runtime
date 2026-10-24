@@ -22,6 +22,8 @@ import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
  */
 @be.define("Tr2DirectInstanceData")
 @be.inherit(ITr2InstanceData)
+// Carbon: MAP_INTERFACE( ITr2InstanceData ) (Tr2DirectInstanceData_Blue.cpp:12).
+@be.mapInterface(ITr2InstanceData)
 export class Tr2DirectInstanceData
 {
 

@@ -10,7 +10,8 @@ import { ray3 } from "#math/ray3";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsResource, ICacheable } from "#blue";
+import { CjsResource, ICacheable, IBlueResource } from "#blue";
+import { ITr2InstanceData } from "../../core/mesh/ITr2InstanceData/ITr2InstanceData.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
 import { CjsGr2Format } from "../../../resource/formats/gr2/index.js";
@@ -1643,7 +1644,11 @@ CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceBufferVertexDeclaration", m
 CjsSchema.decorateMethod(TriGeometryRes, "GetInstanceBufferBoundingBox", meta.adapted);
 CjsSchema.decorateMethod(TriGeometryRes, "SaveMesh", be.mapMethodAndWrap(), meta.notSupported);
 be.define("TriGeometryRes")(TriGeometryRes);
-be.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
+// Carbon: BLUE_CLASS( TriGeometryRes ) : BlueAsyncRes, ICacheable, Tr2DeviceResource, ITr2InstanceData
+// (TriGeometryRes.h:261-265); MAP_INTERFACE rows from TriGeometryRes_Blue.cpp:40-43.
+be.inherit(ICacheable, ITr2InstanceData)(TriGeometryRes, { kind: "class" });
+CjsSchema.exposure.mapInterface(IBlueResource)(TriGeometryRes);
 CjsSchema.exposure.mapInterface(ICacheable)(TriGeometryRes);
+CjsSchema.exposure.mapInterface(ITr2InstanceData)(TriGeometryRes);
 // Carbon: TriGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:175).
 CjsSchema.blue.chainTo(CjsResource)(TriGeometryRes);
