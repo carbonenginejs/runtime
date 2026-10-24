@@ -8,7 +8,7 @@ import { BlueList, CjsBlueClasses, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
-import { VisualizeMethod } from "../../generated/interior/enums.js";
+import { VisualizeMethod, VisibilityQueryType, Tr2InteriorBatchGroup } from "../../generated/interior/enums.js";
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
@@ -26,19 +26,31 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { ShaderType } from "#consts/render-context";
-import { RenderingMode } from "#consts/graphics";
+import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { Tr2ConstantBufferAL } from "#trinityal";
-import { PER_FRAME_VS, Tr2Renderer } from "../../../trinity/core/Tr2Renderer.js";
+import { PER_FRAME_VS, PER_FRAME_PS, Tr2Renderer } from "../../../trinity/core/Tr2Renderer.js";
 import { Tr2RenderUtils } from "../../../trinity/core/Tr2RenderUtils.js";
 import { RawData } from "../../../trinity/core/rawData/RawData.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
+import { TriFrustum } from "../../../trinity/core/view/TriFrustum.js";
+import { TriViewport } from "../../../trinity/core/view/TriViewport.js";
+import { Tr2VisibilityEvent, Tr2VisibilityResults } from "../../../trinity/core/context/Tr2VisibilityResults/index.js";
+import { TriRenderBatchAccumulator } from "../../../trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js";
+import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
+import { ITr2Interior } from "./ITr2Interior.js";
+import { Tr2InteriorLightSet } from "./Tr2InteriorLightSet.js";
+import { Tr2IntKeyGenerator } from "./Tr2IntKeyGenerator.js";
+import { Tr2ConstantBufferFormats } from "../../../trinity/core/rawData/Tr2ConstantBufferFormats.js";
+import { Tr2VariableStore } from "../../../trinity/core/variable/Tr2VariableStore.js";
+import { TriVariableContentType } from "../../../trinity/generated/trinityCore/enums.js";
 
 /**
  * Interior-scene state record for authored dynamics, lights, environment, fog,
  * sun, shadows, and diagnostics. Member notifications acquire the cubemap
  * through the installed resource manager and rebuild shadow-target wrappers
  * through the supplied or installed Trinity context. Picking, physics-scene creation
- * and scene rendering remain unported; allocation is not rendered shadows.
+ * remain unported. Forward submission is supported with shadows disabled;
+ * allocating shadow targets does not implement shadow rendering.
  */
 @be.define("Tr2InteriorScene")
 @be.inherit(IInitialize, INotify, ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, ITr2DebugRenderable)
@@ -55,6 +67,17 @@ export class Tr2InteriorScene
 
   // Carbon m_dynamicsPendingLoad retains dynamics awaiting AddToScene success.
   _dynamicsPendingLoad = [];
+
+  /** Native forward-pass accumulator; its allocator is bound to the active context. */
+  _primaryRenderBatches = new TriRenderBatchAccumulator(Tr2IntKeyGenerator);
+
+  _activeLightSet = new Tr2InteriorLightSet();
+  _visibilityQueryType = VisibilityQueryType.PRIMARY_QUERY;
+  _visibleObjects = [];
+  _renderBackgroundCubeMap = true;
+  _perFrameVSData = RawData.create("Tr2PerFrameVSData");
+  _perFramePSData = RawData.create("Tr2PerFramePSData");
+  _perFramePSBuffer = new Tr2ConstantBufferAL();
   /**
    * Carbon Tr2InteriorScene.cpp:229-284 updates lights and dynamic membership.
    * Adapted: array identity search replaces FindKey; JS has no QI reference unlock.
@@ -82,11 +105,31 @@ export class Tr2InteriorScene
     }
   }
 
-  /** Installs Carbon's constructor-owned list observers. */
+  /**
+   * Installs native list observers and forward-render variable registrations
+   * (cpp:133-168). JS states each variable's native type explicitly.
+   * Physics, picking preparation and constructor texture acquisition remain open.
+   */
   constructor()
   {
     this.dynamics.SetNotify(this);
     this.lights.SetNotify(this);
+
+    const store = Tr2VariableStore.globalStore();
+    const { vec3_0, vec4_0 } = Tr2InteriorScene.scratch;
+    vec3.normalize(vec3_0, this.sunDirection);
+    vec3.negate(vec3_0, vec3_0);
+    store.RegisterVariableInternal("Sun.DirWorld", TriVariableContentType.TRIVARIABLE_FLOAT3, vec3_0);
+    store.RegisterVariableInternal("Sun.WodDiffuseColor", TriVariableContentType.TRIVARIABLE_COLOR, this.sunDiffuseColor);
+    store.RegisterVariableInternal("Sun.SpecularColor", TriVariableContentType.TRIVARIABLE_COLOR, this.sunSpecularColor);
+    store.RegisterVariableInternal("Scene.AmbientColor", TriVariableContentType.TRIVARIABLE_COLOR, this.ambientColor);
+    vec3.zero(vec3_0);
+    store.RegisterVariableInternal("Camera.eyePosWorld", TriVariableContentType.TRIVARIABLE_FLOAT3, vec3_0);
+    vec4.zero(vec4_0);
+    store.RegisterVariableInternal("PickingComponents", TriVariableContentType.TRIVARIABLE_FLOAT4, vec4_0);
+    store.RegisterVariableInternal("EnvMap1", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.backgroundCubemapRes);
+    for (const name of ["LightPrePassMap", "LightAccumulationMap", "LightPrePassDepthMap", "SpotlightShadow0", "SpotlightShadow1", "SpotlightShadow2", "SpotlightShadow3"])
+      store.RegisterVariableInternal(name, TriVariableContentType.TRIVARIABLE_TEXTURE_RES, null);
   }
 
 
@@ -376,6 +419,261 @@ export class Tr2InteriorScene
    */
   _perFrameVSBuffer = new Tr2ConstantBufferAL();
 
+  /** Carbon Render (h:76, cpp:488-500): forward, debug, then clear active lights. */
+  @meta.implemented
+  Render(renderContext)
+  {
+    this._RenderFullForward(renderContext);
+    this.RenderDebugInfo__RenderContext(renderContext);
+    this._activeLightSet.Clear();
+  }
+
+  /** Carbon RenderPass (h:81, cpp:885-898) only renders the main pass. */
+  @meta.implemented
+  RenderPass(pass, renderContext)
+  {
+    if (pass === ITr2MultiPassScene.PassType.RP_MAIN_RENDER) this.Render(renderContext);
+    return ITr2MultiPassScene.RenderPassResult.PASS_RESULT_OK;
+  }
+
+  /** Carbon SetRenderBackgroundCubeMap (h:104, cpp:901-904). */
+  @meta.implemented
+  SetRenderBackgroundCubeMap(renderBackgroundCubeMap)
+  {
+    this._renderBackgroundCubeMap = renderBackgroundCubeMap;
+  }
+
+  /** Carbon VisibilityQuery (h:83, cpp:511-560): choose LOD before culling. */
+  @meta.implemented
+  VisibilityQuery(results, renderContext)
+  {
+    if (!results)
+    {
+      CcpLog.CCP_LOGERR("Attempt to issue a visibility query on an interior scene with a NULL result set!");
+      return;
+    }
+    this.visibilityResults = results;
+    results.Clear();
+
+    const { frustum_0 } = Tr2InteriorScene.scratch;
+    frustum_0.DeriveFrustum(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetViewPosition(), Tr2Renderer.GetProjectionTransform(), renderContext.GetEffectStateManager().GetViewport());
+    const size = this.dynamics.length;
+    for (const dynamic of this.dynamics)
+    {
+      if (size !== this.dynamics.length) CcpLog.CCP_LOGERR("VisibilityQuery-m_dynamics changed size while we iterated over it! (before setlod)");
+      if (!dynamic) CcpLog.CCP_LOGERR("VisibilityQuery-null pointer in m_dynamics");
+      dynamic.SetLOD(frustum_0);
+      if (size !== this.dynamics.length) CcpLog.CCP_LOGERR("VisibilityQuery-m_dynamics changed size while we iterated over it! (after setlod)");
+    }
+    this._visibilityQueryType = VisibilityQueryType.PRIMARY_QUERY;
+    this._ResolveVisibility(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetProjectionTransform(), true);
+  }
+
+  /** Carbon ResolveVisibility (h:144, cpp:562-585); maxDepth is unused natively. */
+  @meta.implemented
+  _ResolveVisibility(view, projection, _maxDepth)
+  {
+    const { frustum_1, viewport_0, mat4_0, mat4_1, vec3_0 } = Tr2InteriorScene.scratch;
+    mat4.invert(mat4_0, view);
+    vec3.set(vec3_0, mat4_0[12], mat4_0[13], mat4_0[14]);
+    frustum_1.DeriveFrustum(view, vec3_0, projection, viewport_0);
+    this._OnQueryBegin();
+    for (const dynamic of this.dynamics)
+      if (dynamic.IsInFrustum(frustum_1, mat4_1)) this._OnInstanceVisible(dynamic, mat4_1);
+    for (const light of this.lights)
+      if (light.IsInFrustum(frustum_1, mat4_1)) this._OnInstanceVisible(light, mat4_1);
+  }
+
+  /** Carbon OnQueryBegin (h:128, cpp:1030-1039). */
+  @meta.implemented
+  _OnQueryBegin()
+  {
+    const event = new Tr2VisibilityEvent();
+    event.eventType = Tr2VisibilityEvent.EventType.QUERY_BEGIN;
+    if (this._visibilityQueryType === VisibilityQueryType.PRIMARY_QUERY)
+      this.visibilityResults.AddVisibilityEvent(event);
+  }
+
+  /** Carbon OnInstanceVisible (h:129, cpp:1041-1061), copying the native matrix value. */
+  @meta.implemented
+  _OnInstanceVisible(cullable, objectToWorld)
+  {
+    const event = new Tr2VisibilityEvent();
+    event.eventType = Tr2VisibilityEvent.EventType.INSTANCE_VISIBLE;
+    event.userData = cullable;
+    mat4.copy(event.objectToWorldMatrix, objectToWorld);
+    if (this._visibilityQueryType === VisibilityQueryType.PRIMARY_QUERY)
+      this.visibilityResults.AddVisibilityEvent(event);
+    else if (this._visibilityQueryType === VisibilityQueryType.PICKING_QUERY)
+    {
+      const renderable = CjsSchema.cast(cullable, ITr2Renderable);
+      if (renderable) this._visibleObjects.push(renderable);
+    }
+  }
+
+  /** Carbon DoQueryBegin (h:135, cpp:1077-1090) includes every scene light. */
+  @meta.implemented
+  _DoQueryBegin(_event)
+  {
+    this._activeLightSet.Clear();
+    const { vec3_1 } = Tr2InteriorScene.scratch;
+    vec3.zero(vec3_1);
+    for (const light of this.lights) this._activeLightSet.AddLight(light, vec3_1);
+  }
+
+  /** Carbon DoInstanceVisible (h:137, cpp:1104-1132): opaque, decal, then blend. */
+  @meta.implemented
+  _DoInstanceVisible(event)
+  {
+    const interior = CjsSchema.cast(event.userData, ITr2Interior);
+    const renderable = CjsSchema.cast(event.userData, ITr2Renderable);
+    if (!interior || !renderable) return;
+    const batches = this._primaryRenderBatches;
+    const data = interior.GetPerObjectDataWithPerInstanceLighting(batches, this._activeLightSet, event.objectToWorldMatrix);
+    if (!batches) return;
+
+    batches.SetRenderingMode(RenderingMode.RM_OPAQUE);
+    batches.SetUserData(this._ConstructKey(0, Tr2InteriorBatchGroup.WODINTBATCHGROUP_OPAQUE));
+    renderable.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, data);
+    batches.SetRenderingMode(RenderingMode.RM_DECAL);
+    batches.SetUserData(this._ConstructKey(0, Tr2InteriorBatchGroup.WODINTBATCHGROUP_DECAL));
+    renderable.GetBatches(batches, TriBatchType.TRIBATCHTYPE_DECAL, data);
+    batches.SetRenderingMode(RenderingMode.RM_ALPHA);
+    batches.SetUserData(this._ConstructKey(0, Tr2InteriorBatchGroup.WODINTBATCHGROUP_BLEND));
+    renderable.GetBatches(batches, TriBatchType.TRIBATCHTYPE_TRANSPARENT, data);
+  }
+
+  /** Carbon GatherFullForwardBatches (h:140, cpp:1144-1171). */
+  @meta.implemented
+  _GatherFullForwardBatches(results)
+  {
+    if (!results) return;
+    for (const event of results.GetEvents())
+    {
+      if (event.eventType === Tr2VisibilityEvent.EventType.QUERY_BEGIN) this._DoQueryBegin(event);
+      else if (event.eventType === Tr2VisibilityEvent.EventType.INSTANCE_VISIBLE) this._DoInstanceVisible(event);
+    }
+  }
+
+  /** Carbon ConstructKey (h:241, cpp:1252-1259); BigInt retains all 64 bits. */
+  @meta.adapted
+  _ConstructKey(objectGroup, batchGroup)
+  {
+    return BigInt.asIntN(64, (BigInt(objectGroup >>> 0) << 48n) | (BigInt(batchGroup) << 32n));
+  }
+
+  /** Carbon PopulatePerFrameVSData (h:245, cpp:1261-1271). */
+  @meta.implemented
+  _PopulatePerFrameVSData(data)
+  {
+    Tr2ConstantBufferFormats.tr2PopulatePerFrameVSDataTransformations(data);
+    Tr2VariableStore.globalStore().FindVariable("Sun.DirWorld").GetValue(data.Get("sunDirWorld"));
+  }
+
+  /**
+   * Carbon PopulatePerFramePSData (h:244, cpp:1273-1318).
+   * Adapted: gl-matrix reverses composition; the ESM exposes target dimensions
+   * as fields. Viewport arithmetic rounds at native float operation boundaries.
+   */
+  @meta.adapted
+  _PopulatePerFramePSData(data, renderContext)
+  {
+    const { mat4_0 } = Tr2InteriorScene.scratch;
+    data.Zero();
+    mat4.multiply(mat4_0, Tr2Renderer.GetProjectionTransform(), Tr2Renderer.GetViewTransform());
+    data.SetAndTranspose("ViewProjectionMat", mat4_0);
+    data.SetWithoutTransposing("ViewInverseTransposeMat", Tr2Renderer.GetInverseViewTransform());
+    mat4.invert(mat4_0, mat4_0);
+    data.SetAndTranspose("ViewProjInverse", mat4_0);
+
+    const esm = renderContext.GetEffectStateManager();
+    const viewport = esm.GetViewport();
+    const width = Math.fround(esm.renderTargetWidth), height = Math.fround(esm.renderTargetHeight);
+    const viewPort = data.Get("viewPort");
+    viewPort[0] = Math.fround(viewport.width) / width;
+    viewPort[1] = Math.fround(viewport.height) / height;
+    viewPort[2] = Math.fround(Math.fround(viewport.x) / width) + Math.fround(0.5 / width);
+    viewPort[3] = Math.fround(Math.fround(viewport.y) / height) + Math.fround(0.5 / height);
+
+    const store = Tr2VariableStore.globalStore();
+    store.FindVariable("Sun.WodDiffuseColor").GetValue(data.Get("sunDiffuseColor"));
+    store.FindVariable("Sun.SpecularColor").GetValue(data.Get("sunSpecularColor"));
+    store.FindVariable("Scene.AmbientColor").GetValue(data.Get("sceneAmbientColor"));
+    store.FindVariable("Sun.DirWorld").GetValue(data.Get("sunDirWorld"));
+    data.Set("cullDirection", 1);
+    data.Set("shScale", 0);
+    data.Set("shadowCount", this.shadowCount);
+    data.Set("invShadowSize", 1 / Math.fround(this.shadowSize));
+    data.Set("sceneFogColor", this.fogColor);
+    data.Set("maxFogAmount", this.maxFogAmount);
+    data.Set("maxFogDistance", this.maxFogDistance);
+    data.Set("minFogDistance", this.minFogDistance);
+  }
+
+  /**
+   * Carbon RenderFullForward (h:146, cpp:587-658).
+   * Adapted: the allocator belongs to the active JS context, so bind it here.
+   * Profiling markers are omitted; shadows retain their explicit unported gate.
+   */
+  @meta.adapted
+  _RenderFullForward(renderContext)
+  {
+    if (!this.visibilityResults) this.visibilityResults = new Tr2VisibilityResults();
+    this._primaryRenderBatches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
+    Tr2VariableStore.globalStore().FindVariable("EnvMap1").SetValue(this.backgroundCubemapRes);
+    this._RenderShadows(renderContext);
+    this.VisibilityQuery(this.visibilityResults, renderContext);
+    this._GatherFullForwardBatches(this.visibilityResults);
+
+    // Native legacy ordering reverses each consecutive equal-depth run before sorting.
+    const batches = this._primaryRenderBatches.GetBatches();
+    for (let start = 0; start < batches.length;)
+    {
+      if (batches[start].renderingMode !== RenderingMode.RM_ALPHA) { start++; continue; }
+      let end = start + 1;
+      while (end < batches.length && batches[start].depth === batches[end].depth) end++;
+      for (let left = start, right = end - 1; left < right; left++, right--)
+      {
+        const batch = batches[left]; batches[left] = batches[right]; batches[right] = batch;
+      }
+      start = end;
+    }
+
+    this._PopulatePerFramePSData(this._perFramePSData, renderContext);
+    this._PopulatePerFrameVSData(this._perFrameVSData);
+    const vs = this._perFrameVSData.GetData(), ps = this._perFramePSData.GetData();
+    Tr2RenderUtils.fillAndSetConstants(this._perFrameVSBuffer, vs, vs.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_FRAME_VS, renderContext);
+    Tr2RenderUtils.fillAndSetConstants(this._perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);
+    if (this._renderBackgroundCubeMap && this.backgroundEffect)
+      Tr2Renderer.drawCameraSpaceScreenQuad(renderContext, this.backgroundEffect.GetShaderStateInterface(), this.backgroundEffect);
+    this._RenderGeometry(null, renderContext);
+    this._primaryRenderBatches.Clear();
+  }
+
+  /**
+   * Carbon RenderShadows (h:148, cpp:687-809). Only the disabled-shadow early
+   * return is ported; enabled shadows must not silently render without their pass.
+   */
+  @meta.notImplemented
+  _RenderShadows(_renderContext)
+  {
+    if (!this.renderShadows) return;
+    throw new Error("Tr2InteriorScene.RenderShadows is not implemented; disable shadows for forward-only rendering.");
+  }
+
+  /** Carbon RenderGeometry (h:222, cpp:811-829) submits through the normal context. */
+  @meta.implemented
+  _RenderGeometry(overrideEffect, renderContext)
+  {
+    const esm = renderContext.GetEffectStateManager();
+    esm.BeginManagedRendering();
+    this._primaryRenderBatches.Finalize();
+    esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
+    renderContext.RenderBatchesWithOverride(this._primaryRenderBatches, overrideEffect);
+    esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
+    esm.EndManagedRendering();
+  }
+
   /** Native initialization acquires the background, without allocating shadows. */
 
   @meta.implemented
@@ -473,8 +771,9 @@ export class Tr2InteriorScene
 
     // Display the debug meshes for the lights
     const debugPerFrameData = RawData.create("Tr2PerFrameVSDataDebug");
-    const viewProjection = mat4.multiply(mat4.create(), Tr2Renderer.GetProjectionTransform(), Tr2Renderer.GetViewTransform());
-    debugPerFrameData.SetAndTranspose("ViewProjectionMat", viewProjection);
+    const { mat4_0, mat4_2 } = Tr2InteriorScene.scratch;
+    mat4.multiply(mat4_0, Tr2Renderer.GetProjectionTransform(), Tr2Renderer.GetViewTransform());
+    debugPerFrameData.SetAndTranspose("ViewProjectionMat", mat4_0);
 
     // attention: need the transposed, but shader also needs column_major, so it is transpose(transpose(m)) == m
     debugPerFrameData.SetWithoutTransposing("ViewInverseTransposeMat", Tr2Renderer.GetInverseViewTransform());
@@ -483,7 +782,7 @@ export class Tr2InteriorScene
     Tr2RenderUtils.fillAndSetConstants(this._perFrameVSBuffer, bytes, bytes.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_FRAME_VS, renderContext);
 
     this.debugRenderer.BeginRender();
-    const bkProjection = mat4.clone(Tr2Renderer.GetProjectionRawTransform());
+    mat4.copy(mat4_2, Tr2Renderer.GetProjectionRawTransform());
 
     Tr2Renderer.SetProjectionTransform(Tr2Renderer.GetProjectionTransform());
     try
@@ -512,7 +811,7 @@ export class Tr2InteriorScene
     }
     finally
     {
-      Tr2Renderer.SetProjectionTransform(bkProjection);
+      Tr2Renderer.SetProjectionTransform(mat4_2);
     }
   }
 
@@ -595,5 +894,11 @@ export class Tr2InteriorScene
   }
 
   static VisualizeMethod = VisualizeMethod;
+
+  static scratch = {
+    mat4_0: mat4.create(), mat4_1: mat4.create(), mat4_2: mat4.create(),
+    vec3_0: vec3.create(), vec3_1: vec3.create(), vec4_0: vec4.create(),
+    frustum_0: new TriFrustum(), frustum_1: new TriFrustum(), viewport_0: new TriViewport()
+  };
 
 }

@@ -1,4 +1,5 @@
-import { CjsSchema } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { mat4 } from "#math/mat4";
 // Source: trinity/trinity/Tr2ConstantBufferFormats.h
 //   trinity/trinity/Tr2ConstantBufferFormats.cpp:40-66
 //
@@ -28,7 +29,7 @@ import { CjsSchema } from "#schema";
 // contexts on different backends must not share one.
 import { ShaderType } from "#consts/render-context";
 import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
-import { PER_FRAME_PS, PER_FRAME_VS } from "../Tr2Renderer.js";
+import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
 
 
@@ -39,6 +40,26 @@ const perFrameBuffers = new WeakMap();
 /** Static per-frame binding helpers from Carbon's constant-buffer formats. */
 export class Tr2ConstantBufferFormats
 {
+  /**
+   * Carbon Tr2PopulatePerFrameVSDataTransformations (cpp:14-30).
+   * Adapted: gl-matrix reverses Carbon's view * projection operands.
+   * @param {RawData} data Native per-frame vertex block to fill.
+   * @returns {void}
+   */
+  @meta.adapted
+  static tr2PopulatePerFrameVSDataTransformations(data)
+  {
+    const { mat4_0 } = Tr2ConstantBufferFormats.scratch;
+    data.Zero();
+    data.SetAndTranspose("ViewMat", Tr2Renderer.GetViewTransform());
+    data.SetAndTranspose("ProjectionMat", Tr2Renderer.GetProjectionTransform());
+    mat4.multiply(mat4_0, Tr2Renderer.GetProjectionTransform(), Tr2Renderer.GetViewTransform());
+    data.SetAndTranspose("ViewProjectionMat", mat4_0);
+    data.SetWithoutTransposing("ViewInverseTransposeMat", Tr2Renderer.GetInverseViewTransform());
+  }
+
+  static scratch = { mat4_0: mat4.create() };
+
   /**
    * Carbon's `Tr2BindPerFrameVSData`.
    *
