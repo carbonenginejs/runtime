@@ -1,8 +1,8 @@
 /**
  * Compatibility aggregate for the resource API. Geometry, textures and light
  * profiles now live in Trinity; their exports retain the same class identities.
- * Shader readers and reflection remain together until their standalone format
- * dependencies are separated. Import individual formats through their subpaths.
+ * Shader formats and plain reflection live here; runtime shader and material
+ * classes are exported only by Trinity. Import individual formats through their subpaths.
  * Resource management and lifecycle are owned by Blue.
  */
 export * from "./resourceBoundary.js";

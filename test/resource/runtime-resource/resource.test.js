@@ -11,24 +11,8 @@ import { ICacheable } from "../../../npm/dist/global/blue/index.js";
 import * as runtimeResource from "../../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../../npm/dist/resource/formats/black/index.js";
 import { CjsRedFormat } from "../../../npm/dist/resource/formats/red/index.js";
-import {
-  CjsEventEmitter,
-  Tr2EffectRes,
-  Tr2ImageRes,
-  TriGeometryRes,
-  TriTextureRes,
-  CjsMotherLode,
-  CjsLoadingObject,
-  CjsBlueResMan,
-  CjsResource,
-  CjsResourceProbe,
-  ResourceHandlerMode,
-  Tr2GrannyStateRes,
-  Tr2LightProfileRes,
-  Tr2MaterialRes,
-  TriGrannyRes,
-  getMotherLodeKey
-} from "../../../npm/dist/resource/index.js";
+import { CjsEventEmitter, Tr2ImageRes, TriGeometryRes, TriTextureRes, CjsMotherLode, CjsLoadingObject, CjsBlueResMan, CjsResource, CjsResourceProbe, ResourceHandlerMode, Tr2GrannyStateRes, Tr2LightProfileRes, TriGrannyRes, getMotherLodeKey } from "../../../npm/dist/resource/index.js";
+import { Tr2EffectRes, Tr2MaterialRes } from "../../../npm/dist/trinity/shader/index.js";
 import { LoadData } from "../../support/loadData.js";
 
 /** A resource reporting the memory use a test gives it: `ICacheable`, as Carbon's resource classes are. */

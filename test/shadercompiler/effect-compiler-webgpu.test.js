@@ -2,7 +2,7 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Tr2EffectRes } from "../../src/resource/shader/Tr2EffectRes.js";
+import { Tr2EffectRes } from "../../src/trinity/shader/Tr2EffectRes.js";
 import { readBackendBlock } from "../../src/resource/format/index.js";
 import { CompileEffectFile } from "../../src/shadercompiler/ShaderCompiler/shaderCompiler.js";
 import { Platform } from "../../src/shadercompiler/platforms.js";

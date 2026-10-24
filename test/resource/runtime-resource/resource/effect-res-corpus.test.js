@@ -5,7 +5,7 @@ import path from "node:path";
 
 import { CjsCarbonEffectReader } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { CjsCarbonEffectWriter } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
-import { Tr2EffectRes } from "../../../../src/resource/shader/Tr2EffectRes.js";
+import { Tr2EffectRes } from "../../../../src/trinity/shader/Tr2EffectRes.js";
 
 /**
  * Every shipped effect, through the classes, back to the same bytes.

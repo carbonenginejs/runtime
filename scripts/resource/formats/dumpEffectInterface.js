@@ -56,7 +56,7 @@
 
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, basename } from "node:path";
-import { Tr2EffectRes } from "../../../src/resource/shader/index.js";
+import { Tr2EffectRes } from "../../../src/trinity/shader/Tr2EffectRes.js";
 import { CjsWebglFormat } from "../../../src/resource/formats/webgl/index.js";
 
 const CONTAINER_EXTENSIONS = [".sm_depth", ".sm_hi", ".sm_lo"];

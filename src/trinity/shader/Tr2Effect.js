@@ -9,7 +9,9 @@ import { Tr2ConstantEffectParameter } from "./parameter/Tr2ConstantEffectParamet
 import { Tr2FloatParameter } from "./parameter/Tr2FloatParameter.js";
 import { Tr2GeometryBufferParameter } from "./parameter/Tr2GeometryBufferParameter.js";
 import { Tr2Matrix4Parameter } from "./parameter/Tr2Matrix4Parameter.js";
-import { ShaderStageType, Tr2EffectConstant, Tr2EffectRes, Tr2Shader } from "#resource/shader";
+import { ShaderStageType, Tr2EffectConstant } from "#resource/shader";
+import { Tr2EffectRes } from "./Tr2EffectRes.js";
+import { Tr2Shader } from "./Tr2Shader.js";
 import { Tr2EffectParam } from "./material/Tr2EffectParam.js";
 import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
 import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";

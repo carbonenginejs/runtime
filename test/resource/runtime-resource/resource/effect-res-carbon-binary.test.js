@@ -7,8 +7,8 @@ import {
     buildSyntheticDescription,
     SYNTHETIC_PERMUTATIONS
 } from "../format/carbonEffectSynthetic.js";
-import { Tr2EffectRes } from "../../../../src/resource/shader/Tr2EffectRes.js";
-import { Tr2Shader } from "../../../../src/resource/shader/Tr2Shader.js";
+import { Tr2EffectRes } from "../../../../src/trinity/shader/Tr2EffectRes.js";
+import { Tr2Shader } from "../../../../src/trinity/shader/Tr2Shader.js";
 
 /**
  * The resource reading container bytes directly, with no intermediate document.

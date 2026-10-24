@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { RegisterShaderResources, ShaderResourceExtensions, Tr2EffectRes } from "../../npm/dist/resource/shader/index.js";
+import { RegisterShaderResources, ShaderResourceExtensions, Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
 import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js";
 

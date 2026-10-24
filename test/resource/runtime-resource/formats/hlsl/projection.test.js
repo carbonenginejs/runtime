@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { CjsCarbonEffectReader } from "../../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { CjsCarbonEffectWriter } from "../../../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { Tr2EffectDescription } from "../../../../../src/resource/shader/reflection/Tr2EffectDescription.js";
-import { Tr2EffectRes, GetGlobalEffectOptions, ModifyGlobalEffectOptions } from "../../../../../src/resource/shader/Tr2EffectRes.js";
+import { Tr2EffectRes, GetGlobalEffectOptions, ModifyGlobalEffectOptions } from "../../../../../src/trinity/shader/Tr2EffectRes.js";
 import { buildEffectBindingManifest } from "../../../../../src/resource/format/effect/effectBindingManifest.js";
 import { effectHeader } from "../../../../../src/resource/format/effect/effectHeader.js";
 import { effectiveConstantDefaults } from "../../../../../src/resource/format/effect/effectProjection.js";

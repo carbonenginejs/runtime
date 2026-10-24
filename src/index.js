@@ -16,16 +16,5 @@ export * from "./core/index.js";
 export { CjsBlueResMan } from "./global/blue/index.js";
 export { StreamType } from "./global/consts/media/index.js";
 export { ReflectionMode, Tr2Lod } from "./global/index.js";
-export {
-    Tr2EffectConstant,
-    Tr2EffectDefine,
-    Tr2EffectDescription,
-    Tr2EffectLibrary,
-    Tr2EffectParameterAnnotation,
-    Tr2EffectResource,
-    Tr2EffectStageInput,
-    Tr2EffectTechnique,
-    Tr2Pass,
-    Tr2SamplerSetup,
-    Tr2Shader
-} from "./resource/index.js";
+export { Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectParameterAnnotation, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2Pass, Tr2SamplerSetup } from "./resource/index.js";
+export { Tr2Shader } from "./trinity/shader/index.js";

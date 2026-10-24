@@ -1,18 +1,7 @@
 export * from "./Tr2Effect.js";
 export * from "./Tr2Material.js";
-export {
-  Tr2EffectConstant,
-  Tr2EffectDefine,
-  Tr2EffectDescription,
-  Tr2EffectLibrary,
-  Tr2EffectParameterAnnotation,
-  Tr2EffectResource,
-  Tr2EffectStageInput,
-  Tr2EffectTechnique,
-  Tr2Pass,
-  Tr2SamplerSetup,
-  Tr2Shader
-} from "#resource/shader";
+export { Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectParameterAnnotation, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2Pass, Tr2SamplerSetup } from "#resource/shader";
+
 export * from "./extractTr2EffectConstantValues.js";
 export * from "./material/Tr2EffectLibraryParameters.js";
 export * from "./material/Tr2EffectParam.js";
@@ -46,3 +35,10 @@ export * from "./Tr2EffectStateManager.js";
 export * from "./IShaderConfigurer.js";
 export * from "./Tr2ShaderBuffer.js";
 export * from "../generated/shader/enums.js";
+
+export * from "./Tr2EffectRes.js";
+export * from "./Tr2Shader.js";
+export * from "./Tr2MaterialArea.js";
+export * from "./Tr2MaterialMesh.js";
+export * from "./Tr2MaterialRes.js";
+export * from "./registerShaderResources.js";

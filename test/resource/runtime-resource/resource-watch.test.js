@@ -12,7 +12,7 @@ import "../../../npm/dist/index.js";
 import { CjsBlueResMan, CjsResource } from "../../../npm/dist/global/blue/index.js";
 import { Tr2Effect, TriTextureParameter } from "../../../npm/dist/trinity/index.js";
 import { TriTextureRes } from "../../../npm/dist/resource/index.js";
-import { Tr2EffectRes } from "../../../npm/dist/resource/shader/index.js";
+import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
 
 
 const { State } = CjsResource;

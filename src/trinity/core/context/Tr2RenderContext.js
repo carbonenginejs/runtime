@@ -27,7 +27,7 @@ import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js"
 import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
 import { gTriDev } from "../device/gTriDev.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
-import { Tr2Shader } from "#resource/shader";
+import { Tr2Shader } from "../../shader/Tr2Shader.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContextALStub } from "../../../trinityal/stub/Tr2RenderContextALStub/index.js";
 import { Tr2Blitter } from "../Tr2Blitter.js";

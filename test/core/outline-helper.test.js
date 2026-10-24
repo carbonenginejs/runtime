@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { CjsLibrary, TnyOutlineHelper } from "../../npm/dist/core/index.js";
 import { EveSpaceScene, EveSpaceSceneRenderDriver, TriView, TriProjection, TriRenderJob,
   Tr2StepExecuteRenderNode, Tr2RenderTarget, Tr2Renderer, Tr2RenderBatch } from "../../npm/dist/trinity/index.js";
-import { TriGeometryRes, Tr2EffectRes } from "../../npm/dist/resource/index.js";
+import { TriGeometryRes } from "../../npm/dist/resource/index.js";
+import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { PixelFormat, TextureType, Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { TriBatchType, RenderingMode } from "../../npm/dist/global/consts/graphics/index.js";
 import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js";

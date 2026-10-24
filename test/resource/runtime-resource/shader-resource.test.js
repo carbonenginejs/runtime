@@ -6,21 +6,9 @@ import { CjsCarbonEffectWriter } from "../../../src/resource/format/carbonEffect
 import { CARBON_ANNOTATION_TYPE } from "../../../src/resource/format/carbonEffect/carbonEffectRecords.js";
 import { buildSyntheticDescription, str } from "./format/carbonEffectSynthetic.js";
 
-import {
-  GetGlobalEffectOptions,
-  ModifyGlobalEffectOptions,
-  Tr2EffectConstant,
-  Tr2EffectDescription,
-  Tr2EffectLibrary,
-  Tr2EffectParameterAnnotation,
-  Tr2EffectRes,
-  Tr2EffectResource,
-  Tr2EffectStageInput,
-  Tr2EffectTechnique,
-  Tr2Pass,
-  Tr2SamplerSetup,
-  Tr2Shader
-} from "../../../src/resource/shader/index.js";
+import { Tr2EffectConstant, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectParameterAnnotation, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2Pass, Tr2SamplerSetup } from "../../../src/resource/shader/index.js";
+import { GetGlobalEffectOptions, ModifyGlobalEffectOptions, Tr2EffectRes } from "../../../src/trinity/shader/Tr2EffectRes.js";
+import { Tr2Shader } from "../../../src/trinity/shader/Tr2Shader.js";
 
 /**
  * These tests import **source**, not `npm/dist`.

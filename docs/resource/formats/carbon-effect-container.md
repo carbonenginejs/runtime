@@ -436,3 +436,11 @@ not a second version axis.
 The CjsCarbonEffectReader JSDoc records how Carbon threads the version
 through parsing; the reader tests under `test/resource/runtime-resource/format/`
 are the gates.
+
+## Runtime ownership
+
+Runtime shader and material classes (`Tr2EffectRes`, `Tr2Shader`,
+`Tr2MaterialRes`, `Tr2MaterialMesh`, `Tr2MaterialArea`) and shader registration
+are exported from `@carbonenginejs/runtime/trinity/shader`. Their former
+resource paths and exports have been removed. The effect format, plain
+reflection and `Tr2ShaderPermutation` remain in resources.

@@ -361,7 +361,7 @@ test("stamping makes the shader sort value non-zero", async () =>
   // The payoff: Tr2Shader.ProcessEffect packs the key from stage handles and
   // bails on 0xFFFFFFFF, so sortValue was permanently zero before registration
   // existed. Batch sorting degenerates without it.
-  const { Tr2Shader } = await import("../../npm/dist/resource/shader/index.js");
+  const { Tr2Shader } = await import("../../npm/dist/trinity/shader/Tr2Shader.js");
   reset();
 
   const shader = new Tr2Shader();

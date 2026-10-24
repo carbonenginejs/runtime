@@ -23,7 +23,7 @@
   "src/resource/shader/reflection/Tr2EffectDescription.js": 1,
   "src/resource/shader/reflection/Tr2EffectLibrary.js": 1,
   "src/resource/shader/reflection/Tr2EffectStageInput.js": 1,
-  "src/resource/shader/Tr2Shader.js": 1,
+  "src/trinity/shader/Tr2Shader.js": 1,
   "src/sof/EveSOF.js": 2,
   "src/tools/fileindex/CjsFileIndex.js": 2,
   "src/tools/fileindex/CjsFileIndexLibrary.js": 4,

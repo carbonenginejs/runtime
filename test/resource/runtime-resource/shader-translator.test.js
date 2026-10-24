@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsBlueResMan, ResourceRequirement } from "../../../npm/dist/resource/index.js";
-import { RegisterShaderResources } from "../../../npm/dist/resource/shader/index.js";
+import { RegisterShaderResources } from "../../../npm/dist/trinity/shader/index.js";
 
 // A browser backend has no shipped containers, so composition passes the
 // backend's effect format as a translator: the byte source supplies the

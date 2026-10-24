@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsCarbonEffectReader } from "../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { CjsCarbonEffectWriter } from "../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
-import { Tr2EffectRes, Tr2Shader } from "../../src/resource/shader/index.js";
+import { Tr2EffectRes } from "../../src/trinity/shader/Tr2EffectRes.js";
+import { Tr2Shader } from "../../src/trinity/shader/Tr2Shader.js";
 import { clientResources } from "../support/clientResources.js";
 
 // Real High effects from the client through BePaths. The effect file the

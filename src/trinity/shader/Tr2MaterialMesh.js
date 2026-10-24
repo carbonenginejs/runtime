@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
-// Schema: format-carbon resources/Tr2MaterialMesh.json; maintained by the runtime resource layer.
+// Schema: format-carbon resources/Tr2MaterialMesh.json; maintained by Trinity.
 import { exposure as be } from "#be";
 import { CjsSchema, type } from "#schema";
 import { IRoot } from "#blue";

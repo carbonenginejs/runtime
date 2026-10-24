@@ -7,15 +7,8 @@ import { ICacheable, IRoot } from "../../../npm/dist/global/blue/index.js";
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsCarbonEffectWriter } from "../../../npm/dist/resource/format/index.js";
-import {
-  Tr2EffectRes,
-  Tr2GrannyStateRes,
-  Tr2ImageRes,
-  Tr2LightProfileRes,
-  TriGeometryRes,
-  TriGrannyRes,
-  TriTextureRes
-} from "../../../npm/dist/resource/index.js";
+import { Tr2GrannyStateRes, Tr2ImageRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes } from "../../../npm/dist/resource/index.js";
+import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
 import { Tr2AtlasTexture } from "../../../npm/dist/trinity/core/index.js";
 import { buildSyntheticDescription, SYNTHETIC_PERMUTATIONS } from "./format/carbonEffectSynthetic.js";
 

@@ -7,7 +7,7 @@ import { blue, CjsBlueResMan, Copier, DictReader, IInitialize, INotify } from ".
 import { Tr2MaterialParameterStore, Tr2VariableStore, TriVariable } from "../../npm/dist/trinity/core/index.js";
 import { TriVariableParameter } from "../../npm/dist/trinity/shader/parameter/TriVariableParameter.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
-import { Tr2MaterialArea } from "../../npm/dist/resource/shader/Tr2MaterialArea.js";
+import { Tr2MaterialArea } from "../../npm/dist/trinity/shader/Tr2MaterialArea.js";
 import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
 const settle = () => new Promise(resolve => setImmediate(resolve));

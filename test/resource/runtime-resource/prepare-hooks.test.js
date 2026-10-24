@@ -4,7 +4,8 @@
 // (Shader/Tr2Shader.cpp:173-190). Expected values are written from the Carbon source.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Tr2ImageRes, Tr2RaycastGeometryRes, Tr2EffectRes, Tr2Shader } from "../../../npm/dist/resource/index.js";
+import { Tr2ImageRes, Tr2RaycastGeometryRes } from "../../../npm/dist/resource/index.js";
+import { Tr2EffectRes, Tr2Shader } from "../../../npm/dist/trinity/shader/index.js";
 
 test("Tr2ImageRes::DoPrepare has nothing to prepare and answers true", () =>
 {

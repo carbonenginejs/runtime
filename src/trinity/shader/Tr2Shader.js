@@ -1,9 +1,9 @@
-import { CjsCarbonEffectFormat } from "../formats/carbonEffect/index.js";
+import { CjsCarbonEffectFormat } from "../../resource/formats/carbonEffect/index.js";
 import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
 import { CjsSchema, meta, type } from "#schema";
-import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
+import { Tr2EffectDescription } from "../../resource/shader/reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
 export class Tr2Shader extends IRoot

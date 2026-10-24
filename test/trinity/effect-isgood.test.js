@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Tr2Effect, Tr2Shader, TriTextureParameter } from "../../npm/dist/trinity/index.js";
-import { Tr2EffectRes } from "../../npm/dist/resource/shader/index.js";
+import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { CjsResource, TriTextureRes } from "../../npm/dist/resource/index.js";
 
 

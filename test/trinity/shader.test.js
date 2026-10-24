@@ -1,3 +1,4 @@
+import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { ITriEffectParameter } from "../../npm/dist/trinity/shader/parameter/ITriEffectParameter.js";
 import { NotifyModified } from "../../npm/dist/global/blue/index.js";
 import { NOTIFY_METHODS } from "../../npm/dist/global/compose/notify.js";
@@ -70,9 +71,10 @@ function shaderReflection({ constants = [], resources = [] } = {})
   return shader;
 }
 
-test("Trinity shader compatibility exports preserve canonical identity", () =>
+test("Trinity shares plain reflection without resource-owned runtime exports", () =>
 {
-  assertEquals(Tr2Shader, ResourceShader.Tr2Shader);
+  assertEquals(ResourceShader.Tr2Shader, undefined);
+  assertEquals(ResourceShader.Tr2EffectRes, undefined);
   assertEquals(Tr2EffectDescription, ResourceShader.Tr2EffectDescription);
   assertEquals(Tr2EffectTechnique, ResourceShader.Tr2EffectTechnique);
   assertEquals(Tr2Pass, ResourceShader.Tr2Pass);
@@ -328,7 +330,7 @@ test("SetEffectPathName always initializes; equal values-door writes do not", ()
   assertEquals(events.length, 1);
   assertEquals(CjsSchema.getField(Tr2Effect, "effectFilePath")?.edit?.notify, true);
   effect.effectFilePath = "res:\\effect\\Ship\\main.sm_hi";
-  class TestEffectRes extends ResourceShader.Tr2EffectRes
+  class TestEffectRes extends Tr2EffectRes
   {
     AddNotifyTarget()
     {
@@ -346,7 +348,7 @@ test("SetEffectPathName always initializes; equal values-door writes do not", ()
 
 test("Tr2Effect rejects broken effect-resource shader identities", () =>
 {
-  class BrokenEffectRes extends ResourceShader.Tr2EffectRes
+  class BrokenEffectRes extends Tr2EffectRes
   {
     GetShader()
     {
