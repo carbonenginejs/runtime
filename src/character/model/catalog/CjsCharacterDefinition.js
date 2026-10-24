@@ -7,7 +7,9 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  *
  * `values` is whatever the source decoder emitted and stays authoritative
  * source evidence even when no typed catalog projection exists; typed
- * projections are additive, never replacements.
+ * projections are additive, never replacements. Schema 12 can additionally
+ * retain original sourceText, preserving YAML tags, tuples and alias syntax
+ * that a decoded JSON value cannot represent. Null means text was not supplied.
  */
 @meta.define("CjsCharacterDefinition")
 export class CjsCharacterDefinition extends CjsCharacterRecord
@@ -27,6 +29,10 @@ export class CjsCharacterDefinition extends CjsCharacterRecord
 
     @type.unknown
     values = null;
+
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    sourceText = null;
 
 }
 

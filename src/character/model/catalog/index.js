@@ -11,3 +11,6 @@ export { CjsCharacterProjectionProfile } from "./CjsCharacterProjectionProfile.j
 export { CjsCharacterRecipeEntry } from "./CjsCharacterRecipeEntry.js";
 export { CjsCharacterRecipeProfile } from "./CjsCharacterRecipeProfile.js";
 export { CjsCharacterTextureMetadata } from "./CjsCharacterTextureMetadata.js";
+export { CjsCharacterMaterialBinding } from "./CjsCharacterMaterialBinding.js";
+export { CjsCharacterCatalogTextureBinding } from "./CjsCharacterCatalogTextureBinding.js";
+export { CjsCharacterTextureCandidateInput } from "./CjsCharacterTextureCandidateInput.js";

@@ -7,9 +7,9 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * Authored character color, pattern, and specular profile.
  *
  * The collection is optional and may be empty even when the decoded source
- * values exist in `characterDefinitions`. The appearance resolver does not
- * read it; a consumer that needs a profile-to-part join must diagnose a
- * missing one rather than assume the catalog is populated.
+ * values exist in `characterDefinitions`. Schema-12 source material bindings
+ * qualify the selection; an absent join remains unresolved. Pattern identity
+ * stays verbatim beside the producer-qualified texture path and provenance.
  */
 @meta.define("CjsCharacterMaterialProfile")
 export class CjsCharacterMaterialProfile extends CjsCharacterRecord
@@ -49,6 +49,14 @@ export class CjsCharacterMaterialProfile extends CjsCharacterRecord
 
     @type.list("CjsCharacterColorValue")
     specularColors = [];
+
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.path
+    patternTexturePath = null;
+
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.object.ref("CjsCharacterOrigin")
+    patternOrigin = null;
 
 }
 

@@ -43,6 +43,10 @@ export class CjsCharacterPartSource extends CjsCharacterRecord
     @type.object.ref("CjsCharacterPartMetadata")
     metadata = null;
 
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterMaterialBinding")
+    materialBindings = [];
+
 }
 
 export default CjsCharacterPartSource;

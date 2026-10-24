@@ -971,7 +971,7 @@ test("combined character library installation is atomic", () =>
 
     assert.throws(
         () => manager.InstallLibrary({ schema: "wrong", schemaVersion: 7 }),
-        /schema version 7, 8, 9, 10, or 11/u
+        /schema version 7, 8, 9, 10, 11, or 12/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 
@@ -980,7 +980,7 @@ test("combined character library installation is atomic", () =>
     retired.schemaVersion = 5;
     assert.throws(
         () => manager.InstallLibrary(retired),
-        /schema version 7, 8, 9, 10, or 11/u
+        /schema version 7, 8, 9, 10, 11, or 12/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 

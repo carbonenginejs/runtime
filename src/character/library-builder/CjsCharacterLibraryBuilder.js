@@ -15,13 +15,169 @@ const METADATA_FIELDS = [
     "generatedAt"
 ];
 
-/** Builds schema-v10 model-shaped JSON from source documents and lossless definition catalogs. */
+/** Builds versioned model-shaped JSON from source documents and lossless definition catalogs. */
 export class CjsCharacterLibraryBuilder
 {
 
     static schema = "carbonenginejs.characterLibrary";
 
     static schemaVersion = 11;
+
+    /**
+     * Projects qualified schema-12 joins from exact indexed acquisition evidence.
+     * Rebuilds only producer-owned fields; supplied material profiles remain intact.
+     * Without evidence this is a structural library, not a prepared character.
+     * `fullCanvasDdsPaths` opts exact, externally qualified PNG/DDS siblings into
+     * compressed selection. It preserves both original candidates and the PNG
+     * metadata keyed by their extension-neutral path. The selected binding's
+     * origin records qualification evidence, not a rendering override. Consumers
+     * load the exact selected file through normal texture resources and use its
+     * decoded cutout, so a full-canvas DDS cannot inherit a sibling PNG crop.
+     * This producer policy is ours, not a Carbon image decoder.
+     */
+    static prepareCatalog(documents, evidence)
+    {
+        if (evidence === null) return;
+        RequirePlainObject(evidence, "Character preparation evidence");
+        if (!Array.isArray(evidence.indexedPaths)) throw new TypeError("Preparation requires exact indexedPaths");
+        const indexed = new Set(evidence.indexedPaths);
+        const definitions = new Map(documents.characterDefinitions.map(value => [ value.sourcePath, value ]));
+        const profiles = documents.characterMaterialProfiles;
+        const origin = (resourcePath, rule) => ({ kind: "derived", resourcePath, rule });
+        const requirePath = path =>
+        {
+            if (!indexed.has(path)) throw new Error(`Character preparation path is not indexed: ${path}`);
+            return path;
+        };
+        if (evidence.fullCanvasDdsPaths !== undefined && !Array.isArray(evidence.fullCanvasDdsPaths))
+            throw new TypeError("Preparation fullCanvasDdsPaths must be an array");
+        const fullCanvasDds = new Set(evidence.fullCanvasDdsPaths ?? []);
+        const originalPaths = new Set(documents.characterPartSources.flatMap(source =>
+            source.versions.flatMap(version => version.textureCandidateInput?.paths ?? [])));
+        for (const path of fullCanvasDds)
+        {
+            requirePath(path);
+            const identity = path.replace(/\.dds$/u, "");
+            const pngPath = `${identity}.png`;
+            const metadata = documents.characterTextureMetadata.find(value => value.recordID === identity);
+            if (identity === path || !originalPaths.has(path) || !originalPaths.has(pngPath)
+                || !indexed.has(pngPath) || !metadata || metadata.sourcePath !== pngPath)
+                throw new Error(`Qualified DDS requires original siblings and retained PNG metadata: ${path}`);
+        }
+
+        const profileFor = path =>
+        {
+            requirePath(path);
+            const definition = definitions.get(path);
+            if (!definition || definition.extension !== ".color") throw new Error(`Missing retained color definition: ${path}`);
+            const matches = profiles.filter(value => value.sourcePath === path);
+            if (matches.length > 1) throw new Error(`Ambiguous material profile: ${path}`);
+            const values = definition.values;
+            RequirePlainObject(values, `Color definition ${path}`);
+            const projected = { sourcePath: path };
+            for (const field of [ "colors", "patternColors", "specularColors" ])
+            {
+                if (Object.hasOwn(values, field)) projected[field] = values[field].map(value => ({ value }));
+            }
+            for (const field of [ "pattern", "patternTransform", "patternRotation" ])
+            {
+                if (Object.hasOwn(values, field)) projected[field] = values[field];
+            }
+            let profile = matches[0];
+            if (profile)
+            {
+                for (const [key, value] of Object.entries(projected))
+                {
+                    if (JSON.stringify(profile[key]) !== JSON.stringify(value))
+                        throw new Error(`Conflicting supplied material profile: ${path}.${key}`);
+                }
+            }
+            else
+            {
+                profile = { recordID: path, ...projected };
+                profiles.push(profile);
+            }
+            profile.patternTexturePath = null;
+            profile.patternOrigin = null;
+            if (profile.pattern)
+            {
+                const paths = evidence.patternTextures?.[profile.pattern] ?? [];
+                if (paths.length !== 1) throw new Error(`Pattern requires one qualified resource: ${profile.pattern}`);
+                profile.patternTexturePath = requirePath(paths[0]);
+                profile.patternOrigin = origin(path, "indexed-pattern-resource");
+            }
+            return profile.recordID;
+        };
+
+        for (const source of documents.characterPartSources)
+        {
+            const roots = [...new Set(source.sourcePaths?.length ? source.sourcePaths : [source.sourcePath])];
+            const materialBindings = [];
+            const bind = (kind, path, selectors = {}) => materialBindings.push({
+                kind, partType: null, colorLocation: null, colorName: null,
+                ...selectors, materialProfile: profileFor(path), origin: origin(path, "exact-source-color-definition")
+            });
+            for (const partType of documents.characterPartTypes)
+            {
+                if (partType.partSource !== source.recordID && !partType.partSources?.includes(source.recordID)) continue;
+                if (!partType.colorVariant) continue;
+                const paths = roots.map(root => `${root}/${partType.colorVariant}.color`).filter(path => definitions.has(path));
+                if (paths.length !== 1) throw new Error(`Type color requires one exact source definition: ${partType.recordID}`);
+                bind("type", paths[0], { partType: partType.recordID });
+            }
+            for (const entry of evidence.colorBindings ?? [])
+            {
+                if (entry.partSource !== source.recordID) continue;
+                if (!roots.some(root => entry.path.startsWith(`${root}/`))) throw new Error("Color binding belongs to another source");
+                bind("color", entry.path, { colorLocation: entry.colorLocation, colorName: entry.colorName });
+            }
+            const dependency = documents.characterPartMetadata.some(metadata =>
+                metadata.dependencies?.some(value => value.partSource === source.recordID));
+            const defaults = roots.map(root => `${root}/default.color`).filter(path => definitions.has(path));
+            if (dependency && defaults.length)
+            {
+                if (defaults.length !== 1) throw new Error(`Ambiguous dependency default: ${source.recordID}`);
+                bind("dependency-default", defaults[0]);
+            }
+            source.materialBindings = materialBindings;
+
+            const baseline = source.versions.find(value => value.resourceVersion === null);
+            const qualify = version =>
+            {
+                const input = version.textureCandidateInput;
+                if (!input) throw new Error(`Original texture input unknown: ${source.recordID}`);
+                const paths = new Set(input.paths);
+                if (paths.size !== input.paths.length) throw new Error("Duplicate original texture candidate");
+                return input.paths.filter(path => !path.endsWith(".png")
+                    || !paths.has(path.slice(0, -4) + ".dds")
+                    || !fullCanvasDds.has(path.slice(0, -4) + ".dds")).map(path => QualifyTexture(
+                    requirePath(path), evidence.textureTargets?.[source.recordID], version.resourceVersion, origin
+                )).map(binding =>
+                {
+                    if (fullCanvasDds.has(binding.path))
+                        binding.origin = origin(binding.path, "qualified-dds-full-canvas");
+                    return binding;
+                });
+            };
+            const baseBindings = baseline ? qualify(baseline) : [];
+            const channel = value => JSON.stringify([value.target,
+                value.role.replace(/^(normal|specular|diffuse)-(?:source|overlay)$/u, "$1"), value.quality]);
+            for (const version of source.versions)
+            {
+                const input = version.textureCandidateInput;
+                if (!input) throw new Error(`Original texture input unknown: ${source.recordID}`);
+                const own = qualify(version);
+                let bindings = own;
+                if (version !== baseline && (input.mode === "omitted" || input.mode === "channel-overrides" && own.length))
+                {
+                    const replaced = new Set(own.map(channel));
+                    bindings = baseBindings.filter(value => !replaced.has(channel(value))).concat(own);
+                }
+                version.effectiveTextureBindings = bindings;
+            }
+        }
+        profiles.sort((a, b) => CompareIdentities(a.recordID, b.recordID));
+    }
 
     /** Hydrates the deterministic values produced by build(). */
     static buildLibrary(documents = {}, options = {})
@@ -137,11 +293,21 @@ export class CjsCharacterLibraryBuilder
 
         const result = {
             schema: this.schema,
-            schemaVersion: this.schemaVersion,
-            documents: NormalizeDocuments(documents)
+            schemaVersion: options.schemaVersion ?? this.schemaVersion,
+            documents: NormalizeDocuments(options.schemaVersion === 12 && !Array.isArray(documents)
+                ? { ...Object.fromEntries(DOCUMENT_NAMES.map(name => [name, {}])), ...documents }
+                : documents)
         };
 
+        if (![ 11, 12 ].includes(result.schemaVersion)) throw new TypeError("Builder output must be schema 11 or 12");
+        if (result.schemaVersion === 12)
+        {
+            result.rawDocuments = CloneJSON(documents, "Character raw documents", new WeakSet());
+            this.prepareCatalog(result.documents, options.preparation ?? null);
+        }
         result.unresolvedRelationships = ApplyRelationships(result.documents);
+        if (result.schemaVersion === 12 && options.preparation && result.unresolvedRelationships.length)
+            throw new Error("Character preparation has unresolved required relationships");
         ReportUnresolvedRelationships(result.unresolvedRelationships);
 
         for (const field of METADATA_FIELDS)
@@ -196,6 +362,26 @@ function OmitResourceOptions(options)
 }
 
 export default CjsCharacterLibraryBuilder;
+
+// The recovered character texture naming policy is applied at preparation,
+// never by the renderer. A shorthand channel needs an explicitly qualified
+// target. Duplicate formats/roles are rejected by library validation.
+function QualifyTexture(path, targetHint, sourceVersion, origin)
+{
+    const name = path.split("/").at(-1).toLowerCase().replace(/\.(png|dds|tga|jpe?g)$/u, "");
+    const quality = name.match(/_(4k|512|256)(?:_hi)?$/u)?.[1] ?? "standard";
+    const family = name.replace(/_(4k|512|256)(?:_hi)?$/u, "").replace(/_hi$/u, "");
+    const explicit = family.match(/^(colorize|comp)_(body|head|hair|acc)_(tn|mn|[dnslzm])$/u);
+    const short = family.match(/_(tn|[dnslz])$/u);
+    const target = explicit?.[2] ?? targetHint;
+    const map = explicit?.[3] ?? short?.[1];
+    if (!target || !map || !["body", "head", "hair", "acc"].includes(target))
+        throw new Error(`Texture role/target is unqualified: ${path}`);
+    const suffix = explicit?.[1] === "comp" ? "overlay" : "source";
+    const roles = { l: "colorize-layer", z: "colorize-zones", m: "cut-mask", tn: "twist-normal", mn: "normal-overlay",
+        d: `diffuse-${suffix}`, n: `normal-${suffix}`, s: `specular-${suffix}` };
+    return { path, role: roles[map], target, quality, sourceVersion, origin: origin(path, "character-texture-role-v1") };
+}
 
 function NormalizeDocuments(input)
 {

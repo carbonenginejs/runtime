@@ -254,10 +254,10 @@ function PrepareLibrary(value)
     }
 
     if (value.schema !== "carbonenginejs.characterLibrary"
-        || ![ 7, 8, 9, 10, 11 ].includes(value.schemaVersion))
+        || ![ 7, 8, 9, 10, 11, 12 ].includes(value.schemaVersion))
     {
         throw new TypeError(
-            "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, 10, or 11"
+            "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, 10, 11, or 12"
         );
     }
 

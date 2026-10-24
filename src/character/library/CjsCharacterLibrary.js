@@ -1,6 +1,7 @@
 import { exposure as be } from "#be";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsSchema, meta, type } from "#schema";
+import { DictWriter } from "../../global/blue/DictWriter.js";
 import { ReadValues } from "../../global/blue/values.js";
 import { NOTIFY_METHODS } from "../../global/compose/notify.js";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
@@ -33,6 +34,10 @@ export class CjsCharacterLibrary
      * each into a `{ _ref }`; a schema-10 library is migrated along them.
      */
     static relationships = [
+        ...[ "partType", "colorLocation", "colorName", "materialProfile" ].map((field, i) => [
+            "characterPartSources", [ "materialBindings", "*", field ],
+            [ "characterPartTypes", "characterColorLocations", "characterColorNames", "characterMaterialProfiles" ][i]
+        ]),
         [ "ancestries", [ "bloodlineID" ], "bloodlines" ],
         [ "bloodlines", [ "raceID" ], "races" ],
         [ "characterResources", [ "clothingAlsoCoversCategory" ], "characterModifierLocations" ],
@@ -210,6 +215,24 @@ export class CjsCharacterLibrary
     @type.list("CjsCharacterUnresolvedRelationship")
     unresolvedRelationships = [];
 
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.unknown
+    rawDocuments = null;
+
+    /** Exports the declared schema version, excluding newer fields from legacy payloads. */
+    GetValues(options = {})
+    {
+        const values = new DictWriter().WriteObject(this, {}, options);
+        if (this.schemaVersion < 12)
+        {
+            VisitVersionFields(values, CjsCharacterLibrary, (owner, key) => { delete owner[key]; });
+            values.unresolvedRelationships = (values.unresolvedRelationships ?? []).filter(value =>
+                !value.field.startsWith("materialBindings[")
+            );
+        }
+        return values;
+    }
+
     /** Hydrates a complete library after applying the explicit legacy migration. */
     static from(values = {}, options = {})
     {
@@ -241,10 +264,10 @@ export class CjsCharacterLibrary
         RequirePlainObject(value, "Character library");
 
         if (value.schema !== "carbonenginejs.characterLibrary"
-            || ![ 7, 8, 9, 10, 11 ].includes(value.schemaVersion))
+            || ![ 7, 8, 9, 10, 11, 12 ].includes(value.schemaVersion))
         {
             throw new TypeError(
-                "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, 10, or 11"
+                "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, 10, 11, or 12"
             );
         }
 
@@ -256,6 +279,15 @@ export class CjsCharacterLibrary
                 "Character library schemas 7 and 8 cannot define characterTextureMetadata"
             );
         }
+
+        if (value.schemaVersion < 12)
+        {
+            VisitVersionFields(value, CjsCharacterLibrary, (_owner, key) =>
+            {
+                throw new TypeError("Character schema " + value.schemaVersion + " cannot define schema-12 field " + key);
+            });
+        }
+        else ValidatePreparedCatalog(value);
 
         let normalized = value;
         if (value.schemaVersion < 9)
@@ -515,6 +547,9 @@ export class CjsCharacterLibrary
      * requested raw through `resMan.GetResource(...).Ready()`, and concurrent requests for one
      * identity share that operation. A discovered record is added through
      * `Create`, so it raises the ordinary `recordadded` event.
+     * This enriches the catalog's source evidence. Character texture loading
+     * uses the ordinary texture resource path; composition reads that texture's
+     * native cutout, never this optional catalog record or its sibling PNG.
      */
     async InspectResourceForData(resourcePath, {
         resMan = this._resourceManager,
@@ -791,3 +826,82 @@ function IsCompleteLibraryValue(value)
 }
 
 export default CjsCharacterLibrary;
+
+// These are format-version fields, not generic schema defaults. Raw document
+// values are opaque and must never be traversed as model declarations.
+const VERSION_12_FIELDS = {
+    CjsCharacterLibrary: [ "rawDocuments" ],
+    CjsCharacterDefinition: [ "sourceText" ],
+    CjsCharacterPartSource: [ "materialBindings" ],
+    CjsCharacterPartSourceVersion: [ "effectiveTextureBindings", "textureCandidateInput" ],
+    CjsCharacterMaterialProfile: [ "patternTexturePath", "patternOrigin" ]
+};
+
+function VisitVersionFields(value, Constructor, visit)
+{
+    if (!value || typeof value !== "object" || Object.hasOwn(value, "_ref")) return;
+    const schema = CjsSchema.getSchema(Constructor);
+    for (const key of VERSION_12_FIELDS[CjsSchema.getClassName(Constructor)] ?? [])
+    {
+        if (Object.hasOwn(value, key)) visit(value, key);
+    }
+    for (const field of schema.fields)
+    {
+        const child = value[field.name], descriptor = field.type;
+        if (!child || !descriptor) continue;
+        const Child = CjsSchema.getConstructor(descriptor.className ?? descriptor.itemType);
+        if (!Child) continue;
+        if (descriptor.kind === "list" || descriptor.kind === "array")
+        {
+            for (const item of child) VisitVersionFields(item, Child, visit);
+        }
+        else if (descriptor.kind === "rootRef") VisitVersionFields(child, Child, visit);
+    }
+}
+
+function ValidatePreparedCatalog(library)
+{
+    const documents = library.documents;
+    const origin = value => value && value.kind && value.rule
+        && (value.resourcePath || value.document && value.recordID);
+    for (const source of documents.characterPartSources ?? [])
+    {
+        const seen = new Set();
+        for (const [index, binding] of (source.materialBindings ?? []).entries())
+        {
+            const unresolved = field => library.unresolvedRelationships?.find(value =>
+                value.document === "characterPartSources" && value.recordID === source.recordID
+                && value.field === `materialBindings[${index}].${field}`);
+            const key = JSON.stringify([binding.kind,
+                binding.partType ?? unresolved("partType")?.targetID,
+                binding.colorLocation ?? unresolved("colorLocation")?.targetID,
+                binding.colorName ?? unresolved("colorName")?.targetID]);
+            if (seen.has(key)) throw new TypeError("Ambiguous character material binding");
+            seen.add(key);
+            if (![ "type", "color", "dependency-default" ].includes(binding.kind)
+                || !origin(binding.origin)
+                || !binding.materialProfile && !unresolved("materialProfile")
+                || binding.kind === "type" && ((!binding.partType && !unresolved("partType")) || binding.colorLocation || binding.colorName)
+                || binding.kind === "color" && (binding.partType || (!binding.colorLocation && !unresolved("colorLocation")) || (!binding.colorName && !unresolved("colorName")))
+                || binding.kind === "dependency-default" && (binding.partType || binding.colorLocation || binding.colorName))
+                throw new TypeError("Invalid character material binding");
+        }
+        for (const version of source.versions ?? [])
+        {
+            const input = version.textureCandidateInput;
+            if (input && (![ "omitted", "complete", "channel-overrides" ].includes(input.mode)
+                || !Array.isArray(input.paths) || !origin(input.origin)
+                || input.mode === "omitted" && input.paths.length))
+                throw new TypeError("Invalid character texture candidate input");
+            const channels = new Set();
+            for (const binding of version.effectiveTextureBindings ?? [])
+            {
+                const key = JSON.stringify([binding.role.replace(/^(normal|specular|diffuse)-(?:source|overlay)$/u, "$1"), binding.target, binding.quality]);
+                if (channels.has(key)) throw new TypeError("Ambiguous character texture channel");
+                channels.add(key);
+                if (!binding.path || !binding.role || !binding.target || !origin(binding.origin))
+                    throw new TypeError("Invalid character catalog texture binding");
+            }
+        }
+    }
+}

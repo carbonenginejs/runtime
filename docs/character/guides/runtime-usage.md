@@ -207,7 +207,45 @@ Until later stages supply decoded resource facts or explicit policy, textures,
 coverage, targets, passes, and bindings remain empty and diagnostics explain
 the unresolved work.
 
-## Runtime boundary
+## Opt-in prepared catalogs
+
+The builder defaults to schema 11. Pass `schemaVersion: 12` to retain
+`rawDocuments` before typed defaults and relationship projection. Definition
+records may carry original `sourceText` alongside decoded `values`; this
+preserves YAML tuple, tag and alias syntax without changing decoded values.
+Missing text is reported as null, never reconstructed.
+
+Schema-12 preparation accepts exact indexed paths, source texture targets,
+qualified sparse override inputs, color-selection relationships and pattern
+resource evidence. It produces source-owned material bindings, exact pattern
+paths and effective texture channels while preserving the original inventory.
+Unknown input presence and ambiguous required relationships fail preparation.
+Building schema 12 without preparation evidence is structural hydration only.
+
+For externally verified same-stem PNG/DDS pairs, preparation may supply
+`fullCanvasDdsPaths: ["res:/.../texture.dds"]`. Both paths must be original
+indexed candidates and the extension-neutral PNG metadata must be retained.
+The builder selects DDS only within that exact pair and records
+`qualified-dds-full-canvas` in the effective binding's origin. Original
+candidates, input presence and raw PNG facts remain unchanged. Other duplicate
+channels still fail. This option asserts a verified full-canvas representation;
+it does not compare or decode images. Consumers must not apply the PNG crop
+placement again to that DDS. `InspectResourceForData(ddsPath)` still retrieves
+the same metadata record as the PNG path; storage bounds and metadata identity
+are separate concerns. DDS resource loading can retain compressed mip data;
+the library never expands or recompresses pixels.
+
+`CjsCharacterAppearanceResolver.resolveCatalog()` consumes exact hydrated
+source, type, color and dependency identities. Its A and BC profiles remain
+separate. It returns prepared inputs, not render passes or shader bindings.
+The existing paper-doll resolver remains the earlier planning stage.
+
+Use `CjsSchema.getValues(library, {}, { refs: true })` for version-aware
+emission. Schema-11 exports omit every schema-12-only field, including new
+model defaults; schema-11 inputs containing those fields are rejected.
+Schemas 7–10 still migrate to 11 and do not acquire inferred schema-12 joins.
+
+## Resource and graphics boundary
 
 Library and plan data remain GPU-free. The builder orchestrates static-data
 fetch/decoding through resource readers; metadata inspection can call an

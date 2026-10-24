@@ -10,6 +10,8 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * millionths placement is additive character policy labelled
  * `experimental-policy`, not PNG semantics. Chunk parsing belongs to the PNG
  * format.
+ * This record preserves catalog evidence; it is not required to load or place
+ * a texture. Composition consumes the loaded texture resource's native cutout.
  */
 @meta.define("CjsCharacterTextureMetadata")
 export class CjsCharacterTextureMetadata extends CjsCharacterRecord

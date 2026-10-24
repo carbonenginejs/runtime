@@ -19,6 +19,44 @@ export class CjsCharacterAppearanceResolver
 {
 
     /**
+     * Resolves schema-12 prepared inputs by exact catalog identity for files-only
+     * applications. A/BC profiles remain separate; this does not combine colors
+     * or establish shader bindings. Defaults require a real typed dependency.
+     */
+    static resolveCatalog(library, { partSource, resourceVersion = null, partType = null,
+        colorLocation = null, colorNameA = null, colorNameBC = null, dependency = null } = {})
+    {
+        if (library.schemaVersion !== 12 || library.Get("characterPartSources", partSource.recordID) !== partSource)
+            throw new TypeError("Catalog resolution requires a schema-12 source from this library");
+        const versions = partSource.versions.filter(value => value.resourceVersion === resourceVersion);
+        if (versions.length !== 1 || !versions[0].textureCandidateInput)
+            throw new Error("Source version is ambiguous or not prepared");
+        if (versions[0].textureCandidates.length && !versions[0].effectiveTextureBindings.length)
+            throw new Error("Source texture channels have not been prepared");
+        const select = (kind, match) =>
+        {
+            const bindings = partSource.materialBindings.filter(value => value.kind === kind && match(value));
+            if (bindings.length !== 1 || !bindings[0].materialProfile)
+                throw new Error(`Material selection requires one resolved ${kind} binding`);
+            if (bindings[0].materialProfile.pattern && (!bindings[0].materialProfile.patternTexturePath || !bindings[0].materialProfile.patternOrigin))
+                throw new Error("Selected pattern has not been prepared");
+            return bindings[0].materialProfile;
+        };
+        let materialProfile = null;
+        if (partType) materialProfile = select("type", value => value.partType === partType);
+        else if (dependency)
+        {
+            if (dependency.partSource !== partSource || !library.GetDocument("characterPartMetadata").some(metadata =>
+                metadata.dependencies.includes(dependency))) throw new Error("Default material requires an exact typed dependency");
+            materialProfile = select("dependency-default", () => true);
+        }
+        const color = name => name ? select("color", value => value.colorLocation === colorLocation && value.colorName === name) : null;
+        return { partSource, version: versions[0], materialProfile,
+            colorA: color(colorNameA), colorBC: color(colorNameBC),
+            textureBindings: versions[0].effectiveTextureBindings };
+    }
+
+    /**
      * Resolves one hydrated paper doll into the currently provable appearance-plan tranche.
      *
      * - Source: the part type's `partSources` are filtered by the resource's
@@ -69,7 +107,7 @@ export class CjsCharacterAppearanceResolver
     {
         if (!library
             || library.schema !== "carbonenginejs.characterLibrary"
-            || ![ 7, 8, 9, 10, 11 ].includes(library.schemaVersion))
+            || ![ 7, 8, 9, 10, 11, 12 ].includes(library.schemaVersion))
         {
             throw new TypeError("Character appearance resolution requires CjsCharacterLibrary");
         }
