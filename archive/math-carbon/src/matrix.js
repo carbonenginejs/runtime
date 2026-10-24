@@ -556,7 +556,7 @@ matrix.orthoNormalBasisZ = function (out, z)
     out[9] = vec3_0[1];
     out[10] = vec3_0[2];
     let xx, xy, xz;
-    if (Math.abs(out[8]) > 0.99)
+    if (Math.abs(out[8]) > Math.fround(0.99))
     {
         xx = 0; xy = 1; xz = 0;
     }

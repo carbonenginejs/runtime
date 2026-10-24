@@ -135,23 +135,34 @@ color.lerp = function (out, a, b, s)
     return out;
 }; // Color_inline.h:155
 
-/** Saturates a color: lerp from perceived-intensity grey toward the color by max(0, saturation) */
+/**
+ * Carbon: Saturate (math/include/Color_inline.h:161-172)
+ * Interpolates every component from perceived-intensity grey, preserving native exceptional values.
+ * @param {Float32Array} out Receiving color; may overlap a.
+ * @param {Float32Array} a Color.
+ * @param {number} saturation Native float saturation.
+ * @returns {Float32Array} out
+ */
 color.saturate = function (out, a, saturation)
 {
     const s = f32(saturation);
+    const r = a[0], g = a[1], b = a[2], al = a[3];
     if (s === 1)
     {
-        return color.copy(out, a);
+        out[0] = r;
+        out[1] = g;
+        out[2] = b;
+        out[3] = al;
+        return out;
     }
 
-    const r = a[0], g = a[1], b = a[2], al = a[3];
     // intensity (the magic numbers are values based on how strongly our eyes perceive each color)
     const i = f32(f32(f32(r * f32(0.299)) + f32(g * f32(0.587))) + f32(b * f32(0.114)));
 
-    const t = Math.max(0, s);
+    const t = 0 < s ? s : 0;
     out[0] = i + f32(f32(r - i) * t);
     out[1] = i + f32(f32(g - i) * t);
     out[2] = i + f32(f32(b - i) * t);
-    out[3] = al;
+    out[3] = al + f32(f32(al - al) * t);
     return out;
 }; // Color_inline.h:161

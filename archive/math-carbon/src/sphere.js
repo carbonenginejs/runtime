@@ -265,6 +265,7 @@ sphere.isSphereInside = function (s, other)
 };
 
 /**
+ * Carbon: Sphere::Transform (math/src/Sphere.cpp:19-33)
  * Transforms a sphere by a matrix; radius scales by the largest basis-row scale  // Sphere.cpp:19
  * @param {sphere} out - may alias s
  * @param {sphere} s
@@ -290,10 +291,22 @@ sphere.transform = function (out, s, m)
     const scaleX = m[0] * m[0] + m[1] * m[1] + m[2] * m[2];
     const scaleY = m[4] * m[4] + m[5] * m[5] + m[6] * m[6];
     const scaleZ = m[8] * m[8] + m[9] * m[9] + m[10] * m[10];
-    const scale = Math.sqrt(Math.max(scaleX, Math.max(scaleY, scaleZ)));
+    const scale = Math.sqrt(maxValue(scaleX, maxValue(scaleY, scaleZ)));
     out[0] = c[0];
     out[1] = c[1];
     out[2] = c[2];
     out[3] = s[3] * scale;
     return out;
 };
+
+/**
+ * Carbon: std::max selection (math/src/Sphere.cpp:31)
+ * Retains the first operand on equality or an unordered comparison.
+ * @param {number} a First value.
+ * @param {number} b Second value.
+ * @returns {number} Selected value.
+ */
+function maxValue(a, b)
+{
+    return a < b ? b : a;
+}

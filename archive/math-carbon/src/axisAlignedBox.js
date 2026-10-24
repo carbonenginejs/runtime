@@ -163,6 +163,7 @@ axisAlignedBox.getCenter = function (outVec3, box)
 };
 
 /**
+ * Carbon: AxisAlignedBox::IncludePoint (math/include/AxisAlignedBox_inline.h:73-77)
  * Grows the box in place to include a point (mutates box, as Carbon mutates the receiver)  // AxisAlignedBox_inline.h:73
  * @param {axisAlignedBox} box
  * @param {Float32Array} pos - vec3
@@ -170,16 +171,17 @@ axisAlignedBox.getCenter = function (outVec3, box)
  */
 axisAlignedBox.includePoint = function (box, pos)
 {
-    box[0] = Math.min(box[0], pos[0]);
-    box[1] = Math.min(box[1], pos[1]);
-    box[2] = Math.min(box[2], pos[2]);
-    box[3] = Math.max(box[3], pos[0]);
-    box[4] = Math.max(box[4], pos[1]);
-    box[5] = Math.max(box[5], pos[2]);
+    box[0] = minValue(box[0], pos[0]);
+    box[1] = minValue(box[1], pos[1]);
+    box[2] = minValue(box[2], pos[2]);
+    box[3] = maxValue(box[3], pos[0]);
+    box[4] = maxValue(box[4], pos[1]);
+    box[5] = maxValue(box[5], pos[2]);
     return box;
 };
 
 /**
+ * Carbon: AxisAlignedBox::IncludeBox (math/include/AxisAlignedBox_inline.h:79-83)
  * Grows the box in place to include another box (mutates box)  // AxisAlignedBox_inline.h:79
  * @param {axisAlignedBox} box
  * @param {axisAlignedBox} other
@@ -187,19 +189,19 @@ axisAlignedBox.includePoint = function (box, pos)
  */
 axisAlignedBox.includeBox = function (box, other)
 {
-    box[0] = Math.min(box[0], other[0]);
-    box[1] = Math.min(box[1], other[1]);
-    box[2] = Math.min(box[2], other[2]);
-    box[3] = Math.max(box[3], other[0]);
-    box[4] = Math.max(box[4], other[1]);
-    box[5] = Math.max(box[5], other[2]);
+    box[0] = minValue(box[0], other[0]);
+    box[1] = minValue(box[1], other[1]);
+    box[2] = minValue(box[2], other[2]);
+    box[3] = maxValue(box[3], other[0]);
+    box[4] = maxValue(box[4], other[1]);
+    box[5] = maxValue(box[5], other[2]);
     // IncludePoint(other.m_max)
-    box[0] = Math.min(box[0], other[3]);
-    box[1] = Math.min(box[1], other[4]);
-    box[2] = Math.min(box[2], other[5]);
-    box[3] = Math.max(box[3], other[3]);
-    box[4] = Math.max(box[4], other[4]);
-    box[5] = Math.max(box[5], other[5]);
+    box[0] = minValue(box[0], other[3]);
+    box[1] = minValue(box[1], other[4]);
+    box[2] = minValue(box[2], other[5]);
+    box[3] = maxValue(box[3], other[3]);
+    box[4] = maxValue(box[4], other[4]);
+    box[5] = maxValue(box[5], other[5]);
     return box;
 };
 
@@ -425,10 +427,18 @@ axisAlignedBox.transform = function (out, box, m)
     return out;
 };
 
-// Normalize(Vector3) with Carbon's overflow guard  // Vector3_inline.h:181
+/**
+ * Carbon: Normalize (math/include/Vector3_inline.h:181-192)
+ * Applies the fast overflow guard with native maximum selection.
+ * @param {Float32Array} outX3 Receiving vector.
+ * @param {number} x X component.
+ * @param {number} y Y component.
+ * @param {number} z Z component.
+ * @returns {Float32Array} outX3
+ */
 function normalize3(outX3, x, y, z)
 {
-    const max = Math.max(Math.max(Math.abs(x), Math.abs(y)), Math.abs(z));
+    const max = maxValue(maxValue(Math.abs(x), Math.abs(y)), Math.abs(z));
     const inv = 1 / (max ? max : 1);
     const mx = x * inv, my = y * inv, mz = z * inv;
     let length = Math.sqrt(mx * mx + my * my + mz * mz);
@@ -443,6 +453,7 @@ function normalize3(outX3, x, y, z)
 }
 
 /**
+ * Carbon: AxisAlignedBox::Intersects (math/src/AxisAlignedBox.cpp:36-61)
  * Box-ray intersection (slab test); writes the entry point to outIntersection and returns hit  // AxisAlignedBox.cpp:36
  * Ported literally: uninitialized box returns false without writing outIntersection;
  * a degenerate point box writes m_min and compares the normalized direction with
@@ -480,15 +491,15 @@ axisAlignedBox.intersectsRay = function (outIntersection, box, ray)
         t1y = (box[4] - ray[1]) * rd,
         t1z = (box[5] - ray[2]) * rd;
 
-    const sx = Math.min(t0x, t1x),
-        sy = Math.min(t0y, t1y),
-        sz = Math.min(t0z, t1z);
-    const bx = Math.max(t0x, t1x),
-        by = Math.max(t0y, t1y),
-        bz = Math.max(t0z, t1z);
+    const sx = minValue(t0x, t1x),
+        sy = minValue(t0y, t1y),
+        sz = minValue(t0z, t1z);
+    const bx = maxValue(t0x, t1x),
+        by = maxValue(t0y, t1y),
+        bz = maxValue(t0z, t1z);
 
-    const minT = Math.max(sx, Math.max(sy, sz));
-    const maxT = Math.min(bx, Math.min(by, bz));
+    const minT = maxValue(sx, maxValue(sy, sz));
+    const maxT = minValue(bx, minValue(by, bz));
 
     outIntersection[0] = ray[0] + minT * ray[3];
     outIntersection[1] = ray[1] + minT * ray[4];
@@ -497,6 +508,7 @@ axisAlignedBox.intersectsRay = function (outIntersection, box, ray)
 };
 
 /**
+ * Carbon: Intersection (math/include/AxisAlignedBox_inline.h:184-200)
  * Intersection of two boxes; returns the default (uninitialized) box when intersectsBox says no  // AxisAlignedBox_inline.h:184
  * NOTE: consumes the literally-ported intersectsBox above, so it inherits Carbon's inverted compare.
  * @param {axisAlignedBox} out
@@ -516,12 +528,12 @@ axisAlignedBox.intersection = function (out, a, b)
         out[5] = -FLT_MAX;
         return out;
     }
-    const minX = Math.max(a[0], b[0]),
-        minY = Math.max(a[1], b[1]),
-        minZ = Math.max(a[2], b[2]);
-    const maxX = Math.min(a[3], b[3]),
-        maxY = Math.min(a[4], b[4]),
-        maxZ = Math.min(a[5], b[5]);
+    const minX = maxValue(a[0], b[0]),
+        minY = maxValue(a[1], b[1]),
+        minZ = maxValue(a[2], b[2]);
+    const maxX = minValue(a[3], b[3]),
+        maxY = minValue(a[4], b[4]),
+        maxZ = minValue(a[5], b[5]);
     out[0] = minX;
     out[1] = minY;
     out[2] = minZ;
@@ -530,3 +542,27 @@ axisAlignedBox.intersection = function (out, a, b)
     out[5] = maxZ;
     return out;
 };
+
+/**
+ * Carbon: std::max selection (math/src/AxisAlignedBox.cpp:53-57)
+ * Retains the first operand on equality or an unordered comparison.
+ * @param {number} a First value.
+ * @param {number} b Second value.
+ * @returns {number} Selected value.
+ */
+function maxValue(a, b)
+{
+    return a < b ? b : a;
+}
+
+/**
+ * Carbon: std::min selection (math/src/AxisAlignedBox.cpp:53-57)
+ * Retains the first operand on equality or an unordered comparison.
+ * @param {number} a First value.
+ * @param {number} b Second value.
+ * @returns {number} Selected value.
+ */
+function minValue(a, b)
+{
+    return a > b ? b : a;
+}
