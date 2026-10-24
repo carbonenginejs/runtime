@@ -8,12 +8,37 @@ import { CjsVtaFormat } from "../../../npm/dist/resource/formats/vta/CjsVtaForma
 import { TriSettingsRegistrar } from "../../../npm/dist/trinity/core/TriSettingsRegistrar.js";
 import { CreateBlackObjectBuilder } from "../../../npm/dist/resource/object/registerObjectResources.js";
 import { ReadImageResource } from "../../../npm/dist/resource/texture/registerTextureResources.js";
+import { TriTextureRes } from "../../../npm/dist/resource/texture/TriTextureRes.js";
 
 /** Isolated real Blue owners; no host loop, fetch or device is started. */
 function services()
 {
   return { resMan: new CjsBlueResMan(), paths: new CjsBluePaths(), os: new CjsBlueOS(), sof: null };
 }
+
+test("LOAD policy remains requested until a fresh resource startup", async t =>
+{
+  const original = TriTextureRes.compressUncompressedTextures;
+  const library = new CjsLibrary({ settings: { compressUncompressedTextures: false } });
+  t.after(() => { library.Shutdown(); TriTextureRes.compressUncompressedTextures = original; });
+  const owners = services();
+  await library.Initialize(owners);
+  library.SetConfiguration({ settings: { compressUncompressedTextures: true } });
+  assert.equal(TriTextureRes.compressUncompressedTextures, false);
+  assert.equal(library.GetConfiguration().requested.settings.compressUncompressedTextures, true);
+  assert.equal(library.GetConfiguration().configured.settings.compressUncompressedTextures, false);
+  library.Shutdown();
+  await library.Initialize(owners);
+  assert.equal(TriTextureRes.compressUncompressedTextures, false, "reattaching the same cache is not reboot");
+  library.Shutdown();
+  await library.Initialize(services());
+  assert.equal(TriTextureRes.compressUncompressedTextures, true);
+  library.Shutdown();
+  await library.Initialize(owners);
+  assert.equal(TriTextureRes.compressUncompressedTextures, false, "restore the reused cache's original global LOAD policy");
+  assert.equal(library.GetConfiguration().configured.settings.compressUncompressedTextures, false);
+  assert.equal(library.GetConfiguration().requested.settings.compressUncompressedTextures, true);
+});
 
 test("construction is inert and entry overrides preserve classes without deep merging", t =>
 {

@@ -62,8 +62,9 @@ export class CjsLibrary
     if (this._initialization) throw new Error("Configuration cannot change during initialization.");
     const patch = CopyConfiguration(configuration);
     const immediate = this._previousServices
-      ? Object.fromEntries(Object.entries(patch).filter(([section]) => !REBOOT_CONFIGURATION_SECTIONS.has(section)))
+      ? LiveConfiguration(patch, this._configurationOwners.settings)
       : patch;
+    if (this._previousServices && patch.settings) this._ValidateConfigurationOwners({ settings: patch.settings });
     if (this._previousServices) this._ValidateConfigurationOwners(immediate);
     for (const [section, entries] of Object.entries(patch))
       this._configuration[section] = { ...this._configuration[section], ...entries };
@@ -76,8 +77,8 @@ export class CjsLibrary
    * Reader/factory policy changes remain in requested, while configured retains
    * the policy installed at startup. Applying those changes requires reboot;
    * this API never purges or reloads resources implicitly.
-   * Configured CREATE/LOAD settings affect later owner work, not existing devices
-   * or resources. Backend data is requested only; the host consumes it at its
+   * LOAD settings also wait for reboot. Configured CREATE settings affect later
+   * device creation. Backend data is requested only; the host consumes it at its
    * existing setup boundary. Shutdown does not undo global registry mutations.
    */
   GetConfiguration()
@@ -247,14 +248,24 @@ export class CjsLibrary
         if (this._configurationOwners?.paths !== blue.paths) delete this._configured.paths;
         this._configurationOwners = { resMan: blue.resMan, paths: blue.paths, settings: TriSettingsRegistrar.getSettings() };
         // Reattaching the same manager does not reboot its cache or consumers.
-        this._ApplyConfiguration(installedPolicy
-          ? Object.fromEntries(Object.entries(this._configuration).filter(([section]) => !REBOOT_CONFIGURATION_SECTIONS.has(section)))
-          : this._configuration);
+        const startup = installedPolicy
+          ? LiveConfiguration(this._configuration, this._configurationOwners.settings)
+          : this._configuration;
+        // LOAD owners are class statics. Another completed application may have
+        // configured them since this manager last ran. Restore this cache's
+        // original policy, never its newly requested pending policy.
+        if (installedPolicy) startup.settings = { ...startup.settings, ...installedPolicy.settings };
+        this._ApplyConfiguration(startup);
         if (!installedPolicy)
         {
-          installedResourcePolicies.set(blue.resMan, CopyConfiguration(Object.fromEntries(
+          const installed = Object.fromEntries(
             Object.entries(this._configured).filter(([section]) => REBOOT_CONFIGURATION_SECTIONS.has(section))
-          )));
+          );
+          const settings = this._configurationOwners.settings;
+          installed.settings = Object.fromEntries(settings.GetNames()
+            .filter(name => settings.FindSetting(name).applies === meta.setting.LOAD)
+            .map(name => [name, settings.GetValue(name)]));
+          installedResourcePolicies.set(blue.resMan, CopyConfiguration(installed));
         }
         return this;
       }
@@ -302,6 +313,17 @@ CjsSchema.meta.define(CjsLibrary, {
 });
 
 export default CjsLibrary;
+
+/** Keeps live owner settings; reader registrations and LOAD policy wait for reboot. */
+function LiveConfiguration(configuration, settings)
+{
+  const result = Object.fromEntries(Object.entries(configuration)
+    .filter(([section]) => !REBOOT_CONFIGURATION_SECTIONS.has(section)));
+  if (result.settings)
+    result.settings = Object.fromEntries(Object.entries(result.settings)
+      .filter(([name]) => settings.FindSetting(name)?.applies !== meta.setting.LOAD));
+  return result;
+}
 
 /** Copies configuration containers, preserving borrowed providers and executable identities. */
 function CopyConfiguration(configuration)
