@@ -4,7 +4,7 @@
  * This partial table is absent from the runtime and archive barrel; initialization
  * selection is not wired yet. Native agreement is bounded to the verified build.
  */
-export const quaternionFloat32 = { multiply, dot, lengthSq, length, normalize, inverse };
+export const quaternionFloat32 = { multiply, dot, lengthSq, length, normalize, inverse, scale, divide };
 
 /**
  * Carbon: Quaternion::operator* (math/include/Quaternion_inline.h:118-126)
@@ -97,4 +97,38 @@ function inverse(out, q)
     out[2] = f(-z * l);
     out[3] = f(w * l);
     return out;
+}
+
+/**
+ * Carbon: Quaternion::operator*= (math/include/Quaternion_inline.h:73-80)
+ * Converts the scalar to float and scales cached components.
+ * @param {Float32Array} out Receiving value; may overlap a.
+ * @param {Float32Array} a Input value.
+ * @param {number} scalar Native float scalar.
+ * @returns {Float32Array} out
+ */
+function scale(out, a, scalar)
+{
+    const f = Math.fround;
+    const factor = f(scalar);
+    const a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+    out[0] = f(a0 * factor);
+    out[1] = f(a1 * factor);
+    out[2] = f(a2 * factor);
+    out[3] = f(a3 * factor);
+    return out;
+}
+
+/**
+ * Carbon: Quaternion::operator/= (math/include/Quaternion_inline.h:83-91)
+ * Rounds the native float reciprocal before scaling components.
+ * @param {Float32Array} out Receiving value; may overlap a.
+ * @param {Float32Array} a Input value.
+ * @param {number} divisor Native float divisor.
+ * @returns {Float32Array} out
+ */
+function divide(out, a, divisor)
+{
+    const f = Math.fround;
+    return scale(out, a, f(1 / f(divisor)));
 }

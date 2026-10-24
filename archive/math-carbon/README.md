@@ -13,8 +13,10 @@ Inverse copies singular inputs and follows the native arithmetic path for a NaN
 determinant. Caller-owned output may overlap the inputs for these operations.
 
 `src/matrixFloat32.js` prepares the float32 implementations of multiply,
-determinant, inverse, scale/rotation/translation composition and vector transforms.
-`src/quaternionFloat32.js` prepares multiply, dot, length, normalization and inverse.
+determinant, inverse, scale/rotation/translation composition, vector transforms,
+scalar scaling/division and arithmetic projections.
+`src/quaternionFloat32.js` prepares multiply, dot, length, normalization, inverse
+and scalar scaling/division.
 The vector2/3/4 float32 tables prepare length, normalization, dot, clamp and triple-cross kernels.
 These partial tables are internal and absent from the archive barrel and runtime exports. This is
 preparation for our initialization-time precision option, not an active setting:

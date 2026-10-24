@@ -1,3 +1,5 @@
+import { matrix } from "./matrix.js";
+
 // Source: math/include/Matrix_inline.h
 // Source: math/include/Vector4_inline.h
 // Source: math/src/Matrix.cpp
@@ -9,7 +11,8 @@
  * the verified compiler/FP environment and is not universal across native builds.
  */
 export const matrixFloat32 = { multiply, determinant, inverse, inverseDet, transformationMatrix,
-    transformCoord, transformNormal, transform, transformByTranspose };
+    transformCoord, transformNormal, transform, transformByTranspose, scale, divide,
+    orthographicProjection, orthoMatrix, perspectiveOffCenterMatrix, orthoOffCenterMatrix };
 
 /**
  * Carbon: Matrix::operator* (math/include/Matrix_inline.h:193-204)
@@ -348,5 +351,168 @@ function transformByTranspose(out, p, m)
     out[1] = result1;
     out[2] = result2;
     out[3] = result3;
+    return out;
+}
+
+/**
+ * Carbon: Matrix::operator*= (math/include/Matrix_inline.h:112-135)
+ * Converts the scalar to float and scales cached components.
+ * @param {Float32Array} out Receiving value; may overlap a.
+ * @param {Float32Array} a Input value.
+ * @param {number} scalar Native float scalar.
+ * @returns {Float32Array} out
+ */
+function scale(out, a, scalar)
+{
+    const f = Math.fround;
+    const factor = f(scalar);
+    const a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3],
+        a4 = a[4], a5 = a[5], a6 = a[6], a7 = a[7],
+        a8 = a[8], a9 = a[9], a10 = a[10], a11 = a[11],
+        a12 = a[12], a13 = a[13], a14 = a[14], a15 = a[15];
+    out[0] = f(a0 * factor);
+    out[1] = f(a1 * factor);
+    out[2] = f(a2 * factor);
+    out[3] = f(a3 * factor);
+    out[4] = f(a4 * factor);
+    out[5] = f(a5 * factor);
+    out[6] = f(a6 * factor);
+    out[7] = f(a7 * factor);
+    out[8] = f(a8 * factor);
+    out[9] = f(a9 * factor);
+    out[10] = f(a10 * factor);
+    out[11] = f(a11 * factor);
+    out[12] = f(a12 * factor);
+    out[13] = f(a13 * factor);
+    out[14] = f(a14 * factor);
+    out[15] = f(a15 * factor);
+    return out;
+}
+
+/**
+ * Carbon: Matrix::operator/= (math/include/Matrix_inline.h:138-163)
+ * Rounds the native float reciprocal before scaling components.
+ * @param {Float32Array} out Receiving value; may overlap a.
+ * @param {Float32Array} a Input value.
+ * @param {number} divisor Native float divisor.
+ * @returns {Float32Array} out
+ */
+function divide(out, a, divisor)
+{
+    const f = Math.fround;
+    return scale(out, a, f(1 / f(divisor)));
+}
+
+/**
+ * Carbon: OrthographicProjection (math/include/Matrix_inline.h:549-557)
+ * Preserves the native float arguments and projection expression order.
+ * @param {Float32Array} out Receiving matrix.
+ * @param {number} width Native float projection parameter.
+ * @param {number} height Native float projection parameter.
+ * @param {number} zNear Native float projection parameter.
+ * @param {number} zFar Native float projection parameter.
+ * @returns {Float32Array} out
+ */
+function orthographicProjection(out, width, height, zNear, zFar)
+{
+    const f = Math.fround;
+    width = f(width);
+    height = f(height);
+    zNear = f(zNear);
+    zFar = f(zFar);
+    matrix.identityMatrix(out);
+    out[0] = f(2.0 / width);
+    out[5] = f(2.0 / height);
+    out[10] = f(1.0 / f(zNear - zFar));
+    out[14] = f(zNear / f(zNear - zFar));
+    return out;
+}
+
+/**
+ * Carbon: OrthoMatrix (math/include/Matrix_inline.h:738-746)
+ * Preserves the native float arguments and projection expression order.
+ * @param {Float32Array} out Receiving matrix.
+ * @param {number} w Native float projection parameter.
+ * @param {number} h Native float projection parameter.
+ * @param {number} zn Native float projection parameter.
+ * @param {number} zf Native float projection parameter.
+ * @returns {Float32Array} out
+ */
+function orthoMatrix(out, w, h, zn, zf)
+{
+    const f = Math.fround;
+    w = f(w);
+    h = f(h);
+    zn = f(zn);
+    zf = f(zf);
+    matrix.identityMatrix(out);
+    out[0] = f(2.0 / w);
+    out[5] = f(2.0 / h);
+    out[10] = f(1.0 / f(zn - zf));
+    out[14] = f(zn / f(zn - zf));
+    return out;
+}
+
+/**
+ * Carbon: PerspectiveOffCenterMatrix (math/include/Matrix_inline.h:717-735)
+ * Preserves the native float arguments and projection expression order.
+ * @param {Float32Array} out Receiving matrix.
+ * @param {number} l Native float projection parameter.
+ * @param {number} r Native float projection parameter.
+ * @param {number} b Native float projection parameter.
+ * @param {number} t Native float projection parameter.
+ * @param {number} zn Native float projection parameter.
+ * @param {number} zf Native float projection parameter.
+ * @returns {Float32Array} out
+ */
+function perspectiveOffCenterMatrix(out, l, r, b, t, zn, zf)
+{
+    const f = Math.fround;
+    l = f(l);
+    r = f(r);
+    b = f(b);
+    t = f(t);
+    zn = f(zn);
+    zf = f(zf);
+    matrix.identityMatrix(out);
+    out[0] = f(f(2.0 * zn) / f(r - l));
+    out[5] = f(f(-2.0 * zn) / f(b - t));
+    out[8] = f(1.0 + f(f(2.0 * l) / f(r - l)));
+    out[9] = f(-1.0 - f(f(2.0 * t) / f(b - t)));
+    out[10] = f(zf / f(zn - zf));
+    out[14] = f(f(zn * zf) / f(zn - zf));
+    out[11] = -1.0;
+    out[15] = 0.0;
+    return out;
+}
+
+/**
+ * Carbon: OrthoOffCenterMatrix (math/include/Matrix_inline.h:749-765)
+ * Preserves the native float arguments and projection expression order.
+ * @param {Float32Array} out Receiving matrix.
+ * @param {number} l Native float projection parameter.
+ * @param {number} r Native float projection parameter.
+ * @param {number} b Native float projection parameter.
+ * @param {number} t Native float projection parameter.
+ * @param {number} zn Native float projection parameter.
+ * @param {number} zf Native float projection parameter.
+ * @returns {Float32Array} out
+ */
+function orthoOffCenterMatrix(out, l, r, b, t, zn, zf)
+{
+    const f = Math.fround;
+    l = f(l);
+    r = f(r);
+    b = f(b);
+    t = f(t);
+    zn = f(zn);
+    zf = f(zf);
+    matrix.identityMatrix(out);
+    out[0] = f(2.0 / f(r - l));
+    out[5] = f(2.0 / f(t - b));
+    out[10] = f(1.0 / f(zn - zf));
+    out[12] = f(-1.0 - f(f(2.0 * l) / f(r - l)));
+    out[13] = f(1.0 + f(f(2.0 * t) / f(b - t)));
+    out[14] = f(zn / f(zn - zf));
     return out;
 }
