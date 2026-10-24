@@ -1,3 +1,4 @@
+import { CjsPaperDollScars } from "./CjsPaperDollScars.js";
 import { CjsPaperDollAging } from "./CjsPaperDollAging.js";
 import { CjsPaperDollScarring } from "./CjsPaperDollScarring.js";
 import { CjsPaperDollFreckles } from "./CjsPaperDollFreckles.js";
@@ -11,7 +12,8 @@ import { CjsPaperDollBlush } from "./CjsPaperDollBlush.js";
 /**
  * Application-owned foundation and appearance coordinator.
  * Prepared synchronous bindings run outside a render pass. The head binding
- * composes eyebrows and blush together in authored order; components own no
+ * composes shared diffuse contributors; the surface binding owns normal and
+ * specular contributors. Components own no
  * effects. This bounded integration is not a general dependency scheduler.
  */
 @meta.define("CjsPaperDoll")
@@ -49,6 +51,10 @@ export class CjsPaperDoll
     @type.object.embed("CjsPaperDollScarring")
     scarring = new CjsPaperDollScarring();
 
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollScars")
+    scars = new CjsPaperDollScars();
+
     _appliedSurface = null;
     _appliedSkin = null;
     _appliedFoundation = null;
@@ -65,7 +71,7 @@ export class CjsPaperDoll
         this.archetype.Rebuild();
         this.skin.Rebuild();
         this.freckles.Rebuild();
-        this.aging.Rebuild(); this.scarring.Rebuild();
+        this.aging.Rebuild(); this.scarring.Rebuild(); this.scars.Rebuild();
         this.eyes.Rebuild(); this.eyebrows.Rebuild(); this.blush.Rebuild();
     }
 
@@ -106,13 +112,13 @@ export class CjsPaperDoll
         const skin = skinPending ? this._Capture(this.skin) : this._appliedSkin;
         const skinChanged = Boolean(skinPending && (skin.option || this._appliedSkin?.option)
             && (foundationChanged || this._dirty || this._Changed(skin, this._appliedSkin)));
-        const surfacePending = foundationChanged || this._dirty || this.aging.IsDirty() || this.scarring.IsDirty() || !this._appliedSurface;
-        const surface = surfacePending ? { aging: this._Capture(this.aging), scarring: this._Capture(this.scarring) } : this._appliedSurface;
-        const surfaceActive = surface.aging.option || surface.scarring.option || this._appliedSurface?.aging.option || this._appliedSurface?.scarring.option;
+        const surfacePending = foundationChanged || this._dirty || this.aging.IsDirty() || this.scarring.IsDirty() || this.scars.IsDirty() || !this._appliedSurface;
+        const surface = surfacePending ? { scars: this._Capture(this.scars), aging: this._Capture(this.aging), scarring: this._Capture(this.scarring) } : this._appliedSurface;
+        const surfaceActive = surface.scars.option || surface.aging.option || surface.scarring.option || this._appliedSurface?.scars.option || this._appliedSurface?.aging.option || this._appliedSurface?.scarring.option;
         const surfaceChanged = Boolean(surfacePending && surfaceActive && (foundationChanged || this._dirty || !this._appliedSurface
-            || this._Changed(surface.aging, this._appliedSurface.aging) || this._Changed(surface.scarring, this._appliedSurface.scarring)));
+            || this._Changed(surface.scars, this._appliedSurface.scars) || this._Changed(surface.aging, this._appliedSurface.aging) || this._Changed(surface.scarring, this._appliedSurface.scarring)));
         const eyesPending = foundationChanged || this._dirty || this.eyes.IsDirty();
-        const headPending = skinChanged || foundationChanged || this._dirty || this._headDirty || this.eyebrows.IsDirty() || this.blush.IsDirty() || this.freckles.IsDirty();
+        const headPending = skinChanged || foundationChanged || this._dirty || this._headDirty || this.eyebrows.IsDirty() || this.blush.IsDirty() || this.freckles.IsDirty() || this.scars.IsDirty();
         if (!foundationPending && !eyesPending && !headPending && !surfaceChanged)
         {
             this.skin.ClearDirty();
@@ -122,12 +128,13 @@ export class CjsPaperDoll
         }
 
         const eyes = this._Capture(this.eyes);
-        const head = { freckles: this._Capture(this.freckles), eyebrows: this._Capture(this.eyebrows), blush: this._Capture(this.blush) };
+        const head = { scars: this._Capture(this.scars), freckles: this._Capture(this.freckles), eyebrows: this._Capture(this.eyebrows), blush: this._Capture(this.blush) };
         head.blush.weight = head.blush.option ? this.blush.weight : 0;
         const eyesChanged = eyesPending && (foundationChanged || this._dirty || this._Changed(eyes, this._appliedEyes));
         const headChanged = headPending && (skinChanged || foundationChanged || this._dirty || this._headDirty || !this._appliedHead
             || this._Changed(head.eyebrows, this._appliedHead.eyebrows)
             || this._Changed(head.blush, this._appliedHead.blush)
+            || this._Changed(head.scars, this._appliedHead.scars)
             || this._Changed(head.freckles, this._appliedHead.freckles)
             || head.blush.weight !== this._appliedHead.blush.weight);
 
@@ -135,7 +142,7 @@ export class CjsPaperDoll
         this._headDirty = false;
         this.archetype.ClearDirty();
         this.skin.ClearDirty();
-        this.freckles.ClearDirty();
+        this.freckles.ClearDirty(); this.scars.ClearDirty();
         this.aging.ClearDirty(); this.scarring.ClearDirty();
         this.eyes.ClearDirty(); this.eyebrows.ClearDirty(); this.blush.ClearDirty();
         this._applying = true;
@@ -159,7 +166,7 @@ export class CjsPaperDoll
             if (this._appliedSurface !== surface) { this._appliedSurface = null; this.aging.Rebuild(); this.scarring.Rebuild(); }
             // Do not discard a later group's pending edits if an earlier apply fails.
             if (this._appliedEyes !== eyes) { this._appliedEyes = null; this.eyes.Rebuild(); }
-            if (this._appliedHead !== head) { this._appliedHead = null; this.eyebrows.Rebuild(); this.blush.Rebuild(); this.freckles.Rebuild(); }
+            if (this._appliedHead !== head) { this._appliedHead = null; this.eyebrows.Rebuild(); this.blush.Rebuild(); this.freckles.Rebuild(); this.scars.Rebuild(); }
             throw error;
         }
         finally { this._applying = false; }

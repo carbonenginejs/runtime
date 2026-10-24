@@ -124,3 +124,9 @@ Surface-only edits rebuild neither diffuse nor eye outputs. The surface binding
 must regenerate normal/specular outputs from the current foundation, including
 restoration when both modifiers are disabled. Unconfigured/inactive components
 require no surface binding. Failed surface work retries without losing later work.
+
+CjsPaperDollScars retains non-colourable large-scar option selection. Its edits
+participate in both the surface and head bindings because a scar may contribute
+diffuse, normal and specular channels. Each binding is acknowledged independently:
+a later head failure does not repeat a completed surface update. Disabling scars
+restores each output from its remaining contributors; selection is retained.
