@@ -2,7 +2,29 @@ import { exposure as be } from "#be";
 import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 
-/** One authored character recipe selection and its material values. */
+/**
+ * One authored character recipe selection and its material values.
+ *
+ * Source shape (`.prs`, build 3646012: 380 recipes, 15,051 entries): a YAML
+ * list whose first item is the sex as a bare string, then one flat map per
+ * part. `category`, `path` and `weight` are always present, except that 97
+ * entries have no `path`. `weight` is a morph strength for shapes and a layer
+ * amount for makeup.
+ *
+ * Material values are stored resolved, not referenced. `colorvariation` only
+ * names the palette they came from. `colors` is a quoted string of a tuple
+ * list, `'[(r,g,b,a), …]'`. With a pattern it holds five pattern colours, then
+ * the transform `(x,y,w,h)` and the rotation, in the same layout as a
+ * `.color` file's `patternColors`. `specularcolors` is a YAML list of RGBA
+ * tuples, W included.
+ *
+ * Keys the source uses that this class does not hold yet:
+ * - `tuck` (bool, 963 entries);
+ * - `variation` (geometry variant `v0`/`v1`, 656);
+ * - `decaldata` (a full inline ProjectedDecal, the `.proj` fields, 56);
+ * - `decalweight` (float, 51).
+ * No `.prs` reader populates recipe profiles yet.
+ */
 @meta.define("CjsCharacterRecipeEntry")
 export class CjsCharacterRecipeEntry
 {
