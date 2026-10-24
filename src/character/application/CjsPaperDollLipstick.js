@@ -9,14 +9,14 @@ import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
  * diffuse colours. Edits invalidate both the head and surface passes.
  *
  * The colour slots are this component's own properties, offered by
- * `GetControls` only as the selected style's zone map uses them. Every
- * lipstick in build 3646012 is zoned to colour area 1.
+ * `GetControls` only as the selected style's zone map uses them. In build
+ * 3646012 lipstick_01 to _03 use colour area 1, and _04 and _05 use areas 1 and 2.
  */
 @meta.define("CjsPaperDollLipstick")
 export class CjsPaperDollLipstick extends CjsPaperDollComponent
 {
     _item = new CjsPaperDollItem(this);
-    _itemClasses = new Map([ [ "", CjsPaperDollItem ], [ "1", CjsPaperDollItem ] ]);
+    _itemClasses = new Map([ [ "", CjsPaperDollItem ], [ "1", CjsPaperDollItem ], [ "1,2", CjsPaperDollItem ] ]);
 
     @meta.property()
     @type.boolean
@@ -50,13 +50,13 @@ export class CjsPaperDollLipstick extends CjsPaperDollComponent
 
     @meta.property()
     @type.color
-    @meta.ui.description("Lip colour")
+    @meta.ui.description("Lip second colour")
     get color2() { return this.GetColors()[1]; }
     set color2(value) { this.SetColor(1, value); }
 
     @meta.property()
     @type.color
-    @meta.ui.description("Lip colour")
+    @meta.ui.description("Lip third colour")
     get color3() { return this.GetColors()[2]; }
     set color3(value) { this.SetColor(2, value); }
 
