@@ -1,7 +1,7 @@
 // Carbon Vector4, ported literally from math (Vector4.h / Vector4_inline.h).
 // Storage is a plain Float32Array [x, y, z, w]. Scalar locals that Carbon holds in a
-// `float` are rounded with Math.fround so numerics match Carbon's float32 arithmetic;
-// component stores round via the Float32Array itself.
+// `float` retain selected Math.fround boundaries; other intermediates use doubles.
+// Float32Array stores alone do not establish native float arithmetic parity.
 // Deliberate drops: XMVECTOR interop (Vector4_inline.h:33,:39) has no JS analogue;
 // operator[] (:45,:51) is native indexing; compound assignment operators are covered
 // by passing `out === a`; operator!= (:156) is !exactEquals; the free

@@ -1,8 +1,8 @@
 // Carbon Vector3, ported literally from math
 // (Vector3.h / Vector3_inline.h / src\Vector3.cpp).
 // Storage is a plain Float32Array [x, y, z]. Scalar locals that Carbon holds in a
-// `float` are rounded with Math.fround so numerics match Carbon's float32 arithmetic;
-// component stores round via the Float32Array itself.
+// `float` retain selected Math.fround boundaries; other intermediates use doubles.
+// Float32Array stores alone do not establish native float arithmetic parity.
 // Deliberate drops: XMVECTOR interop (Vector3_inline.h:21,:27) has no JS analogue;
 // operator[] (:33,:39) is native indexing; compound assignment operators are covered
 // by passing `out === a`; operator!= (:139) is !exactEquals; the free
@@ -179,21 +179,39 @@ vector3.lerp = function (out, a, b, s)
     return out;
 }; // Vector3_inline.h:211
 
-/** Component-wise maximum of two vector3s */
+/**
+ * Carbon: Maximize (math/include/Vector3_inline.h:217-220)
+ * Selects each component, retaining the first operand on equality or unordered comparison.
+ * @param {Float32Array} out Receiving vector; may overlap either input.
+ * @param {Float32Array} a First vector.
+ * @param {Float32Array} b Second vector.
+ * @returns {Float32Array} out
+ */
 vector3.maximize = function (out, a, b)
 {
-    out[0] = Math.max(a[0], b[0]);
-    out[1] = Math.max(a[1], b[1]);
-    out[2] = Math.max(a[2], b[2]);
+    const ax = a[0], ay = a[1], az = a[2];
+    const bx = b[0], by = b[1], bz = b[2];
+    out[0] = ax < bx ? bx : ax;
+    out[1] = ay < by ? by : ay;
+    out[2] = az < bz ? bz : az;
     return out;
 }; // Vector3_inline.h:217
 
-/** Component-wise minimum of two vector3s */
+/**
+ * Carbon: Minimize (math/include/Vector3_inline.h:223-226)
+ * Selects each component, retaining the first operand on equality or unordered comparison.
+ * @param {Float32Array} out Receiving vector; may overlap either input.
+ * @param {Float32Array} a First vector.
+ * @param {Float32Array} b Second vector.
+ * @returns {Float32Array} out
+ */
 vector3.minimize = function (out, a, b)
 {
-    out[0] = Math.min(a[0], b[0]);
-    out[1] = Math.min(a[1], b[1]);
-    out[2] = Math.min(a[2], b[2]);
+    const ax = a[0], ay = a[1], az = a[2];
+    const bx = b[0], by = b[1], bz = b[2];
+    out[0] = ax > bx ? bx : ax;
+    out[1] = ay > by ? by : ay;
+    out[2] = az > bz ? bz : az;
     return out;
 }; // Vector3_inline.h:223
 
