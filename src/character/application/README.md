@@ -110,3 +110,9 @@ collapse to the latest component value; unchanged strength does not rebake.
 Skin palette eligibility is independent of archetype identity. Any editor rule
 restricting palettes by archetype is UI policy only; the backend neither filters
 palettes by archetype nor resets the selected skin colour when archetype changes.
+
+CjsPaperDollFreckles exposes only enabled/option and an item with no colour
+controls. It retains the selected option while disabled. Its captured state is
+passed to the shared head binding, which may also publish the option's companion
+body contribution. Freckles edits do not invalidate skin or eye bindings; the
+consumer recomposes from completed skin outputs rather than accumulating pixels.

@@ -16,3 +16,5 @@ export { CjsPaperDollArchetype } from "./CjsPaperDollArchetype.js";
 
 export { CjsPaperDollSkin } from "./CjsPaperDollSkin.js";
 export { CjsPaperDollSkinItem } from "./CjsPaperDollSkinItem.js";
+
+export { CjsPaperDollFreckles } from "./CjsPaperDollFreckles.js";
