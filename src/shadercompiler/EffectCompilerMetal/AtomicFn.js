@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.cpp:54-58
 //
 // Carbon declares this struct in EffectCompilerMetal.cpp's anonymous
@@ -13,6 +12,9 @@ import { CjsSchema } from "#schema";
  */
 export class AtomicFn
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "AtomicFn";
+
     /** Carbon's `m_opMsl`. */
     opMsl = null;
 
@@ -30,5 +32,3 @@ export class AtomicFn
         this.opHlsl = opHlsl;
     }
 }
-
-CjsSchema.meta.carbon("AtomicFn")(AtomicFn);

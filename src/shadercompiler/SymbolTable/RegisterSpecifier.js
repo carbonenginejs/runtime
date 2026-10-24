@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:32-44
 
@@ -14,6 +13,9 @@ import { InlineString } from "../InlineString.js";
  */
 export class RegisterSpecifier
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "RegisterSpecifier";
+
     shaderProfile = new InlineString();
 
     registerType = "";
@@ -52,6 +54,7 @@ export class RegisterSpecifier
      * @param {string} type Register class character.
      * @param {number} [index=-1] Register number.
      * @returns {RegisterSpecifier} An explicit binding with a null profile.
+     * @meta.renamed("Register")
      */
     static register(type, index = -1)
     {
@@ -66,6 +69,3 @@ export class RegisterSpecifier
         return reg;
     }
 }
-
-meta.renamed("Register")(RegisterSpecifier, "register");
-CjsSchema.meta.carbon("RegisterSpecifier")(RegisterSpecifier);

@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:312-315
 
 /**
@@ -6,6 +5,9 @@ import { CjsSchema } from "#schema";
  */
 export class Vector4
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Vector4";
+
     /** Carbon leaves it unset. */
     x = 0;
 
@@ -18,5 +20,3 @@ export class Vector4
     /** Carbon leaves it unset. */
     w = 0;
 }
-
-CjsSchema.meta.carbon("Vector4")(Vector4);

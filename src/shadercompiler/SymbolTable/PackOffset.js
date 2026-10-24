@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:10-30
 
@@ -11,6 +10,9 @@ import { ParserState } from "../ParserState/ParserState.js";
  */
 export class PackOffset
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "PackOffset";
+
     subComponent = 0;
 
     component = new InlineString();
@@ -37,6 +39,7 @@ export class PackOffset
      * @param {import("../ParserState/ScannerToken.js").ScannerToken} subComponentToken The `c<N>` token.
      * @param {import("../ParserState/ScannerToken.js").ScannerToken|null} componentToken The swizzle token, if any.
      * @returns {boolean} Whether the offset was valid.
+     * @meta.adapted
      */
     Create(state, subComponentToken, componentToken)
     {
@@ -60,5 +63,3 @@ export class PackOffset
 }
 
 // State against SymbolTable.cpp:10-30: adapted - the register id comes back through an out object, and the method keeps Carbon's order of effects.
-CjsSchema.decorateMethod(PackOffset, "Create", meta.adapted);
-CjsSchema.meta.carbon("PackOffset")(PackOffset);

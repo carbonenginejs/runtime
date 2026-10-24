@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: trinity/shadercompiler/ShaderCompiler.cpp:717-845 (alias dedupe, file assembly)
 
 import { CjsByteWriter } from "../CjsByteWriter.js";
@@ -264,6 +262,9 @@ export function writeCarbonEffectFile(parts)
  */
 export class CjsCarbonEffectWriter
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsCarbonEffectWriter";
+
     _table;
 
     _permutations = [];
@@ -421,5 +422,3 @@ export class CjsCarbonEffectWriter
 
 export { CARBON_EFFECT_RECORD_BYTES, CARBON_EFFECT_SOURCE_HASH_BYTES };
 export default CjsCarbonEffectWriter;
-
-CjsSchema.meta.define("CjsCarbonEffectWriter")(CjsCarbonEffectWriter);

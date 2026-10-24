@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:689-717
 
 import { StageData } from "./StageData.js";
@@ -13,6 +12,9 @@ import { StageData } from "./StageData.js";
  */
 export class StageInput extends StageData
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "StageInput";
+
     /** An `InputStageType` value. */
     type = 0;
 
@@ -41,5 +43,3 @@ export class StageInput extends StageData
         DOMAIN_STAGE: 5
     });
 }
-
-CjsSchema.meta.carbon("StageInput")(StageInput);

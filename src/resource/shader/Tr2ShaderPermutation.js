@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Schema: format-carbon resources/Tr2ShaderPermutation.json; maintained by the runtime resource layer.
-import { CjsSchema, type } from "#schema";
 
 /**
  * Describes one authored effect permutation and the option values a shader
@@ -11,6 +10,8 @@ import { CjsSchema, type } from "#schema";
  */
 export class Tr2ShaderPermutation
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2ShaderPermutation";
 
   /** Authored permutation name. */
   name = "";
@@ -31,15 +32,3 @@ export class Tr2ShaderPermutation
   type = 0;
 
 }
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2ShaderPermutation, "name", type.string);
-CjsSchema.decorateField(Tr2ShaderPermutation, "options", type.list("BlueSharedString"));
-CjsSchema.decorateField(Tr2ShaderPermutation, "defaultOption", type.uint64);
-CjsSchema.decorateField(Tr2ShaderPermutation, "description", type.string);
-CjsSchema.decorateField(Tr2ShaderPermutation, "type", type.uint8);
-CjsSchema.meta.carbon("Tr2ShaderPermutation")(Tr2ShaderPermutation);

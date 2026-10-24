@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, type } from "#schema";
+
 import {
 } from "#utils/is";
 import { Tr2EffectLibrary } from "./Tr2EffectLibrary.js";
@@ -10,6 +10,8 @@ import { recordText, toRecordText } from "./carbonRecordFields.js";
 /** Reflected effect technique and its passes and libraries. */
 export class Tr2EffectTechnique
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2EffectTechnique";
 
   /** name (BlueSharedString) */
   name = "";
@@ -51,7 +53,6 @@ export class Tr2EffectTechnique
     return technique;
   }
 
-
   /**
    * Emit this technique as a Carbon v15 record.
    *
@@ -68,14 +69,3 @@ export class Tr2EffectTechnique
     };
   }
 }
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2EffectTechnique, "name", type.string);
-CjsSchema.decorateField(Tr2EffectTechnique, "passes", type.list("Tr2Pass"));
-CjsSchema.decorateField(Tr2EffectTechnique, "libraries", type.list("Tr2EffectLibrary"));
-CjsSchema.decorateField(Tr2EffectTechnique, "shaderTypeMask", type.uint32);
-CjsSchema.meta.carbon("Tr2EffectTechnique")(Tr2EffectTechnique);

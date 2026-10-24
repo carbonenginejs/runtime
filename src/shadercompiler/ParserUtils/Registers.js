@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserUtils.cpp:618-625
 //
 // Carbon declares this struct in an anonymous namespace of ParserUtils.cpp;
@@ -11,6 +10,9 @@ import { CjsSchema } from "#schema";
  */
 export class Registers
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Registers";
+
     /** @type {Set<number>} */
     b = new Set();
 
@@ -26,5 +28,3 @@ export class Registers
     /** @type {Set<number>} */
     spaces = new Set();
 }
-
-CjsSchema.meta.carbon("Registers")(Registers);

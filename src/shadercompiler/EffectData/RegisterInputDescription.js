@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:488-508
 
 /**
@@ -6,6 +5,9 @@ import { CjsSchema, meta } from "#schema";
  */
 export class RegisterInputDescription
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "RegisterInputDescription";
+
     /** A `RegisterInputType` value. */
     registerType = 0;
 
@@ -20,6 +22,7 @@ export class RegisterInputDescription
      *
      * @param {RegisterInputDescription} other The range to compare with.
      * @returns {boolean} Whether every field matches.
+     * @meta.renamed("operator==")
      */
     Equals(other)
     {
@@ -61,6 +64,3 @@ export class RegisterInputDescription
         RT_UAV_TEXTURECUBEARRAY: (1 << 6) + 10
     });
 }
-
-CjsSchema.decorateMethod(RegisterInputDescription, "Equals", meta.renamed("operator=="));
-CjsSchema.meta.carbon("RegisterInputDescription")(RegisterInputDescription);

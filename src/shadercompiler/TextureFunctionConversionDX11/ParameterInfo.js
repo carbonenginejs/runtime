@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/TextureFunctionConversionDX11.cpp:18-22
 
 /**
@@ -10,11 +9,12 @@ import { CjsSchema } from "#schema";
  */
 export class ParameterInfo
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "ParameterInfo";
+
     /** Carbon leaves it unset. */
     parameterIndex = 0;
 
     /** Carbon leaves it unset. */
     argumentIndex = 0;
 }
-
-CjsSchema.meta.carbon("ParameterInfo")(ParameterInfo);

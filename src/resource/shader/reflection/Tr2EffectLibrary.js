@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta, type } from "#schema";
+
 import {
 } from "#utils/is";
 import { copyBytes } from "#utils/bytes";
@@ -15,6 +15,8 @@ import {
 /** Reflected shader-library metadata. */
 export class Tr2EffectLibrary
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2EffectLibrary";
 
   /** payloadSize (uint32_t) */
   payloadSize = 0;
@@ -63,6 +65,7 @@ export class Tr2EffectLibrary
    * Ours interns at the Trinity boundary instead, because the resource layer may not import
    * Trinity, so the bytes are retained until then; see
    * Tr2EffectStateManager.registerShaderHandles.
+   * @meta.adapted
    */
   sourceProgram = null;
 
@@ -72,6 +75,7 @@ export class Tr2EffectLibrary
    * Adapted: Carbon resolves these exports into the interned library handle while reading;
    * the declarative export list is what survives until interning happens at the Trinity
    * boundary.
+   * @meta.adapted
    */
   exports = [];
 
@@ -123,7 +127,6 @@ export class Tr2EffectLibrary
     return library;
   }
 
-
   /**
    * Emit this library as a Carbon v15 record.
    *
@@ -152,23 +155,3 @@ export class Tr2EffectLibrary
     };
   }
 }
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2EffectLibrary, "payloadSize", type.uint32);
-CjsSchema.decorateField(Tr2EffectLibrary, "libraryHandle", type.uint32);
-CjsSchema.decorateField(Tr2EffectLibrary, "rayGenName", type.string);
-CjsSchema.decorateField(Tr2EffectLibrary, "missName", type.string);
-CjsSchema.decorateField(Tr2EffectLibrary, "closestHitName", type.string);
-CjsSchema.decorateField(Tr2EffectLibrary, "anyHitName", type.string);
-CjsSchema.decorateField(Tr2EffectLibrary, "intersectionName", type.string);
-CjsSchema.decorateField(Tr2EffectLibrary, "hitGroupName", type.string);
-CjsSchema.decorateField(Tr2EffectLibrary, "globalInput", type.rawStruct("Tr2EffectStageInput"));
-CjsSchema.decorateField(Tr2EffectLibrary, "localInput", type.rawStruct("Tr2EffectStageInput"));
-CjsSchema.decorateField(Tr2EffectLibrary, "globalResourceSetDesc", type.rawStruct("Tr2ResourceSetDescriptionAL"));
-CjsSchema.decorateField(Tr2EffectLibrary, "sourceProgram", meta.adapted, type.rawStruct("CjsEffectSourceProgram"));
-CjsSchema.decorateField(Tr2EffectLibrary, "exports", meta.adapted, type.rawStruct("CjsEffectLibraryExports"));
-CjsSchema.meta.carbon("Tr2EffectLibrary")(Tr2EffectLibrary);

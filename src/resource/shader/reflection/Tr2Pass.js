@@ -1,7 +1,6 @@
-import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta, type } from "#schema";
+
 import {
 } from "#utils/is";
 import { requireShaderStageType, SHADER_STAGE_COUNT, ShaderStageType } from "./shaderStage.js";
@@ -14,6 +13,8 @@ import { readGlslBackendBlock } from "../../formats/webgl/core/glslBackendBlock.
 /** Reflected effect pass; Carbon's interned program and state handles are kept as authored data. */
 export class Tr2Pass
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2Pass";
 
   /** stageInputs (Tr2EffectStageInput) */
   stageInputs = [];
@@ -41,6 +42,7 @@ export class Tr2Pass
    * renderStates index (Tr2EffectDescription.h:202). Ours interns at the Trinity boundary,
    * so the authored state/value pairs are retained until then; see
    * Tr2EffectStateManager.registerShaderHandles.
+   * @meta.adapted
    */
   renderStateValues = [];
 
@@ -227,7 +229,6 @@ export class Tr2Pass
     return merges;
   }
 
-
   /**
    * The populated stages in the order they should be written.
    *
@@ -281,19 +282,3 @@ export class Tr2Pass
     return record;
   }
 }
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2Pass, "stageInputs", type.list("Tr2EffectStageInput"));
-CjsSchema.decorateField(Tr2Pass, "renderStates", type.uint32);
-CjsSchema.decorateField(Tr2Pass, "shaderTypeMask", type.uint32);
-CjsSchema.decorateField(Tr2Pass, "shaderProgram", type.uint32);
-CjsSchema.decorateField(Tr2Pass, "resourceSetDesc", type.rawStruct("Tr2ResourceSetDescriptionAL"));
-CjsSchema.decorateField(Tr2Pass, "indirectLayout", type.rawStruct("Tr2IndirectDrawBufferLayout"));
-CjsSchema.decorateField(Tr2Pass, "renderStateValues", meta.adapted, type.rawStruct("CjsEffectRenderStateValues"));
-CjsSchema.decorateField(Tr2Pass, "stageOrder", type.rawStruct("CjsEffectStageOrder"));
-CjsSchema.decorateField(Tr2Pass, "backendBlock", type.rawStruct("CjsEffectBackendBlock"));
-CjsSchema.meta.carbon("Tr2Pass")(Tr2Pass);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h:104
 //   `typedef std::map<Tr2RenderContextEnum::RenderState, uint32_t> Tr2RenderStateSetup`
 //   registered by Tr2EffectStateManager::RegisterRenderStateSetup (:118), whose
@@ -337,6 +335,8 @@ function webgpuBlendComponent(component)
 /** One pass's registered set of render states, interpreted. */
 export class Tr2RenderStateSetup
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2RenderStateSetup";
 
   /**
    * The raw `[state, value]` pairs this setup actually AUTHORED.
@@ -449,7 +449,6 @@ export class Tr2RenderStateSetup
     return this.fromPass({ renderStateValues });
   }
 
-
   /**
    * Interprets one reflected pass's authored render states.
    *
@@ -544,7 +543,6 @@ export class Tr2RenderStateSetup
 
     return setup;
   }
-
 
   /**
    * A setup carrying `base`'s states with `over`'s authored ones on top.
@@ -727,5 +725,3 @@ export class Tr2RenderStateSetup
   }
 
 }
-
-CjsSchema.meta.define("Tr2RenderStateSetup")(Tr2RenderStateSetup);

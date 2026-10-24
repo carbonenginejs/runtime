@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Custom: iteration order of a C++ std::map.
 
 /**
@@ -29,6 +27,9 @@ function defaultCompare(a, b)
  */
 export class CjsFxStdMap extends Map
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsFxStdMap";
+
     _compare = null;
 
     /**
@@ -100,5 +101,3 @@ export class CjsFxStdMap extends Map
         return this.entries();
     }
 }
-
-CjsSchema.meta.define("CjsFxStdMap")(CjsFxStdMap);

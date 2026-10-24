@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Not in Carbon: the WebGPU target, the driver's PLATFORM_WEBGPU.
 // Modelled on EffectCompilerMetal.cpp's CompileEffect, whose
 // target-independent passes it runs unchanged; it replaces only what is
@@ -69,6 +67,9 @@ const STAGE_KIND = new Map([
  */
 export class CjsFxEffectCompilerWebGPU
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsFxEffectCompilerWebGPU";
+
     /** The driver's globals. */
     _session = null;
 
@@ -623,5 +624,3 @@ function CollectConstants(state, stage, annotations, globalsStructs)
     }
     return true;
 }
-
-CjsSchema.meta.define(CjsFxEffectCompilerWebGPU, { className: "CjsFxEffectCompilerWebGPU" });

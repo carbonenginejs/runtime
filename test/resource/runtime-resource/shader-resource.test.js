@@ -285,17 +285,8 @@ test("Tr2EffectRes reports a malformed permutation payload", () =>
   );
 });
 
-test("shader reflection classes register canonical runtime-resource metadata", () =>
+test("Tr2Shader retains its native Blue exposure", () =>
 {
-  new Tr2SamplerSetup();
-  assert.equal(
-    CjsSchema.getField(Tr2SamplerSetup, "name")?.type.kind,
-    "string"
-  );
-  assert.equal(
-    CjsSchema.getField(Tr2SamplerSetup, "isDynamic")?.type.kind,
-    "boolean"
-  );
   assert.equal(
     CjsSchema.getConstructor("Tr2Shader"),
     Tr2Shader

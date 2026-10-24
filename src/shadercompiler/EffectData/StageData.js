@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:629-687
 
 import { CjsFxStdMap } from "../CjsFxStdMap.js";
@@ -12,6 +11,9 @@ import { ParameterAnnotation } from "./ParameterAnnotation.js";
  */
 export class StageData
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "StageData";
+
     /** @type {import("./RegisterInputDescription.js").RegisterInputDescription[]} */
     registerInputs = [];
 
@@ -35,5 +37,3 @@ export class StageData
 
     annotations = new ParameterAnnotation();
 }
-
-CjsSchema.meta.carbon("StageData")(StageData);

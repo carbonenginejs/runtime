@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/TextureFunctionConversionDX11.cpp:12-16
 
 /**
@@ -8,11 +7,12 @@ import { CjsSchema } from "#schema";
  */
 export class SamplerToTexture
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "SamplerToTexture";
+
     /** @type {import("../SymbolTable/Symbol.js").Symbol|null} Carbon leaves it unset. */
     texture = null;
 
     /** Carbon leaves it unset. */
     processed = false;
 }
-
-CjsSchema.meta.carbon("SamplerToTexture")(SamplerToTexture);

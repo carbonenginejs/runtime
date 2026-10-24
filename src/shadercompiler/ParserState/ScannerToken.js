@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 // Source: trinity/shadercompiler/ParserState.cpp:29-37
 
@@ -15,6 +14,9 @@ import { HLSLParserTokens } from "../hlslParserTokens.js";
  */
 export class ScannerToken
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "ScannerToken";
+
     type = null;
 
     intValue = null;
@@ -56,6 +58,7 @@ export class ScannerToken
      * @param {InlineString} value The identifier's characters.
      * @param {FileLocation} [location] Where it stands; Carbon's default is a zeroed location.
      * @returns {ScannerToken} The token.
+     * @meta.renamed("ID")
      */
     static id(value, location = new FileLocation())
     {
@@ -68,13 +71,10 @@ export class ScannerToken
      * @param {number} type Parser token type.
      * @param {FileLocation} [location] Where it stands; Carbon's default is a zeroed location.
      * @returns {ScannerToken} The token.
+     * @meta.renamed("FromTokenType")
      */
     static fromTokenType(type, location = new FileLocation())
     {
         return new ScannerToken(type, 0, new InlineString(), location.Copy());
     }
 }
-
-meta.renamed("ID")(ScannerToken, "id");
-meta.renamed("FromTokenType")(ScannerToken, "fromTokenType");
-CjsSchema.meta.carbon("ScannerToken")(ScannerToken);

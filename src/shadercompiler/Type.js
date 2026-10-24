@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/Type.h
 // Source: trinity/shadercompiler/Type.cpp
 
@@ -34,6 +33,9 @@ const {
  */
 export class Type
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Type";
+
     /** @type {import("./SymbolTable/Symbol.js").Symbol|null} Carbon leaves it unset. */
     symbol = null;
 
@@ -111,6 +113,7 @@ export class Type
      *
      * @param {Type} type The type to compare with.
      * @returns {boolean} Whether the types are equal.
+     * @meta.renamed("operator==")
      */
     Equals(type)
     {
@@ -131,6 +134,7 @@ export class Type
      *
      * @param {import("./ParserState/ScannerToken.js").ScannerToken} token A type token.
      * @returns {boolean} Always true.
+     * @meta.implemented
      */
     FromToken(token)
     {
@@ -153,6 +157,7 @@ export class Type
      *
      * @param {number} type An `HLSLParserTokens` value, or 0.
      * @returns {boolean} Always true.
+     * @meta.implemented
      */
     FromTokenType(type)
     {
@@ -175,6 +180,7 @@ export class Type
      *
      * @param {import("./SymbolTable/Symbol.js").Symbol} asymbol A type-name symbol.
      * @returns {boolean} False, leaving the type unchanged, when the symbol is not a type name.
+     * @meta.implemented
      */
     FromSymbol(asymbol)
     {
@@ -196,38 +202,50 @@ export class Type
         return true;
     }
 
-    /** @returns {boolean} Carbon's `Type::IsScalar`. */
+    /** @returns {boolean} Carbon's `Type::IsScalar`.
+     * @meta.implemented
+     */
     IsScalar()
     {
         return this.IsScalarOrVector() && this.width === 1 && this.height === 1;
     }
 
-    /** @returns {boolean} Carbon's `Type::IsVector`. */
+    /** @returns {boolean} Carbon's `Type::IsVector`.
+     * @meta.implemented
+     */
     IsVector()
     {
         return this.IsScalarOrVector() && this.width > 1 && this.height === 1;
     }
 
-    /** @returns {boolean} Carbon's `Type::IsMatrix`. */
+    /** @returns {boolean} Carbon's `Type::IsMatrix`.
+     * @meta.implemented
+     */
     IsMatrix()
     {
         return this.IsScalarOrVector() && this.width > 1 && this.height > 1;
     }
 
-    /** @returns {boolean} Carbon's `Type::IsStruct`. */
+    /** @returns {boolean} Carbon's `Type::IsStruct`.
+     * @meta.implemented
+     */
     IsStruct()
     {
         return this.symbol !== null;
     }
 
-    /** @returns {boolean} Carbon's `Type::IsBindlessHandle`. */
+    /** @returns {boolean} Carbon's `Type::IsBindlessHandle`.
+     * @meta.implemented
+     */
     IsBindlessHandle()
     {
         return this.IsScalar() && (this.builtInType === OP_BINDLESSHANDLETEXTURE2D || this.builtInType === OP_BINDLESSHANDLETEXTURE3D ||
             this.builtInType === OP_BINDLESSHANDLETEXTURECUBE || this.builtInType === OP_BINDLESSHANDLESAMPLER);
     }
 
-    /** @returns {boolean} Carbon's `Type::IsScalarOrVector`; bindless handles count as scalars. */
+    /** @returns {boolean} Carbon's `Type::IsScalarOrVector`; bindless handles count as scalars.
+     * @meta.implemented
+     */
     IsScalarOrVector()
     {
         const t = this.builtInType;
@@ -237,7 +255,9 @@ export class Type
                 t === OP_BINDLESSHANDLESAMPLER);
     }
 
-    /** @returns {boolean} Carbon's `Type::IsTexture`, read-write textures included. */
+    /** @returns {boolean} Carbon's `Type::IsTexture`, read-write textures included.
+     * @meta.implemented
+     */
     IsTexture()
     {
         const t = this.builtInType;
@@ -248,7 +268,9 @@ export class Type
                 t === OP_RWTEXTURE3D || t === OP_RWTEXTURE1DARRAY || t === OP_RWTEXTURE2DARRAY || t === OP_RWTEXTURE3DARRAY);
     }
 
-    /** @returns {boolean} Carbon's `Type::IsTextureArray`. */
+    /** @returns {boolean} Carbon's `Type::IsTextureArray`.
+     * @meta.implemented
+     */
     IsTextureArray()
     {
         const t = this.builtInType;
@@ -257,7 +279,9 @@ export class Type
                 t === OP_TEXTURE2DMSARRAY || t === OP_RWTEXTURE1DARRAY || t === OP_RWTEXTURE2DARRAY || t === OP_RWTEXTURE3DARRAY);
     }
 
-    /** @returns {boolean} Carbon's `Type::IsSampler`. */
+    /** @returns {boolean} Carbon's `Type::IsSampler`.
+     * @meta.implemented
+     */
     IsSampler()
     {
         const t = this.builtInType;
@@ -266,7 +290,9 @@ export class Type
                 t === OP_SAMPLERCOMPARISON);
     }
 
-    /** @returns {boolean} Carbon's `Type::IsBuffer`. */
+    /** @returns {boolean} Carbon's `Type::IsBuffer`.
+     * @meta.implemented
+     */
     IsBuffer()
     {
         const t = this.builtInType;
@@ -285,6 +311,7 @@ export class Type
      * @param {import("./ASTNode/ASTNode.js").ASTNode} methodCall The `NT_FUNCTION_CALL` node naming the method.
      * @param {Type} returnType Filled with the result type.
      * @returns {boolean} Whether the method exists on this type.
+     * @meta.implemented
      */
     GetMethodType(methodCall, returnType)
     {
@@ -478,6 +505,7 @@ export class Type
      * Carbon's `Type::ToString`.
      *
      * @returns {string} The type as HLSL spells it, with array sizes.
+     * @meta.implemented
      */
     ToString()
     {
@@ -556,6 +584,7 @@ export class Type
      * @param {Type} to The target type.
      * @param {{ value: number }} casts Incremented once per conversion the cast needs.
      * @returns {boolean} Whether the cast is allowed.
+     * @meta.adapted
      */
     CanImplicitCast(to, casts)
     {
@@ -597,6 +626,7 @@ export class Type
      *
      * @param {Type} type Filled with the element type.
      * @returns {boolean} Whether the type can be indexed.
+     * @meta.implemented
      */
     GetIndexedType(type)
     {
@@ -809,23 +839,4 @@ function byteAddressLoad(method, returnType)
     return true;
 }
 
-CjsSchema.decorateMethod(Type, "Equals", meta.renamed("operator=="));
 // States against Type.cpp, branch for branch (GetMethodType and GetIndexedType write into the Type they are handed, as the C++ references do). CanImplicitCast is adapted only in that the int& cast counter is a { value } object.
-CjsSchema.decorateMethod(Type, "FromToken", meta.implemented);
-CjsSchema.decorateMethod(Type, "FromTokenType", meta.implemented);
-CjsSchema.decorateMethod(Type, "FromSymbol", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsScalar", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsVector", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsMatrix", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsStruct", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsBindlessHandle", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsScalarOrVector", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsTexture", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsTextureArray", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsSampler", meta.implemented);
-CjsSchema.decorateMethod(Type, "IsBuffer", meta.implemented);
-CjsSchema.decorateMethod(Type, "GetMethodType", meta.implemented);
-CjsSchema.decorateMethod(Type, "ToString", meta.implemented);
-CjsSchema.decorateMethod(Type, "CanImplicitCast", meta.adapted);
-CjsSchema.decorateMethod(Type, "GetIndexedType", meta.implemented);
-CjsSchema.meta.carbon("Type")(Type);

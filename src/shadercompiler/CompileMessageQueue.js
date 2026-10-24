@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/CompileMessageQueue.h
 // Source: trinity/shadercompiler/CompileMessageQueue.cpp
 
@@ -14,6 +13,9 @@ import { CjsSchema, meta } from "#schema";
  */
 export class CompileMessageQueue
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CompileMessageQueue";
+
     /** Not in Carbon: stands in for stdout. */
     _listener = null;
 
@@ -49,6 +51,7 @@ export class CompileMessageQueue
      * to its first NUL.
      *
      * @param {string} message The formatted message.
+     * @meta.adapted
      */
     AddMessage(message)
     {
@@ -58,6 +61,7 @@ export class CompileMessageQueue
 
     /**
      * Carbon's `Flush`: returns once every queued message has been output.
+     * @meta.adapted
      */
     Flush()
     {
@@ -75,13 +79,16 @@ export class CompileMessageQueue
      * the in-memory source's `\memory` path.
      *
      * @param {string} fileName The entry file's name.
+     * @meta.implemented
      */
     SetEntryFileName(fileName)
     {
         this._entryFileName = fileName;
     }
 
-    /** @returns {string} The entry file's name. */
+    /** @returns {string} The entry file's name.
+     * @meta.implemented
+     */
     GetEntryFileName()
     {
         return this._entryFileName;
@@ -162,9 +169,3 @@ function isSpace(code)
 }
 
 // States against CompileMessageQueue.cpp:43-92: AddMessage takes the formatted text and Flush runs OutputMessages on the caller (the class head says why), so both are adapted; the entry-file-name pair is Carbon's.
-CjsSchema.decorateMethod(CompileMessageQueue, "AddMessage", meta.adapted);
-CjsSchema.decorateMethod(CompileMessageQueue, "Flush", meta.adapted);
-CjsSchema.decorateMethod(CompileMessageQueue, "SetEntryFileName", meta.implemented);
-CjsSchema.decorateMethod(CompileMessageQueue, "GetEntryFileName", meta.implemented);
-CjsSchema.decorateMethod(CompileMessageQueue, "_OutputMessages");
-CjsSchema.meta.carbon("CompileMessageQueue")(CompileMessageQueue);

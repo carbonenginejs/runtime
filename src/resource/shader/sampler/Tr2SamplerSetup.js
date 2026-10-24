@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta, type } from "#schema";
+
 import {
   recordRawBits,
   recordText,
@@ -11,6 +11,8 @@ import {
 /** Reflected sampler name and complete device-free sampler descriptor. */
 export class Tr2SamplerSetup
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2SamplerSetup";
 
   /** name (const char*) */
   name = "";
@@ -21,6 +23,7 @@ export class Tr2SamplerSetup
    * Adapted: The schema string field cannot distinguish an authored null sampler name from
    * an empty name; portable reflection must retain that distinction for static sampler
    * records.
+   * @meta.adapted
    */
   hasName = false;
 
@@ -32,6 +35,7 @@ export class Tr2SamplerSetup
    *
    * Adapted: The portable effect contract distinguishes dynamic and static sampler
    * declarations before an engine creates sampler state.
+   * @meta.adapted
    */
   isDynamic = false;
 
@@ -77,7 +81,6 @@ export class Tr2SamplerSetup
     return sampler;
   }
 
-
   /**
    * Emit this sampler as a Carbon v15 record.
    *
@@ -114,14 +117,3 @@ export class Tr2SamplerSetup
   }
 
 }
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2SamplerSetup, "name", type.string);
-CjsSchema.decorateField(Tr2SamplerSetup, "hasName", meta.adapted, type.boolean);
-CjsSchema.decorateField(Tr2SamplerSetup, "sampler", type.rawStruct("Tr2SamplerStateAL"));
-CjsSchema.decorateField(Tr2SamplerSetup, "isDynamic", meta.adapted, type.boolean);
-CjsSchema.meta.carbon("Tr2SamplerSetup")(Tr2SamplerSetup);

@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:343-363
 
 /**
@@ -10,6 +9,9 @@ import { CjsSchema } from "#schema";
  */
 export class Uav
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Uav";
+
     name = "";
 
     /** A `TextureType` value. */
@@ -19,5 +21,3 @@ export class Uav
 
     isAutoregister = false;
 }
-
-CjsSchema.meta.carbon("Uav")(Uav);

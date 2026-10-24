@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h:274-281
 //
 // Carbon nests this struct privately in `ParserState` (`ParserState::FileContents`);
@@ -13,6 +12,9 @@ import { InlineString } from "../InlineString.js";
  */
 export class FileContents
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "FileContents";
+
     /** @type {FileLocation} */
     location = new FileLocation();
 
@@ -33,8 +35,3 @@ export class FileContents
      */
     arguments = new Map();
 }
-
-CjsSchema.meta.define(FileContents, {
-    className: "FileContents",
-    carbon: "ParserState::FileContents"
-});

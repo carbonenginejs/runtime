@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/FXAnalyzer.h:39-45
 
 /**
@@ -12,6 +11,9 @@ import { CjsSchema } from "#schema";
  */
 export class StateDescription
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "StateDescription";
+
     /** @type {string} */
     stateName = "";
 
@@ -37,5 +39,3 @@ export class StateDescription
         SVT_COLOR: 4
     });
 }
-
-CjsSchema.meta.carbon("StateDescription")(StateDescription);

@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 import { InlineString } from "../InlineString.js";
@@ -13,6 +12,9 @@ import { FileLocation } from "./FileLocation.js";
  */
 export class PreprocessorDefine
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "PreprocessorDefine";
+
     /** @type {FileLocation} */
     location = new FileLocation();
 
@@ -22,5 +24,3 @@ export class PreprocessorDefine
     /** @type {InlineString} */
     value = new InlineString();
 }
-
-CjsSchema.meta.carbon("PreprocessorDefine")(PreprocessorDefine);

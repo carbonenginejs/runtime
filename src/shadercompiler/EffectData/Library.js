@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:758-785
 
 import { StageData } from "./StageData.js";
@@ -10,6 +9,9 @@ import { StageData } from "./StageData.js";
  */
 export class Library
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Library";
+
     payloadSize = 0;
 
     /** @type {string|Uint8Array|null} */
@@ -26,5 +28,3 @@ export class Library
 
     source = "";
 }
-
-CjsSchema.meta.carbon("Library")(Library);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { asUint8Array } from "#utils/bytes";
 import { DxbcReader } from "./DxbcReader.js";
 import { DxbcReadError } from "./DxbcReadError.js";
@@ -19,6 +17,9 @@ const fourCCDecoder = new TextDecoder("latin1");
  */
 export class DxbcContainer
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "DxbcContainer";
+
     /**
      * Container bytes.
      * @type {Uint8Array}
@@ -194,5 +195,3 @@ export class DxbcContainer
         };
     }
 }
-
-CjsSchema.meta.define("DxbcContainer")(DxbcContainer);

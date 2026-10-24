@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.h:7-23
 
 /**
@@ -8,6 +7,9 @@ import { CjsSchema } from "#schema";
  */
 export class MetalRegister
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "MetalRegister";
+
     /** Carbon's `MetalRegister::Enum`. */
     static Enum = Object.freeze({
         Invalid: "\0",
@@ -23,5 +25,3 @@ export class MetalRegister
         System: "v" // [[position]], etc. see MetalSystemSemanticsType
     });
 }
-
-CjsSchema.meta.carbon("MetalRegister")(MetalRegister);

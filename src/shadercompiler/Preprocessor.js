@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: trinity/shadercompiler/Preprocessor.y
 //
 // The `#if` / `#elif` expression grammar, rule for rule, with lemon's tables
@@ -161,6 +159,9 @@ let tables = null;
  */
 export class Preprocessor
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Preprocessor";
+
     /**
      * The grammar's tables, built on first use. They are checked against
      * lemon's token numbering.
@@ -212,5 +213,3 @@ export class Preprocessor
         return rules;
     }
 }
-
-CjsSchema.meta.define("Preprocessor")(Preprocessor);

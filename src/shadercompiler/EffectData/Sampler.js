@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:366-458
 
 import { Vector4 } from "./Vector4.js";
@@ -15,6 +14,9 @@ const ORDER = [
  */
 export class Sampler
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Sampler";
+
     name = "";
 
     filter = 0;
@@ -54,6 +56,7 @@ export class Sampler
      *
      * @param {Sampler} sampler The sampler to compare with.
      * @returns {boolean} Whether the saved state matches.
+     * @meta.renamed("operator==")
      */
     Equals(sampler)
     {
@@ -68,6 +71,7 @@ export class Sampler
      *
      * @param {Sampler} sampler The sampler to compare with.
      * @returns {boolean} Whether this sampler orders first.
+     * @meta.renamed("operator<")
      */
     Less(sampler)
     {
@@ -88,7 +92,3 @@ export class Sampler
         return false;
     }
 }
-
-CjsSchema.decorateMethod(Sampler, "Equals", meta.renamed("operator=="));
-CjsSchema.decorateMethod(Sampler, "Less", meta.renamed("operator<"));
-CjsSchema.meta.carbon("Sampler")(Sampler);

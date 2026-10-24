@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CLASS_KEYS } from "./core/schema.js";
 import { lowerDxbcToIr } from "./core/ir/lowerDxbcToIr.js";
@@ -427,5 +425,3 @@ export class CjsWebgpuFormat extends CjsFormat
 }
 
 export default CjsWebgpuFormat;
-
-CjsSchema.meta.define("CjsWebgpuFormat")(CjsWebgpuFormat);

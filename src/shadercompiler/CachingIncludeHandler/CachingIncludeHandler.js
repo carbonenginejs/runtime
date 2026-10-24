@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/CachingIncludeHandler.h
 // Source: trinity/shadercompiler/CachingIncludeHandler.cpp
 
@@ -26,6 +25,9 @@ import { IncludedFile } from "./IncludedFile.js";
  */
 export class CachingIncludeHandler
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CachingIncludeHandler";
+
     _read = null;
 
     /** Carbon's `m_fileFromPath`. @type {Map<string, IncludedFile>} */
@@ -56,6 +58,7 @@ export class CachingIncludeHandler
      * @param {{ buffer: object, offset: number }|null} [parentData=null] The including file's data.
      * @param {string|null} [rootPath=null] Directory for an include with no parent; the handler's root path otherwise.
      * @returns {IncludedFile|null} A copy of the file's entry, or null when not found.
+     * @meta.adapted
      */
     Open(fileName, parentData = null, rootPath = null)
     {
@@ -104,6 +107,7 @@ export class CachingIncludeHandler
      * @param {string} fileName The file's path.
      * @param {string} prefix Text to put first.
      * @returns {IncludedFile|null} A copy of the file's entry, or null when it was not loaded.
+     * @meta.adapted
      */
     AddPrefix(fileName, prefix)
     {
@@ -125,6 +129,7 @@ export class CachingIncludeHandler
      * Carbon's `CachingIncludeHandler::SetRootPath`: the entry file's directory.
      *
      * @param {string} shaderPath The entry file's path.
+     * @meta.adapted
      */
     SetRootPath(shaderPath)
     {
@@ -203,7 +208,3 @@ function canonicalize(path)
 }
 
 // States against CachingIncludeHandler.cpp:77-250: all three are adapted for the reasons in the class head (files come from a supplied reader, not disk, and paths are URL-style).
-CjsSchema.decorateMethod(CachingIncludeHandler, "Open", meta.adapted);
-CjsSchema.decorateMethod(CachingIncludeHandler, "AddPrefix", meta.adapted);
-CjsSchema.decorateMethod(CachingIncludeHandler, "SetRootPath", meta.adapted);
-CjsSchema.meta.carbon("CachingIncludeHandler")(CachingIncludeHandler);

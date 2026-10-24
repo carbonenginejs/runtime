@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsByteReader } from "../../../format/CjsByteReader.js";
 import { DxbcReadError } from "./DxbcReadError.js";
 
@@ -11,11 +9,12 @@ import { DxbcReadError } from "./DxbcReadError.js";
  */
 export class DxbcReader extends CjsByteReader
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "DxbcReader";
+
     static ReadError = DxbcReadError;
 
     static endOfDataMessage = "Unexpected end of effect data";
 }
 
 export default DxbcReader;
-
-CjsSchema.meta.define("DxbcReader")(DxbcReader);

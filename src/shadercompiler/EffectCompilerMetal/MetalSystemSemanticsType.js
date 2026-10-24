@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.h
 // Source: trinity/shadercompiler/EffectCompilerMetal.cpp:4791-4838
 
@@ -46,11 +45,15 @@ const STRINGS = [
  */
 export class MetalSystemSemanticsType
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "MetalSystemSemanticsType";
+
     /**
      * Carbon's `MetalSystemSemanticsType::GetString`: the attribute's text.
      *
      * @param {number} type An `Enum` value.
      * @returns {string} The attribute, or `!!invalid_system_semantic!!`.
+     * @meta.renamed("GetString")
      */
     static getString(type)
     {
@@ -100,6 +103,3 @@ export class MetalSystemSemanticsType
         base_instance: 34
     });
 }
-
-meta.renamed("GetString")(MetalSystemSemanticsType, "getString");
-CjsSchema.meta.carbon("MetalSystemSemanticsType")(MetalSystemSemanticsType);

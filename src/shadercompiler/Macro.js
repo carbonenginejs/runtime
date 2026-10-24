@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/Macro.h
 //
 // Not ported: `FillDxMacros`, which fills D3D's own macro array for the DX
@@ -9,6 +8,9 @@ import { CjsSchema } from "#schema";
  */
 export class Macro
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Macro";
+
     /** @type {string} */
     name = null;
 
@@ -45,5 +47,3 @@ export class Macro
         return null;
     }
 }
-
-CjsSchema.meta.carbon("Macro")(Macro);

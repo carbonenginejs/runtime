@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 // Source: trinity/shadercompiler/ParserState.cpp
 
@@ -119,6 +118,9 @@ function format(formatText, args)
  */
 export class ParserState
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "ParserState";
+
     /** Carbon's `m_newLine( true )` (ParserState.h:248, ParserState.cpp:249). */
     newLine = true;
 
@@ -505,6 +507,7 @@ export class ParserState
      * Carbon's `ParserState::InSkipMode`: inside an inactive conditional block.
      *
      * @returns {boolean} Whether tokens are being skipped.
+     * @meta.implemented
      */
     InSkipMode()
     {
@@ -520,7 +523,9 @@ export class ParserState
         return back.inheridedSkipMode || back.skipMode;
     }
 
-    /** @returns {boolean} Carbon's `ParserState::InDiscoverMode`. */
+    /** @returns {boolean} Carbon's `ParserState::InDiscoverMode`.
+     * @meta.implemented
+     */
     InDiscoverMode()
     {
         return this._inDiscoverMode;
@@ -580,6 +585,7 @@ export class ParserState
      *
      * @param {PreprocessorToken} token Filled with the token.
      * @returns {number} A `PreprocessorScanResult` value.
+     * @meta.implemented
      */
     GetPreprocessorToken(token)
     {
@@ -696,6 +702,7 @@ export class ParserState
      *
      * @param {Permutation[]} permutations Receives the axes.
      * @returns {boolean} False after reporting a malformed pragma.
+     * @meta.implemented
      */
     DiscoverPermutations(permutations)
     {
@@ -756,6 +763,7 @@ export class ParserState
      * given a copy, as Carbon passes the token by value.
      *
      * @returns {boolean} Whether a tree was built without errors.
+     * @meta.implemented
      */
     Parse()
     {
@@ -816,6 +824,7 @@ export class ParserState
      * @param {InlineString} string The condition text.
      * @param {{ value: boolean }} result Receives the condition's truth.
      * @returns {number} A `PreprocessorScanResult` value.
+     * @meta.adapted
      */
     EvaluatePreprocessorCondition(string, result)
     {
@@ -878,25 +887,33 @@ export class ParserState
         return ParserState.PreprocessorScanResult.PPSR_OK;
     }
 
-    /** @returns {boolean} Whether an error (not a warning) was reported. */
+    /** @returns {boolean} Whether an error (not a warning) was reported.
+     * @meta.implemented
+     */
     HasErrors()
     {
         return this._hasErrors;
     }
 
-    /** @returns {ASTNode|null} The program node. */
+    /** @returns {ASTNode|null} The program node.
+     * @meta.implemented
+     */
     GetTree()
     {
         return this._root;
     }
 
-    /** @returns {SymbolTable} The symbol table. */
+    /** @returns {SymbolTable} The symbol table.
+     * @meta.implemented
+     */
     GetSymbolTable()
     {
         return this._symbols;
     }
 
-    /** @returns {FileLocation} The location of the file or macro being read; live, not a copy. */
+    /** @returns {FileLocation} The location of the file or macro being read; live, not a copy.
+     * @meta.implemented
+     */
     GetCurrentLocation()
     {
         return this._fileStack[this._fileStack.length - 1].location;
@@ -907,6 +924,7 @@ export class ParserState
      * strings allocated so far.
      *
      * @returns {InlineString} The name.
+     * @meta.implemented
      */
     AllocateName()
     {
@@ -951,6 +969,7 @@ export class ParserState
      *
      * @param {string} prefix The C string.
      * @returns {InlineString} The name.
+     * @meta.implemented
      */
     AllocateNameWithPrefix(prefix)
     {
@@ -980,6 +999,7 @@ export class ParserState
      *
      * @param {string} text The text.
      * @returns {{ text: string }} The buffer.
+     * @meta.adapted
      */
     AllocateString(text)
     {
@@ -993,6 +1013,7 @@ export class ParserState
      *
      * @param {number} errorCode An `ErrorCode` value.
      * @param {...*} args Format arguments; for `EC_CUSTOM_ERROR` and `EC_CUSTOM_WARNING` the first is the format.
+     * @meta.implemented
      */
     ShowMessage(errorCode, ...args)
     {
@@ -1063,25 +1084,33 @@ export class ParserState
         this._messages.AddMessage(head + text + "\n");
     }
 
-    /** @param {ASTNode} node Kept until the next statement or declaration list takes it. */
+    /** @param {ASTNode} node Kept until the next statement or declaration list takes it.
+     * @meta.implemented
+     */
     AddOfflineStatement(node)
     {
         this._offlineStatements.AddChild(node);
     }
 
-    /** @param {ASTNode} to Receives the pending offline statements. */
+    /** @param {ASTNode} to Receives the pending offline statements.
+     * @meta.implemented
+     */
     MoveOfflineStatements(to)
     {
         this._offlineStatements.MoveChildren(to);
     }
 
-    /** @param {ASTNode} root The program node. */
+    /** @param {ASTNode} root The program node.
+     * @meta.implemented
+     */
     SetTree(root)
     {
         this._root = root;
     }
 
-    /** @returns {number} Carbon's `GetStreamPosition`: the cursor in the current file or macro. */
+    /** @returns {number} Carbon's `GetStreamPosition`: the cursor in the current file or macro.
+     * @meta.adapted
+     */
     GetStreamPosition()
     {
         return this._fileStack[this._fileStack.length - 1].position;
@@ -1097,7 +1126,9 @@ export class ParserState
         this._fileStack[this._fileStack.length - 1].position = position;
     }
 
-    /** @returns {number} Carbon's `GetStreamEnd`. */
+    /** @returns {number} Carbon's `GetStreamEnd`.
+     * @meta.implemented
+     */
     GetStreamEnd()
     {
         return this._fileStack[this._fileStack.length - 1].code.end;
@@ -1115,7 +1146,9 @@ export class ParserState
         return this._fileStack[this._fileStack.length - 1].code;
     }
 
-    /** @returns {boolean} Whether a macro body or argument is being read. */
+    /** @returns {boolean} Whether a macro body or argument is being read.
+     * @meta.implemented
+     */
     InMacro()
     {
         return this._fileStack[this._fileStack.length - 1].isMacro;
@@ -1125,6 +1158,7 @@ export class ParserState
      * Carbon's `ParserState::IncludeFile`: pushes an included file.
      *
      * @param {InlineString} fileName The path with its quotes or brackets.
+     * @meta.adapted
      */
     IncludeFile(fileName)
     {
@@ -1152,6 +1186,7 @@ export class ParserState
      * @param {PreprocessorDefine} define The macro.
      * @param {FileLocation} location Where it is used.
      * @param {InlineString[]} args Argument ranges.
+     * @meta.implemented
      */
     ParseDefine(define, location, args)
     {
@@ -1177,6 +1212,7 @@ export class ParserState
      *
      * @param {InlineString} name The identifier.
      * @returns {PreprocessorDefine|null} The definition.
+     * @meta.implemented
      */
     FindDefine(name)
     {
@@ -1194,6 +1230,7 @@ export class ParserState
      * permutation pragmas are dropped.
      *
      * @param {InlineString} string The pragma's text.
+     * @meta.implemented
      */
     AddPragma(string)
     {
@@ -1210,7 +1247,9 @@ export class ParserState
         this._pragmas.push(pragma);
     }
 
-    /** Carbon's `ParserState::ResetPragmaUsage`. */
+    /** Carbon's `ParserState::ResetPragmaUsage`.
+     * @meta.implemented
+     */
     ResetPragmaUsage()
     {
         for (const pragma of this._pragmas)
@@ -1226,6 +1265,7 @@ export class ParserState
      * @param {FileLocation} location The line.
      * @param {{ value: InlineString|null }} string Receives the pragma.
      * @returns {boolean} Whether one was found; it is then marked used.
+     * @meta.adapted
      */
     GetPragma(location, string)
     {
@@ -1241,13 +1281,17 @@ export class ParserState
         return false;
     }
 
-    /** @returns {Set<import("../SymbolTable/Symbol.js").Symbol>} The DX9 `tex*` intrinsics. */
+    /** @returns {Set<import("../SymbolTable/Symbol.js").Symbol>} The DX9 `tex*` intrinsics.
+     * @meta.implemented
+     */
     GetDX9TextureFunctions()
     {
         return this._dx9TextureFunctions;
     }
 
-    /** @returns {Map<string, import("../SymbolTable/Symbol.js").Symbol>} The intrinsics by name. */
+    /** @returns {Map<string, import("../SymbolTable/Symbol.js").Symbol>} The intrinsics by name.
+     * @meta.adapted
+     */
     GetDX9Functions()
     {
         return this._dx9Functions;
@@ -1259,6 +1303,7 @@ export class ParserState
      *
      * @param {number} nodeType An `ASTNodeType` value.
      * @returns {ASTNode} The node.
+     * @meta.implemented
      */
     NewNode(nodeType)
     {
@@ -1283,6 +1328,7 @@ export class ParserState
      *
      * @param {import("../SymbolTable/Symbol.js").Symbol} name The sampler's symbol.
      * @param {ASTNode} definition A copy of its declaration.
+     * @meta.implemented
      */
     AddBindlessSampler(name, definition)
     {
@@ -1586,46 +1632,6 @@ function ConvertToPreprocessorToken(type)
     return TO_PREPROCESSOR.get(type) ?? 0;
 }
 
-CjsSchema.decorateMethod(ParserState, "_AddIntrinsics");
-CjsSchema.decorateMethod(ParserState, "_ParseMacroArguments");
 // States against ParserState.cpp:347-363, 842-1095, 1195-1208, statement for statement. Adapted: AllocateString (the caller passes the text), GetStreamPosition (an offset plus SetStreamPosition stands for the const char*& reference), IncludeFile (the handler is the instance's, buffers are objects), GetPragma (the out string is a { value } object) and GetDX9Functions (keyed by name, where Carbon keys by const char* pointer).
-CjsSchema.decorateMethod(ParserState, "InSkipMode", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "InDiscoverMode", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "_FindConcatOperator");
+
 // States against ParserState.cpp:404-840: GetPreprocessorToken (404-509), DiscoverPermutations (632-682) and Parse (684-745) are Carbon's flow including its known defects (CE-71, CE-86, CE-89, CE-92). EvaluatePreprocessorCondition (780-840) is adapted only in that the bool& result is a { value } object.
-CjsSchema.decorateMethod(ParserState, "GetPreprocessorToken", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "DiscoverPermutations", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "Parse", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "EvaluatePreprocessorCondition", meta.adapted);
-CjsSchema.decorateMethod(ParserState, "HasErrors", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "GetTree", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "GetSymbolTable", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "GetCurrentLocation", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "AllocateName", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "AllocateName__Chars");
-CjsSchema.decorateMethod(ParserState, "AllocateName__InlineString");
-CjsSchema.decorateMethod(ParserState, "AllocateNameWithPrefix", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "AllocateNameWithPrefix__InlineString");
-CjsSchema.decorateMethod(ParserState, "AllocateString", meta.adapted);
-CjsSchema.decorateMethod(ParserState, "ShowMessage", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "ShowMessage__Location");
-CjsSchema.decorateMethod(ParserState, "ShowMessage__Token");
-CjsSchema.decorateMethod(ParserState, "_ShowMessageImpl");
-CjsSchema.decorateMethod(ParserState, "AddOfflineStatement", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "MoveOfflineStatements", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "SetTree", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "GetStreamPosition", meta.adapted);
-CjsSchema.decorateMethod(ParserState, "GetStreamEnd", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "InMacro", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "IncludeFile", meta.adapted);
-CjsSchema.decorateMethod(ParserState, "ParseDefine", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "FindDefine", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "AddPragma", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "ResetPragmaUsage", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "GetPragma", meta.adapted);
-CjsSchema.decorateMethod(ParserState, "GetDX9TextureFunctions", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "GetDX9Functions", meta.adapted);
-CjsSchema.decorateMethod(ParserState, "NewNode", meta.implemented);
-CjsSchema.decorateMethod(ParserState, "NewNode__Token");
-CjsSchema.decorateMethod(ParserState, "AddBindlessSampler", meta.implemented);
-CjsSchema.meta.carbon("ParserState")(ParserState);

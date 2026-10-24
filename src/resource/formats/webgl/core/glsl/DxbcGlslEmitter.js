@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import CjsDxbcFormat from "../../../dxbc/index.js";
 import { WebglReadError } from "../WebglReadError.js";
 import { DxbcGlslOperandFormatter } from "./DxbcGlslOperandFormatter.js";
@@ -102,6 +100,9 @@ const COORD_MASK_BY_DIMENSION = {
  */
 export class DxbcGlslEmitter
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "DxbcGlslEmitter";
+
     /**
      * GLSL helper functions this emitter can require.
      * @type {DxbcGlslHelperRegistry}
@@ -3801,5 +3802,3 @@ DxbcGlslEmitter.prototype._assemble = function _assemble(state)
     lines.push(...state.bodyLines, "}");
     return `${lines.join("\n")}\n`;
 };
-
-CjsSchema.meta.define("DxbcGlslEmitter")(DxbcGlslEmitter);

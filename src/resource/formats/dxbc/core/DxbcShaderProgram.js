@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { DxbcReadError } from "./DxbcReadError.js";
 
 /**
@@ -23,6 +21,9 @@ export const DxbcProgramTypeNames = Object.freeze([
  */
 export class DxbcShaderProgram
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "DxbcShaderProgram";
+
     /**
      * Chunk four-character code (`SHEX` or `SHDR`).
      * @type {string}
@@ -136,5 +137,3 @@ export class DxbcShaderProgram
         };
     }
 }
-
-CjsSchema.meta.define("DxbcShaderProgram")(DxbcShaderProgram);

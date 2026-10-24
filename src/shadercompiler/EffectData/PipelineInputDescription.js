@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:461-485
 
 /** The HLSL semantic of each `UsageCode` (EffectData.cpp:6-21). */
@@ -10,6 +9,9 @@ const USAGE_STRINGS = ["POSITION", "COLOR", "NORMAL", "TANGENT", "BINORMAL", "TE
  */
 export class PipelineInputDescription
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "PipelineInputDescription";
+
     name = 0;
 
     registerIndex = 0;
@@ -28,6 +30,7 @@ export class PipelineInputDescription
      *
      * @param {PipelineInputDescription} other The input to compare with.
      * @returns {boolean} Whether every field matches.
+     * @meta.renamed("operator==")
      */
     Equals(other)
     {
@@ -70,6 +73,3 @@ export class PipelineInputDescription
         UC_NUM_USAGE_CODE: 8
     });
 }
-
-CjsSchema.decorateMethod(PipelineInputDescription, "Equals", meta.renamed("operator=="));
-CjsSchema.meta.carbon("PipelineInputDescription")(PipelineInputDescription);

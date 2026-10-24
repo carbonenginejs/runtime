@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:719-742
 
 import { CjsFxStdMap } from "../CjsFxStdMap.js";
@@ -9,6 +8,9 @@ import { CjsFxStdMap } from "../CjsFxStdMap.js";
  */
 export class Pass
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Pass";
+
     /** @type {import("./StageInput.js").StageInput[]} */
     stages = [];
 
@@ -24,5 +26,3 @@ export class Pass
      */
     backendBlock = null;
 }
-
-CjsSchema.meta.carbon("Pass")(Pass);

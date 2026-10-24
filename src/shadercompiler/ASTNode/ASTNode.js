@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/ASTNode.h
 // Source: trinity/shadercompiler/ASTNode.cpp
 
@@ -18,6 +17,9 @@ let nextSerial = 0;
  */
 export class ASTNode
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "ASTNode";
+
     _nodeType = null;
 
     _token = null;
@@ -67,6 +69,7 @@ export class ASTNode
      * Carbon's `ASTNode::Copy`: a deep copy of the subtree, sharing symbols.
      *
      * @returns {ASTNode} The copy.
+     * @meta.implemented
      */
     Copy()
     {
@@ -82,6 +85,7 @@ export class ASTNode
 
     /**
      * @param {ASTNode|null} child Appended, null allowed.
+     * @meta.implemented
      */
     AddChild(child)
     {
@@ -94,6 +98,7 @@ export class ASTNode
      *
      * @param {number} place Index to insert at.
      * @param {ASTNode|null} child The child.
+     * @meta.implemented
      */
     InsertChild(place, child)
     {
@@ -109,6 +114,7 @@ export class ASTNode
      *
      * @param {number} place Index to replace.
      * @param {ASTNode|null} child The new child.
+     * @meta.implemented
      */
     ReplaceChild(place, child)
     {
@@ -144,6 +150,7 @@ export class ASTNode
      *
      * @param {number} place Index to remove.
      * @throws {RangeError} When place is not a child index.
+     * @meta.implemented
      */
     RemoveChild(place)
     {
@@ -168,19 +175,25 @@ export class ASTNode
         }
     }
 
-    /** @returns {number} An `ASTNodeType` value. */
+    /** @returns {number} An `ASTNodeType` value.
+     * @meta.implemented
+     */
     GetNodeType()
     {
         return this._nodeType;
     }
 
-    /** @param {number} type An `ASTNodeType` value. */
+    /** @param {number} type An `ASTNodeType` value.
+     * @meta.implemented
+     */
     SetNodeType(type)
     {
         this._nodeType = type;
     }
 
-    /** @returns {number} Number of child slots, null children included. */
+    /** @returns {number} Number of child slots, null children included.
+     * @meta.implemented
+     */
     GetChildrenCount()
     {
         return this._children.length;
@@ -192,6 +205,7 @@ export class ASTNode
      *
      * @param {number} index Child index.
      * @returns {ASTNode|null} The child.
+     * @meta.implemented
      */
     GetChild(index)
     {
@@ -208,13 +222,16 @@ export class ASTNode
      *
      * @param {number} index Child index.
      * @returns {ASTNode|null} The child, or null past the end.
+     * @meta.implemented
      */
     GetChildOrNull(index)
     {
         return index >= 0 && index < this._children.length ? this._children[index] : null;
     }
 
-    /** @returns {Array<ASTNode|null>} The live child array. */
+    /** @returns {Array<ASTNode|null>} The live child array.
+     * @meta.implemented
+     */
     GetChildren()
     {
         return this._children;
@@ -224,6 +241,7 @@ export class ASTNode
      * Carbon's `MoveChildren`: appends every child to `to` and clears this node.
      *
      * @param {ASTNode} to The receiving node.
+     * @meta.implemented
      */
     MoveChildren(to)
     {
@@ -239,6 +257,7 @@ export class ASTNode
      * copies the token, or clears it for null.
      *
      * @param {ScannerToken|null} token The token.
+     * @meta.implemented
      */
     SetToken(token)
     {
@@ -254,55 +273,72 @@ export class ASTNode
 
     /**
      * @returns {ScannerToken|null} The token, or null when its type is 0. The token is the node's own; do not change it.
+     * @meta.implemented
      */
     GetToken()
     {
         return this._token.type ? this._token : null;
     }
 
-    /** Carbon's `ClearToken`: sets the token's type to 0, so `GetToken` returns null. */
+    /** Carbon's `ClearToken`: sets the token's type to 0, so `GetToken` returns null.
+     * @meta.implemented
+     */
     ClearToken()
     {
         this._token.type = 0;
     }
 
-    /** @returns {import("../ParserState/FileLocation.js").FileLocation} The node's location. */
+    /** @returns {import("../ParserState/FileLocation.js").FileLocation} The node's location.
+     * @meta.implemented
+     */
     GetLocation()
     {
         return this._location;
     }
 
-    /** @param {import("../ParserState/FileLocation.js").FileLocation} location Copied. */
+    /** @param {import("../ParserState/FileLocation.js").FileLocation} location Copied.
+     * @meta.implemented
+     */
     SetLocation(location)
     {
         this._location = location.Copy();
     }
 
-    /** @param {import("../SymbolTable/Symbol.js").Symbol|null} symbol Shared, not copied. */
+    /** @param {import("../SymbolTable/Symbol.js").Symbol|null} symbol Shared, not copied.
+     * @meta.implemented
+     */
     SetSymbol(symbol)
     {
         this._symbol = symbol;
     }
 
-    /** @returns {import("../SymbolTable/Symbol.js").Symbol|null} The node's symbol. */
+    /** @returns {import("../SymbolTable/Symbol.js").Symbol|null} The node's symbol.
+     * @meta.implemented
+     */
     GetSymbol()
     {
         return this._symbol;
     }
 
-    /** @returns {import("../SymbolTable/ScopeSymbolTable.js").ScopeSymbolTable|null} The scope the node was created in. */
+    /** @returns {import("../SymbolTable/ScopeSymbolTable.js").ScopeSymbolTable|null} The scope the node was created in.
+     * @meta.implemented
+     */
     GetScope()
     {
         return this._scope;
     }
 
-    /** @param {Type} type Copied, as Carbon assigns by value. */
+    /** @param {Type} type Copied, as Carbon assigns by value.
+     * @meta.implemented
+     */
     SetType(type)
     {
         this._type = type.Copy();
     }
 
-    /** @returns {Type} The node's type. It is the node's own; copy it before changing it. */
+    /** @returns {Type} The node's type. It is the node's own; copy it before changing it.
+     * @meta.implemented
+     */
     GetType()
     {
         return this._type;
@@ -315,6 +351,7 @@ export class ASTNode
      *
      * @param {number} type An `ASTNodeType` value.
      * @returns {ASTNode|null} The node.
+     * @meta.implemented
      */
     FindNode(type)
     {
@@ -338,6 +375,7 @@ export class ASTNode
      *
      * @param {number} type An `ASTNodeType` value.
      * @param {ASTNode[]} nodes Receives the matches.
+     * @meta.implemented
      */
     FindNodes(type, nodes)
     {
@@ -361,6 +399,7 @@ export class ASTNode
      *
      * @param {(node: ASTNode) => ASTNode} callback The mapping.
      * @returns {ASTNode} The mapped node.
+     * @meta.implemented
      */
     Map(callback)
     {
@@ -475,31 +514,3 @@ export class ASTNode
 }
 
 // States against ASTNode.cpp (whole file) and ASTNode.h:150-160 (Map), statement for statement. The bounds checks that throw stand where Carbon's unchecked index is undefined behaviour; ReplaceChild/RemoveChild's by-node overloads are the __Node methods.
-CjsSchema.decorateMethod(ASTNode, "Copy", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "AddChild", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "InsertChild", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "ReplaceChild", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "ReplaceChild__Node");
-CjsSchema.decorateMethod(ASTNode, "RemoveChild", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "RemoveChild__Node");
-CjsSchema.decorateMethod(ASTNode, "GetNodeType", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "SetNodeType", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetChildrenCount", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetChild", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetChildOrNull", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetChildren", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "MoveChildren", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "SetToken", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetToken", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "ClearToken", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetLocation", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "SetLocation", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "SetSymbol", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetSymbol", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetScope", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "SetType", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "GetType", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "FindNode", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "FindNodes", meta.implemented);
-CjsSchema.decorateMethod(ASTNode, "Map", meta.implemented);
-CjsSchema.meta.carbon("ASTNode")(ASTNode);

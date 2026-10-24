@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:599-626
 
 import { CjsFxStdMap } from "../CjsFxStdMap.js";
@@ -10,8 +9,9 @@ import { CjsFxStdMap } from "../CjsFxStdMap.js";
  */
 export class ParameterAnnotation
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "ParameterAnnotation";
+
     /** @type {CjsFxStdMap} name to `Annotation` */
     annotations = new CjsFxStdMap();
 }
-
-CjsSchema.meta.carbon("ParameterAnnotation")(ParameterAnnotation);

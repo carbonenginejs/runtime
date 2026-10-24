@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsReader } from "./CjsReader.js";
 import { CjsFormatRangeError } from "./CjsFormatError.js";
 import { asUint8Array } from "#utils/bytes";
@@ -31,6 +29,9 @@ const textDecoder = new TextDecoder("utf-8", { fatal: false });
  */
 export class CjsByteReader extends CjsReader
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsByteReader";
+
     /**
      * Error class raised for out-of-bounds and arena failures.
      *
@@ -379,5 +380,3 @@ export class CjsByteReader extends CjsReader
 }
 
 export default CjsByteReader;
-
-CjsSchema.meta.define(CjsByteReader, { className: "CjsByteReader" });

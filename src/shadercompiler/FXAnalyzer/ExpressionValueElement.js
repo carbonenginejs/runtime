@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/FXAnalyzer.h:15-20
 
 /**
@@ -12,6 +11,9 @@ import { CjsSchema } from "#schema";
  */
 export class ExpressionValueElement
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "ExpressionValueElement";
+
     /** @type {number|undefined} Carbon's `long`: 32 bits on Windows. */
     intValue = undefined;
 
@@ -35,5 +37,3 @@ export class ExpressionValueElement
         return copy;
     }
 }
-
-CjsSchema.meta.carbon("ExpressionValueElement")(ExpressionValueElement);

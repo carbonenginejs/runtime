@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "./CjsFormat.js";
 import { asUint8Array } from "#utils/bytes";
 import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters } from "#imageio";
@@ -469,5 +467,3 @@ export class CjsImageFormat extends CjsFormat
   }
 
 }
-
-CjsSchema.meta.define("CjsImageFormat")(CjsImageFormat);

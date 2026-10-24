@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormatWriteError } from "./CjsFormatError.js";
 
 // Source: trinity/shadercompiler/StringTable.cpp, trinity/shadercompiler/StringTable.h
@@ -88,6 +86,9 @@ function hashBytes(bytes)
  */
 export class CjsStringTable
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsStringTable";
+
     _blobs = [];
 
     _buckets = new Map();
@@ -306,5 +307,3 @@ export class CjsStringTable
 }
 
 export default CjsStringTable;
-
-CjsSchema.blue.define(CjsStringTable, { className: "CjsStringTable" });

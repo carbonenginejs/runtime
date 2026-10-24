@@ -1,15 +1,16 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta, type } from "#schema";
+
 import { dwordToFloat } from "#math/num";
 import {
 } from "#utils/is";
 import { recordRawValue, recordText, toRecordRawValue, toRecordText } from "./carbonRecordFields.js";
-import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
 
 /** Typed annotation attached to a reflected effect parameter. */
 export class Tr2EffectParameterAnnotation
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2EffectParameterAnnotation";
 
   /** name (const char*) */
   name = "";
@@ -26,6 +27,7 @@ export class Tr2EffectParameterAnnotation
    * Adapted: Carbon reads numeric annotations into typed values; the portable source
    * contract retains the exact uint32 payload so NaN, negative zero, and integer bit
    * patterns round-trip losslessly.
+   * @meta.adapted
    */
   rawValue = 0;
 
@@ -123,20 +125,3 @@ export class Tr2EffectParameterAnnotation
   });
 
 }
-
-// Carbon registers neither this nor a chooser for it (Shader/Tr2EffectDescription.h:131); the name qualifies it by its owner, as trinity.Tr2Light.LIGHT_TYPE does.
-blueEnums.Create("trinity.Tr2EffectParameterAnnotation.Type", Tr2EffectParameterAnnotation.Type);
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "name", type.string);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "type", type.int32, type.enum("trinity.Tr2EffectParameterAnnotation.Type"));
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "boolValue", type.boolean);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "rawValue", meta.adapted, type.uint32);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "intValue", type.int32);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "floatValue", type.float32);
-CjsSchema.decorateField(Tr2EffectParameterAnnotation, "stringValue", type.string);
-CjsSchema.meta.carbon("Tr2EffectParameterAnnotation")(Tr2EffectParameterAnnotation);

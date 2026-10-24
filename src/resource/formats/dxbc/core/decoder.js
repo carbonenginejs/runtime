@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { DxbcReadError } from "./DxbcReadError.js";
 import {
     DXBC_OPCODE_CUSTOMDATA,
@@ -398,6 +396,9 @@ function requirePositiveDwordAligned(value, fieldName, fail)
  */
 export class DxbcInstructionDecoder
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "DxbcInstructionDecoder";
+
     /**
      * Token stream of the decoded program.
      * @type {Uint32Array}
@@ -1088,5 +1089,3 @@ export class DxbcInstructionDecoder
         return operand;
     }
 }
-
-CjsSchema.meta.define("DxbcInstructionDecoder")(DxbcInstructionDecoder);

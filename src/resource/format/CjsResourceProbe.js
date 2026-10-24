@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 /**
  * A format support report, normalized.
  *
@@ -9,6 +7,9 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class CjsResourceProbe
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "CjsResourceProbe";
+
   format = "";
 
   source = "";
@@ -143,5 +144,3 @@ function normalizeCapability(input)
 }
 
 export default CjsResourceProbe;
-
-CjsSchema.meta.define("CjsResourceProbe")(CjsResourceProbe);

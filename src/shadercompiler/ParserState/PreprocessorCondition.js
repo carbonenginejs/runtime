@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 /**
@@ -7,6 +6,9 @@ import { CjsSchema } from "#schema";
  */
 export class PreprocessorCondition
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "PreprocessorCondition";
+
     /** Carbon leaves it unset. */
     skipMode = false;
 
@@ -19,5 +21,3 @@ export class PreprocessorCondition
     /** Carbon leaves it unset. */
     seenElse = false;
 }
-
-CjsSchema.meta.carbon("PreprocessorCondition")(PreprocessorCondition);

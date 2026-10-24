@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { DxbcReader } from "./DxbcReader.js";
 import { DxbcReadError } from "./DxbcReadError.js";
 
@@ -39,6 +37,9 @@ export const DxbcComponentTypeNames = Object.freeze([ "unknown", "uint32", "int3
  */
 export class DxbcSignatureChunk
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "DxbcSignatureChunk";
+
     /**
      * Chunk four-character code.
      * @type {string}
@@ -168,5 +169,3 @@ export class DxbcSignatureChunk
         return semanticNameDecoder.decode(bytes.subarray(offset, end));
     }
 }
-
-CjsSchema.meta.define("DxbcSignatureChunk")(DxbcSignatureChunk);

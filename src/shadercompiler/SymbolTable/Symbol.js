@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:70-89
 //
@@ -21,6 +20,9 @@ import { PackOffset } from "./PackOffset.js";
  */
 export class Symbol
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Symbol";
+
     name = new InlineString();
 
     semantic = new InlineString();
@@ -86,5 +88,3 @@ export class Symbol
         RayData: 7
     });
 }
-
-CjsSchema.meta.carbon("Symbol")(Symbol);

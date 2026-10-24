@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 
 import { InlineString } from "../InlineString.js";
@@ -13,6 +12,9 @@ import { ScannerToken } from "../ParserState/ScannerToken.js";
  */
 export class SymbolAnnotation
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "SymbolAnnotation";
+
     /** Carbon leaves it unset. */
     type = 0;
 
@@ -20,5 +22,3 @@ export class SymbolAnnotation
 
     value = new ScannerToken();
 }
-
-CjsSchema.meta.carbon("SymbolAnnotation")(SymbolAnnotation);

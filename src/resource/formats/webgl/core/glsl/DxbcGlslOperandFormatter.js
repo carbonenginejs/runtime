@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { WebglReadError } from "../WebglReadError.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
@@ -37,6 +35,9 @@ const SPECIAL_OPERAND_NAMES = {
  */
 export class DxbcGlslOperandFormatter
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "DxbcGlslOperandFormatter";
+
     /**
      * Declared component type per operand; null when not supplied.
      * @type {function(object): (string|null)|null}
@@ -645,5 +646,3 @@ export class DxbcGlslOperandFormatter
         return String(immediate);
     }
 }
-
-CjsSchema.meta.define("DxbcGlslOperandFormatter")(DxbcGlslOperandFormatter);

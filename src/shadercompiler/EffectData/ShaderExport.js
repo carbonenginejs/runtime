@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:744-755
 
 /**
@@ -6,6 +5,9 @@ import { CjsSchema } from "#schema";
  */
 export class ShaderExport
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "ShaderExport";
+
     /** An `RtShaderType` value. */
     type = 0;
 
@@ -24,5 +26,3 @@ export class ShaderExport
         INTERSECTION: 4
     });
 }
-
-CjsSchema.meta.carbon("ShaderExport")(ShaderExport);

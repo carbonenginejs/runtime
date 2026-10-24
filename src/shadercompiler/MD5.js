@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/md5.h
 // Source: trinity/shadercompiler/md5.cpp
 //
@@ -29,6 +28,9 @@ const CONSTANTS = Array.from({ length: 64 }, (unused, i) => Math.floor(Math.abs(
  */
 export class MD5
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "MD5";
+
     /** Carbon's `m_numBytes`: bytes hashed so far. */
     _numBytes = 0;
 
@@ -49,6 +51,7 @@ export class MD5
 
     /**
      * Carbon's `MD5::reset`: starts a new hash.
+     * @meta.implemented
      */
     reset()
     {
@@ -61,6 +64,7 @@ export class MD5
      * Carbon's `MD5::add`: hashes more bytes.
      *
      * @param {Uint8Array} data The bytes.
+     * @meta.implemented
      */
     add(data)
     {
@@ -103,6 +107,7 @@ export class MD5
      * characters. Hashing can continue afterwards, as in Carbon.
      *
      * @returns {string} The hash.
+     * @meta.implemented
      */
     getHash()
     {
@@ -221,10 +226,3 @@ export class MD5
 }
 
 // States: md5.cpp:10-20 (reset), 206-246 (add) and 323-340 (getHash returning the hex string) statement for statement.
-CjsSchema.decorateMethod(MD5, "reset", meta.implemented);
-CjsSchema.decorateMethod(MD5, "add", meta.implemented);
-CjsSchema.decorateMethod(MD5, "getHash", meta.implemented);
-CjsSchema.decorateMethod(MD5, "getHash__Bytes");
-CjsSchema.decorateMethod(MD5, "_processBuffer");
-CjsSchema.decorateMethod(MD5, "_processBlock");
-CjsSchema.meta.carbon("MD5")(MD5);

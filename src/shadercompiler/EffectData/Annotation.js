@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:572-595
 
 /**
@@ -11,6 +10,9 @@ import { CjsSchema } from "#schema";
  */
 export class Annotation
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Annotation";
+
     /** An `AnnotationType` value. */
     type = 0;
 
@@ -60,5 +62,3 @@ export class Annotation
         ANNOTATION_TYPE_STRING: 3
     });
 }
-
-CjsSchema.meta.carbon("Annotation")(Annotation);

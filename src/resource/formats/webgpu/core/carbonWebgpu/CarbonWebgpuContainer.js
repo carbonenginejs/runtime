@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import {
     CjsCarbonEffectReader,
     readBackendBlock
@@ -95,6 +93,9 @@ function optionIndicesFor(axes, permutationIndex)
  */
 export class CarbonWebgpuContainer
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CarbonWebgpuContainer";
+
     /**
      * Error caught by the last Read; null when it succeeded.
      * @type {Error|null}
@@ -427,5 +428,3 @@ export class CarbonWebgpuContainer
 }
 
 export default CarbonWebgpuContainer;
-
-CjsSchema.meta.define("CarbonWebgpuContainer")(CarbonWebgpuContainer);

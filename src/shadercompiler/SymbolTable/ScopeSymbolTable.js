@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:91-339
 
@@ -16,6 +15,9 @@ const { NT_FUNCTION_HEADER, NT_FUNCTION_DEFINITION } = ASTNode.ASTNodeType;
  */
 export class ScopeSymbolTable
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "ScopeSymbolTable";
+
     _parent = null;
 
     /** @type {Symbol[]} */
@@ -38,6 +40,7 @@ export class ScopeSymbolTable
      *
      * @param {import("../InlineString.js").InlineString} name The name.
      * @returns {Symbol|null} The symbol.
+     * @meta.implemented
      */
     Lookup(name)
     {
@@ -61,6 +64,7 @@ export class ScopeSymbolTable
      * @param {import("../InlineString.js").InlineString} name The function name.
      * @param {import("../ASTNode/ASTNode.js").ASTNode} header The header being declared.
      * @returns {Symbol|null} The matching declaration.
+     * @meta.implemented
      */
     LookupFunctionDeclaration(name, header)
     {
@@ -117,6 +121,7 @@ export class ScopeSymbolTable
      * @param {import("../ASTNode/ASTNode.js").ASTNode} callNode The `NT_FUNCTION_CALL` node.
      * @param {{ value: string }} diagnosticMessage Carbon's `std::string&` out-parameter.
      * @returns {Symbol|null} The chosen overload.
+     * @meta.adapted
      */
     LookupFunction(name, callNode, diagnosticMessage)
     {
@@ -257,6 +262,7 @@ export class ScopeSymbolTable
      * @param {import("../InlineString.js").InlineString} name The name.
      * @param {number} overrideBehavior An `OverrideBehavior` value.
      * @returns {Symbol|null} The new symbol, or null when the name exists here and overrides are not allowed.
+     * @meta.implemented
      */
     AddSymbol(name, overrideBehavior)
     {
@@ -298,6 +304,7 @@ export class ScopeSymbolTable
      * Carbon's `ScopeSymbolTable::AddScope`.
      *
      * @returns {ScopeSymbolTable} A new child scope.
+     * @meta.implemented
      */
     AddScope()
     {
@@ -310,6 +317,7 @@ export class ScopeSymbolTable
      * Carbon's `ScopeSymbolTable::GetParent`.
      *
      * @returns {ScopeSymbolTable|null} The enclosing scope.
+     * @meta.implemented
      */
     GetParent()
     {
@@ -318,6 +326,7 @@ export class ScopeSymbolTable
 
     /**
      * Carbon's `ScopeSymbolTable::ResetUsedFlag`: clears `used` here and below.
+     * @meta.implemented
      */
     ResetUsedFlag()
     {
@@ -358,12 +367,3 @@ function matchParameter(parameter, argument, casts)
 }
 
 // States against SymbolTable.cpp:91-339, statement for statement (the quirks in the comments are Carbon's). LookupFunction is adapted only in that the diagnostic string and the cast count come back through { value } out objects.
-CjsSchema.decorateMethod(ScopeSymbolTable, "Lookup", meta.implemented);
-CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunctionDeclaration", meta.implemented);
-CjsSchema.decorateMethod(ScopeSymbolTable, "LookupFunction", meta.adapted);
-CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol", meta.implemented);
-CjsSchema.decorateMethod(ScopeSymbolTable, "AddSymbol__Symbol");
-CjsSchema.decorateMethod(ScopeSymbolTable, "AddScope", meta.implemented);
-CjsSchema.decorateMethod(ScopeSymbolTable, "GetParent", meta.implemented);
-CjsSchema.decorateMethod(ScopeSymbolTable, "ResetUsedFlag", meta.implemented);
-CjsSchema.meta.carbon("ScopeSymbolTable")(ScopeSymbolTable);

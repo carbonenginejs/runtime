@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, type } from "#schema";
+
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
 import { Tr2EffectTechnique } from "./Tr2EffectTechnique.js";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
@@ -10,6 +10,8 @@ import { compareUtf8 } from "../../format/compareUtf8.js";
 /** Complete device-free effect description for one selected shader body. */
 export class Tr2EffectDescription
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2EffectDescription";
 
   /** techniques (TrackableStdVector<Tr2EffectTechnique>) */
   techniques = [];
@@ -56,7 +58,6 @@ export class Tr2EffectDescription
     return effect;
   }
 
-
   /**
    * Emit this description as a Carbon v15 record tree.
    *
@@ -79,12 +80,3 @@ export class Tr2EffectDescription
     };
   }
 }
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2EffectDescription, "techniques", type.list("Tr2EffectTechnique"));
-CjsSchema.decorateField(Tr2EffectDescription, "annotations", type.map("Tr2EffectParameterAnnotationMap"));
-CjsSchema.meta.carbon("Tr2EffectDescription")(Tr2EffectDescription);

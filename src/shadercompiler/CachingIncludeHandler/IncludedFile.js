@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/CachingIncludeHandler.h
 //
 // Carbon nests this struct publicly in `CachingIncludeHandler`
@@ -11,6 +10,9 @@ import { CjsSchema } from "#schema";
  */
 export class IncludedFile
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "IncludedFile";
+
     /** @type {string} */
     fullPath = "";
 
@@ -44,8 +46,3 @@ export class IncludedFile
         return copy;
     }
 }
-
-CjsSchema.meta.define(IncludedFile, {
-    className: "IncludedFile",
-    carbon: "CachingIncludeHandler::IncludedFile"
-});

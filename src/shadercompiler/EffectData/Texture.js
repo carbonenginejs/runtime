@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:318-340
 
 /**
@@ -7,6 +6,9 @@ import { CjsSchema, meta } from "#schema";
  */
 export class Texture
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Texture";
+
     name = "";
 
     /** A `TextureType` value. */
@@ -23,6 +25,7 @@ export class Texture
      *
      * @param {Texture} other The texture to compare with.
      * @returns {boolean} Whether every field matches.
+     * @meta.renamed("operator==")
      */
     Equals(other)
     {
@@ -64,6 +67,3 @@ export class Texture
         TEX_TYPE_INVALID: 17
     });
 }
-
-CjsSchema.decorateMethod(Texture, "Equals", meta.renamed("operator=="));
-CjsSchema.meta.carbon("Texture")(Texture);

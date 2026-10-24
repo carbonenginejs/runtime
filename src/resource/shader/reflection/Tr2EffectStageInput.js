@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta, type } from "#schema";
+
 import { copyBytes } from "#utils/bytes";
 import { Tr2SamplerSetup } from "../sampler/Tr2SamplerSetup.js";
 import { Tr2EffectConstant } from "./Tr2EffectConstant.js";
@@ -31,12 +31,15 @@ function unsetOffsetOf(ref)
 /** Complete device-free reflection for one shader stage input. */
 export class Tr2EffectStageInput
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2EffectStageInput";
 
   /**
    * Portable stage index; Carbon otherwise implies this from the containing array.
    *
    * Adapted: The source format identifies stage inputs by array index; the index is retained
    * explicitly so a body re-emits as the file that produced it.
+   * @meta.adapted
    */
   stageType = -1;
 
@@ -77,6 +80,7 @@ export class Tr2EffectStageInput
    * keeps only the m_shader handle (Tr2EffectDescription.h:183). Ours interns at the Trinity
    * boundary, because the resource layer may not import Trinity, so the bytes are retained
    * until then; see Tr2EffectStateManager.registerShaderHandles.
+   * @meta.adapted
    */
   sourceProgram = null;
 
@@ -408,25 +412,4 @@ export class Tr2EffectStageInput
     return stage;
   }
 
-
 }
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2EffectStageInput, "stageType", meta.adapted, type.int32);
-CjsSchema.decorateField(Tr2EffectStageInput, "exists", type.boolean);
-CjsSchema.decorateField(Tr2EffectStageInput, "resources", type.map("Tr2EffectResource"));
-CjsSchema.decorateField(Tr2EffectStageInput, "uavs", type.map("Tr2EffectResource"));
-CjsSchema.decorateField(Tr2EffectStageInput, "samplers", type.map("Tr2SamplerSetup"));
-CjsSchema.decorateField(Tr2EffectStageInput, "shader", type.uint32);
-CjsSchema.decorateField(Tr2EffectStageInput, "constants", type.list("Tr2EffectConstant"));
-CjsSchema.decorateField(Tr2EffectStageInput, "constantValueSize", type.uint32);
-CjsSchema.decorateField(Tr2EffectStageInput, "constantValues", type.typedArray("Uint8Array"));
-CjsSchema.decorateField(Tr2EffectStageInput, "constantValuesUnsetOffset", type.uint32);
-CjsSchema.decorateField(Tr2EffectStageInput, "signature", type.rawStruct("Tr2ShaderSignatureAL"));
-CjsSchema.decorateField(Tr2EffectStageInput, "annotation", type.list("Tr2EffectParameterAnnotation"));
-CjsSchema.decorateField(Tr2EffectStageInput, "sourceProgram", meta.adapted, type.rawStruct("CjsEffectSourceProgram"));
-CjsSchema.meta.carbon("Tr2EffectStageInput")(Tr2EffectStageInput);

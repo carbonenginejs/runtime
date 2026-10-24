@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h:284-289
 //
 // Carbon nests this struct privately in `ParserState` (`ParserState::Pragma`);
@@ -13,6 +12,9 @@ import { InlineString } from "../InlineString.js";
  */
 export class Pragma
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Pragma";
+
     /** @type {InlineString} */
     pragma = new InlineString();
 
@@ -22,8 +24,3 @@ export class Pragma
     /** @type {boolean} */
     used = false;
 }
-
-CjsSchema.meta.define(Pragma, {
-    className: "Pragma",
-    carbon: "ParserState::Pragma"
-});

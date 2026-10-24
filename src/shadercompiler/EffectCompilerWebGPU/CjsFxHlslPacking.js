@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Not in Carbon: HLSL's constant-buffer packing, for the WebGPU target.
 //
 // Carbon's DX11 compiler leaves constant layout to Microsoft's compiler and
@@ -29,6 +27,9 @@ const STRUCT_LAYOUTS = new WeakMap();
  */
 export class CjsFxHlslPacking
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsFxHlslPacking";
+
     /**
      * Rounds a byte offset up to the next register.
      *
@@ -229,5 +230,3 @@ export class CjsFxHlslPacking
     /** Bytes per HLSL register. */
     static registerBytes = 16;
 }
-
-CjsSchema.meta.define("CjsFxHlslPacking")(CjsFxHlslPacking);

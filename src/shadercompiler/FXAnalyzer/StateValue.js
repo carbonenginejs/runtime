@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/FXAnalyzer.h:24-28
 
 /**
@@ -7,11 +6,12 @@ import { CjsSchema } from "#schema";
  */
 export class StateValue
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "StateValue";
+
     /** @type {string} Carbon leaves it unset. */
     name = "";
 
     /** @type {number} Carbon's `unsigned`. Carbon leaves it unset. */
     value = 0;
 }
-
-CjsSchema.meta.carbon("StateValue")(StateValue);

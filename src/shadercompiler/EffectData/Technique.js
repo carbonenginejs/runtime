@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:787-809
 
 /**
@@ -6,6 +5,9 @@ import { CjsSchema } from "#schema";
  */
 export class Technique
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Technique";
+
     name = "";
 
     /** @type {import("./Pass.js").Pass[]} */
@@ -14,5 +16,3 @@ export class Technique
     /** @type {import("./Library.js").Library[]} */
     libraries = [];
 }
-
-CjsSchema.meta.carbon("Technique")(Technique);

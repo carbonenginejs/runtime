@@ -247,7 +247,7 @@ test("shader reflection graph follows Carbon lookup and sort behavior", () =>
   shader.ProcessEffect();
   assertEquals(shader.GetSortValue(), (1 << 30) | (7 << 20) | (5 << 10) | 9);
 });
-test("shader reflection metadata preserves Carbon scalar and container types", () =>
+test("plain shader reflection structures retain Carbon defaults", () =>
 {
   const constant = new Tr2EffectConstant();
   const description = new Tr2EffectDescription();
@@ -256,16 +256,6 @@ test("shader reflection metadata preserves Carbon scalar and container types", (
   const define = new Tr2EffectDefine();
   const annotation = new Tr2EffectParameterAnnotation();
   const resource = new Tr2EffectResource();
-  assertEquals(CjsSchema.getField(Tr2EffectConstant, "offset")?.type.kind, "uint32");
-  assertEquals(CjsSchema.getField(Tr2EffectConstant, "elements")?.type.kind, "uint32");
-  assertEquals(CjsSchema.getField(Tr2EffectDescription, "techniques")?.type.kind, "list");
-  assertEquals(CjsSchema.getField(Tr2EffectTechnique, "passes")?.type.kind, "list");
-  assertEquals(CjsSchema.getField(Tr2EffectStageInput, "shader")?.type.kind, "uint32");
-  assertEquals(CjsSchema.getField(Tr2EffectStageInput, "constantValues")?.type.kind, "typedArray");
-  assertEquals(CjsSchema.getField(Tr2Pass, "stageInputs")?.type.kind, "list");
-  assertEquals(CjsSchema.getField(Tr2EffectDefine, "name")?.type.kind, "string");
-  assertEquals(CjsSchema.getField(Tr2EffectParameterAnnotation, "stringValue")?.type.kind, "string");
-  assertEquals(CjsSchema.getField(Tr2EffectResource, "BINDLESS_SAMPLER"), null);
   assertEquals(constant.offset, 0);
   assertEquals(description.techniques.length, 0);
   assertEquals(technique.passes.length, 0);

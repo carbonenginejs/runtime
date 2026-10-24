@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Custom: an LALR(1) table builder that reproduces the LEMON parser generator's
 // construction, for Carbon's `.y` grammars.
 //
@@ -52,6 +50,9 @@ const SYMBOL_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)(?:\(\s*([A-Z][A-Za-z0-9_]*)\s*
  */
 export class CjsFxLemon
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsFxLemon";
+
     /** @type {string} Grammar name, for messages. */
     name = null;
 
@@ -630,5 +631,3 @@ export class CjsFxLemon
     /** Goto value for the start symbol in state 0: lemon's ACCEPT (lemon.c FindActions adds it to state 0 only). */
     static accept = -2;
 }
-
-CjsSchema.meta.define("CjsFxLemon")(CjsFxLemon);

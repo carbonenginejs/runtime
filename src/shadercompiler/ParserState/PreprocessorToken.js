@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 import { InlineString } from "../InlineString.js";
@@ -10,6 +9,9 @@ import { FileLocation } from "./FileLocation.js";
  */
 export class PreprocessorToken
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "PreprocessorToken";
+
     /** Carbon leaves it unset. */
     type = 0;
 
@@ -31,5 +33,3 @@ export class PreprocessorToken
         this.fileLocation = fileLocation;
     }
 }
-
-CjsSchema.meta.carbon("PreprocessorToken")(PreprocessorToken);

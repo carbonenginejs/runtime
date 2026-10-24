@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: blue/include/BitPacker.h
 //   `BitPackerCore::DeQueueBits` (the LSB-first bit cursor)
 //   `BitPackerCore::DeQueueAlignedBlock` (align, then hand back whole bytes)
@@ -111,6 +109,9 @@ export function readBitsAt(bytes, startBit, count)
  */
 export class CjsBitReader extends CjsReader
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsBitReader";
+
     /**
      * Error class raised when a read runs past the end.
      *
@@ -321,5 +322,3 @@ export class CjsBitReader extends CjsReader
 }
 
 export default CjsBitReader;
-
-CjsSchema.meta.define(CjsBitReader, { className: "CjsBitReader" });

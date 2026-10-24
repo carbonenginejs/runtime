@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:10
 // Source: trinity/shadercompiler/EffectData.h:811-854
 
@@ -23,11 +22,12 @@ export const DATA_VERSION = 15;
  */
 export class EffectData
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "EffectData";
+
     /** @type {import("./Technique.js").Technique[]} */
     techniques = [];
 
     /** @type {CjsFxStdMap} parameter name to `ParameterAnnotation` */
     annotations = new CjsFxStdMap();
 }
-
-CjsSchema.meta.carbon("EffectData")(EffectData);

@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormatWriteError } from "./CjsFormatError.js";
 
 const textEncoder = new TextEncoder();
@@ -19,6 +17,9 @@ const textEncoder = new TextEncoder();
  */
 export class CjsByteWriter
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsByteWriter";
+
     _bytes;
 
     _view;
@@ -305,5 +306,3 @@ export class CjsByteWriter
 }
 
 export default CjsByteWriter;
-
-CjsSchema.meta.define("CjsByteWriter")(CjsByteWriter);

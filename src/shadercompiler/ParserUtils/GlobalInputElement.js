@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/ParserUtils.h
 
 import { InlineString } from "../InlineString.js";
@@ -9,6 +8,9 @@ import { Type } from "../Type.js";
  */
 export class GlobalInputElement
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "GlobalInputElement";
+
     type = new Type();
 
     name = new InlineString();
@@ -41,12 +43,10 @@ export class GlobalInputElement
      *
      * @param {GlobalInputElement} other The element to compare with.
      * @returns {boolean} Whether they match.
+     * @meta.renamed("operator==")
      */
     Equals(other)
     {
         return this.type.Equals(other.type) && this.name.Equals(other.name);
     }
 }
-
-CjsSchema.decorateMethod(GlobalInputElement, "Equals", meta.renamed("operator=="));
-CjsSchema.meta.carbon("GlobalInputElement")(GlobalInputElement);

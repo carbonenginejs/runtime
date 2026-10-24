@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 import { FileLocation } from "./FileLocation.js";
@@ -9,6 +8,9 @@ import { FileLocation } from "./FileLocation.js";
  */
 export class Permutation
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Permutation";
+
     name = "";
 
     /** @type {import("./PermutationOption.js").PermutationOption[]} */
@@ -23,5 +25,3 @@ export class Permutation
 
     location = new FileLocation();
 }
-
-CjsSchema.meta.carbon("Permutation")(Permutation);

@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:342-469
 
@@ -15,6 +14,9 @@ import { ScopeSymbolTable } from "./ScopeSymbolTable.js";
  */
 export class SymbolTable
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "SymbolTable";
+
     _current = null;
 
     _bufferSymbols = new ScopeSymbolTable(null);
@@ -32,6 +34,7 @@ export class SymbolTable
      *
      * @param {InlineString} name The name.
      * @returns {import("./Symbol.js").Symbol|null} The symbol.
+     * @meta.implemented
      */
     Lookup(name)
     {
@@ -45,6 +48,7 @@ export class SymbolTable
      * @param {import("../ASTNode/ASTNode.js").ASTNode} callNode The call.
      * @param {{ value: string }} diagnosticMessage Filled with the candidates when nothing matches.
      * @returns {import("./Symbol.js").Symbol|null} The chosen overload.
+     * @meta.adapted
      */
     LookupFunction(name, callNode, diagnosticMessage)
     {
@@ -57,6 +61,7 @@ export class SymbolTable
      * @param {InlineString} name The function name.
      * @param {import("../ASTNode/ASTNode.js").ASTNode} header The header being declared.
      * @returns {import("./Symbol.js").Symbol|null} The matching forward declaration.
+     * @meta.implemented
      */
     LookupFunctionDeclaration(name, header)
     {
@@ -68,6 +73,7 @@ export class SymbolTable
      *
      * @param {InlineString} name The name.
      * @returns {import("./Symbol.js").Symbol|null} The type symbol.
+     * @meta.implemented
      */
     LookupType(name)
     {
@@ -84,6 +90,7 @@ export class SymbolTable
      *
      * @param {InlineString} name The buffer name.
      * @returns {import("./Symbol.js").Symbol|null} The buffer symbol.
+     * @meta.implemented
      */
     LookupBuffer(name)
     {
@@ -100,6 +107,7 @@ export class SymbolTable
      * @param {InlineString} name The name.
      * @param {number} [overrideBehavior=OverrideBehavior.DISALOW_OVERRIDES] An `OverrideBehavior` value.
      * @returns {import("./Symbol.js").Symbol|null} The new symbol, or null on a redefinition.
+     * @meta.implemented
      */
     AddSymbol(name, overrideBehavior = SymbolTable.OverrideBehavior.DISALOW_OVERRIDES)
     {
@@ -119,6 +127,7 @@ export class SymbolTable
      * @param {InlineString} name The type name.
      * @param {number} [overrideBehavior=OverrideBehavior.DISALOW_OVERRIDES] An `OverrideBehavior` value.
      * @returns {import("./Symbol.js").Symbol|null} The new type symbol.
+     * @meta.implemented
      */
     AddTypeSymbol(name, overrideBehavior = SymbolTable.OverrideBehavior.DISALOW_OVERRIDES)
     {
@@ -148,6 +157,7 @@ export class SymbolTable
      *
      * @param {InlineString} name The buffer name.
      * @returns {import("./Symbol.js").Symbol} The new buffer symbol.
+     * @meta.implemented
      */
     AddBufferSymbol(name)
     {
@@ -156,6 +166,7 @@ export class SymbolTable
 
     /**
      * Carbon's `SymbolTable::EnterScope`.
+     * @meta.implemented
      */
     EnterScope()
     {
@@ -164,6 +175,7 @@ export class SymbolTable
 
     /**
      * Carbon's `SymbolTable::LeaveScope`.
+     * @meta.implemented
      */
     LeaveScope()
     {
@@ -174,6 +186,7 @@ export class SymbolTable
      * Carbon's `SymbolTable::GetCurrentScope`.
      *
      * @returns {ScopeSymbolTable} The current scope.
+     * @meta.implemented
      */
     GetCurrentScope()
     {
@@ -182,6 +195,7 @@ export class SymbolTable
 
     /**
      * Carbon's `SymbolTable::ResetUsedFlag`.
+     * @meta.implemented
      */
     ResetUsedFlag()
     {
@@ -194,6 +208,7 @@ export class SymbolTable
      *
      * @param {string} string The name.
      * @returns {import("./Symbol.js").Symbol|null} The symbol.
+     * @meta.implemented
      */
     LookupGlobal(string)
     {
@@ -209,6 +224,7 @@ export class SymbolTable
      *
      * @param {import("./Symbol.js").Symbol} symbol The symbol.
      * @returns {boolean} Whether it is declared at the shader's global scope.
+     * @meta.implemented
      */
     IsGlobal(symbol)
     {
@@ -231,19 +247,3 @@ export class SymbolTable
 }
 
 // States against SymbolTable.cpp:342-469, statement for statement; LookupFunction is adapted only in that the diagnostic string comes back through a { value } out object.
-CjsSchema.decorateMethod(SymbolTable, "Lookup", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "LookupFunction", meta.adapted);
-CjsSchema.decorateMethod(SymbolTable, "LookupFunctionDeclaration", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "LookupType", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "LookupBuffer", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "AddSymbol", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "AddTypeSymbol", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "AddSymbol__Symbol");
-CjsSchema.decorateMethod(SymbolTable, "AddBufferSymbol", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "EnterScope", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "LeaveScope", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "GetCurrentScope", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "ResetUsedFlag", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "LookupGlobal", meta.implemented);
-CjsSchema.decorateMethod(SymbolTable, "IsGlobal", meta.implemented);
-CjsSchema.meta.carbon("SymbolTable")(SymbolTable);

@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.h
 // Source: trinity/shadercompiler/EffectCompilerMetal.cpp
 //
@@ -4526,6 +4525,9 @@ function ReadPassState(state, stateNode, outPass)
  */
 export class EffectCompilerMetal
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "EffectCompilerMetal";
+
     /** The driver's globals. */
     _session = null;
 
@@ -4553,6 +4555,7 @@ export class EffectCompilerMetal
      * not installed. `CompileCode` runs no tool, so there is nothing to check.
      *
      * @returns {boolean} True.
+     * @meta.adapted
      */
     Create()
     {
@@ -4569,6 +4572,7 @@ export class EffectCompilerMetal
      * @param {import("../Macro.js").Macro[]} defines The permutation's defines.
      * @param {import("../EffectData/EffectData.js").EffectData} result Receives the techniques and parameter annotations.
      * @returns {boolean} False after an error, which is in the session's messages.
+     * @meta.adapted
      */
     CompileEffect(source, defines, result)
     {
@@ -4939,7 +4943,3 @@ export function CjsFxWithMessages(messages, body)
         g_messages = previousMessages;
     }
 }
-
-CjsSchema.decorateMethod(EffectCompilerMetal, "Create", meta.adapted);
-CjsSchema.decorateMethod(EffectCompilerMetal, "CompileEffect", meta.adapted);
-CjsSchema.meta.carbon("EffectCompilerMetal")(EffectCompilerMetal);

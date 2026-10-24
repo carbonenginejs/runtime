@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CARBON_TYPE } from "../../global/schema/types/carbonTypes.js";
 
 /**
@@ -255,5 +253,3 @@ function assertKey(key)
     if (typeof key === "string" || typeof key === "bigint" || Number.isSafeInteger(key)) return;
     throw new TypeError("Table keys must be strings, safe integers or bigints");
 }
-
-CjsSchema.meta.define("CjsTableData")(CjsTableData);

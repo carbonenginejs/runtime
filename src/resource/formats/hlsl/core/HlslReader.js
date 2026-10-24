@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsByteReader } from "../../../format/CjsByteReader.js";
 import { HlslEffectReadError } from "./HlslEffectReadError.js";
 
@@ -11,11 +9,12 @@ import { HlslEffectReadError } from "./HlslEffectReadError.js";
  */
 export class HlslReader extends CjsByteReader
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "HlslReader";
+
     static ReadError = HlslEffectReadError;
 
     static endOfDataMessage = "Unexpected end of effect data";
 }
 
 export default HlslReader;
-
-CjsSchema.meta.define("HlslReader")(HlslReader);

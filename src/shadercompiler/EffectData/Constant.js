@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:280-310
 
 /**
@@ -10,6 +9,9 @@ import { CjsSchema, meta } from "#schema";
  */
 export class Constant
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "Constant";
+
     name = "";
 
     offset = 0;
@@ -31,6 +33,7 @@ export class Constant
      *
      * @param {Constant} other The constant to compare with.
      * @returns {boolean} Whether every field matches.
+     * @meta.renamed("operator==")
      */
     Equals(other)
     {
@@ -72,6 +75,3 @@ export class Constant
         CONSTANT_TYPE_OTHER: 4
     });
 }
-
-CjsSchema.decorateMethod(Constant, "Equals", meta.renamed("operator=="));
-CjsSchema.meta.carbon("Constant")(Constant);

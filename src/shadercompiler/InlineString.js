@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/InlineString.h
 
 /**
@@ -20,6 +19,9 @@ import { CjsSchema, meta } from "#schema";
  */
 export class InlineString
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "InlineString";
+
     buffer = null;
 
     start = null;
@@ -44,6 +46,7 @@ export class InlineString
      * Carbon's `operator bool`: whether the range points anywhere.
      *
      * @returns {boolean} False for the null string.
+     * @meta.renamed("operator bool")
      */
     IsSet()
     {
@@ -284,6 +287,3 @@ function asciiLower(text)
 {
     return text.replace(/[A-Z]/gu, c => String.fromCharCode(c.charCodeAt(0) + 32));
 }
-
-CjsSchema.decorateMethod(InlineString, "IsSet", meta.renamed("operator bool"));
-CjsSchema.meta.carbon("InlineString")(InlineString);

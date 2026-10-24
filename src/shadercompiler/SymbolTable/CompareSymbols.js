@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:47-68
 
@@ -13,12 +12,16 @@ import { CjsSchema, meta } from "#schema";
  */
 export class CompareSymbols
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CompareSymbols";
+
     /**
      * Carbon's `operator()`.
      *
      * @param {import("./Symbol.js").Symbol} symbol0 Left symbol.
      * @param {import("./Symbol.js").Symbol} symbol1 Right symbol.
      * @returns {boolean} Whether `symbol0` orders before `symbol1`.
+     * @meta.renamed("operator()")
      */
     static compare(symbol0, symbol1)
     {
@@ -58,6 +61,3 @@ function serialOf(node)
 {
     return node === null ? -1 : node.serial;
 }
-
-meta.renamed("operator()")(CompareSymbols, "compare");
-CjsSchema.meta.carbon("CompareSymbols")(CompareSymbols);

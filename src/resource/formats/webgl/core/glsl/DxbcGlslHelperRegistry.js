@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { WebglReadError } from "../WebglReadError.js";
 
 /**
@@ -11,6 +9,9 @@ import { WebglReadError } from "../WebglReadError.js";
  */
 export class DxbcGlslHelperRegistry
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "DxbcGlslHelperRegistry";
+
     /**
      * Helper definitions by name.
      * @type {Map<string, {source: string, deps: string[]}>}
@@ -93,5 +94,3 @@ export class DxbcGlslHelperRegistry
         return ordered.join("\n\n");
     }
 }
-
-CjsSchema.meta.define("DxbcGlslHelperRegistry")(DxbcGlslHelperRegistry);

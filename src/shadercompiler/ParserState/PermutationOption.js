@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 /**
@@ -6,10 +5,11 @@ import { CjsSchema } from "#schema";
  */
 export class PermutationOption
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "PermutationOption";
+
     name = "";
 
     /** Carbon leaves it unset. */
     value = 0;
 }
-
-CjsSchema.meta.carbon("PermutationOption")(PermutationOption);

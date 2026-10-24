@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 /**
  * Error raised when a Carbon WebGL package or a DXBC-to-GLSL emission cannot be
  * completed safely.
@@ -13,6 +11,9 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class WebglReadError extends Error
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "WebglReadError";
+
     name = "WebglReadError";
 
     /**
@@ -33,5 +34,3 @@ export class WebglReadError extends Error
         this.details = details;
     }
 }
-
-CjsSchema.meta.define("WebglReadError")(WebglReadError);

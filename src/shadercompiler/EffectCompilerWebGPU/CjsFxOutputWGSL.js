@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Not in Carbon: the WGSL printer of the WebGPU target, modelled on
 // OutputHLSL.cpp's MSL printer (operator<<( CodeStream&, const MSL& ),
 // O:1306 onward) and run on the same tree: after the target-independent
@@ -75,6 +73,9 @@ const INTRINSICS = new Map([
  */
 export class CjsFxOutputWGSL
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsFxOutputWGSL";
+
     /** The parse. @type {import("../ParserState/ParserState.js").ParserState|null} */
     _state = null;
 
@@ -1949,5 +1950,3 @@ function nodeName(node)
     }
     return String(node.GetNodeType());
 }
-
-CjsSchema.meta.define("CjsFxOutputWGSL")(CjsFxOutputWGSL);

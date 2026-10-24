@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/OutputHLSL.h
 
 /**
@@ -16,6 +15,9 @@ import { CjsSchema, meta } from "#schema";
  */
 export class CodeStream
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CodeStream";
+
     shadingLanguage = null;
 
     _text = "";
@@ -63,20 +65,27 @@ export class CodeStream
         return this._text;
     }
 
-    /** Carbon's pure virtual `Endl` (OutputHLSL.h:23). */
+    /** Carbon's pure virtual `Endl` (OutputHLSL.h:23).
+     * @meta.abstract
+     */
     Endl() {}
 
     /**
      * Carbon's pure virtual `ChangeLocation` (OutputHLSL.h:24).
      *
      * @param {import("../ParserState/FileLocation.js").FileLocation} _location The location of the node about to print.
+     * @meta.abstract
      */
     ChangeLocation(_location) {}
 
-    /** Carbon's pure virtual `Indent` (OutputHLSL.h:25). */
+    /** Carbon's pure virtual `Indent` (OutputHLSL.h:25).
+     * @meta.abstract
+     */
     Indent() {}
 
-    /** Carbon's pure virtual `Unindent` (OutputHLSL.h:26). */
+    /** Carbon's pure virtual `Unindent` (OutputHLSL.h:26).
+     * @meta.abstract
+     */
     Unindent() {}
 
     /**
@@ -124,9 +133,3 @@ export class CodeStream
         MSL: 1
     });
 }
-
-CjsSchema.decorateMethod(CodeStream, "Endl", meta.abstract);
-CjsSchema.decorateMethod(CodeStream, "ChangeLocation", meta.abstract);
-CjsSchema.decorateMethod(CodeStream, "Indent", meta.abstract);
-CjsSchema.decorateMethod(CodeStream, "Unindent", meta.abstract);
-CjsSchema.meta.carbon("CodeStream")(CodeStream);

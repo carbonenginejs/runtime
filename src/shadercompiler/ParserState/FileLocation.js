@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 import { InlineString } from "../InlineString.js";
@@ -8,6 +7,9 @@ import { InlineString } from "../InlineString.js";
  */
 export class FileLocation
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "FileLocation";
+
     lineNumber = null;
 
     fileName = null;
@@ -33,5 +35,3 @@ export class FileLocation
         return new FileLocation(this.lineNumber, this.fileName.Copy());
     }
 }
-
-CjsSchema.meta.carbon("FileLocation")(FileLocation);

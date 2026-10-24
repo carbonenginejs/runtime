@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 /**
@@ -282,5 +280,3 @@ export class CjsHlslFormat extends CjsFormat
 }
 
 export default CjsHlslFormat;
-
-CjsSchema.meta.define("CjsHlslFormat")(CjsHlslFormat);

@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.h:78-84
 //
 // Carbon nests this struct privately in `EffectCompilerMetal`; it is not
@@ -17,6 +16,9 @@ import { CjsSchema } from "#schema";
  */
 export class SyncData
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "SyncData";
+
     /** Carbon's `compiled`: whether `compiledCode` is final. */
     compiled = false;
 
@@ -29,8 +31,3 @@ export class SyncData
      */
     compiledCode = "";
 }
-
-CjsSchema.meta.define(SyncData, {
-    className: "SyncData",
-    carbon: "EffectCompilerMetal::SyncData"
-});

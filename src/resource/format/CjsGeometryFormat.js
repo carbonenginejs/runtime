@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { CjsFormat } from "./CjsFormat.js";
 
 /**
@@ -19,7 +17,6 @@ export class CjsGeometryFormat extends CjsFormat
 {
   /** Registered name; `constructor.name` does not survive minification. */
   static className = "CjsGeometryFormat";
-
 
   /** Node key -> constructor; replaced, never mutated, so a copy handed out stays stable. */
   _classes = {};
@@ -114,5 +111,3 @@ export class CjsGeometryFormat extends CjsFormat
   }
 
 }
-
-CjsSchema.meta.define("CjsGeometryFormat")(CjsGeometryFormat);

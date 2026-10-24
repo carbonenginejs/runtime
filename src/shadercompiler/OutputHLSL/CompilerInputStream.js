@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/OutputHLSL.h
 // Source: trinity/shadercompiler/OutputHLSL.cpp:702-753
 
@@ -17,6 +16,9 @@ import { InlineString } from "../InlineString.js";
  */
 export class CompilerInputStream extends CodeStream
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CompilerInputStream";
+
     _state = null;
 
     _location = new FileLocation(0xffffffff, InlineString.makeInlineString(""));
@@ -32,7 +34,9 @@ export class CompilerInputStream extends CodeStream
         this._state = state;
     }
 
-    /** Leaves line breaks to source-location changes. */
+    /** Leaves line breaks to source-location changes.
+     * @meta.adapted
+     */
     Endl()
     {
     }
@@ -41,6 +45,7 @@ export class CompilerInputStream extends CodeStream
      * Carbon's `CompilerInputStream::ChangeLocation`.
      *
      * @param {FileLocation} location The location of the node about to print.
+     * @meta.adapted
      */
     ChangeLocation(location)
     {
@@ -65,19 +70,17 @@ export class CompilerInputStream extends CodeStream
         }
     }
 
-    /** Preserves source formatting without adding indentation. */
+    /** Preserves source formatting without adding indentation.
+     * @meta.adapted
+     */
     Indent()
     {
     }
 
-    /** Leaves indentation unchanged because this stream does not track it. */
+    /** Leaves indentation unchanged because this stream does not track it.
+     * @meta.adapted
+     */
     Unindent()
     {
     }
 }
-
-CjsSchema.decorateMethod(CompilerInputStream, "Endl", meta.adapted);
-CjsSchema.decorateMethod(CompilerInputStream, "ChangeLocation", meta.adapted);
-CjsSchema.decorateMethod(CompilerInputStream, "Indent", meta.adapted);
-CjsSchema.decorateMethod(CompilerInputStream, "Unindent", meta.adapted);
-CjsSchema.meta.carbon("CompilerInputStream")(CompilerInputStream);

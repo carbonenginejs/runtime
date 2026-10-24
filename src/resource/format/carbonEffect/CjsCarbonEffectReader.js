@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp (DoLoad, GetShader)
 // Source: trinity/shadercompiler/ShaderCompiler.cpp:746-845 (file assembly)
 
@@ -26,6 +24,9 @@ export const CARBON_EFFECT_RECORD_BYTES = 12;
  */
 export class CjsCarbonEffectBodyReader extends CjsByteReader
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsCarbonEffectBodyReader";
+
     static ReadError = CjsFormatReadError;
 
     static endOfDataMessage = "Unexpected end of Carbon effect data";
@@ -73,6 +74,9 @@ export class CjsCarbonEffectBodyReader extends CjsByteReader
  */
 export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CjsCarbonEffectReader";
+
     /** Cursor class used for description blobs. */
     static BodyReader = CjsCarbonEffectBodyReader;
 
@@ -493,7 +497,3 @@ export function looksLikeCarbonEffectContainer(bytes)
 }
 
 export default CjsCarbonEffectReader;
-
-CjsSchema.meta.define("CjsCarbonEffectBodyReader")(CjsCarbonEffectBodyReader);
-
-CjsSchema.meta.define(CjsCarbonEffectReader, { className: "CjsCarbonEffectReader" });

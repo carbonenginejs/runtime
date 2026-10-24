@@ -1,4 +1,3 @@
-import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:510-568
 
 const FIELDS = [
@@ -13,6 +12,9 @@ const FIELDS = [
  */
 export class StaticSampler
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "StaticSampler";
+
     registerIndex = 0;
 
     registerSpace = 0;
@@ -48,12 +50,10 @@ export class StaticSampler
      *
      * @param {StaticSampler} sampler The sampler to compare with.
      * @returns {boolean} Whether every field matches.
+     * @meta.renamed("operator==")
      */
     Equals(sampler)
     {
         return FIELDS.every(field => this[field] === sampler[field]);
     }
 }
-
-CjsSchema.decorateMethod(StaticSampler, "Equals", meta.renamed("operator=="));
-CjsSchema.meta.carbon("StaticSampler")(StaticSampler);

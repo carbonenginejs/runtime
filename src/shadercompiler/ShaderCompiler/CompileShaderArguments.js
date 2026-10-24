@@ -1,4 +1,3 @@
-import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ShaderCompiler.cpp:101-105
 
 /**
@@ -6,11 +5,12 @@ import { CjsSchema } from "#schema";
  */
 export class CompileShaderArguments
 {
+    /** Stable name independent of minification; no registry is required. */
+    static className = "CompileShaderArguments";
+
     /** @type {number} The permutation's index in the container. Carbon leaves it unset. */
     permutation = 0;
 
     /** @type {import("../Macro.js").Macro[]} */
     defines = [];
 }
-
-CjsSchema.meta.carbon("CompileShaderArguments")(CompileShaderArguments);

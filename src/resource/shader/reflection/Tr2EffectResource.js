@@ -1,14 +1,15 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, type } from "#schema";
+
 import {
 } from "#utils/is";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
-import { blueEnums } from "#blue/enums/CjsBlueEnumRegistry";
 
 /** Reflected SRV or UAV resource metadata. */
 export class Tr2EffectResource
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "Tr2EffectResource";
 
   /** isSRGB (bool) */
   isSRGB = false;
@@ -126,20 +127,3 @@ export class Tr2EffectResource
   });
 
 }
-
-// Carbon registers neither this nor a chooser for it (Shader/Tr2EffectDescription.h:71); the name qualifies it by its owner, as trinity.Tr2Light.LIGHT_TYPE does.
-blueEnums.Create("trinity.Tr2EffectResource.Type", Tr2EffectResource.Type);
-
-// Declared imperatively rather than with decorators, so this module stays
-// plain ESM that loads from source without a transform. The decorator
-// expressions are reused verbatim, so the registered metadata is identical.
-// Statics belong in `methods`: decorateMethod targets the prototype and
-// would register a static as an instance field.
-CjsSchema.decorateField(Tr2EffectResource, "isSRGB", type.boolean);
-CjsSchema.decorateField(Tr2EffectResource, "isAutoregister", type.boolean);
-CjsSchema.decorateField(Tr2EffectResource, "name", type.string);
-CjsSchema.decorateField(Tr2EffectResource, "type", type.int32, type.enum("trinity.Tr2EffectResource.Type"));
-CjsSchema.decorateField(Tr2EffectResource, "arrayElements", type.uint32);
-CjsSchema.decorateField(Tr2EffectResource, "arrayLayers", type.list("string"));
-CjsSchema.decorateField(Tr2EffectResource, "packed", type.boolean);
-CjsSchema.meta.carbon("Tr2EffectResource")(Tr2EffectResource);

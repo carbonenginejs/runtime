@@ -1,5 +1,3 @@
-import { CjsSchema } from "#schema/CjsSchema";
-
 import { StreamType } from "#consts/media";
 
 /**
@@ -99,6 +97,9 @@ const READ_MODE_ASYNC = "async";
  */
 export class CjsFormat
 {
+  /** Stable name independent of minification; no registry is required. */
+  static className = "CjsFormat";
+
   options = {};
 
   /**
@@ -851,5 +852,3 @@ export const CjsFormatReadMode = Object.freeze({
 });
 
 export default CjsFormat;
-
-CjsSchema.meta.define("CjsFormat")(CjsFormat);
