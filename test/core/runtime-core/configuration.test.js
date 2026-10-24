@@ -61,7 +61,7 @@ test("Initialize configures the chosen owners and preserves loader and geometry 
   assert.equal(owners.os.GetInfo().pumpTicksTotal, 0, "registration does not pump resource work");
 });
 
-test("live configuration applies only supplied entries and keeps owner append semantics", async t =>
+test("live configuration applies scheduling but defers image-handler policy until reboot", async t =>
 {
   const owners = services(), library = new CjsLibrary();
   t.after(() => library.Shutdown());
@@ -72,9 +72,10 @@ test("live configuration applies only supplied entries and keeps owner append se
   assert.equal(register.mock.callCount(), 1);
   assert.deepEqual(register.mock.calls[0].arguments, [{ maxPrepareItemsPerTick: 7 }]);
   assert.equal(ImageIO._imageHandlers.filter(value => value === CjsPngFormat).length, count);
-  assert.throws(() => library.SetConfiguration({ imageHandlers: { png: CjsVtaFormat }, resMan: { maxConcurrentLoads: 1 } }), /append, not replacement/);
-  assert.equal(owners.resMan.maxConcurrentLoads, 8, "whole patch validates before owner calls");
-  assert.equal(library.GetConfiguration().requested.imageHandlers.png, CjsPngFormat);
+  library.SetConfiguration({ imageHandlers: { png: CjsVtaFormat }, resMan: { maxConcurrentLoads: 1 } });
+  assert.equal(owners.resMan.maxConcurrentLoads, 1, "independent scheduling changes apply immediately");
+  assert.equal(library.GetConfiguration().requested.imageHandlers.png, CjsVtaFormat);
+  assert.equal(library.GetConfiguration().configured.imageHandlers.png, CjsPngFormat);
   assert.equal(ImageIO.getImageHandler("png"), CjsPngFormat);
   await library.Shutdown();
   assert.equal(ImageIO.getImageHandler("png"), CjsPngFormat, "Shutdown does not undo global registration");
@@ -95,19 +96,37 @@ test("settings record configured values without claiming CREATE activation and p
   assert.equal(owner.value, 2);
 });
 
-test("partial owner failure preserves cause and only known successful submissions", async t =>
+test("pending reader policies do not call live owners or trigger a reload", async t =>
 {
   const owners = services(), library = new CjsLibrary();
   t.after(() => library.Shutdown());
   await library.Initialize(owners);
+  const register = t.mock.method(owners.resMan, "RegisterObjectLoader", () => assert.fail("reader policy needs reboot"));
+  const purge = t.mock.method(owners.resMan, "Delete", () => assert.fail("no implicit invalidation"));
+  const reload = t.mock.method(owners.resMan, "ReloadResource", () => assert.fail("no implicit reload"));
+  const loader = bytes => bytes;
+  library.SetConfiguration({ objectLoaders: { dds: loader }, extensions: { dds: DefaultConfiguration.extensions.dds } });
+  const state = library.GetConfiguration();
+  assert.equal(state.requested.objectLoaders.dds, loader);
+  assert.equal(state.configured.objectLoaders.dds, ReadImageResource);
+  assert.equal(owners.resMan.GetExtensionRoute("dds").loader, ReadImageResource);
+  assert.equal(register.mock.callCount(), 0);
+  assert.equal(purge.mock.callCount(), 0);
+  assert.equal(reload.mock.callCount(), 0);
+});
+
+test("partial startup policy failure preserves the cause and successful submissions", async t =>
+{
+  const owners = services(), first = bytes => bytes, second = bytes => bytes;
+  const library = new CjsLibrary({ objectLoaders: { succeeds: first, fails: second } });
+  t.after(() => library.Shutdown());
   const original = owners.resMan.RegisterObjectLoader, failure = new Error("after owner mutation");
   t.mock.method(owners.resMan, "RegisterObjectLoader", function(key, value)
   {
     original.call(this, key, value);
     if (key === "fails") throw failure;
   });
-  const first = bytes => bytes, second = bytes => bytes;
-  assert.throws(() => library.SetConfiguration({ objectLoaders: { succeeds: first, fails: second } }), error => error === failure);
+  await assert.rejects(library.Initialize(owners), error => error === failure);
   const state = library.GetConfiguration();
   assert.equal(state.requested.objectLoaders.fails, second);
   assert.equal(state.configured.objectLoaders.succeeds, first);
@@ -136,6 +155,24 @@ test("failed initialization restores service references, retains registration ev
   await other.Initialize(services());
 });
 
+test("failed initial policy installation can retry on the same resource manager", async t =>
+{
+  const owners = services(), library = new CjsLibrary();
+  t.after(() => library.Shutdown());
+  const register = owners.resMan.RegisterObjectBuilder;
+  let fail = true;
+  t.mock.method(owners.resMan, "RegisterObjectBuilder", function(key, value)
+  {
+    if (key === "red" && fail) throw new Error("initial policy failure");
+    return register.call(this, key, value);
+  });
+  await assert.rejects(library.Initialize(owners), /initial policy failure/);
+  fail = false;
+  await library.Initialize(owners);
+  assert.equal(owners.resMan.GetObjectLoader("red"), CreateBlackObjectBuilder);
+  assert.equal(library.GetConfiguration().configured.objectBuilders.red, CreateBlackObjectBuilder);
+});
+
 test("plain provider objects remain borrowed references including readback", async t =>
 {
   const source = { value: 1, Read() { return this.value; } };
@@ -152,25 +189,34 @@ test("plain provider objects remain borrowed references including readback", asy
   assert.equal(library.GetConfiguration().configured.resourceConstructors.custom, dynamic);
 });
 
-test("changing an existing loader requires a route submission and future handles capture it", async t =>
+test("deferred reader policy is installed on the next startup with fresh resource owners", async t =>
 {
   const owners = services(), library = new CjsLibrary();
   t.after(() => library.Shutdown());
   await library.Initialize(owners);
   let reads = 0;
   const loader = (bytes, context) => { reads++; return ReadImageResource(bytes, context); };
-  assert.throws(() => library.SetConfiguration({ objectLoaders: { dds: loader } }), /corresponding extension route/);
-  assert.equal(owners.resMan.GetExtensionRoute("dds").loader, ReadImageResource);
-  library.SetConfiguration({ objectLoaders: { dds: loader }, extensions: { dds: DefaultConfiguration.extensions.dds } });
-  assert.equal(owners.resMan.GetExtensionRoute("dds").loader, loader);
-  assert.equal(owners.resMan.GetObjectLoader("dds"), loader);
+  library.SetConfiguration({ objectLoaders: { dds: loader } });
+  assert.equal(owners.resMan.GetObjectLoader("dds"), ReadImageResource);
+  await library.Shutdown();
+
+  await library.Initialize(owners);
+  assert.equal(owners.resMan.GetObjectLoader("dds"), ReadImageResource, "reattaching the same cache is not reboot");
+  assert.equal(library.GetConfiguration().requested.objectLoaders.dds, loader);
+  assert.equal(library.GetConfiguration().configured.objectLoaders.dds, ReadImageResource);
+  await library.Shutdown();
+
+  const next = services();
+  await library.Initialize(next);
+  assert.equal(next.resMan.GetExtensionRoute("dds").loader, loader);
+  assert.equal(library.GetConfiguration().configured.objectLoaders.dds, loader);
   const bytes = new Uint8Array(132), header = new DataView(bytes.buffer);
   for (const [offset, value] of [[0,0x20534444],[4,124],[8,0x1007],[12,1],[16,1],[28,1],
     [76,32],[80,0x41],[88,32],[92,0xff0000],[96,0xff00],[100,0xff],[104,0xff000000],[108,0x1000]])
     header.setUint32(offset, value, true);
   bytes.set([1,2,3,255],128);
   library.SetConfiguration({resMan:{source:{Read:()=>bytes}}});
-  const resource = await owners.resMan.LoadObject("res:/configured.dds");
+  const resource = await next.resMan.LoadObject("res:/configured.dds");
   assert.equal(reads,1);
   assert.equal(resource.GetBitmap().GetWidth(),1);
 });
@@ -188,4 +234,28 @@ test("reinitializing the same path owner cannot hide an unsupported provider rep
   assert.equal(owners.paths.IsFileSystemRegistered(first), true);
   assert.equal(owners.paths.IsFileSystemRegistered(second), false);
   assert.equal(library.GetConfiguration().configured.paths.content, first);
+});
+
+test("installed reader policy follows the resource owner across wrappers and owner switches", async t =>
+{
+  const firstOwners = services(), secondOwners = services();
+  const first = new CjsLibrary(), loader = bytes => bytes;
+  const second = new CjsLibrary({ objectLoaders: { dds: loader } });
+  t.after(() => first.Shutdown());
+  t.after(() => second.Shutdown());
+  await first.Initialize(firstOwners);
+  await first.Shutdown();
+
+  await second.Initialize(firstOwners);
+  assert.equal(firstOwners.resMan.GetObjectLoader("dds"), ReadImageResource);
+  assert.equal(second.GetConfiguration().requested.objectLoaders.dds, loader);
+  assert.equal(second.GetConfiguration().configured.objectLoaders.dds, ReadImageResource);
+  await second.Shutdown();
+
+  await second.Initialize(secondOwners);
+  assert.equal(secondOwners.resMan.GetObjectLoader("dds"), loader);
+  await second.Shutdown();
+  await second.Initialize(firstOwners);
+  assert.equal(firstOwners.resMan.GetObjectLoader("dds"), ReadImageResource);
+  assert.equal(second.GetConfiguration().configured.objectLoaders.dds, ReadImageResource);
 });

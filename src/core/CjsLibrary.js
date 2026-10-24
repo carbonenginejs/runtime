@@ -13,6 +13,15 @@ import { TriSettingsRegistrar } from "../trinity/core/TriSettingsRegistrar.js";
 
 let activeLibrary = null;
 
+/** Reader/factory policy is installed at startup; changing it requires reboot. */
+const REBOOT_CONFIGURATION_SECTIONS = new Set([
+  "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes",
+  "resourceConstructors", "imageHandlers"
+]);
+
+/** Installed policy follows the cache owner across library wrappers without retaining it. */
+const installedResourcePolicies = new WeakMap();
+
 /**
  * Application composition root. This service-installation boundary implements
  * Blue startup; rendering/device and user-facing wrappers remain separate work.
@@ -41,7 +50,9 @@ export class CjsLibrary
   /**
    * Replaces supplied named entries, retaining omitted entries without deep merge.
    * Before Initialize this records requests only. Afterwards it forwards only the
-   * supplied entries to their existing owners. Global append-only registrations
+   * supplied live entries to their existing owners. Reader and factory policies
+   * are recorded for reboot, without invalidating or reloading cached resources.
+   * Global append-only registrations
    * cannot be replaced or reset through this API. A failure is rethrown unchanged;
    * prior successful calls remain recorded and are not rolled back.
    */
@@ -49,16 +60,22 @@ export class CjsLibrary
   {
     ValidateConfiguration(configuration);
     if (this._initialization) throw new Error("Configuration cannot change during initialization.");
-    if (this._previousServices) this._ValidateConfigurationOwners(configuration);
     const patch = CopyConfiguration(configuration);
+    const immediate = this._previousServices
+      ? Object.fromEntries(Object.entries(patch).filter(([section]) => !REBOOT_CONFIGURATION_SECTIONS.has(section)))
+      : patch;
+    if (this._previousServices) this._ValidateConfigurationOwners(immediate);
     for (const [section, entries] of Object.entries(patch))
       this._configuration[section] = { ...this._configuration[section], ...entries };
-    if (this._previousServices) this._ApplyConfiguration(patch);
+    if (this._previousServices) this._ApplyConfiguration(immediate);
     return this;
   }
 
   /**
    * Returns requested data and successful owner submissions, plus the last failure.
+   * Reader/factory policy changes remain in requested, while configured retains
+   * the policy installed at startup. Applying those changes requires reboot;
+   * this API never purges or reloads resources implicitly.
    * Configured CREATE/LOAD settings affect later owner work, not existing devices
    * or resources. Backend data is requested only; the host consumes it at its
    * existing setup boundary. Shutdown does not undo global registry mutations.
@@ -220,14 +237,25 @@ export class CjsLibrary
           services.sof = new EveSOF();
         }
         this._previousServices = installBlueServices(services);
+        const installedPolicy = installedResourcePolicies.get(blue.resMan) || null;
         if (this._configurationOwners?.resMan !== blue.resMan)
         {
           for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes", "resourceConstructors"])
             delete this._configured[section];
         }
+        if (installedPolicy) Object.assign(this._configured, CopyConfiguration(installedPolicy));
         if (this._configurationOwners?.paths !== blue.paths) delete this._configured.paths;
         this._configurationOwners = { resMan: blue.resMan, paths: blue.paths, settings: TriSettingsRegistrar.getSettings() };
-        this._ApplyConfiguration(this._configuration);
+        // Reattaching the same manager does not reboot its cache or consumers.
+        this._ApplyConfiguration(installedPolicy
+          ? Object.fromEntries(Object.entries(this._configuration).filter(([section]) => !REBOOT_CONFIGURATION_SECTIONS.has(section)))
+          : this._configuration);
+        if (!installedPolicy)
+        {
+          installedResourcePolicies.set(blue.resMan, CopyConfiguration(Object.fromEntries(
+            Object.entries(this._configured).filter(([section]) => REBOOT_CONFIGURATION_SECTIONS.has(section))
+          )));
+        }
         return this;
       }
       catch (error)
