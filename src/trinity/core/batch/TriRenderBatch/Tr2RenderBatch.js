@@ -10,7 +10,9 @@ import { CjsSchema, type, meta } from "#schema";
 
 import { RenderingMode } from "#consts/graphics";
 import { Topology } from "#consts/render-context";
-import { TriGeometryRes } from "#trinity/resources/geometry";
+// The module, not the geometry barrel: the barrel's granny exports reach
+// Tr2RenderContext and back to this batch folder, a load-order cycle.
+import { TriGeometryRes } from "../../../resources/geometry/TriGeometryRes.js";
 
 // Carbon sorts batches on raw pointer identity of shader/vertex-stream objects.
 // JS has no pointer order, so we assign each distinct reference a stable id on
