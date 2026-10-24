@@ -39,7 +39,7 @@
     "src/global/utils/bytes.js": 2,
     "src/global/utils/checksum.js": 1,
     "src/global/utils/compression.js": 2,
-    "src/resource/audio/CjsAudioBufferRes.js": 2,
+    "src/audio/resources/CjsAudioBufferRes.js": 2,
     "src/resource/format/carbonEffect/buildCarbonEffectContainer.js": 1,
     "src/resource/format/carbonEffect/carbonEffectRecords.js": 1,
     "src/resource/format/carbonEffect/CjsCarbonEffectWriter.js": 3,

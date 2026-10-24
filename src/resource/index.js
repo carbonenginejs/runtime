@@ -7,7 +7,6 @@
  */
 export * from "./resourceBoundary.js";
 export * from "../trinity/resources/Tr2LightProfileRes.js";
-export * from "./audio/index.js";
 export * from "./geometry/index.js";
 export * from "./shader/index.js";
 export * from "../trinity/resources/texture/index.js";

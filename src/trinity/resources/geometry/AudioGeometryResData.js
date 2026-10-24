@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
-// Schema: format-carbon resources/AudioGeometryResData.json; maintained by the runtime resource layer.
+// Schema: format-carbon resources/AudioGeometryResData.json; maintained by Trinity geometry.
 import { CjsSchema, type } from "#schema";
 import { vec3 } from "#math/vec3";
 

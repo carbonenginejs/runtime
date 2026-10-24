@@ -4,11 +4,11 @@ import test from "node:test";
 import {
   CjsAudioBufferRes,
   CjsAudioRes
-} from "../../../npm/dist/resource/audio/index.js";
+} from "../../../npm/dist/audio/resources/index.js";
 import {
   CjsAudioBufferRes as RootCjsAudioBufferRes,
   CjsAudioRes as RootCjsAudioRes
-} from "../../../npm/dist/resource/index.js";
+} from "../../../npm/dist/audio/index.js";
 
 function CreateBacking(bytes, info = {})
 {
@@ -44,7 +44,7 @@ function CreateBacking(bytes, info = {})
   };
 }
 
-test("audio resources are canonical runtime-resource exports", () =>
+test("audio resources are canonical audio exports", () =>
 {
   assert.equal(RootCjsAudioBufferRes, CjsAudioBufferRes);
   assert.equal(RootCjsAudioRes, CjsAudioRes);

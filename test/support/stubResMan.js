@@ -1,6 +1,7 @@
+import { CjsAudioRes } from "../../npm/dist/audio/resources/index.js";
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { getResourceExtension, normalizeResourcePath } from "../../npm/dist/global/utils/path.js";
-import { CjsAudioRes, CjsResource, Tr2ImageRes, Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes } from "../../npm/dist/resource/index.js";
+import { CjsResource, Tr2ImageRes, Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes } from "../../npm/dist/resource/index.js";
 import { Tr2EffectRes, ShaderResourceExtensions } from "../../npm/dist/trinity/shader/index.js";
 
 // Carbon: GetResourceHelper (blue/src/BlueResMan.cpp:249-278).

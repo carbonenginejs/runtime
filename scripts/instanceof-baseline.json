@@ -16,7 +16,7 @@
   "src/input/Tr2MainWindow.js": 4,
   "src/input/Tr2MainWindowState.js": 1,
   "src/input/UIScancode.js": 1,
-  "src/resource/audio/CjsAudioRes.js": 1,
+  "src/audio/resources/CjsAudioRes.js": 1,
   "src/resource/format/CjsFormat.js": 1,
   "src/global/blue/formats/black/core/CjsBlackBinaryReader.js": 1,
   "src/resource/formats/webgpu/core/helpers.js": 1,
