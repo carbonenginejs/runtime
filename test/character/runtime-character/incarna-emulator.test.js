@@ -65,9 +65,17 @@ function piece()
   return object;
 }
 
-function emulate()
+/** A data manager whose generic data lists the packed quad shader, as EVE's does. */
+function dataManager()
 {
   const dataMgr = new EveSOFDataMgr();
+  dataMgr.UpdateGeneric({ areaShaders: [ { shader: "quad/quaddetailv5.fx", parameters: [ "Detail1Data" ] } ] });
+  return dataMgr;
+}
+
+function emulate()
+{
+  const dataMgr = dataManager();
   const emulator = new CjsIncarnaEmulator(dataMgr, new CjsBlueResMan());
   const object = piece();
   const dna = emulator.AddAssembly("incarna_test", [
@@ -89,7 +97,7 @@ test("a piece mesh becomes a hull drawing that mesh alone, with quad areas", () 
   assert.deepEqual(Array.from(hull.boundingSphere).map(value => +value.toFixed(4)), [ 11, 1, 0, +Math.SQRT2.toFixed(4) ]);
 
   const [ area ] = hull.opaqueAreas;
-  assert.deepEqual([ area.name, area.index, area.count, area.shader, area.areaType ], [ "Base_Plastic_01", 2, 3, "quad/quaddetailv5.fx", 0 ]);
+  assert.deepEqual([ area.name, area.index, area.count, area.shader, area.areaType ], [ "Base_Plastic_01", 2, 3, "quad/unpacked_quaddetailv5.fx", 0 ]);
   const textures = Object.fromEntries([ ...area.textures ].map(([ name, texture ]) => [ name, texture.resFilePath ]));
   assert.deepEqual(textures, {
     AlbedoMap: "dynamic:/incarna/albedo/res:/graphics/interior/test/piece_os.dds",
@@ -107,25 +115,51 @@ test("a piece mesh becomes a hull drawing that mesh alone, with quad areas", () 
   assert.deepEqual(Array.from(area.parameters.get("DetailSelector")), [ 1, 1, 1, 1 ]);
 });
 
-test("the root is an extension hull with one locator per placement, and the layout places each piece hull", () =>
+test("the root is a station drawing the first piece, and the layout places every other piece relative to it", () =>
 {
   const { dataMgr } = emulate();
   const root = dataMgr.GetHullData("incarna_test");
-  assert.equal(root.buildClass, 4);
-  assert.equal(root.geometryResFilePath, "");
+  assert.equal(root.buildClass, 2);
+  assert.equal(root.geometryResFilePath, "dynamic:/mesh/1/res:/graphics/interior/test/piece.gr2");
+  assert.equal(root.opaqueAreas.length, 1);
   const locators = root.locatorSets.get("incarna_piece_1");
-  assert.deepEqual(locators.map(locator => Array.from(locator.position)), [ [ 0, 0, 0 ], [ 5.25, 0, 0 ] ]);
+  assert.deepEqual(locators.map(locator => Array.from(locator.position)), [ [ 5.25, 0, 0 ] ]);
 
   const layout = dataMgr.GetLayoutData("incarna_test");
-  assert.equal(layout.placements.length, 1, "two placements of one piece share its hull");
+  assert.equal(layout.placements.length, 1);
   const [ placement ] = layout.placements;
   assert.deepEqual([ placement.descriptor.hull, placement.locatorSetName, placement.isInstanced ], [ "incarna_piece_1", "incarna_piece_1", false ]);
+});
+
+test("a first piece that does not sit at the origin places the others relative to it", () =>
+{
+  const dataMgr = dataManager();
+  const emulator = new CjsIncarnaEmulator(dataMgr, new CjsBlueResMan());
+  const object = piece();
+  emulator.AddAssembly("incarna_test", [
+    { object, transform: mat4.fromTranslation(mat4.create(), [ 2, 0, 0 ]) },
+    { object, transform: mat4.fromTranslation(mat4.create(), [ 7, 1, 0 ]) }
+  ], "caldaribase", "caldari");
+  const [ locator ] = dataMgr.GetHullData("incarna_test").locatorSets.get("incarna_piece_1");
+  assert.deepEqual(Array.from(locator.position), [ 5, 1, 0 ]);
 });
 
 test("a piece whose geometry has not loaded is refused", () =>
 {
   const object = piece();
   object.detailMeshes[0].SetGeometryRes(null);
-  const emulator = new CjsIncarnaEmulator(new EveSOFDataMgr(), new CjsBlueResMan());
+  const emulator = new CjsIncarnaEmulator(dataManager(), new CjsBlueResMan());
   assert.throws(() => emulator.AddAssembly("incarna_test", [ { object, transform: mat4.create() } ], "caldaribase", "caldari"), /must be loaded/);
+});
+
+test("the unpacked quad shader is listed with the packed one's generic entry", () =>
+{
+  const shaders = emulate().dataMgr.GetGenericData().areaShaderData;
+  assert.equal(shaders.get("quad/unpacked_quaddetailv5.fx"), shaders.get("quad/quaddetailv5.fx"));
+});
+
+test("generic data without the packed quad shader is refused", () =>
+{
+  const emulator = new CjsIncarnaEmulator(new EveSOFDataMgr(), new CjsBlueResMan());
+  assert.throws(() => emulator.AddAssembly("incarna_test", [ { object: piece(), transform: mat4.create() } ], "caldaribase", "caldari"), /has no quad\/quaddetailv5\.fx/);
 });

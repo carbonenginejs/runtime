@@ -14,8 +14,18 @@ import { vec4 } from "#math/vec4";
 import { CjsMeshConstructor } from "../../../trinity/resources/geometry/CjsMeshConstructor.js";
 import { CjsIncarnaTextureConstructor, RegisterIncarnaTextures } from "../texture/CjsIncarnaTextureConstructor.js";
 
-/** The shader every emulated area draws, as an SOF hull names it. */
-const AREA_SHADER = "quad/quaddetailv5.fx";
+/**
+ * The shader every emulated area draws, as an SOF hull names it. The unpacked
+ * variant: Incarna meshes carry classic tangent and binormal vectors, and the
+ * plain quad shaders read EVE hulls' angle-packed tangent frames.
+ */
+const AREA_SHADER = "quad/unpacked_quaddetailv5.fx";
+
+/**
+ * The packed shader whose generic entry the unpacked one takes: EVE's generic
+ * data lists only the packed area shaders, which its hulls use.
+ */
+const PACKED_AREA_SHADER = "quad/quaddetailv5.fx";
 
 /** A quad input with no Incarna source: black, a flat normal, or a detail without a mask. */
 const BLACK = "dynamic:/color/0,0,0,1";
@@ -53,11 +63,12 @@ const DETAIL_STRENGTH = 0.8;
  * A piece is a loaded, initialized Tr2InteriorStatic: its areas hold the
  * Tr2Effects their Incarna materials became, and its meshes' geometry is
  * loaded. Each of its detail meshes becomes a hull drawing that mesh alone
- * (`dynamic:/mesh`) with one quad area per Incarna area, opaque and
- * transparent alike, all of area type Primary. An assembly is an
- * extension-class root hull, which has no geometry of its own, holding one
- * locator set per piece hull, and a layout placing each piece hull at its set.
- * Faction and race come from the caller; the faction's Primary materials
+ * (`dynamic:/mesh`) with one unpacked quad area per Incarna area, opaque and
+ * transparent alike, all of area type Primary. An assembly is a stationary
+ * root hull drawing the first piece's first mesh, holding one locator set per
+ * piece hull for every other mesh, and a layout placing each piece hull at its
+ * set, so it builds as an ordinary station with a layout. Faction and race
+ * come from the caller; the faction's Primary materials
  * colour every area, chosen per texel by the reflection mask (`material`).
  */
 @meta.define("CjsIncarnaEmulator")
@@ -80,39 +91,43 @@ export class CjsIncarnaEmulator
   /**
    * Puts an assembly of pieces into the data manager and returns its DNA.
    *
-   * Two pieces whose meshes draw the same geometry share one hull; its locator
-   * set then holds both placements.
+   * The root sits where the first piece does; every other mesh is placed
+   * relative to it. Two pieces whose meshes draw the same geometry share one
+   * hull; its locator set then holds both placements.
    *
    * @param {string} name The root hull's and the layout's name; no `:` or `;`.
    * @param {Array<{object: object, transform: ArrayLike<number>}>} pieces Each Tr2InteriorStatic and where it sits in the assembly.
    * @param {string} faction An SOF faction the data manager has, such as "caldaribase".
    * @param {string} race An SOF race the data manager has, such as "caldari".
    * @returns {string} The assembly's DNA, `<name>:<faction>:<race>:layout?<name>`.
-   * @throws {Error} When a piece's geometry is not loaded.
+   * @throws {Error} When a piece's geometry is not loaded, or the generic data lacks the packed quad shader.
+   * @throws {TypeError} When the pieces have no mesh.
    */
   @meta.implemented
   AddAssembly(name, pieces, faction, race)
   {
+    this._RegisterAreaShader();
+    const meshes = pieces.flatMap(({ object, transform }) => object.detailMeshes.map(mesh => ({ mesh, transform })));
+    if (meshes.length === 0) throw new TypeError(`CjsIncarnaEmulator: assembly ${name} has no mesh`);
+
+    const [ first ] = meshes;
+    const toRoot = mat4.invert(mat4.create(), first.transform);
     const placements = new Map();
-    for (const { object, transform } of pieces)
+    for (const { mesh, transform } of meshes.slice(1))
     {
-      for (const mesh of object.detailMeshes)
+      const hullName = CjsIncarnaEmulator.hullName(mesh);
+      if (!placements.has(hullName))
       {
-        const hullName = CjsIncarnaEmulator.hullName(mesh);
-        if (!placements.has(hullName))
-        {
-          this._dataMgr.UpdateHull(hullName, this.CreateHull(hullName, mesh));
-          placements.set(hullName, { sphere: this._dataMgr.GetHullData(hullName).boundingSphere, transforms: [] });
-        }
-        placements.get(hullName).transforms.push(transform);
+        this._dataMgr.UpdateHull(hullName, this.CreateHull(hullName, mesh));
+        placements.set(hullName, { sphere: this._dataMgr.GetHullData(hullName).boundingSphere, transforms: [] });
       }
+      placements.get(hullName).transforms.push(mat4.multiply(mat4.create(), toRoot, transform));
     }
 
-    const root = blue.classes.CreateInstanceFromName("EveSOFDataHull");
-    root.name = name;
-    root.buildClass = blue.enums.GetEnum("trinity.EveSOFDataHull.BuildClass").BUILDCLASS_EXTENSION;
+    const root = this.CreateHull(name, first.mesh);
+    root.buildClass = blue.enums.GetEnum("trinity.EveSOFDataHull.BuildClass").BUILDCLASS_STATIONARY;
     root.locatorSets = [ ...placements ].map(([ hullName, { transforms } ]) => CjsIncarnaEmulator.locatorSet(hullName, transforms));
-    root.boundingSphere = CjsIncarnaEmulator.assemblySphere([ ...placements.values() ]);
+    root.boundingSphere = CjsIncarnaEmulator.assemblySphere([ { sphere: root.boundingSphere, transforms: [ mat4.create() ] }, ...placements.values() ]);
     this._dataMgr.UpdateHull(name, root);
 
     const layout = blue.classes.CreateInstanceFromName("EveSOFDataLayout");
@@ -121,6 +136,24 @@ export class CjsIncarnaEmulator
     this._dataMgr.UpdateLayout(name, layout);
 
     return CjsIncarnaEmulator.assemblyDna(name, faction, race);
+  }
+
+  /**
+   * Lists the unpacked quad shader among the generic data's area shaders, with
+   * the packed shader's entry: SOF builds an area only when its shader is
+   * listed (EveSOF.cpp:786-791), and the two take the same parameters and
+   * textures.
+   *
+   * @throws {Error} When the generic data lacks the packed quad shader.
+   */
+  @meta.implemented
+  _RegisterAreaShader()
+  {
+    const shaders = this._dataMgr.GetGenericData().areaShaderData;
+    if (shaders.has(AREA_SHADER)) return;
+    const packed = shaders.get(PACKED_AREA_SHADER);
+    if (!packed) throw new Error(`CjsIncarnaEmulator: the SOF generic data has no ${PACKED_AREA_SHADER} to list ${AREA_SHADER} as`);
+    shaders.set(AREA_SHADER, packed);
   }
 
   /**
