@@ -174,6 +174,9 @@ test("portable printf formats arguments once and preserves native integer widths
         assert.equal(messages.at(-1), "-1 65535 18446744073709551615 FFFFFFFFFFFFFFFF");
         Log.LogFunc_v(T.LOGTYPE_INFO, 0, "%-4s|%+05d|%.0d|%#.0o", ["x", 3, 0, 0]);
         assert.equal(messages.at(-1), "x   |+0003||0");
+        // C's %g: shortest of %f and %e at 6 significant digits, trailing zeros dropped.
+        Log.CCP_LOG("%g %g %g %g %g %.3g %G %#g", 0.000123, 1.5e-7, 1234567, 100, 0, 3.14159, 1e-10, 2);
+        assert.equal(messages.at(-1), "0.000123 1.5e-07 1.23457e+06 100 0 3.14 1E-10 2.00000");
         assert.throws(() => Log.CCP_LOG("%p", 12), /Unsupported/);
         assert.throws(() => Log.CCP_LOG("%s"), /Missing/);
         Log.CCP_LOG("%");

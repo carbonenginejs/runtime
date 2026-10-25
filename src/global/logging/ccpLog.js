@@ -17,7 +17,8 @@
  * the _CH variants with their own channel. All levels are enabled.
  *
  * Adapted: printf handles strings (%s/%S), decimal/unsigned/hex/octal integers,
- * fixed-point numbers (%f/%F), characters (%c), and literal %%. Width, precision
+ * fixed-point numbers (%f/%F), shortest-form numbers (%g/%G), characters (%c), and
+ * literal %%. Width, precision
  * and -, +, space, 0, # flags are supported; integer h/hh/l/ll/z/t/I64 modifiers
  * use hh=8, h=16, l/default=32 and ll/z/t/I64=64 bits (Windows long width). Native pointers, %n and other conversions
  * have no implementation here and throw TypeError instead of reading memory.
@@ -303,7 +304,7 @@ export function formatMessage(format, args)
     {
         if (literal === "%") return "%";
         if (!conversion) return token;
-        if (!"sSdiuxXofFc".includes(conversion)) throw new TypeError(`Unsupported CcpLog format: ${token}`);
+        if (!"sSdiuxXofFgGc".includes(conversion)) throw new TypeError(`Unsupported CcpLog format: ${token}`);
         if (cursor >= args.length) throw new TypeError(`Missing CcpLog argument for ${token}`);
         const value = args[cursor++];
         const width = Number(widthText || 0);
@@ -311,7 +312,7 @@ export function formatMessage(format, args)
         if (width > 65534 || precision > 65534) throw new RangeError("CcpLog format width/precision exceeds buffer size");
         let text;
         let prefix = "";
-        const numeric = "diuxXofF".includes(conversion);
+        const numeric = "diuxXofFgG".includes(conversion);
         if (conversion === "s" || conversion === "S")
         {
             text = value == null ? "(null)" : String(value).split("\0", 1)[0];
@@ -325,6 +326,27 @@ export function formatMessage(format, args)
             prefix = number < 0 || Object.is(number, -0) ? "-" : flags.includes("+") ? "+" : flags.includes(" ") ? " " : "";
             text = Math.abs(number).toFixed(precision ?? 6);
             if (flags.includes("#") && precision === 0 && Number.isFinite(number)) text += ".";
+        }
+        else if (conversion === "g" || conversion === "G")
+        {
+            // C's %g: precision P significant digits (6 by default, 0 means 1);
+            // exponential when the rounded exponent X is below -4 or at least P,
+            // otherwise fixed with P - 1 - X decimals; trailing zeros dropped unless #.
+            const number = Number(value);
+            prefix = number < 0 || Object.is(number, -0) ? "-" : flags.includes("+") ? "+" : flags.includes(" ") ? " " : "";
+            const significant = precision === undefined ? 6 : Math.max(1, Math.min(precision, 100));
+            const magnitude = Math.abs(number);
+            if (!Number.isFinite(magnitude)) text = Number.isNaN(magnitude) ? "nan" : "inf";
+            else
+            {
+                const [ mantissa, exponentText ] = magnitude.toExponential(significant - 1).split("e");
+                const exponent = Number(exponentText);
+                text = exponent < -4 || exponent >= significant
+                    ? `${mantissa}e${exponent < 0 ? "-" : "+"}${String(Math.abs(exponent)).padStart(2, "0")}`
+                    : magnitude.toFixed(significant - 1 - exponent);
+                if (!flags.includes("#") && text.includes(".")) text = text.replace(/\.?0+(?=e|$)/u, "");
+            }
+            if (conversion === "G") text = text.toUpperCase();
         }
         else
         {

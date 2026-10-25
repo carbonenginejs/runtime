@@ -12,6 +12,7 @@ import { Tr2DxtCompressControl, Tr2DxtCompressor, Tr2HostBitmap } from "../../np
 import { Tr2TexturePipeline, Tr2TexturePipelineStepLoad, Tr2TexturePipelineStepCompress } from "../../npm/dist/trinity/resources/texture/index.js";
 import { RegisterTextureResources, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
 import { BeCallbackMan, BlueCallbackMan } from "../../npm/dist/global/blue/BlueCallbackMan.js";
+import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 
 const vectors = JSON.parse(readFileSync(new URL("./fixtures/libsquish-1.15.json", import.meta.url)));
 
@@ -225,6 +226,10 @@ test("load hook snapshots LOAD settings, bypasses raw images, and publishes pair
 {
     const original = TriTextureRes.compressUncompressedTextures;
     t.after(() => { TriTextureRes.compressUncompressedTextures = original; });
+    const logged = [];
+    const echo = (channel, _type, _userData, message) => logged.push(`${channel.facility}/${channel.object}: ${message}`);
+    CcpLog.RegisterLogEcho(echo);
+    t.after(() => CcpLog.UnregisterLogEcho(echo));
     const loaders = new Map();
     const manager = { RegisterObjectLoader(ext,loader) { loaders.set(ext,loader); }, RegisterExtension() {}, RegisterResourceType() {} };
     RegisterTextureResources(manager, { compression: { backend:"webgpu", features:["texture-compression-bc","texture-compression-unaligned"], resolveRole:()=>"colour" } });
@@ -237,6 +242,7 @@ test("load hook snapshots LOAD settings, bypasses raw images, and publishes pair
     release(packet());
     const bitmap = await pending;
     assert.equal(bitmap.GetFormat(),77); assert.equal(bitmap.compression.requested,true);
+    assert.ok(logged.some(line => /^trinity\/Main: Compressed 'res:\/colour\.dds' on load: mode 7, format 28 to 77, \d+ to \d+ bytes in [\d.e+-]+ ms$/u.test(line)), "the compression is logged on trinity/Main");
     resource.SetPayload(bitmap);
     assert.equal(resource.compression.outputFormat,resource.format);
     const raw = new Tr2ImageRes(); raw.Initialize("res:/colour.dds","dds");

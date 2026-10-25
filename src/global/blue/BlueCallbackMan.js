@@ -25,6 +25,10 @@ import { CjsSchema, meta } from "#schema";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { BlueCallbackManThreadData } from "./BlueCallbackManThreadData.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
+import { IBlueThreadMonitor } from "./IBlueThreadMonitor.js";
+import { BeThreadMonitor } from "./BlueThreadMonitor.js";
+import { ScopedThreadStatus } from "./ScopedThreadStatus.js";
+import * as CcpLog from "../logging/ccpLog.js";
 
 /**
  * @typedef {object} BlueCallbackEntry
@@ -56,6 +60,9 @@ function timestampTicks()
 {
   return BigInt.asUintN(64, BigInt(Math.trunc(CjsBlueOS.Monotonic() * 1e6)));
 }
+
+/** Carbon's `CallbackMan` log channel (CallbackMan.cpp:10). */
+const CALLBACKMAN_CHANNEL = CcpLog.CCP_LOG_DEFINE_CHANNEL("CallbackMan", "blue");
 
 /** The rejection a cancelled entry's promise gets. */
 function createCancelledError(id)
@@ -141,6 +148,21 @@ export class BlueCallbackMan extends IBlueCallbackMan
   _fallBackToUpdate = false;
 
   /**
+   * Carbon's `CALLBACKMAN_DEBUGGING` (CallbackMan.cpp:12-22): when set, the
+   * manager logs each entry it queues and processes on the `CallbackMan`
+   * channel. Adapted: Carbon compiles the switch in, normally off; here it is
+   * a flag a tool sets while it runs. The lines for Carbon's thread loop
+   * (cpp:223-239) have no equivalent, because nothing here waits on a queue.
+   */
+  static CALLBACKMAN_DEBUGGING = false;
+
+  /** Carbon's `REPORT`: a `CallbackMan` channel line while `CALLBACKMAN_DEBUGGING` is set. */
+  static _Report(format, ...args)
+  {
+    if (BlueCallbackMan.CALLBACKMAN_DEBUGGING) CcpLog.CCP_LOG_CH(CALLBACKMAN_CHANNEL, format, ...args);
+  }
+
+  /**
    * `Add` (CallbackMan.cpp:94-146) - queues a callback run on the caller's
    * thread by `Update`.
    *
@@ -208,6 +230,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** Queues one entry; the body of Carbon's `Add` (cpp:98-143). */
   _AddHelper(callback, name, context, transfer, flags, id, completion)
   {
+    BlueCallbackMan._Report("Adding callback");
     if (id) id.value = this._nextId;
 
     /** @type {BlueCallbackEntry} */
@@ -228,6 +251,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     if ((this._isRunningOwnThreads || this._threadCount > 1) && (flags & IBlueCallbackMan.BCBF_FENCE))
     {
       for (let i = 0; i < this._threadCount; ++i) entry.fenceMask |= 1 << i;
+      BlueCallbackMan._Report("Adding fenced entry");
     }
 
     if (flags & IBlueCallbackMan.BCBF_URGENT) this._urgentQueue.push(entry);
@@ -257,6 +281,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
       if (id !== td.currentId) continue;
 
       // Callback being canceled is already in progress - wait for it to finish
+      BlueCallbackMan._Report("Cancel waiting for callback to finish");
       td.currentId = 0;
       const pending = this._workerEntries.get(id);
       if (pending)
@@ -528,6 +553,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     if (this._fenceQueue.length)
     {
       const fencedEntry = this._fenceQueue[0];
+      const maskBefore = fencedEntry.fenceMask;
       fencedEntry.fenceMask &= ~(1 << td.threadIndex);
 
       if (fencedEntry.fenceMask && !this._urgentQueue.length && !this._queue.length)
@@ -539,6 +565,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
         }
       }
 
+      BlueCallbackMan._Report("Front of fenced queue - %x - %x", maskBefore, fencedEntry.fenceMask);
+
       // A surplus slot left by a lowered thread count has no fence bit; the fence waits for it too.
       if (fencedEntry.fenceMask === 0 && !this._threads.some(other => other.threadIndex >= this._threadCount && other.inProgress !== null))
       {
@@ -548,8 +576,17 @@ export class BlueCallbackMan extends IBlueCallbackMan
     }
 
     // Note that size of queue is not decreased until after processing callback.
-    if (!entry) entry = this._ExtractFromQueue(this._urgentQueue, td.threadIndex);
-    if (!entry) entry = this._ExtractFromQueue(this._queue, td.threadIndex);
+    let kind = "fenced";
+    if (!entry)
+    {
+      entry = this._ExtractFromQueue(this._urgentQueue, td.threadIndex);
+      kind = "urgent";
+    }
+    if (!entry)
+    {
+      entry = this._ExtractFromQueue(this._queue, td.threadIndex);
+      kind = "regular";
+    }
 
     if (!entry)
     {
@@ -558,7 +595,32 @@ export class BlueCallbackMan extends IBlueCallbackMan
     }
 
     td.currentId = entry.id;
+    BlueCallbackMan._Report("Processing %s entry %d on thread %d", kind, entry.id, td.threadIndex);
+    const started = CjsBlueOS.Monotonic();
 
+    // The thread works for the entry (CallbackMan.cpp:322, ScopedThreadStatus).
+    // A worker's entry runs until its answer arrives, so its status is
+    // reported for it by name and restored in `finish`; an Update entry marks
+    // this thread for the synchronous part, as Carbon's scope does.
+    if (this._isRunningOwnThreads)
+    {
+      const previousStatus = BeThreadMonitor.SetThreadStatus__Thread(td.name, IBlueThreadMonitor.BTS_WORKING);
+      return this._ProcessEntry(td, entry, processedFenceEntry, td.name, previousStatus, started);
+    }
+    const threadStatus = new ScopedThreadStatus(IBlueThreadMonitor.BTS_WORKING);
+    try
+    {
+      return this._ProcessEntry(td, entry, processedFenceEntry, null, 0, started);
+    }
+    finally
+    {
+      threadStatus.Destruct();
+    }
+  }
+
+  /** The rest of `UpdateThread` (CallbackMan.cpp:396-441): runs the entry taken for a thread. */
+  _ProcessEntry(td, entry, processedFenceEntry, thread, previousStatus, started)
+  {
     const delta = timestampTicks() - entry.timeStamp;
     if (delta > 0n)
     {
@@ -570,6 +632,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
 
     const finish = () =>
     {
+      BlueCallbackMan._Report("<<Processing callback done - %g seconds", (CjsBlueOS.Monotonic() - started) / 1000);
+      if (thread !== null) BeThreadMonitor.SetThreadStatus__Thread(thread, previousStatus);
       td.currentId = 0;
       td.inProgress = null;
       --this._size;

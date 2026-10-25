@@ -85,12 +85,16 @@ export async function ReadImageResource(bytes, context, compression = {})
 
     bitmap.metadata = metadata;
   }
-  if (request) bitmap = await CompressLoadedBitmap(bitmap, request, context.signal);
+  if (request) bitmap = await CompressLoadedBitmap(bitmap, request, context.path, context.signal);
   return bitmap;
 }
 
-/** Optional load extension; complete output and diagnostics publish together. */
-async function CompressLoadedBitmap(bitmap, request, signal)
+/**
+ * Optional load extension; complete output and diagnostics publish together.
+ * A compression, or a failed one, is also logged on trinity's Main channel,
+ * where texture loading logs (a skip is only recorded in the diagnostic).
+ */
+async function CompressLoadedBitmap(bitmap, request, path, signal)
 {
   const packet = { description: {
     type: bitmap.GetType(), format: bitmap.GetFormat(), width: bitmap.GetWidth(),
@@ -111,11 +115,14 @@ async function CompressLoadedBitmap(bitmap, request, signal)
       diagnostic.outcome = "compressed";
       diagnostic.outputFormat = bitmap.GetFormat(); diagnostic.outputBytes = encoded.data.length;
       diagnostic.encodeTimeMs = encoded.encodeTimeMs;
+      CcpLog.CCP_LOG_CH(CcpLog.GetModuleChannel("trinity"), "Compressed '%S' on load: mode %d, format %d to %d, %d to %d bytes in %g ms",
+        path, choice.mode, diagnostic.originalFormat, diagnostic.outputFormat, diagnostic.originalBytes, diagnostic.outputBytes, diagnostic.encodeTimeMs);
     }
     catch (error)
     {
       if (signal?.aborted) throw error;
       diagnostic.reason = `worker-failed: ${error.message}`;
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "On-load compression of '%S' failed: %s", path, error.message);
     }
   }
   bitmap.compression = diagnostic;

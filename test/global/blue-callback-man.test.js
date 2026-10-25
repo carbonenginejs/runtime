@@ -609,3 +609,58 @@ test("a started manager without workers keeps Carbon's one Update slot, so a tic
   ticker.OnTick(0, 0, null);
   assert.equal(await jobs[1], 4);
 });
+
+test("BeThreadMonitor shows a worker working while its entry runs, and the main thread during an Update entry", async () =>
+{
+  const { BeThreadMonitor, IBlueThreadMonitor } = await import("../../src/global/blue/index.js");
+  const statusOf = thread => new Map(BeThreadMonitor.GetStatus()).get(thread);
+
+  let release;
+  const man = new BlueCallbackMan();
+  man.SetName("MonitorTest");
+  man.SetWorkerModule("test-worker.js");
+  man.SetWorkerFactory(createFakeWorkerFactory({ hold: () => new Promise(resolve => { release = resolve; }) }));
+  man.Run();
+  const held = man.Add__Name("hold");
+  await tick();
+  assert.equal(statusOf("MonitorTest"), IBlueThreadMonitor.BTS_WORKING);
+  release();
+  await held;
+  await tick();
+  assert.equal(statusOf("MonitorTest"), IBlueThreadMonitor.BTS_IDLE);
+  await man.Stop();
+
+  const local = new BlueCallbackMan();
+  let during = null;
+  local.Add(() => { during = statusOf("main"); });
+  local.Update();
+  assert.equal(during, IBlueThreadMonitor.BTS_WORKING);
+  assert.equal(statusOf("main"), IBlueThreadMonitor.BTS_IDLE);
+});
+
+test("CALLBACKMAN_DEBUGGING logs Carbon's CallbackMan lines on blue/CallbackMan, and nothing when off", async () =>
+{
+  const CcpLog = await import("../../src/global/logging/ccpLog.js");
+  const lines = [];
+  const echo = (channel, _type, _userData, message) => { if (channel.object === "CallbackMan") lines.push(`${channel.facility}/${channel.object}: ${message}`); };
+  CcpLog.RegisterLogEcho(echo);
+  try
+  {
+    const man = new BlueCallbackMan();
+    man.Add(() => {});
+    man.Update();
+    assert.deepEqual(lines, [], "off by default");
+
+    BlueCallbackMan.CALLBACKMAN_DEBUGGING = true;
+    man.Add(() => {});
+    man.Update();
+    assert.equal(lines[0], "blue/CallbackMan: Adding callback");
+    assert.equal(lines[1], "blue/CallbackMan: Processing regular entry 2 on thread 0");
+    assert.match(lines[2], /^blue\/CallbackMan: <<Processing callback done - [\d.e-]+ seconds$/);
+  }
+  finally
+  {
+    BlueCallbackMan.CALLBACKMAN_DEBUGGING = false;
+    CcpLog.UnregisterLogEcho(echo);
+  }
+});
