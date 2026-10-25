@@ -130,7 +130,7 @@ test("a piece mesh becomes a hull drawing that mesh alone, with quad areas", () 
     MaterialMap: "dynamic:/incarna/material/res:/graphics/interior/test/piece_os.dds",
     GlowMap: "dynamic:/incarna/glow/res:/graphics/interior/test/piece_os.dds",
     NormalMap: "dynamic:/incarna/normal/res:/graphics/interior/test/piece_nm.dds",
-    DirtMap: "dynamic:/incarna/dirt/res:/graphics/interior/test/piece_nm.dds",
+    DirtMap: "dynamic:/color/0,0,0,1",
     Detail1Map: "dynamic:/incarna/detail/res:/graphics/interior/test/plastic_ds.dds",
     Detail2Map: "dynamic:/color/0.5,0.5,0.5,0",
     Detail3Map: "dynamic:/color/0.5,0.5,0.5,0",

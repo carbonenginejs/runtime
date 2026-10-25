@@ -52,6 +52,14 @@ const AREA_KINDS = {
  * it, the constant used when the area sets none of them, and whether it is a
  * detail map, which the glass shader does not take. The glow mask is used only
  * by an area that glows (`glows`).
+ *
+ * The dirt map is black: quad replaces the material colour with the dust
+ * colour by the dirt amount, keeping (1 - dirt)^3 of it
+ * (`quad/unpacked_quaddetailv5.sm_depth`, pass 0 pixel), and the `_nm`
+ * grime channel (`dynamic:/incarna/dirt`) averages 0.72 under the Caldari
+ * walkway, so a hull with one material in every slot still drew mostly dust
+ * (operator, 2026-10-26: one material in all four slots must make the hull one
+ * colour). Incarna's own row 0 draws no grime.
  */
 const AREA_TEXTURES = [
   [ "AlbedoMap", [ "OverlayMap", "DiffuseMap" ], "albedo", BLACK, false ],
@@ -59,7 +67,7 @@ const AREA_TEXTURES = [
   [ "MaterialMap", [ "OverlayMap" ], "material", BLACK, false ],
   [ "GlowMap", [ "OverlayMap" ], "glow", BLACK, false ],
   [ "NormalMap", [ "NormalMap" ], "normal", FLAT_NORMAL, false ],
-  [ "DirtMap", [ "NormalMap" ], "dirt", BLACK, false ],
+  [ "DirtMap", [], null, BLACK, false ],
   [ "Detail1Map", [ "DetailDiffuseMap" ], "detail", NO_DETAIL, true ],
   [ "Detail2Map", [], null, NO_DETAIL, true ],
   [ "Detail3Map", [], null, NO_DETAIL, true ],
