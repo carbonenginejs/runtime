@@ -27,7 +27,8 @@ export class CjsPaperDollComponent
      * it: a garment or accessory option is a `.type` (part, variation, colour
      * variant) or a garment folder with its own `.color` files. Parts whose
      * options share swatches (eye shadow, hair) keep the picked palette across
-     * options. Custom colours are kept either way.
+     * options. Custom colours are kept either way. An option naming no palette
+     * resets it, rather than keeping the previous option's.
      */
     static optionNamesPalette = false;
 
@@ -57,7 +58,7 @@ export class CjsPaperDollComponent
         this._option = value;
         this._item = new (this._itemClasses.get(this.GetColorAreas().join(",")))(this);
         const selected = this._options.get(value);
-        if (selected?.colorAreas.length && (!this._hasPalette || (this.constructor.optionNamesPalette && selected.defaultPalette)))
+        if (selected?.colorAreas.length && (!this._hasPalette || this.constructor.optionNamesPalette))
         {
             this._SetPreset(selected.defaultPalette ?? "");
             this._hasPalette = true;

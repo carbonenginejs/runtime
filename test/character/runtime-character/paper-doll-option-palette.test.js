@@ -26,6 +26,18 @@ test("a garment option selects the palette it names; custom colours are kept", (
     assert.equal(doll.bottomOuter.GetColors()[0][0], Math.fround(0.3));
 });
 
+test("a garment option naming no palette resets it rather than keeping the previous one", () =>
+{
+    const doll = new CjsPaperDollDefinition();
+    doll.bottomOuter.Configure([
+        { id: "pantsa_amarr", path: "bottomouter/a", occludes: [], colorAreas: [ 1 ], defaultPalette: "a/amarr.color", palettes: [ { path: "a/amarr.color", label: "amarr" } ] },
+        { id: "pantsx", path: "bottomouter/x", occludes: [], colorAreas: [ 1 ], palettes: [] }
+    ], new Map([ [ "a/amarr.color", colors(0.1) ] ]), { option: "" });
+    doll.bottomOuter.option = "pantsa_amarr";
+    doll.bottomOuter.option = "pantsx";
+    assert.equal(doll.bottomOuter.palette, "");
+});
+
 test("hair keeps the picked swatch across styles", () =>
 {
     const doll = new CjsPaperDollDefinition();
