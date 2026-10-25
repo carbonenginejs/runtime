@@ -10,6 +10,7 @@ export class CjsPaperDollEyebrows extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.EYEBROWS;
     static passes = PaperDollPass.HEAD;
+    static category = "makeup/eyebrows";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem], ["1", CjsPaperDollEyebrowsItem]]);

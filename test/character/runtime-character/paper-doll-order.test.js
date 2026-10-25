@@ -70,3 +70,25 @@ test("a layer override reorders and rebuilds only the passes the part feeds, and
     assert.deepEqual(bindings.heads.at(-1).order, [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "eyeliner", "lipstick", "augmentations", "scars" ]);
     assert.throws(() => doll.SetLayer("blush", NaN), RangeError);
 });
+
+test("an active occluder draws after the parts it occludes, matched by category or path", () =>
+{
+    const doll = Doll();
+    doll.topUnderwear.Configure([ { id: "bikini", path: "topunderwear/bikini", colorAreas: [] } ], new Map(), { option: "bikini" });
+    doll.armLeft.Configure([ { id: "arm", path: "makeup/armleft/cyborgarm_l", colorAreas: [] } ], new Map(), { option: "arm" });
+    doll.bodyAugmentation.Configure([ { id: "suit", path: "makeup/bodyaugmentations/suit", colorAreas: [],
+        occludes: [ "topunderwear", "makeup/armleft/cyborgarm_l" ] } ], new Map(), { option: "suit" });
+
+    const order = doll.GetLayerOrder(PaperDollPass.BODY);
+    assert.ok(order.indexOf("bodyAugmentation") > order.indexOf("topUnderwear"), "over the top underwear, by category");
+    assert.ok(order.indexOf("bodyAugmentation") > order.indexOf("armLeft"), "over the arm, by path");
+
+    doll.bodyAugmentation.enabled = false;
+    const plain = doll.GetLayerOrder(PaperDollPass.BODY);
+    assert.ok(plain.indexOf("bodyAugmentation") < plain.indexOf("topUnderwear"), "off, it keeps its rank");
+
+    doll.bodyAugmentation.enabled = true;
+    doll.topUnderwear.enabled = false;
+    const bra = doll.GetLayerOrder(PaperDollPass.BODY);
+    assert.ok(bra.indexOf("bodyAugmentation") > bra.indexOf("armLeft"), "still over the arm it occludes");
+});

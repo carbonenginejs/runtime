@@ -9,6 +9,7 @@ import { eyeItemClasses } from "./eyeItemClasses.js";
 export class CjsPaperDollEyes extends CjsPaperDollComponent
 {
     static passes = PaperDollPass.EYES;
+    static category = "makeup/eyes";
 
     _item = new CjsPaperDollEyeItem(this);
     _itemClasses = eyeItemClasses;

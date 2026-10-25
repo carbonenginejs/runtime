@@ -10,6 +10,7 @@ export class CjsPaperDollBlush extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.BLUSH;
     static passes = PaperDollPass.HEAD;
+    static category = "makeup/blush";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem], ["1", CjsPaperDollBlushItem]]);

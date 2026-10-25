@@ -176,8 +176,45 @@ export class CjsPaperDoll
      */
     GetLayerOrder(pass)
     {
-        return CjsPaperDoll.parts.filter(name => this[name].constructor.passes & pass)
+        const order = CjsPaperDoll.parts.filter(name => this[name].constructor.passes & pass)
             .sort((a, b) => (this.GetLayer(a) ?? -Infinity) - (this.GetLayer(b) ?? -Infinity) || 0);
+        // An active occluder draws after every active part it occludes, so in each shared pass it covers them
+        // exactly where its own coverage is (operator, 2026-10-25: occlusion covers only what it covers).
+        for (const occluder of [ ...order ])
+        {
+            const targets = this._Occludes(occluder);
+            if (!targets.length) continue;
+            const at = order.indexOf(occluder);
+            const last = order.reduce((found, name, index) => name !== occluder && this._IsOccludedBy(name, targets) ? index : found, -1);
+            if (last > at)
+            {
+                order.splice(at, 1);
+                order.splice(last, 0, occluder);
+            }
+        }
+        return order;
+    }
+
+    /**
+     * What a part's selected option occludes: the `occludesModifiers` of its
+     * metadata (recipe categories or part paths), empty while it is off.
+     * @param {string} name The part's member name.
+     * @returns {string[]}
+     */
+    _Occludes(name)
+    {
+        const part = this[name];
+        if (!part.enabled || !part.option) return [];
+        return part.GetOptions().find(option => option.id === part.option)?.occludes ?? [];
+    }
+
+    /** Whether a part's selected option matches an occlusion target, by its category or its path. */
+    _IsOccludedBy(name, targets)
+    {
+        const part = this[name];
+        if (!part.enabled || !part.option) return false;
+        const path = part.GetOptions().find(option => option.id === part.option)?.path ?? "";
+        return targets.some(target => target === part.constructor.category || (path !== "" && (target === path || path.startsWith(target + "/"))));
     }
 
     /** One pass's captured settings: `order` lists its parts in bake order, then each part's capture under its name. */
@@ -225,7 +262,7 @@ export class CjsPaperDoll
             const pending = passForced || !previous || names.some(name => this[name].IsDirty());
             const state = pending ? this._CapturePass(pass, names) : previous;
             const selected = !whenSelected || names.some(name => state[name].option || (previous !== null && previous[name].option));
-            const changed = pending && selected && (passForced || !previous || names.some(name => this._Changed(state[name], previous[name])));
+            const changed = pending && selected && (passForced || !previous || state.order.join() !== previous.order.join() || names.some(name => this._Changed(state[name], previous[name])));
             if (changed) changedPasses |= pass;
             plans.push({ pass, binding, names, state, changed });
         }

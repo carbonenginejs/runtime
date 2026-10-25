@@ -9,6 +9,7 @@ export class CjsPaperDollScars extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.SCARS;
     static passes = PaperDollPass.HEAD | PaperDollPass.SURFACE;
+    static category = "scars";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);

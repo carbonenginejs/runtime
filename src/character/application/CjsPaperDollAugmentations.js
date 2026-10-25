@@ -14,6 +14,7 @@ export class CjsPaperDollAugmentations extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.AUGMENTATIONS;
     static passes = PaperDollPass.HEAD | PaperDollPass.BODY | PaperDollPass.SURFACE;
+    static category = "makeup/augmentations";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);

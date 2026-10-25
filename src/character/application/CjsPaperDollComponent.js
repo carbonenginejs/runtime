@@ -20,6 +20,8 @@ export class CjsPaperDollComponent
     static passes = 0;
     /** Whether a foundation shape edit rebuilds this part's output while it is selected. */
     static shapeDependent = false;
+    /** The recipe category this part's options are filed under (a `.prs` entry's `category`); occlusion matches it. */
+    static category = "";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);

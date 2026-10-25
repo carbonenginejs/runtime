@@ -19,6 +19,7 @@ export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.EYESHADOW;
     static passes = PaperDollPass.HEAD;
+    static category = "makeup/eyeshadow";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([ "", "1", "2", "3", "1,2", "1,3", "2,3", "1,2,3" ].map(key => [ key, CjsPaperDollItem ]));

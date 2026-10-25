@@ -9,6 +9,7 @@ export class CjsPaperDollAging extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.AGING;
     static passes = PaperDollPass.SURFACE;
+    static category = "makeup/aging";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);

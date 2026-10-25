@@ -9,6 +9,7 @@ export class CjsPaperDollScarring extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.SCARRING;
     static passes = PaperDollPass.SURFACE;
+    static category = "makeup/scarring";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);

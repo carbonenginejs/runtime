@@ -18,6 +18,7 @@ export class CjsPaperDollLipstick extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.LIPSTICK;
     static passes = PaperDollPass.HEAD | PaperDollPass.SURFACE;
+    static category = "makeup/lipstick";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([ [ "", CjsPaperDollItem ], [ "1", CjsPaperDollItem ], [ "1,2", CjsPaperDollItem ] ]);

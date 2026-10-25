@@ -18,6 +18,7 @@ export class CjsPaperDollTattoo extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.TATTOO;
     static passes = PaperDollPass.HEAD;
+    static category = "tattoo";
     static shapeDependent = true;
 
     _item = new CjsPaperDollItem(this);

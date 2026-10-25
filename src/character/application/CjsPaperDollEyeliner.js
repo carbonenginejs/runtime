@@ -16,6 +16,7 @@ export class CjsPaperDollEyeliner extends CjsPaperDollComponent
 {
     static layer = PaperDollLayer.EYELINER;
     static passes = PaperDollPass.HEAD;
+    static category = "makeup/eyeliner";
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([ "", "1", "2", "3", "1,2", "1,3", "2,3", "1,2,3" ].map(key => [ key, CjsPaperDollItem ]));
