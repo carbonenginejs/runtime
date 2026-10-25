@@ -4,11 +4,11 @@ import test from "node:test";
 import {
     TangentCompression,
     decodeTangentFrame,
-    packTangents,
-    packTangentsLegacy,
-    packTangentsQuaternion,
-    unpackTangents,
-    unpackTangentsLegacy
+    packTangentsCarbon,
+    packTangentsLegacyCarbon,
+    packTangentsQuaternionCarbon,
+    unpackTangentsCarbon,
+    unpackTangentsLegacyCarbon
 } from "@carbonenginejs/runtime/math/tangent";
 import { quat } from "@carbonenginejs/runtime/math/quat";
 
@@ -50,7 +50,7 @@ test("both packings round-trip frames of either handedness", () =>
     {
         for (const { normal, tangent, bitangent } of frames())
         {
-            const [ n, t, b ] = unpackTangents(compression, packTangents(compression, normal, tangent, bitangent));
+            const [ n, t, b ] = unpackTangentsCarbon(compression, packTangentsCarbon(compression, normal, tangent, bitangent));
             close(n, normal, `normal, compression ${compression}`);
             close(t, tangent, `tangent, compression ${compression}`);
             close(b, bitangent, `bitangent, compression ${compression}`);
@@ -62,7 +62,7 @@ test("the quaternion packing keeps w non-negative and stores the normal's sign i
 {
     for (const [ index, { normal, tangent, bitangent } ] of frames().entries())
     {
-        const packed = packTangentsQuaternion(normal, tangent, bitangent);
+        const packed = packTangentsQuaternionCarbon(normal, tangent, bitangent);
         assert.equal(packed[3], index % 2 ? -1 : 1);
         assert.ok(packed[0] ** 2 + packed[1] ** 2 + packed[2] ** 2 <= 1 + 1e-6);
     }
@@ -72,11 +72,11 @@ test("the legacy packing stays in [0, 1], negates both polar angles for a left-h
 {
     for (const [ index, { normal, tangent, bitangent } ] of frames().entries())
     {
-        const packed = packTangentsLegacy(normal, tangent, bitangent);
+        const packed = packTangentsLegacyCarbon(normal, tangent, bitangent);
         assert.ok(packed.every(value => value >= 0 && value <= 1));
         const polarSigns = [ packed[1] - 0.5, packed[3] - 0.5 ].map(Math.sign);
         assert.deepEqual(polarSigns, index % 2 ? [ -1, -1 ] : [ 1, 1 ]);
-        const [ n, t, b ] = unpackTangentsLegacy(packed);
+        const [ n, t, b ] = unpackTangentsLegacyCarbon(packed);
         const decoded = decodeTangentFrame(packed);
         close(n, decoded.N, "normal");
         close(t, decoded.T, "tangent");
@@ -84,12 +84,12 @@ test("the legacy packing stays in [0, 1], negates both polar angles for a left-h
     }
 });
 
-test("quat.fromRotationMatrix follows Carbon's branches, reading the matrix rows first", () =>
+test("quat.fromRotationMatrixCarbon follows Carbon's branches, reading the matrix rows first", () =>
 {
     const half = Math.SQRT1_2;
     // A half-turn about z: trace 0, so the largest-diagonal branch (z).
-    assert.deepEqual(Array.from(quat.fromRotationMatrix([ 0, 0, 0, 1 ], [ -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ])), [ 0, 0, 1, 0 ]);
+    assert.deepEqual(Array.from(quat.fromRotationMatrixCarbon([ 0, 0, 0, 1 ], [ -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ])), [ 0, 0, 1, 0 ]);
     // A quarter-turn about z, rows first: x -> y.
-    const q = quat.fromRotationMatrix([ 0, 0, 0, 1 ], [ 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);
+    const q = quat.fromRotationMatrixCarbon([ 0, 0, 0, 1 ], [ 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);
     close(Array.from(q), [ 0, 0, half, half ], "quarter turn");
 });

@@ -88,7 +88,7 @@ quat.fromUnitVectors = function(out, from, to)
  * @param {ArrayLike<number>} m A 4x4 matrix, rows first.
  * @returns {quat}
  */
-quat.fromRotationMatrix = function(out, m)
+quat.fromRotationMatrixCarbon = function(out, m)
 {
     const at = (row, col) => m[row * 4 + col];
     const trace = at(0, 0) + at(1, 1) + at(2, 2) + 1;

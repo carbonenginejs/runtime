@@ -104,7 +104,7 @@ export function decodeTangentFrame(u)
 /**
  * Encode a tangent frame back to four UNorm angles.
  *
- * Not Carbon's encoder (`packTangentsLegacy` is): for a frame of negative
+ * Not Carbon's encoder (`packTangentsLegacyCarbon` is): for a frame of negative
  * handedness Carbon negates both polar angles, and this only the tangent's,
  * and this nudges a zero polar angle by 1e-6 so its handedness survives, which
  * Carbon does not. Both decode to the same frame; the bytes differ.
@@ -302,7 +302,7 @@ const
  *
  * A frame of negative handedness, dot(normal, cross(tangent, bitangent)) < 0,
  * has its normal flipped first and w -1. The rows tangent, bitangent, normal
- * make a rotation matrix (`quat.fromRotationMatrix`, Carbon's conversion); the
+ * make a rotation matrix (`quat.fromRotationMatrixCarbon`, Carbon's conversion); the
  * quaternion is normalized and kept with w >= 0, so unpacking can rebuild w.
  *
  * @param {ArrayLike<number>} normal
@@ -310,7 +310,7 @@ const
  * @param {ArrayLike<number>} bitangent
  * @returns {number[]} x, y, z in [-1, 1], then the normal's sign.
  */
-export function packTangentsQuaternion(normal, tangent, bitangent)
+export function packTangentsQuaternionCarbon(normal, tangent, bitangent)
 {
     const flipNormal = dot(normal, cross([ 0, 0, 0 ], tangent, bitangent)) < 0;
     const sign = flipNormal ? -1 : 1;
@@ -322,7 +322,7 @@ export function packTangentsQuaternion(normal, tangent, bitangent)
         rotation[8 + axis] = normal[axis] * sign;
     }
     rotation[15] = 1;
-    const q = quat.normalize(rotationQuaternion, quat.fromRotationMatrix(rotationQuaternion, rotation));
+    const q = quat.normalize(rotationQuaternion, quat.fromRotationMatrixCarbon(rotationQuaternion, rotation));
     const qs = q[3] < 0 ? -1 : 1;
     return [ q[0] * qs, q[1] * qs, q[2] * qs, sign ];
 }
@@ -339,7 +339,7 @@ export function packTangentsQuaternion(normal, tangent, bitangent)
  * @param {ArrayLike<number>} t x, y, z and the normal's sign.
  * @returns {number[][]} normal, tangent, bitangent.
  */
-export function unpackTangentsQuaternion(t)
+export function unpackTangentsQuaternionCarbon(t)
 {
     const x = t[0], y = t[1], z = t[2];
     const x2 = x * x, y2 = y * y, z2 = z * z;
@@ -367,7 +367,7 @@ export function unpackTangentsQuaternion(t)
  * @param {ArrayLike<number>} bitangent
  * @returns {number[]} Four values in [0, 1].
  */
-export function packTangentsLegacy(normal, tangent, bitangent)
+export function packTangentsLegacyCarbon(normal, tangent, bitangent)
 {
     const angles = [
         Math.atan2(tangent[1], tangent[0]),
@@ -395,7 +395,7 @@ export function packTangentsLegacy(normal, tangent, bitangent)
  * @param {ArrayLike<number>} t Four values in [0, 1].
  * @returns {number[][]} normal, tangent, bitangent.
  */
-export function unpackTangentsLegacy(t)
+export function unpackTangentsLegacyCarbon(t)
 {
     const angles = [ 0, 1, 2, 3 ].map(index => t[index] * TAU - PI);
     const sin1 = Math.abs(Math.sin(angles[1])), sin3 = Math.abs(Math.sin(angles[3]));
@@ -421,10 +421,10 @@ export function unpackTangentsLegacy(t)
  * @param {ArrayLike<number>} bitangent
  * @returns {number[]} The four packed components.
  */
-export function packTangents(compression, normal, tangent, bitangent)
+export function packTangentsCarbon(compression, normal, tangent, bitangent)
 {
-    if (compression === TangentCompression.PackedTangent) return packTangentsQuaternion(normal, tangent, bitangent);
-    return packTangentsLegacy(normal, tangent, bitangent);
+    if (compression === TangentCompression.PackedTangent) return packTangentsQuaternionCarbon(normal, tangent, bitangent);
+    return packTangentsLegacyCarbon(normal, tangent, bitangent);
 }
 
 /**
@@ -437,20 +437,20 @@ export function packTangents(compression, normal, tangent, bitangent)
  * @param {ArrayLike<number>} t The four packed components.
  * @returns {number[][]} normal, tangent, bitangent.
  */
-export function unpackTangents(compression, t)
+export function unpackTangentsCarbon(compression, t)
 {
-    if (compression === TangentCompression.PackedTangent) return unpackTangentsQuaternion(t);
-    return unpackTangentsLegacy(t);
+    if (compression === TangentCompression.PackedTangent) return unpackTangentsQuaternionCarbon(t);
+    return unpackTangentsLegacyCarbon(t);
 }
 
 export const tangent = {
     TangentCompression,
-    packTangentsQuaternion,
-    unpackTangentsQuaternion,
-    packTangentsLegacy,
-    unpackTangentsLegacy,
-    packTangents,
-    unpackTangents,
+    packTangentsQuaternionCarbon,
+    unpackTangentsQuaternionCarbon,
+    packTangentsLegacyCarbon,
+    unpackTangentsLegacyCarbon,
+    packTangentsCarbon,
+    unpackTangentsCarbon,
     TAU: TANGENT_TAU,
     PI: TANGENT_PI,
     NULL_TANGENT_UNORM,
