@@ -485,6 +485,21 @@ export class BlueCallbackMan extends IBlueCallbackMan
   }
 
   /**
+   * Whether a module is registered for a named callback, so a caller can
+   * decide to queue a job here or run it itself.
+   *
+   * Ours: Carbon's callers hold a function pointer and always can queue; a
+   * named entry needs its module registered (`RegisterCallbackModule`).
+   *
+   * @param {string} name Callback name.
+   * @returns {boolean} True when `RegisterCallbackModule` named a module for it.
+   */
+  HasCallbackModule(name)
+  {
+    return this._callbackModules.has(name);
+  }
+
+  /**
    * Registers the module that holds a named callback.
    *
    * Ours: Carbon's threads run function pointers already in the process. A

@@ -140,14 +140,10 @@ export class CjsGifFormat extends CjsImageFormat
      *
      * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
      * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Reader options.
-     * @param {object|null} [context=null] The resource path context a resource worker passes.
-     *   `emit: "bitmap"` returns the bitmap packet (`CjsImageFormat.readBitmapAsync`), which a resource worker
-     *   decodes off the main thread.
      * @returns {Promise<object>} The `read` result.
      */
-    static async readAsync(input, options = {}, context = null)
+    static async readAsync(input, options = {})
     {
-        if (options.emit === "bitmap") return CjsGifFormat.readBitmapAsync(input, options, context);
         return CjsGifFormat.read(input, options);
     }
 
@@ -191,14 +187,6 @@ export class CjsGifFormat extends CjsImageFormat
             return false;
         }
     }
-
-    /** A resource worker decodes this format's bitmap (`emit: "bitmap"`); every other output reads on the caller's thread. */
-    static worker = {
-        module: import.meta.url,
-        exportName: "CjsGifFormat",
-        outputTypes: [ "bitmap" ],
-        defaultOutput: "raw"
-    };
 
     static id = "CjsGifFormat";
 

@@ -259,8 +259,9 @@ test("DDS volume header flag survives worker decoding and texture resource mater
   assert.equal(messages.filter(message => message.operation === "format.read").length, 1);
 });
 
-test("PNG textures decode on the resource worker, matching the main-thread ImageIO read", async t =>
+test("PNG textures never go to the resource worker, and match the main-thread ImageIO read", async t =>
 {
+  // The decode is BeCallbackMan's job (image.decodeBitmap); BeCallbackMan is not started in this file, so it runs here.
   ImageIO.registerImageHandler(CjsPngFormat);
   const rgba = Uint8Array.from({ length: 5 * 3 * 4 }, (_, i) => (i * 37 + 11) & 255);
   const png = await CjsPngFormat.writeAsync({ width: 5, height: 3, data: rgba });
@@ -268,7 +269,7 @@ test("PNG textures decode on the resource worker, matching the main-thread Image
   const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => png } });
   RegisterTextureResources(manager);
   const image = await manager.FetchResource("res:/test.png", { ex: "raw" });
-  assert.ok(messages.some(message => message.operation === "format.read" && message.payload.exportName === "CjsPngFormat"));
+  assert.ok(!messages.some(message => message.operation === "format.read"), "the resource worker decodes no PNG");
   const main = new HostBitmap();
   assert.ok((await ImageIO.readImageAsync(png, new LoadParameters("res:/test.png"), main, new Metadata())).IsOk());
   const bitmap = image.GetBitmap();

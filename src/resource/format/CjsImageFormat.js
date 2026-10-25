@@ -230,26 +230,25 @@ export class CjsImageFormat extends CjsFormat
 
   /**
    * Read the image as plain data - its bitmap description, storage and
-   * metadata - so a resource worker can decode it and hand the result back
-   * (`read(bytes, { emit: "bitmap" })`). The decode is this format's
-   * `readImageAsync`, the same call ImageIO makes on the main thread, so a
-   * worker read and a main-thread read produce the same bitmap.
+   * metadata - on the calling thread. The decode is this format's
+   * `readImageAsync`, the same call ImageIO makes, so a decode on a worker
+   * and one on the main thread give the same bitmap.
    *
-   * Carbon decodes images on BlueResMan's background threads; in a browser the
-   * thread is a worker, and only clonable data crosses back, so the bitmap
-   * travels as this packet and is rebuilt as a HostBitmap on the main thread.
+   * Only clonable data crosses back from a worker, so the bitmap travels as
+   * this packet and is rebuilt as a HostBitmap by the caller. The texture
+   * loader runs it on BeCallbackMan's workers (the `image.decodeBitmap` job,
+   * `resource/imageio/imageDecodeCallbacks.js`); the reader itself knows
+   * nothing of threads, as Carbon's ImageIO handlers do not.
    *
    * @param {Uint8Array|ArrayBuffer} input Image bytes.
    * @param {object} [options={}] Read options.
-   * @param {string} [options.source] Path for the load parameters and error messages.
-   * @param {object|null} [context=null] The resource path context a resource worker passes.
-   * @param {string} [context.path] Path, used when `options.source` is absent.
+   * @param {string} [options.source=""] Path for the load parameters and error messages.
    * @returns {Promise<{sourceFormat: string, description: object, data: Uint8Array, metadata: object}>} The bitmap packet.
    * @throws {Error} With code `CJS_RESOURCE_IMAGE_READ_FAILED` when the image cannot be read.
    */
-  static async readBitmapAsync(input, options = {}, context = null)
+  static async readBitmapAsync(input, options = {})
   {
-    const source = options.source ?? (context === null ? "" : context.path ?? "");
+    const source = options.source ?? "";
     const bitmap = new HostBitmap();
     const metadata = new Metadata();
     const result = await this.readImageAsync(asUint8Array(input), new LoadParameters(source), bitmap, metadata);

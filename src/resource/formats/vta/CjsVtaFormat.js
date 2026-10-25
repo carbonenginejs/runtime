@@ -152,14 +152,10 @@ export class CjsVtaFormat extends CjsImageFormat
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input VTA bytes.
      * @param {object} [options] Read options.
-     * @param {object|null} [context=null] The resource path context a resource worker passes.
-     *   `emit: "bitmap"` returns the bitmap packet (`CjsImageFormat.readBitmapAsync`), which a resource worker
-     *   decodes off the main thread.
      * @returns {Promise<object>} Payload for the selected emit target.
      */
-    static async readAsync(input, options = {}, context = null)
+    static async readAsync(input, options = {})
     {
-        if (options.emit === "bitmap") return CjsVtaFormat.readBitmapAsync(input, options, context);
         return readAsyncWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
     }
 
@@ -239,14 +235,6 @@ export class CjsVtaFormat extends CjsImageFormat
     {
         return CjsVtaFormat.readFrames(input, this.GetValues(options));
     }
-
-    /** A resource worker decodes this format's bitmap (`emit: "bitmap"`); every other output reads on the caller's thread. */
-    static worker = {
-        module: import.meta.url,
-        exportName: "CjsVtaFormat",
-        outputTypes: [ "bitmap" ],
-        defaultOutput: "raw"
-    };
 
     static id = "CjsVtaFormat";
 

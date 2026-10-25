@@ -196,14 +196,10 @@ export class CjsJpegFormat extends CjsImageFormat
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input JPEG bytes.
      * @param {object} [options] Read options.
-     * @param {object|null} [context=null] The resource path context a resource worker passes.
-     *   `emit: "bitmap"` returns the bitmap packet (`CjsImageFormat.readBitmapAsync`), which a resource worker
-     *   decodes off the main thread.
      * @returns {Promise<object>} GPU-free raw/debug payload for the selected emit target.
      */
-    static async readAsync(input, options = {}, context = null)
+    static async readAsync(input, options = {})
     {
-        if (options.emit === "bitmap") return CjsJpegFormat.readBitmapAsync(input, options, context);
         return CjsJpegFormat.read(input, options);
     }
 
@@ -244,14 +240,6 @@ export class CjsJpegFormat extends CjsImageFormat
     }
 
 
-
-    /** A resource worker decodes this format's bitmap (`emit: "bitmap"`); every other output reads on the caller's thread. */
-    static worker = {
-        module: import.meta.url,
-        exportName: "CjsJpegFormat",
-        outputTypes: [ "bitmap" ],
-        defaultOutput: "raw"
-    };
 
     static id = "CjsJpegFormat";
 

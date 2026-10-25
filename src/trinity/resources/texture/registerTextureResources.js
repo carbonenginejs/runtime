@@ -13,17 +13,21 @@
 // asynchronous, and `SetPayload` is not. The loader therefore does what
 // Carbon's DoLoad does, and hands the resource the finished bitmap.
 //
-// Carbon's DoLoad runs on BlueResMan's background threads. Here an image
-// format that declares a worker (`static worker`, `emit: "bitmap"`) is decoded
-// on the manager's resource worker through `ReadFormatOnce`, which falls back
-// to this thread when no worker is available; a format without one decodes
-// here through ImageIO.
+// Carbon's DoLoad runs on resMan's background queue, which is BeCallbackMan
+// (BlueResMan.cpp:109). Here the decode of PNG, JPEG, TGA, VTA and GIF is
+// queued there as the `image.decodeBitmap` job, so several images decode at
+// once on its workers (resman-in-the-browser: the CPU stage). When nothing
+// registered that job, the image decodes on this thread. Other formats decode
+// here through ImageIO; DDS still reads through ReadFormatOnce.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { ImageIO } from "../../../resource/imageio/ImageIO.js";
 import { createDdsBitmap } from "../../../resource/formats/dds/ddsBitmap.js";
 import { CjsDdsFormat } from "../../../resource/formats/dds/CjsDdsFormat.js";
 import { compressBitmapAsync, selectCompression } from "#resource/codecs/bcn";
+import { DECODE_BITMAP_CALLBACK, IMAGE_DECODE_FORMATS } from "../../../resource/imageio/imageDecodeCallbacks.js";
+import { BeCallbackMan, BlueCallbackMan } from "../../../global/blue/BlueCallbackMan.js";
+import { asUint8Array } from "#utils/bytes";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
 import { ResourceRequirement } from "#blue";
@@ -33,24 +37,35 @@ import { getResourceExtension } from "#utils/path";
 /** Stable reader identity preserves the caller's requested DDS decode sharing. */
 const DDS_BITMAP_DESCRIPTOR = { Format: CjsDdsFormat, defaults: { emit: "bitmap" } };
 
-/** One stable bitmap descriptor per worker-capable image format, for the same decode sharing. */
-const BITMAP_DESCRIPTORS = new Map();
-
 /**
- * The bitmap descriptor for an image format, created once.
+ * Decodes an image to its bitmap packet: on BeCallbackMan when it has the
+ * `image.decodeBitmap` job, otherwise on this thread. A cancelled load
+ * cancels a queued decode; one already running finishes and its result is
+ * dropped.
  *
- * @param {Function} Format A CjsImageFormat subclass that declares a worker.
- * @returns {{Format: Function, defaults: {emit: string}}} The descriptor.
+ * @param {Function} Format The extension's image format, one `IMAGE_DECODE_FORMATS` holds.
+ * @param {Uint8Array|ArrayBuffer} bytes The file's bytes.
+ * @param {object} context The manager's prepare context.
+ * @param {string} context.path The resource path.
+ * @param {AbortSignal} [context.signal] Cancels the load.
+ * @returns {Promise<object>} The bitmap packet.
  */
-function GetBitmapDescriptor(Format)
+async function DecodeImageBitmap(Format, bytes, context)
 {
-  let descriptor = BITMAP_DESCRIPTORS.get(Format);
-  if (!descriptor)
+  if (!BeCallbackMan.HasCallbackModule(DECODE_BITMAP_CALLBACK)) return Format.readBitmapAsync(bytes, { source: context.path });
+  const id = { value: 0 };
+  const cancel = () => BeCallbackMan.Cancel(id.value);
+  const signal = context.signal;
+  if (signal) signal.addEventListener("abort", cancel, { once: true });
+  try
   {
-    descriptor = { Format, defaults: { emit: "bitmap" } };
-    BITMAP_DESCRIPTORS.set(Format, descriptor);
+    return await BeCallbackMan.Add__Name(DECODE_BITMAP_CALLBACK,
+      { format: Format.id, input: asUint8Array(bytes), source: context.path }, BlueCallbackMan.BCBF_NONE, id);
   }
-  return descriptor;
+  finally
+  {
+    if (signal) signal.removeEventListener("abort", cancel);
+  }
 }
 
 /**
@@ -94,15 +109,12 @@ export async function ReadImageResource(bytes, context, compression = {})
     });
     bitmap = createDdsBitmap(packet);
   }
-  else if (IsWorkerImageFormat(ImageIO.getImageHandler(ImageIO.getExtension(context.path))))
+  else if (IsDecodedImage(ImageIO.getImageHandler(ImageIO.getExtension(context.path))))
   {
     const Format = ImageIO.getImageHandler(ImageIO.getExtension(context.path));
     try
     {
-      const packet = await context.resMan.ReadFormatOnce(context.resource, GetBitmapDescriptor(Format), bytes, {
-        ...context, emit: "bitmap"
-      });
-      bitmap = createDdsBitmap(packet);
+      bitmap = createDdsBitmap(await DecodeImageBitmap(Format, bytes, context));
     }
     catch (error)
     {
@@ -135,14 +147,14 @@ export async function ReadImageResource(bytes, context, compression = {})
 }
 
 /**
- * Whether an image format decodes its bitmap on a resource worker.
+ * Whether an extension's image format is one the `image.decodeBitmap` job decodes.
  *
  * @param {?Function} Format The extension's registered image format, or null.
- * @returns {boolean} True when it declares a worker that emits "bitmap".
+ * @returns {boolean} True for the formats `IMAGE_DECODE_FORMATS` holds.
  */
-function IsWorkerImageFormat(Format)
+function IsDecodedImage(Format)
 {
-  return Format !== null && Format.worker !== undefined && Format.worker.outputTypes.includes("bitmap");
+  return Format !== null && IMAGE_DECODE_FORMATS.get(Format.id) === Format;
 }
 
 /**

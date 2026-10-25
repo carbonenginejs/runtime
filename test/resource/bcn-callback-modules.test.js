@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { BCN_CALLBACK_MODULES, compressBitmapAsync } from "../../src/resource/codecs/bcn/index.js";
+import { IMAGE_DECODE_CALLBACK_MODULES } from "../../src/resource/imageio/imageDecodeCallbacks.js";
 import demoBundles from "../../rollup.webgpu-demo.config.mjs";
 
 // BeCallbackMan imports each registered callback module by URL, in a worker
@@ -16,13 +17,13 @@ const manifest = JSON.parse(readFileSync(new URL("package.json", ROOT), "utf8"))
 const published = new Set(Object.values(manifest.exports).filter(value => typeof value === "string"));
 const bundled = new Set(demoBundles.map(config => config.input.replaceAll("\\", "/")));
 
-test("every bcn callback module exists, exports its callback, and is published and bundled", async () =>
+test("every registered callback module (bcn, image decode) exists, exports its callback, and is published and bundled", async () =>
 {
   const entry = "./src/global/blue/worker/blueCallbackManWorkerEntry.js";
   assert.ok(published.has(entry), "the default worker entry is a package export");
   assert.ok([ ...bundled ].some(input => input.endsWith("npm/dist/global/blue/worker/blueCallbackManWorkerEntry.js")), "the demo build bundles the worker entry");
 
-  for (const [ name, url ] of Object.entries(BCN_CALLBACK_MODULES))
+  for (const [ name, url ] of Object.entries({ ...BCN_CALLBACK_MODULES, ...IMAGE_DECODE_CALLBACK_MODULES }))
   {
     const file = fileURLToPath(url);
     assert.ok(existsSync(file), `${name}: ${file} exists`);

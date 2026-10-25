@@ -15,6 +15,7 @@ import { CjsIESFormat } from "../resource/formats/ies/CjsIESFormat.js";
 import { Tr2LightProfileRes } from "../trinity/resources/Tr2LightProfileRes.js";
 import { TriGrannyRes } from "../trinity/resources/geometry/granny/TriGrannyRes.js";
 import { BCN_CALLBACK_MODULES } from "../resource/codecs/bcn/carbon/dxtCompressionAsync.js";
+import { IMAGE_DECODE_CALLBACK_MODULES } from "../resource/imageio/imageDecodeCallbacks.js";
 
 const shaderLoader = CreateShaderResourceLoader();
 
@@ -119,7 +120,7 @@ export const DefaultConfiguration = {
 
   // BeCallbackMan's callback modules, by callback name; see
   // BlueCallbackMan.RegisterCallbackModule.
-  callbackModules: { ...BCN_CALLBACK_MODULES },
+  callbackModules: { ...BCN_CALLBACK_MODULES, ...IMAGE_DECODE_CALLBACK_MODULES },
 
   // How BeCallbackMan starts (Carbon: ResourceLoading.cpp:68-91). Carbon's
   // default thread count, (logical CPUs - 1) * 8 clamped to 4-24, sizes
