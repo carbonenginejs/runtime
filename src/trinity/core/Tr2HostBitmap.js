@@ -12,6 +12,8 @@ import * as CcpLog from "../../global/logging/ccpLog.js";
 import { ALResult } from "../../trinityal/ALResult.js";
 import { ImageIO } from "../../resource/imageio/ImageIO.js";
 import { compressBitmapAsync } from "#resource/codecs/bcn";
+import { Tr2TextureSubresource, Failed } from "#trinityal";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { createDdsBitmap } from "../../resource/formats/dds/ddsBitmap.js";
 
 /**
@@ -791,30 +793,65 @@ export class Tr2HostBitmap extends HostBitmap
    *
    * Carbon: Tr2HostBitmap::CopyFromRenderTargetPython (trinity/trinity/Tr2HostBitmap.cpp:46-54;
    * Tr2HostBitmap.h:53). Exposed as "CopyFromRenderTarget" (Tr2HostBitmap_Blue.cpp:477-481,
-   * MAP_METHOD_AND_WRAP). Not implemented: it calls `CopyFromRenderTarget`.
+   * MAP_METHOD_AND_WRAP): false without a render target, else `CopyFromRenderTarget` on the
+   * main-thread render context.
    *
-   * @throws {Error} Always.
+   * Adapted: awaited, as `CopyFromRenderTarget` is.
+   *
+   * @param {Tr2RenderTarget|null} rt The render target to copy.
+   * @returns {Promise<boolean>} Whether the copy succeeded.
    */
   @be.mapMethodAndWrap("CopyFromRenderTarget")
-  @meta.notImplemented
-  _CopyFromRenderTargetPython(...args)
+  @meta.adapted
+  async _CopyFromRenderTargetPython(rt)
   {
-    throw new Error("Tr2HostBitmap.CopyFromRenderTargetPython is not implemented in CarbonEngineJS.");
+    if (!rt) return false;
+    return this.CopyFromRenderTarget(rt.GetRenderTarget(), Tr2RenderContext_GetMainThreadRenderContext());
   }
 
   /**
-   * Copies a texture or render target into this 2D bitmap.
+   * Copies a texture or render target into this 2D bitmap: every mip both
+   * have, at the same size and format (B8G8R8X8 into B8G8R8A8 with alpha
+   * set opaque).
    *
-   * Carbon: Tr2HostBitmap::CopyFromRenderTarget (trinity/trinity/Tr2HostBitmap.cpp:36-39, and the
-   * source-rectangle overload 41-44; Tr2HostBitmap.h:30-31). Both reach `SharedCopyFaceFromRenderTarget`.
-   * Not implemented: it reads a `Tr2TextureAL` back to the CPU, which is asynchronous in the browser.
+   * Carbon: Tr2HostBitmap::CopyFromRenderTarget (trinity/trinity/Tr2HostBitmap.cpp:36-39;
+   * Tr2HostBitmap.h:30), through `SharedCopyFaceFromRenderTarget`. False for a bitmap that is not 2D.
    *
-   * @throws {Error} Always.
+   * Adapted: awaited. Carbon locks the texture and reads it synchronously; the
+   * browser can only read a GPU texture back asynchronously.
+   *
+   * @param {Tr2TextureAL} rtAL The texture to copy, readable by the CPU.
+   * @param {Tr2RenderContext} renderContext The render context the readback is issued on.
+   * @returns {Promise<boolean>} Whether the copy succeeded.
    */
-  @meta.notImplemented
-  CopyFromRenderTarget(...args)
+  @meta.adapted
+  async CopyFromRenderTarget(rtAL, renderContext)
   {
-    throw new Error("Tr2HostBitmap.CopyFromRenderTarget is not implemented in CarbonEngineJS.");
+    return this._type === TextureType.TEX_TYPE_2D ? this._SharedCopyFaceFromRenderTarget(0, rtAL, null, 0, 0, renderContext) : false;
+  }
+
+  /**
+   * Copies a rectangle of a texture or render target into this 2D bitmap,
+   * clipped to both. The offset places the source's origin, so the
+   * rectangle's top-left pixel lands at (offsetX + left, offsetY + top)
+   * (Tr2HostBitmap.cpp:97-98).
+   *
+   * Carbon: the source-rectangle Tr2HostBitmap::CopyFromRenderTarget overload
+   * (trinity/trinity/Tr2HostBitmap.cpp:41-44; Tr2HostBitmap.h:31).
+   *
+   * Adapted: awaited, as `CopyFromRenderTarget` is.
+   *
+   * @param {Tr2TextureAL} rtAL The texture to copy, readable by the CPU.
+   * @param {ArrayLike<number>} srcRect Source left, top, right and bottom, in pixels.
+   * @param {number} offsetX Destination column of the source's column 0.
+   * @param {number} offsetY Destination row of the source's row 0.
+   * @param {Tr2RenderContext} renderContext The render context the readback is issued on.
+   * @returns {Promise<boolean>} Whether the copy succeeded.
+   */
+  @meta.adapted
+  async CopyFromRenderTarget__SrcRect(rtAL, srcRect, offsetX, offsetY, renderContext)
+  {
+    return this._type === TextureType.TEX_TYPE_2D ? this._SharedCopyFaceFromRenderTarget(0, rtAL, srcRect, offsetX, offsetY, renderContext) : false;
   }
 
   /**
@@ -850,32 +887,126 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /**
-   * Copies one cube face of a render target into this cube bitmap.
+   * Copies one face of a cube render target into the same face of this cube bitmap.
    *
    * Carbon: Tr2HostBitmap::CopyFaceFromRenderTarget (trinity/trinity/Tr2HostBitmap.cpp:56-59;
-   * Tr2HostBitmap.h:32). Not implemented: it reaches `SharedCopyFaceFromRenderTarget`.
+   * Tr2HostBitmap.h:32), through `SharedCopyFaceFromRenderTarget`. False for a bitmap that is not a cube.
    *
-   * @throws {Error} Always.
+   * Adapted: awaited, as `CopyFromRenderTarget` is.
+   *
+   * @param {number} face The cube face (`CubemapFace`).
+   * @param {Tr2TextureAL} rtAL The cube texture to copy, readable by the CPU.
+   * @param {Tr2RenderContext} renderContext The render context the readback is issued on.
+   * @returns {Promise<boolean>} Whether the copy succeeded.
    */
-  @meta.notImplemented
-  CopyFaceFromRenderTarget(...args)
+  @meta.adapted
+  async CopyFaceFromRenderTarget(face, rtAL, renderContext)
   {
-    throw new Error("Tr2HostBitmap.CopyFaceFromRenderTarget is not implemented in CarbonEngineJS.");
+    return this._type === TextureType.TEX_TYPE_CUBE ? this._SharedCopyFaceFromRenderTarget(face, rtAL, null, 0, 0, renderContext) : false;
   }
 
   /**
-   * Shared body of the render-target copies.
+   * Shared body of the render-target copies (Tr2HostBitmap.cpp:61-166): checks
+   * the texture matches (size only without a source rectangle), clips the
+   * rectangle and offset to both, then copies each mip both have, halving the
+   * rectangle per level. B8G8R8X8 sources write alpha 255. A rectangle that
+   * clips away entirely succeeds without copying.
    *
-   * Carbon: Tr2HostBitmap::SharedCopyFaceFromRenderTarget (trinity/trinity/Tr2HostBitmap.cpp:61-166;
-   * Tr2HostBitmap.h:70). Not implemented: it locks the texture and reads its pixels back to the CPU,
-   * which the browser only offers asynchronously.
+   * Adapted: each mip is read through a `Tr2ReadbackAL` (`CreateReadback`,
+   * then an awaited `Map`), where Carbon locks the texture with
+   * `MapForReading` and reads it synchronously; the browser offers GPU
+   * readback only asynchronously. The readback's row pitch is padded to
+   * WebGPU's 256-byte alignment, which the copy honours as Carbon honours the
+   * locked pitch.
    *
-   * @throws {Error} Always.
+   * @param {number} face The cube face, or 0 for a 2D bitmap.
+   * @param {Tr2TextureAL} rtAL The texture to copy, readable by the CPU.
+   * @param {ArrayLike<number>|null} srcRect Source left, top, right and bottom, or null for the whole texture.
+   * @param {number} offsetX Destination column of the source's left edge.
+   * @param {number} offsetY Destination row of the source's top edge.
+   * @param {Tr2RenderContext} renderContext The render context the readbacks are issued on.
+   * @returns {Promise<boolean>} Whether the copy succeeded.
    */
-  @meta.notImplemented
-  _SharedCopyFaceFromRenderTarget(...args)
+  @meta.adapted
+  async _SharedCopyFaceFromRenderTarget(face, rtAL, srcRect, offsetX, offsetY, renderContext)
   {
-    throw new Error("Tr2HostBitmap.SharedCopyFaceFromRenderTarget is not implemented in CarbonEngineJS.");
+    const { match, alphaConvert } = this._CheckForMatch(rtAL.GetDesc(), srcRect === null, "CopyFromRenderTarget");
+    if (!match) return false;
+    if (!rtAL.IsValid() || this.IsCompressed())
+    {
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "CopyFromRenderTarget: invalid source");
+      return false;
+    }
+
+    let left = 0, top = 0, right = rtAL.GetWidth(), bottom = rtAL.GetHeight();
+    if (srcRect)
+    {
+      left = Math.max(left, srcRect[0]);
+      top = Math.max(top, srcRect[1]);
+      right = Math.min(right, srcRect[2]);
+      bottom = Math.min(bottom, srcRect[3]);
+    }
+    if (offsetX < 0)
+    {
+      left = Math.max(left, -offsetX);
+      right = Math.min(right, rtAL.GetWidth() + offsetX);
+    }
+    if (offsetY < 0)
+    {
+      top = Math.max(top, -offsetY);
+      bottom = Math.min(bottom, rtAL.GetHeight() + offsetY);
+    }
+    offsetX += left;
+    offsetY += top;
+    if (left >= right || top >= bottom || this._width < offsetX || this._height < offsetY) return true;
+
+    let width = Math.min(right - left, this._width - offsetX);
+    let height = Math.min(bottom - top, this._height - offsetY);
+    const bytesPerPixel = GetBytesPerPixel(this._format);
+    const mipCount = Math.min(this.GetTrueMipCount(), rtAL.GetTrueMipCount());
+    for (let mipLevel = 0; mipLevel !== mipCount; ++mipLevel)
+    {
+      const region = this._type === TextureType.TEX_TYPE_CUBE
+        ? Tr2TextureSubresource.create__FaceMipLevel(face, mipLevel)
+        : Tr2TextureSubresource.create__MipLevel(mipLevel);
+      const readback = rtAL.CreateReadback(region, renderContext);
+      const mapped = await readback.Map(renderContext);
+      if (Failed(mapped.result) || !mapped.data)
+      {
+        readback.Destruct();
+        CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "SharedCopyFaceFromRenderTarget: failed to lock renderTarget level %d", mipLevel);
+        return false;
+      }
+
+      const dstPitch = this.GetMipPitch(mipLevel);
+      const srcPitch = mapped.pitch;
+      const dst = this.GetMipRawData(mipLevel, face);
+      let d = bytesPerPixel * offsetX + dstPitch * offsetY;
+      let s = bytesPerPixel * left + srcPitch * top;
+      for (let row = 0; row !== height; ++row, s += srcPitch, d += dstPitch)
+      {
+        if (alphaConvert)
+        {
+          for (let i = 0; i !== width; ++i)
+          {
+            dst[d + i * 4] = mapped.data[s + i * 4];
+            dst[d + i * 4 + 1] = mapped.data[s + i * 4 + 1];
+            dst[d + i * 4 + 2] = mapped.data[s + i * 4 + 2];
+            dst[d + i * 4 + 3] = 0xff;
+          }
+        }
+        else dst.set(mapped.data.subarray(s, s + width * bytesPerPixel), d);
+      }
+      readback.Destruct();
+
+      width = Math.max(width >>> 1, 1);
+      height = Math.max(height >>> 1, 1);
+      offsetX >>>= 1;
+      offsetY >>>= 1;
+      left >>>= 1;
+      top >>>= 1;
+    }
+    return true;
   }
 
   /**
