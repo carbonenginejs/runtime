@@ -1,3 +1,4 @@
+export * from "./CjsMeshConstructor.js";
 export * from "./MeshDecalData.js";
 export * from "./MeshDecalLodData.js";
 export * from "./TriGeometryRes.js";

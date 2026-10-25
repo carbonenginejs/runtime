@@ -4,6 +4,7 @@ import { buildCmfFromShared, buildSharedFromCmf } from "./shared.js";
 import { buildGr2Animations, buildGr2Models } from "./gr2Compat.js";
 import { hydrateCmf } from "./utils/hydration.js";
 import { validateCmfGraph } from "./validate.js";
+import { normalizeSelectIndex, selectCmfMeshes } from "./select.js";
 
 export { CLASS_KEYS, OUTPUT_CMF, OUTPUT_CMF_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_NATIVE, OUTPUT_RAW, OUTPUT_SHARED };
 
@@ -333,6 +334,8 @@ export { CLASS_KEYS, OUTPUT_CMF, OUTPUT_CMF_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPU
  * @property {boolean} validateCrc Whether to check the file checksum.
  * @property {boolean} decodeBuffers Whether to decode GPU buffers.
  * @property {CmfClasses} classes Constructors used for hydration.
+ * @property {number|null} meshIndex Mesh to keep, or null for all.
+ * @property {number|null} lodIndex LOD to keep in each mesh, or null for all.
  * @property {string} [source] Source resource path.
  */
 
@@ -340,7 +343,9 @@ export const DEFAULT_VALUES = {
     emit: OUTPUT_CMF,
     validateCrc: true,
     decodeBuffers: true,
-    classes: {}
+    classes: {},
+    meshIndex: null,
+    lodIndex: null
 };
 
 /**
@@ -355,8 +360,10 @@ export const DEFAULT_VALUES = {
  * @param {boolean} [options.validateCrc] Whether to check the file checksum.
  * @param {boolean} [options.decodeBuffers] Whether to decode GPU buffers.
  * @param {CmfClasses} [options.classes] Constructors used for hydration.
+ * @param {number|null} [options.meshIndex] Mesh to keep; null or undefined keeps all.
+ * @param {number|null} [options.lodIndex] LOD to keep in each mesh; null or undefined keeps all.
  * @returns {CmfValues} The normalized values.
- * @throws {TypeError} When `emit` is "gr2" without classes.
+ * @throws {TypeError} When `emit` is "gr2" without classes, or an index is not a non-negative integer.
  */
 export function normalizeValues(base = {}, options = {})
 {
@@ -378,6 +385,8 @@ export function normalizeValues(base = {}, options = {})
 
     validateClasses(values.classes);
     values.decodeBuffers = !!values.decodeBuffers;
+    values.meshIndex = normalizeSelectIndex(values.meshIndex, "CMF meshIndex");
+    values.lodIndex = normalizeSelectIndex(values.lodIndex, "CMF lodIndex");
     return values;
 }
 
@@ -410,42 +419,62 @@ function hasClasses(classes)
 }
 
 /**
- * Reads and validates raw input bytes for the CMF format reader.
+ * Reads and validates raw input bytes for the CMF format reader, keeping the
+ * meshes and LODs the options select.
  *
  * @param {Uint8Array|ArrayBuffer|ArrayBufferView|CmfGraph} input File bytes, or an existing raw graph.
  * @param {object} [options={}] Reader values.
  * @param {boolean} [options.validateCrc] Whether to check the file checksum.
  * @param {boolean} [options.decodeBuffers] Whether to decode GPU buffers.
+ * @param {number|null} [options.meshIndex] Mesh to keep; null or undefined keeps all.
+ * @param {number|null} [options.lodIndex] LOD to keep in each mesh; null or undefined keeps all.
  * @returns {CmfGraph} The validated raw graph.
  */
 export function readRawInput(input, options = {})
 {
-    if (input && typeof input === "object" && Array.isArray(input.sections) && Array.isArray(input.meshes))
-    {
-        return validateCmfGraph(input, { phase: "read" });
-    }
-
-    return readCmf(input, options);
+    const graph = input && typeof input === "object" && Array.isArray(input.sections) && Array.isArray(input.meshes)
+        ? validateCmfGraph(input, { phase: "read" })
+        : readCmf(input, options);
+    return selectRawMeshes(graph, options);
 }
 
 /**
- * Reads and validates raw input bytes asynchronously for the CMF format reader.
+ * Reads and validates raw input bytes asynchronously for the CMF format
+ * reader, keeping the meshes and LODs the options select.
  *
  * @param {Uint8Array|ArrayBuffer|ArrayBufferView|CmfGraph} input File bytes, or an existing raw graph.
  * @param {object} [options={}] Reader values.
  * @param {boolean} [options.validateCrc] Whether to check the file checksum.
  * @param {boolean} [options.decodeBuffers] Whether to decode GPU buffers.
+ * @param {number|null} [options.meshIndex] Mesh to keep; null or undefined keeps all.
+ * @param {number|null} [options.lodIndex] LOD to keep in each mesh; null or undefined keeps all.
  * @returns {Promise<CmfGraph>} The validated raw graph.
  */
 export async function readRawInputAsync(input, options = {})
 {
     if (input && typeof input === "object" && Array.isArray(input.sections) && Array.isArray(input.meshes))
     {
-        return validateCmfGraph(input, { phase: "read" });
+        return selectRawMeshes(validateCmfGraph(input, { phase: "read" }), options);
     }
 
     const { readCmfAsync } = await import("./schema.js");
-    return readCmfAsync(input, options);
+    return selectRawMeshes(await readCmfAsync(input, options), options);
+}
+
+/**
+ * Keeps the meshes and LODs reader values select from a validated raw graph.
+ *
+ * @param {CmfGraph} graph Validated raw graph.
+ * @param {object} options Reader values, normalized or not.
+ * @returns {CmfGraph} The graph, or its selected copy.
+ */
+function selectRawMeshes(graph, options)
+{
+    return selectCmfMeshes(
+        graph,
+        normalizeSelectIndex(options.meshIndex, "CMF meshIndex"),
+        normalizeSelectIndex(options.lodIndex, "CMF lodIndex")
+    );
 }
 
 /**
@@ -504,7 +533,7 @@ export async function readWithValuesAsync(owner, input, values)
  */
 export function loadSharedWithValues(input, values)
 {
-    const native = buildCmfFromShared(input);
+    const native = selectCmfMeshes(buildCmfFromShared(input), values.meshIndex, values.lodIndex);
     return values.emit === OUTPUT_SHARED
         ? buildSharedFromCmf(native, values.classes, { source: values.source })
         : values.emit === OUTPUT_GR2
@@ -517,20 +546,21 @@ export function loadSharedWithValues(input, values)
  *
  * @param {CmfGraph} input CMF-native graph.
  * @param {CmfValues} values Normalized reader values.
- * @returns {CmfGraph|object} The input when `emit` is "raw", otherwise the hydrated CMF, shared or GR2 root.
+ * @returns {CmfGraph|object} The selected input when `emit` is "raw", otherwise the hydrated CMF, shared or GR2 root.
  */
 export function loadNativeWithValues(input, values)
 {
+    const native = selectCmfMeshes(input, values.meshIndex, values.lodIndex);
     if (values.emit === OUTPUT_RAW)
     {
-        return input;
+        return native;
     }
 
     return values.emit === OUTPUT_SHARED
-        ? buildSharedFromCmf(input, values.classes, { source: values.source })
+        ? buildSharedFromCmf(native, values.classes, { source: values.source })
         : values.emit === OUTPUT_GR2
-            ? buildGr2FromCmf(input, values.classes, { source: values.source })
-            : hydrateNativeRoot(input, values.classes, { source: values.source });
+            ? buildGr2FromCmf(native, values.classes, { source: values.source })
+            : hydrateNativeRoot(native, values.classes, { source: values.source });
 }
 
 /**

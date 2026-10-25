@@ -56,6 +56,12 @@ export class CjsCmfFormat extends CjsGeometryFormat
 
     _classes = {};
 
+    /** Mesh a read keeps, or null for all. */
+    _meshIndex = DEFAULT_VALUES.meshIndex;
+
+    /** LOD a read keeps in each mesh, or null for all. */
+    _lodIndex = DEFAULT_VALUES.lodIndex;
+
     /**
      * Create a reusable format profile.
      *
@@ -81,6 +87,8 @@ export class CjsCmfFormat extends CjsGeometryFormat
         this._validateCrc = values.validateCrc;
         this._decodeBuffers = values.decodeBuffers;
         this._classes = values.classes;
+        this._meshIndex = values.meshIndex;
+        this._lodIndex = values.lodIndex;
 
         return this;
     }
@@ -97,7 +105,9 @@ export class CjsCmfFormat extends CjsGeometryFormat
             emit: this._emit,
             validateCrc: this._validateCrc,
             decodeBuffers: this._decodeBuffers,
-            classes: this._classes
+            classes: this._classes,
+            meshIndex: this._meshIndex,
+            lodIndex: this._lodIndex
         }, options);
     }
 

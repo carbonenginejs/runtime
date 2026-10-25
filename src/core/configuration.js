@@ -11,6 +11,7 @@ import { CreateBlackObjectBuilder } from "../global/blue/formats/black/CreateBla
 import { SolidColorTextureConstructor } from "../trinity/resources/procedural/SolidColorTextureConstructor.js";
 import { CjsTextureArrayConstructor } from "../trinity/resources/texture/CjsTextureArrayConstructor.js";
 import { CjsTexturePackConstructor } from "../trinity/resources/texture/CjsTexturePackConstructor.js";
+import { CjsMeshConstructor } from "../trinity/resources/geometry/CjsMeshConstructor.js";
 import { CjsIESFormat } from "../resource/formats/ies/CjsIESFormat.js";
 import { Tr2LightProfileRes } from "../trinity/resources/Tr2LightProfileRes.js";
 import { TriGrannyRes } from "../trinity/resources/geometry/granny/TriGrannyRes.js";
@@ -114,7 +115,8 @@ export const DefaultConfiguration = {
   resourceConstructors: {
     color: SolidColorTextureConstructor,
     texturearray: CjsTextureArrayConstructor,
-    texturepack: CjsTexturePackConstructor
+    texturepack: CjsTexturePackConstructor,
+    mesh: CjsMeshConstructor
   },
 
   imageHandlers: {

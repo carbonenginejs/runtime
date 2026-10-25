@@ -6,6 +6,7 @@ import { tangents } from "./tangents.js";
 import { decompressAnimationCurves } from "./curves.js";
 import { buildCmfFromShared, CMF_CLASS_KEYS, reassembleGr2Lods } from "./targets.js";
 import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
+import { normalizeSelectIndex, selectCmfMeshes } from "../../cmf/core/select.js";
 
 /**
  * Context passed to a per-mesh rule function.
@@ -40,6 +41,8 @@ import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
  * @property {Gr2MeshRule} rebuildMissingBiNormals Generate absent binormals.
  * @property {boolean} rebuildMissingBounds Compute absent mesh bounds.
  * @property {Object<string, Function>} classes Hydration constructors keyed by class key.
+ * @property {number|null} meshIndex Mesh to keep, counted in the emitted meshes, or null for all.
+ * @property {number|null} lodIndex LOD to keep in each mesh, or null for all; "cmf" output only.
  */
 
 /**
@@ -171,7 +174,9 @@ export const DEFAULT_VALUES = {
     rebuildMissingTangents: false,
     rebuildMissingBiNormals: false,
     rebuildMissingBounds: false,
-    classes: {}
+    classes: {},
+    meshIndex: null,
+    lodIndex: null
 };
 
 const OPTION_KEYS = new Set([
@@ -182,7 +187,9 @@ const OPTION_KEYS = new Set([
     "rebuildMissingTangents",
     "rebuildMissingBiNormals",
     "rebuildMissingBounds",
-    "classes"
+    "classes",
+    "meshIndex",
+    "lodIndex"
 ]);
 
 /**
@@ -229,7 +236,9 @@ function cloneValues(values)
         rebuildMissingTangents: values.rebuildMissingTangents,
         rebuildMissingBiNormals: values.rebuildMissingBiNormals,
         rebuildMissingBounds: values.rebuildMissingBounds,
-        classes: { ...classMap(values) }
+        classes: { ...classMap(values) },
+        meshIndex: values.meshIndex,
+        lodIndex: values.lodIndex
     };
 }
 
@@ -365,6 +374,8 @@ function optionValue(options, keys)
  * @param {Gr2MeshRule} [options.rebuildMissingBiNormals] Generate absent binormals.
  * @param {boolean} [options.rebuildMissingBounds] Compute absent mesh bounds.
  * @param {Object<string, Function>} [options.classes] Constructors to merge into the class map.
+ * @param {number|null} [options.meshIndex] Mesh to keep; null or undefined keeps all.
+ * @param {number|null} [options.lodIndex] LOD to keep in each mesh; null or undefined keeps all.
  * @returns {Gr2Values} A new values object.
  * @throws {TypeError} When an option is unknown or invalid, or "gr2"/"cmf" output has no classes.
  * @throws {Error} When `emit` or a class key is unknown.
@@ -423,6 +434,15 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {})
     if (Object.hasOwn(options, "classes"))
     {
         mergeClasses(values, options.classes);
+    }
+
+    if (Object.hasOwn(options, "meshIndex"))
+    {
+        values.meshIndex = normalizeSelectIndex(options.meshIndex, "CjsGr2Format meshIndex");
+    }
+    if (Object.hasOwn(options, "lodIndex"))
+    {
+        values.lodIndex = normalizeSelectIndex(options.lodIndex, "CjsGr2Format lodIndex");
     }
 
     if ((values.emit === OUTPUT_GR2 || values.emit === OUTPUT_CMF) && !hasClasses(values.classes))
@@ -785,8 +805,10 @@ function buildCmf(reader, raw, values)
         values
     );
     // GR2 forwards no hydration source, unlike CMF: its options never accepted one.
+    // The selection counts the meshes after their LOD siblings fold in, as
+    // Carbon publishes them.
     return hydrateCmf(
-        buildCmfFromShared(reassembleGr2Lods(shared)),
+        selectCmfMeshes(buildCmfFromShared(reassembleGr2Lods(shared)), values.meshIndex, values.lodIndex),
         values.classes,
         {},
         "CjsGr2Format CMF"
@@ -801,13 +823,42 @@ function buildCmf(reader, raw, values)
  *     read result.
  * @param {Gr2Values} values Normalized read values.
  * @returns {object} The raw read result, the GR2 JSON root or the CMF graph, per `values.emit`.
+ * @throws {TypeError} When `lodIndex` is set for an output other than "cmf".
+ * @throws {RangeError} When the selected mesh or LOD does not exist.
  */
 export function readWithValues(reader, input, values)
 {
     const parsed = readRawInput(input);
-    if (values.emit === OUTPUT_RAW) return parsed;
     if (values.emit === OUTPUT_CMF) return buildCmf(reader, parsed, values);
-    return buildJson(reader, parsed, values);
+    if (values.lodIndex !== null)
+    {
+        throw new TypeError(`CjsGr2Format lodIndex needs emit "cmf": "${values.emit}" keeps each LOD as its own mesh`);
+    }
+    const selected = selectFileMeshes(parsed, values.meshIndex);
+    if (values.emit === OUTPUT_RAW) return selected;
+    return buildJson(reader, selected, values);
+}
+
+/**
+ * Keeps one of a raw read's file meshes, counted as the JSON output counts
+ * them: the present entries of `fileInfo.Meshes`. The raw read is not changed.
+ * A model's bindings to the other meshes then project as -1, as bindings to a
+ * mesh outside the file already do.
+ *
+ * @param {import("./reader.js").RawGr2ReadResult} parsed Raw reflected read result.
+ * @param {number|null} meshIndex Mesh to keep, or null for all.
+ * @returns {import("./reader.js").RawGr2ReadResult} The read, or its selected copy.
+ * @throws {RangeError} When the file has no such mesh.
+ */
+function selectFileMeshes(parsed, meshIndex)
+{
+    if (meshIndex === null) return parsed;
+    const meshes = (parsed.fileInfo.Meshes || []).filter(Boolean);
+    if (meshIndex >= meshes.length)
+    {
+        throw new RangeError(`meshIndex ${meshIndex} is out of range: the file has ${meshes.length} meshes`);
+    }
+    return { ...parsed, fileInfo: { ...parsed.fileInfo, Meshes: [ meshes[meshIndex] ] } };
 }
 
 /**

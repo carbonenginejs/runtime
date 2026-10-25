@@ -75,7 +75,15 @@ export class CjsGr2Format extends CjsGeometryFormat
 
     _rebuildMissingBiNormals = DEFAULT_VALUES.rebuildMissingBiNormals;
 
+    _rebuildMissingBounds = DEFAULT_VALUES.rebuildMissingBounds;
+
     _classes = {};
+
+    /** Mesh a read keeps, or null for all. */
+    _meshIndex = DEFAULT_VALUES.meshIndex;
+
+    /** LOD a read keeps in each mesh, or null for all; "cmf" output only. */
+    _lodIndex = DEFAULT_VALUES.lodIndex;
 
     /**
      * Create a reusable format profile.
@@ -104,7 +112,10 @@ export class CjsGr2Format extends CjsGeometryFormat
         this._rebuildMissingNormals = values.rebuildMissingNormals;
         this._rebuildMissingTangents = values.rebuildMissingTangents;
         this._rebuildMissingBiNormals = values.rebuildMissingBiNormals;
+        this._rebuildMissingBounds = values.rebuildMissingBounds;
         this._classes = values.classes;
+        this._meshIndex = values.meshIndex;
+        this._lodIndex = values.lodIndex;
 
         return this;
     }
@@ -124,7 +135,10 @@ export class CjsGr2Format extends CjsGeometryFormat
             rebuildMissingNormals: this._rebuildMissingNormals,
             rebuildMissingTangents: this._rebuildMissingTangents,
             rebuildMissingBiNormals: this._rebuildMissingBiNormals,
-            classes: this._classes
+            rebuildMissingBounds: this._rebuildMissingBounds,
+            classes: this._classes,
+            meshIndex: this._meshIndex,
+            lodIndex: this._lodIndex
         }, options);
     }
 
