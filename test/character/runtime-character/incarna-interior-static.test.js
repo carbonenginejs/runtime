@@ -198,6 +198,19 @@ test("initializing a read static puts in each area the effect its material becom
   assert.equal(effect.GetEffectPathName(), "res:/graphics/shaders/compiled/dx11/incarnadetailed.fxt");
 });
 
+test("once the shader library is loaded, a read static's effects hold their paths at once", async t =>
+{
+  renderSetup(t);
+  blue.resMan = new LibraryResMan(libraryNaming("IncarnaDetailed", "res:/graphics/shaders/IncarnaDetailed.fx"));
+  const library = await Tr2ShaderMaterial.loadShaderLibrary(blue.resMan);
+  assert.equal(await Tr2ShaderMaterial.loadShaderLibrary(blue.resMan), library, "loaded once per manager");
+
+  const root = new CjsBlackReader(walkwayRecord(), { schema: null }).ReadRuntime().root;
+  const effect = root.detailMeshes[0].opaquePrepassAreas[0].effect;
+  assert.equal(effect.GetEffectPathName(), "res:/graphics/shaders/compiled/dx11/incarnadetailed.fxt");
+  assert.equal(blue.resMan.requests.filter(request => request.path === Tr2ShaderMaterial.shaderLibraryPath).length, 1);
+});
+
 /** A test manager whose LoadObject answers with a shader library. */
 class LibraryResMan extends StubResMan
 {

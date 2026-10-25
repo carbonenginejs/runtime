@@ -8,6 +8,12 @@ import { Tr2Effect } from "../../../trinity/shader/Tr2Effect.js";
 import { ITriEffectResourceParameter } from "../../../trinity/shader/parameter/ITriEffectResourceParameter.js";
 import { Tr2ShaderManager } from "./Tr2ShaderManager.js";
 
+/** Each resource manager's shader library, once loaded. */
+const loadedLibraries = new WeakMap();
+
+/** Each resource manager's shader library load, while it runs and after. */
+const libraryLoads = new WeakMap();
+
 /**
  * The material an Incarna mesh area holds in place of a Tr2Effect: a high-level
  * shader name and its parameters.
@@ -111,9 +117,12 @@ export class Tr2ShaderMaterial extends IRoot
    * `compiledEffectPath` gives the compiled container. The name alone is not
    * enough, since IncarnaSimple_Shadow's source is IncarnaDetailed_Shadow.fx.
    *
-   * Adapted: the library loads asynchronously, so the path arrives after the
-   * effect exists. A library that fails to load, or a shader it lacks, leaves
-   * the effect without a path; it never draws, and the failure is logged.
+   * Adapted: the library loads asynchronously. Once `loadShaderLibrary` has
+   * loaded it for the resource manager, the path is set before this returns, so
+   * `CreateEffect` gives an effect that has it; until then the path arrives
+   * after the effect exists. A library that fails to load, or a shader it
+   * lacks, leaves the effect without a path; it never draws, and the failure is
+   * logged.
    *
    * @param {Tr2Effect} effect The effect from `CreateEffect`.
    * @returns {Promise<void>} Settles once the path is set or the failure logged.
@@ -122,20 +131,18 @@ export class Tr2ShaderMaterial extends IRoot
   async _ResolveEffectPath(effect)
   {
     const name = this.highLevelShaderName;
-    let library;
-    try
+    let library = loadedLibraries.get(blue.resMan) ?? null;
+    if (library === null)
     {
-      library = CjsSchema.cast(await blue.resMan.LoadObject(Tr2ShaderMaterial.shaderLibraryPath), Tr2ShaderManager);
-    }
-    catch (error)
-    {
-      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Shader library ${Tr2ShaderMaterial.shaderLibraryPath} failed to load for ${name}: ${error?.message ?? error}`);
-      return;
-    }
-    if (!library)
-    {
-      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Shader library ${Tr2ShaderMaterial.shaderLibraryPath} is not a Tr2ShaderManager`);
-      return;
+      try
+      {
+        library = await Tr2ShaderMaterial.loadShaderLibrary(blue.resMan);
+      }
+      catch (error)
+      {
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Shader library ${Tr2ShaderMaterial.shaderLibraryPath} failed to load for ${name}: ${error?.message ?? error}`);
+        return;
+      }
     }
     const shader = library.shaderLibrary.find(candidate => candidate?.name === name);
     if (!shader)
@@ -162,6 +169,36 @@ export class Tr2ShaderMaterial extends IRoot
   {
     const file = String(shaderPath).split("/").pop().replace(/\.fx$/iu, "").toLowerCase();
     return `res:/graphics/shaders/compiled/dx11/${file}.fxt`;
+  }
+
+  /**
+   * Loads the shader library once per resource manager and keeps it, so every
+   * material resolves its path from the same library. A material converted
+   * after the load resolves its path at once (`_ResolveEffectPath`); a caller
+   * that needs loaded statics to hold their effects' paths awaits this first.
+   * A failed load is not kept, so a later call tries again.
+   *
+   * @param {object} resourceManager The `CjsBlueResMan` to load through.
+   * @returns {Promise<Tr2ShaderManager>} The library.
+   * @throws {TypeError} When the file is not a Tr2ShaderManager.
+   */
+  @meta.implemented
+  static loadShaderLibrary(resourceManager)
+  {
+    let load = libraryLoads.get(resourceManager);
+    if (!load)
+    {
+      load = resourceManager.LoadObject(Tr2ShaderMaterial.shaderLibraryPath).then(object =>
+      {
+        const library = CjsSchema.cast(object, Tr2ShaderManager);
+        if (!library) throw new TypeError(`Shader library ${Tr2ShaderMaterial.shaderLibraryPath} is not a Tr2ShaderManager`);
+        loadedLibraries.set(resourceManager, library);
+        return library;
+      });
+      load.catch(() => libraryLoads.delete(resourceManager));
+      libraryLoads.set(resourceManager, load);
+    }
+    return load;
   }
 
 }
