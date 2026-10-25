@@ -532,8 +532,12 @@ test("workers that fail before they load are dead: their entries requeue and run
   assert.equal(built.length, 2, "a dead thread's worker is not replaced");
   assert.equal(man.GetSize(), 2, "both entries are queued again");
 
+  // Update mode keeps one slot, so each tick starts one entry.
   ticker.OnTick(0, 0, null);
-  assert.deepEqual(await Promise.all([ first, second ]), [ 2, 4 ]);
+  assert.equal(await first, 2);
+  await tick(); // the slot frees just after the entry settles
+  ticker.OnTick(0, 0, null);
+  assert.equal(await second, 4);
 });
 
 test("a worker failing after it loaded is still replaced, on a started manager too", async () =>
@@ -573,4 +577,35 @@ test("the ticker leaves a manager on its own threads alone, and Start twice does
   assert.equal(built.length, 1);
   assert.doesNotThrow(() => new BlueCallbackManTicker(man).OnTick(0, 0, null));
   await man.Stop();
+});
+
+test("the ticker pumps like BlueResMan::Update: at least one entry, more while inside the time slice", () =>
+{
+  const man = new BlueCallbackMan();
+  const ran = [];
+  const busy = ms => { const end = performance.now() + ms; while (performance.now() < end); };
+  for (let i = 0; i < 5; ++i) man.Add(() => { busy(3); ran.push(i); });
+  const ticker = new BlueCallbackManTicker(man);
+  ticker.mainThreadTimeSlice = 0.005;
+  ticker.OnTick(0, 0, null);
+  assert.deepEqual(ran, [ 0, 1 ], "3 ms is inside the 5 ms slice, 6 ms is not");
+  ticker.mainThreadTimeSlice = 0.0001;
+  ticker.OnTick(0, 0, null);
+  assert.deepEqual(ran, [ 0, 1, 2 ], "a tick always runs one entry");
+});
+
+test("a started manager without workers keeps Carbon's one Update slot, so a tick starts one named entry", async () =>
+{
+  const man = new BlueCallbackMan();
+  man.SetThreadCount(4);
+  man.RegisterCallbackModule("double", CALLBACK_MODULE);
+  man.Start(false);
+  const jobs = [ man.Add__Name("double", 1), man.Add__Name("double", 2) ];
+  const ticker = new BlueCallbackManTicker(man);
+  ticker.OnTick(0, 0, null);
+  assert.equal(man.Update(), false, "the single slot is busy with the first entry");
+  assert.equal(await jobs[0], 2);
+  await tick(); // the slot frees just after the entry settles
+  ticker.OnTick(0, 0, null);
+  assert.equal(await jobs[1], 4);
 });

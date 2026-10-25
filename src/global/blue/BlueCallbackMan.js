@@ -330,7 +330,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * may have no workers, block them, or fail to load their module, so the
    * manager falls back to `Update` mode: at once when `Run` throws, or later
    * when every worker fails before it has loaded. The owner ticks `Update`
-   * for that mode. The default worker module runs the callbacks registered
+   * for that mode, which runs one entry at a time (`_FallBackToUpdate`). The default worker module runs the callbacks registered
    * with `RegisterCallbackModule`. Starting a started manager does nothing.
    *
    * @param {boolean} useWorkers Whether the host allows workers.
@@ -340,7 +340,11 @@ export class BlueCallbackMan extends IBlueCallbackMan
   {
     if (this._fallBackToUpdate) return this;
     this._fallBackToUpdate = true;
-    if (!useWorkers) return this;
+    if (!useWorkers)
+    {
+      this._FallBackToUpdate();
+      return this;
+    }
 
     if (this._workerModule === null) this._workerModule = new URL("./worker/blueCallbackManWorkerEntry.js", import.meta.url);
     try
@@ -350,8 +354,26 @@ export class BlueCallbackMan extends IBlueCallbackMan
     catch (error)
     {
       console.warn(`BlueCallbackMan: ${this._name}: no worker could be created (${error.message}); entries run through Update.`);
+      this._FallBackToUpdate();
     }
     return this;
+  }
+
+  /**
+   * Leaves a started manager running its entries through `Update`, with one
+   * slot: Carbon's `Update` runs one thread record whatever the thread count
+   * (CallbackMan.cpp:303-315). Our named entries are asynchronous, so the
+   * owner's time slice cannot see their work; the single slot is what keeps
+   * the tick to one entry. Fence bits for threads that no longer exist are
+   * cleared, or a fenced entry would wait for them forever.
+   */
+  _FallBackToUpdate()
+  {
+    this._threadCount = 1;
+    for (const queue of [ this._urgentQueue, this._queue, this._fenceQueue ])
+    {
+      for (const entry of queue) entry.fenceMask &= 1;
+    }
   }
 
   /**
@@ -716,10 +738,12 @@ export class BlueCallbackMan extends IBlueCallbackMan
     if (pending)
     {
       this._workerEntries.delete(pending.entry.id);
-      // Not run yet; a cancelled one has already been rejected and is dropped.
+      // Not run yet, so it goes ahead of the waiting entries, in id order among
+      // others handed back; a cancelled one has already been rejected and is dropped.
       if (td.currentId === pending.entry.id)
       {
-        this._urgentQueue.unshift(pending.entry);
+        const before = this._urgentQueue.findIndex(other => other.id > pending.entry.id);
+        this._urgentQueue.splice(before === -1 ? this._urgentQueue.length : before, 0, pending.entry);
         ++this._size;
       }
       pending.settle();
@@ -730,6 +754,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     console.warn(`BlueCallbackMan: ${this._name}: no worker loaded; entries run through Update.`);
     this._threads = [];
     this._isRunningOwnThreads = false;
+    this._FallBackToUpdate();
   }
 
   /** Starts entries on every idle own thread; Carbon's `m_alarm` wake-up. */

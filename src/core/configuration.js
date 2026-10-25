@@ -126,7 +126,9 @@ export const DefaultConfiguration = {
   // blocking threads that resMan loading shares; here only CPU jobs run on it
   // and each thread is a worker, so the default is ours. workerModule
   // overrides the default worker entry, for bundled builds.
-  callbackMan: { useWorkers: true, threadCount: 2 },
+  // mainThreadTimeSlice bounds the tick that pumps it without workers, as
+  // BlueResMan's own slice does (BlueResMan.cpp:77, 0.005 s).
+  callbackMan: { useWorkers: true, threadCount: 2, mainThreadTimeSlice: 0.005 },
 
   paths: {},
   resMan: {},

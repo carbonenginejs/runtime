@@ -330,6 +330,7 @@ export class CjsLibrary
       callbackManStarted = true;
     }
     this._configured.callbackMan = { ...this._configuration.callbackMan };
+    this._callbackManTicker.mainThreadTimeSlice = this._configuration.callbackMan.mainThreadTimeSlice;
     blue.os.RegisterForTicks(this._callbackManTicker, "BeCallbackMan");
     this._callbackManTickOs = blue.os;
   }
@@ -425,6 +426,7 @@ function ValidateConfiguration(configuration)
         if (key === "useWorkers") valid = typeof value === "boolean";
         else if (key === "threadCount") valid = Number.isInteger(value) && value >= 1 && value <= 32;
         else if (key === "workerModule") valid = typeof value === "string" || value instanceof URL;
+        else if (key === "mainThreadTimeSlice") valid = typeof value === "number" && Number.isFinite(value) && value > 0;
         else valid = false;
       }
       else if (section === "resMan")
