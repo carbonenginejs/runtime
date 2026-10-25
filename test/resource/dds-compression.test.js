@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { after } from "node:test";
 import { readFileSync } from "node:fs";
 import { Worker } from "node:worker_threads";
 import { compressMasked } from "../../npm/dist/resource/codecs/bcn/core/libsquish.js";
@@ -11,6 +11,7 @@ import { getRawDataSize } from "../../npm/dist/resource/codecs/bcn/index.js";
 import { Tr2DxtCompressControl, Tr2DxtCompressor, Tr2HostBitmap } from "../../npm/dist/trinity/core/index.js";
 import { Tr2TexturePipeline, Tr2TexturePipelineStepLoad, Tr2TexturePipelineStepCompress } from "../../npm/dist/trinity/resources/texture/index.js";
 import { RegisterTextureResources, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
+import { BeCallbackMan, BlueCallbackMan } from "../../npm/dist/global/blue/BlueCallbackMan.js";
 
 const vectors = JSON.parse(readFileSync(new URL("./fixtures/libsquish-1.15.json", import.meta.url)));
 
@@ -76,56 +77,59 @@ test("RT modes are squish aliases; DXT5n and YCoCg rearrange only a private bloc
     }
 });
 
-function workerOptions(t)
+// The async encode runs on BeCallbackMan, started once for this file as a
+// composition would start it: the codec's callback module registered, one
+// worker thread, the generic worker entry served by a Node thread.
+const workers = { created: 0, terminated: 0 };
+BeCallbackMan.RegisterCallbackModule("dds.compress", BCN.BCN_CALLBACK_MODULES["dds.compress"]);
+BeCallbackMan.SetThreadCount(1);
+BeCallbackMan.SetWorkerModule("callback-man-thread.mjs").SetWorkerFactory(() =>
 {
-    const stats = { created: 0, terminated: 0 };
-    return { stats, workerFactory() {
-        stats.created++;
-        const thread = new Worker(new URL("./fixtures/dds-compression-thread.mjs", import.meta.url));
-        const listeners = new Map();
-        const adapter = {
-            postMessage: (message, transfer) => thread.postMessage(message, transfer),
-            terminate() { stats.terminated++; void thread.terminate(); },
-            addEventListener(type, callback) {
-                const fn = value => callback(type === "message" ? { data: value } : { error: value });
-                listeners.set(type, fn); thread.on(type, fn);
-            },
-            removeEventListener(type) { thread.off(type, listeners.get(type)); listeners.delete(type); }
-        };
-        t.after(() => thread.terminate());
-        return adapter;
-    } };
-}
+    workers.created++;
+    const thread = new Worker(new URL("./fixtures/callback-man-thread.mjs", import.meta.url));
+    const listeners = new Map();
+    return {
+        postMessage: (message, transfer) => thread.postMessage(message, transfer),
+        terminate() { workers.terminated++; void thread.terminate(); },
+        addEventListener(type, callback) {
+            const fn = value => callback(type === "message" ? { data: value } : { error: value, message: String(value) });
+            listeners.set(type, fn); thread.on(type, fn);
+        },
+        removeEventListener(type) { thread.off(type, listeners.get(type)); listeners.delete(type); }
+    };
+}).Start(true);
+after(() => BeCallbackMan.Stop());
 
-test("actual worker completes whole bitmap, retains caller input, and terminates", async t =>
+test("BeCallbackMan's worker completes the whole bitmap, retains caller input, and stays for the next job", async () =>
 {
-    const options = workerOptions(t), source = packet({ type: T.TEX_TYPE_3D, depth: 3 });
-    const encoded = await BCN.compressBitmapAsync(source, 8, options);
+    const source = packet({ type: T.TEX_TYPE_3D, depth: 3 });
+    const encoded = await BCN.compressBitmapAsync(source, 8);
     assert.deepEqual(encoded.data, BCN.compressBitmap(source, 8).data);
     assert.ok(source.data.length > 0);
-    assert.deepEqual(options.stats, { created: 1, terminated: 1 });
+    assert.equal(BeCallbackMan.IsRunningOwnThreads(), true);
+    assert.deepEqual(workers, { created: 1, terminated: 0 });
     assert.ok(encoded.encodeTimeMs >= 0);
 });
 
-test("Carbon cancellation before and during encoding publishes no partial output", async t =>
+test("Carbon cancellation before and during encoding publishes no partial output", async () =>
 {
     for (const before of [true, false])
     {
-        const options = workerOptions(t), control = new Tr2DxtCompressControl();
+        const control = new Tr2DxtCompressControl();
         const input = new Uint8Array(512 * 512 * 4).fill(123), output = new Uint8Array(512 * 512).fill(29);
         if (before) control.Cancel();
-        const promise = Tr2DxtCompressor.Tr2DxtCompressSurfaceAsync(7, input, 512, 512, output, 2048, control, 0, options);
+        const promise = Tr2DxtCompressor.Tr2DxtCompressSurfaceAsync(7, input, 512, 512, output, 2048, control, 0);
         if (!before) control.Cancel();
         assert.equal(await promise, false);
         assert.equal(control.IsDone(), true);
         assert.equal(control.IsCanceling(), true);
         assert.ok(output.every(value => value === 29));
-        assert.equal(options.stats.created, before ? 0 : 1);
-        assert.equal(options.stats.terminated, before ? 0 : 1);
+        // A running encode finishes and its result is dropped; the shared worker is never terminated.
+        assert.equal(workers.terminated, 0);
     }
 });
 
-test("HostBitmap facade publishes corrected DXT3/BC2 output only on worker success", async t =>
+test("HostBitmap facade publishes corrected DXT3/BC2 output only on worker success", async () =>
 {
     const source = new Tr2HostBitmap();
     const d = packet().description;
@@ -133,14 +137,15 @@ test("HostBitmap facade publishes corrected DXT3/BC2 output only on worker succe
     source.GetRawData().set(packet().data);
     let published = null;
     const output = { CreateFromHostBitmap(bitmap) { published = bitmap; return true; } };
-    assert.equal(await source.Compress(6, 2, output, workerOptions(t)), true);
+    assert.equal(await source.Compress(6, 2, output), true);
     assert.equal(published.GetFormat(), 74);
     const previous = published;
-    assert.equal(await source.Compress(6, 2, output, { workerFactory() { throw new Error("unavailable"); } }), false);
+    // An unknown mode fails in the worker; nothing is published.
+    assert.equal(await source.Compress(99, 2, output), false);
     assert.equal(published, previous);
 });
 
-test("pipeline awaits compression before following steps consume BC bytes", async t =>
+test("pipeline awaits compression before following steps consume BC bytes", async () =>
 {
     const source = new HostBitmap();
     source.Create(7, 5, 1, 28);
@@ -149,7 +154,7 @@ test("pipeline awaits compression before following steps consume BC bytes", asyn
     let observed = 0;
     const pipeline = new Tr2TexturePipeline();
     pipeline.steps = [load, step, { Execute(bitmap) { observed = bitmap.GetFormat(); return true; } }];
-    assert.equal(await pipeline.Execute(new HostBitmap(), new Map([[load.path, source]]), undefined, workerOptions(t)), true);
+    assert.equal(await pipeline.Execute(new HostBitmap(), new Map([[load.path, source]])), true);
     assert.equal(observed, 71);
 });
 
@@ -222,7 +227,7 @@ test("load hook snapshots LOAD settings, bypasses raw images, and publishes pair
     t.after(() => { TriTextureRes.compressUncompressedTextures = original; });
     const loaders = new Map();
     const manager = { RegisterObjectLoader(ext,loader) { loaders.set(ext,loader); }, RegisterExtension() {}, RegisterResourceType() {} };
-    RegisterTextureResources(manager, { compression: { backend:"webgpu", features:["texture-compression-bc","texture-compression-unaligned"], resolveRole:()=>"colour", ...workerOptions(t) } });
+    RegisterTextureResources(manager, { compression: { backend:"webgpu", features:["texture-compression-bc","texture-compression-unaligned"], resolveRole:()=>"colour" } });
     let release;
     const resource = new TriTextureRes(); resource.Initialize("res:/colour.dds","dds");
     const context = { resource, path: "res:/colour.dds", resMan: { ReadFormatOnce() { return new Promise(resolve=>{release=resolve;}); } } };
@@ -238,4 +243,17 @@ test("load hook snapshots LOAD settings, bypasses raw images, and publishes pair
     TriTextureRes.compressUncompressedTextures = true;
     const uncompressed = await loaders.get("dds")(new Uint8Array(), {...context,resource:raw,resMan:{ReadFormatOnce:async()=>packet()}});
     assert.equal(uncompressed.GetFormat(),28); assert.equal(uncompressed.compression,undefined);
+});
+
+test("with no workers, the same callback module runs the encode through Update on this thread", async () =>
+{
+    const man = new BlueCallbackMan();
+    man.RegisterCallbackModule("dds.compress", BCN.BCN_CALLBACK_MODULES["dds.compress"]);
+    man.Start(false);
+    assert.equal(man.IsRunningOwnThreads(), false);
+    const source = packet();
+    const job = man.Add__Name("dds.compress", { kind: "bitmap", packet: source, format: 7, options: {} });
+    while (man.Update());
+    const encoded = await job;
+    assert.deepEqual(encoded.data, BCN.compressBitmap(source, 7).data);
 });

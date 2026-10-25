@@ -1,7 +1,9 @@
 // Source: Tr2DxtCompressor.cpp:981-1066, browser worker adaptation.
-// The worker module of the callback manager that runs DXT encoding: it
-// exports one callback, "dds.compress", through BlueCallbackManWorker.
-import { BlueCallbackManWorker } from "#blue/worker/BlueCallbackManWorker";
+// The callback module BeCallbackMan runs DXT encoding from: it exports one
+// callback, "dds.compress". A worker imports it the first time the callback
+// runs there, and Update mode imports it on the main thread
+// (BlueCallbackMan.RegisterCallbackModule; registered through
+// BCN_CALLBACK_MODULES).
 import { compressBitmap, compressSurface, compressionPixelFormat } from "./carbon/dxtCompression.js";
 import { PixelFormat as P } from "#consts/render-context";
 
@@ -40,16 +42,5 @@ export function executeCompression(payload)
     return { ...result, encodeTimeMs: performance.now() - started };
 }
 
-/**
- * Install the "dds.compress" callback on a worker scope.
- *
- * @param {object} scope Worker global scope; uses `addEventListener`, `removeEventListener` and `postMessage`.
- * @returns {Function} Removes the message listener.
- */
-export function installCompressionWorker(scope)
-{
-    return BlueCallbackManWorker.install(scope, { "dds.compress": executeCompression });
-}
-
-if (typeof WorkerGlobalScope !== "undefined" && globalThis instanceof WorkerGlobalScope)
-    installCompressionWorker(globalThis);
+/** This module's callbacks, by name, for `BlueCallbackManWorker` and `Update` mode. */
+export const callbacks = { "dds.compress": executeCompression };

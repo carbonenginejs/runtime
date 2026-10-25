@@ -85,12 +85,12 @@ export async function ReadImageResource(bytes, context, compression = {})
 
     bitmap.metadata = metadata;
   }
-  if (request) bitmap = await CompressLoadedBitmap(bitmap, request, compression, context.signal);
+  if (request) bitmap = await CompressLoadedBitmap(bitmap, request, context.signal);
   return bitmap;
 }
 
 /** Optional load extension; complete output and diagnostics publish together. */
-async function CompressLoadedBitmap(bitmap, request, options, signal)
+async function CompressLoadedBitmap(bitmap, request, signal)
 {
   const packet = { description: {
     type: bitmap.GetType(), format: bitmap.GetFormat(), width: bitmap.GetWidth(),
@@ -106,8 +106,7 @@ async function CompressLoadedBitmap(bitmap, request, options, signal)
   {
     try
     {
-      const encoded = await compressBitmapAsync(packet, choice.mode,
-        { workerFactory: options.workerFactory, workerUrl: options.workerUrl, signal });
+      const encoded = await compressBitmapAsync(packet, choice.mode, { signal });
       bitmap = createDdsBitmap(encoded);
       diagnostic.outcome = "compressed";
       diagnostic.outputFormat = bitmap.GetFormat(); diagnostic.outputBytes = encoded.data.length;
@@ -129,7 +128,7 @@ async function CompressLoadedBitmap(bitmap, request, options, signal)
  *
  * @param {object} resourceManager Manager to register on.
  * @param {object} [options] Handler and optional compression configuration:
- * selected backend, active device features, role resolver and worker options.
+ * selected backend, active device features and role resolver.
  * @returns {object} The same manager, for chaining.
  */
 export function RegisterTextureResources(resourceManager, options = {})

@@ -73,6 +73,7 @@
     "./resource/texture": "./src/resource/texture/index.js",
     "./resource/imageio": "./src/resource/imageio/index.js",
     "./resource/worker": "./src/global/blue/worker/CjsResManWorker.js",
+    "./blue/worker/callback-man": "./src/global/blue/worker/blueCallbackManWorkerEntry.js",
     "./resource/format": "./src/resource/format/index.js",
     "./resource/format/tables": "./src/resource/format/CjsTableData.js",
     "./resource/formats": "./src/resource/formats/index.js",

@@ -113,7 +113,9 @@
     "yaml"
   ],
   "externalDynamicImports": [
-    "global/blue/worker/CjsResManWorker.js"
+    "global/blue/worker/CjsResManWorker.js",
+    "global/blue/BlueCallbackMan.js",
+    "global/blue/worker/BlueCallbackManWorker.js"
   ],
   "layers": {
     "global/logging": {

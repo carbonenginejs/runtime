@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BeCallbackMan, BlueCallbackMan, BlueCallbackManWorker, IBlueCallbackMan } from "../../src/global/blue/index.js";
+import { BeCallbackMan, BlueCallbackMan, BlueCallbackManTicker, BlueCallbackManWorker, IBlueCallbackMan } from "../../src/global/blue/index.js";
 
 // blue/src/CallbackMan.cpp: urgent before regular, fences after every thread
 // drained what came before, cancel removes a queued entry and discards one in
@@ -16,7 +16,7 @@ function createFakeWorkerFactory(callbacks, log = [])
   {
     const listeners = new Set();
     const workerListeners = new Set();
-    const worker = { terminated: false, name: options.name, addEventListener: (_type, listener) => workerListeners.add(listener) };
+    const worker = { terminated: false, name: options.name, addEventListener: (type, listener) => { if (type === "message") workerListeners.add(listener); } };
     const scope = {
       addEventListener: (_type, listener) => listeners.add(listener),
       removeEventListener: (_type, listener) => listeners.delete(listener),
@@ -403,13 +403,12 @@ test("Stop removes the named entries it rejects, so a later Run does not execute
   assert.equal(man.IsEmpty(), true);
 });
 
-test("in Update mode a named entry rejects and gives up its place instead of hanging", async () =>
+test("a named entry nothing can run rejects at once instead of waiting for an Update", async () =>
 {
   const man = new BlueCallbackMan();
-  const named = assert.rejects(man.Add__Name("job"), /needs the own threads/);
-  assert.equal(man.Update(), true);
-  await named;
+  await assert.rejects(man.Add__Name("job"), { code: "CJS_CALLBACKMAN_NO_RUNNER" });
   assert.equal(man.GetSize(), 0);
+  assert.equal(man.Update(), false);
 });
 
 test("lowering the thread count stops surplus slots taking new entries", async () =>
@@ -445,4 +444,133 @@ test("an Update-mode manager reports each freed slot, after the entry has settle
   assert.deepEqual(events, [ "free:1" ], "the slot is reported free, with the second entry still queued");
   assert.equal(man.Update(), true);
   assert.deepEqual(events, [ "free:1", "second ran", "free:0" ]);
+});
+
+const CALLBACK_MODULE = new URL("./fixtures/callback-module.mjs", import.meta.url).href;
+
+/**
+ * Worker objects that keep listeners by type. A worker built with `load: false`
+ * never installs the host, so it never reports ready, and `fail` raises its
+ * error event, as a worker whose module was blocked or missing does.
+ */
+function createTypedWorkerFactory({ load = true } = {})
+{
+  const built = [];
+  const make = (_module, options) =>
+  {
+    const listeners = new Map();
+    const scopeListeners = new Set();
+    const worker = {
+      name: options.name, terminated: false, posted: [],
+      addEventListener: (type, listener) => listeners.set(type, listener),
+      postMessage: message =>
+      {
+        worker.posted.push(message);
+        setTimeout(() => { for (const listener of scopeListeners) listener({ data: structuredClone(message) }); });
+      },
+      terminate: () => { worker.terminated = true; },
+      fail: () => listeners.get("error")({ type: "error", message: "module blocked" })
+    };
+    const scope = {
+      addEventListener: (_type, listener) => scopeListeners.add(listener),
+      removeEventListener: (_type, listener) => scopeListeners.delete(listener),
+      postMessage: message => setTimeout(() => listeners.get("message")({ data: structuredClone(message) }))
+    };
+    if (load) BlueCallbackManWorker.install(scope);
+    built.push(worker);
+    return worker;
+  };
+  return { make, built };
+}
+
+test("a worker imports the module registered for a callback the first time it runs", async () =>
+{
+  const { make, built } = createTypedWorkerFactory();
+  const man = new BlueCallbackMan();
+  man.RegisterCallbackModule("double", CALLBACK_MODULE);
+  man.SetWorkerModule("entry.js").SetWorkerFactory(make).Start(true);
+  assert.equal(man.IsRunningOwnThreads(), true);
+
+  assert.equal(await man.Add__Name("double", 21), 42);
+  const run = built[0].posted.find(message => message.kind === "run");
+  assert.equal(run.module, CALLBACK_MODULE);
+  await man.Stop();
+});
+
+test("Run that cannot create a worker leaves the manager not running; Start falls back to Update", async () =>
+{
+  const man = new BlueCallbackMan();
+  man.SetWorkerModule("entry.js").SetWorkerFactory(() => { throw new Error("Worker is not defined"); });
+  assert.throws(() => man.Run(), /Worker is not defined/);
+  assert.equal(man.IsRunningOwnThreads(), false);
+
+  man.RegisterCallbackModule("double", CALLBACK_MODULE);
+  man.Start(true);
+  assert.equal(man.IsRunningOwnThreads(), false);
+  const job = man.Add__Name("double", 4);
+  new BlueCallbackManTicker(man).OnTick(0, 0, null);
+  assert.equal(await job, 8);
+});
+
+test("workers that fail before they load are dead: their entries requeue and run through Update", async () =>
+{
+  const { make, built } = createTypedWorkerFactory({ load: false });
+  const man = new BlueCallbackMan();
+  man.SetThreadCount(2);
+  man.RegisterCallbackModule("double", CALLBACK_MODULE);
+  man.SetWorkerModule("entry.js").SetWorkerFactory(make).Start(true);
+  const ticker = new BlueCallbackManTicker(man);
+
+  const first = man.Add__Name("double", 1);
+  const second = man.Add__Name("double", 2);
+  await tick();
+  built[0].fail();
+  assert.equal(man.IsRunningOwnThreads(), true, "one worker is still alive");
+  built[1].fail();
+  await tick();
+  assert.equal(man.IsRunningOwnThreads(), false);
+  assert.equal(built.length, 2, "a dead thread's worker is not replaced");
+  assert.equal(man.GetSize(), 2, "both entries are queued again");
+
+  ticker.OnTick(0, 0, null);
+  assert.deepEqual(await Promise.all([ first, second ]), [ 2, 4 ]);
+});
+
+test("a worker failing after it loaded is still replaced, on a started manager too", async () =>
+{
+  const { make, built } = createTypedWorkerFactory();
+  const man = new BlueCallbackMan();
+  man.RegisterCallbackModule("double", CALLBACK_MODULE);
+  man.SetWorkerModule("entry.js").SetWorkerFactory(make).Start(true);
+  await tick();
+  built[0].fail();
+  assert.equal(await man.Add__Name("double", 5), 10);
+  assert.equal(built.length, 2);
+  assert.equal(man.IsRunningOwnThreads(), true);
+  await man.Stop();
+});
+
+test("cancelling a named entry running through Update aborts it and discards its outcome", async () =>
+{
+  const man = new BlueCallbackMan();
+  man.RegisterCallbackModule("wait", CALLBACK_MODULE);
+  man.Start(false);
+  const id = { value: 0 };
+  const job = assert.rejects(man.Add__Name("wait", null, 0, id), { name: "AbortError" });
+  assert.equal(man.Update(), true);
+  await new Promise(resolve => setTimeout(resolve, 20));
+  await man.Cancel(id.value);
+  await job;
+  assert.equal(man.IsEmpty(), true);
+});
+
+test("the ticker leaves a manager on its own threads alone, and Start twice does nothing", async () =>
+{
+  const { make, built } = createTypedWorkerFactory();
+  const man = new BlueCallbackMan();
+  man.SetWorkerModule("entry.js").SetWorkerFactory(make).Start(true);
+  man.Start(true);
+  assert.equal(built.length, 1);
+  assert.doesNotThrow(() => new BlueCallbackManTicker(man).OnTick(0, 0, null));
+  await man.Stop();
 });

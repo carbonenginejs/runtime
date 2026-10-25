@@ -9,6 +9,13 @@ import { CjsSchema } from "#schema/CjsSchema";
 // gets the entry's context and an AbortSignal that fires when the entry is
 // cancelled; a long callback checks it between pieces of work, since a
 // cancel message is only delivered when the callback yields.
+//
+// An entry may instead name the module that holds its callback
+// (`BlueCallbackMan.RegisterCallbackModule`). The host imports that module the
+// first time one of its callbacks runs and keeps it, so a worker that never
+// runs a module's callbacks never loads it. Once installed, the host reports
+// "ready", so the manager can tell a worker that never loaded from one that
+// failed later.
 
 /**
  * Buffers in a result, moved rather than copied back to the manager.
@@ -41,12 +48,14 @@ export class BlueCallbackManWorker
    * Answers the manager's messages with the named callbacks.
    *
    * @param {object} scope Worker global scope; uses `addEventListener` and `postMessage`.
-   * @param {Object<string, (context: *, options: {signal: AbortSignal}) => *>} callbacks Callbacks by name.
+   * @param {Object<string, (context: *, options: {signal: AbortSignal}) => *>} [callbacks={}] Callbacks by name;
+   *   entries naming a module find theirs in that module's `callbacks` instead.
    * @returns {() => void} Uninstalls the host.
    */
-  static install(scope, callbacks)
+  static install(scope, callbacks = {})
   {
     const running = new Map();
+    const modules = new Map();
 
     const onMessage = async event =>
     {
@@ -63,7 +72,17 @@ export class BlueCallbackManWorker
       running.set(message.id, controller);
       try
       {
-        const callback = callbacks[message.name];
+        let callback = callbacks[message.name];
+        if (typeof callback !== "function" && message.module !== null)
+        {
+          let loading = modules.get(message.module);
+          if (!loading)
+          {
+            loading = import(message.module);
+            modules.set(message.module, loading);
+          }
+          callback = (await loading).callbacks[message.name];
+        }
         if (typeof callback !== "function") throw new Error(`BlueCallbackManWorker: no callback named "${message.name}".`);
 
         const result = await callback(message.context, { signal: controller.signal });
@@ -84,6 +103,7 @@ export class BlueCallbackManWorker
     };
 
     scope.addEventListener("message", onMessage);
+    scope.postMessage({ kind: "ready" });
     return () => scope.removeEventListener("message", onMessage);
   }
 }

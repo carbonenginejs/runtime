@@ -22,6 +22,12 @@ export class BlueCallbackManThreadData
   /** The slot's worker, for a manager running its own threads. */
   worker = null;
 
+  /** Ours: the worker reported that its module loaded. */
+  ready = false;
+
+  /** Ours: the worker failed before it loaded, so the thread takes no work. */
+  dead = false;
+
   /** Thread name. */
   name = "BlueCallbackManThread";
 

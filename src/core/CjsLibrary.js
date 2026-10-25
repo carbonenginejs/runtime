@@ -1,4 +1,6 @@
 import { blue, installBlueServices } from "../global/blue/blue.js";
+import { BeCallbackMan } from "../global/blue/BlueCallbackMan.js";
+import { BlueCallbackManTicker } from "../global/blue/BlueCallbackManTicker.js";
 import { CjsSchema, meta } from "#schema";
 import { TnyInputMan } from "#input";
 import { TnyOutlineHelper } from "./outline/TnyOutlineHelper.js";
@@ -17,8 +19,11 @@ let activeLibrary = null;
 /** Reader/factory policy is installed at startup; changing it requires reboot. */
 const REBOOT_CONFIGURATION_SECTIONS = new Set([
   "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes",
-  "resourceConstructors", "imageHandlers"
+  "resourceConstructors", "imageHandlers", "callbackMan"
 ]);
+
+/** BeCallbackMan is process-global: the first library to initialize starts it. */
+let callbackManStarted = false;
 
 /** Installed policy follows the cache owner across library wrappers without retaining it. */
 const installedResourcePolicies = new WeakMap();
@@ -105,7 +110,7 @@ export class CjsLibrary
       if (!entry) throw new RangeError(`Setting '${name}' is not registered`);
       if (typeof value !== entry.valueType) throw new TypeError(`Setting '${name}' requires ${entry.valueType}`);
     }
-    for (const section of ["imageHandlers", "paths", "formats"])
+    for (const section of ["imageHandlers", "paths", "formats", "callbackModules"])
     {
       for (const [key, value] of Object.entries(configuration[section] || {}))
       {
@@ -125,7 +130,7 @@ export class CjsLibrary
     this._ValidateConfigurationOwners(configuration);
     this._configurationFailure = null;
     for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes",
-      "resourceConstructors", "imageHandlers", "paths", "settings"])
+      "resourceConstructors", "imageHandlers", "paths", "settings", "callbackModules"])
     {
       const entries = configuration[section] || {};
       if (section === "resMan" && Object.keys(entries).length)
@@ -162,6 +167,7 @@ export class CjsLibrary
             if (!paths.IsFileSystemRegistered(value)) paths.RegisterFileSystem(value);
           }
           else if (section === "settings") settings.SetValue(key, value);
+          else if (section === "callbackModules") BeCallbackMan.RegisterCallbackModule(key, value);
           (this._configured[section] ??= {})[key] = value;
         }
         catch (error)
@@ -257,6 +263,7 @@ export class CjsLibrary
         // original policy, never its newly requested pending policy.
         if (installedPolicy) startup.settings = { ...startup.settings, ...installedPolicy.settings };
         this._ApplyConfiguration(startup);
+        this._StartCallbackMan();
         if (!installedPolicy)
         {
           const installed = Object.fromEntries(
@@ -292,10 +299,39 @@ export class CjsLibrary
   {
     if (this._initialization) await this._initialization;
     if (!this._previousServices) return this;
+    this._callbackManTickOs.UnregisterForTicks(this._callbackManTicker, "BeCallbackMan");
+    this._callbackManTickOs = null;
     installBlueServices(this._previousServices, this._previousServices.running);
     this._previousServices = null;
     activeLibrary = null;
     return this;
+  }
+
+  /** Ticks BeCallbackMan while it runs through Update; registered on the installed OS. */
+  _callbackManTicker = new BlueCallbackManTicker(BeCallbackMan);
+
+  /** The OS the ticker is registered on, until Shutdown. */
+  _callbackManTickOs = null;
+
+  /**
+   * Configures and starts Blue's background callback manager, as Carbon's
+   * startup does (ResourceLoading.cpp:85-91), and registers its ticker. Blue
+   * decides between workers and Update mode; the ticker does nothing while
+   * workers run.
+   */
+  _StartCallbackMan()
+  {
+    if (!callbackManStarted)
+    {
+      const { useWorkers, threadCount, workerModule } = this._configuration.callbackMan;
+      if (workerModule !== undefined) BeCallbackMan.SetWorkerModule(workerModule);
+      BeCallbackMan.SetThreadCount(threadCount);
+      BeCallbackMan.Start(useWorkers);
+      callbackManStarted = true;
+    }
+    this._configured.callbackMan = { ...this._configuration.callbackMan };
+    blue.os.RegisterForTicks(this._callbackManTicker, "BeCallbackMan");
+    this._callbackManTickOs = blue.os;
   }
 
   /** Acquires a DNA build or resource through the installed Blue services. */
@@ -383,6 +419,14 @@ function ValidateConfiguration(configuration)
       else if (section === "settings") valid = ["string", "boolean", "number"].includes(typeof value)
         && (typeof value !== "number" || Number.isFinite(value));
       else if (section === "backends") valid = plain(value);
+      else if (section === "callbackModules") valid = typeof value === "string" && value !== "";
+      else if (section === "callbackMan")
+      {
+        if (key === "useWorkers") valid = typeof value === "boolean";
+        else if (key === "threadCount") valid = Number.isInteger(value) && value >= 1 && value <= 32;
+        else if (key === "workerModule") valid = typeof value === "string" || value instanceof URL;
+        else valid = false;
+      }
       else if (section === "resMan")
       {
         valid = options.has(key) && value !== undefined;

@@ -128,6 +128,18 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** Called when an `Update` slot frees; see `SetSlotFreeCallback`. */
   _onSlotFree = null;
 
+  /** Module URL of each named callback, by name; see `RegisterCallbackModule`. */
+  _callbackModules = new Map();
+
+  /** Each callback module imported on this thread for `Update` mode, by URL. */
+  _loadedModules = new Map();
+
+  /** Named entries running on this thread in `Update` mode, by id. */
+  _localEntries = new Map();
+
+  /** Set by `Start`: when every worker dies before it loads, the entries move to `Update` mode. */
+  _fallBackToUpdate = false;
+
   /**
    * `Add` (CallbackMan.cpp:94-146) - queues a callback run on the caller's
    * thread by `Update`.
@@ -168,12 +180,24 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * @param {*} [context=null] Cloneable context.
    * @param {number} [flags=IBlueCallbackMan.BCBF_NONE] `BCBF_*` flags.
    * @param {{value: number}|null} [id=null] Receives the entry id.
+   * A manager not running its own threads runs a named entry on the caller's
+   * thread through `Update`, from the module registered for the name. With no
+   * module registered there is nothing to run it, so the promise rejects at
+   * once instead of waiting for an `Update` that cannot run it. This fixes our
+   * own adaptation; Carbon has no named entries.
+   *
    * @param {Transferable[]} [transfer=[]] Buffers to move into the worker.
    * @returns {Promise<*>} The callback's result; rejects with an AbortError when cancelled.
    */
   Add__Name(name, context = null, flags = IBlueCallbackMan.BCBF_NONE, id = null, transfer = [])
   {
     if (typeof name !== "string" || name === "") throw new TypeError("BlueCallbackMan.Add__Name requires a callback name.");
+    if (!this._isRunningOwnThreads && !this._callbackModules.has(name))
+    {
+      const error = new Error(`BlueCallbackMan: named entry "${name}" needs the own threads (Run) or a registered callback module.`);
+      error.code = "CJS_CALLBACKMAN_NO_RUNNER";
+      return Promise.reject(error);
+    }
 
     return new Promise((resolve, reject) =>
     {
@@ -240,6 +264,12 @@ export class BlueCallbackMan extends IBlueCallbackMan
         td.worker.postMessage({ kind: "cancel", id });
         pending.completion.reject(createCancelledError(id));
       }
+      const local = this._localEntries.get(id);
+      if (local)
+      {
+        local.controller.abort();
+        local.completion.reject(createCancelledError(id));
+      }
       return td.inProgress ? td.inProgress.then(() => {}, () => {}) : Promise.resolve();
     }
 
@@ -254,9 +284,13 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * `Run` (CallbackMan.cpp:189-207) - creates the own threads.
    *
    * Adapted: each thread is a worker built from the module given to
-   * `SetWorkerModule`; there are no OS threads to create.
+   * `SetWorkerModule`; there are no OS threads to create. A host may have no
+   * workers, or block them, so creating one can throw. The workers already
+   * created are then terminated and the manager is left not running before
+   * the error is rethrown. This fixes our own adaptation; Carbon's threads
+   * always start (CallbackMan.cpp:189-206).
    *
-   * @throws {Error} When no worker module is set.
+   * @throws {Error} When no worker module is set, or a worker cannot be created.
    */
   Run()
   {
@@ -267,15 +301,97 @@ export class BlueCallbackMan extends IBlueCallbackMan
     this._stop = false;
 
     this._threads = [];
-    for (let i = 0; i < this._threadCount; ++i)
+    try
     {
-      const td = new BlueCallbackManThreadData(i);
-      td.name = this._ThreadName(i);
-      this._CreateWorker(td);
-      this._threads.push(td);
+      for (let i = 0; i < this._threadCount; ++i)
+      {
+        const td = new BlueCallbackManThreadData(i);
+        td.name = this._ThreadName(i);
+        this._CreateWorker(td);
+        this._threads.push(td);
+      }
+    }
+    catch (error)
+    {
+      for (const td of this._threads) td.worker.terminate();
+      this._threads = [];
+      this._isRunningOwnThreads = false;
+      throw error;
     }
 
     this._Alarm();
+  }
+
+  /**
+   * Starts the manager on its own threads when it may, and runs its entries
+   * through `Update` when it may not or they cannot start.
+   *
+   * Ours: Carbon's threads always start (ResourceLoading.cpp:85-91). A browser
+   * may have no workers, block them, or fail to load their module, so the
+   * manager falls back to `Update` mode: at once when `Run` throws, or later
+   * when every worker fails before it has loaded. The owner ticks `Update`
+   * for that mode. The default worker module runs the callbacks registered
+   * with `RegisterCallbackModule`. Starting a started manager does nothing.
+   *
+   * @param {boolean} useWorkers Whether the host allows workers.
+   * @returns {BlueCallbackMan} This manager.
+   */
+  Start(useWorkers)
+  {
+    if (this._fallBackToUpdate) return this;
+    this._fallBackToUpdate = true;
+    if (!useWorkers) return this;
+
+    if (this._workerModule === null) this._workerModule = new URL("./worker/blueCallbackManWorkerEntry.js", import.meta.url);
+    try
+    {
+      this.Run();
+    }
+    catch (error)
+    {
+      console.warn(`BlueCallbackMan: ${this._name}: no worker could be created (${error.message}); entries run through Update.`);
+    }
+    return this;
+  }
+
+  /**
+   * Whether the manager runs its own threads, rather than `Update`.
+   *
+   * Ours: Carbon exposes no query; the owner of a manager started with
+   * `Start` asks before ticking `Update`, which a manager on its own threads
+   * refuses.
+   *
+   * @returns {boolean} True while the own threads run.
+   */
+  IsRunningOwnThreads()
+  {
+    return this._isRunningOwnThreads;
+  }
+
+  /**
+   * Registers the module that holds a named callback.
+   *
+   * Ours: Carbon's threads run function pointers already in the process. A
+   * worker runs only code its module loaded, so a named entry carries its
+   * module's URL, and the worker imports it the first time one of its
+   * callbacks runs. `Update` mode imports the same URL on this thread, so both
+   * run the same code. The module exports its callbacks as `callbacks`, by
+   * name.
+   *
+   * The URL must come from code: the composition registering a module it
+   * ships, resolved once with `new URL(spec, import.meta.url)`. Never pass a
+   * URL from asset data or anything a user can influence; importing it runs
+   * it.
+   *
+   * @param {string} name Callback name.
+   * @param {string|URL} module Module URL.
+   * @returns {BlueCallbackMan} This manager.
+   */
+  RegisterCallbackModule(name, module)
+  {
+    if (typeof name !== "string" || name === "") throw new TypeError("BlueCallbackMan.RegisterCallbackModule requires a callback name.");
+    this._callbackModules.set(name, String(module));
+    return this;
   }
 
   /**
@@ -443,16 +559,21 @@ export class BlueCallbackMan extends IBlueCallbackMan
 
     if (entry.name !== null)
     {
-      if (!this._isRunningOwnThreads)
+      if (this._isRunningOwnThreads)
       {
-        // A named entry runs on a worker; in Update mode it fails rather than hold its place.
-        entry.completion.reject(new Error(`BlueCallbackMan: named entry "${entry.name}" needs the own threads (Run).`));
-        finish();
+        // A worker that failed is replaced when its slot is next given work.
+        if (td.worker === null) this._CreateWorker(td);
+        td.inProgress = this._RunOnWorker(td, entry).then(finish, finish);
         return true;
       }
-      // A worker that failed is replaced when its slot is next given work.
-      if (td.worker === null) this._CreateWorker(td);
-      td.inProgress = this._RunOnWorker(td, entry).then(finish, finish);
+      if (this._callbackModules.has(entry.name))
+      {
+        td.inProgress = this._RunOnThisThread(td, entry).then(finish, finish);
+        return true;
+      }
+      // Nothing can run it here; it fails rather than hold its place.
+      entry.completion.reject(new Error(`BlueCallbackMan: named entry "${entry.name}" needs the own threads (Run) or a registered callback module.`));
+      finish();
       return true;
     }
 
@@ -480,13 +601,60 @@ export class BlueCallbackMan extends IBlueCallbackMan
     {
       td.workerEntryId = entry.id;
       this._workerEntries.set(entry.id, { entry, completion: entry.completion, settle });
-      td.worker.postMessage({ kind: "run", id: entry.id, name: entry.name, context: entry.context }, entry.transfer);
+      const module = this._callbackModules.get(entry.name) ?? null;
+      td.worker.postMessage({ kind: "run", id: entry.id, name: entry.name, module, context: entry.context }, entry.transfer);
     });
+  }
+
+  /**
+   * Runs a named entry on this thread, from its registered module, for
+   * `Update` mode. A cancelled entry's outcome is discarded, as on a worker
+   * (cpp:405); one cancelled while its module loads does not run.
+   */
+  async _RunOnThisThread(td, entry)
+  {
+    const controller = new AbortController();
+    this._localEntries.set(entry.id, { completion: entry.completion, controller });
+    try
+    {
+      const module = await this._LoadCallbackModule(this._callbackModules.get(entry.name));
+      if (controller.signal.aborted) return;
+      const callback = module.callbacks[entry.name];
+      if (typeof callback !== "function") throw new Error(`BlueCallbackMan: module ${this._callbackModules.get(entry.name)} exports no callback "${entry.name}".`);
+      const result = await callback(entry.context, { signal: controller.signal });
+      if (td.currentId === entry.id) entry.completion.resolve(result);
+    }
+    catch (error)
+    {
+      if (td.currentId === entry.id) entry.completion.reject(error);
+    }
+    finally
+    {
+      this._localEntries.delete(entry.id);
+    }
+  }
+
+  /** Imports a registered callback module once on this thread; see `RegisterCallbackModule`. */
+  _LoadCallbackModule(url)
+  {
+    let loading = this._loadedModules.get(url);
+    if (!loading)
+    {
+      loading = import(url);
+      this._loadedModules.set(url, loading);
+    }
+    return loading;
   }
 
   /** A worker's answer for the entry it was given. */
   _OnWorkerMessage(td, message)
   {
+    // A worker reports once that its module loaded; one failing before that never ran anything.
+    if (message.kind === "ready")
+    {
+      td.ready = true;
+      return;
+    }
     const pending = this._workerEntries.get(message.id);
     if (!pending) return;
     this._workerEntries.delete(message.id);
@@ -506,6 +674,12 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * when a cancel already cleared `currentId`. The worker is terminated, and
    * the slot gets a new one when it is next given work, so no entry waits on a
    * worker that cannot answer.
+   *
+   * On a manager started with `Start`, a worker failing before it reported
+   * ready never loaded (a blocked or missing module), so a replacement would
+   * fail the same way. Its thread is dead instead: the entry it holds goes
+   * back to the front of the queue for another thread, and when every thread
+   * is dead the manager falls back to `Update` mode.
    */
   _OnWorkerFailure(td, event)
   {
@@ -513,6 +687,11 @@ export class BlueCallbackMan extends IBlueCallbackMan
     {
       td.worker.terminate();
       td.worker = null;
+    }
+    if (this._fallBackToUpdate && !td.ready)
+    {
+      this._OnThreadDead(td, event);
+      return;
     }
     const id = td.workerEntryId;
     td.workerEntryId = 0;
@@ -524,6 +703,33 @@ export class BlueCallbackMan extends IBlueCallbackMan
     error.code = "CJS_CALLBACKMAN_WORKER_FAILED";
     pending.completion.reject(error);
     pending.settle();
+  }
+
+  /** A worker that never loaded: requeue what it held, and fall back once no thread is left. */
+  _OnThreadDead(td, event)
+  {
+    td.dead = true;
+    console.warn(`BlueCallbackMan: worker ${td.name} failed to load: ${event.message || event.type || "error"}`);
+
+    const pending = this._workerEntries.get(td.workerEntryId);
+    td.workerEntryId = 0;
+    if (pending)
+    {
+      this._workerEntries.delete(pending.entry.id);
+      // Not run yet; a cancelled one has already been rejected and is dropped.
+      if (td.currentId === pending.entry.id)
+      {
+        this._urgentQueue.unshift(pending.entry);
+        ++this._size;
+      }
+      pending.settle();
+    }
+
+    if (!this._threads.every(thread => thread.dead)) return;
+
+    console.warn(`BlueCallbackMan: ${this._name}: no worker loaded; entries run through Update.`);
+    this._threads = [];
+    this._isRunningOwnThreads = false;
   }
 
   /** Starts entries on every idle own thread; Carbon's `m_alarm` wake-up. */
@@ -550,7 +756,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
         for (const td of this._threads)
         {
           if (this._pauseCounter > 0) return;
-          if (td.inProgress !== null || td.currentId !== 0) continue;
+          if (td.dead || td.inProgress !== null || td.currentId !== 0) continue;
           // Every idle thread wakes, as on Carbon's signal; each clears its fence bit.
           if (!this._UpdateThread(td)) continue;
           this.Throttle();
