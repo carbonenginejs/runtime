@@ -38,6 +38,16 @@ function resolveBrowserModule(source)
         return resolved;
     }
 
+    // A package's `browser` map names its browser build for a file `resolve`
+    // picked. `yaml` resolves to its CommonJS Node build, which lacks the ESM
+    // named exports (`Document`) that YamlWriter imports; its browser build has them.
+    if (manifest.browser && typeof manifest.browser === "object")
+    {
+        const relative = "./" + path.relative(path.dirname(manifestPath), resolved).split(path.sep).join("/");
+        const mapped = manifest.browser[relative];
+        if (typeof mapped === "string") return path.resolve(path.dirname(manifestPath), mapped);
+    }
+
     if (source === packageName && manifest.module)
     {
         return path.resolve(path.dirname(manifestPath), manifest.module);
