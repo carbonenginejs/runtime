@@ -33,7 +33,7 @@ export class CjsCarbonEffectBodyReader extends CjsByteReader
 }
 
 /**
- * Reader for Carbon's compiled-effect container, versions 8 through 15.
+ * Reader for Carbon's compiled-effect container, versions 2 through 15.
  *
  * The v15 header is (`ShaderCompiler.cpp:822-831`):
  *
@@ -47,10 +47,19 @@ export class CjsCarbonEffectBodyReader extends CjsByteReader
  * description blobs
  * ```
  *
- * Versions 8..14 differ in the header by exactly one thing: the compiler
- * version and source hash are absent, so `compilerVersion` and `sourceHash`
- * are null for them. Everything else — arena, permutation records, offset
- * table — is byte-identical across the accepted range.
+ * Versions 5..14 lack the compiler version and source hash, so
+ * `compilerVersion` and `sourceHash` are null for them, and before v6 a
+ * permutation axis has no `type` byte. Versions 2..4 have a different header
+ * (`Tr2EffectRes.cpp:215-243`):
+ *
+ * ```
+ * u32      version
+ * u32      recordCount     | recordCount x { u32 key, u32 offset, u32 size }
+ * u32      stringTableSize | arena
+ * description blobs
+ * ```
+ *
+ * with no permutation axes, and Carbon keeps only the first row.
  *
  * Carbon validates the version at 2..15 (`Tr2EffectRes.cpp:209`), then threads
  * it through parsing rather than gating on it again: it forwards the version
@@ -61,14 +70,11 @@ export class CjsCarbonEffectBodyReader extends CjsByteReader
  * how a constant's type byte is decoded (`< 11`), and whether a resource
  * carries `arrayElements` at all (`>= 13`).
  *
- * This reader carries the same parameter, restored per the 2026-08-02
- * maintainer decision with 8 as the floor (see
+ * This reader carries the same parameter and Carbon's range (see
  * `CARBON_EFFECT_MIN_DATA_VERSION`). Reading a version is not supporting it:
  * the reader's job ends at a correct record tree, normalized to the v15
  * record shape, and what an engine can do with an old body is a separate
- * question. Versions below 8 are still rejected outright — those branches
- * have no examined file and no writer to check against, and applying newer
- * rules to an older layout misaligns fields silently.
+ * question.
  *
  * Modelled on: Tr2EffectRes (trinity/trinity/Resources/Tr2EffectRes.h:27)
  */
@@ -81,7 +87,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
     static BodyReader = CjsCarbonEffectBodyReader;
 
     /**
-     * Container version, 8..15; set by the constructor.
+     * Container version, 2..15; set by the constructor.
      * @type {number}
      */
     version = 0;
@@ -151,29 +157,28 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             );
         }
 
-        // The compiler version and source hash are the v15 header additions;
-        // an older header goes straight from the version to the arena and
-        // leaves both null.
-        if (this.version === CARBON_EFFECT_DATA_VERSION)
+        if (this.version < 5)
         {
-            this.compilerVersion = Array.from(this.ReadRaw(4));
-            this.sourceHash = Uint8Array.from(this.ReadRaw(CARBON_EFFECT_SOURCE_HASH_BYTES));
+            // Before v5 the offset table comes first and the arena follows it,
+            // with no permutation axes (`Tr2EffectRes.cpp:215-243`).
+            this.records = this._readRecords();
+            this._readStringTable();
         }
-
-        this.stringTableSize = this.ReadUint32();
-        if (this.offset + this.stringTableSize > this.bytes.length)
+        else
         {
-            throw this._error("Invalid Carbon effect string-table size", {
-                stringTableSize: this.stringTableSize,
-                byteLength: this.bytes.length
-            });
-        }
-        this.stringTableBytes = this.bytes.subarray(this.offset, this.offset + this.stringTableSize);
-        this.Skip(this.stringTableSize);
-        this.SetStringTable(this.stringTableBytes, this.stringTableSize);
+            // The compiler version and source hash are the v15 header additions;
+            // an older header goes straight from the version to the arena and
+            // leaves both null.
+            if (this.version === CARBON_EFFECT_DATA_VERSION)
+            {
+                this.compilerVersion = Array.from(this.ReadRaw(4));
+                this.sourceHash = Uint8Array.from(this.ReadRaw(CARBON_EFFECT_SOURCE_HASH_BYTES));
+            }
 
-        this.permutations = this._readPermutations();
-        this.records = this._readRecords();
+            this._readStringTable();
+            this.permutations = this._readPermutations();
+            this.records = this._readRecords();
+        }
         this.headerEnd = this.offset;
         this.diagnostics = this._inspect();
 
@@ -229,7 +234,10 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
                 permutationProduct: this.permutationProduct
             });
         }
-        if (!this.diagnostics.indicesMatchPosition)
+        // Before v5 the stored word is a sparse key, not a position (row 0 of
+        // build 1142708's `incarnadetailedtransparent.fxt` holds 0x400), and
+        // Carbon takes the first row whatever it holds (`Tr2EffectRes.cpp:232-234`).
+        if (this.version >= 5 && !this.diagnostics.indicesMatchPosition)
         {
             throw this._error("Carbon effect offset table is not positionally indexed", {
                 firstMismatch: this.diagnostics.firstIndexMismatch
@@ -339,8 +347,28 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
     }
 
     /**
+     * Reads the string-table arena and installs it for string references
+     * (`Tr2EffectRes.cpp:236-242`, `:254-261`).
+     */
+    _readStringTable()
+    {
+        this.stringTableSize = this.ReadUint32();
+        if (this.offset + this.stringTableSize > this.bytes.length)
+        {
+            throw this._error("Invalid Carbon effect string-table size", {
+                stringTableSize: this.stringTableSize,
+                byteLength: this.bytes.length
+            });
+        }
+        this.stringTableBytes = this.bytes.subarray(this.offset, this.offset + this.stringTableSize);
+        this.Skip(this.stringTableSize);
+        this.SetStringTable(this.stringTableBytes, this.stringTableSize);
+    }
+
+    /**
      * Reads the permutation axis records (`ShaderCompiler.cpp:769-795`,
-     * `Tr2EffectRes.cpp:263-292`).
+     * `Tr2EffectRes.cpp:263-292`). The axis `type` byte joined the wire after
+     * v5; before that Carbon sets it to 0 (`:274-281`).
      *
      * @returns {object[]} Permutation axes with arena references retained.
      */
@@ -355,7 +383,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             const defaultOption = this.ReadUint8();
             const descriptionOffset = this.ReadUint32();
             const description = this.ReadStringAt(descriptionOffset);
-            const type = this.ReadUint8();
+            const type = this.version > 5 ? this.ReadUint8() : 0;
 
             const options = [];
             const optionCount = this.ReadUint8();
@@ -380,6 +408,10 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      * Reads the offset table (`ShaderCompiler.cpp:800-820`,
      * `Tr2EffectRes.cpp:294-311`).
      *
+     * Before v5 Carbon keeps only the first row ("Get the first permutation from
+     * the file", `Tr2EffectRes.cpp:232-234`) and locates the arena by stepping
+     * over the rest (`:236`), so only that row is read here.
+     *
      * @returns {object[]} Offset-table rows.
      */
     _readRecords()
@@ -397,8 +429,9 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             });
         }
 
+        const kept = this.version < 5 ? 1 : count;
         const records = [];
-        for (let index = 0; index < count; index += 1)
+        for (let index = 0; index < kept; index += 1)
         {
             records.push({
                 index: this.ReadUint32(),
@@ -406,6 +439,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
                 size: this.ReadUint32()
             });
         }
+        this.Skip((count - kept) * CARBON_EFFECT_RECORD_BYTES);
         return records;
     }
 

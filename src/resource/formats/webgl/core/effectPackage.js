@@ -202,7 +202,7 @@ export function buildEffectPackage(input, options = {})
             ? "tr2-effect-webgl-permutations"
             : "tr2-effect-webgl",
         // What these bytes ARE, next to `sourceEffectVersion` below, which is
-        // what they were read FROM. The reader accepts 8..15; the writer emits
+        // what they were read FROM. The reader accepts 2..15; the writer emits
         // 15 only, so the two are not the same number and a consumer must not
         // infer one from the other.
         containerVersion,

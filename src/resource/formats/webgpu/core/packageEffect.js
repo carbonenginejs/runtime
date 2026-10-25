@@ -283,7 +283,7 @@ export function buildEffectPackage(input, options = {})
         sourceIdentity,
         // The Carbon container version these bytes ARE, stated rather than
         // implied. The writer emits 15 and only 15, while the reader accepts
-        // 8..15, so a consumer cannot infer what it was handed from what we can
+        // 2..15, so a consumer cannot infer what it was handed from what we can
         // read - and a v15 reader elsewhere (ccpwgl's Tw2Shader, Carbon itself)
         // needs to know this file is one it can parse before it tries.
         containerVersion,

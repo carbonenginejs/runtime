@@ -60,11 +60,12 @@ runtime resource or shader. Use `readDescription` for additional bodies.
 
 ## Versioning
 
-### What this reader does: reads 8 through 15, writes 15
+### What this reader does: reads 2 through 15, writes 15
 
 `readEffectDescription` takes a version option and branches on it. Accepted
-versions are `CARBON_EFFECT_MIN_DATA_VERSION` = 8 through
-`CARBON_EFFECT_DATA_VERSION` = 15.
+versions are `CARBON_EFFECT_MIN_DATA_VERSION` = 2 through
+`CARBON_EFFECT_DATA_VERSION` = 15, Carbon's own range. Every branch below v8
+follows a branch in Carbon's reader; see [Layouts before v8](#layouts-before-v8).
 
 Read and write support are independent. `CjsCarbonEffectWriter`,
 `writeCarbonEffectFile`, the shared container builder and both backend
@@ -73,11 +74,9 @@ never selects it, even for v8 input. `CARBON_EFFECT_WRITE_VERSIONS` is
 currently `[15]`: unsupported outputs are refused, never v15 bytes mislabeled
 with another number. A future output version needs writer branches and a set entry.
 
-Inputs outside 8..15 are rejected with the version read; do not apply v15
-rules to older layouts. A dword below 8 is a recognized legacy number, not
-proof of an effect container: arbitrary bytes can begin with that integer,
-and this field has no identifying magic or checksum. Identify rejected inputs
-independently before treating them as a version-porting problem.
+Inputs outside 2..15 are rejected with the version read. A version dword in
+range is not proof of an effect container: arbitrary bytes can begin with that
+integer, and this field has no identifying magic or checksum.
 
 ## Layout
 
@@ -271,6 +270,48 @@ order and sorts annotation keys by bytewise string comparison.
 *not* the same as JavaScript's UTF-16 code-unit order for names outside ASCII
 — `"Z"` sorts before `"a"`.
 
+### Layouts before v8
+
+Carbon's reader keeps a branch for every older version, and the record tree is
+normalized to the v15 shape whatever the wire carried. Versions 2 to 4 have a
+different header:
+
+```
+u32      version
+u32      recordCount     | recordCount x { u32 key, u32 offset, u32 size }
+u32      stringTableSize | arena payload
+description blobs
+```
+
+There are no permutation axes, and Carbon keeps only the first row, whatever
+key it stores. In shipped v3 files the key is sparse (for example `0x400` in
+row 0), so it is not a position and the positional-index check does not apply.
+
+From v5 the header has the v8 shape described above, except that a permutation
+record has no `type` byte before v6 (Carbon sets it to 0).
+
+In the description blob, relative to v8:
+
+| Version | Difference | Record value |
+|---|---|---|
+| < 7 | no technique count or name: one technique | name `"Main"` (Carbon's `DEFAULT_TECHNIQUE`) with a null offset |
+| < 8 | no stage annotation map | empty |
+| < 5 | program stored inline as `u32 size, bytes`, followed by an inline shadow program that Carbon discards | blob with a null offset |
+| < 5 | default constant values stored inline as `u32 size, bytes` | blob with a null offset |
+| < 4 | sampler has no name, and a trailing `isSRGBTexture` byte that Carbon discards | name with a null offset and no value |
+| < 3 | no UAV table, and the stage annotation map is absent with it | empty |
+| < 3 | no thread-group size | `1, 1, 1`, the `Tr2ShaderThreadGroupSizeAL` default |
+
+The v8 layout already lacks the register signature, the pipeline-input type
+and dimension bytes, the array counts and the sampler `isDynamic` byte; those
+branches are unchanged below v8.
+
+Measured against build 1142708, whose `graphics/shaders/compiled/dx11/*.fxt` are
+74 files at v3 and one at v4. Each container's first body and every further row
+on the wire, 10,950 bodies in all, parse to exactly their declared end. No
+shipped file has been examined at v2, v5, v6 or v7; those branches follow
+Carbon's reader alone.
+
 ### The optional trailing block
 
 Our own containers add exactly one optional block per pass, after the render-state
@@ -382,7 +423,9 @@ Given that, the checks are implemented as follows:
 
 - `CjsCarbonEffectReader` **always** collects `dense` and `indicesMatchPosition` as
   diagnostics, and **always** fails closed on an out-of-range row.
-- Density and positional indexing **fail closed on read by default**.
+- Density and positional indexing **fail closed on read by default**. Below v5
+  only density applies: the reader keeps only the first row, as Carbon does, and
+  that row's stored word is a key, not a position.
   `{ permissive: true }` skips the check and leaves the diagnostics in place, for
   forensic inspection of a file already known to be malformed. It is not a load
   option.

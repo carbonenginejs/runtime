@@ -818,7 +818,7 @@ test("buildEffectAnalysis validates transient raw stage identity and bytes", () 
 // mistaken for the container version, so the container version is stated
 // separately and pinned here against the byte that actually goes on the wire.
 //
-// The reader accepts 8..15; the writer emits 15 only. A consumer must be able to
+// The reader accepts 2..15; the writer emits 15 only. A consumer must be able to
 // learn which one it was handed without re-reading the file, and a v15 reader
 // elsewhere - ccpwgl's Tw2Shader, Carbon itself - needs it before it parses.
 test("the emitted package states its Carbon container version, and it matches the wire", () =>

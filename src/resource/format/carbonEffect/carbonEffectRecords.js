@@ -59,13 +59,14 @@ export function resolveWriteVersion(version)
  * The oldest description-blob version this module reads.
  *
  * Carbon threads the version through parsing rather than gating on it twice,
- * and its branches reach back to version 2. Maintainer decision, 2026-08-02:
- * **8 is the lowest version worth reading** — the branches below 8 have no
- * examined file, no writer, and no consumer, so restoring them would be code
- * with no evidence. Reading a version is not supporting it: the reader's job
- * ends at a correct record tree, normalized to the v15 record shape.
+ * and accepts versions 2 to 15 (`Tr2EffectRes.cpp:209`). The floor was 8 from
+ * 2026-08-02 until 2026-10-25, when Incarna's compiled shaders gave the older
+ * branches examined files and a consumer: build 1142708's
+ * `graphics/shaders/compiled/dx11/*.fxt` are version 3 (operator decision,
+ * 2026-10-25). Reading a version is not supporting it: the reader's job ends at
+ * a correct record tree, normalized to the v15 record shape.
  */
-export const CARBON_EFFECT_MIN_DATA_VERSION = 8;
+export const CARBON_EFFECT_MIN_DATA_VERSION = 2;
 
 /**
  * Annotation type codes (`EffectData.h:35-41`). Only `STRING` changes the wire
@@ -265,6 +266,22 @@ function readBlobRef(reader)
 }
 
 /**
+ * Reads a `{u32 size, bytes}` blob stored inline, as versions below 5 store
+ * shader code and constant values (`Tr2EffectDescription.cpp:551-557`, `:385-391`).
+ *
+ * The record keeps the blob-reference shape with Carbon's null offset, so a
+ * writer re-interning it by its bytes treats it like any other blob.
+ *
+ * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
+ * @returns {{size:number, offset:number, bytes:Uint8Array}} Blob record.
+ */
+function readInlineBlob(reader)
+{
+    const size = reader.ReadUint32();
+    return { size, offset: 0xffffffff, bytes: reader.ReadRaw(size) };
+}
+
+/**
  * Writes a `{u32 size, u32 offset}` blob reference.
  *
  * @param {import("../CjsByteWriter.js").CjsByteWriter} writer Target writer.
@@ -424,7 +441,7 @@ function mapOldConstantType(value)
 /**
  * Reads one `Constant` (`EffectData.h:283-294`, `ReadConstant`
  * `Tr2EffectDescription.cpp:136-170`). The byte layout is identical across
- * versions 8..15; only the type byte's numbering changed at v11.
+ * versions 2..15; only the type byte's numbering changed at v11.
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
  * @param {number} version Container data version.
@@ -554,6 +571,10 @@ function writeUav(writer, arena, uav)
  * invented value would either lie or (via the v15 rule that a non-dynamic
  * sampler's name is cleared) silently erase names a legacy file does carry.
  *
+ * Before v4 a sampler has no name (Carbon sets `nullptr`, `:411-418`), recorded
+ * as Carbon's null offset with no value, and it is followed by an
+ * `isSRGBTexture` byte Carbon reads and discards (`:422-425`).
+ *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
  * @param {number} version Container data version.
  * @returns {object} Sampler record.
@@ -561,7 +582,7 @@ function writeUav(writer, arena, uav)
 function readSampler(reader, version)
 {
     const record = {
-        name: readStringRef(reader),
+        name: version >= 4 ? readStringRef(reader) : { offset: 0xffffffff, value: null },
         comparison: reader.ReadUint8(),
         minFilter: reader.ReadUint8(),
         magFilter: reader.ReadUint8(),
@@ -581,6 +602,10 @@ function readSampler(reader, version)
         minLOD: reader.ReadFloat32(),
         maxLOD: reader.ReadFloat32()
     };
+    if (version < 4)
+    {
+        reader.ReadUint8();
+    }
     if (version > 12)
     {
         record.isDynamic = reader.ReadUint8();
@@ -748,6 +773,10 @@ function readSignature(reader, version, stageType)
  * values, textures, samplers, UAVs, annotations (`ReadInput`,
  * `Tr2EffectDescription.cpp:369-472`).
  *
+ * Before v5 the default values are stored inline (`:385-391`). The UAV table
+ * joined the wire at v3 (`:441`) and the stage annotations at v8, inside that
+ * same branch (`:467`); older stages record both as empty.
+ *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
  * @param {number} version Container data version.
  * @param {Function} makeError Error factory.
@@ -762,7 +791,7 @@ function readStageResources(reader, version, makeError)
         constants.push(readConstant(reader, version));
     }
 
-    const defaultValues = readBlobRef(reader);
+    const defaultValues = version < 5 ? readInlineBlob(reader) : readBlobRef(reader);
 
     const textures = [];
     const textureCount = sanityCheck(reader.ReadUint8(), "textures", makeError);
@@ -781,11 +810,19 @@ function readStageResources(reader, version, makeError)
     }
 
     const uavs = [];
-    const uavCount = sanityCheck(reader.ReadUint8(), "uavs", makeError);
-    for (let index = 0; index < uavCount; index += 1)
+    let annotations = [];
+    if (version >= 3)
     {
-        const registerIndex = reader.ReadUint8();
-        uavs.push({ registerIndex, ...readUav(reader, version) });
+        const uavCount = sanityCheck(reader.ReadUint8(), "uavs", makeError);
+        for (let index = 0; index < uavCount; index += 1)
+        {
+            const registerIndex = reader.ReadUint8();
+            uavs.push({ registerIndex, ...readUav(reader, version) });
+        }
+        if (version >= 8)
+        {
+            annotations = readAnnotations(reader);
+        }
     }
 
     return {
@@ -794,7 +831,7 @@ function readStageResources(reader, version, makeError)
         textures,
         samplers,
         uavs,
-        annotations: readAnnotations(reader)
+        annotations
     };
 }
 
@@ -948,7 +985,12 @@ function readPipelineInputs(reader, version, makeError)
  * `threadGroupSize[0..2]`, `pipelineInputs`, then `StageData`. Two further
  * legacy wrinkles, both from Carbon's reader: a stage carries no register
  * signature at all before v9 (`:544`), and two legacy dwords follow the
- * program reference before v12, read and discarded (`:559-563`).
+ * program reference before v12, read and discarded (`:564-568`).
+ *
+ * Before v5 the program is stored inline and followed by an inline shadow
+ * program, read and discarded (`:551-557`). Before v3 there is no thread-group
+ * size, and Carbon keeps `Tr2ShaderThreadGroupSizeAL`'s default of 1, 1, 1
+ * (`:571-577`, `Tr2ShaderAL.h:117-120`).
  *
  * @param {import("../CjsByteReader.js").CjsByteReader} reader Source reader.
  * @param {number} version Container data version.
@@ -970,13 +1012,24 @@ function readStage(reader, version, makeError)
         }
     }
 
-    const shaderData = readBlobRef(reader);
-    if (version < 12)
+    let shaderData;
+    if (version < 5)
     {
-        reader.ReadUint32();
-        reader.ReadUint32();
+        shaderData = readInlineBlob(reader);
+        readInlineBlob(reader);
     }
-    const threadGroupSize = [ reader.ReadUint32(), reader.ReadUint32(), reader.ReadUint32() ];
+    else
+    {
+        shaderData = readBlobRef(reader);
+        if (version < 12)
+        {
+            reader.ReadUint32();
+            reader.ReadUint32();
+        }
+    }
+    const threadGroupSize = version >= 3
+        ? [ reader.ReadUint32(), reader.ReadUint32(), reader.ReadUint32() ]
+        : [ 1, 1, 1 ];
 
     if (version >= 14)
     {
@@ -1173,11 +1226,14 @@ export function readEffectDescription(reader, options = {})
         );
     }
 
+    // Before v7 a description holds one technique with no count or name on the
+    // wire, and Carbon names it DEFAULT_TECHNIQUE (`Tr2EffectDescription.cpp:9`,
+    // `:493-509`). Recorded as Carbon's null offset carrying that value.
     const techniques = [];
-    const techniqueCount = reader.ReadUint8();
+    const techniqueCount = version > 6 ? reader.ReadUint8() : 1;
     for (let techniqueIndex = 0; techniqueIndex < techniqueCount; techniqueIndex += 1)
     {
-        const name = readStringRef(reader);
+        const name = version > 6 ? readStringRef(reader) : { offset: 0xffffffff, value: "Main" };
 
         const passes = [];
         const passCount = sanityCheck(reader.ReadUint8(), "passes", makeError);

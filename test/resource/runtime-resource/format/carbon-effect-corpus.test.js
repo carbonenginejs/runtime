@@ -6,9 +6,13 @@ import path from "node:path";
 import { CjsByteWriter } from "../../../../src/resource/format/CjsByteWriter.js";
 import {
     passthroughArena,
+    readEffectDescription,
     writeEffectDescription
 } from "../../../../src/resource/format/carbonEffect/carbonEffectRecords.js";
-import { CjsCarbonEffectReader } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
+import {
+    CjsCarbonEffectBodyReader,
+    CjsCarbonEffectReader
+} from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import {
     CjsCarbonEffectWriter,
     writeCarbonEffectFile
@@ -47,15 +51,16 @@ const EXTENSIONS = new Set([ ".sm_hi", ".sm_lo", ".sm_depth" ]);
  * Yields every compiled effect file under a directory tree.
  *
  * @param {string} dir Directory to walk.
+ * @param {Set<string>} [extensions] File extensions to yield.
  * @yields {string} File path.
  */
-async function* walk(dir)
+async function* walk(dir, extensions = EXTENSIONS)
 {
     for (const entry of await readdir(dir, { withFileTypes: true }))
     {
         const entryPath = path.join(dir, entry.name);
-        if (entry.isDirectory()) yield* walk(entryPath);
-        else if (EXTENSIONS.has(path.extname(entry.name).toLowerCase())) yield entryPath;
+        if (entry.isDirectory()) yield* walk(entryPath, extensions);
+        else if (extensions.has(path.extname(entry.name).toLowerCase())) yield entryPath;
     }
 }
 
@@ -282,5 +287,70 @@ test(
         assert.ok(maxAliasRatio > 1, "no aliasing file in the corpus; the alias decision is untested");
         assert.deepEqual(descriptionFailures.slice(0, 5), [], `${descriptionFailures.length} description blobs did not re-emit byte-exactly`);
         assert.deepEqual(containerFailures.slice(0, 5), [], `${containerFailures.length} containers did not re-emit byte-exactly`);
+    }
+);
+
+const legacyCorpusDir = process.env.CARBON_EFFECT_LEGACY_CORPUS_DIR || null;
+
+/**
+ * Optional real-file proof for the layouts below v8. Reads every `.fxt` under
+ * CARBON_EFFECT_LEGACY_CORPUS_DIR: the container and its first body through the
+ * reader, as Carbon loads them, then every other row of the offset table as a
+ * further check of the layout. Carbon itself loads only the first row below v5
+ * (`Tr2EffectRes.cpp:232-234`); the remaining rows are read here only because
+ * each is one more real body that must parse to exactly its declared end.
+ *
+ * Build 1142708's `graphics/shaders/compiled/dx11/*.fxt` are versions 3 and 4.
+ * Fetch them through tools-core at that build and point the variable at the
+ * result:
+ *   CARBON_EFFECT_LEGACY_CORPUS_DIR=path/to/fxt npm test
+ */
+test(
+    "real pre-v8 effect containers read every body to its declared end",
+    { skip: legacyCorpusDir ? false : "set CARBON_EFFECT_LEGACY_CORPUS_DIR to run the pre-v8 real-file proof" },
+    async () =>
+    {
+        assert.ok((await stat(legacyCorpusDir)).isDirectory(), `corpus dir not found: ${legacyCorpusDir}`);
+
+        const versions = {};
+        let files = 0;
+        let rows = 0;
+        const failures = [];
+        for await (const filePath of walk(legacyCorpusDir, new Set([ ".fxt" ])))
+        {
+            files += 1;
+            const bytes = new Uint8Array(await readFile(filePath));
+            const reader = new CjsCarbonEffectReader(bytes, { source: filePath });
+            versions[reader.version] = (versions[reader.version] ?? 0) + 1;
+            reader.readDescription(0, { backend: false });
+
+            const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+            const count = reader.version < 5 ? view.getUint32(4, true) : reader.records.length;
+            for (let row = 0; row < count; row += 1)
+            {
+                rows += 1;
+                const offset = reader.version < 5 ? view.getUint32(8 + row * 12 + 4, true) : reader.records[row].offset;
+                const size = reader.version < 5 ? view.getUint32(8 + row * 12 + 8, true) : reader.records[row].size;
+                try
+                {
+                    const body = new CjsCarbonEffectBodyReader(bytes, {
+                        source: filePath,
+                        offset,
+                        end: offset + size,
+                        stringTable: reader.stringTableBytes,
+                        stringTableSize: reader.stringTableSize
+                    });
+                    readEffectDescription(body, { backend: false, version: reader.version });
+                }
+                catch (error)
+                {
+                    failures.push({ filePath, row, message: error.message });
+                }
+            }
+        }
+
+        console.log(`pre-v8 carbon effect corpus: ${files} files, ${rows} rows, versions ${JSON.stringify(versions)}`);
+        assert.ok(files > 0, "no .fxt files found under the corpus dir");
+        assert.deepEqual(failures.slice(0, 5), [], `${failures.length} bodies did not parse to their declared end`);
     }
 );

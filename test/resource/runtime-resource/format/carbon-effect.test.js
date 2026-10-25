@@ -495,11 +495,11 @@ test("the reader rejects a body region that does not start where the header ends
     );
 });
 
-test("the reader rejects versions outside 8..15", () =>
+test("the reader rejects versions outside 2..15", () =>
 {
-    // Maintainer decision 2026-08-02: 8 is the lowest version worth reading.
-    // Anything below the floor or above the current version fails at the gate.
-    for (const version of [ 2, 7, 16 ])
+    // Carbon's own gate (`Tr2EffectRes.cpp:209`): anything below 2 or above the
+    // current version fails before the header is read.
+    for (const version of [ 0, 1, 16 ])
     {
         const bytes = Uint8Array.from(buildSyntheticContainer());
         new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).setUint32(0, version, true);
@@ -629,6 +629,231 @@ test("a version-8 container reads through the restored version parameter", () =>
         description.techniques[0].passes[0].renderStates,
         [ { state: 22, value: 3 } ]
     );
+});
+
+/**
+ * Builds a container in one of the layouts below v8, one body with one vertex
+ * stage, following each `Tr2EffectRes.cpp` / `Tr2EffectDescription.cpp` branch.
+ *
+ * Game files are never committed, so the bytes are generated; where build
+ * 1142708 ships a file at the version, `rows` and `firstKey` carry that file's
+ * real header values. Carbon reads only the first row below v5, so the other
+ * rows are filler aliasing row 0.
+ *
+ * @param {number} version Container version, 2..7.
+ * @param {object} [header] Header values.
+ * @param {number} [header.rows] Offset-table row count (only below v5).
+ * @param {number} [header.firstKey] Row 0's stored key.
+ * @returns {Uint8Array} Container bytes.
+ */
+function buildPreV8Container(version, { rows = 1, firstKey = 0 } = {})
+{
+    const arena = new CjsByteWriter();
+    const encoder = new TextEncoder();
+    const strings = { Main: 0, Const: 5, Tex: 11, Samp: 15, Uav: 20 };
+    for (const value of Object.keys(strings))
+    {
+        arena.bytes(encoder.encode(value));
+        arena.u8(0);
+    }
+    const SHADER_OFFSET = 24;
+    arena.bytes(Uint8Array.of(0xde, 0xad, 0xbe, 0xef));
+    const DEFAULTS_OFFSET = 28;
+    arena.bytes(Uint8Array.of(1, 2, 3, 4));
+    const arenaBytes = arena.toBytes();
+
+    const body = new CjsByteWriter();
+    const emit = (writer, values) => { for (const [ kind, value ] of values) writer[kind](value); };
+    if (version > 6)
+    {
+        emit(body, [ [ "u8", 1 ], [ "u32", strings.Main ] ]); // technique count and name
+    }
+    emit(body, [
+        [ "u8", 1 ],                       // pass count
+        [ "u8", 1 ],                       // stage count
+        [ "u8", 0 ],                       // stage type: vertex
+        [ "u8", 1 ],                       // pipeline input count
+        [ "u8", 6 ], [ "u8", 1 ], [ "u8", 2 ], [ "u8", 0x0f ]
+    ]);
+    if (version < 5)
+    {
+        // inline program, then an inline shadow program Carbon discards
+        emit(body, [ [ "u32", 4 ], [ "u8", 0xde ], [ "u8", 0xad ], [ "u8", 0xbe ], [ "u8", 0xef ] ]);
+        emit(body, [ [ "u32", 2 ], [ "u8", 0xaa ], [ "u8", 0xbb ] ]);
+    }
+    else
+    {
+        emit(body, [ [ "u32", 4 ], [ "u32", SHADER_OFFSET ], [ "u32", 7 ], [ "u32", 9 ] ]);
+    }
+    if (version >= 3)
+    {
+        emit(body, [ [ "u32", 1 ], [ "u32", 2 ], [ "u32", 3 ] ]); // thread group size
+    }
+    emit(body, [
+        [ "u32", 1 ],                      // constant count
+        [ "u32", strings.Const ], [ "u32", 0 ], [ "u32", 4 ],
+        [ "u8", 2 ],                       // old type byte: BOOL
+        [ "u8", 1 ], [ "u32", 1 ], [ "u8", 0 ], [ "u8", 1 ]
+    ]);
+    if (version < 5)
+    {
+        emit(body, [ [ "u32", 4 ], [ "u8", 1 ], [ "u8", 2 ], [ "u8", 3 ], [ "u8", 4 ] ]);
+    }
+    else
+    {
+        emit(body, [ [ "u32", 4 ], [ "u32", DEFAULTS_OFFSET ] ]);
+    }
+    emit(body, [
+        [ "u8", 1 ],                       // texture count
+        [ "u8", 0 ], [ "u32", strings.Tex ], [ "u8", 2 ], [ "u8", 1 ], [ "u8", 0 ],
+        [ "u8", 1 ],                       // sampler count
+        [ "u8", 0 ]                        // sampler register
+    ]);
+    if (version >= 4)
+    {
+        emit(body, [ [ "u32", strings.Samp ] ]);
+    }
+    emit(body, [
+        [ "u8", 0 ], [ "u8", 1 ], [ "u8", 1 ], [ "u8", 1 ], [ "u8", 1 ], [ "u8", 1 ], [ "u8", 1 ],
+        [ "f32", 0.5 ], [ "u8", 4 ], [ "u8", 2 ],
+        [ "f32", 0 ], [ "f32", 0 ], [ "f32", 0 ], [ "f32", 1 ],
+        [ "f32", 0 ], [ "f32", 8 ]
+    ]);
+    if (version < 4)
+    {
+        emit(body, [ [ "u8", 1 ] ]);       // isSRGBTexture, discarded
+    }
+    if (version >= 3)
+    {
+        emit(body, [
+            [ "u8", 1 ],                   // uav count; no stage annotations before v8
+            [ "u8", 1 ], [ "u32", strings.Uav ], [ "u8", 5 ], [ "u8", 1 ]
+        ]);
+    }
+    emit(body, [
+        [ "u8", 1 ], [ "u32", 22 ], [ "u32", 3 ], // render states
+        [ "u16", 0 ]                       // effect annotations
+    ]);
+    const bodyBytes = body.toBytes();
+
+    const writer = new CjsByteWriter();
+    writer.u32(version);
+    if (version < 5)
+    {
+        const headerEnd = 8 + rows * 12 + 4 + arenaBytes.length;
+        writer.u32(rows);
+        for (let row = 0; row < rows; row += 1)
+        {
+            writer.u32(row === 0 ? firstKey : firstKey + row);
+            writer.u32(headerEnd);
+            writer.u32(bodyBytes.length);
+        }
+        writer.u32(arenaBytes.length);
+        writer.bytes(arenaBytes);
+    }
+    else
+    {
+        writer.u32(arenaBytes.length);
+        writer.bytes(arenaBytes);
+        writer.u8(1);                      // one permutation axis, one option
+        emit(writer, [ [ "u32", strings.Main ], [ "u8", 0 ], [ "u32", strings.Main ] ]);
+        if (version > 5)
+        {
+            writer.u8(1);                  // axis type
+        }
+        emit(writer, [ [ "u8", 1 ], [ "u32", strings.Main ] ]);
+        const headerEnd = 4 + 4 + arenaBytes.length + 10 + (version > 5 ? 1 : 0) + 5 + 4 + 12;
+        writer.u32(1);
+        writer.u32(firstKey);
+        writer.u32(headerEnd);
+        writer.u32(bodyBytes.length);
+    }
+    writer.bytes(bodyBytes);
+    return writer.toBytes();
+}
+
+/**
+ * Reads a pre-v8 container's only stage.
+ *
+ * @param {number} version Container version.
+ * @param {object} [header] Header values for `buildPreV8Container`.
+ * @returns {{reader: CjsCarbonEffectReader, description: object, stage: object}} Parsed parts.
+ */
+function readPreV8(version, header)
+{
+    const reader = new CjsCarbonEffectReader(buildPreV8Container(version, header), { source: `legacy-v${version}` });
+    const description = reader.readDescription(0, { backend: false });
+    return { reader, description, stage: description.techniques[0].passes[0].stages[0] };
+}
+
+test("v2 has no UAV table and no thread-group size (Tr2EffectDescription.cpp:441, :572)", () =>
+{
+    // No shipped file at v2; the layout follows Carbon's branches alone.
+    const { reader, stage } = readPreV8(2);
+    assert.equal(reader.version, 2);
+    assert.deepEqual(stage.uavs, []);
+    assert.deepEqual(stage.annotations, []);
+    assert.deepEqual(stage.threadGroupSize, [ 1, 1, 1 ]);
+});
+
+test("v3 header: offset table before the arena, only the first row kept (Tr2EffectRes.cpp:215-243)", () =>
+{
+    // Row count and row 0's key are graphics/shaders/compiled/dx11/
+    // incarnadetailedtransparent.fxt's, build 1142708: a sparse key, not a position.
+    const { reader, description, stage } = readPreV8(3, { rows: 128, firstKey: 0x400 });
+    assert.equal(reader.version, 3);
+    assert.deepEqual(reader.permutations, []);
+    assert.equal(reader.records.length, 1);
+    assert.equal(reader.records[0].index, 0x400);
+    assert.equal(reader.headerEnd, reader.records[0].offset);
+
+    // Inline program and default values, the shadow program skipped.
+    assert.deepEqual(Array.from(stage.shaderData.bytes), [ 0xde, 0xad, 0xbe, 0xef ]);
+    assert.deepEqual(Array.from(stage.defaultValues.bytes), [ 1, 2, 3, 4 ]);
+    assert.deepEqual(stage.threadGroupSize, [ 1, 2, 3 ]);
+    assert.equal(stage.uavs.length, 1);
+    assert.deepEqual(stage.annotations, []);
+    // No sampler name before v4; the trailing isSRGBTexture byte is consumed.
+    assert.equal(stage.samplers[0].name.value, null);
+    assert.equal(description.techniques[0].name.value, "Main");
+});
+
+test("v4 samplers carry a name and no isSRGBTexture byte (Tr2EffectDescription.cpp:411-425)", () =>
+{
+    // Header values are graphics/shaders/compiled/dx11/shiphologram.fxt's, build
+    // 1142708, the one v4 file it ships.
+    const { reader, stage } = readPreV8(4, { rows: 1, firstKey: 0 });
+    assert.equal(reader.version, 4);
+    assert.equal(stage.samplers[0].name.value, "Samp");
+    assert.equal(stage.samplers[0].maxLOD, 8);
+});
+
+test("v5 header: arena first, axes without a type byte; blobs move to the arena (Tr2EffectRes.cpp:274-281)", () =>
+{
+    // No shipped file at v5.
+    const { reader, stage } = readPreV8(5);
+    assert.equal(reader.permutations.length, 1);
+    assert.equal(reader.permutations[0].type, 0);
+    assert.equal(stage.shaderData.offset, 24);
+    assert.equal(stage.defaultValues.offset, 28);
+});
+
+test("v6 axes carry a type byte; still one unnamed technique (Tr2EffectDescription.cpp:493-509)", () =>
+{
+    // No shipped file at v6.
+    const { reader, description } = readPreV8(6);
+    assert.equal(reader.permutations[0].type, 1);
+    assert.equal(description.techniques.length, 1);
+    assert.equal(description.techniques[0].name.value, "Main");
+});
+
+test("v7 techniques carry a count and name; stages still have no annotations (Tr2EffectDescription.cpp:467)", () =>
+{
+    // No shipped file at v7.
+    const { description, stage } = readPreV8(7);
+    assert.equal(description.techniques[0].name.offset, 0);
+    assert.equal(description.techniques[0].name.value, "Main");
+    assert.deepEqual(stage.annotations, []);
 });
 
 test("the reader rejects a truncated arena and an empty offset table", () =>
