@@ -72,6 +72,65 @@ quat.fromUnitVectors = function(out, from, to)
 };
 
 /**
+ * Creates the quaternion of a rotation matrix as Carbon does.
+ *
+ * Source: math/include/Quaternion.h:56
+ * Source: math/src/Quaternion.cpp:7-55
+ * Carbon: RotationQuaternion(const Matrix& m)
+ *
+ * The matrix is read as Carbon's `m.m[row][col]`, `m[row * 4 + col]` in a
+ * gl-matrix mat4, the same bytes. Carbon's branches - the trace above 1, else
+ * the largest diagonal - give a different quaternion from stock `quat.fromMat3`
+ * for a matrix that is not quite orthonormal, such as a vertex's tangent frame.
+ * Not normalized, as Carbon's is not.
+ *
+ * @param {quat} out
+ * @param {ArrayLike<number>} m A 4x4 matrix, rows first.
+ * @returns {quat}
+ */
+quat.fromRotationMatrix = function(out, m)
+{
+    const at = (row, col) => m[row * 4 + col];
+    const trace = at(0, 0) + at(1, 1) + at(2, 2) + 1;
+    if (trace > 1)
+    {
+        const root = Math.sqrt(trace);
+        out[0] = (at(1, 2) - at(2, 1)) / (2 * root);
+        out[1] = (at(2, 0) - at(0, 2)) / (2 * root);
+        out[2] = (at(0, 1) - at(1, 0)) / (2 * root);
+        out[3] = root / 2;
+        return out;
+    }
+    let maxi = 0;
+    for (let i = 1; i < 3; i++) if (at(i, i) > at(maxi, maxi)) maxi = i;
+    if (maxi === 0)
+    {
+        const s = 2 * Math.sqrt(1 + at(0, 0) - at(1, 1) - at(2, 2));
+        out[0] = 0.25 * s;
+        out[1] = (at(0, 1) + at(1, 0)) / s;
+        out[2] = (at(0, 2) + at(2, 0)) / s;
+        out[3] = (at(1, 2) - at(2, 1)) / s;
+    }
+    else if (maxi === 1)
+    {
+        const s = 2 * Math.sqrt(1 + at(1, 1) - at(0, 0) - at(2, 2));
+        out[0] = (at(0, 1) + at(1, 0)) / s;
+        out[1] = 0.25 * s;
+        out[2] = (at(1, 2) + at(2, 1)) / s;
+        out[3] = (at(2, 0) - at(0, 2)) / s;
+    }
+    else
+    {
+        const s = 2 * Math.sqrt(1 + at(2, 2) - at(0, 0) - at(1, 1));
+        out[0] = (at(0, 2) + at(2, 0)) / s;
+        out[1] = (at(1, 2) + at(2, 1)) / s;
+        out[2] = 0.25 * s;
+        out[3] = (at(0, 1) - at(1, 0)) / s;
+    }
+    return out;
+};
+
+/**
  * Creates a Carbon yaw/pitch/roll quaternion.
  *
  * Source: math/include/Quaternion.h:57
