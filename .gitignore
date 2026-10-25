@@ -13,7 +13,5 @@ CLAUDE.md
 *.tgz
 /demo/
 
-/test/trinityal/webgpu/demo/
-
 # Local WebGPU demo and comic-preview workspace (operator, 2026-10-12).
 /_dev/
