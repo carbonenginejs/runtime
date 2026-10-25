@@ -43,6 +43,9 @@ import { Tr2IntKeyGenerator } from "./Tr2IntKeyGenerator.js";
 import { Tr2ConstantBufferFormats } from "../../../trinity/core/rawData/Tr2ConstantBufferFormats.js";
 import { Tr2VariableStore } from "../../../trinity/core/variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../../../trinity/generated/trinityCore/enums.js";
+import { ITr2PickableScene } from "../../../trinity/core/scene/ITr2PickableScene.js";
+import { Tr2PickBuffer } from "../../../trinity/core/scene/Tr2PickBuffer.js";
+import { PROJECTION_TYPE } from "../../../trinity/generated/shader/enums.js";
 
 /**
  * Interior-scene state record for authored dynamics, lights, environment, fog,
@@ -60,7 +63,7 @@ import { TriVariableContentType } from "../../../trinity/generated/trinityCore/e
 @be.mapInterface(INotify)
 @be.mapInterface(ITr2Updateable)
 @be.inherit(IListNotify)
-export class Tr2InteriorScene
+export class Tr2InteriorScene extends ITr2PickableScene
 {
   // Carbon m_apexScene remains empty until the physics scene is installed.
   _apexScene = null;
@@ -70,6 +73,15 @@ export class Tr2InteriorScene
 
   /** Native forward-pass accumulator; its allocator is bound to the active context. */
   _primaryRenderBatches = new TriRenderBatchAccumulator(Tr2IntKeyGenerator);
+
+  /** Native m_opaquePickingBatches (h:162, cpp:155): the picking pass's opaque batches. */
+  _opaquePickingBatches = new TriRenderBatchAccumulator(Tr2IntKeyGenerator);
+
+  /** Native m_pickingBatches (h:163, cpp:156): the picking pass's picking-area batches. */
+  _pickingBatches = new TriRenderBatchAccumulator(Tr2IntKeyGenerator);
+
+  /** Native m_pickBuffer (h:269, cpp:126): a one-pixel float target, cleared to zero (cpp:160). */
+  _pickBuffer = new Tr2PickBuffer(PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT, 1);
 
   _activeLightSet = new Tr2InteriorLightSet();
   _visibilityQueryType = VisibilityQueryType.PRIMARY_QUERY;
@@ -116,6 +128,9 @@ export class Tr2InteriorScene
    */
   constructor()
   {
+    super();
+    // Carbon also prepares the pick buffer here (cpp:159); ours prepares when a pick runs (ITr2PickableScene.PickObject).
+    this._pickBuffer.SetClearColor(0);
     this.dynamics.SetNotify(this);
     this.lights.SetNotify(this);
 
@@ -278,12 +293,31 @@ export class Tr2InteriorScene
   @type.object.ref("Tr2Effect")
   backgroundEffect = null;
 
-  /** Carbon method PickObject -> PickObjectOnly (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /**
+   * The object under a screen pixel, or null. Carbon PickObjectOnly
+   * (Tr2InteriorScene.h:244-251), exposed as "PickObject"
+   * (Tr2InteriorScene_Blue.cpp:413, MAP_METHOD_AND_WRAP_OPTIONAL_ARGS): a
+   * PICK_OBJECT pick through ITr2PickableScene::PickObject.
+   *
+   * Adapted: awaited, because the browser reads the pick buffer back
+   * asynchronously (ITr2PickableScene.PickObject).
+   *
+   * @param {number} x Pixel column in the viewport.
+   * @param {number} y Pixel row in the viewport.
+   * @param {TriProjection} projection The camera projection.
+   * @param {TriView} view The camera view.
+   * @param {TriViewport} viewport The viewport the pixel is in.
+   * @param {number} [_pickTypes=0] Carbon's optional Tr2PickTypes, unused by the donor.
+   * @returns {Promise<object|null>} The picked object, or null.
+   */
+  @be.mapMethodAndWrapOptionalArgs()
+  @meta.adapted
   @meta.renamed("PickObjectOnly")
-  @meta.notImplemented
-  PickObject(...args)
+  async PickObject(x, y, projection, view, viewport, _pickTypes = 0)
   {
-    throw new Error("Tr2InteriorScene.PickObject is not implemented in CarbonEngineJS.");
+    const results = { components: ITr2PickableScene.PickComponent.PICK_OBJECT, object: null };
+    await super.PickObject(Tr2RenderContext_GetMainThreadRenderContext(), x, y, projection, view, viewport, results);
+    return results.object;
   }
 
   /**
@@ -362,12 +396,221 @@ export class Tr2InteriorScene
     throw new Error("Tr2InteriorScene.PickPointAndObject is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method PickObjectUV (MAP_METHOD_AND_WRAP). */
+  /**
+   * The texture coordinate under a screen pixel. Carbon PickObjectUV
+   * (Tr2InteriorScene.h:253-260; Tr2InteriorScene_Blue.cpp:425-426): a PICK_UV
+   * pick through ITr2PickableScene::PickObject.
+   *
+   * Adapted: awaited, as `PickObject` is.
+   *
+   * @param {number} x Pixel column in the viewport.
+   * @param {number} y Pixel row in the viewport.
+   * @param {TriProjection} projection The camera projection.
+   * @param {TriView} view The camera view.
+   * @param {TriViewport} viewport The viewport the pixel is in.
+   * @returns {Promise<number[]>} The UV, [0, 0] when nothing was hit (Carbon's default Vector2).
+   */
   @be.mapMethodAndWrap()
-  @meta.notImplemented
-  PickObjectUV(...args)
+  @meta.adapted
+  async PickObjectUV(x, y, projection, view, viewport)
   {
-    throw new Error("Tr2InteriorScene.PickObjectUV is not implemented in CarbonEngineJS.");
+    const results = { components: ITr2PickableScene.PickComponent.PICK_UV, object: null, uv: [ 0, 0 ] };
+    await super.PickObject(Tr2RenderContext_GetMainThreadRenderContext(), x, y, projection, view, viewport, results);
+    return results.uv;
+  }
+
+  /**
+   * Carbon SetupTransformsForPicking (h:216, cpp:1172-1203): the camera's view
+   * and projection, then the projection narrowed to the picked pixel - for an
+   * orthographic camera a one-pixel off-centre box, otherwise scaled so the
+   * viewport covers one pixel and translated to centre on the pick ray.
+   * @param {number} fx Pick position in projection space, x.
+   * @param {number} fy Pick position in projection space, y.
+   * @param {TriProjection} projection The camera projection.
+   * @param {TriView} view The camera view.
+   * @param {TriViewport} viewport The viewport picked in.
+   * @returns {void}
+   */
+  @meta.implemented
+  SetupTransformsForPicking(fx, fy, projection, view, viewport)
+  {
+    Tr2Renderer.SetViewTransform(view.GetTransform(mat4.create()));
+    projection.SetProjection();
+    if (Tr2Renderer.GetCurrentProjectionType() === PROJECTION_TYPE.PT_ORTHOGONAL)
+    {
+      fx *= Tr2Renderer.GetOrthoWidth() / 2;
+      fy *= Tr2Renderer.GetOrthoHeight() / 2;
+      const metersPerPixel = (Tr2Renderer.GetOrthoWidth() / viewport.width) / 2;
+      Tr2Renderer.SetOrthoProjection__LeftRightBottomTop(fx - metersPerPixel, fx + metersPerPixel,
+        fy - metersPerPixel, fy + metersPerPixel, Tr2Renderer.GetFrontClip(), Tr2Renderer.GetBackClip());
+    }
+    else
+    {
+      const scaling = [ viewport.width, viewport.height ];
+      Tr2Renderer.AdjustProjection(scaling, [ -fx * scaling[0], -fy * scaling[1] ]);
+    }
+  }
+
+  /**
+   * Carbon GetPickingObjectsToRender(dirWorld) (h:217, cpp:1205-1214): the
+   * objects a picking visibility query found, running the query at the
+   * current field of view and aspect when the list is empty.
+   *
+   * Quirk, reproduced (cpp:1207-1213): a non-empty list from an earlier query
+   * is returned as it is, without a new query.
+   *
+   * @param {vec3} dirWorld The pick ray's world direction.
+   * @param {Tr2RenderContext} [_context] The base class's context argument, unused here.
+   * @returns {object[]} The renderables to pick among.
+   */
+  @meta.implemented
+  GetPickingObjectsToRender(dirWorld, _context)
+  {
+    if (this._visibleObjects.length === 0)
+      return this.GetPickingObjectsToRender__FovAspect(dirWorld, Tr2Renderer.GetFieldOfView(), Tr2Renderer.GetAspectRatio());
+    return this._visibleObjects;
+  }
+
+  /**
+   * Carbon GetPickingObjectsToRender(dirWorld, fov, aspect) (h:218,
+   * cpp:1216-1238): a PICKING_QUERY visibility resolve from the eye, looking
+   * down the pick ray, collecting the visible renderables.
+   *
+   * Carbon builds the view with XMMatrixLookAtLH(eye, eye - dirWorld, +Y),
+   * which mat4.lookAtD3D reproduces element for element, and the projection
+   * with PerspectiveFovMatrix (mat4.perspectiveFovCarbon). Its TriFrustum
+   * fields are set and then unused (cpp:1219-1224), so none is built here.
+   *
+   * @param {vec3} dirWorld The pick ray's world direction.
+   * @param {number} fov Vertical field of view, radians.
+   * @param {number} aspect Width over height.
+   * @returns {object[]} The renderables to pick among.
+   */
+  @meta.implemented
+  GetPickingObjectsToRender__FovAspect(dirWorld, fov, aspect)
+  {
+    const { mat4_0, mat4_1, vec3_0, vec3_1 } = Tr2InteriorScene.scratch;
+    const eye = Tr2Renderer.GetViewPosition();
+    vec3.subtract(vec3_0, eye, dirWorld);
+    vec3.set(vec3_1, 0, 1, 0);
+    mat4.lookAtD3D(mat4_0, eye, vec3_0, vec3_1);
+    mat4.perspectiveFovCarbon(mat4_1, fov, aspect, Tr2Renderer.GetFrontClip(), Tr2Renderer.GetBackClip());
+    this._visibleObjects.length = 0;
+    this._visibilityQueryType = VisibilityQueryType.PICKING_QUERY;
+    this._ResolveVisibility(mat4_0, mat4_1, false);
+    return this._visibleObjects;
+  }
+
+  /**
+   * Carbon SetPerFrameDataForPicking (h:220, cpp:1240-1250): populates and
+   * binds the per-frame pixel and vertex shader data for the picking pass.
+   * @param {Tr2RenderContext} renderContext The context the pick renders on.
+   * @returns {void}
+   */
+  @meta.implemented
+  SetPerFrameDataForPicking(renderContext)
+  {
+    this._PopulatePerFramePSData(this._perFramePSData, renderContext);
+    this._PopulatePerFrameVSData(this._perFrameVSData);
+    const vs = this._perFrameVSData.GetData(), ps = this._perFramePSData.GetData();
+    Tr2RenderUtils.fillAndSetConstants(this._perFrameVSBuffer, vs, vs.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_FRAME_VS, renderContext);
+    Tr2RenderUtils.fillAndSetConstants(this._perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);
+  }
+
+  /**
+   * Carbon GetOpaquePickingBatchAccumulator (h:222, cpp:1318-1321).
+   * @returns {TriRenderBatchAccumulator} The scene's opaque picking batches.
+   */
+  @meta.implemented
+  GetOpaquePickingBatchAccumulator()
+  {
+    return this._opaquePickingBatches;
+  }
+
+  /**
+   * Carbon GetPickingBatchAccumulator (h:223, cpp:1323-1326).
+   * @returns {TriRenderBatchAccumulator} The scene's picking-area batches.
+   */
+  @meta.implemented
+  GetPickingBatchAccumulator()
+  {
+    return this._pickingBatches;
+  }
+
+  /**
+   * Carbon RenderPickingAreasForComponents (h:225-228): picking areas always draw.
+   * @param {number} _pass The pass's PickComponent bits.
+   * @returns {boolean} Always true.
+   */
+  @meta.implemented
+  RenderPickingAreasForComponents(_pass)
+  {
+    return true;
+  }
+
+  /**
+   * Carbon GetPickBuffer (h:229-232).
+   * @returns {Tr2PickBuffer} The scene's one-pixel float pick target.
+   */
+  @meta.implemented
+  GetPickBuffer()
+  {
+    return this._pickBuffer;
+  }
+
+  /**
+   * Carbon GetRequiredPasses (h:233, cpp:1342-1355): object, area, position
+   * and UV together take two passes (UV second); anything else takes one.
+   *
+   * Adapted: returns the passes' PickComponent masks, where Carbon writes them
+   * to an output array and returns the count (as Tr2PrimitiveScene's port does).
+   *
+   * @param {number} requestedComponents The requested PickComponent bits.
+   * @returns {number[]} The PickComponent bits each pass renders.
+   */
+  @meta.adapted
+  GetRequiredPasses(requestedComponents)
+  {
+    const { PICK_OBJECT, PICK_AREA, PICK_POSITION, PICK_UV } = ITr2PickableScene.PickComponent;
+    const all = PICK_OBJECT | PICK_AREA | PICK_POSITION | PICK_UV;
+    if ((requestedComponents & all) === all) return [ PICK_OBJECT | PICK_AREA | PICK_POSITION, PICK_UV ];
+    return [ requestedComponents ];
+  }
+
+  /**
+   * Carbon DecodeBufferPixel (h:234, cpp:1357-1386): the object id is blue
+   * plus a half, minus one; a UV pass reads u from red and v from alpha, with
+   * depth (when position was asked for too) or the area id in green; otherwise
+   * green is the area id and red the depth.
+   *
+   * Adapted: reads the four little-endian floats from the mapped bytes, where
+   * Carbon casts the pixel pointer.
+   *
+   * @param {Uint8Array} data The pixel's 16 bytes: blue, green, red, alpha floats.
+   * @param {number} pass The pass's PickComponent bits.
+   * @param {object} results Receives objectId, areaId, depth and uv.
+   * @returns {void}
+   */
+  @meta.adapted
+  DecodeBufferPixel(data, pass, results)
+  {
+    const { PICK_POSITION, PICK_UV } = ITr2PickableScene.PickComponent;
+    const pixel = new DataView(data.buffer, data.byteOffset, 16);
+    const b = pixel.getFloat32(0, true), g = pixel.getFloat32(4, true);
+    const r = pixel.getFloat32(8, true), a = pixel.getFloat32(12, true);
+    // (unsigned short)( b + 0.5f ), then decremented as an unsigned short.
+    results.objectId = ((Math.trunc(b + 0.5) & 0xffff) - 1) & 0xffff;
+    if (pass & PICK_UV)
+    {
+      results.uv = [ r, a ];
+      if (pass & PICK_POSITION) results.depth = g;
+      else results.areaId = Math.trunc(g + 0.5) & 0xffff;
+    }
+    else
+    {
+      results.areaId = Math.trunc(g + 0.5) & 0xffff;
+      results.depth = r;
+    }
   }
 
   /**
@@ -936,6 +1179,10 @@ export class Tr2InteriorScene
     this._lightDepthStencil = null;
     this.backgroundCubemapRes = null;
     this._whiteTexture = null;
+    // Carbon's destructor (cpp:191-194).
+    this._pickingBatches.Clear();
+    this._opaquePickingBatches.Clear();
+    this._pickBuffer.Destruct();
   }
 
   static VisualizeMethod = VisualizeMethod;
