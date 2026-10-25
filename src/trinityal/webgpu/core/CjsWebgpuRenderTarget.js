@@ -204,10 +204,19 @@ export class CjsWebgpuRenderTarget
   /**
    * Configures the canvas context and sizes every attachment.
    *
-   * Idempotent for an unchanged size, format and device generation, so a caller
-   * may invoke it each frame without recreating anything. A generation change
-   * reconfigures unconditionally, because the previous device's configuration
-   * does not carry over.
+   * Idempotent for an unchanged size, sample count, format and device
+   * generation, so a caller may invoke it each frame without recreating
+   * anything. A generation change reconfigures unconditionally, because the
+   * previous device's configuration does not carry over. A new
+   * `sampleCount` rebuilds the colour and depth attachments, so a host can
+   * multisample one view (the character preview) and not another (the space
+   * scene, which has its own anti-aliasing).
+   *
+   * @param {object} [options]
+   * @param {number} [options.width] Backing width; defaults to the current one.
+   * @param {number} [options.height] Backing height; defaults to the current one.
+   * @param {number} [options.sampleCount] Multisample count; defaults to the current one.
+   * @returns {this} The target.
    */
   Configure(options = {})
   {
@@ -215,6 +224,8 @@ export class CjsWebgpuRenderTarget
 
     const width = positiveSize(options.width ?? this._width, "width");
     const height = positiveSize(options.height ?? this._height, "height");
+    const sampleCount = options.sampleCount ?? this._sampleCount;
+    if (sampleCount !== 1 && sampleCount !== 4) fail("WebGPU multisamples a canvas at 1 or 4 samples");
     const generation = this._webgpu.GetGeneration();
     const device = this._webgpu.GetDevice();
 
@@ -233,7 +244,8 @@ export class CjsWebgpuRenderTarget
 
     const changed = generation !== this._generation
       || width !== this._width
-      || height !== this._height;
+      || height !== this._height
+      || sampleCount !== this._sampleCount;
 
     if (!changed) return this;
 
@@ -261,6 +273,7 @@ export class CjsWebgpuRenderTarget
 
     this._width = width;
     this._height = height;
+    this._sampleCount = sampleCount;
     this._generation = generation;
     this._ReleaseAttachments();
     this._CreateAttachments(device, usage);

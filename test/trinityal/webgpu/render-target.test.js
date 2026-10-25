@@ -194,6 +194,30 @@ test("CjsWebgpuRenderTarget resolves multisampled colour into the canvas", () =>
   assert.notEqual(frame.colorView, frame.resolveView);
 });
 
+test("CjsWebgpuRenderTarget switches its sample count on Configure, rebuilding colour and depth", () =>
+{
+  const { created, target } = fakeSetup({ depthFormat: "depth24plus" });
+  target.Configure({ width: 128, height: 128 });
+  assert.equal(target.GetSampleCount(), 1);
+  assert.equal(created.some(texture => texture.label.endsWith("multisample")), false);
+
+  target.Configure({ sampleCount: 4 });
+  assert.equal(target.GetSampleCount(), 4);
+  const multisample = created.filter(texture => texture.label.endsWith("multisample")).at(-1);
+  const depth = created.filter(texture => texture.label.endsWith("depth")).at(-1);
+  assert.equal(multisample.descriptor.sampleCount, 4);
+  assert.equal(depth.descriptor.sampleCount, 4);
+
+  const count = created.length;
+  target.Configure({ sampleCount: 4 });
+  assert.equal(created.length, count, "an unchanged sample count rebuilds nothing");
+
+  target.Configure({ sampleCount: 1 });
+  assert.equal(target.GetSampleCount(), 1);
+  assert.equal(created.filter(texture => texture.label.endsWith("depth")).at(-1).descriptor.sampleCount, 1);
+  assert.throws(() => target.Configure({ sampleCount: 2 }), /1 or 4 samples/);
+});
+
 test("CjsWebgpuRenderTarget applies viewport and scissor per pass", () =>
 {
   const { target } = fakeSetup();
