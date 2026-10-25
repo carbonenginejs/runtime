@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { BCN_CALLBACK_MODULES, compressBitmapAsync } from "../../src/resource/codecs/bcn/index.js";
 import { IMAGE_DECODE_CALLBACK_MODULES } from "../../src/resource/imageio/imageDecodeCallbacks.js";
-import demoBundles from "../../rollup.webgpu-demo.config.mjs";
+import workerBundles from "../../rollup.workers.config.mjs";
 
 // BeCallbackMan imports each registered callback module by URL, in a worker
 // and on the main thread. A module missing from the published files or from a
@@ -15,13 +15,13 @@ import demoBundles from "../../rollup.webgpu-demo.config.mjs";
 const ROOT = new URL("../../", import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL("package.json", ROOT), "utf8"));
 const published = new Set(Object.values(manifest.exports).filter(value => typeof value === "string"));
-const bundled = new Set(demoBundles.map(config => config.input.replaceAll("\\", "/")));
+const bundled = new Set(workerBundles.map(config => config.input.replaceAll("\\", "/")));
 
 test("every registered callback module (bcn, image decode) exists, exports its callback, and is published and bundled", async () =>
 {
   const entry = "./src/global/blue/worker/blueCallbackManWorkerEntry.js";
   assert.ok(published.has(entry), "the default worker entry is a package export");
-  assert.ok([ ...bundled ].some(input => input.endsWith("npm/dist/global/blue/worker/blueCallbackManWorkerEntry.js")), "the demo build bundles the worker entry");
+  assert.ok([ ...bundled ].some(input => input.endsWith("npm/dist/global/blue/worker/blueCallbackManWorkerEntry.js")), "the worker build bundles the worker entry");
 
   for (const [ name, url ] of Object.entries({ ...BCN_CALLBACK_MODULES, ...IMAGE_DECODE_CALLBACK_MODULES }))
   {
@@ -32,7 +32,7 @@ test("every registered callback module (bcn, image decode) exists, exports its c
     const source = "./" + file.replaceAll("\\", "/").slice(fileURLToPath(ROOT).replaceAll("\\", "/").length);
     assert.ok(published.has(source), `${name}: ${source} is a package export`);
     const dist = source.replace("./src/", "npm/dist/");
-    assert.ok([ ...bundled ].some(input => input.endsWith(dist)), `${name}: the demo build bundles ${dist}`);
+    assert.ok([ ...bundled ].some(input => input.endsWith(dist)), `${name}: the worker build bundles ${dist}`);
   }
 });
 
