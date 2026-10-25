@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDoll } from "../../../npm/dist/character/index.js";
+import { CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+
+/** One instance per bindings object, so repeated updates keep their applied state. */
+const instances = new WeakMap();
+function Update(definition, bindings)
+{
+    if (!instances.has(bindings)) instances.set(bindings, new CjsPaperDollInstance(bindings));
+    return instances.get(bindings).Update(definition);
+}
 
 const ink = [ Float32Array.of(.1, .1, .1, 1), Float32Array.of(.2, .2, .2, 1), Float32Array.of(.3, .3, .3, 1) ];
 
@@ -23,7 +31,7 @@ function Foundation()
 /** A doll with two head tattoo profiles, both zoned to colour area 1. */
 function Doll()
 {
-    const doll = new CjsPaperDoll();
+    const doll = new CjsPaperDollDefinition();
     doll.archetype.Configure([ Foundation() ], { option: "archetype", strength: 1 });
     doll.tattoo.Configure([
         { id: "areaOne", colorAreas: [ 1 ], defaultPalette: "ink", palettes: [ { path: "ink", label: "Ink" } ] },
@@ -55,21 +63,21 @@ test("tattoo edits reach the head binding with the captured option and colours",
 {
     const doll = Doll();
     const bindings = Bindings();
-    doll.Update(bindings);
+    Update(doll, bindings);
     bindings.heads.length = 0;
 
     doll.tattoo.option = "areaOne";
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(bindings.heads.length, 1);
     assert.equal(bindings.heads[0].tattoo.option, "areaOne");
 
     doll.tattoo.color1 = Float32Array.of(.8, 0, 0, 1);
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(bindings.heads.length, 2);
     assert.deepEqual(Array.from(bindings.heads[1].tattoo.colors[0]), [ .800000011920929, 0, 0, 1 ]);
 
     doll.tattoo.enabled = false;
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(bindings.heads.at(-1).tattoo.option, "", "a disabled tattoo captures no option");
 });
 
@@ -77,18 +85,18 @@ test("a strength-only edit rebuilds the head only while a tattoo is selected", (
 {
     const doll = Doll();
     const bindings = Bindings();
-    doll.Update(bindings);
+    Update(doll, bindings);
     bindings.heads.length = 0;
 
     doll.archetype.strength = .5;
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(bindings.heads.length, 0, "without a tattoo a geometry-only edit leaves cosmetic maps alone");
 
     doll.tattoo.option = "areaOne";
-    doll.Update(bindings);
+    Update(doll, bindings);
     bindings.heads.length = 0;
 
     doll.archetype.strength = .75;
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(bindings.heads.length, 1, "the tattoo is baked from the morphed face, so it rebakes");
 });

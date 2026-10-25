@@ -1,5 +1,8 @@
 /** Application-owned PaperDoll controls; resource and rendering bindings are injected. */
 export { CjsPaperDoll } from "./CjsPaperDoll.js";
+export { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
+export { CjsPaperDollInstance } from "./CjsPaperDollInstance.js";
+export { CjsPaperDollManager } from "./CjsPaperDollManager.js";
 export { CjsPaperDollEyes } from "./CjsPaperDollEyes.js";
 export { CjsPaperDollEyeItem } from "./CjsPaperDollEyeItem.js";
 export { CjsPaperDollEyeItemOneColor } from "./CjsPaperDollEyeItemOneColor.js";

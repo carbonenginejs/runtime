@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDoll } from "../../../npm/dist/character/index.js";
+import { CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+
+/** One instance per bindings object, so repeated updates keep their applied state. */
+const instances = new WeakMap();
+function Update(definition, bindings)
+{
+    if (!instances.has(bindings)) instances.set(bindings, new CjsPaperDollInstance(bindings));
+    return instances.get(bindings).Update(definition);
+}
 
 const red = [ Float32Array.of(.57, .17, .27, 1), Float32Array.of(.57, .17, .27, 1), Float32Array.of(.5, .5, .5, 1) ];
 const pink = [ Float32Array.of(.8, .4, .5, 1), Float32Array.of(.8, .4, .5, 1), Float32Array.of(.5, .5, .5, 1) ];
@@ -24,7 +32,7 @@ function Foundation()
 /** A doll with one lipstick style and two palettes. */
 function Doll()
 {
-    const doll = new CjsPaperDoll();
+    const doll = new CjsPaperDollDefinition();
     doll.archetype.Configure([ Foundation() ], { option: "archetype", strength: 1 });
     doll.lipstick.Configure([ { id: "lipstick_01", colorAreas: [ 1 ], defaultPalette: "red_glossy",
         palettes: [ { path: "red_glossy", label: "Red glossy" }, { path: "pink_matte", label: "Pink matte" } ] } ],
@@ -43,11 +51,11 @@ test("a lipstick style reaches the head (diffuse) and surface (specular and glos
 {
     const doll = Doll();
     const bindings = Bindings();
-    doll.Update(bindings);
+    Update(doll, bindings);
     bindings.heads.length = bindings.surfaces.length = 0;
 
     doll.lipstick.option = "lipstick_01";
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(bindings.heads.at(-1).lipstick.option, "lipstick_01");
     assert.equal(bindings.surfaces.at(-1).lipstick.option, "lipstick_01");
     assert.equal(bindings.surfaces.at(-1).lipstick.palette, "red_glossy", "the default palette selects the specular colours");
@@ -59,15 +67,15 @@ test("with custom colours on, a palette change still changes the specular", () =
     const doll = Doll();
     const bindings = Bindings();
     doll.lipstick.option = "lipstick_01";
-    doll.Update(bindings);
+    Update(doll, bindings);
     doll.lipstick.color1 = Float32Array.of(.2, .1, .6, 1);
-    doll.Update(bindings);
+    Update(doll, bindings);
     bindings.heads.length = bindings.surfaces.length = 0;
 
     // Choosing a palette turns custom colours off, so pick it and turn them back on.
     doll.lipstick.palette = "pink_matte";
     doll.lipstick.customColors = true;
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(bindings.surfaces.at(-1).lipstick.palette, "pink_matte", "the surface pass sees the new palette");
     assert.equal(bindings.heads.length, 0, "the custom diffuse colour is unchanged, so the head is not recomposed");
     assert.deepEqual(Array.from(doll.lipstick.color1).map(v => Number(v.toFixed(2))), [ .2, .1, .6, 1 ], "the custom colour is kept");

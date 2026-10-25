@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDoll, PaperDollLayer, PaperDollPass } from "../../../npm/dist/character/index.js";
+import { CjsPaperDollDefinition, CjsPaperDollInstance, PaperDollLayer, PaperDollPass } from "../../../npm/dist/character/index.js";
+
+/** One instance per bindings object, so repeated updates keep their applied state. */
+const instances = new WeakMap();
+function Update(definition, bindings)
+{
+    if (!instances.has(bindings)) instances.set(bindings, new CjsPaperDollInstance(bindings));
+    return instances.get(bindings).Update(definition);
+}
 
 /** The smallest foundation the archetype accepts: a head declaring it, a generic head and a body. */
 function Foundation()
@@ -20,7 +28,7 @@ function Foundation()
 
 function Doll()
 {
-    const doll = new CjsPaperDoll();
+    const doll = new CjsPaperDollDefinition();
     doll.archetype.Configure([ Foundation() ], { option: "archetype", strength: 1 });
     return doll;
 }
@@ -35,7 +43,7 @@ function Bindings()
 test("every collected part declares the passes it feeds", () =>
 {
     const doll = Doll();
-    for (const name of CjsPaperDoll.parts) assert.notEqual(doll[name].constructor.passes, 0, name);
+    for (const name of CjsPaperDollDefinition.parts) assert.notEqual(doll[name].constructor.passes, 0, name);
 });
 
 test("the head pass composes its parts in bake order and hands that order to the binding", () =>
@@ -46,7 +54,7 @@ test("the head pass composes its parts in bake order and hands that order to the
     assert.deepEqual(doll.GetLayerOrder(PaperDollPass.SURFACE), [ "aging", "scarring", "lipstick", "augmentations", "bodyAugmentation", "armLeft", "armRight", "scars", "bottomUnderwear", "topUnderwear" ]);
 
     const bindings = Bindings();
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.deepEqual(bindings.heads.at(-1).order, head);
 });
 
@@ -55,17 +63,17 @@ test("a layer override reorders and rebuilds only the passes the part feeds, and
     const doll = Doll();
     doll.aging.Configure([ { id: "aging_01", colorAreas: [] } ], new Map(), { option: "aging_01" });
     const bindings = Bindings();
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(bindings.surfaces.length, 1, "a selected ageing option builds the surface pass");
     bindings.heads.length = bindings.surfaces.length = 0;
 
     doll.SetLayer("blush", PaperDollLayer.TATTOO - 1);
-    assert.equal(doll.Update(bindings), true);
+    assert.equal(Update(doll, bindings), true);
     assert.deepEqual(bindings.heads.at(-1).order, [ "blush", "tattoo", "eyebrows", "freckles", "eyeshadow", "eyeliner", "lipstick", "augmentations", "scars" ]);
     assert.equal(bindings.surfaces.length, 0, "blush feeds only the head pass");
 
     doll.ResetLayers();
-    doll.Update(bindings);
+    Update(doll, bindings);
     assert.equal(doll.GetLayer("blush"), PaperDollLayer.BLUSH);
     assert.deepEqual(bindings.heads.at(-1).order, [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "eyeliner", "lipstick", "augmentations", "scars" ]);
     assert.throws(() => doll.SetLayer("blush", NaN), RangeError);
@@ -99,8 +107,8 @@ test("the captured occlusion targets name geometry the doll does not collect", (
     doll.augmentations.Configure([ { id: "paint", path: "makeup/augmentations/face_paint_f01", colorAreas: [], occludes: [ "accessories/browbase" ] },
         { id: "plain", path: "makeup/augmentations/face_paint_f01", colorAreas: [], occludes: [] } ], new Map(), { option: "paint" });
     assert.deepEqual(doll.GetOccluded(), [ "accessories/browbase" ]);
-    assert.ok(CjsPaperDoll.occludes(doll.GetOccluded(), "accessories/browbase/browbase_01"));
-    assert.ok(!CjsPaperDoll.occludes(doll.GetOccluded(), "accessories/browbaseextra"));
+    assert.ok(CjsPaperDollDefinition.occludes(doll.GetOccluded(), "accessories/browbase/browbase_01"));
+    assert.ok(!CjsPaperDollDefinition.occludes(doll.GetOccluded(), "accessories/browbaseextra"));
 
     doll.augmentations.option = "plain";
     assert.deepEqual(doll.GetOccluded(), []);

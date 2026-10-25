@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDoll } from "../../../npm/dist/character/index.js";
+import { CjsPaperDollDefinition } from "../../../npm/dist/character/index.js";
 
 const swatch = value => [ 0, 1, 2 ].map(() => Float32Array.of(value, value, value, 1));
 
 /** A doll with one eye shadow style and two A and two BC swatches. */
 function Doll()
 {
-    const doll = new CjsPaperDoll();
+    const doll = new CjsPaperDollDefinition();
     doll.eyeshadow.Configure([ {
         id: "eyeshadow_01", colorAreas: [ 1, 2, 3 ],
         defaultPalette: "blue_a", palettes: [ { path: "blue_a", label: "Blue" }, { path: "red_a", label: "Red" } ],
