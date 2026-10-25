@@ -36,7 +36,9 @@ export const PaperDollLayer = Object.freeze({
     TOPUNDERWEAR: 140,
     /** Baked garments over the underwear: tights, then the top over them. Working ranks, to confirm in game. */
     BOTTOMMIDDLE: 150,
-    TOPMIDDLE: 160
+    TOPMIDDLE: 160,
+    /** Trousers and skirts, over the top: the top tucked in. Working rank, to confirm in game. */
+    BOTTOMOUTER: 170
 });
 
 /**

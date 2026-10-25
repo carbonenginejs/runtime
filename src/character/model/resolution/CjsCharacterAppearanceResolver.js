@@ -172,6 +172,107 @@ export class CjsCharacterAppearanceResolver
         return plan;
     }
 
+    /**
+     * Decodes one authored `dependantModifiers` entry as a utility-shape
+     * request: `utilityshapes/<target>` at weight 1, or
+     * `utilityshapes/<target>###<number>` at that weight (zero and >1
+     * allowed, never clamped). Any other `#` form, a non-numeric suffix and a
+     * path outside `utilityshapes/` are unresolved.
+     * @param {string} authoredValue The entry as authored.
+     * @param {number|null} [relationWeight=null] A typed relation's weight; it wins over the suffix.
+     * @param {string|null} [relationPath=null] A typed relation's modifier path; it wins over the authored path.
+     * @returns {{modifierPath: string, targetName: string, weight: number, explicitWeight: boolean}|null}
+     *   The lower-case normalized path, the morph target (the path's last segment, as authored), and its weight; null when unresolved.
+     */
+    static decodeUtilityShape(authoredValue, relationWeight = null, relationPath = null)
+    {
+        const authored = String(authoredValue);
+        const weighted = authored.match(/^(utilityshapes\/.+?)###([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/iu);
+        let base = authored;
+        let weight = relationWeight;
+        let explicitWeight = false;
+
+        if (weighted)
+        {
+            base = weighted[1];
+            const parsed = Number(weighted[2]);
+            if (!Number.isFinite(parsed)) return null;
+            weight = weight === null || weight === undefined ? parsed : weight;
+            explicitWeight = true;
+        }
+        else if (authored.includes("#"))
+        {
+            return null;
+        }
+
+        const modifierPath = NormalizeUtilityPath(relationPath ?? base);
+        if (!modifierPath) return null;
+        if (weight === null || weight === undefined) weight = 1;
+        if (!Number.isFinite(weight)) return null;
+
+        return {
+            modifierPath,
+            targetName: base.slice(base.lastIndexOf("/") + 1),
+            weight,
+            explicitWeight
+        };
+    }
+
+    /**
+     * Decodes one authored `occludesModifiers` entry as a utility-shape
+     * occlusion. An entry carrying `#` is unresolved.
+     * @param {string} authoredValue The entry as authored.
+     * @param {string|null} [relationPath=null] A typed relation's modifier path; it wins over the authored path.
+     * @returns {{modifierPath: string}|null} The lower-case normalized path; null when unresolved or not a utility shape.
+     */
+    static decodeUtilityOcclusion(authoredValue, relationPath = null)
+    {
+        if (String(authoredValue).includes("#")) return null;
+        const modifierPath = NormalizeUtilityPath(relationPath ?? authoredValue);
+        return modifierPath ? { modifierPath } : null;
+    }
+
+    /**
+     * Applies the utility-shape rule to the active selections' requests and
+     * occlusions, grouped by path in first-request order. A request is
+     * suppressed by any occlusion of its path, unless that occlusion's
+     * `protectedOwner` is the request's owner. Requests left with differing
+     * weights are a conflict and request nothing; otherwise all are retained.
+     * @param {{modifierPath: string, weight: number, owner: any}[]} requests Decoded requests (decodeUtilityShape), each with its owner.
+     * @param {{modifierPath: string, protectedOwner: any}[]} occlusions Decoded occlusions; `protectedOwner` is null when none.
+     * @returns {{modifierPath: string, suppressed: object[], retained: object[], conflict: boolean}[]} One record per requested path.
+     */
+    static resolveUtilityShapes(requests, occlusions)
+    {
+        const grouped = new Map();
+
+        for (const request of requests)
+        {
+            if (!grouped.has(request.modifierPath)) grouped.set(request.modifierPath, []);
+            grouped.get(request.modifierPath).push(request);
+        }
+
+        const result = [];
+        for (const [ modifierPath, values ] of grouped)
+        {
+            const matchingOcclusions = occlusions.filter(value =>
+                value.modifierPath === modifierPath);
+            const suppressed = [];
+            const retained = [];
+
+            for (const value of values)
+            {
+                if (matchingOcclusions.some(occlusion =>
+                    occlusion.protectedOwner === null
+                    || occlusion.protectedOwner !== value.owner)) suppressed.push(value);
+                else retained.push(value);
+            }
+
+            result.push({ modifierPath, suppressed, retained, conflict: new Set(retained.map(value => value.weight)).size > 1 });
+        }
+        return result;
+    }
+
 }
 
 function ResolveColorSelections(plan, paperdoll)
@@ -857,46 +958,22 @@ function CollectUtilityShapes(
 
 function ResolveUtilityShapes(plan, requests, occlusions)
 {
-    const grouped = new Map();
-
-    for (const request of requests)
+    for (const { modifierPath, suppressed, retained, conflict } of CjsCharacterAppearanceResolver.resolveUtilityShapes(requests, occlusions))
     {
-        if (!grouped.has(request.modifierPath)) grouped.set(request.modifierPath, []);
-        grouped.get(request.modifierPath).push(request);
-    }
-
-    for (const [ modifierPath, values ] of grouped)
-    {
-        const matchingOcclusions = occlusions.filter(value =>
-            value.modifierPath === modifierPath);
-        const retained = [];
-
-        for (const value of values)
+        for (const value of suppressed)
         {
-            const suppressed = matchingOcclusions.some(occlusion =>
-                occlusion.protectedOwner === null
-                || occlusion.protectedOwner !== value.owner);
-
-            if (suppressed)
-            {
-                AddDiagnostic(
-                    plan,
-                    "UTILITY_SHAPE_SUPPRESSED",
-                    `Utility shape ${JSON.stringify(modifierPath)} is suppressed by an exact active occlusion.`,
-                    "info",
-                    value.origin
-                );
-                continue;
-            }
-
-            retained.push(value);
+            AddDiagnostic(
+                plan,
+                "UTILITY_SHAPE_SUPPRESSED",
+                `Utility shape ${JSON.stringify(modifierPath)} is suppressed by an exact active occlusion.`,
+                "info",
+                value.origin
+            );
         }
 
         if (!retained.length) continue;
 
-        const weights = new Set(retained.map(value => value.weight));
-
-        if (weights.size !== 1)
+        if (conflict)
         {
             AddDiagnostic(
                 plan,
@@ -929,49 +1006,18 @@ function DecodeUtilityDependency(relation, authoredValue)
         return null;
     }
 
-    const authored = String(authoredValue);
-    const weighted = authored.match(/^(utilityshapes\/.+?)###([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/iu);
-    let base = authored;
-    let weight = relation.weight;
-    let explicitWeight = false;
-
-    if (weighted)
-    {
-        base = weighted[1];
-        const parsed = Number(weighted[2]);
-        if (!Number.isFinite(parsed)) return null;
-        weight = weight === null || weight === undefined ? parsed : weight;
-        explicitWeight = true;
-    }
-    else if (authored.includes("#"))
-    {
-        return null;
-    }
-
-    const modifierPath = NormalizeUtilityPath(relation.modifierPath ?? base);
-    if (!modifierPath) return null;
-    if (weight === null || weight === undefined) weight = 1;
-    if (!Number.isFinite(weight)) return null;
-
-    return {
-        modifierPath,
-        targetName: base.slice(base.lastIndexOf("/") + 1),
-        weight,
-        explicitWeight
-    };
+    return CjsCharacterAppearanceResolver.decodeUtilityShape(authoredValue, relation.weight, relation.modifierPath);
 }
 
 function DecodeUtilityOcclusion(relation, authoredValue)
 {
     if (!(relation instanceof CjsCharacterModifierReference)
-        || relation.authoredValue !== authoredValue
-        || String(authoredValue).includes("#"))
+        || relation.authoredValue !== authoredValue)
     {
         return null;
     }
 
-    const modifierPath = NormalizeUtilityPath(relation.modifierPath ?? authoredValue);
-    return modifierPath ? { modifierPath } : null;
+    return CjsCharacterAppearanceResolver.decodeUtilityOcclusion(authoredValue, relation.modifierPath);
 }
 
 function NormalizeUtilityPath(value)
