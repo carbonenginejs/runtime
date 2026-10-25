@@ -32,7 +32,7 @@ export default [
     [ "npm/dist/global/blue/worker/CjsResManWorker.js", "resource.worker.bundle.js" ],
     [ "npm/dist/resource/formats/gr2/CjsGr2Format.js", "gr2.worker.bundle.js" ],
     [ "npm/dist/resource/formats/dds/CjsDdsFormat.js", "dds.worker.bundle.js" ],
-    [ "npm/dist/resource/formats/dds/compressionWorker.js", "dds-compression.worker.bundle.js" ]
+    [ "npm/dist/resource/codecs/bcn/compressionWorker.js", "dds-compression.worker.bundle.js" ]
 ].map(([ input, output ]) => ({
     onwarn: shared.onwarn,
     plugins: [ ...shared.plugins, workerFormatUrls ],

@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import { Worker } from "node:worker_threads";
-import { compressMasked } from "../../npm/dist/resource/formats/dds/core/libsquish.js";
+import { compressMasked } from "../../npm/dist/resource/codecs/bcn/core/libsquish.js";
 import { CjsDdsFormat as DDS } from "../../npm/dist/resource/formats/dds/index.js";
+import * as BCN from "../../npm/dist/resource/codecs/bcn/index.js";
 import { BitmapDimensions, HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { TextureType as T } from "../../npm/dist/global/consts/renderContext/index.js";
-import { getRawDataSize } from "../../npm/dist/resource/formats/dds/core/dxtCompression.js";
+import { getRawDataSize } from "../../npm/dist/resource/codecs/bcn/index.js";
 import { Tr2DxtCompressControl, Tr2DxtCompressor, Tr2HostBitmap } from "../../npm/dist/trinity/core/index.js";
 import { Tr2TexturePipeline, Tr2TexturePipelineStepLoad, Tr2TexturePipelineStepCompress } from "../../npm/dist/trinity/resources/texture/index.js";
 import { RegisterTextureResources, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
@@ -41,7 +42,7 @@ test("BC1-BC5 DDS preserves mips, partial blocks, volumes, cube arrays, sRGB, 1D
     for (const mode of [5, 6, 7, 8, 9])
     {
         const source = packet(topology), unchanged = source.data.slice();
-        const encoded = DDS.compressBitmap(source, mode, { srgb: mode < 8 });
+        const encoded = BCN.compressBitmap(source, mode, { srgb: mode < 8 });
         const bytes = DDS.write(encoded), restored = DDS.read(bytes, { emit: "bitmap" });
         assert.deepEqual(restored.description, encoded.description);
         assert.deepEqual(restored.data, encoded.data);
@@ -60,7 +61,7 @@ test("RT modes are squish aliases; DXT5n and YCoCg rearrange only a private bloc
 {
     const source = packet({ width: 4, height: 4, mipCount: 1 });
     for (const [rt, squish] of [[0, 5], [1, 7], [4, 9]])
-        assert.deepEqual(DDS.compressBitmap(source, rt).data, DDS.compressBitmap(source, squish).data);
+        assert.deepEqual(BCN.compressBitmap(source, rt).data, BCN.compressBitmap(source, squish).data);
     for (const mode of [2, 3])
     {
         const transformed = { ...source, data: source.data.slice() };
@@ -71,7 +72,7 @@ test("RT modes are squish aliases; DXT5n and YCoCg rearrange only a private bloc
                 [Math.min(255, Math.round((r - b) / 2 + 128)), Math.min(255, Math.round((-r + 2 * g - b) / 4 + 128)), 0, Math.round((r + 2 * g + b) / 4)];
             transformed.data.set(channels, p);
         }
-        assert.deepEqual(DDS.compressBitmap(source, mode).data, DDS.compressBitmap(transformed, 7).data);
+        assert.deepEqual(BCN.compressBitmap(source, mode).data, BCN.compressBitmap(transformed, 7).data);
     }
 });
 
@@ -99,8 +100,8 @@ function workerOptions(t)
 test("actual worker completes whole bitmap, retains caller input, and terminates", async t =>
 {
     const options = workerOptions(t), source = packet({ type: T.TEX_TYPE_3D, depth: 3 });
-    const encoded = await DDS.compressBitmapAsync(source, 8, options);
-    assert.deepEqual(encoded.data, DDS.compressBitmap(source, 8).data);
+    const encoded = await BCN.compressBitmapAsync(source, 8, options);
+    assert.deepEqual(encoded.data, BCN.compressBitmap(source, 8).data);
     assert.ok(source.data.length > 0);
     assert.deepEqual(options.stats, { created: 1, terminated: 1 });
     assert.ok(encoded.encodeTimeMs >= 0);
@@ -156,23 +157,23 @@ test("role policy excludes data and non-UNORM, and uses enabled device features"
 {
     const request = { enabled: true, backend: "webgpu", role: "colour", features: ["texture-compression-bc", "texture-compression-bc-sliced-3d", "texture-compression-unaligned"] };
     for (const role of ["lookup", "ramp", "ui", "flow", "data", null])
-        assert.equal(DDS.selectCompression(packet(), { ...request, role }).mode, null);
+        assert.equal(BCN.selectCompression(packet(), { ...request, role }).mode, null);
     for (const format of [2, 41, 56, 54, 81, 84])
-        assert.equal(DDS.selectCompression(packet({format}), request).mode, null);
-    assert.equal(DDS.selectCompression(packet({format:61}), {...request,role:"roughness"}).mode,8);
+        assert.equal(BCN.selectCompression(packet({format}), request).mode, null);
+    assert.equal(BCN.selectCompression(packet({format:61}), {...request,role:"roughness"}).mode,8);
     // Identical single-channel volume storage: shader role alone separates them.
     const scalarVolume = packet({format:61,type:T.TEX_TYPE_3D,depth:3});
-    assert.equal(DDS.selectCompression(scalarVolume, {...request,role:"density"}).mode,8);
-    assert.equal(DDS.selectCompression(scalarVolume, {...request,role:"lookup"}).reason,"excluded-role:lookup");
-    assert.equal(DDS.selectCompression(scalarVolume, {...request,role:null}).reason,"unknown-texture-role");
-    assert.equal(DDS.selectCompression(packet({format:49}), {...request,role:"normal"}).mode,9);
-    assert.equal(DDS.selectCompression(packet(), request).mode,7);
+    assert.equal(BCN.selectCompression(scalarVolume, {...request,role:"density"}).mode,8);
+    assert.equal(BCN.selectCompression(scalarVolume, {...request,role:"lookup"}).reason,"excluded-role:lookup");
+    assert.equal(BCN.selectCompression(scalarVolume, {...request,role:null}).reason,"unknown-texture-role");
+    assert.equal(BCN.selectCompression(packet({format:49}), {...request,role:"normal"}).mode,9);
+    assert.equal(BCN.selectCompression(packet(), request).mode,7);
     const opaque = packet(); for (let i=3;i<opaque.data.length;i+=4) opaque.data[i]=255;
-    assert.equal(DDS.selectCompression(opaque, request).mode,5);
-    assert.match(DDS.selectCompression(packet(), {...request,features:[]}).reason,/missing-active/);
-    assert.match(DDS.selectCompression(packet(), {...request,features:["texture-compression-bc"]}).reason,/unaligned/);
-    assert.match(DDS.selectCompression(packet({type:T.TEX_TYPE_3D,depth:3}), {...request,features:["texture-compression-bc"]}).reason,/sliced/);
-    assert.equal(DDS.selectCompression(packet(), {...request,backend:"webgl"}).mode,null);
+    assert.equal(BCN.selectCompression(opaque, request).mode,5);
+    assert.match(BCN.selectCompression(packet(), {...request,features:[]}).reason,/missing-active/);
+    assert.match(BCN.selectCompression(packet(), {...request,features:["texture-compression-bc"]}).reason,/unaligned/);
+    assert.match(BCN.selectCompression(packet({type:T.TEX_TYPE_3D,depth:3}), {...request,features:["texture-compression-bc"]}).reason,/sliced/);
+    assert.equal(BCN.selectCompression(packet(), {...request,backend:"webgl"}).mode,null);
 });
 
 test("native R16 UNORM DDS retains exact bytes and malformed optional metadata is ignored", () =>
@@ -187,7 +188,7 @@ test("native R16 UNORM DDS retains exact bytes and malformed optional metadata i
     assert.deepEqual(restored.data,source.data);
     assert.equal(DDS.inspect(bytes).pixelFormat,"r16unorm");
     assert.throws(()=>DDS.read(bytes,{emit:"rgba"}));
-    const encoded = DDS.compressBitmap(packet(),5), saved = DDS.write(encoded);
+    const encoded = BCN.compressBitmap(packet(),5), saved = DDS.write(encoded);
     const metadataOffset = 128 + encoded.data.length;
     new DataView(saved.buffer).setUint32(metadataOffset + 20,0xffffffff,true);
     const withoutMetadata = DDS.read(saved,{emit:"bitmap"});
@@ -211,7 +212,7 @@ test("unsigned high-bit extents terminate mip counting and reject insufficient s
     const dimensions = BitmapDimensions.create__AllFields(description.type, description.format, description.width, description.height, description.depth, description.mipCount, description.arraySize);
     assert.equal(dimensions.GetTrueMipCount(),32);
     assert.equal(dimensions.GetMipWidth(0),0x80000000);
-    assert.throws(()=>DDS.compressBitmap({description,data:new Uint8Array(1)},8),/storage/);
+    assert.throws(()=>BCN.compressBitmap({description,data:new Uint8Array(1)},8),/storage/);
     assert.throws(()=>DDS.write({description:{...description,format:80},data:new Uint8Array(1)}),/storage/);
 });
 

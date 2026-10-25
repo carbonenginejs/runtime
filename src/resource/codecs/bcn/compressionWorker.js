@@ -2,7 +2,7 @@
 // The worker module of the callback manager that runs DXT encoding: it
 // exports one callback, "dds.compress", through BlueCallbackManWorker.
 import { BlueCallbackManWorker } from "#blue/worker/BlueCallbackManWorker";
-import { compressBitmap, compressSurface, compressionPixelFormat } from "./core/dxtCompression.js";
+import { compressBitmap, compressSurface, compressionPixelFormat } from "./carbon/dxtCompression.js";
 import { PixelFormat as P } from "#consts/render-context";
 
 /**
@@ -10,7 +10,7 @@ import { PixelFormat as P } from "#consts/render-context";
  *
  * @param {object} payload Request posted by `compressAsync`.
  * @param {"bitmap"|"surface"} payload.kind Operation kind.
- * @param {import("./core/helpers.js").DdsBitmapPacket} [payload.packet] Bitmap packet, for "bitmap".
+ * @param {import("../../formats/dds/core/helpers.js").DdsBitmapPacket} [payload.packet] Bitmap packet, for "bitmap".
  * @param {number} payload.format Carbon compression mode.
  * @param {object} payload.options Encoder options.
  * @param {Uint8Array} [payload.input] Source storage, for "surface".

@@ -16,7 +16,7 @@ Do not request `kSourceBGRA` or alpha weighting; the metric is the default.
 Record 8 bytes for DXT1/BC4 and 16 for the others. The JSON's blocks are
 indexed in that format/quality order: 154 inputs, 2,310 exact outputs.
 Inputs include solid colours, transparent and threshold alpha, masked edge
-blocks and deterministic random blocks. See `format-notices/dds/NOTICE`
+blocks and deterministic random blocks. See `format-notices/bcn/NOTICE`
 for Simon Brown's and Ignacio Castano's MIT notices.
 
 Carbon's RT enum aliases are tested against this same implementation;

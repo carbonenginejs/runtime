@@ -25,6 +25,16 @@
 
 import { lookup_5_3, lookup_6_3, lookup_5_4, lookup_6_4 } from "./squishSingleColourLookup.js";
 
+/**
+ * Unique colours of one 4x4 block, built by `colourSet`.
+ *
+ * @typedef {object} SquishColourSet
+ * @property {Array<number[]>} points Unique RGB colours in 0..1.
+ * @property {number[]} weights Square root of each colour's texel count.
+ * @property {number[]} remap Point index per texel, or -1 for masked or transparent texels.
+ * @property {boolean} transparent Whether a valid texel was dropped as transparent (DXT1).
+ */
+
 // Carbon's Windows libsquish build is scalar. Round at every float operation,
 // including intermediate products: JavaScript otherwise evaluates in double.
 const f = Math.fround;
@@ -151,7 +161,7 @@ function floatToInt(a, limit)
  * @param {Uint8Array} rgba Sixteen RGBA texels.
  * @param {number} mask Valid texel bitmask.
  * @param {boolean} dxt1 Whether texels with alpha below 128 are transparent (DXT1).
- * @returns {import("./helpers.js").SquishColourSet} Unique colours, their weights and the texel remap.
+ * @returns {SquishColourSet} Unique colours, their weights and the texel remap.
  */
 function colourSet(rgba, mask, dxt1)
 {
@@ -191,7 +201,7 @@ function colourSet(rgba, mask, dxt1)
 /**
  * ComputeWeightedCovariance and the active eight-step power iteration.
  *
- * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {SquishColourSet} set Colour set.
  * @returns {number[]} The principal axis.
  */
 function principleComponent(set)
@@ -229,7 +239,7 @@ function principleComponent(set)
  * @param {number[]} start First RGB endpoint in 0..1.
  * @param {number[]} end Second RGB endpoint in 0..1.
  * @param {number[]} indices Palette index per colour-set point.
- * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {SquishColourSet} set Colour set.
  * @param {boolean} three Whether to write the three-colour mode.
  * @param {Uint8Array} output Destination block storage.
  * @param {number} offset Destination byte offset.
@@ -264,7 +274,7 @@ function writeColourBlock(start, end, indices, set, three, output, offset)
 /**
  * SingleColourFit with the exact 1.15 integer lookup tables.
  *
- * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {SquishColourSet} set Colour set.
  * @param {boolean} three Whether to fit the three-colour mode.
  * @param {number} best Error to beat.
  * @param {Uint8Array} output Destination block storage.
@@ -303,7 +313,7 @@ function singleColourFit(set, three, best, output, offset)
 /**
  * RangeFit using unweighted point error, as in the native implementation.
  *
- * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {SquishColourSet} set Colour set.
  * @param {boolean} three Whether to fit the three-colour mode.
  * @param {number} best Error to beat.
  * @param {Uint8Array} output Destination block storage.
@@ -383,7 +393,7 @@ function solve(alphax, betax, alphabeta)
 /**
  * ClusterFit stable ordering, exhaustive cluster boundaries and eight iterations.
  *
- * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {SquishColourSet} set Colour set.
  * @param {boolean} three Whether to fit the three-colour mode.
  * @param {number} best Error to beat.
  * @param {boolean} iterative Whether to iterate up to eight times (ITER_CLUSTER_FIT).

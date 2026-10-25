@@ -4,8 +4,8 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-// A single format is importable by anything, including external parties apart
-// from the rest of the runtime (layers.json "standalone"). A format may bring
+// A single format or codec is importable by anything, including external
+// parties apart from the rest of the runtime (layers.json "standalone"). A format may bring
 // the classes it needs. It may not reach the engine: trinity, SOF, audio,
 // character, input, core, tools, the abstraction layer, the resource manager,
 // or a library barrel. A caller that wants engine classes hydrated injects
@@ -75,12 +75,12 @@ function closure(entry)
 
 const shown = file => relative(SOURCE, file).split(sep).join("/");
 
-const formats = [ "resource/formats", "global/blue/formats" ].flatMap(folder =>
+const formats = [ "resource/formats", "global/blue/formats", "resource/codecs" ].flatMap(folder =>
   readdirSync(join(SOURCE, folder))
     .filter(name => existsSync(join(SOURCE, folder, name, "index.js")))
     .map(name => `${folder}/${name}`));
 
-test("every format is importable without the engine or a library barrel", () =>
+test("every format and codec is importable without the engine or a library barrel", () =>
 {
   assert.ok(formats.length > 30, `found only ${formats.length} formats`);
   const failures = [];

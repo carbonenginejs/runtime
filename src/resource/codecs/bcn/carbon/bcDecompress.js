@@ -4,22 +4,22 @@
 // Carbon's software BC1/BC2/BC3 decompressor, to BGRA8, with Carbon's exact
 // output - BUGS INCLUDED ON PURPOSE. It is a faithful record of what EVE's
 // macOS client renders, so its two defects (CE-36, CE-37 below) are kept, not
-// fixed; for a correct decode use the format's own `decodeBlockSlice`
-// (`helpers.js`). `CjsDdsFormat.metal.bcDecompress` is its door, and
-// `trinityal/BcDecompress.js` keeps Carbon's name where Carbon keeps it.
+// fixed; for a correct decode use the codec's own `decodeBlockSlice`
+// (`../core/bcDecode.js`). `trinityal/BcDecompress.js` keeps Carbon's name
+// where Carbon keeps it.
 //
 // Carbon keeps it at the AL root, shared by every backend; its one caller is
 // Metal, which decompresses compressed VOLUME textures on a macOS that cannot
-// hold them (`Tr2TextureALMetal.mm:166-186`). It lives in the DDS format here
-// because the format is the runtime's one home of BC decoding, importable from
-// every layer.
+// hold them (`Tr2TextureALMetal.mm:166-186`). It lives in the BC codec here
+// because the codec is the runtime's one home of BC decoding, importable from
+// every layer without the engine.
 //
 // THE TWO BEHAVIOURS DIFFER, which is why each has its own name:
 //
 // | | channel order | 565 expansion | BC1 3-colour index 3 | edges |
 // |---|---|---|---|---|
 // | `bcDecompress` (this, Carbon) | BGRA8 | truncated | color2, alpha 0 (CE-37) | whole blocks (CE-36) |
-// | `decodeBlockSlice` (the format's own) | RGBA8 | rounded | transparent black | clipped |
+// | `decodeBlockSlice` (the codec's own) | RGBA8 | rounded | transparent black | clipped |
 //
 // A third, Carbon's `ImageUtility::GetPixelColor_BC1`, interpolates on the
 // packed 565 value and stays in `global/imageio/ImageUtility.js`.

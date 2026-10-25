@@ -1,6 +1,6 @@
 // CPU-only Node transport adapter for the production compression worker.
 import { parentPort } from "node:worker_threads";
-import { installCompressionWorker } from "../../../npm/dist/resource/formats/dds/compressionWorker.js";
+import { installCompressionWorker } from "../../../npm/dist/resource/codecs/bcn/compressionWorker.js";
 if (parentPort)
 {
     installCompressionWorker({

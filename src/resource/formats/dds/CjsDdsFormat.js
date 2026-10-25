@@ -3,17 +3,12 @@ import { CjsSchema } from "#schema/CjsSchema";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
-import { bcDecompress } from "./core/bcDecompress.js";
-import { compressBitmap, compressSurface, compressionPixelFormat } from "./core/dxtCompression.js";
-import { compressAsync } from "./core/dxtCompressionAsync.js";
 import { isDdsSaveSupported, writeDds } from "./core/ddsWrite.js";
 import { loadCcpMetadata } from "./core/ccpMetadata.js";
-import { selectCompression } from "./core/compressionPolicy.js";
 import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters, Metadata } from "#imageio";
 import { PixelFormat, PixelFormatFromCanonical, TextureType } from "#consts/render-context";
 import {
     DEFAULT_VALUES,
-    canDecodeDdsBlockFormat,
     decodeDdsSlice,
     OUTPUT_IMAGE,
     OUTPUT_RAW,
@@ -61,100 +56,6 @@ const LEGACY_PIXEL_FORMATS = {
  */
 export class CjsDdsFormat extends CjsImageFormat
 {
-    /**
-     * Approved role-based optional load policy; capabilities describe the active device.
-     *
-     * @param {import("./core/helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
-     * @param {import("./core/helpers.js").DdsCompressionRequest} request Caller's role, backend and active features.
-     * @returns {import("./core/helpers.js").DdsCompressionChoice} The chosen Carbon compression mode, or null with the reason.
-     */
-    static selectCompression(packet, request)
-    {
-        return selectCompression(packet, request);
-    }
-
-    /**
-     * Shared DDS block encoder; explicit mode selection preserves every bitmap subresource.
-     *
-     * @param {import("./core/helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
-     * @param {number} format Carbon compression mode.
-     * @param {object} [options={}] Encoder options.
-     * @param {number} [options.quality] Squish quality 0-2.
-     * @param {boolean} [options.srgb] Output sRGB storage.
-     * @returns {import("./core/helpers.js").DdsBitmapPacket} The compressed packet.
-     */
-    static compressBitmap(packet, format, options = {})
-    {
-        return compressBitmap(packet, format, options);
-    }
-
-    /**
-     * Browser adaptation of Carbon's task: an owned worker returns complete bitmap storage.
-     *
-     * @param {import("./core/helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
-     * @param {number} format Carbon compression mode.
-     * @param {object} [options={}] Encoder and worker options.
-     * @param {number} [options.quality] Squish quality 0-2.
-     * @param {boolean} [options.srgb] Output sRGB storage.
-     * @param {AbortSignal} [options.signal] Cancels the job.
-     * @returns {Promise<object>} The compressed packet from the worker.
-     */
-    static compressBitmapAsync(packet, format, options = {})
-    {
-        return compressAsync({ kind: "bitmap", packet, format,
-            options: { quality: options.quality, srgb: options.srgb } }, options);
-    }
-
-    /**
-     * Shared surface encoder; source/output pitches are in bytes.
-     *
-     * @param {Uint8Array} input Native source storage.
-     * @param {number} width Surface width.
-     * @param {number} height Surface height.
-     * @param {number} format Carbon compression mode.
-     * @param {Uint8Array} output Destination block storage.
-     * @param {object} [options={}] Source format, offsets, pitches and quality (see `compressSurface` in `core/dxtCompression.js`).
-     * @returns {void}
-     */
-    static compressSurface(input, width, height, format, output, options = {})
-    {
-        return compressSurface(input, width, height, format, output, options);
-    }
-
-    /**
-     * Browser worker surface entry; caller input and output are never transferred.
-     *
-     * @param {Uint8Array} input Native source storage.
-     * @param {number} width Surface width.
-     * @param {number} height Surface height.
-     * @param {number} format Carbon compression mode.
-     * @param {object} [options={}] Encoder and worker options.
-     * @param {number} [options.quality] Squish quality 0-2.
-     * @param {number} [options.sourceFormat] Source PixelFormat.
-     * @param {number} [options.inputPitch] Source row pitch in bytes.
-     * @param {number} [options.outputPitch] Destination block-row pitch in bytes.
-     * @param {AbortSignal} [options.signal] Cancels the job.
-     * @returns {Promise<object>} `{ data, encodeTimeMs }` from the worker.
-     */
-    static compressSurfaceAsync(input, width, height, format, options = {})
-    {
-        return compressAsync({ kind: "surface", input, width, height, format,
-            options: { quality: options.quality, sourceFormat: options.sourceFormat,
-                inputPitch: options.inputPitch, outputPitch: options.outputPitch } }, options);
-    }
-
-    /**
-     * Carbon compression mode to corrected BC storage format.
-     *
-     * @param {number} format Carbon compression mode.
-     * @param {boolean} [srgb=false] Whether to return the sRGB storage format.
-     * @returns {number} The BC PixelFormat.
-     */
-    static compressionPixelFormat(format, srgb = false)
-    {
-        return compressionPixelFormat(format, srgb);
-    }
-
     /**
      * Carbon IsSaveSupported, limited to the implemented compressed DDS writer.
      *
@@ -499,87 +400,6 @@ export class CjsDdsFormat extends CjsImageFormat
     {
         return convertL8A8ToBgra(source);
     }
-
-    /**
-     * Decodes one block-compressed 2D slice to RGBA8.
-     *
-     * The whole-file readers answer "give me this image"; a volume texture asks
-     * a different question - "give me slice 7 of mip 2" - and no amount of
-     * reading a file down to one subresource expresses it. This is that seam,
-     * and it exists because WebGL cannot take the block data as it is:
-     * `EXT_texture_compression_bptc` grants `compressedTexImage2D` only, so a
-     * BC7 volume has to be decoded on the CPU and uploaded with `texImage3D`.
-     * Carbon does not do this - it hands D3D11 the blocks verbatim, volumes
-     * included (`trinity/trinity/Tr2ImageIOHelpers.cpp:48-88`) - so this is a
-     * platform-forced divergence rather than a design choice.
-     *
-     * @param {Uint8Array} bytes The slice's block data, and nothing else.
-     * @param {object} [values={}] Slice description.
-     * @param {string} values.pixelFormat Pixel format, e.g. "bc7-rgba-unorm".
-     * @param {number} values.width Slice width.
-     * @param {number} values.height Slice height.
-     * @param {number} [values.rowPitch] Bytes per block row; derived when absent.
-     * @returns {Uint8Array} width * height * 4, row-major, top-left origin
-     * @throws {Error} When `pixelFormat` is not block-compressed.
-     */
-    static decodeBlockSlice(bytes, values = {})
-    {
-        const { pixelFormat, width, height } = values;
-
-        if (!canDecodeDdsBlockFormat(pixelFormat))
-        {
-            throw new Error(`CjsDdsFormat.decodeBlockSlice: "${pixelFormat}" is not a block-compressed format`);
-        }
-
-        const blockBytes = /^bc(1|4)/u.test(pixelFormat) ? 8 : 16;
-        const rowPitch = values.rowPitch ?? Math.max(1, Math.ceil(width / 4)) * blockBytes;
-
-        return decodeDdsSlice(bytes, { width, height, pixelFormat }, { rowPitch });
-    }
-
-    /**
-     * Whether `decodeBlockSlice` can decode a pixel format.
-     *
-     * @param {?string} pixelFormat Canonical pixel format name.
-     * @returns {boolean} True for BC1-BC7 formats.
-     */
-    static canDecodeBlockSlice(pixelFormat)
-    {
-        return canDecodeDdsBlockFormat(pixelFormat);
-    }
-
-    /**
-     * A faithful copy of Carbon's own BC decoder, BUGS INCLUDED ON PURPOSE.
-     * If you want to decode a DDS file correctly, use `decodeBlockSlice`, not
-     * this.
-     *
-     * WHAT IT IS. `bcDecompress(width, height, depth, format, src, decompressed)`
-     * reproduces `BcDecompress` from CCP's Carbon engine
-     * (`trinity/trinityal/BcDecompress.cpp`), which EVE Online's macOS client
-     * uses to decompress BC volume textures its GPU cannot hold
-     * (`Tr2TextureALMetal.mm:166-186`). BC1, BC2 or BC3 to BGRA8, every depth
-     * slice, returned as a `Uint8Array` of `width * height * depth * 4` bytes,
-     * or null for a format it does not handle (where Carbon answers false).
-     *
-     * WHY THE BUGS ARE KEPT. Carbon's decoder has two defects, and this copy
-     * keeps them deliberately, so that its output is byte-for-byte what the
-     * Mac client renders. Fixing them would destroy the one thing it is for:
-     *
-     * - BC1's transparent texel keeps a colour instead of being transparent
-     *   black (Carbon known defect CE-37);
-     * - textures whose width is not a multiple of four come out scrambled,
-     *   because whole 4x4 blocks are written without clipping (CE-36).
-     *
-     * It also expands 565 colours by truncation where `decodeBlockSlice`
-     * rounds; both are within the BC specification. EVE on PC decodes BC in
-     * D3D11 hardware to the specification, which is what `decodeBlockSlice`
-     * matches - so this is not "how EVE looks", only how its Mac client's
-     * CPU fallback looks. `core/bcDecompress.js` has the details, and
-     * `trinityal/BcDecompress.js` is its door under Carbon's own name.
-     */
-    static metal = {
-        bcDecompress
-    };
 
     /**
      * Read the native bitmap layout as plain data for a resource worker.

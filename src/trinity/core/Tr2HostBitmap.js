@@ -11,7 +11,7 @@ import { HostBitmap, LoadParameters } from "#imageio";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { ALResult } from "../../trinityal/ALResult.js";
 import { ImageIO } from "../../resource/imageio/ImageIO.js";
-import { CjsDdsFormat } from "#resource/formats/dds";
+import { compressBitmapAsync } from "#resource/codecs/bcn";
 import { createDdsBitmap } from "../../resource/formats/dds/ddsBitmap.js";
 
 /**
@@ -176,7 +176,7 @@ export class Tr2HostBitmap extends HostBitmap
     if (!output || !this.IsValid() || this.GetType() !== TextureType.TEX_TYPE_2D) return false;
     try
     {
-      const packet = await CjsDdsFormat.compressBitmapAsync({
+      const packet = await compressBitmapAsync({
         description: { type: this.GetType(), format: this.GetFormat(), width: this.GetWidth(),
           height: this.GetHeight(), depth: this.GetDepth(), mipCount: this.GetMipCount(), arraySize: this.GetArraySize() },
         data: this.GetRawData(), metadata: this.metadata ?? { cutout: {}, metadata: [] }

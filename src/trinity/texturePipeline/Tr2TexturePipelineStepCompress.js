@@ -3,7 +3,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by the runtime resource layer.
 import { CjsSchema, meta, type, blue } from "#schema";
-import { CjsDdsFormat } from "#resource/formats/dds";
+import { compressBitmapAsync } from "#resource/codecs/bcn";
 import { createDdsBitmap } from "../../resource/formats/dds/ddsBitmap.js";
 import { PixelFormat as P } from "#consts/render-context";
 import { Tr2DxtCompressionFormat as F } from "#consts/trinity";
@@ -75,7 +75,7 @@ export class Tr2TexturePipelineStepCompress extends IRoot
     if (mode === undefined) return false;
     try
     {
-      const encoded = await CjsDdsFormat.compressBitmapAsync({ description: {
+      const encoded = await compressBitmapAsync({ description: {
         type: bitmap.GetType(), format: bitmap.GetFormat(), width: bitmap.GetWidth(),
         height: bitmap.GetHeight(), depth: bitmap.GetDepth(), mipCount: bitmap.GetMipCount(),
         arraySize: bitmap.GetArraySize()

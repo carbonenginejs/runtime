@@ -160,6 +160,22 @@ directly. See [geometry interchange](geometry-interchange.md).
 | Wwise media (`.wem`) | `CjsWemFormat` | `@carbonenginejs/runtime/resource/formats/wem` |
 | YAML (`.yaml`/`.yml`) | `CjsYamlFormat` | `@carbonenginejs/runtime/resource/formats/yaml` |
 
+## Codecs
+
+An encoding with no container of its own lives once under `resource/codecs`,
+and every format that stores it calls the codec. A codec is importable the way
+a format is, without the engine.
+
+| Codec | Exports | Import |
+|---|---|---|
+| BC1-BC7 block compression and decompression | `compressBitmap`, `compressBitmapAsync`, `compressSurface`, `compressSurfaceAsync`, `compressionPixelFormat`, `getRawDataSize`, `selectCompression`, `decodeBlockSlice`, `canDecodeBlockSlice`, `bcDecompress` | `@carbonenginejs/runtime/resource/codecs/bcn` |
+
+The BC encoder is our port of libsquish 1.15 behind Carbon's
+`Tr2DxtCompressor` modes. `decodeBlockSlice` decodes to the BC specification.
+`bcDecompress` is Carbon's Metal-only `BcDecompress`, kept with its defects.
+The asynchronous encoders run in the worker at
+`@carbonenginejs/runtime/resource/codecs/bcn/compression-worker`.
+
 Byte-level specifications that span several modules:
 [Carbon effect container](carbon-effect-container.md),
 [BitKnit2](bitknit2.md) and

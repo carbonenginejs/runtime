@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Tr2DxtCompressor.h:76-98; cpp:832-1066.
 // Operator-approved facade: Carbon declares these as free functions; the
-// shared implementation lives in the DDS format so other runtimes can use it.
+// shared implementation lives in the BC codec so other runtimes can use it.
 import { CjsSchema, meta } from "#schema";
 import { Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, COMPRESS_SQUISH_QUALITY_DEFAULT } from "#consts/trinity";
 import { GetBlockByteSize } from "#consts/render-context";
-import { CjsDdsFormat } from "#resource/formats/dds";
+import { compressSurface, compressSurfaceAsync, compressionPixelFormat } from "#resource/codecs/bcn";
 
 /** Thin namespace facade preserving Carbon's exported function and enum names. */
 export class Tr2DxtCompressor
@@ -30,7 +30,7 @@ export class Tr2DxtCompressor
         try
         {
             const temporary = new Uint8Array(output.length); // alloc: transactional output, never published on failure
-            CjsDdsFormat.compressSurface(input, width, height, format, temporary, { outputPitch, quality });
+            compressSurface(input, width, height, format, temporary, { outputPitch, quality });
             copySurface(temporary, output, width, height, format, outputPitch);
             return true;
         }
@@ -56,7 +56,7 @@ export class Tr2DxtCompressor
             if (control.IsCanceling()) return false;
             control._isDone = false;
             control._abortController = new AbortController();
-            const result = await CjsDdsFormat.compressSurfaceAsync(input, width, height, format,
+            const result = await compressSurfaceAsync(input, width, height, format,
                 { ...options, outputPitch, quality, signal: control._abortController.signal });
             if (control.IsCanceling()) return false;
             copySurface(result.data, output, width, height, format, outputPitch);
@@ -78,7 +78,7 @@ export class Tr2DxtCompressor
 /** Copy only encoded rows, leaving caller pitch padding unchanged. */
 function copySurface(source, destination, width, height, format, pitch)
 {
-    const rowBytes = Math.ceil(width / 4) * GetBlockByteSize(CjsDdsFormat.compressionPixelFormat(format));
+    const rowBytes = Math.ceil(width / 4) * GetBlockByteSize(compressionPixelFormat(format));
     const rows = Math.ceil(height / 4), end = (rows - 1) * pitch + rowBytes;
     if (!Number.isSafeInteger(pitch) || pitch < rowBytes || end > source.length || end > destination.length)
         throw new RangeError("Compressed output exceeds its destination");

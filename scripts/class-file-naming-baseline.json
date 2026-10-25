@@ -11,7 +11,7 @@
     "src/resource/formats/cmf/core/writer.js": [
       "Flattener"
     ],
-    "src/resource/formats/dds/core/bc7.js": [
+    "src/resource/codecs/bcn/core/bc7.js": [
       "Bc7BitReader"
     ],
     "src/resource/formats/dxbc/core/decoder.js": [

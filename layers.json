@@ -14,7 +14,8 @@
   "standalone": {
     "paths": [
       "resource/formats",
-      "resource/format"
+      "resource/format",
+      "resource/codecs"
     ],
     "why": [
       "A single format is importable by anything: by every layer here, and by",
@@ -25,8 +26,9 @@
       "still checked against its layer. A format may bring the classes it needs,",
       "never the engine or the whole library: a caller that wants engine classes",
       "hydrated (black, red) injects them, through Blue's class registry or a",
-      "plain object. test/resource/format-standalone.test.js proves it for every",
-      "format."
+      "plain object. A codec (resource/codecs) is held to the same rule, so BC",
+      "compression is usable without trinity.",
+      "test/resource/format-standalone.test.js proves it for every format and codec."
     ]
   },
   "surfaces": {

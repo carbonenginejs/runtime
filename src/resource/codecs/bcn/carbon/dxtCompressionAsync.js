@@ -70,3 +70,42 @@ export async function compressAsync(payload, options = {})
         else await manager.Stop();
     }
 }
+
+/**
+ * Browser adaptation of Carbon's task: an owned worker returns complete bitmap storage.
+ *
+ * @param {import("../../../formats/dds/core/helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
+ * @param {number} format Carbon compression mode.
+ * @param {object} [options={}] Encoder and worker options.
+ * @param {number} [options.quality] Squish quality 0-2.
+ * @param {boolean} [options.srgb] Output sRGB storage.
+ * @param {AbortSignal} [options.signal] Cancels the job.
+ * @returns {Promise<object>} The compressed packet from the worker.
+ */
+export function compressBitmapAsync(packet, format, options = {})
+{
+    return compressAsync({ kind: "bitmap", packet, format,
+        options: { quality: options.quality, srgb: options.srgb } }, options);
+}
+
+/**
+ * Browser worker surface entry; caller input and output are never transferred.
+ *
+ * @param {Uint8Array} input Native source storage.
+ * @param {number} width Surface width.
+ * @param {number} height Surface height.
+ * @param {number} format Carbon compression mode.
+ * @param {object} [options={}] Encoder and worker options.
+ * @param {number} [options.quality] Squish quality 0-2.
+ * @param {number} [options.sourceFormat] Source PixelFormat.
+ * @param {number} [options.inputPitch] Source row pitch in bytes.
+ * @param {number} [options.outputPitch] Destination block-row pitch in bytes.
+ * @param {AbortSignal} [options.signal] Cancels the job.
+ * @returns {Promise<object>} `{ data, encodeTimeMs }` from the worker.
+ */
+export function compressSurfaceAsync(input, width, height, format, options = {})
+{
+    return compressAsync({ kind: "surface", input, width, height, format,
+        options: { quality: options.quality, sourceFormat: options.sourceFormat,
+            inputPitch: options.inputPitch, outputPitch: options.outputPitch } }, options);
+}

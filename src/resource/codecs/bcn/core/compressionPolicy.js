@@ -4,18 +4,36 @@
 // Scalars used as lookup coordinates (including cloud temperature) are lookup/data.
 // BC4 eligibility permits lossy mask encoding; it does not establish visual quality.
 import { PixelFormat as P, TextureType as T, IsCompressedFormat } from "#consts/render-context";
-import { isCompressionSourceSupported } from "./dxtCompression.js";
+import { isCompressionSourceSupported } from "../carbon/dxtCompression.js";
+
+/**
+ * Caller input to `selectCompression`.
+ *
+ * @typedef {object} DdsCompressionRequest
+ * @property {boolean} enabled Whether on-load compression is wanted at all.
+ * @property {string} backend Selected backend.
+ * @property {string} role Texture role from the caller's asset semantics.
+ * @property {Iterable<string>} features Active device feature names.
+ */
+
+/**
+ * Result of `selectCompression`.
+ *
+ * @typedef {object} DdsCompressionChoice
+ * @property {?number} mode Carbon compression mode, or null when skipped.
+ * @property {string} reason Why the mode was chosen or skipped.
+ */
 
 /**
  * Choose a Carbon encoder only when role, storage and active WebGPU features permit it.
  *
- * @param {import("./helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
- * @param {import("./helpers.js").DdsCompressionRequest} request Caller's role, backend and active features.
+ * @param {import("../../../formats/dds/core/helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
+ * @param {DdsCompressionRequest} request Caller's role, backend and active features.
  * @param {boolean} request.enabled Whether on-load compression is wanted at all.
  * @param {string} request.backend Selected backend; only "webgpu" has a policy.
  * @param {string} request.role Texture role from the caller's asset semantics.
  * @param {Iterable<string>} request.features Active device feature names.
- * @returns {import("./helpers.js").DdsCompressionChoice} The chosen Carbon compression mode, or null with the reason.
+ * @returns {DdsCompressionChoice} The chosen Carbon compression mode, or null with the reason.
  */
 export function selectCompression(packet, request)
 {

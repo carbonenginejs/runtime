@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Tr2DxtCompressor.cpp:644-920.
 // Source: trinity/trinity/Tr2HostBitmap.cpp:512-557.
-// Approved extension: the DDS format owns the one encoder for all consumers,
+// Approved extension: the BC codec owns the one encoder for all consumers,
 // including complete mip/face/volume traversal and immutable source storage.
 import { BitmapDimensions } from "#imageio";
 import { PixelFormat as P } from "#consts/render-context";
 import { Tr2DxtCompressionFormat as F } from "#consts/trinity";
-import { compressMasked } from "./libsquish.js";
+import { compressMasked } from "../core/libsquish.js";
 
 const SOURCE_LAYOUTS = new Map([
     [P.PIXEL_FORMAT_R8_UNORM, { bytes: 1, r: 0, g: -1, b: -1, a: -1 }],
@@ -191,12 +191,12 @@ export function compressSurface(input, width, height, format, output, options = 
  * Encode every array face, mip and depth slice in a DDS native bitmap packet.
  * Source: BitmapDimensions.h mip layout; Tr2HostBitmap.cpp:512-557 publication.
  * Extension: preserve the complete texture instead of only a 2D base level.
- * @param {import("./helpers.js").DdsBitmapPacket} packet Description, native byte storage and metadata.
+ * @param {import("../../../formats/dds/core/helpers.js").DdsBitmapPacket} packet Description, native byte storage and metadata.
  * @param {number} format Explicit Carbon compression mode (not automatically selected).
  * @param {object} [options] Squish quality and explicit output sRGB flag.
  * @param {number} [options.quality] Squish quality 0-2.
  * @param {boolean} [options.srgb] Output sRGB storage; defaults to the source format's sRGB-ness.
- * @returns {import("./helpers.js").DdsBitmapPacket} Independently owned complete compressed bitmap packet.
+ * @returns {import("../../../formats/dds/core/helpers.js").DdsBitmapPacket} Independently owned complete compressed bitmap packet.
  * @throws {TypeError} For an unsupported source format.
  * @throws {RangeError} For invalid dimensions or mismatched storage.
  */

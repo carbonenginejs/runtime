@@ -113,7 +113,7 @@ SOFTWARE.
 
 ## libsquish 1.15
 
-Our JavaScript port lives in `src/resource/formats/dds/core/libsquish.js`, with
+Our JavaScript port lives in `src/resource/codecs/bcn/core/libsquish.js`, with
 its single-colour lookup tables in `squishSingleColourLookup.js`. All ten
 Carbon compressor modes use this MIT implementation. No id Software encoder
 code is included.

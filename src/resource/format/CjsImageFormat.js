@@ -2,7 +2,7 @@ import { CjsFormat } from "./CjsFormat.js";
 import { asUint8Array } from "#utils/bytes";
 import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters } from "#imageio";
 import { IsCompressedFormat, PixelFormat, PixelFormatFromCanonical } from "#consts/render-context";
-import { canDecodeDdsBlockFormat, decodeDdsSlice } from "../formats/dds/core/helpers.js";
+import { canDecodeBlockSlice, decodeBlockSlice } from "../codecs/bcn/core/bcDecode.js";
 
 /** PixelFormat -> the block decoders' format string (the inverse of PixelFormatFromCanonical). */
 const CANONICAL_BY_PIXEL_FORMAT = new Map(Object.entries(PixelFormatFromCanonical).map(([ name, value ]) => [ value, name ]));
@@ -291,7 +291,7 @@ export class CjsImageFormat extends CjsFormat
     const source = bitmap.GetFormat();
     const name = CANONICAL_BY_PIXEL_FORMAT.get(source);
 
-    if (!IsCompressedFormat(source) || !canDecodeDdsBlockFormat(name)) return false;
+    if (!IsCompressedFormat(source) || !canDecodeBlockSlice(name)) return false;
 
     const decoded = this.decodeBlocks(bitmap, name);
     if (!decoded) return false;
@@ -339,7 +339,7 @@ export class CjsImageFormat extends CjsFormat
 
         for (let slice = 0; slice < depth; slice++)
         {
-          const pixels = decodeDdsSlice(src.subarray(slice * sliceBytes, (slice + 1) * sliceBytes), { width, height, pixelFormat: name }, { rowPitch });
+          const pixels = decodeBlockSlice(src.subarray(slice * sliceBytes, (slice + 1) * sliceBytes), { width, height, pixelFormat: name, rowPitch });
           dst.set(new Uint8Array(pixels.buffer, pixels.byteOffset, pixels.byteLength), slice * dstSlice);
         }
       }

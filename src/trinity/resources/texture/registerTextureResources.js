@@ -17,6 +17,7 @@ import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { ImageIO } from "../../../resource/imageio/ImageIO.js";
 import { createDdsBitmap } from "../../../resource/formats/dds/ddsBitmap.js";
 import { CjsDdsFormat } from "../../../resource/formats/dds/CjsDdsFormat.js";
+import { compressBitmapAsync, selectCompression } from "#resource/codecs/bcn";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
 import { ResourceRequirement } from "#blue";
@@ -96,7 +97,7 @@ async function CompressLoadedBitmap(bitmap, request, options, signal)
     height: bitmap.GetHeight(), depth: bitmap.GetDepth(), mipCount: bitmap.GetMipCount(),
     arraySize: bitmap.GetArraySize()
   }, data: bitmap.GetRawData(), metadata: bitmap.metadata };
-  const choice = CjsDdsFormat.selectCompression(packet, request);
+  const choice = selectCompression(packet, request);
   const diagnostic = { requested: request.enabled, backend: request.backend ?? null,
     activeFeatures: request.features, role: request.role, outcome: "skipped", reason: choice.reason,
     originalFormat: bitmap.GetFormat(), outputFormat: bitmap.GetFormat(),
@@ -105,7 +106,7 @@ async function CompressLoadedBitmap(bitmap, request, options, signal)
   {
     try
     {
-      const encoded = await CjsDdsFormat.compressBitmapAsync(packet, choice.mode,
+      const encoded = await compressBitmapAsync(packet, choice.mode,
         { workerFactory: options.workerFactory, workerUrl: options.workerUrl, signal });
       bitmap = createDdsBitmap(encoded);
       diagnostic.outcome = "compressed";

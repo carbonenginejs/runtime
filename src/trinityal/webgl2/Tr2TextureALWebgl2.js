@@ -29,8 +29,8 @@
 //   extension. The DECODER is not Metal's, deliberately (operator, 2026-09-27):
 //   Carbon's `BcDecompress` is a CPU helper only its Mac client runs, and it
 //   carries CE-36 and CE-37. EVE on PC decodes BC in D3D11 hardware, to the
-//   specification, so this uses the DDS format's spec decoder
-//   (`CjsDdsFormat.decodeBlockSlice`): RGBA8 for BC1-BC5 and BC7, RGBA float
+//   specification, so this uses the BC codec's spec decoder
+//   (`decodeBlockSlice`): RGBA8 for BC1-BC5 and BC7, RGBA float
 //   for BC6H. Copying Metal's helper would put the Mac client's defects on
 //   every platform.
 // - BGRA. WebGL2 has no BGRA texture format; BGRA and BGRX data is swizzled to
@@ -49,7 +49,7 @@
 
 import { CjsSchema, meta, type } from "#schema";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
-import { CjsDdsFormat } from "../../resource/formats/dds/CjsDdsFormat.js";
+import { canDecodeBlockSlice, decodeBlockSlice } from "#resource/codecs/bcn";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -79,7 +79,7 @@ const NO_HEAP_INDEX = 0xffffffff;
 const F = PixelFormat;
 
 /**
- * The DDS format's name for each BC pixel format, which `decodeBlockSlice` is
+ * The canonical name for each BC pixel format, which `decodeBlockSlice` is
  * addressed by: `PixelFormatFromCanonical` inverted, with each TYPELESS format
  * read as its UNORM member.
  */
@@ -481,7 +481,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
 
       // The spec decoder; see the head comment for why not Metal's.
       const name = CANONICAL_BC.get(format);
-      if (!name || !CjsDdsFormat.canDecodeBlockSlice(name)) return null;
+      if (!name || !canDecodeBlockSlice(name)) return null;
 
       if (name.startsWith("bc6h-"))
       {
@@ -658,7 +658,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     for (let k = 0; k < depth; ++k)
     {
       const slice = depth > 1 ? bytes.subarray(k * slicePitch, (k + 1) * slicePitch) : bytes;
-      slices.push(CjsDdsFormat.decodeBlockSlice(slice, { pixelFormat: canonical, width, height, rowPitch }));
+      slices.push(decodeBlockSlice(slice, { pixelFormat: canonical, width, height, rowPitch }));
     }
 
     if (slices.length === 1) return slices[0];

@@ -4,7 +4,7 @@
 import { BitmapDimensions } from "#imageio";
 import { PixelFormat as P, TextureType as T } from "#consts/render-context";
 import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
-import { getRawDataSize } from "./dxtCompression.js";
+import { getRawDataSize } from "../../../codecs/bcn/carbon/dxtCompression.js";
 import { saveCcpMetadata } from "./ccpMetadata.js";
 
 const LEGACY_FOURCC = new Map([
