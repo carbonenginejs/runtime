@@ -47,9 +47,11 @@ const WEBGPU_STAGE = Object.freeze({ vertex: "vertex", pixel: "fragment", comput
  *
  * This is a **shape** check, not an identity check, and the distinction is the
  * point: our containers are stock Carbon v15 files, so nothing in the bytes
- * separates ours from a shipped `effect.dx11` file. Identity comes from where
- * the file was resolved — `effect.webgpu/` versus `effect.dx11/` — exactly as it
- * does for Carbon, whose three backend trees are also byte-format-identical.
+ * separates ours from a shipped `effect.dx11` file. A stored file's identity
+ * comes from where it was resolved — `effect.webgpu/` versus `effect.dx11/` —
+ * exactly as it does for Carbon, whose three backend trees are also
+ * byte-format-identical; a container translated in memory keeps its source
+ * path, and the translation says what it holds (`Tr2EffectRes.CommitBackend`).
  *
  * Use this to reject something that is not a v15 container at all. Do not use it
  * to decide what a payload is.

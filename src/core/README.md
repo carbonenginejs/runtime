@@ -43,7 +43,12 @@ Supported entry shapes are the existing owner inputs: `formats` classes or
 with the chosen manager) or prepared instances. `imageHandlers` contains codec
 classes; `paths` contains prepared filesystem instances; `resMan` contains
 existing Register options; `settings` contains named Trinity values; `backends`
-contains per-backend request objects. No provider factory or lifecycle is added.
+contains per-backend request objects. `effects` names the effect tree shipped
+containers come from (`source`), the backend they are prepared for (`target`),
+the translator between them, the `shaderModel` and the `permutations` mode; it
+is applied once at startup through `Tr2EffectRes.CommitBackend` and
+`SetEffectPathDefaults`, and changing it needs a new page, because a resource
+holds one container per path. No provider factory or lifecycle is added.
 
 Validation happens before a patch is applied. Owners can still fail, including
 after mutation: the original error propagates, successful preceding submissions

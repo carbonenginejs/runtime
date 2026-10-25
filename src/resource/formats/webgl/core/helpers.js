@@ -78,7 +78,9 @@ export function normalizeValues(base, options = {}, readerName = "CjsWebglFormat
  *
  * A shape check, not an identity check: our files are stock Carbon containers,
  * so nothing in the bytes distinguishes a WebGL one from a shipped
- * `effect.dx11`. Identity comes from the path the file was resolved through.
+ * `effect.dx11`. A stored file's identity comes from the path it was resolved
+ * through; a container translated in memory keeps its source path, and the
+ * translation says what it holds (`Tr2EffectRes.CommitBackend`).
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {boolean} True when the payload has the container shape.

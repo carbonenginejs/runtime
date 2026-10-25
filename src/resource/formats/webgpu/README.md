@@ -20,8 +20,10 @@ lowers supported DXBC stages to WGSL. `CjsWebgpuFormat` is the only export.
   and the derived `CJS_WGSL_SET` (see `core/wgsl/buildWgslSet.js` and the
   package page `docs/resource/formats/webgpu/formats/carbon-webgpu.md`).
 
-There is no WebGPU-specific magic, envelope or version. Backend identity comes
-from the resource path (`effect.webgpu/`), as Carbon selects `effect.dx11/`;
+There is no WebGPU-specific magic, envelope or version. A stored file's backend
+identity comes from its resource path (`effect.webgpu/`), as Carbon selects
+`effect.dx11/`; a shipped container translated in memory keeps its source path,
+and the translation says what it holds (`Tr2EffectRes.CommitBackend`);
 `isCarbonWebgpu` is only a version-15 shape check. Every lowerer emits entry
 point `main`, so it is not stored. Reads validate the shared Carbon records,
 then reject any program-bearing stage other than vertex, pixel or compute.

@@ -13,13 +13,15 @@ import { IBlueDynamicResourceConstructor } from "../global/blue/IBlueDynamicReso
 import { DefaultConfiguration } from "./configuration.js";
 import { ImageIO } from "../resource/imageio/ImageIO.js";
 import { TriSettingsRegistrar } from "../trinity/core/TriSettingsRegistrar.js";
+import { Tr2EffectRes } from "../trinity/shader/Tr2EffectRes.js";
+import { SetEffectPathDefaults } from "#utils/effectPath";
 
 let activeLibrary = null;
 
 /** Reader/factory policy is installed at startup; changing it requires reboot. */
 const REBOOT_CONFIGURATION_SECTIONS = new Set([
   "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes",
-  "resourceConstructors", "imageHandlers", "callbackMan"
+  "resourceConstructors", "imageHandlers", "callbackMan", "effects"
 ]);
 
 /** BeCallbackMan is process-global: the first library to initialize starts it. */
@@ -130,9 +132,28 @@ export class CjsLibrary
     this._ValidateConfigurationOwners(configuration);
     this._configurationFailure = null;
     for (const section of ["resMan", "formats", "objectLoaders", "objectBuilders", "extensions", "resourceTypes",
-      "resourceConstructors", "imageHandlers", "paths", "settings", "callbackModules"])
+      "resourceConstructors", "imageHandlers", "paths", "settings", "callbackModules", "effects"])
     {
       const entries = configuration[section] || {};
+      if (section === "effects" && Object.keys(entries).length)
+      {
+        try
+        {
+          // Effects are committed together, once: the tree `/effect/` paths
+          // resolve into is the tree Tr2EffectRes translates from.
+          const { source = null, target = null, translator = null, permutations, shaderModel = "high" } = entries;
+          if (source !== null && target !== null) Tr2EffectRes.CommitBackend({ source, target, translator, permutations });
+          SetEffectPathDefaults({ platformName: source, shaderModel });
+          this._configured.effects = { ...entries };
+        }
+        catch (error)
+        {
+          delete this._configured.effects;
+          this._configurationFailure = { section, key: null, error };
+          throw error;
+        }
+        continue;
+      }
       if (section === "resMan" && Object.keys(entries).length)
       {
         try
@@ -370,6 +391,7 @@ function CopyConfiguration(configuration)
     Object.fromEntries(Object.entries(entries).map(([key, value]) => [key,
       ["paths", "resourceConstructors", "imageHandlers", "objectLoaders", "objectBuilders"].includes(section)
         || (section === "resMan" && ["motherLode", "source", "mainThreadLoader", "workerLoader"].includes(key))
+        || (section === "effects" && key === "translator")
         ? value : CopyConfigurationData(value)]))]));
 }
 
@@ -421,6 +443,14 @@ function ValidateConfiguration(configuration)
         && (typeof value !== "number" || Number.isFinite(value));
       else if (section === "backends") valid = plain(value);
       else if (section === "callbackModules") valid = typeof value === "string" && value !== "";
+      else if (section === "effects")
+      {
+        if (key === "source" || key === "target") valid = typeof value === "string" && /^[a-z0-9_]+$/u.test(value);
+        else if (key === "translator") valid = value === null || typeof value?.buildEffect === "function";
+        else if (key === "permutations") valid = value === "onDemand" || value === "all";
+        else if (key === "shaderModel") valid = typeof value === "string" && value !== "";
+        else valid = false;
+      }
       else if (section === "callbackMan")
       {
         if (key === "useWorkers") valid = typeof value === "boolean";

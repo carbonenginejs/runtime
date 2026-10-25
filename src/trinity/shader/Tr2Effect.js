@@ -2105,6 +2105,14 @@ export class Tr2Effect extends Tr2Material
    * right for a caller that named a path deliberately; it is wrong for
    * hydration, which may build an effect long before a backend exists.
    *
+   * Adapted: when the committed backend's own tree differs from the installed
+   * platform (`Tr2EffectRes.CommitBackend`), an authored `/effect/` path is
+   * looked for there first, through `BePaths::FileExists`; a file found loads
+   * as stored, and otherwise the path resolves to the platform's tree and is
+   * translated. Carbon has one compiled tree per platform; a browser has the
+   * shader compiler's library and stored overlays for its backend beside the
+   * shipped containers it translates.
+   *
    * @param {string} path Authored effect path.
    * @param {object} [options] Overrides for the installed configuration.
    * @returns {string} Compiled path, or "" when none can be resolved.
@@ -2119,10 +2127,18 @@ export class Tr2Effect extends Tr2Material
     const platformName = options.platformName ?? installed.platformName ?? null;
     const shaderModel = options.shaderModel ?? installed.shaderModel ?? "high";
     const normalized = NormalizeResourcePath(authored);
+    const authoredEffect = normalized.endsWith(".fx") && normalized.includes("/effect/");
 
-    if (!platformName && normalized.endsWith(".fx") && normalized.includes("/effect/"))
+    if (!platformName && authoredEffect)
     {
       return "";
+    }
+
+    const backend = Tr2EffectRes.GetBackend();
+    if (authoredEffect && options.platformName === undefined && backend !== null && backend.target !== platformName)
+    {
+      const provided = ResolveEffectPath(normalized, { platformName: backend.target, shaderModel });
+      if (blue.paths.FileExists(provided)) return provided;
     }
 
     return ResolveEffectPath(normalized, { platformName, shaderModel });

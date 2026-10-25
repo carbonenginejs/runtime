@@ -90,11 +90,11 @@ export const TranslatedEffectPlatforms = [ "webgl", "webgl2", "webgpu" ];
 /**
  * The platform tree a resolved effect path names, or null when it names none.
  *
- * This is the inverse of `ResolveEffectPath`, and it exists because the loader
- * is the one party that knows. Backend selection is by resource path, so by the
- * time bytes arrive the path already says which tree they came from - but
- * nothing could read that back, so every body was parsed twice on the chance it
- * carried a backend block.
+ * This is the inverse of `ResolveEffectPath`: `Tr2EffectRes` reads it to decide
+ * whether a container is translated into the committed backend or loads as
+ * stored. Two layouts name a platform: Carbon's `effect.<platform>/`, and the
+ * Incarna-era `shaders/compiled/<platform>/` that holds `.fxt` containers
+ * (see `ShaderResourceExtensions`).
  *
  * @param {string} path Resource path.
  * @returns {string|null} Platform name such as `webgpu`, or null.
@@ -105,7 +105,8 @@ export function EffectPlatformFromPath(path)
 
     if (!normalized) return null;
 
-    const match = /\/effect\.([a-z0-9_]+)\//iu.exec(normalized);
+    const match = /\/effect\.([a-z0-9_]+)\//iu.exec(normalized)
+        ?? /\/shaders\/compiled\/([a-z0-9_]+)\//iu.exec(normalized);
 
     return match ? match[1].toLowerCase() : null;
 }

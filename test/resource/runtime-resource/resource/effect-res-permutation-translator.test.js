@@ -23,13 +23,14 @@ const nameOf = shader => shader.effect.techniques[0].passes[0].stageInputs[0].co
 test("a permutation the load did not translate is translated on first request", () =>
 {
     const calls = [];
-    const res = new Tr2EffectRes();
+    // DoLoad installs a translator itself when it translates, and clears any
+    // earlier one, so a hand-installed translator goes on after the load.
+    const res = new Tr2EffectRes().DoLoad(container([ "U", "U", "D", "U" ]));
     res.SetPermutationTranslator(permutation =>
     {
         calls.push(permutation);
         return { bytes: container([ "X", "T", "X", "X" ]), indices: [ 1 ] };
     }, [ 2 ]);
-    res.DoLoad(container([ "U", "U", "D", "U" ]));
 
     assert.equal(nameOf(res.GetShaderByIndex(2)), "DConstant", "the loaded body serves its own index");
     assert.equal(calls.length, 0);
@@ -44,9 +45,8 @@ test("a permutation the load did not translate is translated on first request", 
 
 test("a translation that lacks the requested body is an error, not a wrong body", () =>
 {
-    const res = new Tr2EffectRes();
+    const res = new Tr2EffectRes().DoLoad(container([ "U", "U", "D", "U" ]));
     res.SetPermutationTranslator(() => ({ bytes: container([ "X", "X", "X", "X" ]), indices: [ 3 ] }), [ 2 ]);
-    res.DoLoad(container([ "U", "U", "D", "U" ]));
 
     assert.throws(() => res.GetShaderByIndex(0), /produced no body/);
 });

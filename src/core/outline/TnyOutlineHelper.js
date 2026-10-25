@@ -28,10 +28,10 @@ const EFFECTS = {
  * clearTargetOnFailure=false so failed validation stops the job. beforePost
  * composites inside sceneOverlay instead; the later node then does nothing.
  *
- * Configure the application's shader resource manager for the compiled cjs
- * overlay: RegisterShaderResources(resMan, { translates: path =>
- * !path.includes("/effect.webgpu/cjs/") }). Effects use the configured platform
- * and quality path conversion. Await loading and inspect error on failure.
+ * The effects are the shader compiler's library, compiled for WebGPU and
+ * served from tools-core's composed index; Tr2Effect.convertEffectPath finds
+ * them in effect.webgpu/ through BePaths, so the index must be composed before
+ * the helper is created. Await loading and inspect error on failure.
  * While loading or with no active objects this node allows the scene to draw.
  * The application owns picking, clicks and retained hover during camera drags.
  */

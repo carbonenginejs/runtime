@@ -193,9 +193,13 @@ export class Tr2PlatformInfo
     });
 
     /**
-     * The platform name each backend reports, which is the path segment a
-     * compiled effect is resolved through: `effect/` becomes `effect.webgpu/`
-     * or `effect.webgl/`, exactly as Carbon's `dx11` becomes `effect.dx11/`.
+     * The platform name each backend reports by default, which is the path
+     * segment a compiled effect is resolved through: `effect/` becomes
+     * `effect.webgpu/` or `effect.webgl/`, exactly as Carbon's `dx11` becomes
+     * `effect.dx11/`. The orchestrator may name another tree: one that loads
+     * shipped `dx11` containers and translates them (CjsLibrary `effects`)
+     * reports `dx11`, as Carbon's stub target does "in order to use the dx11
+     * platform specific res files as our own" (TrinityALForward.h:68).
      */
     static PlatformName = Object.freeze({
         none: null,

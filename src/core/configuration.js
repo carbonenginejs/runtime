@@ -6,7 +6,7 @@ import { Tr2ImageRes } from "../trinity/resources/texture/Tr2ImageRes.js";
 import { TriGeometryRes } from "../trinity/resources/geometry/TriGeometryRes.js";
 import { Tr2EffectRes } from "../trinity/shader/Tr2EffectRes.js";
 import { ReadImageResource } from "../trinity/resources/texture/registerTextureResources.js";
-import { CreateShaderResourceLoader } from "../trinity/shader/registerShaderResources.js";
+import { ReadShaderResource } from "../trinity/shader/registerShaderResources.js";
 import { CreateBlackObjectBuilder } from "../global/blue/formats/black/CreateBlackObjectBuilder.js";
 import { SolidColorTextureConstructor } from "../trinity/resources/procedural/SolidColorTextureConstructor.js";
 import { CjsTextureArrayConstructor } from "../trinity/resources/texture/CjsTextureArrayConstructor.js";
@@ -17,12 +17,13 @@ import { TriGrannyRes } from "../trinity/resources/geometry/granny/TriGrannyRes.
 import { BCN_CALLBACK_MODULES } from "../resource/codecs/bcn/carbon/dxtCompressionAsync.js";
 import { IMAGE_DECODE_CALLBACK_MODULES } from "../resource/imageio/imageDecodeCallbacks.js";
 
-const shaderLoader = CreateShaderResourceLoader();
+const shaderLoader = ReadShaderResource;
 
 /**
  * Explicit Trinity resource defaults. Importing this data installs nothing.
- * Loaders remain with their resource owners; backend translation and application
- * paths are supplied by the host. No service, worker or GPU device is constructed.
+ * Loaders remain with their resource owners; the effect translator and
+ * application paths are supplied by the host. No service, worker or GPU device
+ * is constructed.
  */
 export const DefaultConfiguration = {
   formats: {
@@ -133,6 +134,13 @@ export const DefaultConfiguration = {
   // mainThreadTimeSlice bounds the tick that pumps it without workers, as
   // BlueResMan's own slice does (BlueResMan.cpp:77, 0.005 s).
   callbackMan: { useWorkers: true, threadCount: 2, mainThreadTimeSlice: 0.005 },
+
+  // Which effect tree shipped containers come from (`source`, e.g. "dx11"),
+  // which backend they are prepared for (`target`, e.g. "webgpu"), the
+  // translator between them, the shader model `/effect/` paths resolve to, and
+  // whether translation is per permutation on demand or all at load. Committed
+  // once, at startup: Tr2EffectRes.CommitBackend and SetEffectPathDefaults.
+  effects: {},
 
   paths: {},
   resMan: {},

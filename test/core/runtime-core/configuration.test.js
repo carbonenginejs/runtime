@@ -9,6 +9,8 @@ import { TriSettingsRegistrar } from "../../../npm/dist/trinity/core/TriSettings
 import { CreateBlackObjectBuilder } from "../../../npm/dist/global/blue/formats/black/CreateBlackObjectBuilder.js";
 import { ReadImageResource } from "../../../npm/dist/trinity/resources/texture/registerTextureResources.js";
 import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
+import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/Tr2EffectRes.js";
+import { GetEffectPathDefaults, SetEffectPathDefaults } from "../../../npm/dist/global/utils/effectPath.js";
 
 /** Isolated real Blue owners; no host loop, fetch or device is started. */
 function services()
@@ -283,4 +285,24 @@ test("installed reader policy follows the resource owner across wrappers and own
   await second.Initialize(firstOwners);
   assert.equal(firstOwners.resMan.GetObjectLoader("dds"), ReadImageResource);
   assert.equal(second.GetConfiguration().configured.objectLoaders.dds, ReadImageResource);
+});
+
+test("effects commit the source tree, target and translator once, at startup", async t =>
+{
+  const translator = { buildEffect() {} };
+  assert.throws(() => new CjsLibrary({ effects: { source: "dx 11" } }), /effects\.source/u);
+  assert.throws(() => new CjsLibrary({ effects: { translator: {} } }), /effects\.translator/u);
+  assert.throws(() => new CjsLibrary({ effects: { unknown: 1 } }), /effects\.unknown/u);
+
+  const library = new CjsLibrary({ effects: { source: "dx11", target: "webgpu", translator, shaderModel: "depth" } });
+  t.after(() => { library.Shutdown(); SetEffectPathDefaults(null); });
+  assert.equal(library.GetConfiguration().requested.effects.translator, translator, "the translator stays a reference");
+  assert.equal(Tr2EffectRes.GetBackend(), null, "construction commits nothing");
+
+  await library.Initialize(services());
+  assert.deepEqual(Tr2EffectRes.GetBackend(), { source: "dx11", target: "webgpu", translator, permutations: "onDemand" });
+  assert.deepEqual(GetEffectPathDefaults(), { platformName: "dx11", shaderModel: "depth" });
+
+  library.SetConfiguration({ effects: { target: "webgl2" } });
+  assert.equal(Tr2EffectRes.GetBackend().target, "webgpu", "effects change only at a reboot");
 });

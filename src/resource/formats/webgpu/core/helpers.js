@@ -173,9 +173,11 @@ export function normalizeValues(base, options = {}, classKeys = [], readerName =
  *
  * This is a **shape** check, not an identity check. Our containers are stock
  * Carbon v15 files, so nothing in the bytes separates one from a shipped
- * `effect.dx11` file -- and nothing should. Identity comes from the resource
- * path the file was resolved through, exactly as it does for Carbon, whose own
- * three backend trees are byte-format-identical with no language field anywhere.
+ * `effect.dx11` file -- and nothing should. A stored file's identity comes from
+ * the resource path it was resolved through, exactly as it does for Carbon,
+ * whose own three backend trees are byte-format-identical with no language
+ * field anywhere; a container translated in memory keeps its source path, and
+ * the translation says what it holds (`Tr2EffectRes.CommitBackend`).
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {boolean} True when the payload opens on Carbon's v15 version dword.

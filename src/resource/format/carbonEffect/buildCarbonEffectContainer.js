@@ -39,7 +39,8 @@ import { RegisterType } from "#consts/render-context";
  * without it?
  *
  * - `payloadKind` is redundant with the directory the file came from. Backend
- *   identity belongs to the `effect.webgpu/` or `effect.webgl2/` resource path.
+ *   identity belongs to the `effect.webgpu/` or `effect.webgl2/` resource path
+ *   of a stored file, or to the translation that produced it in memory.
  * - The magic only distinguished our file from a Carbon one, which the same
  *   directory already answers, and which the file *name* answers too.
  * - A version of our own would have claimed a number CCP owns, in the one field

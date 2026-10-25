@@ -334,8 +334,9 @@ export class CjsWebgpuFormat extends CjsFormat
      * ```
      *
      * `source` is a diagnostic label; `sourceIdentity` is returned provenance
-     * and does not change the wire, whose backend identity is the resource path
-     * the emitted bytes are later loaded from (`effect.webgpu/`).
+     * and does not change the wire. A stored result's backend identity is the
+     * resource path it is later loaded from (`effect.webgpu/`); translated in
+     * memory by `Tr2EffectRes`, it keeps its source path.
      *
      * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Compiled effect bytes.
      * @param {object} [options] Source, body-mode, permutation, and stage-selection policy.

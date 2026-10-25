@@ -511,9 +511,11 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
  *
  * A **shape** check, not an identity check, and the distinction is the point:
  * our containers are stock Carbon files, so nothing in the bytes separates one
- * from a shipped `effect.dx11`. Identity comes from the resource path the file
- * was resolved through - `effect.webgl/` versus `effect.dx11/` - exactly as it
- * does for Carbon, whose own backend trees are byte-format-identical.
+ * from a shipped `effect.dx11`. A stored file's identity comes from the resource
+ * path it was resolved through - `effect.webgl/` versus `effect.dx11/` - exactly
+ * as it does for Carbon, whose own backend trees are byte-format-identical; a
+ * container translated in memory keeps its source path, and the translation
+ * says what it holds (`Tr2EffectRes.CommitBackend`).
  *
  * Both backend sniffs call this rather than each keeping a copy of the version
  * dword. Two hand-written copies of one constant are two chances to disagree.

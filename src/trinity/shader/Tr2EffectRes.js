@@ -9,9 +9,17 @@ import { validateResourcePayload } from "../../resource/resourceBoundary.js";
 import { CjsCarbonEffectFormat } from "../../resource/formats/carbonEffect/index.js";
 import { Tr2Shader } from "./Tr2Shader.js";
 import { ResourceRequirement } from "#consts/resourceRequirement";
-import { EffectCarriesBackendBlock } from "#utils/effectPath";
+import { EffectCarriesBackendBlock, EffectPlatformFromPath } from "#utils/effectPath";
 
 const globalEffectOptions = [];
+
+/**
+ * What this instance's effects are prepared for, committed once by the
+ * orchestrator (`Tr2EffectRes.CommitBackend`); null until then.
+ *
+ * @type {?{source: string, target: string, translator: ?{buildEffect: Function}, permutations: string}}
+ */
+let effectBackend = null;
 
 /**
  * Tr2EffectRes resource record.
@@ -44,9 +52,14 @@ export class Tr2EffectRes extends CjsResource
    * Carbon's `DoLoad` (`Tr2EffectRes.cpp:137`) does exactly this work: it clears
    * the previous state, then fills `m_version`, the string table, the permutation
    * axes and the offset table from the file, and stops there. Bodies are read
-   * later, one at a time, by `GetShader`. The one difference is where the bytes
-   * come from — Carbon locks its own data stream, and this takes them as an
-   * argument.
+   * later, one at a time, by `GetShader`. The bytes arrive as an argument, where
+   * Carbon locks its own data stream.
+   *
+   * Adapted: a container whose path is in the committed source tree
+   * (`CommitBackend`) is translated into the committed target first, and that
+   * translation is what is read. Carbon loads containers compiled offline for
+   * its one platform; a browser has none for its backend, so the shipped ones
+   * are translated here, keeping their source path as their identity.
    *
    * The container is parsed once, here: version, arena, permutation axes and
    * offset table. Bodies are not. Each one is decoded on first request and
@@ -63,20 +76,31 @@ export class Tr2EffectRes extends CjsResource
    */
   DoLoad(data, options = null)
   {
-    const reader = CjsCarbonEffectFormat.read(data, { emit: "raw" });
+    // WHAT KIND OF SHADER WAS THIS. The path names the tree the bytes came
+    // from. A container in the committed source tree is translated here into
+    // the committed target, so its bodies carry the target's backend block; a
+    // stored container's tree says whether it has one. Null for a container
+    // that arrived without a path - tooling and tests do - and the reader then
+    // detects for itself, which is what its parse-twice fallback is for.
+    const path = this.GetPath();
+    const backend = effectBackend;
+    let bytes = data;
+
+    this._ClearPermutationTranslator();
+    if (backend !== null && backend.source !== backend.target && EffectPlatformFromPath(path) === backend.source)
+    {
+      bytes = this._TranslateOnLoad(data, backend);
+      this._carriesBackendBlock = true;
+    }
+    else
+    {
+      this._carriesBackendBlock = EffectCarriesBackendBlock(path);
+    }
+
+    const reader = CjsCarbonEffectFormat.read(bytes, { emit: "raw" });
     this._shaders.clear();
     this._permutationReaders.clear();
     this._reader = reader;
-
-    // WHAT KIND OF SHADER WAS THIS. The path names the tree the bytes came
-    // from, because backend selection is by resource path, and the tree decides
-    // whether a body carries a per-pass backend block. Recording it here is
-    // what lets every later read skip the reader's parse-twice fallback.
-    //
-    // Null for a container that arrived without a path - tooling and tests do -
-    // and the reader then detects for itself, which is what that fallback is
-    // for.
-    this._carriesBackendBlock = EffectCarriesBackendBlock(this.GetPath());
     super.SetPayload({
       permutations: reader.permutations.map(axis => ({
         name: axis.name.value,
@@ -280,8 +304,8 @@ export class Tr2EffectRes extends CjsResource
    * seconds, so the load translates only the default one and the rest are
    * translated here the first time `GetShaderByIndex` asks for them.
    *
-   * Called by the object loader before the bytes are published, so it survives
-   * the `DoLoad` that follows.
+   * Called by `_TranslateOnLoad` during `DoLoad`, which clears any earlier
+   * translator first, so a container loaded as stored never keeps one.
    *
    * @param {(permutation: Array<{name: string, value: string}>) => {bytes: Uint8Array, indices: number[]}} translate
    *   Translates the named permutation and reports every index the result carries a body for.
@@ -293,6 +317,93 @@ export class Tr2EffectRes extends CjsResource
     this._translatePermutation = translate;
     this._translatedIndices = new Set(translatedIndices);
     this._permutationReaders.clear();
+  }
+
+  /**
+   * Commits what this instance's effects are prepared for: the effect tree
+   * shipped containers come from (`source`, e.g. `dx11`), the backend they are
+   * prepared for (`target`, e.g. `webgpu`), and the translator between them.
+   *
+   * Not Carbon: Carbon loads containers compiled offline for its one platform.
+   * A browser translates the shipped containers in memory, and the
+   * orchestrator (CjsLibrary's `effects` configuration) says from what, into
+   * what and with which format. `DoLoad` then translates a container whose path
+   * is in the source tree; the target's own tree (the shader compiler's
+   * library, stored overlays) loads as stored; any other tree is read as it is.
+   *
+   * Once per instance. A resource keeps one container per path, so
+   * `effect.dx11/` can only ever hold one translation; committing anything
+   * different afterwards throws, and changing it needs a new instance.
+   *
+   * @param {object} backend The commitment.
+   * @param {string} backend.source Effect tree of the shipped containers.
+   * @param {string} backend.target Effect tree of the running backend.
+   * @param {?{buildEffect: Function}} [backend.translator] Converts a source container into the target's; null when source is target.
+   * @param {"onDemand"|"all"} [backend.permutations] Translate the default permutation at load and the rest on first use, or all at load.
+   */
+  static CommitBackend({ source, target, translator = null, permutations = "onDemand" })
+  {
+    for (const [ name, value ] of [ [ "source", source ], [ "target", target ] ])
+    {
+      if (typeof value !== "string" || !/^[a-z0-9_]+$/u.test(value))
+      {
+        throw new TypeError(`Tr2EffectRes.CommitBackend: ${name} must be an effect tree name, got ${value}.`);
+      }
+    }
+    if (translator !== null && typeof translator.buildEffect !== "function")
+    {
+      throw new TypeError("Tr2EffectRes.CommitBackend: translator must expose buildEffect.");
+    }
+    if (translator === null && source !== target)
+    {
+      throw new TypeError(`Tr2EffectRes.CommitBackend: ${source} containers need a translator into ${target}.`);
+    }
+    if (permutations !== "onDemand" && permutations !== "all")
+    {
+      throw new TypeError(`Tr2EffectRes.CommitBackend: permutations must be "onDemand" or "all", got ${permutations}.`);
+    }
+    if (effectBackend !== null)
+    {
+      const same = effectBackend.source === source && effectBackend.target === target
+        && effectBackend.translator === translator && effectBackend.permutations === permutations;
+      if (same) return;
+      throw new Error(`Tr2EffectRes.CommitBackend: effects are committed to ${effectBackend.source} -> ${effectBackend.target}; `
+        + "a resource holds one container per path, so changing it needs a new instance.");
+    }
+    effectBackend = { source, target, translator, permutations };
+  }
+
+  /**
+   * What this instance's effects are prepared for, or null before
+   * `CommitBackend`.
+   *
+   * @returns {?{source: string, target: string, translator: ?object, permutations: string}}
+   */
+  static GetBackend()
+  {
+    return effectBackend === null ? null : { ...effectBackend };
+  }
+
+  /**
+   * Translates a source-tree container into the committed target: every
+   * permutation, or the default one plus a translator for the rest, which
+   * `_ReaderFor` runs the first time another permutation is asked for.
+   *
+   * @param {Uint8Array|ArrayBuffer} data The shipped container.
+   * @param {object} backend The committed backend.
+   * @returns {Uint8Array} The translated container.
+   */
+  _TranslateOnLoad(data, backend)
+  {
+    const source = this.GetPath();
+    if (backend.permutations === "all")
+    {
+      return backend.translator.buildEffect(data, { source, mode: "all" }).bytes;
+    }
+    const translate = permutation => BuiltPermutation(backend.translator.buildEffect(data, { source, permutation }));
+    const loaded = translate([]);
+    this.SetPermutationTranslator(translate, loaded.indices);
+    return loaded.bytes;
   }
 
   /** Forgets the permutation translator, for a payload that carries every body. */
@@ -493,6 +604,24 @@ export class Tr2EffectRes extends CjsResource
  *
  * @param {object} payload Attached payload.
  */
+/**
+ * A selected-mode build's container and every permutation index it carries a
+ * body for - all the indices that share the translated body.
+ *
+ * @param {object} built `buildEffect` result.
+ * @returns {{bytes: Uint8Array, indices: number[]}}
+ */
+function BuiltPermutation(built)
+{
+  const { variants } = built.permutationGraph;
+  const bodyKey = variants.find(variant => variant.permutationIndex === built.metadata.bodyIndex)?.bodyKey;
+
+  return {
+    bytes: built.bytes,
+    indices: variants.filter(variant => variant.bodyKey === bodyKey).map(variant => variant.permutationIndex)
+  };
+}
+
 function validateEffectPayload(payload)
 {
   if (!Array.isArray(payload.permutations))

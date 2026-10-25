@@ -2,123 +2,55 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsBlueResMan, ResourceRequirement } from "../../../npm/dist/resource/index.js";
-import { RegisterShaderResources } from "../../../npm/dist/trinity/shader/index.js";
+import { RegisterShaderResources, Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
 
-// A browser backend has no shipped containers, so composition passes the
-// backend's effect format as a translator: the byte source supplies the
-// shipped container and the translator's output is what Tr2EffectRes loads.
+// A browser backend has no shipped containers of its own. The orchestrator
+// commits the source tree, target and translator once; the loader passes the
+// shipped bytes through and Tr2EffectRes translates them when they load.
 
-const PATH = "res:/graphics/effect.webgpu/managed/space/quad/quadv5.sm_hi";
 const SHIPPED = new Uint8Array([ 1, 2, 3, 4 ]);
+const calls = [];
+const translator = {
+  buildEffect(bytes, options)
+  {
+    calls.push({ bytes, options });
+    return { bytes: new Uint8Array([ 9 ]), metadata: { bodyIndex: 0 }, permutationGraph: { variants: [ { permutationIndex: 0, bodyKey: "a" } ] } };
+  }
+};
 
-/** A translator whose default build carries a body for indices 0 and 2 of four. */
-function Translator(calls, translated)
+Tr2EffectRes.CommitBackend({ source: "dx11", target: "webgpu", translator });
+
+/** Loads a path through a manager whose source answers every read with SHIPPED. */
+async function Load(path)
 {
-  return {
-    buildEffect: (bytes, options) =>
-    {
-      calls.push({ bytes, options });
-      return {
-        bytes: translated,
-        metadata: { bodyIndex: 0 },
-        permutationGraph: { variants: [ 0, 1, 0, 2 ].map((body, permutationIndex) => ({ permutationIndex, bodyKey: `body${body}` })) }
-      };
-    }
-  };
-}
-
-/** Loads PATH through a manager and captures what reaches the resource. */
-async function Load(options)
-{
-  const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source: { Read: () => SHIPPED } }), options);
-  const resource = resourceManager.GetResource(PATH, { requirement: ResourceRequirement.SHADER });
-  const seen = { loaded: null, translator: null };
-  resource.DoLoad = data => { seen.loaded = data; };
-  resource.SetPermutationTranslator = (translate, indices) => { seen.translator = { translate, indices }; };
-
-  await resource.Ready().catch(() => {});
-  return seen;
-}
-
-test("the translator converts the shipped bytes and its output is what loads", async () =>
-{
-  const calls = [];
-  const translated = new Uint8Array([ 9, 9, 9 ]);
-  const seen = await Load({ translator: Translator(calls, translated) });
-
-  assert.equal(calls.length, 1, "on demand, the load translates one permutation");
-  assert.deepEqual(Array.from(calls[0].bytes), Array.from(SHIPPED));
-  assert.equal(calls[0].options.source, PATH, "the translator is told the resource's own path");
-  assert.deepEqual(calls[0].options.permutation, [], "the load translates the default permutation");
-  assert.equal(seen.loaded, translated, "Tr2EffectRes receives the translation, not the shipped bytes");
-  assert.deepEqual(seen.translator.indices, [ 0, 2 ], "every index sharing the translated body is covered");
-
-  const later = seen.translator.translate([ { name: "AXIS", value: "ON" } ]);
-  assert.deepEqual(calls[1].options.permutation, [ { name: "AXIS", value: "ON" } ]);
-  assert.deepEqual(Array.from(calls[1].bytes), Array.from(SHIPPED), "later permutations translate the same shipped bytes");
-  assert.equal(later.bytes, translated);
-});
-
-test("permutations: all translates every permutation at load and installs no translator", async () =>
-{
-  const calls = [];
-  const seen = await Load({ translator: Translator(calls, new Uint8Array([ 7 ])), permutations: "all" });
-
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].options.mode, "all");
-  assert.equal(seen.translator, null);
-  assert.deepEqual(Array.from(seen.loaded), [ 7 ]);
-});
-
-test("an unknown permutations mode is refused", () =>
-{
-  assert.throws(() => RegisterShaderResources(new CjsBlueResMan(), { translator: Translator([], null), permutations: "some" }), TypeError);
-});
-
-test("without a translator the container bytes load unchanged", async () =>
-{
+  calls.length = 0;
   const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source: { Read: () => SHIPPED } }));
-  const resource = resourceManager.GetResource(PATH, { requirement: ResourceRequirement.SHADER });
-  let loaded = null;
-  resource.DoLoad = data => { loaded = data; };
-
+  const resource = resourceManager.GetResource(path, { requirement: ResourceRequirement.SHADER });
+  // The synthetic bytes are not a container; the load fails after the
+  // translation decision, which is what these tests observe.
   await resource.Ready().catch(() => {});
+  return [ ...calls ];
+}
 
-  assert.deepEqual(Array.from(loaded), Array.from(SHIPPED));
+test("the loader passes shipped bytes through and takes no translation options", () =>
+{
+  const resourceManager = RegisterShaderResources(new CjsBlueResMan());
+  const loader = resourceManager.GetObjectLoader("sm_hi");
+
+  assert.equal(loader(SHIPPED, {}), SHIPPED);
+  assert.equal(RegisterShaderResources.length, 1);
 });
 
-test("a translator without buildEffect is refused", () =>
+test("a shipped effect.dx11 path is translated on load, told its own path", async () =>
 {
-  assert.throws(() => RegisterShaderResources(new CjsBlueResMan(), { translator: {} }), TypeError);
+  const made = await Load("res:/graphics/effect.dx11/managed/space/quad/quadv5.sm_hi");
+
+  assert.equal(made.length, 1);
+  assert.deepEqual(Array.from(made[0].bytes), Array.from(SHIPPED));
+  assert.equal(made[0].options.source, "res:/graphics/effect.dx11/managed/space/quad/quadv5.sm_hi");
 });
 
-test("a path translates rejects loads its bytes unchanged; the others still translate", async () =>
+test("an effect.webgpu path is stored, not translated", async () =>
 {
-  // An effect already compiled for the backend (the shader compiler's
-  // library) has no shipped container to translate.
-  const translates = path => !path.includes("/effect.webgpu/cjs/");
-  const compiled = new Uint8Array([ 5, 5 ]);
-  const calls = [];
-  const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source: { Read: path => (path.includes("/cjs/") ? compiled : SHIPPED) } }),
-    { translator: Translator(calls, new Uint8Array([ 9 ])), translates });
-
-  const own = resourceManager.GetResource("res:/graphics/effect.webgpu/cjs/selection/selectionmask.sm_hi", { requirement: ResourceRequirement.SHADER });
-  let ownLoaded = null;
-  own.DoLoad = data => { ownLoaded = data; };
-  await own.Ready().catch(() => {});
-  assert.equal(calls.length, 0, "the compiled effect is not translated");
-  assert.deepEqual(Array.from(ownLoaded), [ 5, 5 ]);
-
-  const shipped = resourceManager.GetResource(PATH, { requirement: ResourceRequirement.SHADER });
-  let shippedLoaded = null;
-  shipped.DoLoad = data => { shippedLoaded = data; };
-  shipped.SetPermutationTranslator = () => {};
-  await shipped.Ready().catch(() => {});
-  assert.equal(calls.length, 1, "the shipped effect still is");
-  assert.deepEqual(Array.from(shippedLoaded), [ 9 ]);
-});
-
-test("a translates that is not a function is refused", () =>
-{
-  assert.throws(() => RegisterShaderResources(new CjsBlueResMan(), { translator: Translator([], null), translates: "cjs" }), TypeError);
+  assert.equal((await Load("res:/graphics/effect.webgpu/cjs/selection/selectionmask.sm_hi")).length, 0);
 });
