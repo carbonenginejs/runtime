@@ -127,7 +127,7 @@ test("a piece mesh becomes a hull drawing that mesh alone, with quad areas", () 
   assert.deepEqual(textures, {
     AlbedoMap: "dynamic:/incarna/albedo/res:/graphics/interior/test/piece_os.dds",
     RoughnessMap: "dynamic:/incarna/roughness/res:/graphics/interior/test/piece_os.dds",
-    MaterialMap: "dynamic:/incarna/material/res:/graphics/interior/test/piece_os.dds",
+    MaterialMap: "dynamic:/color/0,0,0,1",
     GlowMap: "dynamic:/incarna/glow/res:/graphics/interior/test/piece_os.dds",
     NormalMap: "dynamic:/incarna/normal/res:/graphics/interior/test/piece_nm.dds",
     DirtMap: "dynamic:/color/0,0,0,1",
@@ -345,4 +345,16 @@ test("a fill light sits a character's height above each floor under a ceiling, o
   const sorted = positions => roundPositions(positions).sort((left, right) => left[0] - right[0]);
   assert.deepEqual(sorted(CjsIncarnaEmulator.findFillLightPositions(pieces, { spacing: 4 })), [ [ 0, 1.8, 0 ], [ 4, 1.8, 0 ], [ 8, 1.8, 0 ] ]);
   assert.deepEqual(CjsIncarnaEmulator.findFillLightPositions(pieces, { spacing: 4, headroom: 5 }), [], "a ceiling lower than the headroom is no room");
+});
+
+test("each Incarna material takes one SOF material slot, darkest first, so its areas draw one material whole", () =>
+{
+  const area = colour => ({ GetMaterialInterface: () => ({ parameters: colour ? [ { name: "MaterialDiffuseColor", value: [ ...colour, 1 ] } ] : [] }) });
+  const areas = [ [ 0.75, 0.75, 0.75 ], [ 0.19, 0.19, 0.19 ], [ 0.34, 0.39, 0.41 ], [ 0.19, 0.19, 0.19 ], [ 0.36, 0.43, 0.5 ], [ 1, 1, 1 ] ].map(area);
+  const slots = CjsIncarnaEmulator.materialSlots(areas);
+  assert.deepEqual(areas.map(value => slots.get(CjsIncarnaEmulator.materialKey(value))), [ 3, 0, 1, 0, 2, 0 ], "a fifth material wraps to the first slot");
+  const object = piece();
+  const materialMap = CjsIncarnaEmulator.hullArea(object.detailMeshes[0].opaquePrepassAreas[0], { shader: "quad/unpacked_quaddetailv5.fx", areaType: "TYPE_PRIMARY", details: true, fills: {} },
+    new Map([ [ "none", 2 ] ])).textures.find(texture => texture.name === "MaterialMap").resFilePath;
+  assert.equal(materialMap, "dynamic:/color/0.666667,0,0,1");
 });

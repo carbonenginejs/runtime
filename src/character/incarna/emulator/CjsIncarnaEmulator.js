@@ -149,6 +149,7 @@ export class CjsIncarnaEmulator
     if (meshes.length === 0) throw new TypeError(`CjsIncarnaEmulator: assembly ${name} has no mesh`);
 
     const [ first ] = meshes;
+    const slots = CjsIncarnaEmulator.materialSlots(meshes.flatMap(({ mesh }) => [ ...mesh.opaquePrepassAreas, ...mesh.transparentAreas ]));
     const toRoot = mat4.invert(mat4.create(), first.transform);
     const placements = new Map();
     for (const { mesh, transform } of meshes.slice(1))
@@ -156,13 +157,13 @@ export class CjsIncarnaEmulator
       const hullName = CjsIncarnaEmulator.hullName(mesh);
       if (!placements.has(hullName))
       {
-        this._dataMgr.UpdateHull(hullName, this.CreateHull(hullName, mesh));
+        this._dataMgr.UpdateHull(hullName, this.CreateHull(hullName, mesh, slots));
         placements.set(hullName, { sphere: this._dataMgr.GetHullData(hullName).boundingSphere, transforms: [] });
       }
       placements.get(hullName).transforms.push(mat4.multiply(mat4.create(), toRoot, transform));
     }
 
-    const root = this.CreateHull(name, first.mesh);
+    const root = this.CreateHull(name, first.mesh, slots);
     root.buildClass = blue.enums.GetEnum("trinity.EveSOFDataHull.BuildClass").BUILDCLASS_STATIONARY;
     root.locatorSets = [ ...placements ].map(([ hullName, { transforms } ]) => CjsIncarnaEmulator.locatorSet(hullName, transforms));
     root.boundingSphere = CjsIncarnaEmulator.assemblySphere([ { sphere: root.boundingSphere, transforms: [ mat4.create() ] }, ...placements.values() ]);
@@ -395,11 +396,12 @@ export class CjsIncarnaEmulator
    *
    * @param {string} name The hull's name.
    * @param {object} mesh A Tr2Mesh of an initialized piece, its geometry loaded.
+   * @param {Map<string, number>} [slots] Each Incarna material's SOF material slot (`materialSlots`); an area whose material has none takes its overlay map's reflection mask.
    * @returns {object} The EveSOFDataHull.
    * @throws {Error} When the mesh's geometry is not loaded.
    */
   @meta.implemented
-  CreateHull(name, mesh)
+  CreateHull(name, mesh, slots = new Map())
   {
     const geometry = mesh.GetGeometryResource();
     if (!geometry || !geometry.IsGood())
@@ -416,8 +418,8 @@ export class CjsIncarnaEmulator
     geometry.GetBoundingBox(mesh.GetMeshIndex(), min, max);
     const center = vec3.lerp(vec3.create(), min, max, 0.5);
     hull.boundingSphere = vec4.fromValues(center[0], center[1], center[2], vec3.distance(min, max) / 2);
-    hull.opaqueAreas = mesh.opaquePrepassAreas.map(area => CjsIncarnaEmulator.hullArea(area, AREA_KINDS.opaque));
-    hull.transparentAreas = mesh.transparentAreas.map(area => CjsIncarnaEmulator.hullArea(area, AREA_KINDS.glass));
+    hull.opaqueAreas = mesh.opaquePrepassAreas.map(area => CjsIncarnaEmulator.hullArea(area, AREA_KINDS.opaque, slots));
+    hull.transparentAreas = mesh.transparentAreas.map(area => CjsIncarnaEmulator.hullArea(area, AREA_KINDS.glass, slots));
     return hull;
   }
 
@@ -426,11 +428,13 @@ export class CjsIncarnaEmulator
    *
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
    * @param {{shader: string, areaType: string, details: boolean, fills: Object<string, string>}} kind How the area is drawn, an `AREA_KINDS` entry.
+   * @param {Map<string, number>} [slots] Each Incarna material's SOF material slot, as `CreateHull` takes them.
    * @returns {object} The EveSOFDataHullArea.
    */
   @meta.implemented
-  static hullArea(area, kind)
+  static hullArea(area, kind, slots = new Map())
   {
+    const slot = slots.get(CjsIncarnaEmulator.materialKey(area));
     const effect = area.GetMaterialInterface();
     const sources = CjsIncarnaEmulator.areaSources(area);
     const glows = CjsIncarnaEmulator.glows(area);
@@ -444,6 +448,7 @@ export class CjsIncarnaEmulator
     value.areaType = blue.enums.GetEnum("trinity.EveSOFDataArea.AreaType")[kind.areaType];
     value.textures = AREA_TEXTURES.filter(([ , , , , detail ]) => kind.details || !detail).map(([ input, maps, role, fill ]) =>
     {
+      if (input === "MaterialMap" && slot !== undefined) return CjsIncarnaEmulator.namedValue("EveSOFDataTexture", input, "resFilePath", `dynamic:/color/${+(slot / 3).toFixed(6)},0,0,1`);
       const source = role === "glow" && !glows ? null : maps.map(map => sources.get(map)).find(Boolean);
       return CjsIncarnaEmulator.namedValue("EveSOFDataTexture", input, "resFilePath",
         source ? CjsIncarnaTextureConstructor.texturePath(role, source) : kind.fills[input] ?? fill);
@@ -475,6 +480,46 @@ export class CjsIncarnaEmulator
   {
     const color = area.GetMaterialInterface().parameters.find(parameter => parameter.name === "MaterialGlowColor");
     return !!color && (color.value[0] > 0 || color.value[1] > 0 || color.value[2] > 0);
+  }
+
+  /**
+   * The SOF material slot, 0 to 3, each of an assembly's Incarna materials
+   * takes: one slot per material, so every area draws one of the faction's
+   * four materials whole (operator, 2026-10-26). An Incarna area is one
+   * material, told apart by its diffuse colour (`materialKey`); the distinct
+   * colours, darkest first, take the slots in turn. quad picks slot i where its
+   * material mask is i / 3, and only there: each slot's weight is
+   * clamp(1.032 - |3.19 (mask - i / 3)|, 0, 1)
+   * (`quad/unpacked_quaddetailv5.sm_depth`, pass 0 pixel).
+   *
+   * @param {object[]} areas Tr2MeshAreas holding the Tr2Effects their materials became.
+   * @returns {Map<string, number>} Slots by `materialKey`.
+   */
+  @meta.implemented
+  static materialSlots(areas)
+  {
+    const colours = new Map();
+    for (const area of areas)
+    {
+      const key = CjsIncarnaEmulator.materialKey(area);
+      if (!colours.has(key)) colours.set(key, key.split(",").reduce((sum, value) => sum + Number(value), 0));
+    }
+    const ranked = [ ...colours ].sort(([ leftKey, left ], [ rightKey, right ]) => left - right || leftKey.localeCompare(rightKey));
+    return new Map(ranked.map(([ key ], index) => [ key, index % 4 ]));
+  }
+
+  /**
+   * An Incarna area's material identity: its `MaterialDiffuseColor`'s red,
+   * green and blue, rounded to three places, or "none".
+   *
+   * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
+   * @returns {string} Such as "0.34,0.39,0.41".
+   */
+  @meta.implemented
+  static materialKey(area)
+  {
+    const colour = area.GetMaterialInterface().parameters.find(parameter => parameter.name === "MaterialDiffuseColor");
+    return colour ? [ 0, 1, 2 ].map(index => Number(colour.value[index]).toFixed(3)).join(",") : "none";
   }
 
   /**
