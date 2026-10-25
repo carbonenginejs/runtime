@@ -128,7 +128,7 @@ test("the selection effects compile, every permutation, to WGSL that Dawn accept
 
 test("planet selection writes remapped fragment depth and links with scene depth", async () =>
 {
-    const { bytes, messages, results } = compile("/selection/planet_selectionmask.fx");
+    const { bytes, messages, results } = compile("/selection/planet/selectionmask.fx");
     assert.deepEqual(messages, []);
     assert.ok(bytes);
     const device = await getDevice();
@@ -392,7 +392,7 @@ test("the selection outline draws a solid line of the set width around the mask,
 
 test("planet fragment depth preserves foreground occlusion, far coverage and zero-bias proxy equality", async () =>
 {
-    const { results } = compile("/selection/planet_selectionmask.fx");
+    const { results } = compile("/selection/planet/selectionmask.fx");
     const pass = passesOf(results)[0];
     const ps = pass.stages.find(stage => stage.type === 1);
     const binding = readBackendBlock(pass.backendBlock).bindGroups[0].bindings.find(b => b.visibility.includes("fragment"));

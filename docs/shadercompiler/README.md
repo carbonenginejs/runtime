@@ -213,7 +213,7 @@ surface children returned by `EvePlanet.GetRenderables`, with
 0.01–100000 (Carbon `EveSpaceScene::RenderPlanets`). Children are already
 scaled; drawing the planet container or scaling them again is incorrect.
 
-`planet_selectionmask.fx` is a selection-only extension. It retains native
+`planet/selectionmask.fx` is a selection-only extension (in a `planet/` folder, as Carbon keeps planet effects in `managed/space/planet/`). It retains native
 planet clip coordinates and writes main-scene reverse depth through
 `SV_Depth`. Given the actual reversed projection matrices M (main) and P
 (planet), and C = `planetCameraScale`, the conversion is:

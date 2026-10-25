@@ -46,7 +46,7 @@ async function fixture(t, selected = true, planetEffect = null)
         getBoundingClientRect: () => ({ left: 10, top: 20, width: 320, height: 240 }) };
     const driver = { _PostProcess() {}, _BeginRenderPass() {} };
     const material = async path => {
-        if (planetEffect && path.includes("planet_selectionmask")) return planetEffect;
+        if (planetEffect && path.includes("planet/selectionmask")) return planetEffect;
         const values = {};
         const effect = { path, values, AddParameterVector4: (name, value) => { values[name] = [...value]; },
             AddParameterColor() {}, RebuildCachedData() {}, SetParameter__Vector4: (name, value) => { values[name] = [...value]; }, SetParameter__TextureAL() {} };
@@ -70,7 +70,7 @@ test("planet masks draw native children at planet camera scale and restore the m
     assert.deepEqual(f.draws.map(d => d.object), [...f.children, ...f.children]);
     assert.deepEqual(f.draws[0].view.slice(12, 15), [2, -1, -4.5]);
     assert.match(f.draws[0].effect.path, /selectionsilhouette/);
-    assert.match(f.draws[2].effect.path, /planet_selectionmask/);
+    assert.match(f.draws[2].effect.path, /planet\/selectionmask/u);
     assert.notDeepEqual(f.draws[0].projection, f.draws[2].projection, "visibility is jittered; silhouette is stable");
     assert.deepEqual(f.getView(), f.initialView);
     assert.deepEqual(f.getProjection(), f.initialProjection);

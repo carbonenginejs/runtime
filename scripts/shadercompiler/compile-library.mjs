@@ -54,9 +54,10 @@ function effectFiles(directory)
  * Compiles the library into `outDirectory`.
  *
  * @param {string} outDirectory Where `graphics/effect.webgpu/...` is written.
+ * @param {string[]} [effects] The `.fx` paths to compile, relative to the library; every one in it by default.
  * @returns {{ path: string, bytes: number }[]} The files written, by logical path.
  */
-export function compileLibrary(outDirectory)
+export function compileLibrary(outDirectory, effects = effectFiles(LIBRARY_ROOT))
 {
     const read = path =>
     {
@@ -65,7 +66,7 @@ export function compileLibrary(outDirectory)
     };
     const compilers = new Map([[Platform.PLATFORM_WEBGPU, session => new CjsFxEffectCompilerWebGPU(session)]]);
     const written = [];
-    for (const effect of effectFiles(LIBRARY_ROOT))
+    for (const effect of effects)
     {
         const { bytes, messages } = CompileEffectFile(`/${effect}`, { read, compilers });
         if (!bytes)

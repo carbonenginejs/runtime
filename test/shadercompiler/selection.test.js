@@ -55,7 +55,7 @@ function annotationsOf(symbol)
     }));
 }
 
-const EFFECTS = ["selection/selectionmask.fx", "selection/skinned_selectionmask.fx", "selection/selectionoutline.fx", "selection/selectionsilhouette.fx", "selection/skinned_selectionsilhouette.fx", "selection/selectionvisibleoutline.fx", "selection/planet_selectionmask.fx"];
+const EFFECTS = ["selection/selectionmask.fx", "selection/skinned_selectionmask.fx", "selection/selectionoutline.fx", "selection/selectionsilhouette.fx", "selection/skinned_selectionsilhouette.fx", "selection/selectionvisibleoutline.fx", "selection/planet/selectionmask.fx"];
 
 test("the selection effects compile", () =>
 {
