@@ -51,7 +51,7 @@ test("the head pass composes its parts in bake order and hands that order to the
     const doll = Doll();
     const head = [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "eyeliner", "lipstick", "augmentations", "scars" ];
     assert.deepEqual(doll.GetLayerOrder(PaperDollPass.HEAD), head);
-    assert.deepEqual(doll.GetLayerOrder(PaperDollPass.SURFACE), [ "aging", "scarring", "lipstick", "augmentations", "bodyAugmentation", "armLeft", "armRight", "scars", "bottomUnderwear", "topUnderwear" ]);
+    assert.deepEqual(doll.GetLayerOrder(PaperDollPass.SURFACE), [ "aging", "scarring", "lipstick", "augmentations", "bodyAugmentation", "armLeft", "armRight", "scars", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle" ]);
 
     const bindings = Bindings();
     Update(doll, bindings);

@@ -34,4 +34,6 @@ export { CjsPaperDollEyeshadow } from "./CjsPaperDollEyeshadow.js";
 export { CjsPaperDollEyeliner } from "./CjsPaperDollEyeliner.js";
 export { CjsPaperDollBottomUnderwear } from "./CjsPaperDollBottomUnderwear.js";
 export { CjsPaperDollTopUnderwear } from "./CjsPaperDollTopUnderwear.js";
+export { CjsPaperDollTopMiddle } from "./CjsPaperDollTopMiddle.js";
+export { CjsPaperDollBottomMiddle } from "./CjsPaperDollBottomMiddle.js";
 export { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";

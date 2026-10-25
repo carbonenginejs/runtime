@@ -33,7 +33,10 @@ export const PaperDollLayer = Object.freeze({
     SCARS: 120,
     /** Body: over the skin and its freckles; the bra goes over the underpants. */
     BOTTOMUNDERWEAR: 130,
-    TOPUNDERWEAR: 140
+    TOPUNDERWEAR: 140,
+    /** Baked garments over the underwear: tights, then the top over them. Working ranks, to confirm in game. */
+    BOTTOMMIDDLE: 150,
+    TOPMIDDLE: 160
 });
 
 /**

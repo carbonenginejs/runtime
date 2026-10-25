@@ -18,6 +18,8 @@ import { CjsPaperDollBodyAugmentation } from "./CjsPaperDollBodyAugmentation.js"
 import { CjsPaperDollArmLeft } from "./CjsPaperDollArmLeft.js";
 import { CjsPaperDollArmRight } from "./CjsPaperDollArmRight.js";
 import { CjsPaperDollEyeliner } from "./CjsPaperDollEyeliner.js";
+import { CjsPaperDollTopMiddle } from "./CjsPaperDollTopMiddle.js";
+import { CjsPaperDollBottomMiddle } from "./CjsPaperDollBottomMiddle.js";
 import { PaperDollPass } from "./paperDollOrder.js";
 
 /**
@@ -119,8 +121,16 @@ export class CjsPaperDollDefinition
     @type.object.embed("CjsPaperDollTopUnderwear")
     topUnderwear = new CjsPaperDollTopUnderwear();
 
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollBottomMiddle")
+    bottomMiddle = new CjsPaperDollBottomMiddle();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollTopMiddle")
+    topMiddle = new CjsPaperDollTopMiddle();
+
     /** The collected parts, by member name. Each pass composes its parts by bake rank, not by this order. */
-    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear" ];
+    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle" ];
 
     _layers = new Map();
     _dirty = true;
