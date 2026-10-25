@@ -1,6 +1,14 @@
 import { meta, type } from "#schema";
 
-/** Application-owned foundation selection; prepared records retain resource provenance. */
+/**
+ * Application-owned foundation selection; prepared records retain resource provenance.
+ *
+ * It also holds the sculpt: a weight per face or body morph (by morph name,
+ * e.g. `CheeksUpper_rightShape`), baked with the archetype's morph. A sculpt
+ * edit is a shape-only change: it marks the selection dirty but not the
+ * foundation, so materials stay and shape-dependent parts rebake. The range is
+ * the host's to choose (the creator's per-bloodline limits, or free).
+ */
 @meta.define("CjsPaperDollArchetype")
 export class CjsPaperDollArchetype
 {
@@ -11,6 +19,7 @@ export class CjsPaperDollArchetype
     _foundationDirty = false;
     _strength = 1;
     _defaultStrength = 1;
+    _sculpt = new Map();
 
     /** Selected prepared foundation identity. */
     @meta.property()
@@ -62,8 +71,41 @@ export class CjsPaperDollArchetype
     /** Returns qualified choices; there is no optional or disabled foundation. */
     GetOptions() { return [...this._options.values()].map(({ id, label }) => ({ id, label })); }
 
-    /** Returns an owned snapshot; callers cannot mutate the retained foundation. */
-    Resolve() { return this._option ? { ...structuredClone(this._options.get(this._option).foundation), strength: this._strength } : null; }
+    /**
+     * One morph's sculpted weight.
+     * @param {string} name The morph name.
+     * @returns {number} Its weight; 0 when unsculpted.
+     */
+    GetSculpt(name) { return this._sculpt.get(name) ?? 0; }
+
+    /**
+     * Every sculpted morph and its weight.
+     * @returns {Object<string, number>} Weights by morph name; unsculpted morphs are absent.
+     */
+    GetSculpts() { return Object.fromEntries(this._sculpt); }
+
+    /**
+     * Sculpts one morph. A weight of 0 removes it.
+     * @param {string} name The morph name.
+     * @param {number} value Its weight.
+     * @returns {void}
+     */
+    SetSculpt(name, value)
+    {
+        if (typeof name !== "string" || !name) throw new TypeError("A sculpt needs a morph name");
+        const weight = Math.fround(value);
+        if (!Number.isFinite(weight)) throw new RangeError("A sculpt weight must be finite");
+        if (weight === this.GetSculpt(name)) return;
+        if (weight === 0) this._sculpt.delete(name);
+        else this._sculpt.set(name, weight);
+        this._dirty = true;
+    }
+
+    /** Removes every sculpt. @returns {void} */
+    ClearSculpts() { if (this._sculpt.size) { this._sculpt.clear(); this._dirty = true; } }
+
+    /** Returns an owned snapshot (the foundation, its strength and the sculpt); callers cannot mutate the retained foundation. */
+    Resolve() { return this._option ? { ...structuredClone(this._options.get(this._option).foundation), strength: this._strength, sculpt: this.GetSculpts() } : null; }
 
     /** Restores the configured initial foundation without resetting modifier values. */
     Reset() { if (this._defaultOption) { this.option = this._defaultOption; this.strength = this._defaultStrength; } }

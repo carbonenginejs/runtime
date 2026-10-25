@@ -216,7 +216,10 @@ export class TriGrannyRes extends CjsResource
         throw new Error("TriGrannyRes: .cmf contents (Tr2CmfContents) are not supported.");
       }
 
-      this.SetPayload(await CjsGr2Format.readAsync(stream.data, { emit: "json" }));
+      // Granny files carry no mesh bounds; read them as the registered .gr2
+      // geometry route does (rebuildMissingBounds), or geometry made from this
+      // resource (CreateGeometryRes) has zero bounds and frames to nothing.
+      this.SetPayload(await CjsGr2Format.readAsync(stream.data, { emit: "json", rebuildMissingBounds: true }));
     }
     catch (error)
     {
