@@ -49,7 +49,7 @@ test("every collected part declares the passes it feeds", () =>
 test("the head pass composes its parts in bake order and hands that order to the binding", () =>
 {
     const doll = Doll();
-    const head = [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "hair", "eyeliner", "lipstick", "augmentations", "scars" ];
+    const head = [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "hair", "eyeliner", "lipstick", "augmentations", "scars", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ];
     assert.deepEqual(doll.GetLayerOrder(PaperDollPass.HEAD), head);
     assert.deepEqual(doll.GetLayerOrder(PaperDollPass.SURFACE), [ "aging", "scarring", "hair", "lipstick", "augmentations", "bodyAugmentation", "armLeft", "armRight", "scars", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle", "bottomOuter", "feet" ]);
 
@@ -69,13 +69,13 @@ test("a layer override reorders and rebuilds only the passes the part feeds, and
 
     doll.SetLayer("blush", PaperDollLayer.TATTOO - 1);
     assert.equal(Update(doll, bindings), true);
-    assert.deepEqual(bindings.heads.at(-1).order, [ "blush", "tattoo", "eyebrows", "freckles", "eyeshadow", "hair", "eyeliner", "lipstick", "augmentations", "scars" ]);
+    assert.deepEqual(bindings.heads.at(-1).order, [ "blush", "tattoo", "eyebrows", "freckles", "eyeshadow", "hair", "eyeliner", "lipstick", "augmentations", "scars", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ]);
     assert.equal(bindings.surfaces.length, 0, "blush feeds only the head pass");
 
     doll.ResetLayers();
     Update(doll, bindings);
     assert.equal(doll.GetLayer("blush"), PaperDollLayer.BLUSH);
-    assert.deepEqual(bindings.heads.at(-1).order, [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "hair", "eyeliner", "lipstick", "augmentations", "scars" ]);
+    assert.deepEqual(bindings.heads.at(-1).order, [ "tattoo", "eyebrows", "freckles", "blush", "eyeshadow", "hair", "eyeliner", "lipstick", "augmentations", "scars", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ]);
     assert.throws(() => doll.SetLayer("blush", NaN), RangeError);
 });
 

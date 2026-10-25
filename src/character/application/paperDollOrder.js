@@ -33,6 +33,8 @@ export const PaperDollLayer = Object.freeze({
     ARMLEFT: 116,
     ARMRIGHT: 118,
     SCARS: 120,
+    /** Accessories (glasses, piercings, masks): meshes with their own maps, drawn with the head pass. Working rank. */
+    ACCESSORIES: 125,
     /** Body: over the skin and its freckles; the bra goes over the underpants. */
     BOTTOMUNDERWEAR: 130,
     TOPUNDERWEAR: 140,

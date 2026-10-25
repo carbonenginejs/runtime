@@ -23,6 +23,14 @@ import { CjsPaperDollBottomMiddle } from "./CjsPaperDollBottomMiddle.js";
 import { CjsPaperDollBottomOuter } from "./CjsPaperDollBottomOuter.js";
 import { CjsPaperDollFeet } from "./CjsPaperDollFeet.js";
 import { CjsPaperDollHair } from "./CjsPaperDollHair.js";
+import { CjsPaperDollGlasses } from "./CjsPaperDollGlasses.js";
+import { CjsPaperDollEarsLow } from "./CjsPaperDollEarsLow.js";
+import { CjsPaperDollEarsHigh } from "./CjsPaperDollEarsHigh.js";
+import { CjsPaperDollNose } from "./CjsPaperDollNose.js";
+import { CjsPaperDollLips } from "./CjsPaperDollLips.js";
+import { CjsPaperDollChin } from "./CjsPaperDollChin.js";
+import { CjsPaperDollBrow } from "./CjsPaperDollBrow.js";
+import { CjsPaperDollMask } from "./CjsPaperDollMask.js";
 import { PaperDollPass } from "./paperDollOrder.js";
 
 /**
@@ -144,8 +152,40 @@ export class CjsPaperDollDefinition
     @type.object.embed("CjsPaperDollHair")
     hair = new CjsPaperDollHair();
 
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollGlasses")
+    glasses = new CjsPaperDollGlasses();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollEarsLow")
+    earsLow = new CjsPaperDollEarsLow();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollEarsHigh")
+    earsHigh = new CjsPaperDollEarsHigh();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollNose")
+    nose = new CjsPaperDollNose();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollLips")
+    lips = new CjsPaperDollLips();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollChin")
+    chin = new CjsPaperDollChin();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollBrow")
+    brow = new CjsPaperDollBrow();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollMask")
+    mask = new CjsPaperDollMask();
+
     /** The collected parts, by member name. Each pass composes its parts by bake rank, not by this order. */
-    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle", "bottomOuter", "feet", "hair" ];
+    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle", "bottomOuter", "feet", "hair", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ];
 
     _layers = new Map();
     _dirty = true;
