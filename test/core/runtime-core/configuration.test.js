@@ -78,7 +78,8 @@ test("Initialize configures the chosen owners and preserves loader and geometry 
   assert.deepEqual(owners.resMan.GetExtensionRoute("gr2").formats[0].defaults, { emit: "json", rebuildMissingBounds: true });
   assert.equal(owners.resMan.GetObjectLoader("red"), CreateBlackObjectBuilder);
   assert.equal(owners.resMan.GetObjectLoader("black"), CreateBlackObjectBuilder);
-  assert.throws(() => owners.resMan.GetObjectLoader("red")(new Uint8Array(), { path: "a.red" }), /not a compiled/);
+  assert.equal(owners.resMan.GetObjectLoader("yaml"), CreateBlackObjectBuilder);
+  assert.throws(() => owners.resMan.GetObjectLoader("red")(new Uint8Array(), { path: "a.red" }), /a\.red: not a Black or YAML object file/);
   const state = library.GetConfiguration();
   assert.equal(state.owners.resMan, owners.resMan);
   assert.equal(state.owners.paths, owners.paths);

@@ -107,9 +107,12 @@ export const DefaultConfiguration = {
     fxt: shaderLoader
   },
 
+  // Carbon's LoadObject chooses its reader by header, so a YAML object file (a
+  // character lighting rig) loads through the same builder (BlueResMan.cpp:806-840).
   objectBuilders: {
     black: CreateBlackObjectBuilder,
-    red: CreateBlackObjectBuilder
+    red: CreateBlackObjectBuilder,
+    yaml: CreateBlackObjectBuilder
   },
 
   resourceConstructors: {
