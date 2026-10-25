@@ -173,8 +173,14 @@ a format is, without the engine.
 The BC encoder is our port of libsquish 1.15 behind Carbon's
 `Tr2DxtCompressor` modes. `decodeBlockSlice` decodes to the BC specification.
 `bcDecompress` is Carbon's Metal-only `BcDecompress`, kept with its defects.
-The asynchronous encoders run in the worker at
-`@carbonenginejs/runtime/resource/codecs/bcn/compression-worker`.
+The asynchronous encoders queue on `BeCallbackMan` as the callback
+`dds.compress`, as Carbon's `Tr2DxtCompressor` queues its encodes on
+`BeCallbackMan`; it runs them on a worker, or on the main thread when the host
+has none. The composition registers `BCN_CALLBACK_MODULES` before it starts
+`BeCallbackMan` (`CjsLibrary`'s default configuration does). Without that they
+reject, and the synchronous `compressBitmap` and `compressSurface` remain.
+`@carbonenginejs/runtime/resource/codecs/bcn/compression-worker` is that
+callback module.
 
 Byte-level specifications that span several modules:
 [Carbon effect container](carbon-effect-container.md),

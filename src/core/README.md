@@ -48,7 +48,14 @@ containers come from (`source`), the backend they are prepared for (`target`),
 the translator between them, the `shaderModel` and the `permutations` mode; it
 is applied once at startup through `Tr2EffectRes.CommitBackend` and
 `SetEffectPathDefaults`, and changing it needs a new page, because a resource
-holds one container per path. No provider factory or lifecycle is added.
+holds one container per path. `callbackModules` maps callback names to the
+module URLs `BeCallbackMan` imports them from (by default the BC encoder's and
+the image decoder's), registered before it starts. `callbackMan` sets how
+`BeCallbackMan` starts: `useWorkers`, `threadCount` and `workerModule` (a
+bundled worker entry in place of the default) apply once per page, when it
+first starts; `mainThreadTimeSlice` (seconds per tick when it runs without
+workers) applies at each `Initialize`. No
+provider factory or lifecycle is added.
 
 Validation happens before a patch is applied. Owners can still fail, including
 after mutation: the original error propagates, successful preceding submissions

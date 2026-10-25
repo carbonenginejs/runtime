@@ -61,6 +61,17 @@ their existing subpaths. Use one form for a shared runtime graph: mixing bundle
 objects with per-file objects creates separate copies of classes and registries.
 Resource workers remain separate package files, resolved relative to the bundle.
 
+For a browser page, the package also ships each worker built as one file under
+`@carbonenginejs/runtime/workers/*`: `resource.worker.bundle.js`,
+`gr2.worker.bundle.js`, `dds.worker.bundle.js`, `dds-compression.worker.bundle.js`,
+`image-decode.worker.bundle.js` and `callback-man.worker.bundle.js`. Serve them
+together beside the page's own bundle and copy them rather than bundling their
+entries again, so there is one build of each. The resource worker loads the GR2
+and DDS bundles from its own folder; a page bundle that includes `CjsGr2Format`
+or `CjsDdsFormat` expects them there too. The others are passed to `CjsLibrary`
+through its configuration: `resMan.workerLoader`, `callbackMan.workerModule` and
+`callbackModules`.
+
 ## Quick start
 
 Every format is its own subpath, so importing one pulls that format and the
