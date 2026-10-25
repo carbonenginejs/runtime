@@ -4,3 +4,4 @@
  */
 export * from "./interior/index.js";
 export * from "./shader/index.js";
+export * from "./texture/index.js";
