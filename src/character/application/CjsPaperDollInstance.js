@@ -59,7 +59,18 @@ export class CjsPaperDollInstance
      */
     RebuildHead()
     {
-        this._passDirty |= PaperDollPass.HEAD;
+        this.RebuildPasses(PaperDollPass.HEAD);
+    }
+
+    /**
+     * Rebuilds passes on the next `Update`, for an option whose inputs finished
+     * loading after it was selected (options load on first selection).
+     * @param {number} passes The passes to rebuild, as `PaperDollPass` bits.
+     * @returns {void}
+     */
+    RebuildPasses(passes)
+    {
+        this._passDirty |= passes;
     }
 
     /**
