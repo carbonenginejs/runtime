@@ -22,6 +22,14 @@ export class CjsPaperDollComponent
     static shapeDependent = false;
     /** The recipe category this part's options are filed under (a `.prs` entry's `category`); occlusion matches it. */
     static category = "";
+    /**
+     * Whether each option names its own palette, so selecting an option selects
+     * it: a garment or accessory option is a `.type` (part, variation, colour
+     * variant) or a garment folder with its own `.color` files. Parts whose
+     * options share swatches (eye shadow, hair) keep the picked palette across
+     * options. Custom colours are kept either way.
+     */
+    static optionNamesPalette = false;
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([["", CjsPaperDollItem]]);
@@ -49,7 +57,7 @@ export class CjsPaperDollComponent
         this._option = value;
         this._item = new (this._itemClasses.get(this.GetColorAreas().join(",")))(this);
         const selected = this._options.get(value);
-        if (!this._hasPalette && selected?.colorAreas.length)
+        if (selected?.colorAreas.length && (!this._hasPalette || (this.constructor.optionNamesPalette && selected.defaultPalette)))
         {
             this._SetPreset(selected.defaultPalette ?? "");
             this._hasPalette = true;

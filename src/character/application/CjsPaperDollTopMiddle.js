@@ -22,6 +22,7 @@ export class CjsPaperDollTopMiddle extends CjsPaperDollComponent
     static layer = PaperDollLayer.TOPMIDDLE;
     static passes = PaperDollPass.BODY | PaperDollPass.SURFACE;
     static category = "topmiddle";
+    static optionNamesPalette = true;
 
     _item = new CjsPaperDollItem(this);
     _tuck = 0;

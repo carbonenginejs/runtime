@@ -19,6 +19,7 @@ export class CjsPaperDollAccessory extends CjsPaperDollComponent
     static layer = PaperDollLayer.ACCESSORIES;
     static passes = PaperDollPass.HEAD;
     static category = "";
+    static optionNamesPalette = true;
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([ "", "1", "2", "3", "1,2", "1,3", "2,3", "1,2,3" ].map(key => [ key, CjsPaperDollItem ]));

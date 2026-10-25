@@ -18,6 +18,7 @@ export class CjsPaperDollBodyAugmentation extends CjsPaperDollComponent
     static layer = PaperDollLayer.BODYAUGMENTATION;
     static passes = PaperDollPass.BODY | PaperDollPass.SURFACE;
     static category = "makeup/bodyaugmentations";
+    static optionNamesPalette = true;
 
     _item = new CjsPaperDollItem(this);
     _itemClasses = new Map([ "", "1", "2", "3", "1,2", "1,3", "2,3", "1,2,3" ].map(key => [ key, CjsPaperDollItem ]));
