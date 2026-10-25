@@ -15,17 +15,17 @@ import { CjsMeshConstructor } from "../../../trinity/resources/geometry/CjsMeshC
 import { CjsIncarnaTextureConstructor, RegisterIncarnaTextures } from "../texture/CjsIncarnaTextureConstructor.js";
 
 /**
- * The shader every emulated area draws, as an SOF hull names it. The unpacked
- * variant: Incarna meshes carry classic tangent and binormal vectors, and the
- * plain quad shaders read EVE hulls' angle-packed tangent frames.
+ * How each kind of emulated area is drawn: its shader as an SOF hull names
+ * it, the packed shader whose generic entry it takes, its SOF area type, and
+ * whether the shader takes the detail maps. The unpacked shaders, because
+ * Incarna meshes carry classic tangent and binormal vectors and the plain quad
+ * shaders read EVE hulls' angle-packed tangent frames; EVE's generic data lists
+ * only the packed ones, which its hulls use.
  */
-const AREA_SHADER = "quad/unpacked_quaddetailv5.fx";
-
-/**
- * The packed shader whose generic entry the unpacked one takes: EVE's generic
- * data lists only the packed area shaders, which its hulls use.
- */
-const PACKED_AREA_SHADER = "quad/quaddetailv5.fx";
+const AREA_KINDS = {
+  opaque: { shader: "quad/unpacked_quaddetailv5.fx", packed: "quad/quaddetailv5.fx", areaType: "TYPE_PRIMARY", details: true },
+  glass: { shader: "quad/unpacked_quadglassv5.fx", packed: "quad/quadglassv5.fx", areaType: "TYPE_GLASS", details: false }
+};
 
 /** A quad input with no Incarna source: black, a flat normal, or a detail without a mask. */
 const BLACK = "dynamic:/color/0,0,0,1";
@@ -35,19 +35,20 @@ const NO_DETAIL = "dynamic:/color/0.5,0.5,0.5,0";
 /**
  * Each quad input of an emulated area: the Incarna maps it may be made from,
  * the first one the area sets winning, the `dynamic:/incarna` role that maps
- * it, and the constant used when the area sets none of them.
+ * it, the constant used when the area sets none of them, and whether it is a
+ * detail map, which the glass shader does not take.
  */
 const AREA_TEXTURES = [
-  [ "AlbedoMap", [ "OverlayMap", "DiffuseMap" ], "albedo", BLACK ],
-  [ "RoughnessMap", [ "OverlayMap" ], "roughness", BLACK ],
-  [ "MaterialMap", [ "OverlayMap" ], "material", BLACK ],
-  [ "GlowMap", [ "OverlayMap" ], "glow", BLACK ],
-  [ "NormalMap", [ "NormalMap" ], "normal", FLAT_NORMAL ],
-  [ "DirtMap", [ "NormalMap" ], "dirt", BLACK ],
-  [ "Detail1Map", [ "DetailDiffuseMap" ], "detail", NO_DETAIL ],
-  [ "Detail2Map", [], null, NO_DETAIL ],
-  [ "Detail3Map", [], null, NO_DETAIL ],
-  [ "PaintMaskMap", [], null, BLACK ]
+  [ "AlbedoMap", [ "OverlayMap", "DiffuseMap" ], "albedo", BLACK, false ],
+  [ "RoughnessMap", [ "OverlayMap" ], "roughness", BLACK, false ],
+  [ "MaterialMap", [ "OverlayMap" ], "material", BLACK, false ],
+  [ "GlowMap", [ "OverlayMap" ], "glow", BLACK, false ],
+  [ "NormalMap", [ "NormalMap" ], "normal", FLAT_NORMAL, false ],
+  [ "DirtMap", [ "NormalMap" ], "dirt", BLACK, false ],
+  [ "Detail1Map", [ "DetailDiffuseMap" ], "detail", NO_DETAIL, true ],
+  [ "Detail2Map", [], null, NO_DETAIL, true ],
+  [ "Detail3Map", [], null, NO_DETAIL, true ],
+  [ "PaintMaskMap", [], null, BLACK, false ]
 ];
 
 /**
@@ -63,13 +64,15 @@ const DETAIL_STRENGTH = 0.8;
  * A piece is a loaded, initialized Tr2InteriorStatic: its areas hold the
  * Tr2Effects their Incarna materials became, and its meshes' geometry is
  * loaded. Each of its detail meshes becomes a hull drawing that mesh alone
- * (`dynamic:/mesh`) with one unpacked quad area per Incarna area, opaque and
- * transparent alike, all of area type Primary. An assembly is a stationary
- * root hull drawing the first piece's first mesh, holding one locator set per
- * piece hull for every other mesh, and a layout placing each piece hull at its
- * set, so it builds as an ordinary station with a layout. Faction and race
- * come from the caller; the faction's Primary materials
- * colour every area, chosen per texel by the reflection mask (`material`).
+ * (`dynamic:/mesh`) with one unpacked quad area per Incarna area: an opaque
+ * area draws the detail shader with area type Primary, a transparent one, the
+ * glass, draws the glass shader with area type Glass (`AREA_KINDS`). An
+ * assembly is a stationary root hull drawing the first piece's first mesh,
+ * holding one locator set per piece hull for every other mesh, and a layout
+ * placing each piece hull at its set, so it builds as an ordinary station with
+ * a layout. Faction and race come from the caller; the faction's materials for
+ * each area type colour the areas, chosen per texel by the reflection mask
+ * (`material`).
  */
 @meta.define("CjsIncarnaEmulator")
 export class CjsIncarnaEmulator
@@ -100,13 +103,13 @@ export class CjsIncarnaEmulator
    * @param {string} faction An SOF faction the data manager has, such as "caldaribase".
    * @param {string} race An SOF race the data manager has, such as "caldari".
    * @returns {string} The assembly's DNA, `<name>:<faction>:<race>:layout?<name>`.
-   * @throws {Error} When a piece's geometry is not loaded, or the generic data lacks the packed quad shader.
+   * @throws {Error} When a piece's geometry is not loaded, or the generic data lacks a packed quad shader.
    * @throws {TypeError} When the pieces have no mesh.
    */
   @meta.implemented
   AddAssembly(name, pieces, faction, race)
   {
-    this._RegisterAreaShader();
+    this._RegisterAreaShaders();
     const meshes = pieces.flatMap(({ object, transform }) => object.detailMeshes.map(mesh => ({ mesh, transform })));
     if (meshes.length === 0) throw new TypeError(`CjsIncarnaEmulator: assembly ${name} has no mesh`);
 
@@ -139,21 +142,24 @@ export class CjsIncarnaEmulator
   }
 
   /**
-   * Lists the unpacked quad shader among the generic data's area shaders, with
-   * the packed shader's entry: SOF builds an area only when its shader is
-   * listed (EveSOF.cpp:786-791), and the two take the same parameters and
-   * textures.
+   * Lists the unpacked quad shaders among the generic data's area shaders,
+   * each with its packed shader's entry: SOF builds an area only when its
+   * shader is listed (EveSOF.cpp:786-791), and each pair takes the same
+   * parameters and textures.
    *
-   * @throws {Error} When the generic data lacks the packed quad shader.
+   * @throws {Error} When the generic data lacks a packed quad shader.
    */
   @meta.implemented
-  _RegisterAreaShader()
+  _RegisterAreaShaders()
   {
     const shaders = this._dataMgr.GetGenericData().areaShaderData;
-    if (shaders.has(AREA_SHADER)) return;
-    const packed = shaders.get(PACKED_AREA_SHADER);
-    if (!packed) throw new Error(`CjsIncarnaEmulator: the SOF generic data has no ${PACKED_AREA_SHADER} to list ${AREA_SHADER} as`);
-    shaders.set(AREA_SHADER, packed);
+    for (const { shader, packed } of Object.values(AREA_KINDS))
+    {
+      if (shaders.has(shader)) continue;
+      const entry = shaders.get(packed);
+      if (!entry) throw new Error(`CjsIncarnaEmulator: the SOF generic data has no ${packed} to list ${shader} as`);
+      shaders.set(shader, entry);
+    }
   }
 
   /**
@@ -197,7 +203,8 @@ export class CjsIncarnaEmulator
     geometry.GetBoundingBox(mesh.GetMeshIndex(), min, max);
     const center = vec3.lerp(vec3.create(), min, max, 0.5);
     hull.boundingSphere = vec4.fromValues(center[0], center[1], center[2], vec3.distance(min, max) / 2);
-    hull.opaqueAreas = [ ...mesh.opaquePrepassAreas, ...mesh.transparentAreas ].map(area => CjsIncarnaEmulator.hullArea(area));
+    hull.opaqueAreas = mesh.opaquePrepassAreas.map(area => CjsIncarnaEmulator.hullArea(area, AREA_KINDS.opaque));
+    hull.transparentAreas = mesh.transparentAreas.map(area => CjsIncarnaEmulator.hullArea(area, AREA_KINDS.glass));
     return hull;
   }
 
@@ -205,10 +212,11 @@ export class CjsIncarnaEmulator
    * The quad area one Incarna area becomes.
    *
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
+   * @param {{shader: string, areaType: string, details: boolean}} kind How the area is drawn, an `AREA_KINDS` entry.
    * @returns {object} The EveSOFDataHullArea.
    */
   @meta.implemented
-  static hullArea(area)
+  static hullArea(area, kind)
   {
     const effect = area.GetMaterialInterface();
     const sources = new Map();
@@ -222,23 +230,24 @@ export class CjsIncarnaEmulator
     value.name = area.name;
     value.index = area.index;
     value.count = area.count;
-    value.shader = AREA_SHADER;
-    value.areaType = blue.enums.GetEnum("trinity.EveSOFDataArea.AreaType").TYPE_PRIMARY;
-    value.textures = AREA_TEXTURES.map(([ input, maps, role, fill ]) =>
+    value.shader = kind.shader;
+    value.areaType = blue.enums.GetEnum("trinity.EveSOFDataArea.AreaType")[kind.areaType];
+    value.textures = AREA_TEXTURES.filter(([ , , , , detail ]) => kind.details || !detail).map(([ input, maps, role, fill ]) =>
     {
       const source = maps.map(map => sources.get(map)).find(Boolean);
       return CjsIncarnaEmulator.namedValue("EveSOFDataTexture", input, "resFilePath",
         source ? CjsIncarnaTextureConstructor.texturePath(role, source) : fill);
     });
-    value.parameters = [
+    const detailParameters = [
       [ "Detail1Data", [ tile, DETAIL_STRENGTH, 0, 0 ] ],
       [ "Detail2Data", [ 0, 0, 0, 0 ] ],
       [ "Detail3Data", [ 0, 0, 0, 0 ] ],
       [ "DetailSelector", [ 1, 1, 1, 1 ] ],
       [ "DetailAlbedoColor", [ 0, 0, 0, 0 ] ],
-      [ "DetailFresnelColor", [ 0, 0, 0, 0 ] ],
-      [ "GeneralData", [ 1, 1, 0, 0 ] ]
-    ].map(([ parameter, values ]) => CjsIncarnaEmulator.namedValue("EveSOFDataParameter", parameter, "value", vec4.fromValues(...values)));
+      [ "DetailFresnelColor", [ 0, 0, 0, 0 ] ]
+    ];
+    value.parameters = [ ...(kind.details ? detailParameters : []), [ "GeneralData", [ 1, 1, 0, 0 ] ] ]
+      .map(([ parameter, values ]) => CjsIncarnaEmulator.namedValue("EveSOFDataParameter", parameter, "value", vec4.fromValues(...values)));
     return value;
   }
 

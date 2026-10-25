@@ -60,16 +60,26 @@ function piece()
   mesh.SetGeometryRes(geometry());
   mesh.opaquePrepassAreas.push(area);
 
+  const glass = new Tr2MeshArea();
+  glass.name = "Base_Glass_01";
+  glass.index = 5;
+  glass.count = 1;
+  glass.SetMaterial(effect);
+  mesh.transparentAreas.push(glass);
+
   const object = new Tr2InteriorStatic();
   object.detailMeshes = [ mesh ];
   return object;
 }
 
-/** A data manager whose generic data lists the packed quad shader, as EVE's does. */
+/** A data manager whose generic data lists the packed quad shaders, as EVE's does. */
 function dataManager()
 {
   const dataMgr = new EveSOFDataMgr();
-  dataMgr.UpdateGeneric({ areaShaders: [ { shader: "quad/quaddetailv5.fx", parameters: [ "Detail1Data" ] } ] });
+  dataMgr.UpdateGeneric({ areaShaders: [
+    { shader: "quad/quaddetailv5.fx", parameters: [ "Detail1Data" ] },
+    { shader: "quad/quadglassv5.fx", parameters: [ "GeneralData" ] }
+  ] });
   return dataMgr;
 }
 
@@ -152,10 +162,19 @@ test("a piece whose geometry has not loaded is refused", () =>
   assert.throws(() => emulator.AddAssembly("incarna_test", [ { object, transform: mat4.create() } ], "caldaribase", "caldari"), /must be loaded/);
 });
 
-test("the unpacked quad shader is listed with the packed one's generic entry", () =>
+test("each unpacked quad shader is listed with its packed one's generic entry", () =>
 {
   const shaders = emulate().dataMgr.GetGenericData().areaShaderData;
   assert.equal(shaders.get("quad/unpacked_quaddetailv5.fx"), shaders.get("quad/quaddetailv5.fx"));
+  assert.equal(shaders.get("quad/unpacked_quadglassv5.fx"), shaders.get("quad/quadglassv5.fx"));
+});
+
+test("a transparent area becomes a glass area, without the detail maps", () =>
+{
+  const [ glass ] = emulate().dataMgr.GetHullData("incarna_piece_1").transparentAreas;
+  assert.deepEqual([ glass.name, glass.index, glass.count, glass.shader, glass.areaType ], [ "Base_Glass_01", 5, 1, "quad/unpacked_quadglassv5.fx", 1 ]);
+  assert.deepEqual([ ...glass.textures.keys() ], [ "AlbedoMap", "RoughnessMap", "MaterialMap", "GlowMap", "NormalMap", "DirtMap", "PaintMaskMap" ]);
+  assert.deepEqual([ ...glass.parameters.keys() ], [ "GeneralData" ]);
 });
 
 test("generic data without the packed quad shader is refused", () =>
