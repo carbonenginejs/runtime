@@ -15,23 +15,36 @@ import { vec4 } from "#math/vec4";
 import { CjsMeshConstructor } from "../../../trinity/resources/geometry/CjsMeshConstructor.js";
 import { CjsIncarnaTextureConstructor, RegisterIncarnaTextures } from "../texture/CjsIncarnaTextureConstructor.js";
 
-/**
- * How each kind of emulated area is drawn: its shader as an SOF hull names
- * it, the packed shader whose generic entry it takes, its SOF area type, and
- * whether the shader takes the detail maps. The unpacked shaders, because
- * Incarna meshes carry classic tangent and binormal vectors and the plain quad
- * shaders read EVE hulls' angle-packed tangent frames; EVE's generic data lists
- * only the packed ones, which its hulls use.
- */
-const AREA_KINDS = {
-  opaque: { shader: "quad/unpacked_quaddetailv5.fx", packed: "quad/quaddetailv5.fx", areaType: "TYPE_PRIMARY", details: true },
-  glass: { shader: "quad/unpacked_quadglassv5.fx", packed: "quad/quadglassv5.fx", areaType: "TYPE_GLASS", details: false }
-};
-
 /** A quad input with no Incarna source: black, a flat normal, or a detail without a mask. */
 const BLACK = "dynamic:/color/0,0,0,1";
 const FLAT_NORMAL = "dynamic:/color/0.5,0.5,0,1";
 const NO_DETAIL = "dynamic:/color/0.5,0.5,0.5,0";
+
+/**
+ * The glass's transparency. The quad glass shader takes its alpha from the
+ * paint mask, 1 - `PaintMaskMap.r` (`quad/unpacked_quadglassv5.sm_depth`,
+ * pass 0 pixel); a black mask draws it opaque. Incarna's transparent shader
+ * takes its opacity from the overlay map's alpha, raised toward 1 at grazing
+ * angles (`IncarnaDetailedTransparent` row 0). Under the Caldari walkway's
+ * glass that alpha is 0.36 to 0.56 with a mean of 0.38, and a pack channel
+ * cannot be inverted (`Tr2TexturePipelineStepPack.h:18-20`: path, channel,
+ * fill), so the glass takes the mean: alpha 0.38.
+ */
+const GLASS_PAINT_MASK = "dynamic:/color/0.62,0,0,1";
+
+/**
+ * How each kind of emulated area is drawn: its shader as an SOF hull names
+ * it, the packed shader whose generic entry it takes, its SOF area type,
+ * whether the shader takes the detail maps, and the constants it takes in
+ * place of `AREA_TEXTURES`' own. The unpacked shaders, because Incarna meshes
+ * carry classic tangent and binormal vectors and the plain quad shaders read
+ * EVE hulls' angle-packed tangent frames; EVE's generic data lists only the
+ * packed ones, which its hulls use.
+ */
+const AREA_KINDS = {
+  opaque: { shader: "quad/unpacked_quaddetailv5.fx", packed: "quad/quaddetailv5.fx", areaType: "TYPE_PRIMARY", details: true, fills: {} },
+  glass: { shader: "quad/unpacked_quadglassv5.fx", packed: "quad/quadglassv5.fx", areaType: "TYPE_GLASS", details: false, fills: { PaintMaskMap: GLASS_PAINT_MASK } }
+};
 
 /**
  * Each quad input of an emulated area: the Incarna maps it may be made from,
@@ -312,7 +325,7 @@ export class CjsIncarnaEmulator
    * The quad area one Incarna area becomes.
    *
    * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
-   * @param {{shader: string, areaType: string, details: boolean}} kind How the area is drawn, an `AREA_KINDS` entry.
+   * @param {{shader: string, areaType: string, details: boolean, fills: Object<string, string>}} kind How the area is drawn, an `AREA_KINDS` entry.
    * @returns {object} The EveSOFDataHullArea.
    */
   @meta.implemented
@@ -333,7 +346,7 @@ export class CjsIncarnaEmulator
     {
       const source = role === "glow" && !glows ? null : maps.map(map => sources.get(map)).find(Boolean);
       return CjsIncarnaEmulator.namedValue("EveSOFDataTexture", input, "resFilePath",
-        source ? CjsIncarnaTextureConstructor.texturePath(role, source) : fill);
+        source ? CjsIncarnaTextureConstructor.texturePath(role, source) : kind.fills[input] ?? fill);
     });
     const detailParameters = [
       [ "Detail1Data", [ tile, DETAIL_STRENGTH, 0, 0 ] ],

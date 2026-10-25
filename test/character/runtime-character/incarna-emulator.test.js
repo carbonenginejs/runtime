@@ -189,6 +189,8 @@ test("a transparent area becomes a glass area, without the detail maps", () =>
   const [ glass ] = emulate().dataMgr.GetHullData("incarna_piece_1").transparentAreas;
   assert.deepEqual([ glass.name, glass.index, glass.count, glass.shader, glass.areaType ], [ "Base_Glass_01", 5, 1, "quad/unpacked_quadglassv5.fx", 1 ]);
   assert.deepEqual([ ...glass.textures.keys() ], [ "AlbedoMap", "RoughnessMap", "MaterialMap", "GlowMap", "NormalMap", "DirtMap", "PaintMaskMap" ]);
+  assert.equal(glass.textures.get("PaintMaskMap").resFilePath, "dynamic:/color/0.62,0,0,1", "the quad glass's alpha is 1 - PaintMaskMap.r");
+  assert.equal(emulate().dataMgr.GetHullData("incarna_piece_1").opaqueAreas[0].textures.get("PaintMaskMap").resFilePath, "dynamic:/color/0,0,0,1");
   assert.deepEqual([ ...glass.parameters.keys() ], [ "GeneralData" ]);
 });
 
