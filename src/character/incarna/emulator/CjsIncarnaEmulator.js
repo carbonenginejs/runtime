@@ -8,6 +8,7 @@
 // character layer does not import the SOF layer.
 import { blue } from "#blue";
 import { meta } from "#schema";
+import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -36,7 +37,8 @@ const NO_DETAIL = "dynamic:/color/0.5,0.5,0.5,0";
  * Each quad input of an emulated area: the Incarna maps it may be made from,
  * the first one the area sets winning, the `dynamic:/incarna` role that maps
  * it, the constant used when the area sets none of them, and whether it is a
- * detail map, which the glass shader does not take.
+ * detail map, which the glass shader does not take. The glow mask is used only
+ * by an area that glows (`glows`).
  */
 const AREA_TEXTURES = [
   [ "AlbedoMap", [ "OverlayMap", "DiffuseMap" ], "albedo", BLACK, false ],
@@ -57,6 +59,16 @@ const AREA_TEXTURES = [
  * author.
  */
 const DETAIL_STRENGTH = 0.8;
+
+/**
+ * The most texels one triangle's glow is read at (`gatherGlow`): a triangle
+ * whose map coordinates cover more, as a tiled one can, is read on a coarser
+ * grid.
+ */
+const MAX_TRIANGLE_TEXELS = 1 << 18;
+
+/** The least glowing surface, in square metres, a glow light is put in front of. */
+const MIN_GLOW_AREA = 1e-4;
 
 /**
  * Describes Incarna interior pieces as SOF data in an EveSOFDataMgr.
@@ -96,18 +108,20 @@ export class CjsIncarnaEmulator
    *
    * The root sits where the first piece does; every other mesh is placed
    * relative to it. Two pieces whose meshes draw the same geometry share one
-   * hull; its locator set then holds both placements.
+   * hull; its locator set then holds both placements. The lights, in the
+   * root's space, become the root hull's one light set, named as the assembly.
    *
    * @param {string} name The root hull's and the layout's name; no `:` or `;`.
    * @param {Array<{object: object, transform: ArrayLike<number>}>} pieces Each Tr2InteriorStatic and where it sits in the assembly.
    * @param {string} faction An SOF faction the data manager has, such as "caldaribase".
    * @param {string} race An SOF race the data manager has, such as "caldari".
+   * @param {Array<{position: ArrayLike<number>, radius: number, innerRadius: number, brightness: number, lightColor: number}>} [lights] Point lights, each coloured by a faction colour (`lightColor`, a `SOFDataFactionColorChooser::ColorType`).
    * @returns {string} The assembly's DNA, `<name>:<faction>:<race>:layout?<name>`.
    * @throws {Error} When a piece's geometry is not loaded, or the generic data lacks a packed quad shader.
    * @throws {TypeError} When the pieces have no mesh.
    */
   @meta.implemented
-  AddAssembly(name, pieces, faction, race)
+  AddAssembly(name, pieces, faction, race, lights = [])
   {
     this._RegisterAreaShaders();
     const meshes = pieces.flatMap(({ object, transform }) => object.detailMeshes.map(mesh => ({ mesh, transform })));
@@ -131,6 +145,7 @@ export class CjsIncarnaEmulator
     root.buildClass = blue.enums.GetEnum("trinity.EveSOFDataHull.BuildClass").BUILDCLASS_STATIONARY;
     root.locatorSets = [ ...placements ].map(([ hullName, { transforms } ]) => CjsIncarnaEmulator.locatorSet(hullName, transforms));
     root.boundingSphere = CjsIncarnaEmulator.assemblySphere([ { sphere: root.boundingSphere, transforms: [ mat4.create() ] }, ...placements.values() ]);
+    root.lightSets = lights.length === 0 ? [] : [ CjsIncarnaEmulator.lightSet(name, lights) ];
     this._dataMgr.UpdateHull(name, root);
 
     const layout = blue.classes.CreateInstanceFromName("EveSOFDataLayout");
@@ -139,6 +154,91 @@ export class CjsIncarnaEmulator
     this._dataMgr.UpdateLayout(name, layout);
 
     return CjsIncarnaEmulator.assemblyDna(name, faction, race);
+  }
+
+  /**
+   * Where an assembly's lights go: one place in front of each glowing patch of
+   * its areas, in the root's space, as `AddAssembly` takes them. An Incarna
+   * interior's lights are objects of its scene, not of its pieces, so the
+   * glow is what shows where they were (operator, 2026-10-26).
+   *
+   * Every texel of a glowing area's mask (`glows`; `dynamic:/incarna/glow`,
+   * its overlay map's alpha) at or above `threshold` is found through the
+   * triangles that map it (`gatherGlow`). Touching glowing cells form a
+   * patch, and a patch longer than `spacing` is cut along its longest side,
+   * so a strip takes a row of lights (`glowPositions`).
+   *
+   * With `mirror`, only glow on that axis's positive side is read, and each
+   * place found is mirrored across the axis's zero plane, except a place
+   * within one cell of the plane, which is put on it once.
+   *
+   * @param {object} resourceManager The `CjsBlueResMan` that serves the areas' textures, as the constructor takes it; `dynamic:/incarna` is registered on it.
+   * @param {Array<{object: object, transform: ArrayLike<number>}>} pieces As `AddAssembly` takes them, their geometry loaded.
+   * @param {object} [options]
+   * @param {number} [options.threshold=0.25] The glow, 0 to 1, a texel needs to count.
+   * @param {number} [options.cell=0.25] The size, in metres, of the cubes glowing texels are gathered in.
+   * @param {number} [options.spacing=0.8] The longest stretch of glow, in metres, one place stands for.
+   * @param {number} [options.distance=0.1] How far in front of its glow a place sits, in metres.
+   * @param {number|null} [options.mirror=null] The axis, 0 to 2, whose positive side is read and mirrored; null reads every side.
+   * @returns {Promise<Float32Array[]>} The places.
+   */
+  @meta.implemented
+  static async findGlowLightPositions(resourceManager, pieces, { threshold = 0.25, cell = 0.25, spacing = 0.8, distance = 0.1, mirror = null } = {})
+  {
+    RegisterIncarnaTextures(resourceManager);
+    const meshes = pieces.flatMap(({ object, transform }) => object.detailMeshes.map(mesh => ({ mesh, transform })));
+    if (meshes.length === 0) return [];
+
+    const toRoot = mat4.invert(mat4.create(), meshes[0].transform);
+    const glowing = [];
+    for (const { mesh, transform } of meshes)
+    {
+      for (const area of [ ...mesh.opaquePrepassAreas, ...mesh.transparentAreas ])
+      {
+        const source = CjsIncarnaEmulator.areaSources(area).get("OverlayMap");
+        if (source && CjsIncarnaEmulator.glows(area)) glowing.push({ mesh, transform, area, source });
+      }
+    }
+    const sources = [ ...new Set(glowing.map(({ source }) => source)) ];
+    const masks = new Map(await Promise.all(sources.map(async source => [ source, await CjsIncarnaEmulator.glowMask(resourceManager, source) ])));
+
+    const cells = new Map();
+    for (const { mesh, transform, area, source } of glowing)
+    {
+      const mask = masks.get(source);
+      if (!mask || mask.max < threshold * 255) continue;
+      const toAssembly = mat4.multiply(mat4.create(), toRoot, transform);
+      CjsIncarnaEmulator.gatherGlow(cells, mesh.GetGeometryResource().GetMeshData(mesh.GetMeshIndex()), area, mask, toAssembly, { threshold, cell, mirror });
+    }
+    return CjsIncarnaEmulator.glowPositions(cells, { cell, spacing, distance, mirror });
+  }
+
+  /**
+   * One overlay map's glow mask, as the areas draw it.
+   *
+   * @param {object} resourceManager The `CjsBlueResMan` serving `dynamic:/incarna`.
+   * @param {string} source The overlay map's resource path.
+   * @returns {Promise<{data: Uint8Array, width: number, height: number, max: number}|null>} The mask's top level and its brightest texel; null when it did not load.
+   */
+  @meta.implemented
+  static async glowMask(resourceManager, source)
+  {
+    const texture = resourceManager.GetResource(CjsIncarnaTextureConstructor.texturePath("glow", source));
+    try
+    {
+      await texture.Ready();
+    }
+    catch
+    {
+      // A mask that fails to load draws black, so it shows no glow.
+      return null;
+    }
+    const bitmap = texture.GetBitmap();
+    if (!bitmap) return null;
+    const data = bitmap.GetMipRawData(0);
+    let max = 0;
+    for (let index = 0; index < data.length; index++) if (data[index] > max) max = data[index];
+    return { data, width: bitmap.GetWidth(), height: bitmap.GetHeight(), max };
   }
 
   /**
@@ -219,11 +319,8 @@ export class CjsIncarnaEmulator
   static hullArea(area, kind)
   {
     const effect = area.GetMaterialInterface();
-    const sources = new Map();
-    for (const resource of effect.resources)
-    {
-      if (resource.resourcePath) sources.set(resource.name, resource.resourcePath);
-    }
+    const sources = CjsIncarnaEmulator.areaSources(area);
+    const glows = CjsIncarnaEmulator.glows(area);
     const tile = effect.parameters.find(parameter => parameter.name === "DetailDiffuseTile")?.value[0] ?? 1;
 
     const value = blue.classes.CreateInstanceFromName("EveSOFDataHullArea");
@@ -234,7 +331,7 @@ export class CjsIncarnaEmulator
     value.areaType = blue.enums.GetEnum("trinity.EveSOFDataArea.AreaType")[kind.areaType];
     value.textures = AREA_TEXTURES.filter(([ , , , , detail ]) => kind.details || !detail).map(([ input, maps, role, fill ]) =>
     {
-      const source = maps.map(map => sources.get(map)).find(Boolean);
+      const source = role === "glow" && !glows ? null : maps.map(map => sources.get(map)).find(Boolean);
       return CjsIncarnaEmulator.namedValue("EveSOFDataTexture", input, "resFilePath",
         source ? CjsIncarnaTextureConstructor.texturePath(role, source) : fill);
     });
@@ -249,6 +346,253 @@ export class CjsIncarnaEmulator
     value.parameters = [ ...(kind.details ? detailParameters : []), [ "GeneralData", [ 1, 1, 0, 0 ] ] ]
       .map(([ parameter, values ]) => CjsIncarnaEmulator.namedValue("EveSOFDataParameter", parameter, "value", vec4.fromValues(...values)));
     return value;
+  }
+
+  /**
+   * Whether an area's glow mask shows: its material has a glow colour that is
+   * not black. Incarna's transparent materials (IncarnaDetailedTransparent,
+   * IncarnaSimpleTransparent) have none, so their overlay map's alpha is not
+   * glow, and an opaque material can set black to hide the mask it shares.
+   *
+   * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
+   * @returns {boolean} True when the area glows.
+   */
+  @meta.implemented
+  static glows(area)
+  {
+    const color = area.GetMaterialInterface().parameters.find(parameter => parameter.name === "MaterialGlowColor");
+    return !!color && (color.value[0] > 0 || color.value[1] > 0 || color.value[2] > 0);
+  }
+
+  /**
+   * The Incarna maps an area's material sets, by parameter name.
+   *
+   * @param {object} area A Tr2MeshArea holding the Tr2Effect its material became.
+   * @returns {Map<string, string>} Resource paths, such as "OverlayMap" to the `_os` map's.
+   */
+  @meta.implemented
+  static areaSources(area)
+  {
+    const sources = new Map();
+    for (const resource of area.GetMaterialInterface().resources)
+    {
+      if (resource.resourcePath) sources.set(resource.name, resource.resourcePath);
+    }
+    return sources;
+  }
+
+  /**
+   * Adds where one area glows to the gathering cells. Each triangle is walked
+   * over the texels its map coordinates cover, wrapping as a sampler does; a
+   * texel at or above the threshold adds its place on the triangle, weighted
+   * by its glow times the surface it covers, with the mesh normal there. A
+   * triangle covering no texel centre is read once at its middle.
+   *
+   * @param {Map<string, {weight: number, sum: Float32Array, normal: Float32Array}>} cells The cells, by `x,y,z` cell coordinates: each one's glow, glow-weighted place sum and glow-weighted normal sum.
+   * @param {object} data The mesh's CPU record (`TriGeometryRes.GetMeshData`).
+   * @param {object} area A Tr2MeshArea, whose index groups are read.
+   * @param {{data: Uint8Array, width: number, height: number}} mask The area's glow mask.
+   * @param {ArrayLike<number>} transform The mesh's place in the assembly's root.
+   * @param {{threshold: number, cell: number, mirror: number|null}} options As `findGlowLightPositions` takes them.
+   */
+  @meta.implemented
+  static gatherGlow(cells, data, area, mask, transform, { threshold, cell, mirror })
+  {
+    const { position, normal, texcoord0 } = data.vertex;
+    if (!position || !texcoord0) return;
+    const normalMatrix = mat3.normalFromMat4(mat3.create(), transform);
+    const { width, height } = mask;
+    const least = threshold * 255;
+    const points = [ vec3.create(), vec3.create(), vec3.create() ];
+    const normals = [ vec3.create(), vec3.create(), vec3.create() ];
+    const uv = new Float64Array(6), weights = new Float64Array(3);
+    const at = vec3.create(), facing = vec3.create(), edge1 = vec3.create(), edge2 = vec3.create();
+
+    const add = value =>
+    {
+      for (let axis = 0; axis < 3; axis++)
+      {
+        at[axis] = points[0][axis] * weights[0] + points[1][axis] * weights[1] + points[2][axis] * weights[2];
+        facing[axis] = normals[0][axis] * weights[0] + normals[1][axis] * weights[1] + normals[2][axis] * weights[2];
+      }
+      if (mirror !== null && at[mirror] < 0) return;
+      const key = `${Math.floor(at[0] / cell)},${Math.floor(at[1] / cell)},${Math.floor(at[2] / cell)}`;
+      let entry = cells.get(key);
+      if (!entry)
+      {
+        entry = { weight: 0, sum: vec3.create(), normal: vec3.create() };
+        cells.set(key, entry);
+      }
+      entry.weight += value;
+      vec3.scaleAndAdd(entry.sum, entry.sum, at, value);
+      vec3.scaleAndAdd(entry.normal, entry.normal, facing, value);
+    };
+    const texel = (x, y) => mask.data[(((Math.floor(y) % height) + height) % height) * width + (((Math.floor(x) % width) + width) % width)];
+
+    for (let group = area.index; group < area.index + area.count; group++)
+    {
+      const { faces } = data.indices[group];
+      for (let face = 0; face + 2 < faces.length; face += 3)
+      {
+        for (let corner = 0; corner < 3; corner++)
+        {
+          const vertex = faces[face + corner];
+          vec3.transformMat4(points[corner], vec3.set(points[corner], position[vertex * 3], position[vertex * 3 + 1], position[vertex * 3 + 2]), transform);
+          if (normal) vec3.transformMat3(normals[corner], vec3.set(normals[corner], normal[vertex * 3], normal[vertex * 3 + 1], normal[vertex * 3 + 2]), normalMatrix);
+          uv[corner * 2] = texcoord0[vertex * 2] * width;
+          uv[corner * 2 + 1] = texcoord0[vertex * 2 + 1] * height;
+        }
+        const surface = vec3.length(vec3.cross(facing, vec3.subtract(edge1, points[1], points[0]), vec3.subtract(edge2, points[2], points[0]))) / 2;
+        if (surface === 0) continue;
+        if (!normal)
+        {
+          vec3.normalize(facing, facing);
+          for (const corner of normals) vec3.copy(corner, facing);
+        }
+
+        const [ ax, ay, bx, by, cx, cy ] = uv;
+        const denominator = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy);
+        const texels = Math.abs(denominator) / 2;
+        const minX = Math.min(ax, bx, cx), maxX = Math.max(ax, bx, cx);
+        const minY = Math.min(ay, by, cy), maxY = Math.max(ay, by, cy);
+        const step = Math.max(1, Math.sqrt((maxX - minX) * (maxY - minY) / MAX_TRIANGLE_TEXELS));
+        let read = 0;
+        if (texels > 0)
+        {
+          for (let y = Math.floor(minY / step) * step + step / 2; y < maxY; y += step)
+          {
+            for (let x = Math.floor(minX / step) * step + step / 2; x < maxX; x += step)
+            {
+              weights[0] = ((by - cy) * (x - cx) + (cx - bx) * (y - cy)) / denominator;
+              weights[1] = ((cy - ay) * (x - cx) + (ax - cx) * (y - cy)) / denominator;
+              weights[2] = 1 - weights[0] - weights[1];
+              if (weights[0] < 0 || weights[1] < 0 || weights[2] < 0) continue;
+              read++;
+              const value = texel(x, y);
+              if (value >= least) add(value / 255 * surface / texels * step * step);
+            }
+          }
+        }
+        if (read === 0)
+        {
+          weights.fill(1 / 3);
+          const value = texel((ax + bx + cx) / 3, (ay + by + cy) / 3);
+          if (value >= least) add(value / 255 * surface);
+        }
+      }
+    }
+  }
+
+  /**
+   * The light places for the gathered glow. Cells touching on a face, edge or
+   * corner form one patch; a patch is cut across its longest side into
+   * stretches no longer than `spacing`, and each stretch glowing over at least
+   * `MIN_GLOW_AREA` gives one place: its glow-weighted centre, `distance`
+   * along its mean normal, or on the surface where the normals cancel, as a
+   * pane's two sides do.
+   *
+   * @param {Map<string, {weight: number, sum: Float32Array, normal: Float32Array}>} cells From `gatherGlow`, by `x,y,z` cell coordinates.
+   * @param {{cell: number, spacing: number, distance: number, mirror: number|null}} options As `findGlowLightPositions` takes them.
+   * @returns {Float32Array[]} The places.
+   */
+  @meta.implemented
+  static glowPositions(cells, { cell, spacing, distance, mirror })
+  {
+    const parents = new Map([ ...cells.keys() ].map(key => [ key, key ]));
+    const root = key =>
+    {
+      while (parents.get(key) !== key)
+      {
+        parents.set(key, parents.get(parents.get(key)));
+        key = parents.get(key);
+      }
+      return key;
+    };
+    for (const key of cells.keys())
+    {
+      const [ x, y, z ] = key.split(",").map(Number);
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++)
+      {
+        const other = `${x + dx},${y + dy},${z + dz}`;
+        if (cells.has(other)) parents.set(root(key), root(other));
+      }
+    }
+    const patches = new Map();
+    for (const [ key, entry ] of cells)
+    {
+      const patch = root(key);
+      if (!patches.has(patch)) patches.set(patch, []);
+      patches.get(patch).push(entry);
+    }
+
+    const positions = [];
+    for (const entries of patches.values())
+    {
+      const centres = entries.map(entry => vec3.scale(vec3.create(), entry.sum, 1 / entry.weight));
+      const min = vec3.fromValues(Infinity, Infinity, Infinity), max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
+      for (const centre of centres)
+      {
+        vec3.min(min, min, centre);
+        vec3.max(max, max, centre);
+      }
+      const extent = vec3.subtract(vec3.create(), max, min);
+      const axis = extent[0] >= extent[1] && extent[0] >= extent[2] ? 0 : extent[1] >= extent[2] ? 1 : 2;
+      const count = Math.max(1, Math.ceil((extent[axis] + cell) / spacing));
+      const stretches = Array.from({ length: count }, () => ({ weight: 0, sum: vec3.create(), normal: vec3.create() }));
+      entries.forEach((entry, index) =>
+      {
+        const stretch = stretches[Math.min(count - 1, Math.floor((centres[index][axis] - min[axis]) / (extent[axis] + cell) * count))];
+        stretch.weight += entry.weight;
+        vec3.add(stretch.sum, stretch.sum, entry.sum);
+        vec3.add(stretch.normal, stretch.normal, entry.normal);
+      });
+
+      for (const { weight, sum, normal } of stretches)
+      {
+        if (weight < MIN_GLOW_AREA) continue;
+        const place = vec3.scale(vec3.create(), sum, 1 / weight);
+        if (vec3.length(normal) > weight / 2) vec3.scaleAndAdd(place, place, vec3.normalize(normal, normal), distance);
+        if (mirror !== null && Math.abs(place[mirror]) < cell)
+        {
+          place[mirror] = 0;
+        }
+        else if (mirror !== null)
+        {
+          const mirrored = vec3.clone(place);
+          mirrored[mirror] = -mirrored[mirror];
+          positions.push(mirrored);
+        }
+        positions.push(place);
+      }
+    }
+    return positions;
+  }
+
+  /**
+   * A light set of point lights (`EveSOFDataHullLightSetItem`, whose type is
+   * POINT_LIGHT), named in order.
+   *
+   * @param {string} name The set's name.
+   * @param {Array<{position: ArrayLike<number>, radius: number, innerRadius: number, brightness: number, lightColor: number}>} lights The lights, in the hull's space.
+   * @returns {object} The EveSOFDataHullLightSet.
+   */
+  @meta.implemented
+  static lightSet(name, lights)
+  {
+    const set = blue.classes.CreateInstanceFromName("EveSOFDataHullLightSet");
+    set.name = name;
+    set.items = lights.map((light, index) =>
+    {
+      const item = blue.classes.CreateInstanceFromName("EveSOFDataHullLightSetItem");
+      item.name = `${name}_${index}`;
+      vec3.copy(item.position, light.position);
+      item.radius = light.radius;
+      item.innerRadius = light.innerRadius;
+      item.brightness = light.brightness;
+      item.lightColor = light.lightColor;
+      return item;
+    });
+    return set;
   }
 
   /**
