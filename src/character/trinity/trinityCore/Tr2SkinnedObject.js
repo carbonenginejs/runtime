@@ -1,6 +1,9 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+import { TriDebugFont } from "../../../trinity/core/TriDebugTextRenderer.js";
+import { color } from "#math/color";
 import { ITr2SkinnedObject } from "./ITr2SkinnedObject.js";
 // Source: trinity/trinity/Tr2SkinnedObject.h
 import { meta, type, blue } from "#schema";
@@ -25,6 +28,8 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 @be.abstract
 export class Tr2SkinnedObject extends IRoot
 {
+  /** Scratch for RenderDebugInfo. */
+  static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), color_0: color.create() };
 
   /** Native base list observer intentionally does nothing (Tr2SkinnedObject.cpp:743). */
 
@@ -58,6 +63,65 @@ export class Tr2SkinnedObject extends IRoot
   DoDisplay()
   {
     return this.display;
+  }
+
+  /**
+   * Carbon GetDebugOptions (h:52, cpp:483-493): names, transforms and bounds,
+   * and the two bone options when the visual model has a skeleton.
+   * @param {Set<string>} options The caller-owned option set the options are added to.
+   * @returns {void}
+   */
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Names");
+    options.add("Transforms");
+    options.add("Bounds");
+    if (this.visualModel && this.visualModel.GetSkeleton())
+    {
+      options.add("Bones");
+      options.add("Bones Names");
+    }
+  }
+
+  /**
+   * Carbon RenderDebugInfo (h:53, cpp:495-588), drawn only while displayed:
+   * - "Names": the name at the top centre of the local bounds (the position
+   *   when there are none), in magenta;
+   * - "Transforms": the transform's axes, lit;
+   * - "Bounds": the local bounds under the transform as a wireframe box,
+   *   orange for explicit bounds and yellow otherwise.
+   *
+   * Adapted: "Bones" and "Bones Names" draw nothing. Carbon draws them from
+   * its per-frame queues of accumulated joint transforms and its anim-rig to
+   * render-rig mappings (h:190-201), and this port skins immediately without
+   * those queues (see GetSkinningTransform).
+   * @param {ITr2DebugRenderer2} renderer The debug renderer drawing this frame; it decides which options are on.
+   * @returns {void}
+   */
+  @meta.adapted
+  RenderDebugInfo(renderer)
+  {
+    if (!this.DoDisplay()) return;
+    const { vec3_0, vec3_1, vec3_2, color_0 } = Tr2SkinnedObject.scratch;
+    const owner = Tr2DebugObjectReference.create__Object(this);
+    if (renderer.HasOption(this, "Names"))
+    {
+      // GetPosition is the transform's translation row (h:62-65).
+      vec3.set(vec3_2, this.transform[12], this.transform[13], this.transform[14]);
+      if (this.GetLocalBoundingBox(vec3_0, vec3_1)) vec3.set(vec3_2, 0, vec3_1[1], 0);
+      vec3.transformMat4(vec3_2, vec3_2, this.transform);
+      renderer.DrawText(TriDebugFont.TRI_DBG_FONT_MEDIUM, vec3_2, color.fromARGB(color_0, 0xffff00ff), "%s", this.name);
+    }
+    if (renderer.HasOption(this, "Transforms"))
+    {
+      renderer.DrawAxis(owner, this.transform, ITr2DebugRenderer2.Effect.Lit);
+    }
+    if (renderer.HasOption(this, "Bounds") && this.GetLocalBoundingBox(vec3_0, vec3_1))
+    {
+      renderer.DrawBox__Transform(owner, this.transform, vec3_0, vec3_1, ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(this.useExplicitBounds ? 0xffff8800 : 0xffffff00));
+    }
   }
 
   /**
