@@ -698,3 +698,13 @@ test("resMan's queues name their manager and label each task by kind and path", 
   const queue = new CjsResManWorkQueue("background");
   assert.equal(queue._manager._name, "resMan background");
 });
+
+test("an entry labeler runs only while CALLBACKMAN_DEBUGGING is on", () =>
+{
+  let calls = 0;
+  const man = new BlueCallbackMan();
+  man.SetEntryLabeler(() => { calls++; return "job"; });
+  man.Add(() => {}, "context");
+  man.Update();
+  assert.equal(calls, 0);
+});

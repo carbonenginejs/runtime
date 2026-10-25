@@ -175,18 +175,22 @@ export class BlueCallbackMan extends IBlueCallbackMan
    * step it reports, plus that step's numbers. Carbon's lines name neither the
    * manager nor the job, and several managers share the channel.
    *
+   * The entry is labelled only here, after the switch is checked, so a
+   * labeler costs nothing while reporting is off.
+   *
    * @param {number} id Entry id.
-   * @param {?string} label The entry's label, or null when unknown.
+   * @param {?BlueCallbackEntry} entry The entry, for its label; null when only the id is known.
    * @param {string} event The step: queued, fenced, front, cancelling, started or done.
    * @param {object} fields The step's own numbers, merged into the data.
    * @param {string} format Carbon's printf format.
    * @param {...*} args Format arguments.
    * @returns {void}
    */
-  _Report(id, label, event, fields, format, ...args)
+  _Report(id, entry, event, fields, format, ...args)
   {
     if (!BlueCallbackMan.CALLBACKMAN_DEBUGGING) return;
     const subtitle = this._name || "BlueCallbackMan";
+    const label = entry === null ? null : this._LabelOf(entry);
     const data = { subtitle, saga: `BlueCallbackMan:${this._serial}:${id}`, label, event, ...fields };
     CcpLog.LogFuncChannel(CALLBACKMAN_CHANNEL, CcpLog.LogType.LOGTYPE_INFO, data, format, ...args);
   }
@@ -308,7 +312,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
       completion,
       label: undefined
     };
-    this._Report(entry.id, this._LabelOf(entry), "queued", {}, "Adding callback");
+    this._Report(entry.id, entry, "queued", {}, "Adding callback");
 
     // Adapted: Carbon fences only for its own threads (cpp:113); Update mode
     // there runs one entry at a time, so ordering holds by itself. Ours keeps
@@ -316,7 +320,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     if ((this._isRunningOwnThreads || this._threadCount > 1) && (flags & IBlueCallbackMan.BCBF_FENCE))
     {
       for (let i = 0; i < this._threadCount; ++i) entry.fenceMask |= 1 << i;
-      this._Report(entry.id, this._LabelOf(entry), "fenced", {}, "Adding fenced entry");
+      this._Report(entry.id, entry, "fenced", {}, "Adding fenced entry");
     }
 
     if (flags & IBlueCallbackMan.BCBF_URGENT) this._urgentQueue.push(entry);
@@ -630,7 +634,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
         }
       }
 
-      this._Report(fencedEntry.id, this._LabelOf(fencedEntry), "front", { maskBefore, mask: fencedEntry.fenceMask },
+      this._Report(fencedEntry.id, fencedEntry, "front", { maskBefore, mask: fencedEntry.fenceMask },
         "Front of fenced queue - %x - %x", maskBefore, fencedEntry.fenceMask);
 
       // A surplus slot left by a lowered thread count has no fence bit; the fence waits for it too.
@@ -663,7 +667,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     td.currentId = entry.id;
     const started = CjsBlueOS.Monotonic();
     const threadName = this._isRunningOwnThreads ? td.name : BlueThreadMonitor.MAIN_THREAD;
-    this._Report(entry.id, this._LabelOf(entry), "started",
+    this._Report(entry.id, entry, "started",
       { kind, thread: threadName, waited: Number(timestampTicks() - entry.timeStamp) / 1e9 },
       "Processing %s entry %d on thread %d", kind, entry.id, td.threadIndex);
 
@@ -714,7 +718,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     const finish = () =>
     {
       const seconds = (CjsBlueOS.Monotonic() - started) / 1000;
-      this._Report(entry.id, this._LabelOf(entry), "done", { thread: threadName, seconds },
+      this._Report(entry.id, entry, "done", { thread: threadName, seconds },
         "<<Processing callback done - %g seconds", seconds);
       if (thread !== null) BeThreadMonitor.SetThreadStatus__Thread(thread, previousStatus);
       td.currentId = 0;
