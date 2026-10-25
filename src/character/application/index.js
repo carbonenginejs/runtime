@@ -37,4 +37,5 @@ export { CjsPaperDollTopUnderwear } from "./CjsPaperDollTopUnderwear.js";
 export { CjsPaperDollTopMiddle } from "./CjsPaperDollTopMiddle.js";
 export { CjsPaperDollBottomMiddle } from "./CjsPaperDollBottomMiddle.js";
 export { CjsPaperDollBottomOuter } from "./CjsPaperDollBottomOuter.js";
+export { CjsPaperDollFeet } from "./CjsPaperDollFeet.js";
 export { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";

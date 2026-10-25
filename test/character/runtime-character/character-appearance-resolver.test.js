@@ -42,6 +42,20 @@ test("decodes utility shapes and applies occlusion and weight conflicts without 
     assert.equal(protectedGroups[0].retained.length, 1);
 });
 
+test("suppression runs from the roots and leaves cycles active", () =>
+{
+    const edge = owner => ({ owner, rules: new Set([ "test" ]) });
+    const chain = CjsCharacterAppearanceResolver.resolveSuppressions([ "A", "B", "C" ],
+        new Map([ [ "B", [ edge("A") ] ], [ "C", [ edge("B") ] ] ]));
+    assert.deepEqual(chain.cyclic, []);
+    assert.deepEqual([ ...chain.applied.keys() ], [ "B" ]);
+
+    const cycle = CjsCharacterAppearanceResolver.resolveSuppressions([ "A", "B", "C" ],
+        new Map([ [ "A", [ edge("B") ] ], [ "B", [ edge("A") ] ], [ "C", [ edge("A") ] ] ]));
+    assert.deepEqual(cycle.cyclic, [ "A", "B" ]);
+    assert.deepEqual([ ...cycle.applied.keys() ], [ "C" ]);
+});
+
 test("resolves exact paper-doll selections and unique atomic part candidates", () =>
 {
     const library = CreateLibrary();

@@ -173,6 +173,53 @@ export class CjsCharacterAppearanceResolver
     }
 
     /**
+     * Walks the selections' suppression graph: an edge says `owner` suppresses
+     * `target`. A selection on a cycle stays active. Otherwise suppression runs
+     * from the roots (active selections no active selection suppresses, outside
+     * a shared cycle), so a suppressed selection's own edges stop applying: if A
+     * suppresses B and B suppresses C, C stays active.
+     * @param {any[]} nodes The selections, in order.
+     * @param {Map<any, {owner: any, rules: Set<string>}[]>} suppressions Edges by target: who suppresses it, and through which rules.
+     * @returns {{cyclic: any[], applied: Map<any, {owner: any, rules: Set<string>}[]>}}
+     *   The selections left active by a cycle, in node order, and each suppressed selection with the edges that applied, in application order.
+     */
+    static resolveSuppressions(nodes, suppressions)
+    {
+        const cyclic = nodes.filter(value =>
+            HasSuppressionPath(suppressions, value, value));
+
+        const active = new Set(nodes);
+        const applied = new Map();
+        while (true)
+        {
+            const roots = [ ...active ].filter(target =>
+                !(suppressions.get(target) ?? []).some(value =>
+                    active.has(value.owner)
+                    && !ShareSuppressionCycle(suppressions, value.owner, target)));
+            const next = new Map();
+            for (const owner of roots)
+            {
+                for (const [ target, owners ] of suppressions)
+                {
+                    if (!active.has(target)
+                        || ShareSuppressionCycle(suppressions, owner, target)) continue;
+                    const value = owners.find(candidate => candidate.owner === owner);
+                    if (!value) continue;
+                    if (!next.has(target)) next.set(target, []);
+                    next.get(target).push(value);
+                }
+            }
+            if (!next.size) break;
+            for (const [ target, owners ] of next)
+            {
+                active.delete(target);
+                applied.set(target, owners);
+            }
+        }
+        return { cyclic, applied };
+    }
+
+    /**
      * Decodes one authored `dependantModifiers` entry as a utility-shape
      * request: `utilityshapes/<target>` at weight 1, or
      * `utilityshapes/<target>###<number>` at that weight (zero and >1
@@ -795,8 +842,7 @@ function ResolveSelectionSuppressions(
         }
     }
 
-    const cyclic = new Set(modifierPolicies.filter(value =>
-        HasSuppressionPath(suppressions, value, value)));
+    const { cyclic, applied: appliedSuppressions } = CjsCharacterAppearanceResolver.resolveSuppressions(modifierPolicies, suppressions);
     for (const target of cyclic)
     {
         AddDiagnostic(
@@ -806,35 +852,6 @@ function ResolveSelectionSuppressions(
             "warning",
             target.origin
         );
-    }
-
-    const active = new Set(modifierPolicies);
-    const appliedSuppressions = new Map();
-    while (true)
-    {
-        const roots = [ ...active ].filter(target =>
-            !(suppressions.get(target) ?? []).some(value =>
-                active.has(value.owner)
-                && !ShareSuppressionCycle(suppressions, value.owner, target)));
-        const next = new Map();
-        for (const owner of roots)
-        {
-            for (const [ target, owners ] of suppressions)
-            {
-                if (!active.has(target)
-                    || ShareSuppressionCycle(suppressions, owner, target)) continue;
-                const value = owners.find(candidate => candidate.owner === owner);
-                if (!value) continue;
-                if (!next.has(target)) next.set(target, []);
-                next.get(target).push(value);
-            }
-        }
-        if (!next.size) break;
-        for (const [ target, owners ] of next)
-        {
-            active.delete(target);
-            appliedSuppressions.set(target, owners);
-        }
     }
 
     const suppressedSelections = new Set();
