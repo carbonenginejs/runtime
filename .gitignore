@@ -15,10 +15,5 @@ CLAUDE.md
 
 /test/trinityal/webgpu/demo/
 
-# Comic and hatching shader experiments: not good enough to keep (operator, 2026-10-12).
-src/shadercompiler/library/comic/
-test/shadercompiler/comic.test.js
-test/shadercompiler/hatching.test.js
-
 # Local WebGPU demo and comic-preview workspace (operator, 2026-10-12).
 /_dev/

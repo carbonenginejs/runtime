@@ -5,8 +5,8 @@
 // All of our own shaders live in ONE overlay, `cjs-shader-compiled`, rebuilt
 // whole from the library and never imported effect by effect (operator,
 // 2026-10-25; /docs/architecture/effect-read-path.md). Only the library files
-// git tracks are compiled: an ignored folder in the library (the comic and
-// hatching experiments, .gitignore) is local work, not ours to publish.
+// git tracks are compiled, so local experiments left in the library folder are
+// never published.
 //
 // The overlay is replaced through tools-core's own importer, which addresses
 // each file by content (fnv1 of the path, md5 of the bytes). tools-core reads
