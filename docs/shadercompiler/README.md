@@ -205,8 +205,8 @@ object's batches through `RenderBatchesWithOverride`) and the outline with
 the effects' buffers, states and parameters; the WebGPU tests render the
 outline pass over a mask with Dawn and check the line's width.
 
-The active WebGPU demo uses its private `demoSelectionOutline` composition,
-not `TnyOutlineHelper`. Graphene supplies the same planet-aware picker to the
+Graphene's WebGPU demo (it is no longer part of this package) uses its own
+`demoSelectionOutline` composition, not `TnyOutlineHelper`. Graphene supplies the same planet-aware picker to the
 editor and hover outline. For planets and moons, the demo draws the native
 surface children returned by `EvePlanet.GetRenderables`, with
 `EveSpaceScene.CreatePlanetViewMatrix` and the native planet clip range

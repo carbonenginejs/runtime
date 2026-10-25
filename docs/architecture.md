@@ -243,13 +243,14 @@ register with `TriDevice`. Device
 `Destruct` to release CPU storage or mesh subscriptions and unregister. Mesh
 destruction detaches its provider without destroying that shared object.
 
-The WebGPU demo snapshots device identities only around synchronous ship
+The runtime provides no generic graph-destruction policy; a host that replaces
+ships owns one. The WebGPU demo, which now lives in Graphene rather than in this
+package, is one such host. It snapshots device identities only around synchronous ship
 hydration. A failed hydration destroys newly registered particle systems,
 instanced meshes, instance providers, child/curve-line sets and behavior systems. Successful replacement, cancellation and disposal retire those
 same named resources through model traversal, preserving objects reachable from
 other live or pending ships. Transition overlays are detached before this walk
-because their bindings reference both ships. This policy belongs to the demo;
-the runtime provides no generic graph-destruction policy. Child-line destruction
+because their bindings reference both ships. This policy belongs to the demo. Child-line destruction
 accepts the line sets managed by that walk so shared defaults survive and each
 curve set is destroyed once.
 
