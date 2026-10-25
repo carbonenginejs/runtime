@@ -263,6 +263,98 @@ export class CjsIncarnaEmulator
   }
 
   /**
+   * Where an assembly's fill lights go, which light everything the glow lights
+   * do not (operator, 2026-10-26): one place `height` above each floor, on a
+   * square grid `spacing` apart in x and z, in the root's space. The grid is
+   * centred on the root's origin, so a mirror-symmetric assembly gets
+   * mirror-symmetric places.
+   *
+   * Each grid column is a vertical line through every triangle of the pieces'
+   * areas. A floor is a hit facing up whose next hit above faces down at least
+   * `headroom` higher: a room's floor under its ceiling, not the gap under a
+   * floor, a roof under open space, or ground beside a wall.
+   *
+   * @param {Array<{object: object, transform: ArrayLike<number>}>} pieces As `AddAssembly` takes them, their geometry loaded.
+   * @param {object} [options]
+   * @param {number} [options.spacing=3.6] The grid's spacing, in metres.
+   * @param {number} [options.height=1.8] How far above its floor a place sits, in metres.
+   * @param {number} [options.headroom=2.5] The least height, in metres, between a floor and the ceiling above it.
+   * @returns {Float32Array[]} The places.
+   */
+  @meta.implemented
+  static findFillLightPositions(pieces, { spacing = 3.6, height = 1.8, headroom = 2.5 } = {})
+  {
+    const meshes = pieces.flatMap(({ object, transform }) => object.detailMeshes.map(mesh => ({ mesh, transform })));
+    if (meshes.length === 0) return [];
+
+    // Every triangle in the root's space, binned into the grid columns its
+    // footprint covers.
+    const toRoot = mat4.invert(mat4.create(), meshes[0].transform);
+    const columns = new Map();
+    const corners = [ vec3.create(), vec3.create(), vec3.create() ];
+    for (const { mesh, transform } of meshes)
+    {
+      const toAssembly = mat4.multiply(mat4.create(), toRoot, transform);
+      const data = mesh.GetGeometryResource().GetMeshData(mesh.GetMeshIndex());
+      const { position } = data.vertex;
+      for (const area of [ ...mesh.opaquePrepassAreas, ...mesh.transparentAreas ])
+      {
+        for (let group = area.index; group < area.index + area.count; group++)
+        {
+          const { faces } = data.indices[group];
+          for (let face = 0; face + 2 < faces.length; face += 3)
+          {
+            for (let corner = 0; corner < 3; corner++)
+            {
+              const vertex = faces[face + corner];
+              vec3.transformMat4(corners[corner], vec3.set(corners[corner], position[vertex * 3], position[vertex * 3 + 1], position[vertex * 3 + 2]), toAssembly);
+            }
+            const triangle = corners.map(corner => vec3.clone(corner));
+            const [ a, b, c ] = triangle;
+            const fromX = Math.ceil(Math.min(a[0], b[0], c[0]) / spacing), toX = Math.floor(Math.max(a[0], b[0], c[0]) / spacing);
+            const fromZ = Math.ceil(Math.min(a[2], b[2], c[2]) / spacing), toZ = Math.floor(Math.max(a[2], b[2], c[2]) / spacing);
+            for (let x = fromX; x <= toX; x++) for (let z = fromZ; z <= toZ; z++)
+            {
+              const key = `${x},${z}`;
+              if (!columns.has(key)) columns.set(key, []);
+              columns.get(key).push(triangle);
+            }
+          }
+        }
+      }
+    }
+
+    const positions = [];
+    const edge1 = vec3.create(), edge2 = vec3.create(), normal = vec3.create();
+    for (const [ key, triangles ] of columns)
+    {
+      const [ x, z ] = key.split(",").map(value => Number(value) * spacing);
+      const hits = [];
+      for (const [ a, b, c ] of triangles)
+      {
+        const denominator = (b[2] - c[2]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[2] - c[2]);
+        if (denominator === 0) continue;
+        const wa = ((b[2] - c[2]) * (x - c[0]) + (c[0] - b[0]) * (z - c[2])) / denominator;
+        const wb = ((c[2] - a[2]) * (x - c[0]) + (a[0] - c[0]) * (z - c[2])) / denominator;
+        const wc = 1 - wa - wb;
+        if (wa < 0 || wb < 0 || wc < 0) continue;
+        vec3.cross(normal, vec3.subtract(edge1, b, a), vec3.subtract(edge2, c, a));
+        hits.push({ y: wa * a[1] + wb * b[1] + wc * c[1], facing: normal[1] / vec3.length(normal) });
+      }
+      hits.sort((left, right) => left.y - right.y);
+      for (let index = 0; index + 1 < hits.length; index++)
+      {
+        const floor = hits[index], above = hits[index + 1];
+        if (floor.facing > 0.5 && above.facing < -0.5 && above.y - floor.y >= headroom)
+        {
+          positions.push(vec3.fromValues(x, floor.y + height, z));
+        }
+      }
+    }
+    return positions;
+  }
+
+  /**
    * Lists the unpacked quad shaders among the generic data's area shaders,
    * each with its packed shader's entry: SOF builds an area only when its
    * shader is listed (EveSOF.cpp:786-791), and each pair takes the same

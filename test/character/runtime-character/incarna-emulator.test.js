@@ -310,3 +310,39 @@ test("mirrored, glow found on the positive side is mirrored, and glow on the pla
   const across = [ { object: piece([ 0, 0, 0, 1 ]), transform: mat4.create() }, { object: glowingPiece(), transform: turned } ];
   assert.deepEqual(roundPositions(await CjsIncarnaEmulator.findGlowLightPositions(resources, across, options)), [ [ 1, 0.1, 0 ] ]);
 });
+
+/** A piece that is a room 8 m long, 4 m wide and 4 m high: a floor facing up at y 0 and a ceiling facing down at y 4. */
+function roomPiece()
+{
+  const path = "res:/graphics/interior/test/room.gr2";
+  const resource = new TriGeometryRes();
+  resource.Initialize(path, "");
+  resource.SetPayload(CjsCmfFormat.loadShared({ meshes: [ {
+    name: "room",
+    minBounds: [ 0, 0, -2 ],
+    maxBounds: [ 8, 4, 2 ],
+    vertex: { position: [ 0, 0, -2, 0, 0, 2, 8, 0, 2, 8, 0, -2, 0, 4, -2, 0, 4, 2, 8, 4, 2, 8, 4, -2 ] },
+    indices: [ { name: "a", bytesPerIndex: 2, faces: [ 0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6 ] } ]
+  } ] }));
+  resource.MarkPrepared();
+  const area = new Tr2MeshArea();
+  area.index = 0;
+  area.count = 1;
+  area.SetMaterial(material());
+  const mesh = new Tr2Mesh();
+  mesh.geometryResPath = path;
+  mesh.meshIndex = 0;
+  mesh.SetGeometryRes(resource);
+  mesh.opaquePrepassAreas.push(area);
+  const object = new Tr2InteriorStatic();
+  object.detailMeshes = [ mesh ];
+  return object;
+}
+
+test("a fill light sits a character's height above each floor under a ceiling, on the grid", () =>
+{
+  const pieces = [ { object: roomPiece(), transform: mat4.fromTranslation(mat4.create(), [ 3, 0, 0 ]) } ];
+  const sorted = positions => roundPositions(positions).sort((left, right) => left[0] - right[0]);
+  assert.deepEqual(sorted(CjsIncarnaEmulator.findFillLightPositions(pieces, { spacing: 4 })), [ [ 0, 1.8, 0 ], [ 4, 1.8, 0 ], [ 8, 1.8, 0 ] ]);
+  assert.deepEqual(CjsIncarnaEmulator.findFillLightPositions(pieces, { spacing: 4, headroom: 5 }), [], "a ceiling lower than the headroom is no room");
+});
