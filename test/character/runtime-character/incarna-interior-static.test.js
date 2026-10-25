@@ -3,7 +3,8 @@ import test from "node:test";
 import { blue } from "../../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { CjsBlackReader } from "../../../npm/dist/global/blue/formats/black/core/CjsBlackReader.js";
-import { ITr2Interior, ITr2InteriorDynamic, Tr2InteriorScene, Tr2InteriorStatic, Tr2ShaderMaterial } from "../../../npm/dist/character/index.js";
+import { ITr2Interior, ITr2InteriorDynamic, Tr2HighLevelShader, Tr2InteriorScene, Tr2InteriorStatic, Tr2ShaderFloat4Desc, Tr2ShaderManager, Tr2ShaderMaterial, Tr2ShaderPermuteTag, Tr2ShaderTexDesc } from "../../../npm/dist/character/index.js";
+import { Tr2Effect, Tr2FloatParameter, TriTextureParameter } from "../../../npm/dist/trinity/shader/index.js";
 import { ITr2Renderable, Tr2Mesh, Tr2MeshArea, Tr2RenderContext_GetMainThreadRenderContext, TriPoolAllocator } from "../../../npm/dist/trinity/index.js";
 import { TriRenderBatchAccumulator } from "../../../npm/dist/trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
@@ -57,7 +58,7 @@ test("a walkway record hydrates the Incarna static and its shader material in fi
   assert.deepEqual([ ...material.parameters.keys() ], [ "OverlayMap", "ShadowTransparency" ]);
   assert.equal(material.parameters.get("OverlayMap").resourcePath, "res:/graphics/test/piece_os.dds");
   assert.equal(material.parameters.get("ShadowTransparency").value, 0.25);
-  assert.equal(material.IsGood(), false, "Incarna shaders are not loaded, so the material never draws");
+  assert.equal(material.IsGood(), false, "read without initializing, the material stays, and a material never draws");
   assert.deepEqual(reader.reports, []);
 });
 
@@ -106,6 +107,127 @@ test("bounds and per-object data follow the static's own transform", t =>
   assertClose(Array.from(data.vs.Get("WorldMat")), Array.from(transposed));
   assert.equal(data.vs.Get("WorldMat")[1], transposed[1], "a basis element, not only the translation, is transposed");
 });
+
+// The record shape of build 1142708's res:/graphics/shaders/shaderdescriptions.black,
+// in its file order: a Tr2ShaderManager whose library holds Tr2HighLevelShaders,
+// each with permutation tags and parameter descriptions.
+function shaderLibraryRecord()
+{
+  const f = new BlackFixture();
+  const tag = f.Object(3, "Tr2ShaderPermuteTag", [
+    [ "name", f.String("ReflectionGlow") ], [ "permuteDefineString", f.String("OPT_REFLECTION_GLOW") ], [ "tagBits", u32(0x400) ],
+    [ "unused", f.String("OPT_GENERATE_ALBEDO") ], [ "predicate", f.String("not OPT_DYNAMIC_OBJECT") ], [ "precompileHint", u32(1) ] ]);
+  const texture = f.Object(4, "Tr2ShaderTexDesc", [
+    [ "defaultTexture", f.String("res:/texture/global/white.dds") ], [ "parameterName", f.String("DetailDiffuseMap") ],
+    [ "name", f.String("DetailDiffuseMap") ], [ "helpText", f.String("High frequency Tiling Detail") ], [ "section", f.String("Base Maps") ] ]);
+  const color = f.Object(5, "Tr2ShaderFloat4Desc", [
+    [ "defaultValue", concat([ f32(1), f32(0.5), f32(0.25), f32(1) ]) ], [ "isColor", Uint8Array.of(1) ],
+    [ "parameterName", f.String("MaterialDiffuseColor") ], [ "name", f.String("Diffuse Color") ],
+    [ "helpText", f.String("Diffuse color multiplied against base diffuse") ], [ "section", f.String("Diffuse") ] ]);
+  const shader = f.Object(2, "Tr2HighLevelShader", [
+    [ "name", f.String("IncarnaSimple_Shadow") ], [ "shaderPath", f.String("res:/graphics/shaders/IncarnaDetailed_Shadow.fx") ],
+    [ "permuteTags", concat([ u32(1), tag ]) ], [ "renderClass", f.String("shadow") ],
+    [ "parameterDescriptions", concat([ u32(2), texture, color ]) ] ]);
+  return f.Finish(f.Object(1, "Tr2ShaderManager", [ [ "shaderLibrary", concat([ u32(1), shader ]) ] ]));
+}
+
+test("a shader library record hydrates the Incarna shader classes in file order", t =>
+{
+  renderSetup(t);
+  const reader = new CjsBlackReader(shaderLibraryRecord(), { schema: null, initialize: false });
+  const root = reader.ReadRuntime().root;
+
+  assert.equal(root.constructor, Tr2ShaderManager);
+  const [ shader ] = root.shaderLibrary;
+  assert.equal(shader.constructor, Tr2HighLevelShader);
+  assert.equal(shader.name, "IncarnaSimple_Shadow");
+  assert.equal(shader.shaderPath, "res:/graphics/shaders/IncarnaDetailed_Shadow.fx");
+  assert.equal(shader.renderClass, "shadow");
+
+  const [ tag ] = shader.permuteTags;
+  assert.equal(tag.constructor, Tr2ShaderPermuteTag);
+  assert.deepEqual([ tag.name, tag.permuteDefineString, tag.tagBits, tag.unused, tag.predicate, tag.precompileHint ],
+    [ "ReflectionGlow", "OPT_REFLECTION_GLOW", 0x400, "OPT_GENERATE_ALBEDO", "not OPT_DYNAMIC_OBJECT", 1 ]);
+
+  const [ texture, color ] = shader.parameterDescriptions;
+  assert.equal(texture.constructor, Tr2ShaderTexDesc);
+  assert.equal(texture.defaultTexture, "res:/texture/global/white.dds");
+  assert.equal(texture.parameterName, "DetailDiffuseMap");
+  assert.equal(color.constructor, Tr2ShaderFloat4Desc);
+  assert.deepEqual(Array.from(color.defaultValue), [ 1, 0.5, 0.25, 1 ]);
+  assert.equal(color.isColor, true);
+  assert.deepEqual(reader.reports, []);
+});
+
+test("a material becomes a Tr2Effect holding its parameters, with its path from the shader's source", async t =>
+{
+  renderSetup(t);
+  blue.resMan = new LibraryResMan(libraryNaming("IncarnaSimple_Shadow", "res:/graphics/shaders/IncarnaDetailed_Shadow.fx"));
+  const material = new Tr2ShaderMaterial();
+  material.highLevelShaderName = "IncarnaSimple_Shadow";
+  const overlay = new TriTextureParameter(); overlay.name = "OverlayMap"; overlay.resourcePath = "res:/graphics/test/piece_os.dds";
+  const intensity = new Tr2FloatParameter(); intensity.name = "MaterialDiffuseIntensity"; intensity.value = 0.5;
+  material.parameters.set("OverlayMap", overlay).set("MaterialDiffuseIntensity", intensity);
+
+  const effect = material.CreateEffect();
+  assert.equal(effect.constructor, Tr2Effect);
+  assert.equal(effect.name, "IncarnaSimple_Shadow");
+  assert.deepEqual([ ...effect.resources ], [ overlay ], "textures go to resources");
+  assert.deepEqual([ ...effect.parameters ], [ intensity ], "constants go to parameters");
+  assert.equal(material.parameters.size, 0, "the parameters moved, so the material is spent");
+
+  await settled();
+  // The source names the file, not the material's name: no shader uses
+  // incarnasimple_shadow.fxt.
+  assert.equal(effect.GetEffectPathName(), "res:/graphics/shaders/compiled/dx11/incarnadetailed_shadow.fxt");
+  assert.equal(Tr2ShaderMaterial.compiledEffectPath("res:/graphics/shaders/Visualizers/LightPrePassNormals.fx"),
+    "res:/graphics/shaders/compiled/dx11/lightprepassnormals.fxt", "the source's folder is dropped");
+});
+
+test("initializing a read static puts in each area the effect its material becomes", async t =>
+{
+  renderSetup(t);
+  blue.resMan = new LibraryResMan(libraryNaming("IncarnaDetailed", "res:/graphics/shaders/IncarnaDetailed.fx"));
+  const root = new CjsBlackReader(walkwayRecord(), { schema: null }).ReadRuntime().root;
+
+  const effect = root.detailMeshes[0].opaquePrepassAreas[0].effect;
+  assert.equal(effect.constructor, Tr2Effect);
+  assert.deepEqual([ ...effect.resources ].map(parameter => parameter.name), [ "OverlayMap" ]);
+  assert.deepEqual([ ...effect.parameters ].map(parameter => parameter.name), [ "ShadowTransparency" ]);
+  await settled();
+  assert.equal(effect.GetEffectPathName(), "res:/graphics/shaders/compiled/dx11/incarnadetailed.fxt");
+});
+
+/** A test manager whose LoadObject answers with a shader library. */
+class LibraryResMan extends StubResMan
+{
+  constructor(library)
+  {
+    super();
+    this.library = library;
+  }
+
+  LoadObject(path)
+  {
+    this.requests.push({ path, load: true });
+    return Promise.resolve(path === Tr2ShaderMaterial.shaderLibraryPath ? this.library : null);
+  }
+}
+
+function libraryNaming(name, shaderPath)
+{
+  const shader = new Tr2HighLevelShader();
+  shader.name = name;
+  shader.shaderPath = shaderPath;
+  const library = new Tr2ShaderManager();
+  library.shaderLibrary = [ shader ];
+  return library;
+}
+
+function settled()
+{
+  return new Promise(resolve => setImmediate(resolve));
+}
 
 function renderSetup(t)
 {

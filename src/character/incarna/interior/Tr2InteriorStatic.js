@@ -1,7 +1,8 @@
 // Incarna: reconstructed from Black records; no Carbon donor. See ../README.md.
 import { exposure as be } from "#be";
+import { IInitialize } from "#blue";
 import { IRoot } from "#blue/IRoot";
-import { meta, type } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2PickType } from "#consts/graphics/tr2PickType";
@@ -15,6 +16,7 @@ import { CreateLodAllocations } from "../../../trinity/core/mesh/TriGeometryResA
 import { Tr2PerObjectDataStandard } from "../../../trinity/core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { ITr2Interior } from "../../trinity/interior/ITr2Interior.js";
 import { ITr2InteriorDynamic } from "../../trinity/interior/ITr2InteriorDynamic.js";
+import { Tr2ShaderMaterial } from "../shader/Tr2ShaderMaterial.js";
 
 /**
  * One fixed piece of an Incarna interior, such as a section of a captain's
@@ -38,7 +40,8 @@ import { ITr2InteriorDynamic } from "../../trinity/interior/ITr2InteriorDynamic.
  */
 @meta.define("Tr2InteriorStatic")
 @meta.adapted
-@meta.inherit(ITr2Renderable, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
+@meta.inherit(IInitialize, ITr2Renderable, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
+@be.mapInterface(IInitialize)
 @be.mapInterface(ITr2Renderable)
 @be.mapInterface(ITr2Interior)
 @be.mapInterface(ITr2InteriorDynamic)
@@ -78,6 +81,35 @@ export class Tr2InteriorStatic extends IRoot
   transform = mat4.create();
 
   static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), vec3_3: vec3.create() };
+
+  /**
+   * Puts in each mesh area the Tr2Effect its Tr2ShaderMaterial becomes, and
+   * drops the material (operator, 2026-10-25), so the meshes draw as current
+   * Carbon's do: their areas hold Tr2Effects (`trinity/trinity/Tr2MeshArea.h:77`).
+   * Every area list is visited through `GetAreas`.
+   *
+   * Adapted: Tr2InteriorPlaceable's Initialize loads its placeable resource
+   * (cpp:276-280); a static holds its meshes, so it converts their materials
+   * instead.
+   *
+   * @returns {boolean} true.
+   */
+  @meta.adapted
+  Initialize()
+  {
+    for (const mesh of this.detailMeshes)
+    {
+      for (let areaType = 0; areaType < TriBatchType.TRIBATCHTYPE_COUNT_OF_BATCH_TYPES; areaType++)
+      {
+        for (const area of mesh.GetAreas(areaType) ?? [])
+        {
+          const material = CjsSchema.cast(area.effect, Tr2ShaderMaterial);
+          if (material) area.SetMaterial(material.CreateEffect());
+        }
+      }
+    }
+    return true;
+  }
 
   /**
    * Writes the union of the meshes' bounds, in the piece's own space.
