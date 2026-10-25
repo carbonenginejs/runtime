@@ -1,6 +1,6 @@
 import { CjsFormat } from "./CjsFormat.js";
 import { asUint8Array } from "#utils/bytes";
-import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters } from "#imageio";
+import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters, Metadata } from "#imageio";
 import { IsCompressedFormat, PixelFormat, PixelFormatFromCanonical } from "#consts/render-context";
 import { canDecodeBlockSlice, decodeBlockSlice } from "../codecs/bcn/core/bcDecode.js";
 
@@ -226,6 +226,49 @@ export class CjsImageFormat extends CjsFormat
     const result = await this.readImageNativeAsync(bytes, loadParameters, bitmap, metadata);
 
     return this._finishRead(result, loadParameters, bitmap);
+  }
+
+  /**
+   * Read the image as plain data - its bitmap description, storage and
+   * metadata - so a resource worker can decode it and hand the result back
+   * (`read(bytes, { emit: "bitmap" })`). The decode is this format's
+   * `readImageAsync`, the same call ImageIO makes on the main thread, so a
+   * worker read and a main-thread read produce the same bitmap.
+   *
+   * Carbon decodes images on BlueResMan's background threads; in a browser the
+   * thread is a worker, and only clonable data crosses back, so the bitmap
+   * travels as this packet and is rebuilt as a HostBitmap on the main thread.
+   *
+   * @param {Uint8Array|ArrayBuffer} input Image bytes.
+   * @param {object} [options={}] Read options.
+   * @param {string} [options.source] Path for the load parameters and error messages.
+   * @param {object|null} [context=null] The resource path context a resource worker passes.
+   * @param {string} [context.path] Path, used when `options.source` is absent.
+   * @returns {Promise<{sourceFormat: string, description: object, data: Uint8Array, metadata: object}>} The bitmap packet.
+   * @throws {Error} With code `CJS_RESOURCE_IMAGE_READ_FAILED` when the image cannot be read.
+   */
+  static async readBitmapAsync(input, options = {}, context = null)
+  {
+    const source = options.source ?? (context === null ? "" : context.path ?? "");
+    const bitmap = new HostBitmap();
+    const metadata = new Metadata();
+    const result = await this.readImageAsync(asUint8Array(input), new LoadParameters(source), bitmap, metadata);
+    if (!result.IsOk())
+    {
+      const error = new Error(result.GetErrorMessage());
+      error.code = "CJS_RESOURCE_IMAGE_READ_FAILED";
+      throw error;
+    }
+    return {
+      sourceFormat: this.id,
+      description: {
+        type: bitmap.GetType(), format: bitmap.GetFormat(),
+        width: bitmap.GetWidth(), height: bitmap.GetHeight(), depth: bitmap.GetDepth(),
+        mipCount: bitmap.GetMipCount(), arraySize: bitmap.GetArraySize()
+      },
+      data: bitmap.GetRawData(),
+      metadata: { cutout: { ...metadata.cutout }, metadata: metadata.metadata }
+    };
   }
 
   /**

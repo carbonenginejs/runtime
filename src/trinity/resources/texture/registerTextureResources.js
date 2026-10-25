@@ -12,6 +12,12 @@
 // formats need it: PNG and VTA decode through `DecompressionStream`, which is
 // asynchronous, and `SetPayload` is not. The loader therefore does what
 // Carbon's DoLoad does, and hands the resource the finished bitmap.
+//
+// Carbon's DoLoad runs on BlueResMan's background threads. Here an image
+// format that declares a worker (`static worker`, `emit: "bitmap"`) is decoded
+// on the manager's resource worker through `ReadFormatOnce`, which falls back
+// to this thread when no worker is available; a format without one decodes
+// here through ImageIO.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { ImageIO } from "../../../resource/imageio/ImageIO.js";
@@ -26,6 +32,26 @@ import { getResourceExtension } from "#utils/path";
 
 /** Stable reader identity preserves the caller's requested DDS decode sharing. */
 const DDS_BITMAP_DESCRIPTOR = { Format: CjsDdsFormat, defaults: { emit: "bitmap" } };
+
+/** One stable bitmap descriptor per worker-capable image format, for the same decode sharing. */
+const BITMAP_DESCRIPTORS = new Map();
+
+/**
+ * The bitmap descriptor for an image format, created once.
+ *
+ * @param {Function} Format A CjsImageFormat subclass that declares a worker.
+ * @returns {{Format: Function, defaults: {emit: string}}} The descriptor.
+ */
+function GetBitmapDescriptor(Format)
+{
+  let descriptor = BITMAP_DESCRIPTORS.get(Format);
+  if (!descriptor)
+  {
+    descriptor = { Format, defaults: { emit: "bitmap" } };
+    BITMAP_DESCRIPTORS.set(Format, descriptor);
+  }
+  return descriptor;
+}
 
 /**
  * The image extensions Carbon routes to a texture resource
@@ -68,6 +94,25 @@ export async function ReadImageResource(bytes, context, compression = {})
     });
     bitmap = createDdsBitmap(packet);
   }
+  else if (IsWorkerImageFormat(ImageIO.getImageHandler(ImageIO.getExtension(context.path))))
+  {
+    const Format = ImageIO.getImageHandler(ImageIO.getExtension(context.path));
+    try
+    {
+      const packet = await context.resMan.ReadFormatOnce(context.resource, GetBitmapDescriptor(Format), bytes, {
+        ...context, emit: "bitmap"
+      });
+      bitmap = createDdsBitmap(packet);
+    }
+    catch (error)
+    {
+      if (error.name === "AbortError") throw error;
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Tr2ImageRes: error reading '%S' - %s", context.path, error.message);
+      const failure = new Error(`${context.path || "image"}: ${error.message}`, { cause: error });
+      failure.code = "CJS_RESOURCE_IMAGE_READ_FAILED";
+      throw failure;
+    }
+  }
   else
   {
     bitmap = new HostBitmap();
@@ -87,6 +132,17 @@ export async function ReadImageResource(bytes, context, compression = {})
   }
   if (request) bitmap = await CompressLoadedBitmap(bitmap, request, context.path, context.signal);
   return bitmap;
+}
+
+/**
+ * Whether an image format decodes its bitmap on a resource worker.
+ *
+ * @param {?Function} Format The extension's registered image format, or null.
+ * @returns {boolean} True when it declares a worker that emits "bitmap".
+ */
+function IsWorkerImageFormat(Format)
+{
+  return Format !== null && Format.worker !== undefined && Format.worker.outputTypes.includes("bitmap");
 }
 
 /**

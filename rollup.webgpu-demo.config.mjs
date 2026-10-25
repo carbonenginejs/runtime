@@ -15,7 +15,7 @@ const workerFormatUrls = {
     {
         if (property !== "url") return null;
         const id = moduleId.replaceAll("\\", "/");
-        for (const format of [ "Gr2", "Dds" ])
+        for (const format of [ "Gr2", "Dds", "Png", "Jpeg", "Tga", "Vta", "Gif" ])
         {
             if (id.endsWith("/Cjs" + format + "Format.js"))
             {
@@ -32,6 +32,11 @@ export default [
     [ "npm/dist/global/blue/worker/CjsResManWorker.js", "resource.worker.bundle.js" ],
     [ "npm/dist/resource/formats/gr2/CjsGr2Format.js", "gr2.worker.bundle.js" ],
     [ "npm/dist/resource/formats/dds/CjsDdsFormat.js", "dds.worker.bundle.js" ],
+    [ "npm/dist/resource/formats/png/CjsPngFormat.js", "png.worker.bundle.js" ],
+    [ "npm/dist/resource/formats/jpeg/CjsJpegFormat.js", "jpeg.worker.bundle.js" ],
+    [ "npm/dist/resource/formats/tga/CjsTgaFormat.js", "tga.worker.bundle.js" ],
+    [ "npm/dist/resource/formats/vta/CjsVtaFormat.js", "vta.worker.bundle.js" ],
+    [ "npm/dist/resource/formats/gif/CjsGifFormat.js", "gif.worker.bundle.js" ],
     [ "npm/dist/resource/codecs/bcn/compressionWorker.js", "dds-compression.worker.bundle.js" ],
     [ "npm/dist/global/blue/worker/blueCallbackManWorkerEntry.js", "callback-man.worker.bundle.js" ]
 ].map(([ input, output ]) => ({

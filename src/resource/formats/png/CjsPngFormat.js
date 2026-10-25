@@ -235,10 +235,14 @@ export class CjsPngFormat extends CjsImageFormat
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input PNG bytes.
      * @param {object} [options] Read options.
+     * @param {object|null} [context=null] The resource path context a resource worker passes.
+     *   `emit: "bitmap"` returns the bitmap packet (`CjsImageFormat.readBitmapAsync`), which a resource worker
+     *   decodes off the main thread.
      * @returns {Promise<object>} GPU-free raw/debug payload for the selected emit target.
      */
-    static async readAsync(input, options = {})
+    static async readAsync(input, options = {}, context = null)
     {
+        if (options.emit === "bitmap") return CjsPngFormat.readBitmapAsync(input, options, context);
         return readWithValuesAsync(input, normalizeValues(DEFAULT_VALUES, { inputType: "png", ...options }, FORMAT_NAME), "png");
     }
 
@@ -272,6 +276,14 @@ export class CjsPngFormat extends CjsImageFormat
         return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "png", ...options }, FORMAT_NAME), "png");
     }
 
+
+    /** A resource worker decodes this format's bitmap (`emit: "bitmap"`); every other output reads on the caller's thread. */
+    static worker = {
+        module: import.meta.url,
+        exportName: "CjsPngFormat",
+        outputTypes: [ "bitmap" ],
+        defaultOutput: "raw"
+    };
 
     static id = "CjsPngFormat";
 

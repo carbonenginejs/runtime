@@ -5,6 +5,9 @@ import { Worker } from "node:worker_threads";
 import { CjsBlueResMan, CjsResManWorkerLoader, CjsResManQueue } from "../../npm/dist/global/blue/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
+import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
+import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
+import { LoadParameters, Metadata } from "../../npm/dist/global/imageio/index.js";
 import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
 import { RegisterTextureResources, RegisterTextureArray, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
@@ -254,4 +257,32 @@ test("DDS volume header flag survives worker decoding and texture resource mater
   assert.equal(bitmap.GetMipCount(), 1);
   assert.deepEqual(bitmap.GetRawData(), bytes.subarray(128), "all three compressed slices reach the bitmap");
   assert.equal(messages.filter(message => message.operation === "format.read").length, 1);
+});
+
+test("PNG textures decode on the resource worker, matching the main-thread ImageIO read", async t =>
+{
+  ImageIO.registerImageHandler(CjsPngFormat);
+  const rgba = Uint8Array.from({ length: 5 * 3 * 4 }, (_, i) => (i * 37 + 11) & 255);
+  const png = await CjsPngFormat.writeAsync({ width: 5, height: 3, data: rgba });
+  const { loader, messages } = workerLoader(t);
+  const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => png } });
+  RegisterTextureResources(manager);
+  const image = await manager.FetchResource("res:/test.png", { ex: "raw" });
+  assert.ok(messages.some(message => message.operation === "format.read" && message.payload.exportName === "CjsPngFormat"));
+  const main = new HostBitmap();
+  assert.ok((await ImageIO.readImageAsync(png, new LoadParameters("res:/test.png"), main, new Metadata())).IsOk());
+  const bitmap = image.GetBitmap();
+  assert.equal(bitmap.GetFormat(), main.GetFormat());
+  assert.equal(bitmap.GetWidth(), 5);
+  assert.deepEqual(Array.from(bitmap.GetRawData()), Array.from(main.GetRawData()));
+});
+
+test("a PNG decodes on this thread when no worker is available", async () =>
+{
+  ImageIO.registerImageHandler(CjsPngFormat);
+  const png = await CjsPngFormat.writeAsync({ width: 2, height: 2, data: new Uint8Array(16).fill(200) });
+  const manager = new CjsBlueResMan({ source: { Read: () => png } });
+  RegisterTextureResources(manager);
+  const image = await manager.FetchResource("res:/plain.png", { ex: "raw" });
+  assert.equal(image.GetBitmap().GetWidth(), 2);
 });

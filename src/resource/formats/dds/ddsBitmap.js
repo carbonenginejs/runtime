@@ -1,15 +1,16 @@
 import { BitmapDimensions, Cutout, HostBitmap, Metadata } from "#imageio";
 
 /**
- * Materialize a DDS worker result as the canonical mutable image object.
+ * Materialize an image format's bitmap packet - DDS's `readBitmap` or any
+ * image format's `readBitmapAsync`, from a worker or this thread - as the
+ * canonical mutable image object.
  *
  * Format results can be shared by the manager's decoded cache. Copy storage
  * into this resource's bitmap so later image mutations cannot modify another
  * resource or the retained decode. This copies bytes; it does not decode again.
- * The bridge stays in the DDS resource route and requires no shared bitmap or
- * serialization changes.
+ * The name is historical: it began as the DDS route's bridge.
  *
- * @param {object} payload Plain CjsDdsFormat bitmap output.
+ * @param {object} payload Plain bitmap packet: description, data and metadata.
  * @returns {HostBitmap} Independently owned bitmap with native class identity.
  */
 export function createDdsBitmap(payload)
@@ -20,7 +21,7 @@ export function createDdsBitmap(payload)
     || !bitmap.CreateFromBitmapDimensions(BitmapDimensions.create__AllFields(d.type, d.format, d.width, d.height, d.depth, d.mipCount, d.arraySize))
     || bitmap.GetRawDataSize() !== payload.data.byteLength)
   {
-    throw new TypeError("Invalid DDS bitmap payload.");
+    throw new TypeError("Invalid bitmap payload.");
   }
   bitmap.GetRawData().set(payload.data);
   const metadata = new Metadata();
