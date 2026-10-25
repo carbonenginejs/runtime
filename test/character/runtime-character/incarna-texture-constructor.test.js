@@ -76,3 +76,41 @@ test("an unknown role or a missing source is not a recipe", () =>
   assert.equal(CjsIncarnaTextureConstructor.buildRecipe(SOURCE), null);
   assert.equal(manager().GetResource(`${IncarnaTexturePrefix}specular/${SOURCE}`).error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
 });
+
+/** A 2x2 BGRA DDS with its 1x1 mip, the shape of a shipped texture's chain. */
+function mippedDds()
+{
+  const header = new Uint8Array(128);
+  const v = new DataView(header.buffer);
+  v.setUint32(0, 0x20534444, true);   // "DDS "
+  v.setUint32(4, 124, true);
+  v.setUint32(8, 0x1007 | 0x20000, true);   // ... | MIPMAPCOUNT
+  v.setUint32(12, 2, true);
+  v.setUint32(16, 2, true);
+  v.setUint32(28, 2, true);
+  v.setUint32(76, 32, true);
+  v.setUint32(80, 0x41, true);
+  v.setUint32(88, 32, true);
+  [ 0xFF0000, 0xFF00, 0xFF, 0xFF000000 ].forEach((mask, i) => v.setUint32(92 + i * 4, mask, true));
+  v.setUint32(108, 0x401008, true);         // TEXTURE | COMPLEX | MIPMAP
+  const out = new Uint8Array(128 + 16 + 4);
+  out.set(header);
+  out.set(new Array(4).fill([ 30, 20, 10, 40 ]).flat(), 128);
+  out.set([ 30, 20, 10, 40 ], 144);
+  return out;
+}
+
+test("a source with mips keeps its chain, which a mip step would have refused", async () =>
+{
+  const resMan = new CjsBlueResMan();
+  resMan.Register({ source: { Read: () => Promise.resolve(mippedDds()) } });
+  RegisterTextureResources(resMan);
+  RegisterIncarnaTextures(resMan);
+  const texture = resMan.GetResource(CjsIncarnaTextureConstructor.texturePath("albedo", "res:/x/mipped_os.dds"));
+  await texture.Ready();
+
+  const bitmap = texture.GetBitmap();
+  assert.ok(bitmap, "the recipe produced a bitmap");
+  assert.equal(bitmap.GetMipCount(), 2);
+  assert.deepEqual([ ...bitmap.GetMipRawData(1).subarray(0, 4) ], [ 10, 10, 10, 255 ]);
+});

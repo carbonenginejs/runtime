@@ -10,7 +10,6 @@ import { Tr2TexturePipeline } from "../../../trinity/texturePipeline/Tr2TextureP
 import { CjsTexturePipelineStepConvert } from "../../../trinity/texturePipeline/CjsTexturePipelineStepConvert.js";
 import { CjsTexturePipelineStepPack } from "../../../trinity/texturePipeline/CjsTexturePipelineStepPack.js";
 import { Tr2TexturePackChannel } from "../../../trinity/texturePipeline/Tr2TexturePackChannel.js";
-import { Tr2TexturePipelineStepGenerateMips } from "../../../trinity/texturePipeline/Tr2TexturePipelineStepGenerateMips.js";
 
 /** The prefix an Incarna texture path starts with. */
 export const IncarnaTexturePrefix = "dynamic:/incarna/";
@@ -47,9 +46,13 @@ const ROLES = {
  *
  * The role names the channel mapping (`ROLES`), so the path holds no `;` and a
  * texture array can take it as a layer. The query becomes a Carbon
- * texture-pipeline recipe - Convert, Pack, GenerateMips - which the texture
- * runs through Carbon's `.ctr` route, and the texture keeps the packed bitmap
- * an array layer reads.
+ * texture-pipeline recipe - Convert, then Pack - which the texture runs
+ * through Carbon's `.ctr` route, and the texture keeps the packed bitmap an
+ * array layer reads. Pack keeps the source's mip chain, so the recipe has no
+ * GenerateMips step: HostBitmap refuses a bitmap that already has mips
+ * (`imageio/HostBitmap.cpp:1036-1041`), which failed the whole recipe, and a
+ * texture whose recipe fails is prepared empty, as Carbon's is
+ * (`TriTextureRes.cpp:312-336`).
  *
  * Kept in the cache after release: rebuilding means downloading and decoding
  * the source again.
@@ -134,8 +137,7 @@ export class CjsIncarnaTextureConstructor extends IBlueDynamicResourceConstructo
     const pipeline = new Tr2TexturePipeline();
     pipeline.steps = [
       new CjsTexturePipelineStepConvert(),
-      pack,
-      new Tr2TexturePipelineStepGenerateMips()
+      pack
     ];
     return pipeline;
   }
