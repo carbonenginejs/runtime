@@ -8,6 +8,8 @@ import {
     annotatedViewFormat
 } from "../../formats/hlsl/core/carbonTypedViews.js";
 import { CjsFormatWriteError } from "../CjsFormatError.js";
+import CjsDxbcFormat from "../../formats/dxbc/index.js";
+import { RegisterType } from "#consts/render-context";
 
 /**
  * Assembles a backend effect container: Carbon's v15 record layout carrying our
@@ -51,6 +53,82 @@ import { CjsFormatWriteError } from "../CjsFormatError.js";
  * backend's binding topology is derivable from Carbon reflection, so without it
  * there is no way to bind anything and no pipeline.
  */
+
+/**
+ * The register types of DXBC declarations, as Carbon's shader compiler assigns
+ * them from bytecode reflection (`GetRegisterType`,
+ * `shadercompiler/DxReflection.h:109-180`): texture and UAV views by their
+ * dimension, a raw (byte-address) view as a buffer, a structured view as a
+ * structured buffer.
+ */
+const REGISTER_TYPE_BY_DECLARATION = {
+    dcl_constant_buffer: () => RegisterType.CONSTANT_BUFFER,
+    dcl_sampler: () => RegisterType.SAMPLER,
+    dcl_resource: (dimension) => SRV_BY_DIMENSION[dimension] ?? RegisterType.SRV_BUFFER,
+    dcl_resource_raw: () => RegisterType.SRV_BUFFER,
+    dcl_resource_structured: () => RegisterType.SRV_STRUCTURED_BUFFER,
+    dcl_unordered_access_view_typed: (dimension) => UAV_BY_DIMENSION[dimension] ?? RegisterType.UAV_BUFFER,
+    dcl_unordered_access_view_raw: () => RegisterType.UAV_BUFFER,
+    dcl_unordered_access_view_structured: () => RegisterType.UAV_STRUCTURED_BUFFER
+};
+
+const SRV_BY_DIMENSION = {
+    texture1d: RegisterType.SRV_TEXTURE1D,
+    texture1darray: RegisterType.SRV_TEXTURE1DARRAY,
+    texture2d: RegisterType.SRV_TEXTURE2D,
+    texture2darray: RegisterType.SRV_TEXTURE2DARRAY,
+    texture2dms: RegisterType.SRV_TEXTURE2DMS,
+    texture2dmsarray: RegisterType.SRV_TEXTURE2DMSARRAY,
+    texture3d: RegisterType.SRV_TEXTURE3D,
+    texturecube: RegisterType.SRV_TEXTURECUBE,
+    texturecubearray: RegisterType.SRV_TEXTURECUBEARRAY
+};
+
+const UAV_BY_DIMENSION = {
+    texture1d: RegisterType.UAV_TEXTURE1D,
+    texture1darray: RegisterType.UAV_TEXTURE1DARRAY,
+    texture2d: RegisterType.UAV_TEXTURE2D,
+    texture2darray: RegisterType.UAV_TEXTURE2DARRAY,
+    texture2dms: RegisterType.UAV_TEXTURE2DMS,
+    texture2dmsarray: RegisterType.UAV_TEXTURE2DMSARRAY,
+    texture3d: RegisterType.UAV_TEXTURE3D,
+    texturecube: RegisterType.UAV_TEXTURECUBE,
+    texturecubearray: RegisterType.UAV_TEXTURECUBEARRAY
+};
+
+/**
+ * The register signature of one compiled stage, read from its DXBC
+ * declarations: one register per bound constant buffer, sampler and view, as
+ * Carbon's compiler writes one per reflected bound resource
+ * (`shadercompiler/DxReflection.h:396-560`). Its reflection reads the `RDEF`
+ * chunk, which the older containers' blobs are stripped of; the declarations
+ * carry the same bindings. Shader model 5.0 has no register spaces, and every
+ * shipped v15 signature measured holds space 0.
+ *
+ * @param {Uint8Array} bytecode The stage's DXBC.
+ * @param {string} source Source name used in error details.
+ * @returns {object[]} Signature registers, in declaration order.
+ */
+function registersFromBytecode(bytecode, source)
+{
+    const raw = CjsDxbcFormat.read(bytecode, { emit: "raw", source, decodeInstructions: true });
+    const registers = [];
+    for (const instruction of raw.decoder.instructions)
+    {
+        const registerType = REGISTER_TYPE_BY_DECLARATION[instruction.opcodeName];
+        if (!registerType) continue;
+        const declaration = instruction.declaration;
+        const registerCount = declaration.bindingRange?.registerCount ?? 1;
+        registers.push({
+            registerType: registerType(declaration.resourceDimensionName),
+            registerIndex: declaration.registerIndex ?? declaration.bindingRange.lowerBound,
+            arrayCount: registerCount,
+            registerCount,
+            registerSpace: 0
+        });
+    }
+    return registers;
+}
 
 /**
  * Maps one body's translated passes by pass key.
@@ -105,6 +183,16 @@ function describeBody(reader, permutationIndex, passUnits, backend)
                 const shader = unit?.shaders.find(
                     (entry) => entry.key === `${passKey}.${stageName}`
                 );
+                // Below v9 a stage carries no register signature (Carbon reads
+                // one only above v8, Tr2EffectDescription.cpp:542-545), and a
+                // backend that builds its resource layout from the signature
+                // would bind nothing. The v15 body written here holds the one
+                // the source's own bytecode declares.
+                if (reader.version < 9 && stage.signature.registers.length === 0 && stage.sourceProgram.bytes.length)
+                {
+                    stage.signature.registers = registersFromBytecode(stage.sourceProgram.bytes, `${passKey}.${stageName}`);
+                    stage.signature.registerCount = stage.signature.registers.length;
+                }
                 // A body the translator could not lower keeps its describable
                 // fields and carries a zero-length program: the wire then says
                 // exactly what is known, which is that no backend program was

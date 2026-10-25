@@ -1,4 +1,5 @@
 // Source: trinity/trinityal/Tr2RenderContextEnum.h (Topology, ShaderType)
+// Source: trinity/trinityal/include/Tr2ShaderAL.h (Tr2ShaderRegisterAL::RegisterType)
 //
 // The two vocabularies the AL's binding verbs speak. `SetTopology` takes a
 // `Topology` and `SetConstants` takes a `ShaderType`, so both belong beside the
@@ -73,4 +74,41 @@ export const Tr2ColorSpace = Object.freeze({
 export const ConstantBufferSlot = Object.freeze({
     CBUFFER_GUI: ShaderType.SHADER_TYPE_COUNT,
     CBUFFER_COUNT: ShaderType.SHADER_TYPE_COUNT + 1
+});
+
+/**
+ * A shader register's kind and, for a view, its dimension: Carbon's
+ * `Tr2ShaderRegisterAL::RegisterType` (`trinityal/include/Tr2ShaderAL.h:56-87`).
+ * Shader-resource views carry bit 5 (`SRV_REGISTER_FLAG`) and unordered-access
+ * views bit 6 (`UAV_REGISTER_FLAG`). Carbon's shader compiler declares the same
+ * values as its own `RegisterInputType` (`shadercompiler/EffectData.h:88-116`),
+ * and an effect's register signature stores them.
+ */
+export const RegisterType = Object.freeze({
+    CONSTANT_BUFFER: 0,
+    SAMPLER: 1,
+
+    SRV_BUFFER: 1 << 5,
+    SRV_STRUCTURED_BUFFER: (1 << 5) + 1,
+    SRV_TEXTURE1D: (1 << 5) + 2,
+    SRV_TEXTURE1DARRAY: (1 << 5) + 3,
+    SRV_TEXTURE2D: (1 << 5) + 4,
+    SRV_TEXTURE2DARRAY: (1 << 5) + 5,
+    SRV_TEXTURE2DMS: (1 << 5) + 6,
+    SRV_TEXTURE2DMSARRAY: (1 << 5) + 7,
+    SRV_TEXTURE3D: (1 << 5) + 8,
+    SRV_TEXTURECUBE: (1 << 5) + 9,
+    SRV_TEXTURECUBEARRAY: (1 << 5) + 10,
+
+    UAV_BUFFER: 1 << 6,
+    UAV_STRUCTURED_BUFFER: (1 << 6) + 1,
+    UAV_TEXTURE1D: (1 << 6) + 2,
+    UAV_TEXTURE1DARRAY: (1 << 6) + 3,
+    UAV_TEXTURE2D: (1 << 6) + 4,
+    UAV_TEXTURE2DARRAY: (1 << 6) + 5,
+    UAV_TEXTURE2DMS: (1 << 6) + 6,
+    UAV_TEXTURE2DMSARRAY: (1 << 6) + 7,
+    UAV_TEXTURE3D: (1 << 6) + 8,
+    UAV_TEXTURECUBE: (1 << 6) + 9,
+    UAV_TEXTURECUBEARRAY: (1 << 6) + 10
 });

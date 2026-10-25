@@ -26,6 +26,54 @@ const KNOWN_UNSUPPORTED = new Map([
 
 const corpusDir = process.env.CARBON_EFFECT_LEGACY_CORPUS_DIR || null;
 
+/** Stage type of each WGSL visibility. */
+const STAGE_OF_VISIBILITY = { vertex: 0, fragment: 1, compute: 5 };
+
+/** Register class of each WGSL resource kind. */
+const CLASS_OF_KIND = { "uniform-buffer": "b", "sampled-resource": "t", "sampler": "s", "storage-resource": "u" };
+
+/**
+ * A pass's signature registers as sorted "stage:class+index" slots.
+ *
+ * @param {object} pass Pass record.
+ * @returns {string[]} Slots.
+ */
+function signatureSlots(pass)
+{
+    const slots = new Set();
+    for (const stage of pass.stages)
+    {
+        for (const register of stage.registers)
+        {
+            const kind = register.registerType & 64 ? "u" : register.registerType & 32 ? "t" : register.registerType === 1 ? "s" : "b";
+            slots.add(`${stage.type}:${kind}${register.registerIndex}`);
+        }
+    }
+    return [ ...slots ].sort();
+}
+
+/**
+ * A WGSL layout's bindings as sorted "stage:class+index" slots.
+ *
+ * @param {object} layout WGSL pass layout.
+ * @returns {string[]} Slots.
+ */
+function layoutSlots(layout)
+{
+    const slots = new Set();
+    for (const group of layout.bindGroups)
+    {
+        for (const binding of group.bindings)
+        {
+            for (const visibility of binding.visibility)
+            {
+                slots.add(`${STAGE_OF_VISIBILITY[visibility]}:${CLASS_OF_KIND[binding.resourceKind]}${binding.registerIndex}`);
+            }
+        }
+    }
+    return [ ...slots ].sort();
+}
+
 test(
     "real pre-v8 effect containers translate in selected mode and read back",
     { skip: corpusDir ? false : "set CARBON_EFFECT_LEGACY_CORPUS_DIR to run the pre-v8 translation proof" },
@@ -44,7 +92,15 @@ test(
             {
                 const built = CjsWebgpuFormat.buildEffect(bytes, { source, permutation: [] });
                 assert.equal(built.info.completeness.sourceComplete, false);
-                new CjsCarbonEffectReader(built.bytes, { source }).readDescription(0);
+                const description = new CjsCarbonEffectReader(built.bytes, { source }).readDescription(0);
+                // Below v9 the source has no register signature; the emitted
+                // v15 body holds one from the bytecode's declarations, and it
+                // must name exactly the slots the WGSL layout binds.
+                for (const [ passIndex, pass ] of description.techniques[0].passes.entries())
+                {
+                    const layout = built.wgsl.layouts.find(entry => entry.passIndex === passIndex);
+                    assert.deepEqual(signatureSlots(pass), layoutSlots(layout), `${name} pass ${passIndex}`);
+                }
                 translated += 1;
                 assert.equal(KNOWN_UNSUPPORTED.has(name), false, `${name} now translates; remove it from KNOWN_UNSUPPORTED`);
             }

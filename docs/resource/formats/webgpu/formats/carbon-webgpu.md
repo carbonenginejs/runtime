@@ -15,7 +15,9 @@ The source may be any version the shared reader accepts, 2 to 15. Selected
 mode translates one body from any of them. All-body mode needs a version-15
 source, and `info.completeness.sourceComplete` records which one was given.
 Bindings come from the bytecode's declarations, so a source below v9, whose
-stages carry no register signature, translates the same way.
+stages carry no register signature, translates the same way, and the emitted
+container carries a signature read from those declarations (see the shared
+container's *Layouts before v8*).
 
 ## Structured WGSL set
 

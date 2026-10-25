@@ -319,6 +319,16 @@ holds `nullptr`; the writer emits `isDynamic` 0 over an empty name, which
 Carbon's v15 reader clears to `nullptr`. The result is a genuine v15 file
 describing the same effect, not v15 bytes labelled with an older number.
 
+Below v9 a stage has no register signature, and a backend that builds its
+resource layout from the signature would bind nothing. So when a backend
+container is built from such a source, each emitted stage's signature is read
+from the stage's own DXBC declarations. That is one register per declared
+constant buffer, sampler and view, typed as Carbon's compiler types them from
+bytecode reflection (`GetRegisterType`, `shadercompiler/DxReflection.h`), in
+space 0. Across build 1142708's 74 translatable `.fxt`, every pass's
+signature names exactly the slots its WGSL layout binds. A v9+ source keeps
+the signature it stores.
+
 ### The optional trailing block
 
 Our own containers add exactly one optional block per pass, after the render-state
