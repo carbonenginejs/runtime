@@ -1,0 +1,26 @@
+# Incarna classes
+
+Incarna, EVE's walk-in stations, used classes that current Carbon no longer
+declares. Its content still names them: a captain's quarters walkway piece is a
+`Tr2InteriorStatic` whose mesh areas hold `Tr2ShaderMaterial`s. The classes
+here let that content load.
+
+Each class is reconstructed from Black records, not ported from source:
+
+- Its members, and their order, are those the records write. Its JSDoc names
+  the records.
+- It is `@meta.define`d, with no Carbon donor, and carries a class-level
+  `@meta.adapted`.
+- Its exposure flags, and any interfaces it maps, are guessed. The records show
+  only that members persist; interfaces are the ones the consuming scene needs.
+- Its behaviour, where it has any, is ours. It is modelled on the nearest class
+  current Carbon still has, and each method's JSDoc says where it differs.
+
+| Class | Records | Behaviour |
+|---|---|---|
+| `Tr2InteriorStatic` | interior kit pieces | Draws its `detailMeshes` in a `Tr2InteriorScene`, modelled on `Tr2InteriorPlaceable`. Its `transform` is ours; the records carry no placement. |
+| `Tr2ShaderMaterial` | the effect of an Incarna mesh area | Data only. Its shaders are not loaded, so it reports `IsGood()` false; a consumer that draws the content puts a `Tr2Effect` in the area. |
+
+An opaque request to a `Tr2InteriorStatic` also draws its meshes'
+`opaquePrepassAreas`. Incarna drew those in its light pre-pass, and current
+Carbon draws them only for picking.
