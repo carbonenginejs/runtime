@@ -214,13 +214,40 @@ export class CjsPaperDoll
         const part = this[name];
         if (!part.enabled || !part.option) return false;
         const path = part.GetOptions().find(option => option.id === part.option)?.path ?? "";
-        return targets.some(target => target === part.constructor.category || (path !== "" && (target === path || path.startsWith(target + "/"))));
+        return targets.some(target => target === part.constructor.category || CjsPaperDoll.occludes([ target ], path));
     }
 
-    /** One pass's captured settings: `order` lists its parts in bake order, then each part's capture under its name. */
+    /**
+     * Every occlusion target of the active options, sorted: recipe categories
+     * and modifier paths, including geometry the doll does not collect (the
+     * brow base a face paint occludes).
+     * @returns {string[]}
+     */
+    GetOccluded()
+    {
+        return [ ...new Set(CjsPaperDoll.parts.flatMap(name => this._Occludes(name))) ].sort();
+    }
+
+    /**
+     * Whether occlusion targets cover a modifier path: a target names the path
+     * itself or a folder above it (`accessories/browbase` covers
+     * `accessories/browbase/browbase_01`).
+     * @param {string[]} targets Occlusion targets, as `GetOccluded` returns them.
+     * @param {string} path A modifier path below the paper doll root.
+     * @returns {boolean}
+     */
+    static occludes(targets, path)
+    {
+        return path !== "" && targets.some(target => target === path || path.startsWith(target + "/"));
+    }
+
+    /**
+     * One pass's captured settings: `order` lists its parts in bake order,
+     * `occluded` the active occlusion targets, then each part's capture under its name.
+     */
     _CapturePass(pass, names)
     {
-        const state = { order: names };
+        const state = { order: names, occluded: this.GetOccluded() };
         for (const name of names) state[name] = this[name].Capture(pass);
         return state;
     }
@@ -262,7 +289,7 @@ export class CjsPaperDoll
             const pending = passForced || !previous || names.some(name => this[name].IsDirty());
             const state = pending ? this._CapturePass(pass, names) : previous;
             const selected = !whenSelected || names.some(name => state[name].option || (previous !== null && previous[name].option));
-            const changed = pending && selected && (passForced || !previous || state.order.join() !== previous.order.join() || names.some(name => this._Changed(state[name], previous[name])));
+            const changed = pending && selected && (passForced || !previous || state.order.join() !== previous.order.join() || state.occluded.join() !== previous.occluded.join() || names.some(name => this._Changed(state[name], previous[name])));
             if (changed) changedPasses |= pass;
             plans.push({ pass, binding, names, state, changed });
         }

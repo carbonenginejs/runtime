@@ -92,3 +92,19 @@ test("an active occluder draws after the parts it occludes, matched by category 
     const bra = doll.GetLayerOrder(PaperDollPass.BODY);
     assert.ok(bra.indexOf("bodyAugmentation") > bra.indexOf("armLeft"), "still over the arm it occludes");
 });
+
+test("the captured occlusion targets name geometry the doll does not collect", () =>
+{
+    const doll = Doll();
+    doll.augmentations.Configure([ { id: "paint", path: "makeup/augmentations/face_paint_f01", colorAreas: [], occludes: [ "accessories/browbase" ] },
+        { id: "plain", path: "makeup/augmentations/face_paint_f01", colorAreas: [], occludes: [] } ], new Map(), { option: "paint" });
+    assert.deepEqual(doll.GetOccluded(), [ "accessories/browbase" ]);
+    assert.ok(CjsPaperDoll.occludes(doll.GetOccluded(), "accessories/browbase/browbase_01"));
+    assert.ok(!CjsPaperDoll.occludes(doll.GetOccluded(), "accessories/browbaseextra"));
+
+    doll.augmentations.option = "plain";
+    assert.deepEqual(doll.GetOccluded(), []);
+    doll.augmentations.option = "paint";
+    doll.augmentations.enabled = false;
+    assert.deepEqual(doll.GetOccluded(), []);
+});
