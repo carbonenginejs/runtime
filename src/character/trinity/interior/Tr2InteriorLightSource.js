@@ -1,6 +1,7 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
 import { meta, type, blue } from "#schema";
@@ -29,6 +30,9 @@ export class Tr2InteriorLightSource extends IRoot
 
   /** PopulateLightData's AsRGB result. */
   static _kelvinScratch = vec4.create();
+
+  /** RenderDebugInfo's cone focal point. */
+  static scratch = { vec3_0: vec3.create() };
 
 
   /** m_coneDirection (Vector3) [READWRITE, PERSIST, NOTIFY] */
@@ -133,6 +137,48 @@ export class Tr2InteriorLightSource extends IRoot
   IsSpotLight()
   {
     return this.coneAlphaOuter < 89;
+  }
+
+  /**
+   * Carbon: Tr2InteriorLightSource::GetDebugOptions (Tr2InteriorLightSource.cpp:164-167):
+   * offers the "Lights" toggle.
+   *
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Lights");
+  }
+
+  /**
+   * Carbon: Tr2InteriorLightSource::RenderDebugInfo (Tr2InteriorLightSource.cpp:169-185):
+   * with "Lights" on, a small wireframe sphere at the light, then its cone (a spot
+   * light) or its range sphere.
+   *
+   * @param {ITr2DebugRenderer2} renderer The renderer to draw with.
+   */
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (!renderer.HasOption(this, "Lights"))
+    {
+      return;
+    }
+
+    const owner = Tr2DebugObjectReference.create__Object(this);
+    renderer.DrawSphere__CenterRadius(owner, this.position, 0.05, 10, ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Uint32(0xff333333));
+    if (this.IsSpotLight())
+    {
+      const { vec3_0 } = Tr2InteriorLightSource.scratch;
+      const coneRadius = this.radius * Math.tan(this.coneAlphaOuter * Math.PI / 180);
+      const focal = vec3.scaleAndAdd(vec3_0, this.position, vec3.normalize(vec3_0, this.coneDirection), this.radius);
+      renderer.DrawCone__BaseFocal(owner, focal, this.position, coneRadius, 8, ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Uint32(0xff444444));
+    }
+    else
+    {
+      renderer.DrawSphere__CenterRadius(owner, this.position, this.radius, 12, ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Uint32(0xff444444));
+    }
   }
 
   /** Carbon Initialize (cpp:59-63): derive the world box from position ± radius. */
