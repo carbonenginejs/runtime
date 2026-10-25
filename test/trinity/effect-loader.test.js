@@ -93,8 +93,10 @@ test("every compiled shader extension routes to Tr2EffectRes", () =>
 {
   const resourceManager = RegisterShaderResources(new CjsBlueResMan());
 
-  // Nine, not three: the older compiled tiers still occur in shipped trees.
-  assert.equal(ShaderResourceExtensions.length, 9);
+  // Carbon's nine, not three: the older compiled tiers still occur in shipped
+  // trees. Plus Incarna's fxt.
+  assert.equal(ShaderResourceExtensions.length, 10);
+  assert.ok(ShaderResourceExtensions.includes("fxt"));
   for (const extension of ShaderResourceExtensions)
   {
     assert.equal(typeof resourceManager.GetObjectLoader(extension), "function");

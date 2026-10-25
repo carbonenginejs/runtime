@@ -130,9 +130,13 @@ export function buildEffectPackage(input, options = {})
     const selection = normalizeSelection(options.selection);
     const resolved = readEffectAnalysis(input, { source, permutation });
 
-    // One INFO version means one contract, and that contract requires complete
-    // source reflection, which only version-15 input can supply.
-    if (effectHeader(resolved.reader).version !== 15)
+    // All-body packaging needs the unique-body inventory only a version-15
+    // source carries (`sourceComplete` below), so it is refused before any
+    // translation. A selected body from an older container translates like any
+    // other: its bindings come from the bytecode's declarations, and the reader
+    // normalized its records to the v15 shape. Incarna's v3 `.fxt` are the
+    // consumer (2026-10-25).
+    if (mode === "all" && effectHeader(resolved.reader).version !== 15)
     {
         throw new Error(
             "Effect package requires a version-15 compiled effect, got version "

@@ -63,6 +63,8 @@ export const DefaultConfiguration = {
     sm_2_0_hi: Tr2EffectRes,
     sm_2_0_lo: Tr2EffectRes,
     sm_1_1: Tr2EffectRes,
+    // Incarna-era; see ShaderResourceExtensions.
+    fxt: Tr2EffectRes,
 
     gr2: {
       Handler: TriGeometryRes,
@@ -99,7 +101,8 @@ export const DefaultConfiguration = {
     sm_3_0_depth: shaderLoader,
     sm_2_0_hi: shaderLoader,
     sm_2_0_lo: shaderLoader,
-    sm_1_1: shaderLoader
+    sm_1_1: shaderLoader,
+    fxt: shaderLoader
   },
 
   objectBuilders: {

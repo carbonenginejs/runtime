@@ -322,6 +322,16 @@ test("effect permutation graph preserves mixed-radix variants and body aliases",
         /invalid source body record/
     );
 
+    // Below v5 the stored word is a sparse key, not a position: row 0 of build
+    // 1142708's incarnadetailedtransparent.fxt holds 0x400, and Carbon takes
+    // the first row whatever it holds (Tr2EffectRes.cpp:232-234).
+    assert.equal(buildEffectPermutationGraph({
+        bytes: source,
+        version: 3,
+        permutations: [],
+        records: [ { index: 0x400, offset: 0, size: 3, end: 3 } ]
+    }).variants.length, 1);
+
     assert.throws(
         () => buildEffectPermutationGraph({
             bytes: source,

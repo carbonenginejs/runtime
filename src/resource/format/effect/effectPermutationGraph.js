@@ -60,7 +60,8 @@ export function buildEffectPermutationGraph(header)
         normalizeSourceRecord(
             record,
             permutationIndex,
-            sourceBytes.byteLength
+            sourceBytes.byteLength,
+            header.version
         ));
     validateDisjointSourceRecords(
         sourceRecords,
@@ -379,10 +380,12 @@ function decodeOptionIndices(permutationIndex, axes)
     });
 }
 
-function normalizeSourceRecord(record, permutationIndex, sourceByteLength)
+function normalizeSourceRecord(record, permutationIndex, sourceByteLength, version)
 {
+    // Below v5 a row's stored word is a sparse key, not a position, and Carbon
+    // takes the first row whatever it holds (`Tr2EffectRes.cpp:232-234`).
     if (!record || typeof record !== "object"
-        || record.index !== permutationIndex
+        || (!(version < 5) && record.index !== permutationIndex)
         || !Number.isSafeInteger(record.offset) || record.offset < 0
         || record.offset > UINT32_MAX
         || !Number.isSafeInteger(record.size) || record.size < 1

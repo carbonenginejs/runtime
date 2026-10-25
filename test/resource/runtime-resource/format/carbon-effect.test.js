@@ -856,6 +856,26 @@ test("v7 techniques carry a count and name; stages still have no annotations (Tr
     assert.deepEqual(stage.annotations, []);
 });
 
+test("a pre-v8 record tree re-emits as v15 with Carbon's sampler names (Tr2EffectDescription.cpp:411-434)", () =>
+{
+    for (const [ version, name, isDynamic ] of [ [ 3, "", 0 ], [ 4, "Samp", 1 ] ])
+    {
+        const { description } = readPreV8(version);
+        const writer = new CjsCarbonEffectWriter({ compilerVersion: COMPILER_VERSION, sourceHash: SOURCE_HASH });
+        writer.addBody(0, description);
+        const reread = new CjsCarbonEffectReader(writer.toBytes(), { source: `legacy-v${version}-as-v15` });
+        const stage = reread.readDescription(0, { backend: false }).techniques[0].passes[0].stages[0];
+
+        assert.equal(reread.version, CARBON_EFFECT_DATA_VERSION);
+        // Unnamed below v4 is isDynamic 0, whose name Carbon clears on read;
+        // a v4..12 name is kept, which v15 says as isDynamic 1.
+        assert.equal(stage.samplers[0].name.value, name);
+        assert.equal(stage.samplers[0].isDynamic, isDynamic);
+        assert.deepEqual(Array.from(stage.shaderData.bytes), [ 0xde, 0xad, 0xbe, 0xef ]);
+        assert.deepEqual(Array.from(stage.defaultValues.bytes), [ 1, 2, 3, 4 ]);
+    }
+});
+
 test("the reader rejects a truncated arena and an empty offset table", () =>
 {
     const bytes = Uint8Array.from(buildSyntheticContainer());

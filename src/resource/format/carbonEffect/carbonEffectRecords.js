@@ -622,7 +622,13 @@ function readSampler(reader, version)
  */
 function writeSampler(writer, arena, sampler)
 {
-    writer.u32(arena.string(sampler.name));
+    // A record read below v13 has no `isDynamic`, and below v4 no name. Carbon
+    // keeps the name of the first (nothing clears it, `Tr2EffectDescription.cpp:426-434`)
+    // and holds `nullptr` for the second (`:411-418`). v15 says the same as
+    // `isDynamic` 1, and as `isDynamic` 0 over an empty name, which Carbon
+    // clears on read (`:430-433`).
+    const unnamed = sampler.name.value === null;
+    writer.u32(arena.string(unnamed ? UNNAMED_SAMPLER : sampler.name));
     writer.u8(sampler.comparison);
     writer.u8(sampler.minFilter);
     writer.u8(sampler.magFilter);
@@ -639,8 +645,11 @@ function writeSampler(writer, arena, sampler)
     writer.f32(sampler.borderColor[3]);
     writer.f32(sampler.minLOD);
     writer.f32(sampler.maxLOD);
-    writer.u8(sampler.isDynamic);
+    writer.u8(unnamed ? 0 : "isDynamic" in sampler ? sampler.isDynamic : 1);
 }
+
+/** The name a v15 sampler record carries for a sampler Carbon holds unnamed. */
+const UNNAMED_SAMPLER = { offset: 0xffffffff, value: "" };
 
 /**
  * Reads one `StaticSampler` (`EffectData.h:512-531`, read inside

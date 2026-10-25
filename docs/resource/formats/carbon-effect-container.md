@@ -312,6 +312,13 @@ on the wire, 10,950 bodies in all, parse to exactly their declared end. No
 shipped file has been examined at v2, v5, v6 or v7; those branches follow
 Carbon's reader alone.
 
+A record tree read from an older file is written as v15, like any other. A
+sampler read below v13 has no `isDynamic`, and Carbon keeps its name; the
+writer says so as `isDynamic` 1. A sampler read below v4 has no name, and Carbon
+holds `nullptr`; the writer emits `isDynamic` 0 over an empty name, which
+Carbon's v15 reader clears to `nullptr`. The result is a genuine v15 file
+describing the same effect, not v15 bytes labelled with an older number.
+
 ### The optional trailing block
 
 Our own containers add exactly one optional block per pass, after the render-state

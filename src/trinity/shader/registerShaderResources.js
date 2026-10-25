@@ -10,11 +10,19 @@ import { Tr2EffectRes } from "./Tr2EffectRes.js";
 
 
 /**
- * The compiled shader-model extensions Carbon routes to `Tr2EffectRes`.
+ * The compiled shader extensions routed to `Tr2EffectRes`: Carbon's nine, and
+ * Incarna's `fxt`.
  *
  * Nine, not three. The `sm_2_0_*`/`sm_3_0_*`/`sm_1_1` forms are older compiled
  * tiers that a shipped tree can still contain; `ShaderModelSuffixes` only ever
  * produces the modern three, so the rest are inbound-only.
+ *
+ * `fxt` is not registered by current Carbon. Incarna's compiled shaders
+ * (`graphics/shaders/compiled/<platform>/*.fxt`, effect containers at versions
+ * 3 and 4) use it, and `Tr2EffectRes` still reads those versions
+ * (`Tr2EffectRes.cpp:215-243`), so it is registered here as an Incarna-era
+ * extension (operator decision, 2026-10-25). `ResolveEffectPath` leaves an
+ * `.fxt` path unchanged.
  *
  * These are true extensions rather than suffixes: `ResolveEffectPath` replaces
  * `.fx`, so a resolved path ends `.sm_hi` and extension routing keys on it.
@@ -28,7 +36,8 @@ export const ShaderResourceExtensions = Object.freeze([
   "sm_3_0_depth",
   "sm_2_0_hi",
   "sm_2_0_lo",
-  "sm_1_1"
+  "sm_1_1",
+  "fxt"
 ]);
 
 

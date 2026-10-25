@@ -368,8 +368,12 @@ test("instance BuildEffect honors reusable source and permutation values", () =>
 
 test("buildEffect gates all-body packaging on complete source reflection", () =>
 {
-    // Version 8-14 inputs carry no portable reflection, so there is no
-    // validated unique-body inventory to translate against.
+    // A pre-v15 input has no validated unique-body inventory to translate
+    // against, so all-body packaging refuses it. One selected body still
+    // translates, and the package says its source is incomplete.
+    const selected = CjsWebgpuFormat.buildEffect(buildMinimalStagedEffectBytes(), { permutation: [] });
+    assert.equal(selected.info.completeness.sourceComplete, false);
+    assert.equal(selected.info.containerVersion, 15);
     assert.throws(
         () => CjsWebgpuFormat.buildEffect(
             buildMinimalStagedEffectBytes(),
