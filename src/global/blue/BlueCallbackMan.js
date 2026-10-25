@@ -26,7 +26,7 @@ import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { BlueCallbackManThreadData } from "./BlueCallbackManThreadData.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
 import { IBlueThreadMonitor } from "./IBlueThreadMonitor.js";
-import { BeThreadMonitor } from "./BlueThreadMonitor.js";
+import { BeThreadMonitor, BlueThreadMonitor } from "./BlueThreadMonitor.js";
 import { ScopedThreadStatus } from "./ScopedThreadStatus.js";
 import * as CcpLog from "../logging/ccpLog.js";
 
@@ -40,6 +40,7 @@ import * as CcpLog from "../logging/ccpLog.js";
  * @property {bigint} timeStamp When it was queued, in integer nanosecond ticks.
  * @property {number} fenceMask One bit per thread still to drain before it runs.
  * @property {{resolve: Function, reject: Function}|null} completion Settles a named entry's promise.
+ * @property {string|null|undefined} label What the entry is, for its log lines; resolved when first reported.
  */
 
 /** Carbon's thread priority range (core/include/CcpThread.h:39-46). */
@@ -63,6 +64,9 @@ function timestampTicks()
 
 /** Carbon's `CallbackMan` log channel (CallbackMan.cpp:10). */
 const CALLBACKMAN_CHANNEL = CcpLog.CCP_LOG_DEFINE_CHANNEL("CallbackMan", "blue");
+
+/** Gives each manager a serial, so its entries' saga ids never meet another manager's. */
+let nextManagerSerial = 1;
 
 /** The rejection a cancelled entry's promise gets. */
 function createCancelledError(id)
@@ -135,6 +139,12 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** Called when an `Update` slot frees; see `SetSlotFreeCallback`. */
   _onSlotFree = null;
 
+  /** Turns an entry's context into its label; see `SetEntryLabeler`. */
+  _labeler = null;
+
+  /** This manager's serial, which prefixes its entries' saga ids. */
+  _serial = nextManagerSerial++;
+
   /** Module URL of each named callback, by name; see `RegisterCallbackModule`. */
   _callbackModules = new Map();
 
@@ -156,10 +166,64 @@ export class BlueCallbackMan extends IBlueCallbackMan
    */
   static CALLBACKMAN_DEBUGGING = false;
 
-  /** Carbon's `REPORT`: a `CallbackMan` channel line while `CALLBACKMAN_DEBUGGING` is set. */
-  static _Report(format, ...args)
+  /**
+   * Carbon's `REPORT`: a `CallbackMan` channel line while
+   * `CALLBACKMAN_DEBUGGING` is set, in Carbon's words.
+   *
+   * Adapted: the line also carries `CjsLogData` (CcpLog's `userData`): the
+   * manager's name as subtitle, a saga id per entry, the entry's label and the
+   * step it reports, plus that step's numbers. Carbon's lines name neither the
+   * manager nor the job, and several managers share the channel.
+   *
+   * @param {number} id Entry id.
+   * @param {?string} label The entry's label, or null when unknown.
+   * @param {string} event The step: queued, fenced, front, cancelling, started or done.
+   * @param {object} fields The step's own numbers, merged into the data.
+   * @param {string} format Carbon's printf format.
+   * @param {...*} args Format arguments.
+   * @returns {void}
+   */
+  _Report(id, label, event, fields, format, ...args)
   {
-    if (BlueCallbackMan.CALLBACKMAN_DEBUGGING) CcpLog.CCP_LOG_CH(CALLBACKMAN_CHANNEL, format, ...args);
+    if (!BlueCallbackMan.CALLBACKMAN_DEBUGGING) return;
+    const subtitle = this._name || "BlueCallbackMan";
+    const data = { subtitle, saga: `BlueCallbackMan:${this._serial}:${id}`, label, event, ...fields };
+    CcpLog.LogFuncChannel(CALLBACKMAN_CHANNEL, CcpLog.LogType.LOGTYPE_INFO, data, format, ...args);
+  }
+
+  /**
+   * An entry's label: its callback name for a named entry, otherwise what the
+   * manager's labeler makes of its context. Resolved once, the first time the
+   * entry is reported.
+   *
+   * @param {BlueCallbackEntry} entry The entry.
+   * @returns {?string} The label, or null when nothing names the entry.
+   */
+  _LabelOf(entry)
+  {
+    if (entry.label === undefined) entry.label = entry.name ?? (this._labeler === null ? null : this._labeler(entry.context));
+    return entry.label;
+  }
+
+  /**
+   * Gives the manager a function that names an entry from its context, for its
+   * log lines.
+   *
+   * Ours: Carbon's entries are a function pointer and a context
+   * (`AddToQueue( BRMQ_MAIN, StaticPrepareAsync, this, ... )`,
+   * BlueAsyncRes.cpp:125), so a debugger names a job from which function ran on
+   * which resource. JavaScript function names do not survive minification, so
+   * the owner that queues entries names them: resMan's queues label each task
+   * with its kind and path. A named entry is labelled by its callback name.
+   *
+   * @param {?function(*): ?string} labeler Called with an entry's context; null removes it.
+   * @returns {BlueCallbackMan} This manager.
+   */
+  SetEntryLabeler(labeler)
+  {
+    if (labeler !== null && typeof labeler !== "function") throw new TypeError("BlueCallbackMan.SetEntryLabeler requires a function or null.");
+    this._labeler = labeler;
+    return this;
   }
 
   /**
@@ -230,7 +294,6 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** Queues one entry; the body of Carbon's `Add` (cpp:98-143). */
   _AddHelper(callback, name, context, transfer, flags, id, completion)
   {
-    BlueCallbackMan._Report("Adding callback");
     if (id) id.value = this._nextId;
 
     /** @type {BlueCallbackEntry} */
@@ -242,8 +305,10 @@ export class BlueCallbackMan extends IBlueCallbackMan
       transfer,
       timeStamp: timestampTicks(),
       fenceMask: 0,
-      completion
+      completion,
+      label: undefined
     };
+    this._Report(entry.id, this._LabelOf(entry), "queued", {}, "Adding callback");
 
     // Adapted: Carbon fences only for its own threads (cpp:113); Update mode
     // there runs one entry at a time, so ordering holds by itself. Ours keeps
@@ -251,7 +316,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     if ((this._isRunningOwnThreads || this._threadCount > 1) && (flags & IBlueCallbackMan.BCBF_FENCE))
     {
       for (let i = 0; i < this._threadCount; ++i) entry.fenceMask |= 1 << i;
-      BlueCallbackMan._Report("Adding fenced entry");
+      this._Report(entry.id, this._LabelOf(entry), "fenced", {}, "Adding fenced entry");
     }
 
     if (flags & IBlueCallbackMan.BCBF_URGENT) this._urgentQueue.push(entry);
@@ -281,7 +346,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
       if (id !== td.currentId) continue;
 
       // Callback being canceled is already in progress - wait for it to finish
-      BlueCallbackMan._Report("Cancel waiting for callback to finish");
+      this._Report(id, null, "cancelling", {}, "Cancel waiting for callback to finish");
       td.currentId = 0;
       const pending = this._workerEntries.get(id);
       if (pending)
@@ -565,7 +630,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
         }
       }
 
-      BlueCallbackMan._Report("Front of fenced queue - %x - %x", maskBefore, fencedEntry.fenceMask);
+      this._Report(fencedEntry.id, this._LabelOf(fencedEntry), "front", { maskBefore, mask: fencedEntry.fenceMask },
+        "Front of fenced queue - %x - %x", maskBefore, fencedEntry.fenceMask);
 
       // A surplus slot left by a lowered thread count has no fence bit; the fence waits for it too.
       if (fencedEntry.fenceMask === 0 && !this._threads.some(other => other.threadIndex >= this._threadCount && other.inProgress !== null))
@@ -595,8 +661,11 @@ export class BlueCallbackMan extends IBlueCallbackMan
     }
 
     td.currentId = entry.id;
-    BlueCallbackMan._Report("Processing %s entry %d on thread %d", kind, entry.id, td.threadIndex);
     const started = CjsBlueOS.Monotonic();
+    const threadName = this._isRunningOwnThreads ? td.name : BlueThreadMonitor.MAIN_THREAD;
+    this._Report(entry.id, this._LabelOf(entry), "started",
+      { kind, thread: threadName, waited: Number(timestampTicks() - entry.timeStamp) / 1e9 },
+      "Processing %s entry %d on thread %d", kind, entry.id, td.threadIndex);
 
     // The thread works for the entry (CallbackMan.cpp:322, ScopedThreadStatus).
     // A worker's entry runs until its answer arrives, so its status is
@@ -605,12 +674,12 @@ export class BlueCallbackMan extends IBlueCallbackMan
     if (this._isRunningOwnThreads)
     {
       const previousStatus = BeThreadMonitor.SetThreadStatus__Thread(td.name, IBlueThreadMonitor.BTS_WORKING);
-      return this._ProcessEntry(td, entry, processedFenceEntry, td.name, previousStatus, started);
+      return this._ProcessEntry(td, entry, processedFenceEntry, td.name, previousStatus, started, threadName);
     }
     const threadStatus = new ScopedThreadStatus(IBlueThreadMonitor.BTS_WORKING);
     try
     {
-      return this._ProcessEntry(td, entry, processedFenceEntry, null, 0, started);
+      return this._ProcessEntry(td, entry, processedFenceEntry, null, 0, started, threadName);
     }
     finally
     {
@@ -618,8 +687,20 @@ export class BlueCallbackMan extends IBlueCallbackMan
     }
   }
 
-  /** The rest of `UpdateThread` (CallbackMan.cpp:396-441): runs the entry taken for a thread. */
-  _ProcessEntry(td, entry, processedFenceEntry, thread, previousStatus, started)
+  /**
+   * The rest of `UpdateThread` (CallbackMan.cpp:396-441): runs the entry taken
+   * for a thread.
+   *
+   * @param {BlueCallbackManThreadData} td The thread.
+   * @param {BlueCallbackEntry} entry The entry taken for it.
+   * @param {boolean} processedFenceEntry Whether the entry came from the fence queue.
+   * @param {?string} thread The worker whose status to restore when the entry settles, or null for this thread.
+   * @param {number} previousStatus That worker's status before the entry.
+   * @param {number} started When the entry started, in milliseconds (`CjsBlueOS.Monotonic`).
+   * @param {string} threadName The thread's name, for the entry's log lines.
+   * @returns {boolean} True: an entry was started.
+   */
+  _ProcessEntry(td, entry, processedFenceEntry, thread, previousStatus, started, threadName)
   {
     const delta = timestampTicks() - entry.timeStamp;
     if (delta > 0n)
@@ -632,7 +713,9 @@ export class BlueCallbackMan extends IBlueCallbackMan
 
     const finish = () =>
     {
-      BlueCallbackMan._Report("<<Processing callback done - %g seconds", (CjsBlueOS.Monotonic() - started) / 1000);
+      const seconds = (CjsBlueOS.Monotonic() - started) / 1000;
+      this._Report(entry.id, this._LabelOf(entry), "done", { thread: threadName, seconds },
+        "<<Processing callback done - %g seconds", seconds);
       if (thread !== null) BeThreadMonitor.SetThreadStatus__Thread(thread, previousStatus);
       td.currentId = 0;
       td.inProgress = null;

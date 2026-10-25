@@ -27,6 +27,13 @@
  * message and 255-byte last-error limits. Float formatting follows JavaScript's
  * toFixed rounding, not a claim of C-library bit-for-bit printf parity.
  *
+ * Adapted: `userData` may be an object as well as a number. Carbon declares it
+ * `unsigned long`, host-defined, and its macros always pass 0 (CcpLog.h:76-81).
+ * Here a caller may pass a `CjsLogData` object, which reaches every echo
+ * unchanged, so a log view can show who is talking and fold related lines,
+ * while the message stays Carbon's formatted text. The macro equivalents still
+ * pass 0, and an echo that ignores `userData` sees Carbon's log.
+ *
  * @example
  * import { CcpLog } from "@carbonenginejs/runtime/global";
  * CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
@@ -43,10 +50,21 @@ import { CcpLogChannel_t } from "./CcpLogChannel_t.js";
 export { LogType, LogEchoPrivilege, CcpLogChannel_t };
 
 /**
+ * Optional structured data a caller attaches to a line through `userData`.
+ * Every field is optional; extra fields are the caller's own.
+ *
+ * @typedef {object} CjsLogData
+ * @property {string} [subtitle] Who is talking, below the channel: for example the queue `"resMan background"`.
+ * @property {string} [saga] Id tying related lines into one story, which a view may fold into one row.
+ * @property {string} [label] What the line is about, such as a job's `"load res:/…"`.
+ * @property {string} [event] The step the line reports within its saga.
+ */
+
+/**
  * @callback LogEchoFunc
  * @param {CcpLogChannel_t} channel Caller-owned channel record.
  * @param {number} type LogType severity.
- * @param {number} userData Caller data, zero for the macro equivalents.
+ * @param {number|CjsLogData} userData Caller data, zero for the macro equivalents.
  * @param {string} message Formatted message.
  * @returns {void}
  */
@@ -165,7 +183,7 @@ export function GetLastErrorMessage()
 /**
  * Writes a formatted message to carbon-core/Main.
  * @param {number} type LogType severity.
- * @param {number} userData Host-defined data.
+ * @param {number|CjsLogData} userData Host-defined data: a number, or a `CjsLogData` object.
  * @param {string|null} format Printf format; null is ignored.
  * @param {...*} args Format arguments.
  * @returns {void}
@@ -178,7 +196,7 @@ export function LogFunc(type, userData, format, ...args)
 /**
  * Array-argument equivalent of LogFunc (adapted from native va_list).
  * @param {number} type LogType severity.
- * @param {number} userData Host-defined data.
+ * @param {number|CjsLogData} userData Host-defined data: a number, or a `CjsLogData` object.
  * @param {string|null} format Printf format.
  * @param {Array<*>} args Format arguments.
  * @returns {void}
@@ -192,7 +210,7 @@ export function LogFunc_v(type, userData, format, args)
  * Writes a formatted message to a caller-owned channel.
  * @param {CcpLogChannel_t} logObject Channel passed unchanged to echoes.
  * @param {number} type LogType severity.
- * @param {number} userData Host-defined data.
+ * @param {number|CjsLogData} userData Host-defined data: a number, or a `CjsLogData` object.
  * @param {string|null} format Printf format; null is ignored.
  * @param {...*} args Format arguments.
  * @returns {void}
@@ -207,7 +225,7 @@ export function LogFuncChannel(logObject, type, userData, format, ...args)
  * Errors are stored after echoes run, following Carbon's ordering.
  * @param {CcpLogChannel_t} logObject Caller-owned channel.
  * @param {number} type LogType severity.
- * @param {number} userData Host-defined data.
+ * @param {number|CjsLogData} userData Host-defined data: a number, or a `CjsLogData` object.
  * @param {string|null} format Printf format; null/undefined produces no count.
  * @param {Array<*>} args Format arguments.
  * @returns {void}
@@ -234,7 +252,7 @@ export function LogFuncChannel_v(logObject, type, userData, format, args)
  * Carbon's debugger echo, adapted to browser/host console without OS bindings.
  * @param {CcpLogChannel_t} logObject Channel included in the console prefix.
  * @param {number} type LogType severity (notice maps to console.info).
- * @param {number} userData Unused native callback argument.
+ * @param {number|CjsLogData} userData Unused native callback argument.
  * @param {string} message Already formatted text.
  * @returns {void}
  */

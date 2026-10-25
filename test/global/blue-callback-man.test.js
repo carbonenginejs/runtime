@@ -642,25 +642,59 @@ test("CALLBACKMAN_DEBUGGING logs Carbon's CallbackMan lines on blue/CallbackMan,
 {
   const CcpLog = await import("../../src/global/logging/ccpLog.js");
   const lines = [];
-  const echo = (channel, _type, _userData, message) => { if (channel.object === "CallbackMan") lines.push(`${channel.facility}/${channel.object}: ${message}`); };
+  const data = [];
+  const echo = (channel, _type, userData, message) =>
+  {
+    if (channel.object !== "CallbackMan") return;
+    lines.push(`${channel.facility}/${channel.object}: ${message}`);
+    data.push(userData);
+  };
   CcpLog.RegisterLogEcho(echo);
   try
   {
     const man = new BlueCallbackMan();
+    man.SetName("Jobs");
+    man.SetEntryLabeler(context => `job ${context}`);
     man.Add(() => {});
     man.Update();
     assert.deepEqual(lines, [], "off by default");
 
     BlueCallbackMan.CALLBACKMAN_DEBUGGING = true;
-    man.Add(() => {});
+    man.Add(() => {}, "a");
     man.Update();
     assert.equal(lines[0], "blue/CallbackMan: Adding callback");
     assert.equal(lines[1], "blue/CallbackMan: Processing regular entry 2 on thread 0");
     assert.match(lines[2], /^blue\/CallbackMan: <<Processing callback done - [\d.e-]+ seconds$/);
+
+    // Every line of one entry carries the same saga, the manager as subtitle and the entry's label.
+    assert.deepEqual(data.map(item => item.event), [ "queued", "started", "done" ]);
+    assert.equal(new Set(data.map(item => item.saga)).size, 1);
+    assert.ok(data.every(item => item.subtitle === "Jobs" && item.label === "job a"));
+    assert.equal(data[1].kind, "regular");
+    assert.equal(data[1].thread, "main");
+    assert.equal(typeof data[1].waited, "number");
+    assert.equal(typeof data[2].seconds, "number");
+
+    // A named entry is labelled by its callback name; another entry gets another saga.
+    const second = new BlueCallbackMan();
+    second.RegisterCallbackModule("named", CALLBACK_MODULE);
+    second.Add__Name("named", 1).catch(() => {});
+    assert.equal(data.at(-1).label, "named");
+    assert.notEqual(data.at(-1).saga, data[0].saga);
   }
   finally
   {
     BlueCallbackMan.CALLBACKMAN_DEBUGGING = false;
     CcpLog.UnregisterLogEcho(echo);
   }
+});
+
+test("resMan's queues name their manager and label each task by kind and path", async () =>
+{
+  const { CjsResManWorkQueue } = await import("../../src/global/blue/CjsResManWorkQueue.js");
+  assert.equal(CjsResManWorkQueue.labelTask({ metadata: { kind: "load", path: "res:/a.dds" } }), "load res:/a.dds");
+  assert.equal(CjsResManWorkQueue.labelTask({ metadata: { flags: 0 } }), "task");
+  assert.equal(CjsResManWorkQueue.labelTask({ metadata: null }), "task");
+  const queue = new CjsResManWorkQueue("background");
+  assert.equal(queue._manager._name, "resMan background");
 });

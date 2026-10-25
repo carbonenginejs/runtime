@@ -50,7 +50,9 @@ export class CjsResManWorkQueue
   /** Creates a queue with caller-provided initial state. */
   constructor(name, options = {}) {
     this._name = CjsResManWorkQueue.normalizeName(name);
-    this._manager.SetName(this._name);
+    this._manager.SetName(`resMan ${this._name}`);
+    // Each task's log lines name its kind and path (BlueCallbackMan.SetEntryLabeler).
+    this._manager.SetEntryLabeler(CjsResManWorkQueue.labelTask);
     // A task's slot frees after its promise settles; only then can the next start.
     this._manager.SetSlotFreeCallback(() => this._NotifyReady());
     this._onReady = typeof options.onReady === "function" ? options.onReady : null;
@@ -138,7 +140,7 @@ export class CjsResManWorkQueue
 
     const id = { value: 0 };
     const flags = metadata && Number.isInteger(metadata.flags) ? metadata.flags : IBlueCallbackMan.BCBF_NONE;
-    this._manager.Add(() => this._Start(item), null, flags, id);
+    this._manager.Add(task => this._Start(task), item, flags, id);
     item.id = id.value;
 
     this._queued.set(item.id, item);
@@ -228,7 +230,13 @@ export class CjsResManWorkQueue
     };
   }
 
-  /** A snapshot of the queue's counts and policy. */
+  /**
+   * A snapshot of the queue's counts, policy and waiting times.
+   *
+   * @returns {{name: string, nextId: number, concurrency: number, queued: number, active: number,
+   *   pending: number, paused: boolean, averageWait: number, maxWait: number}} The snapshot; the
+   *   waits are seconds, from the callback manager's queue statistics.
+   */
   GetStats() {
     return {
       name: this._name,
@@ -237,7 +245,9 @@ export class CjsResManWorkQueue
       queued: this.GetQueuedCount(),
       active: this.GetActiveCount(),
       pending: this.GetPendingCount(),
-      paused: this._paused
+      paused: this._paused,
+      averageWait: this._manager.GetTimeInQueueAverage(),
+      maxWait: this._manager.GetTimeInQueueMax()
     };
   }
 
@@ -282,6 +292,21 @@ export class CjsResManWorkQueue
     if (this._onReady && !this._paused && this.GetQueuedCount() > 0) {
       this._onReady(this);
     }
+  }
+
+  /**
+   * Names a task for the callback manager's log lines: its kind and path from
+   * the metadata resMan queued it with, such as `"load res:/a.dds"`.
+   *
+   * @param {object} item A task record from `Add`.
+   * @returns {string} The label; `"task"` when the metadata names nothing.
+   */
+  static labelTask(item)
+  {
+    const metadata = item.metadata;
+    if (metadata === null) return "task";
+    const label = [ metadata.kind, metadata.path ].filter(part => typeof part === "string" && part !== "").join(" ");
+    return label || "task";
   }
 
   /**
