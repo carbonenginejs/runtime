@@ -235,7 +235,7 @@ export class TriMatrix extends IRoot
   @meta.implemented
   RotationYawPitchRoll(yaw, pitch, roll)
   {
-    mat4.fromQuat(this._matrix, quat.fromYawPitchRoll(TriMatrix._rotation, yaw, pitch, roll));
+    mat4.fromQuat(this._matrix, quat.fromYawPitchRollCarbon(TriMatrix._rotation, yaw, pitch, roll));
   }
 
   /**

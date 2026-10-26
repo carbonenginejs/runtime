@@ -610,7 +610,7 @@ export class EveStretch3 extends IEveFiringEffectElement
 
     const params = this._makeParams();
     vec3.subtract(EveStretch3._moveDirection, this.sourcePosition, this.destinationPosition);
-    quat.arcFromForward(EveStretch3._moveRotation, EveStretch3._moveDirection);
+    quat.arcFromForwardCarbon(EveStretch3._moveRotation, EveStretch3._moveDirection);
     if (this.sourceObject)
     {
       if (this._isMuzzleEffect) mat4.copy(params.localToWorldTransform, this._sourceMatrix);
@@ -713,7 +713,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     if (this.stretchObject) this.stretchObject.UpdateVisibility(context, parentTransform, high);
     vec3.lerp(EveStretch3._movePosition, this.sourcePosition, this.destinationPosition, this.moveProgression.value);
     vec3.subtract(EveStretch3._moveDirection, this.sourcePosition, this.destinationPosition);
-    quat.arcFromForward(EveStretch3._moveRotation, EveStretch3._moveDirection);
+    quat.arcFromForwardCarbon(EveStretch3._moveRotation, EveStretch3._moveDirection);
     mat4.fromRotationTranslation(EveStretch3._moveVisibility, EveStretch3._moveRotation, EveStretch3._movePosition);
     if (this.moveObject) this.moveObject.UpdateVisibility(context, EveStretch3._moveVisibility, high);
   }

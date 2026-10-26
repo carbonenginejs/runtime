@@ -847,7 +847,7 @@ export class EveEllipseSet extends EveChildTransform
         vertices[offset + 4] = ty;
         vertices[offset + 5] = tz;
         vertices[offset + 6] = -1;
-        sph3.boundingSphereUpdate(this._boundingSphere, vec3_5);
+        sph3.boundingSphereUpdateCarbon(this._boundingSphere, vec3_5);
         vWrite++;
 
         // Right edge: sideSign = +1
@@ -857,7 +857,7 @@ export class EveEllipseSet extends EveChildTransform
         vertices[offset + 4] = ty;
         vertices[offset + 5] = tz;
         vertices[offset + 6] = 1;
-        sph3.boundingSphereUpdate(this._boundingSphere, vec3_5);
+        sph3.boundingSphereUpdateCarbon(this._boundingSphere, vec3_5);
         vWrite++;
       }
 

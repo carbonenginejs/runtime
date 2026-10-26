@@ -110,10 +110,10 @@ test("bone offsets compound on an unanimated bone without a pose modifier (Carbo
 test("rotation arc preserves native antiparallel fallback and degenerate directions", () =>
 {
   const result = quat.create();
-  close(Array.from(quat.rotationArc(result, [0, 0, 4], [7, 0, 0])), [0, Math.SQRT1_2, 0, Math.SQRT1_2]);
-  close(Array.from(quat.rotationArc(result, [1, 0, 0], [-1, 0, 0])), [1, 0, 0, 0]);
-  close(Array.from(quat.rotationArc(result, [0, 0, 1], [0.001, 0, -1])), [0, 1, 0, 0]);
-  close(Array.from(quat.rotationArc(result, [0, 0, 0], [0, 0, 1])), [0, 0, 0, 1]);
+  close(Array.from(quat.rotationArcCarbon(result, [0, 0, 4], [7, 0, 0])), [0, Math.SQRT1_2, 0, Math.SQRT1_2]);
+  close(Array.from(quat.rotationArcCarbon(result, [1, 0, 0], [-1, 0, 0])), [1, 0, 0, 0]);
+  close(Array.from(quat.rotationArcCarbon(result, [0, 0, 1], [0.001, 0, -1])), [0, 1, 0, 0]);
+  close(Array.from(quat.rotationArcCarbon(result, [0, 0, 0], [0, 0, 1])), [0, 0, 0, 1]);
   const value = animation([bone("Root")]);
   value.AimBone("Root", 0, 0, 0, 0, 0, 1);
   value.Update(0);

@@ -613,7 +613,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
     // OK, this should go away once our rotations are sorted out !!!!
     yaw = Math.fround(yaw + PI_F);
 
-    const q = quat.fromYawPitchRoll(Tr2IntSkinnedObject.scratch.quat_1, yaw, 0, 0);
+    const q = quat.fromYawPitchRollCarbon(Tr2IntSkinnedObject.scratch.quat_1, yaw, 0, 0);
 
     this.SetRotation(q);
     this.SetPosition(pos);

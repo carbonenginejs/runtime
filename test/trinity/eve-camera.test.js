@@ -78,7 +78,7 @@ test("EveCamera update reproduces Carbon orbit, view-basis slots, and listeners"
   };
 
   assert.equal(camera.Update(0, 1.5, 0), true);
-  const rotation = quat.fromYawPitchRoll(quat.create(), 0.4, -0.2, 0);
+  const rotation = quat.fromYawPitchRollCarbon(quat.create(), 0.4, -0.2, 0);
   const expectedPosition = vec3.transformQuat(vec3.create(), [0, 0, 10], rotation);
   vec3.add(expectedPosition, expectedPosition, parentPosition);
   const direction = vec3.normalize(vec3.create(), vec3.subtract(vec3.create(), parentPosition, expectedPosition));
@@ -108,7 +108,7 @@ test("EveCamera composes a nonidentity rotation of interest in Carbon's row-vect
   camera.SetRotationOnOrbit(0.25, -0.1);
   camera.Update(0, 1, 0);
 
-  const orbit = quat.fromYawPitchRoll(quat.create(), 0.4, -0.2, 0);
+  const orbit = quat.fromYawPitchRollCarbon(quat.create(), 0.4, -0.2, 0);
   const position = vec3.transformQuat(vec3.create(), [0, 0, 10], orbit);
   const direction = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), position));
   const interest = vec3.scaleAndAdd(vec3.create(), position, direction, 100);
@@ -116,7 +116,7 @@ test("EveCamera composes a nonidentity rotation of interest in Carbon's row-vect
   const view = mat4.lookAt(mat4.create(), position, interest, up);
   const interestRotation = quat.invert(
     quat.create(),
-    quat.fromYawPitchRoll(quat.create(), 0.25, -0.1, 0)
+    quat.fromYawPitchRollCarbon(quat.create(), 0.25, -0.1, 0)
   );
   const rotationMatrix = mat4.fromQuat(mat4.create(), interestRotation);
   const expected = mat4.multiply(mat4.create(), rotationMatrix, view);
@@ -128,7 +128,7 @@ test("EveCamera composes a nonidentity rotation of interest in Carbon's row-vect
 test("EveCamera derives notified orbit rotation and edge-triggers invalid-state errors", () =>
 {
   const camera = new EveCamera();
-  const authored = quat.fromYawPitchRoll(quat.create(), 0.7, -0.35, 0);
+  const authored = quat.fromYawPitchRollCarbon(quat.create(), 0.7, -0.35, 0);
   assert.equal(CjsSchema.setValues(camera, { rotationAroundParent: authored }, { skipEvents: true, returnBoolean: true }), true);
   camera.frontClip = 1;
   camera.translationFromParent = 5;
@@ -158,7 +158,7 @@ test("EveCamera notifications preserve active spring targets", () =>
   camera.SetOrbit(0, 0);
   camera.OrbitParent(1, 0);
 
-  CjsSchema.setValues(camera, { rotationAroundParent: quat.fromYawPitchRoll(quat.create(), 0.2, 0, 0) }, { skipEvents: true });
+  CjsSchema.setValues(camera, { rotationAroundParent: quat.fromYawPitchRollCarbon(quat.create(), 0.2, 0, 0) }, { skipEvents: true });
   // One second of scene ticks: Carbon takes the frame delta as TimeAsDouble(realTime - m_time) (EveCamera.cpp:243).
   camera.Update(10_000_000, 1, 10_000_000);
 

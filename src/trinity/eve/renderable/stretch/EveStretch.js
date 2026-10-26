@@ -296,14 +296,14 @@ export class EveStretch extends IEveFiringEffectElement
     {
       // Artwork is authored aligned to the y-axis rather than z, so transform mode adds a rotation.
       if (this._useTransforms) mat4.multiply(mat4_0, this._sourceTransform, EveStretch._sourceCorrection);
-      else mat4.fromRotationTranslation(mat4_0, quat.rotationArc(quat_0, EveStretch._yAxis, vec3_0), this._sourcePosition);
+      else mat4.fromRotationTranslation(mat4_0, quat.rotationArcCarbon(quat_0, EveStretch._yAxis, vec3_0), this._sourcePosition);
       this.sourceObject.UpdateVisibility(context, mat4_0);
     }
 
     if (this.destObject && this._displayDestination)
     {
       vec3.set(vec3_2, this._destinationScale, this._destinationScale, this._destinationScale);
-      mat4.fromRotationTranslationScale(mat4_0, quat.rotationArc(quat_0, EveStretch._yAxis, vec3_0), this._destinationPosition, vec3_2);
+      mat4.fromRotationTranslationScale(mat4_0, quat.rotationArcCarbon(quat_0, EveStretch._yAxis, vec3_0), this._destinationPosition, vec3_2);
       this.destObject.UpdateVisibility(context, mat4_0);
     }
 
@@ -321,7 +321,7 @@ export class EveStretch extends IEveFiringEffectElement
       {
         if (!this._negativeZ) vec3.negate(vec3_0, vec3_0);
         vec3.set(vec3_2, 1, 1, scalingLength);
-        mat4.fromRotationTranslationScale(mat4_0, quat.arcFromForward(quat_0, vec3_0), this._sourcePosition, vec3_2);
+        mat4.fromRotationTranslationScale(mat4_0, quat.arcFromForwardCarbon(quat_0, vec3_0), this._sourcePosition, vec3_2);
       }
       this.stretchObject.UpdateVisibility(context, mat4_0);
     }
@@ -329,7 +329,7 @@ export class EveStretch extends IEveFiringEffectElement
     if (this.moveObject)
     {
       if (!this._negativeZ) vec3.negate(vec3_0, vec3_0);
-      quat.arcFromForward(quat_0, vec3_0);
+      quat.arcFromForwardCarbon(quat_0, vec3_0);
       vec3.copy(vec3_1, this._sourcePosition);
       const progressCurve = CjsSchema.cast(this.progressCurve, Tr2CurveScalar);
       if (this.progressCurve)

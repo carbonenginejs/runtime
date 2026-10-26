@@ -234,7 +234,7 @@ test("spline tunnel debug output preserves Carbon transform order and option gat
   group.Initialize();
   const parent = mat4.fromRotationTranslationScale(
     mat4.create(),
-    quat.fromYawPitchRoll(quat.create(), Math.PI / 2, 0, 0),
+    quat.fromYawPitchRollCarbon(quat.create(), Math.PI / 2, 0, 0),
     [10, 20, 30],
     [2, 3, 4]
   );

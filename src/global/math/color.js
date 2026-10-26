@@ -406,9 +406,9 @@ color.srgbFromLinear = function(out, linear)
  */
 color.linearToGamma = function(out, linear)
 {
-    out[0] = num.linearToGamma(linear[0]);
-    out[1] = num.linearToGamma(linear[1]);
-    out[2] = num.linearToGamma(linear[2]);
+    out[0] = num.linearToGammaCarbon(linear[0]);
+    out[1] = num.linearToGammaCarbon(linear[1]);
+    out[2] = num.linearToGammaCarbon(linear[2]);
     return out;
 };
 
@@ -427,9 +427,9 @@ color.linearToGamma = function(out, linear)
  */
 color.gammaToLinear = function(out, gamma)
 {
-    out[0] = num.gammaToLinear(gamma[0]);
-    out[1] = num.gammaToLinear(gamma[1]);
-    out[2] = num.gammaToLinear(gamma[2]);
+    out[0] = num.gammaToLinearCarbon(gamma[0]);
+    out[1] = num.gammaToLinearCarbon(gamma[1]);
+    out[2] = num.gammaToLinearCarbon(gamma[2]);
     return out;
 };
 

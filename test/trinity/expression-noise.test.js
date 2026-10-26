@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CjsControllerExpressionProgram, Tr2CurveScalarExpression } from "../../npm/dist/trinity/index.js";
-import { carbonPerlin1D } from "../../npm/dist/global/math/noise.js";
+import { perlin1DCarbon } from "../../npm/dist/global/math/noise.js";
 
 const evaluate = (source, context = {}) => CjsControllerExpressionProgram.Compile(source).Evaluate(context);
 
@@ -15,10 +15,10 @@ test("noise(x) is Carbon's (PerlinNoise1D(x + randomConstant, 1, 1, 1) + 1) / 2"
 {
   for (const x of [ 0, 0.3, 1.7, 12.25, -4.5 ])
   {
-    assert.ok(Math.abs(evaluate(`noise(${x})`) - (carbonPerlin1D(x, 1, 1, 1) + 1) / 2) < 1e-6, `noise(${x})`);
+    assert.ok(Math.abs(evaluate(`noise(${x})`) - (perlin1DCarbon(x, 1, 1, 1) + 1) / 2) < 1e-6, `noise(${x})`);
   }
   const curve = Object.assign(new Tr2CurveScalarExpression(), { randomConstant: 3.7 });
-  assert.ok(Math.abs(evaluate("noise(1.2)", { curve }) - (carbonPerlin1D(1.2 + 3.7, 1, 1, 1) + 1) / 2) < 1e-6, "offset by the random constant");
+  assert.ok(Math.abs(evaluate("noise(1.2)", { curve }) - (perlin1DCarbon(1.2 + 3.7, 1, 1, 1) + 1) / 2) < 1e-6, "offset by the random constant");
 });
 
 test("noise is smooth: nearby inputs give nearby values (a hash would not)", () =>
@@ -34,7 +34,7 @@ test("noise is smooth: nearby inputs give nearby values (a hash would not)", () 
 
 test("fractal(x, alpha, beta, n) passes its octave arguments to PerlinNoise1D", () =>
 {
-  const expected = (carbonPerlin1D(2.5, 2, 2, 3) + 1) / 2;
+  const expected = (perlin1DCarbon(2.5, 2, 2, 3) + 1) / 2;
   assert.ok(Math.abs(evaluate("fractal(2.5, 2, 2, 3)") - expected) < 1e-6);
   assert.ok(Math.abs(evaluate("fractal(2.5, 2, 2, 2.6)") - expected) < 1e-6, "n rounds as int(n + 0.5)");
 });

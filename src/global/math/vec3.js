@@ -599,7 +599,7 @@ vec3.isEmpty = function (a)
  * @param {vec3} a
  * @returns {Number}
  */
-vec3.maxComponent = function (a)
+vec3.maxComponentCarbon = function (a)
 {
     return Math.max(a[0], a[1], a[2]);
 };
@@ -876,7 +876,7 @@ vec3.applyQuaternion = function (out, a, q)
  * @param {number} maxLength
  * @returns {vec3} out
  */
-vec3.clampLength = function (out, a, maxLength)
+vec3.clampLengthCarbon = function (out, a, maxLength)
 {
     const length = vec3.length(a);
     if (length <= maxLength)
@@ -952,7 +952,7 @@ export const {
     length,
     lerp,
     max,
-    maxComponent,
+    maxComponentCarbon,
     min,
     mul,
     multiply,

@@ -274,7 +274,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
     const f = Math.fround;
     const plane = this.#normalizedPlane;
     const translation = mat4.fromTranslation(DEBUG_TRANSLATION, vec3.set(DEBUG_AXIS, 0, 0, -plane[3]));
-    const basis = mat4.orthoNormalBasisZ(DEBUG_BASIS, vec3.set(DEBUG_AXIS, plane[0], plane[1], plane[2]));
+    const basis = mat4.orthoNormalBasisZCarbon(DEBUG_BASIS, vec3.set(DEBUG_AXIS, plane[0], plane[1], plane[2]));
     // Carbon (row-vector): TranslationMatrix( 0, 0, -d ) * OrthoNormalBasisZ( a, b, c ).
     const local = mat4.multiply(DEBUG_LOCAL, basis, translation);
     // Carbon (row-vector): local * worldTransform.

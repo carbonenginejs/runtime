@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { be } from "../../npm/dist/global/blue/index.js";
-import { carbonPerlin1D } from "../../npm/dist/global/math/noise.js";
+import { perlin1DCarbon } from "../../npm/dist/global/math/noise.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { ALResult } from "../../npm/dist/trinityal/index.js";
@@ -265,6 +265,6 @@ test("booster flare noise reads Blue frame ticks as seconds once", t =>
   booster.Initialize();
   booster.RebuildFlareBuffer(2);
   booster.AddFlare(mat4.create(), 0, 1, 1, 5, 1);
-  const expected = (carbonPerlin1D((12.3456789 + 0.01) * 1.3, 2, 2, 1) + 1) * 0.7;
+  const expected = (perlin1DCarbon((12.3456789 + 0.01) * 1.3, 2, 2, 1) + 1) * 0.7;
   assert.ok(Math.abs(booster._ambientFlares[1].brightness[0] - expected) < 1e-6);
 });

@@ -22,7 +22,7 @@ import { MakeBoosterBoxBuffer } from "../../attachment/booster/boosterUtilities.
 import { EveChildQuad } from "../EveChildQuad.js";
 import { EveChildModifierHalo } from "../modifiers/EveChildModifierHalo.js";
 import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../packQuadInstanceData.js";
-import { carbonPerlin1D } from "#math/noise";
+import { perlin1DCarbon } from "#math/noise";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
 import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 
@@ -497,7 +497,7 @@ export class BehaviorGroupBooster extends IRoot
     if (this.ambientFlareNoiseAmplitude !== 0)
     {
       const time = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()) + agentIndex * 0.01;
-      const noise = carbonPerlin1D(time * this.ambientFlareNoiseSpeed, 2, 2, this.ambientFlareNoiseOctaves);
+      const noise = perlin1DCarbon(time * this.ambientFlareNoiseSpeed, 2, 2, this.ambientFlareNoiseOctaves);
       vec4.scale(LIGHT_COLOR, LIGHT_COLOR, ((noise + 1) / 2) * this.ambientFlareNoiseAmplitude);
     }
 
@@ -550,7 +550,7 @@ export class BehaviorGroupBooster extends IRoot
       this._haloModifier.ApplyTransform(HALO_TRANSFORM, 0, null, HALO_TRANSFORM);
       if (this.haloFlareNoiseAmplitude !== 0)
       {
-        brightness *= (carbonPerlin1D(time * this.haloFlareNoiseSpeed, 2, 2, this.haloFlareNoiseOctaves) + 1) / 2 * this.haloFlareNoiseAmplitude;
+        brightness *= (perlin1DCarbon(time * this.haloFlareNoiseSpeed, 2, 2, this.haloFlareNoiseOctaves) + 1) / 2 * this.haloFlareNoiseAmplitude;
       }
       quad.brightness[0] = brightness;
       BehaviorGroupBooster._setParentRows(quad, HALO_TRANSFORM);
@@ -562,7 +562,7 @@ export class BehaviorGroupBooster extends IRoot
       let brightness = (0.25 + 0.25 * intensity + 0.5 * mod * intensity) * this.ambientFlareBrightness;
       if (this.ambientFlareNoiseAmplitude !== 0)
       {
-        brightness *= (carbonPerlin1D(time * this.ambientFlareNoiseSpeed, 2, 2, this.ambientFlareNoiseOctaves) + 1) / 2 * this.ambientFlareNoiseAmplitude;
+        brightness *= (perlin1DCarbon(time * this.ambientFlareNoiseSpeed, 2, 2, this.ambientFlareNoiseOctaves) + 1) / 2 * this.ambientFlareNoiseAmplitude;
       }
       quad.brightness[0] = brightness;
       BehaviorGroupBooster._setParentRows(quad, agentTransform);

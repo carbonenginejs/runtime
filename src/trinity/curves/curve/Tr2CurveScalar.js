@@ -687,7 +687,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
     {
       const t = destination.width === 1 ? 0.5 : Math.fround(Math.fround(i) / Math.fround(destination.width - 1));
       // Float_16 storage rounded through the existing half-float helpers.
-      destination.data[i * destination.stride] = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(this.GetValue(t)));
+      destination.data[i * destination.stride] = num.fromHalfFloatCarbon(num.toHalfFloatCarbon(this.GetValue(t)));
     }
   }
 

@@ -8,7 +8,7 @@ import { meta, type, blue } from "#schema";
 import { ITriScalarFunction } from "#blue/ITriScalarFunction";
 import { ITriFunction } from "#blue/ITriFunction";
 import { CcpTime } from "#blue/CcpTime";
-import { carbonPerlin1D } from "#math/noise";
+import { perlin1DCarbon } from "#math/noise";
 
 
 /**
@@ -191,7 +191,7 @@ export class TriPerlinCurve extends ITriScalarFunction
    */
   static PerlinNoise1D(position, inverseAmplitude, frequency, octaves)
   {
-    return carbonPerlin1D(position, inverseAmplitude, frequency, octaves);
+    return perlin1DCarbon(position, inverseAmplitude, frequency, octaves);
   }
 
   /**

@@ -4,7 +4,7 @@ import test from "node:test";
 import { color as rootColor, mesh, num, quat, tangent, vec3 as rootVec3, vec4 as rootVec4, vertex } from "../../../npm/dist/index.js";
 import { isArrayLike } from "../../../npm/dist/global/utils/is.js";
 import { mesh as subMesh } from "../../../npm/dist/global/math/mesh.js";
-import { carbonPerlin1D, createPerlinNoise1D, perlin1, perlin1D } from "../../../npm/dist/global/math/noise.js";
+import { perlin1DCarbon, createPerlinNoise1D, perlin1, perlin1D } from "../../../npm/dist/global/math/noise.js";
 import { cubicHermite, cubicHermiteDerivative } from "../../../npm/dist/global/math/num.js";
 import { tangent as subTangent } from "../../../npm/dist/global/math/tangent.js";
 import { copyArrayLike, fillArrayLike } from "../../../npm/dist/global/math/utils.js";
@@ -115,7 +115,7 @@ test("vertex compatibility delegates to shared mesh math", () =>
 
 test("quat creates Carbon yaw pitch roll rotations", () =>
 {
-    const out = quat.fromYawPitchRoll(quat.create(), 0.5, 0.6, 0.7);
+    const out = quat.fromYawPitchRollCarbon(quat.create(), 0.5, 0.6, 0.7);
 
     almostEqualArray(out, [
         0.350018859,
@@ -136,7 +136,7 @@ test("one-dimensional Perlin noise matches Carbon's seeded implementation", () =
     assert.ok(Math.abs(first.sample(0.21) - expectedAtPointTwoOne) <= 1e-15);
     assert.equal(second.sample(0.21), first.sample(0.21));
     assert.notEqual(other.sample(0.21), first.sample(0.21));
-    assert.equal(carbonPerlin1D(0.21, 1.1, 2, 3), first.fractalSum(0.21, 3, 1 / 1.1, 2));
+    assert.equal(perlin1DCarbon(0.21, 1.1, 2, 3), first.fractalSum(0.21, 3, 1 / 1.1, 2));
     assert.equal(typeof perlin1(0.21), "number");
     assert.equal(typeof perlin1D(0.21, 1.1, 2, 3), "number");
     assert.equal(first.fractalSum(3, -1), 0);
@@ -157,16 +157,16 @@ test("color exposes reusable color-space transforms", () =>
 
     assert.equal(color.linearToGamma(out, srgb), out);
     almostEqualArray(out, [
-        num.linearToGamma(0.25),
-        num.linearToGamma(0.5),
-        num.linearToGamma(0.75)
+        num.linearToGammaCarbon(0.25),
+        num.linearToGammaCarbon(0.5),
+        num.linearToGammaCarbon(0.75)
     ]);
 
     assert.equal(color.gammaToLinear(out, srgb), out);
     almostEqualArray(out, [
-        num.gammaToLinear(0.25),
-        num.gammaToLinear(0.5),
-        num.gammaToLinear(0.75)
+        num.gammaToLinearCarbon(0.25),
+        num.gammaToLinearCarbon(0.5),
+        num.gammaToLinearCarbon(0.75)
     ]);
 
     assert.equal(color.srgbFromLinear(out, srgb), out);

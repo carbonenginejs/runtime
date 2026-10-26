@@ -302,7 +302,7 @@ export class BackAndForth extends IRoot
         vec3.normalize(INV_DIR, INV_DIR);
         // Carbon TriQuaternionRotationArc(&newRotation, &zAxis, &invDir)
         // (BackAndForth.cpp:165); a zero direction yields identity.
-        quat.rotationArc(agent.rotation, Z_AXIS, INV_DIR);
+        quat.rotationArcCarbon(agent.rotation, Z_AXIS, INV_DIR);
         data.timePassed = 0;
 
         // Start playing fx when slowing down

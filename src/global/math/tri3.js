@@ -182,7 +182,7 @@ tri3.fromVertices = function(out, v1, v2, v3)
  * @param {vec3} max
  * @returns {boolean} false only when a slab separates the triangle
  */
-tri3.intersectsBounds = function(a, min, max)
+tri3.intersectsBoundsCarbon = function(a, min, max)
 {
     for (let axis = 0; axis < 3; axis++)
     {
@@ -218,7 +218,7 @@ tri3.intersectsBounds = function(a, min, max)
  * @param {mat4} invOrientedBox inverse of the box transform
  * @returns {boolean} true when no separating axis was found
  */
-tri3.intersectsOrientedBox = (function()
+tri3.intersectsOrientedBoxCarbon = (function()
 {
     const v = [ vec3.create(), vec3.create(), vec3.create() ];
     const e = [ vec3.create(), vec3.create(), vec3.create() ];
@@ -798,8 +798,8 @@ export const {
     getNormalFromVertices,
     getNormal,
     getV1,
-    intersectsBounds,
-    intersectsOrientedBox,
+    intersectsBoundsCarbon,
+    intersectsOrientedBoxCarbon,
     getV2,
     getV3,
     setV1,

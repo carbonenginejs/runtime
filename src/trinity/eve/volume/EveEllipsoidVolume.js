@@ -154,11 +154,11 @@ export class EveEllipsoidVolume extends IEveVolume
     const f = Math.fround;
     const point = vec3.transformMat4(POSITION, position, this._inverseRotationMatrix);
 
-    if (!sph3.isPointInsideEllipsoid(this.position, this.shape, point))
+    if (!sph3.isPointInsideEllipsoidCarbon(this.position, this.shape, point))
     {
       return 0;
     }
-    if (sph3.isPointInsideEllipsoid(this.position, this.innerShape, point))
+    if (sph3.isPointInsideEllipsoidCarbon(this.position, this.innerShape, point))
     {
       return 1;
     }
@@ -166,13 +166,13 @@ export class EveEllipsoidVolume extends IEveVolume
     vec3.set(this._innerIntersection, 0, 0, 0);
 
     const rayDir = vec3.normalizeCarbon(RAY_DIR, vec3.subtract(RAY_DIR, this.position, point));
-    sph3.intersectEllipsoidRayClosest(this._outerIntersection, this.position, this.shape, point, rayDir);
+    sph3.intersectEllipsoidRayClosestCarbon(this._outerIntersection, this.position, this.shape, point, rayDir);
 
     // LengthSq( m_innerShape ) != 0, in float.
     const innerShape = this.innerShape;
     if (f(f(f(innerShape[0] * innerShape[0]) + f(innerShape[1] * innerShape[1])) + f(innerShape[2] * innerShape[2])) !== 0)
     {
-      sph3.intersectEllipsoidRayClosest(this._innerIntersection, this.position, this.innerShape, point, rayDir);
+      sph3.intersectEllipsoidRayClosestCarbon(this._innerIntersection, this.position, this.innerShape, point, rayDir);
     }
 
     return f(

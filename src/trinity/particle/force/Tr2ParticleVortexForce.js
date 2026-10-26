@@ -91,7 +91,7 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
   RenderDebugInfo(renderer, worldTransform, _aabb)
   {
     const f = Math.fround;
-    const basis = mat4.orthoNormalBasisZ(DEBUG_BASIS, this.axis);
+    const basis = mat4.orthoNormalBasisZCarbon(DEBUG_BASIS, this.axis);
     const translation = mat4.fromTranslation(DEBUG_TRANSLATION, this.position);
     // Carbon (row-vector): OrthoNormalBasisZ( m_axis ) * TranslationMatrix( m_position ) * worldTransform.
     const local = mat4.multiply(DEBUG_LOCAL, translation, basis);

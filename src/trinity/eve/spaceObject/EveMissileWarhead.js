@@ -4,7 +4,7 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/EveMissileWarhead.cpp
 import { EveMissileWarheadPerObjectData } from "../../core/rawData/perObjectData/EveMissileWarheadPerObjectData.js";
 import { mat4 } from "#math/mat4";
-import { carbonPerlin1D } from "#math/noise";
+import { perlin1DCarbon } from "#math/noise";
 import { num } from "#math/num";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
@@ -297,9 +297,9 @@ export class EveMissileWarhead extends EveTransform
   Update__UpdateContext(context)
   {
     const position = this._flyingTime * this.pathOffsetNoiseSpeed + this._noisePhase;
-    this.pathOffset[0] = carbonPerlin1D(position, 1.1, 2, 3) * this.pathOffsetNoiseScale;
-    this.pathOffset[1] = carbonPerlin1D(position + 10.1, 1.1, 2, 3) * this.pathOffsetNoiseScale;
-    this.pathOffset[2] = carbonPerlin1D(position + 18.3, 1.1, 2, 3) * this.pathOffsetNoiseScale;
+    this.pathOffset[0] = perlin1DCarbon(position, 1.1, 2, 3) * this.pathOffsetNoiseScale;
+    this.pathOffset[1] = perlin1DCarbon(position + 10.1, 1.1, 2, 3) * this.pathOffsetNoiseScale;
+    this.pathOffset[2] = perlin1DCarbon(position + 18.3, 1.1, 2, 3) * this.pathOffsetNoiseScale;
     vec3.subtract(this._positionLastFrame, this._positionLastFrame, context.GetOriginShift());
     super.Update__UpdateContext(context);
     this.GetWorldPosition(EveMissileWarhead._positionNow);

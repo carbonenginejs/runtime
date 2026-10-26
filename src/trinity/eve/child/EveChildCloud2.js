@@ -1113,7 +1113,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   SetupShadowFrustum(shadowInfo, sunDir)
   {
     vec3.set(SUN_SCRATCH, -sunDir[0], -sunDir[1], -sunDir[2]);
-    mat4.orthoNormalBasisZ(BASIS_SCRATCH, SUN_SCRATCH);
+    mat4.orthoNormalBasisZCarbon(BASIS_SCRATCH, SUN_SCRATCH);
     if (!mat4.invert(LIGHT_VIEW_SCRATCH, BASIS_SCRATCH))
     {
       mat4.identity(LIGHT_VIEW_SCRATCH);

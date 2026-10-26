@@ -224,7 +224,7 @@ const s_fixedPerlinNoise1D = noise.createPerlinNoise1D(0);
  * @param {number} octaves
  * @returns {number}
  */
-noise.carbonPerlin1D = function(x, inverseAmplitude, frequency, octaves)
+noise.perlin1DCarbon = function(x, inverseAmplitude, frequency, octaves)
 {
     return s_fixedPerlinNoise1D.fractalSum(x, octaves, 1 / inverseAmplitude, frequency);
 };
@@ -316,7 +316,7 @@ noise.perlin1D = function(x, alpha, beta, octaves)
 export const {
     turbulence,
     createPerlinNoise1D,
-    carbonPerlin1D,
+    perlin1DCarbon,
     perlin1,
     perlin1D
 } = noise;

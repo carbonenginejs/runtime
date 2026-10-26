@@ -506,7 +506,7 @@ export class SeekTarget extends IRoot
         }
 
         const inverseDirection = vec3.normalize(INVERSE_DIRECTION, vec3.subtract(INVERSE_DIRECTION, data.position, agent.position));
-        quat.rotationArc(agent.rotation, Z_AXIS, inverseDirection);
+        quat.rotationArcCarbon(agent.rotation, Z_AXIS, inverseDirection);
         data.timePassed = 0;
 
         if (!agent.playFX)

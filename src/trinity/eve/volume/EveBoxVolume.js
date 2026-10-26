@@ -170,7 +170,7 @@ export class EveBoxVolume extends IEveVolume
     const axisAlignedPosition = vec3.transformMat4(AXIS_ALIGNED_POSITION, position, this._inverseBoxTransform);
 
     // Are we outside the outer box?
-    if (!box3.bounds.boundingBoxIsInside(EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedPosition))
+    if (!box3.bounds.boundingBoxIsInsideCarbon(EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedPosition))
     {
       return 0;
     }
@@ -178,7 +178,7 @@ export class EveBoxVolume extends IEveVolume
     const axisAlignedInnerPosition = vec3.transformMat4(AXIS_ALIGNED_INNER_POSITION, position, this._inverseInnerBoxTransform);
 
     // Are we inside the inner box?
-    if (box3.bounds.boundingBoxIsInside(EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedInnerPosition))
+    if (box3.bounds.boundingBoxIsInsideCarbon(EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedInnerPosition))
     {
       return 1;
     }
@@ -186,8 +186,8 @@ export class EveBoxVolume extends IEveVolume
     const rayDir = vec3.normalizeCarbon(RAY_DIR, vec3.negate(RAY_DIR, axisAlignedPosition));
 
     // We are somewhere in between (cpp:79-80); Carbon ignores both hit flags.
-    box3.bounds.intersectAxisAlignedBoxRay(this._outerIntersection, EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedPosition, rayDir);
-    box3.bounds.intersectAxisAlignedBoxRay(this._innerIntersection, EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedInnerPosition, rayDir);
+    box3.bounds.intersectAxisAlignedBoxRayCarbon(this._outerIntersection, EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedPosition, rayDir);
+    box3.bounds.intersectAxisAlignedBoxRayCarbon(this._innerIntersection, EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB, axisAlignedInnerPosition, rayDir);
 
     // Move the inner intersection to the outer box space (cpp:83).
     // Carbon (row-vector): m_innerBoxTransform * m_inverseBoxTransform - inner box first.

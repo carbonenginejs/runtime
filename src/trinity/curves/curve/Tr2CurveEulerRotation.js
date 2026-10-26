@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation.h
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation.cpp
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation_Blue.cpp
-import { fromYawPitchRoll, quat } from "#math/quat";
+import { fromYawPitchRollCarbon, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, ITriCurveLength } from "#blue";
 import { meta, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
@@ -62,7 +62,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
     const yaw = this.yaw.Update(time),
       pitch = this.pitch.Update(time),
       roll = this.roll.Update(time);
-    fromYawPitchRoll(this.currentValue, yaw, pitch, roll);
+    fromYawPitchRollCarbon(this.currentValue, yaw, pitch, roll);
   }
 
   /**
@@ -94,7 +94,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
   @meta.adapted
   GetValueAt(time, out)
   {
-    return fromYawPitchRoll(out, this.yaw.GetValue(time), this.pitch.GetValue(time), this.roll.GetValue(time));
+    return fromYawPitchRollCarbon(out, this.yaw.GetValue(time), this.pitch.GetValue(time), this.roll.GetValue(time));
   }
 
   /**

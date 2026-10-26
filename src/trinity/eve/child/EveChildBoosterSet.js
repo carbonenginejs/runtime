@@ -342,7 +342,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     for (const booster of this._singleBoosters)
     {
       const transform = booster.transform;
-      sph3.boundingSphereUpdate(this._boosterBoundingSphere, mat4.getTranslation(POSITION_SCRATCH, transform));
+      sph3.boundingSphereUpdateCarbon(this._boosterBoundingSphere, mat4.getTranslation(POSITION_SCRATCH, transform));
       this.maxSize = Math.max(this.maxSize, Math.max(
         Math.hypot(transform[0], transform[1], transform[2]),
         Math.hypot(transform[4], transform[5], transform[6])));
@@ -604,7 +604,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
     // Exact positions only - the exhaust size padding happens in
     // GetBoundingSphere (Carbon's warning comment, cpp:183-186).
-    sph3.boundingSphereUpdate(this._boosterBoundingSphere, mat4.getTranslation(POSITION_SCRATCH, transform));
+    sph3.boundingSphereUpdateCarbon(this._boosterBoundingSphere, mat4.getTranslation(POSITION_SCRATCH, transform));
 
     if (scale > this.maxSize)
     {

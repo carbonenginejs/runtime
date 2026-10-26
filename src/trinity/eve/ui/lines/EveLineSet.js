@@ -371,8 +371,8 @@ export class EveLineSet
     vec4.set(this.boundingSphere, 0, 0, 0, 0);
     for (const line of this.lines)
     {
-      sph3.boundingSphereUpdate(this.boundingSphere, line.position1);
-      sph3.boundingSphereUpdate(this.boundingSphere, line.position2);
+      sph3.boundingSphereUpdateCarbon(this.boundingSphere, line.position1);
+      sph3.boundingSphereUpdateCarbon(this.boundingSphere, line.position2);
     }
     return true;
   }

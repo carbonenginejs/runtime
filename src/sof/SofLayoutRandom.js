@@ -479,7 +479,7 @@ function distributeLocators(distribution, locators, managed, context, layoutPlan
       const yaw = step[0] * Math.floor(maxSteps[0] * context.random.next() + 0.5);
       const pitch = step[1] * Math.floor(maxSteps[1] * context.random.next() + 0.5);
       const roll = step[2] * Math.floor(maxSteps[2] * context.random.next() + 0.5);
-      const randomRotation = quat.fromYawPitchRoll(quat.create(), yaw, pitch, roll);
+      const randomRotation = quat.fromYawPitchRollCarbon(quat.create(), yaw, pitch, roll);
       locator.rotation = Array.from(quat.multiply(quat.create(), randomRotation, locator.rotation));
     }
   }

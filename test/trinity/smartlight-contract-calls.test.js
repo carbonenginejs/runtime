@@ -61,7 +61,7 @@ test("noise modifier samples Blue's frame time in seconds while processing, not 
   t.mock.method(be.os, "GetCurrentFrameTime", () => frameTime);
   const expected = time =>
   {
-    const value = noise.carbonPerlin1D(CcpTime.timeAsDouble(time) * 3, 2, 2, 1);
+    const value = noise.perlin1DCarbon(CcpTime.timeAsDouble(time) * 3, 2, 2, 1);
     return 1 + ((value + 1) / 2 - 1);
   };
   const update = new EveUpdateContext();

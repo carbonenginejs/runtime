@@ -75,7 +75,7 @@ sph3.containsPoint = function(a, p)
  * @param {vec3} pos The point to include.
  * @returns {sph3} sphere
  */
-sph3.boundingSphereUpdate = function(sphere, pos)
+sph3.boundingSphereUpdateCarbon = function(sphere, pos)
 {
     const x = pos[0] - sphere[0],
         y = pos[1] - sphere[1],
@@ -246,7 +246,7 @@ sph3.fromBox3 = function(out, b)
  * @param {Array<ArrayLike<number>>} points Each an [x, y, z].
  * @returns {sph3}
  */
-sph3.fromPoints = function(out, points)
+sph3.fromPointsCarbon = function(out, points)
 {
     const sphere = sphereFromSupport(points, 0, points.length);
     out[0] = sphere[0];
@@ -876,7 +876,7 @@ sph3.translate = function(out, a, v)
  * @param {vec3} point Point to test.
  * @returns {boolean}
  */
-sph3.isPointInsideEllipsoid = function(ellipsoidCenter, ellipsoidRadii, point)
+sph3.isPointInsideEllipsoidCarbon = function(ellipsoidCenter, ellipsoidRadii, point)
 {
     const f = Math.fround;
     const dx = f(f(point[0] - ellipsoidCenter[0]) / ellipsoidRadii[0]);
@@ -899,7 +899,7 @@ sph3.isPointInsideEllipsoid = function(ellipsoidCenter, ellipsoidRadii, point)
  * @param {vec3} rayDir Ray direction.
  * @returns {boolean} false when the line misses the ellipsoid.
  */
-sph3.intersectEllipsoidRayClosest = function(out, ellipsoidCenter, ellipsoidRadii, rayOrigin, rayDir)
+sph3.intersectEllipsoidRayClosestCarbon = function(out, ellipsoidCenter, ellipsoidRadii, rayOrigin, rayDir)
 {
     const f = Math.fround;
 
@@ -949,7 +949,7 @@ export const {
     extract,
     fromBox3,
     fromBounds,
-    fromPoints,
+    fromPointsCarbon,
     fromPositionRadius,
     from,
     fromTranslationRadius,
@@ -977,6 +977,6 @@ export const {
     toPositionRadius,
     transformMat4,
     translate,
-    isPointInsideEllipsoid,
-    intersectEllipsoidRayClosest
+    isPointInsideEllipsoidCarbon,
+    intersectEllipsoidRayClosestCarbon
 } = sph3;

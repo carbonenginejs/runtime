@@ -5,7 +5,7 @@ import { exposure as be } from "#be";
 import { IBehavior } from "./IBehavior.js";
 import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
-import { carbonPerlin1D } from "#math/noise";
+import { perlin1DCarbon } from "#math/noise";
 import { ProcessPriority } from "./enums.js";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
@@ -82,7 +82,7 @@ export class Wander extends IRoot
 
   /**
    * Adds a per-agent Perlin wander force seeded from lifetime + id (Carbon
-   * CalculateBehavior, cpp:28-52; PerlinNoise1D maps to carbonPerlin1D).
+   * CalculateBehavior, cpp:28-52; PerlinNoise1D maps to perlin1DCarbon).
    *
    * Adapted: Carbon pushes a debug force pair for every agent unconditionally; the JS port
    * collects them only when group.collectForces is set to keep the per-agent loop
@@ -114,9 +114,9 @@ export class Wander extends IRoot
 
       vec3.set(
         FORCE,
-        carbonPerlin1D(seed * this.rand1 * this.freq, 2, 1, 1),
-        carbonPerlin1D(seed * this.rand2 * this.freq, 2, 1, 1),
-        carbonPerlin1D(seed * this.rand3 * this.freq, 2, 1, 1)
+        perlin1DCarbon(seed * this.rand1 * this.freq, 2, 1, 1),
+        perlin1DCarbon(seed * this.rand2 * this.freq, 2, 1, 1),
+        perlin1DCarbon(seed * this.rand3 * this.freq, 2, 1, 1)
       );
 
       if (group.collectForces)

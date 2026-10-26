@@ -14,11 +14,11 @@ test("Carbon half storage preserves ties, subnormals and native special encoding
 {
     for (const [value, bits] of [[1,0x3c00],[1+2**-11,0x3c00],[1+3*2**-11,0x3c02],
         [2**-24,1],[2**-25,0],[-0,0x8000],[65536,0x7c00],[Infinity,0x7fff],[-Infinity,0xffff]])
-        assert.equal(num.toCarbonHalfFloat(value),bits);
-    assert.equal(num.fromCarbonHalfFloat(0x7c00),65536);
-    assert.equal(num.fromCarbonHalfFloat(1),2**-24);
-    assert.ok(Number.isNaN(num.fromCarbonHalfFloat(0x7fff)));
-    assert.equal(num.toCarbonHalfFloat(num.fromCarbonHalfFloat(0xffff)),0xffff);
+        assert.equal(num.toHalfFloatCarbon(value),bits);
+    assert.equal(num.fromHalfFloatCarbon(0x7c00),65536);
+    assert.equal(num.fromHalfFloatCarbon(1),2**-24);
+    assert.ok(Number.isNaN(num.fromHalfFloatCarbon(0x7fff)));
+    assert.equal(num.toHalfFloatCarbon(num.fromHalfFloatCarbon(0xffff)),0xffff);
     assert.equal(num.toHalfFloat(Infinity),0x7c00,"general IEEE helper retains its contract");
 });
 

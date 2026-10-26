@@ -84,7 +84,7 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
     lowStep = updateContext.GetMediumDetailThreshold();
     highStep = updateContext.GetHighDetailThreshold();
   }
-  return Math.floor(lowCount + (highCount - lowCount) * num.triLinearize(lowStep, highStep, pixelSize));
+  return Math.floor(lowCount + (highCount - lowCount) * num.triLinearizeCarbon(lowStep, highStep, pixelSize));
 }
 
 

@@ -725,7 +725,7 @@ export class ProcessLifetime extends IRoot
     vec3.copy(agent.position, potentialPoints[randomNbr]);
     // Carbon TriQuaternionRotationArc(&agent.rotation, &zAxis, &potentialRotations[n])
     // (ProcessLifetime.cpp:423); it normalizes internally.
-    quat.rotationArc(agent.rotation, Z_AXIS, potentialRotations[randomNbr]);
+    quat.rotationArcCarbon(agent.rotation, Z_AXIS, potentialRotations[randomNbr]);
 
     data.assignedLifeTimeTunnel = tunnelIndex[randomNbr];
   }

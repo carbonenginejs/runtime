@@ -4,7 +4,7 @@ import { blue } from "#blue";
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation_Blue.cpp
 import { random } from "#math/random";
-import { fromYawPitchRoll, quat } from "#math/quat";
+import { fromYawPitchRollCarbon, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, IInitialize } from "#blue";
 import { meta, type, blue as legacyBlue } from "#schema";
 import { CcpTime } from "#blue";
@@ -229,7 +229,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
     if (this.period !== 0)
     {
       const angle = time / Math.abs(this.period) * Math.PI * 2;
-      fromYawPitchRoll(this._rotation, 0, angle, 0);
+      fromYawPitchRollCarbon(this._rotation, 0, angle, 0);
       quat.multiply(out, this._rotation, out);
     }
     return quat.multiply(out, this.preRotation, out);
@@ -311,7 +311,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
     const roll = Tr2CurveRandomAxisRotation._randomAngle(engine);
     const pitch = Tr2CurveRandomAxisRotation._randomAngle(engine);
     const yaw = Tr2CurveRandomAxisRotation._randomAngle(engine);
-    return fromYawPitchRoll(out, yaw, pitch, roll);
+    return fromYawPitchRollCarbon(out, yaw, pitch, roll);
   }
 
   /**

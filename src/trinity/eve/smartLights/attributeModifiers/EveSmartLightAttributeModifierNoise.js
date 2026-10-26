@@ -5,7 +5,7 @@ import { meta, type } from "#schema";
 import { blue, CcpTime } from "#blue";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
-import { carbonPerlin1D } from "#math/noise";
+import { perlin1DCarbon } from "#math/noise";
 
 /** EveSmartLightAttributeModifierNoise (eve/smartLights/attributeModifiers) - generated from schema shapeHash 60b52eeb.... */
 @be.define("EveSmartLightAttributeModifierNoise")
@@ -47,7 +47,7 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * Scales the attribute by a Perlin-noise brightness pulse
    * (EveSmartLightAttributeModifierNoise.cpp:19-30), sampled at Blue's frame time
    * in seconds, read here as Carbon reads TimeAsDouble( BeOS->GetCurrentFrameTime() ).
-   * PerlinNoise1D(x, 2, 2, n) maps to the shared carbonPerlin1D port.
+   * PerlinNoise1D(x, 2, 2, n) maps to the shared perlin1DCarbon port.
    */
 
   @meta.implemented
@@ -58,7 +58,7 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
 
     if (activationAdjustedAmplitude > 0)
     {
-      const noise = carbonPerlin1D(CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()) * this.noiseFrequency, 2, 2, this.noiseOctaves);
+      const noise = perlin1DCarbon(CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()) * this.noiseFrequency, 2, 2, this.noiseOctaves);
       const noisifiedBrightness = ((noise + 1) / 2) * activationAdjustedAmplitude;
       const scale = 1 + activationStrength * (noisifiedBrightness - 1);
       attribute[0] *= scale;

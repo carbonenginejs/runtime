@@ -1071,7 +1071,7 @@ export class Tr2GrannyAnimation extends IRoot
         parent[8] * x + parent[9] * y + parent[10] * z);
       vec3.normalize(direction, direction);
     }
-    quat.rotationArc(bone.orientation, this._aimAxis, direction);
+    quat.rotationArcCarbon(bone.orientation, this._aimAxis, direction);
   }
 
   /** Carbon method ChainAnimation (MAP_METHOD_AND_WRAP). */

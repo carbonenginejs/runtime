@@ -391,8 +391,8 @@ export class Tr2Vector2Parameter extends ITriEffectParameter
       }
       return;
     }
-    this.linearValue[0] = num.gammaToLinear(this.value[0]);
-    this.linearValue[1] = num.gammaToLinear(this.value[1]);
+    this.linearValue[0] = num.gammaToLinearCarbon(this.value[0]);
+    this.linearValue[1] = num.gammaToLinearCarbon(this.value[1]);
   }
 
   /**

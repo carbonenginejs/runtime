@@ -662,7 +662,7 @@ export class BehaviorGroup extends EveEntity
       // Carbon TriQuaternionRotationArc(&rotation, &zAxis, &actualFacingDir)
       // (BehaviorGroup.cpp:611); it normalizes internally, and a zero facing
       // yields identity as in Carbon.
-      quat.rotationArc(agent.rotation, Z_AXIS, ACTUAL_FACING);
+      quat.rotationArcCarbon(agent.rotation, Z_AXIS, ACTUAL_FACING);
       vec3.copy(agent.targetDirection, ACTUAL_FACING);
 
       ClampLength(agent.velocity, this.maxVelocity);

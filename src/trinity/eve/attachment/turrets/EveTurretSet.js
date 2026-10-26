@@ -1099,7 +1099,7 @@ export class EveTurretSet extends EveEntity
     {
       vec3.set(EveTurretSet._turretPosition, out[12], out[13], out[14]);
       vec3.subtract(EveTurretSet._targetDirection, this.target.GetTrackingPosition(), EveTurretSet._turretPosition);
-      quat.rotationArc(EveTurretSet._directRotation, EveTurretSet._unitZ, EveTurretSet._targetDirection);
+      quat.rotationArcCarbon(EveTurretSet._directRotation, EveTurretSet._unitZ, EveTurretSet._targetDirection);
       mat4.fromRotationTranslation(out, EveTurretSet._directRotation, EveTurretSet._turretPosition);
     }
     else

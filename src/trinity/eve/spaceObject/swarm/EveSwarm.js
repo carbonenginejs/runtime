@@ -399,7 +399,7 @@ export class EveSwarm extends EveShip2
       // Roll is based on how large acceleration is in the direction of the side vector.
       roll = 0.8 * vec3.dot(vehicle.acceleration, vec3_22) * Math.PI / speed;
     }
-    quat.fromYawPitchRoll(quat_0, yaw, pitch, roll);
+    quat.fromYawPitchRollCarbon(quat_0, yaw, pitch, roll);
     quat.slerp(vehicle.rotation, vehicle.rotation, quat_0, timeDiff * this.agility);
   }
 
@@ -629,14 +629,14 @@ export class EveSwarm extends EveShip2
       this.CalculateForces(i, this.vehicles, vec3_16, vec3_12, vec3_13, vec3_14, vec3_15, timeSeconds, vec3_17);
       const vehicle = this.vehicles[i];
       vec3.scale(vehicle.acceleration, vec3_17, 1 / this.mass);
-      vec3.clampLength(vehicle.acceleration, vehicle.acceleration, maxAcceleration);
+      vec3.clampLengthCarbon(vehicle.acceleration, vehicle.acceleration, maxAcceleration);
     }
 
     // Update velocities and positions
     for (const vehicle of this.vehicles)
     {
       vec3.scaleAndAdd(vehicle.velocity, vehicle.velocity, vehicle.acceleration, timeSeconds);
-      vec3.clampLength(vehicle.velocity, vehicle.velocity, maxSpeed);
+      vec3.clampLengthCarbon(vehicle.velocity, vehicle.velocity, maxSpeed);
       vec3.scaleAndAdd(vehicle.position, vehicle.position, vehicle.velocity, timeSeconds);
       this.UpdateOrientation(vehicle, timeSeconds);
       vec3.min(this.squadBoundsMin, this.squadBoundsMin, vehicle.position);
@@ -649,7 +649,7 @@ export class EveSwarm extends EveShip2
     vec3.scale(vec3_12, vec3_12, 0.5);
     vec3.subtract(vec3_18, this.worldPosition, vec3_12);
     const distance = vec3.length(vec3_18);
-    const blend = num.triLinearize(this.speed0, this.speed1, vec3.length(this.worldVelocity));
+    const blend = num.triLinearizeCarbon(this.speed0, this.speed1, vec3.length(this.worldVelocity));
     const maxDistance = this.maxDistance0 + (this.maxDistance1 - this.maxDistance0) * blend;
     if (distance > maxDistance)
     {
@@ -1172,11 +1172,11 @@ export class EveSwarm extends EveShip2
     vec3.scale(vec3_1, vec3_1, this.weightCohesion);
     this.Calculate_Cohesion(swarmer.position, followPosition, vec3_2);
     let anchorDistance = vec3.length(vec3_2);
-    anchorDistance = num.triLinearize(this.anchorRadius0, this.anchorRadius1, anchorDistance);
+    anchorDistance = num.triLinearizeCarbon(this.anchorRadius0, this.anchorRadius1, anchorDistance);
     vec3.scale(vec3_2, vec3_2, anchorDistance * this.weightAnchor);
     vec3.scale(vec3_3, alignment, this.weightAlign);
     vec3.scale(vec3_4, swarmer.velocity, -this.weightDeceleration);
-    vec3.clampLength(vec3_4, vec3_4, this.maxDeceleration);
+    vec3.clampLengthCarbon(vec3_4, vec3_4, this.maxDeceleration);
 
     vec3.set(vec3_5, 0, 0, 0);
     for (let i = 0; i < swarmers.length; i++)

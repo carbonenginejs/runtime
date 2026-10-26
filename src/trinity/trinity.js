@@ -45,5 +45,5 @@ export function InitializeTrinity()
 
   // Carbon builds the noise table here before other threads call it; ours is
   // built when noise.js loads, so this call only matches the order.
-  noise.carbonPerlin1D(0.0, 1.0, 1.0, 1);
+  noise.perlin1DCarbon(0.0, 1.0, 1.0, 1);
 }

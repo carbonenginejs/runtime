@@ -437,7 +437,7 @@ export class EveSmartLightPointLight extends EveEntity
       perLightScaling *= Math.max(placement.additionalScale[0], placement.additionalScale[1], placement.additionalScale[2]);
 
       record.radius = this._lightGroupData.radius * scaling * perLightScaling;
-      record.innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(Math.fround(this._lightGroupData.innerRadius * scaling) * perLightScaling)));
+      record.innerRadius = num.fromHalfFloatCarbon(num.toHalfFloatCarbon(Math.fround(Math.fround(this._lightGroupData.innerRadius * scaling) * perLightScaling)));
       record.flags = this._lightGroupData.flags;
 
       // Carbon (row-vector): initialRotation * additionalRotation - initialRotation first.
@@ -466,7 +466,7 @@ export class EveSmartLightPointLight extends EveEntity
       vec3.normalize(record.direction, direction);
       for (let axis = 0; axis < 3; axis++)
       {
-        record.direction[axis] = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(record.direction[axis]));
+        record.direction[axis] = num.fromHalfFloatCarbon(num.toHalfFloatCarbon(record.direction[axis]));
       }
 
       const strength = this._lightGroupData.brightness * this._activationStrength;
@@ -482,8 +482,8 @@ export class EveSmartLightPointLight extends EveEntity
 
       if (this.lightType === Tr2Light.SPOT_LIGHT)
       {
-        record.outerAngle = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this._lightGroupData.outerAngle) / 360))));
-        record.innerAngle = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this._lightGroupData.innerAngle) / 360))));
+        record.outerAngle = num.fromHalfFloatCarbon(num.toHalfFloatCarbon(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this._lightGroupData.outerAngle) / 360))));
+        record.innerAngle = num.fromHalfFloatCarbon(num.toHalfFloatCarbon(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this._lightGroupData.innerAngle) / 360))));
       }
 
       record.lightType = this.lightType;
@@ -544,7 +544,7 @@ export class EveSmartLightPointLight extends EveEntity
       perLightScaling = Math.fround(perLightScaling * Math.max(placement.additionalScale[0], placement.additionalScale[1], placement.additionalScale[2]));
 
       const radius = Math.fround(this._lightGroupData.radius * perLightScaling);
-      const innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(this._lightGroupData.innerRadius * perLightScaling)));
+      const innerRadius = num.fromHalfFloatCarbon(num.toHalfFloatCarbon(Math.fround(this._lightGroupData.innerRadius * perLightScaling)));
 
       renderer.DrawSphere__TransformCenterRadius(
         Tr2DebugObjectReference.create__Object(this),

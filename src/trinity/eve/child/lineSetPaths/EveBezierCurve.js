@@ -413,7 +413,7 @@ export class EveBezierCurve extends IEveLineSetPath
         vec3.subtract(vec3_1, Tr2Renderer.GetViewPosition(), vec3_1);
         vec3.transformMat4(vec3_1, vec3_1, mat4_1);
       }
-      quat.arcFromForward(quat_0, vec3_1);
+      quat.arcFromForwardCarbon(quat_0, vec3_1);
       vec3.scale(vec3_2, this.objectScale, sizeMod);
       mat4.fromRotationTranslationScale(mat4_0, quat_0, vec3_0, vec3_2);
       // Carbon: TransformationMatrix(scale, rotation, translation) * localTransform.

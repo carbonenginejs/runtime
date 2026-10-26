@@ -130,11 +130,11 @@ function calculateShadowMapAtlasSettings(shadowQuality)
 }
 
 // Carbon packs these halves through Float_16(...) (Tr2LightManager.cpp:297,
-// :328-329), which rounds to nearest. num.toCarbonHalfFloat is the runtime's Carbon-specific
+// :328-329), which rounds to nearest. num.toHalfFloatCarbon is the runtime's Carbon-specific
 // half codec and rounds identically for every in-range value; an earlier
 // file-local encoder here TRUNCATED, a 1-ulp divergence from Carbon,
 // removed 2026-09-08.
-const toHalf = num.toCarbonHalfFloat;
+const toHalf = num.toHalfFloatCarbon;
 
 /** Owns the frame's local-light records, their selection, and the packed light-buffer bytes the abstraction layer uploads. */
 @meta.carbon("Tr2LightManager")

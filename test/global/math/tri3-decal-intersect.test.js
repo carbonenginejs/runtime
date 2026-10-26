@@ -36,14 +36,14 @@ test("a triangle inside the unit box intersects it", () =>
 {
   const inside = triangleOf([ 0, 0, 0 ], [ 0.2, 0, 0 ], [ 0, 0.2, 0 ]);
 
-  assert.equal(tri3.intersectsOrientedBox(inside, UNIT), true);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(inside, UNIT), true);
 });
 
 test("a triangle wholly outside on one axis does not", () =>
 {
   const far = triangleOf([ 5, 0, 0 ], [ 6, 0, 0 ], [ 5, 1, 0 ]);
 
-  assert.equal(tri3.intersectsOrientedBox(far, UNIT), false);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(far, UNIT), false);
 });
 
 test("a triangle spanning the box intersects it", () =>
@@ -53,7 +53,7 @@ test("a triangle spanning the box intersects it", () =>
   // is used at all.
   const spanning = triangleOf([ -5, 0, 0 ], [ 5, 0, 0 ], [ 0, 5, 0 ]);
 
-  assert.equal(tri3.intersectsOrientedBox(spanning, UNIT), true);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(spanning, UNIT), true);
 });
 
 test("the triangle's own plane can separate it", () =>
@@ -62,7 +62,7 @@ test("the triangle's own plane can separate it", () =>
   // rejects this one; every face slab overlaps.
   const above = triangleOf([ -5, 0, 2 ], [ 5, 0, 2 ], [ 0, 5, 2 ]);
 
-  assert.equal(tri3.intersectsOrientedBox(above, UNIT), false);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(above, UNIT), false);
 });
 
 test("the box orientation is what decides, not the world position", () =>
@@ -70,16 +70,16 @@ test("the box orientation is what decides, not the world position", () =>
   // The same triangle against a box moved away from it.
   const triangle = triangleOf([ 0, 0, 0 ], [ 0.5, 0, 0 ], [ 0, 0.5, 0 ]);
 
-  assert.equal(tri3.intersectsOrientedBox(triangle, inverseBoxOf([ 1, 1, 1 ], [ 0, 0, 0 ])), true);
-  assert.equal(tri3.intersectsOrientedBox(triangle, inverseBoxOf([ 1, 1, 1 ], [ 10, 0, 0 ])), false);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(triangle, inverseBoxOf([ 1, 1, 1 ], [ 0, 0, 0 ])), true);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(triangle, inverseBoxOf([ 1, 1, 1 ], [ 10, 0, 0 ])), false);
 });
 
 test("a box scaled up reaches a triangle a unit box does not", () =>
 {
   const triangle = triangleOf([ 3, 0, 0 ], [ 4, 0, 0 ], [ 3, 1, 0 ]);
 
-  assert.equal(tri3.intersectsOrientedBox(triangle, UNIT), false);
-  assert.equal(tri3.intersectsOrientedBox(triangle, inverseBoxOf([ 5, 5, 5 ], [ 0, 0, 0 ])), true);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(triangle, UNIT), false);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(triangle, inverseBoxOf([ 5, 5, 5 ], [ 0, 0, 0 ])), true);
 });
 
 test("the bounds test rejects only on a separating slab", () =>
@@ -87,9 +87,9 @@ test("the bounds test rejects only on a separating slab", () =>
   const min = vec3.fromValues(-1, -1, -1);
   const max = vec3.fromValues(1, 1, 1);
 
-  assert.equal(tri3.intersectsBounds(triangleOf([ 0, 0, 0 ], [ 0.5, 0, 0 ], [ 0, 0.5, 0 ]), min, max), true);
-  assert.equal(tri3.intersectsBounds(triangleOf([ 5, 0, 0 ], [ 6, 0, 0 ], [ 5, 1, 0 ]), min, max), false);
-  assert.equal(tri3.intersectsBounds(triangleOf([ 0, -9, 0 ], [ 1, -9, 0 ], [ 0, -8, 0 ]), min, max), false);
+  assert.equal(tri3.intersectsBoundsCarbon(triangleOf([ 0, 0, 0 ], [ 0.5, 0, 0 ], [ 0, 0.5, 0 ]), min, max), true);
+  assert.equal(tri3.intersectsBoundsCarbon(triangleOf([ 5, 0, 0 ], [ 6, 0, 0 ], [ 5, 1, 0 ]), min, max), false);
+  assert.equal(tri3.intersectsBoundsCarbon(triangleOf([ 0, -9, 0 ], [ 1, -9, 0 ], [ 0, -8, 0 ]), min, max), false);
 });
 
 test("the bounds test is a broad phase and admits a corner straddle", () =>
@@ -106,8 +106,8 @@ test("the bounds test is a broad phase and admits a corner straddle", () =>
   const min = vec3.fromValues(-1, -1, -1);
   const max = vec3.fromValues(1, 1, 1);
 
-  assert.equal(tri3.intersectsBounds(straddle, min, max), true);
-  assert.equal(tri3.intersectsOrientedBox(straddle, UNIT), false);
+  assert.equal(tri3.intersectsBoundsCarbon(straddle, min, max), true);
+  assert.equal(tri3.intersectsOrientedBoxCarbon(straddle, UNIT), false);
 });
 
 test("neither test allocates per call", () =>
@@ -137,7 +137,7 @@ test("neither test allocates per call", () =>
     "const UNIT = { center: vec3.fromValues(0, 0, 0), halfExtents: vec3.fromValues(1, 1, 1),",
     "  axes: [ vec3.fromValues(1, 0, 0), vec3.fromValues(0, 1, 0), vec3.fromValues(0, 0, 1) ] };",
     "const t = { a: vec3.fromValues(0, 0, 0), b: vec3.fromValues(0.5, 0, 0), c: vec3.fromValues(0, 0.5, 0) };",
-    "const run = n => { for (let i = 0; i < n; i++) { tri3.intersectsOrientedBox(t, UNIT); tri3.intersectsBounds(t, UNIT.center, UNIT.halfExtents); } };",
+    "const run = n => { for (let i = 0; i < n; i++) { tri3.intersectsOrientedBoxCarbon(t, UNIT); tri3.intersectsBoundsCarbon(t, UNIT.center, UNIT.halfExtents); } };",
     "run(20000);",
     "const samples = [];",
     "for (let s = 0; s < 5; s++) {",

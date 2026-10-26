@@ -596,7 +596,7 @@ mat4.fromMat3 = function (out, m)
  * @param {vec3} z The basis Z axis; need not be normalised.
  * @returns {mat4} out
  */
-mat4.orthoNormalBasisZ = function (out, z)
+mat4.orthoNormalBasisZCarbon = function (out, z)
 {
     mat4.identity(out);
     const zl = Math.hypot(z[0], z[1], z[2]);
@@ -1614,7 +1614,7 @@ export const {
     arcFromForward,
     copyTranslation,
     fromMat3,
-    orthoNormalBasisZ,
+    orthoNormalBasisZCarbon,
     inverseCarbon,
     orthoD3D,
     lookAtD3D,

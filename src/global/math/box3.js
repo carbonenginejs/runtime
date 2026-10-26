@@ -1325,7 +1325,7 @@ box3.bounds.union = function (outMin, outMax, aMin, aMax, bMin, bMax)
  * @param {vec3} pos Point to test.
  * @returns {boolean}
  */
-box3.bounds.boundingBoxIsInside = function (min, max, pos)
+box3.bounds.boundingBoxIsInsideCarbon = function (min, max, pos)
 {
     if ((min[0] > pos[0]) || (max[0] < pos[0]))
     {
@@ -1358,7 +1358,7 @@ box3.bounds.boundingBoxIsInside = function (min, max, pos)
  * @param {vec3} rayDir Ray direction, normalised.
  * @returns {boolean} false when the ray misses the bounds.
  */
-box3.bounds.intersectAxisAlignedBoxRay = function (out, minBounds, maxBounds, rayOrigin, rayDir)
+box3.bounds.intersectAxisAlignedBoxRayCarbon = function (out, minBounds, maxBounds, rayOrigin, rayDir)
 {
     const f = Math.fround;
 
@@ -1402,7 +1402,7 @@ box3.bounds.intersectAxisAlignedBoxRay = function (out, minBounds, maxBounds, ra
     return minT < maxT;
 };
 
-// box3.bounds.intersectAxisAlignedBoxRay scratch for the degenerate-bounds branch.
+// box3.bounds.intersectAxisAlignedBoxRayCarbon scratch for the degenerate-bounds branch.
 const INTERSECT_AABB_RAY_POINT = new Float32Array(3);
 
 export const {

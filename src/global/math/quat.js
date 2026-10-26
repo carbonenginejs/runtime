@@ -145,7 +145,7 @@ quat.fromRotationMatrixCarbon = function(out, m)
  * @param {number} roll
  * @returns {quat}
  */
-quat.fromYawPitchRoll = function(out, yaw, pitch, roll)
+quat.fromYawPitchRollCarbon = function(out, yaw, pitch, roll)
 {
     const
         sinYaw = Math.sin(yaw / 2),
@@ -178,7 +178,7 @@ quat.fromYawPitchRoll = function(out, yaw, pitch, roll)
  * @param {ArrayLike<number>} to Target direction.
  * @returns {Float32Array} The destination quaternion.
  */
-quat.rotationArc = rotationArcImpl;
+quat.rotationArcCarbon = rotationArcImpl;
 
 /**
  * Carbon TriQuaternionArcFromForward (trinity/trinity/TriMath.cpp:341-356):
@@ -192,7 +192,7 @@ quat.rotationArc = rotationArcImpl;
  * @param {ArrayLike<number>} v The direction.
  * @returns {Float32Array} The destination quaternion.
  */
-quat.arcFromForward = function(out, v)
+quat.arcFromForwardCarbon = function(out, v)
 {
     const length = Math.hypot(v[0], v[1], v[2]);
     const x = length ? v[0] / length : 0;
@@ -271,8 +271,8 @@ export const {
     rotateY,
     rotateZ,
     rotationTo,
-    rotationArc,
-    arcFromForward,
+    rotationArcCarbon,
+    arcFromForwardCarbon,
     scale,
     set,
     setAxes,
@@ -285,5 +285,5 @@ export const {
     alloc,
     unalloc,
     fromUnitVectors,
-    fromYawPitchRoll
+    fromYawPitchRollCarbon
 } = quat;

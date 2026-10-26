@@ -184,7 +184,7 @@ export class LightData
     if (this.noiseAmplitude !== 0)
     {
       const elapsed = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime() - this.startTime);
-      const flicker = Math.fround(noise.carbonPerlin1D(elapsed * this.noiseFrequency, 2, 2, this.noiseOctaves));
+      const flicker = Math.fround(noise.perlin1DCarbon(elapsed * this.noiseFrequency, 2, 2, this.noiseOctaves));
       composedBrightness = Math.fround(composedBrightness * Math.fround(Math.fround((flicker + 1) / 2) * this.noiseAmplitude));
     }
 

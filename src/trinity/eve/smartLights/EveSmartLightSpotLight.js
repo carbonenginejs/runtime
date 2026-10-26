@@ -102,7 +102,7 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
       perLightScaling = Math.fround(perLightScaling * Math.max(Math.max(placement.additionalScale[0], placement.additionalScale[1]), placement.additionalScale[2]));
 
       const radius = Math.fround(this._lightGroupData.radius * perLightScaling);
-      const innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(this._lightGroupData.innerRadius * perLightScaling)));
+      const innerRadius = num.fromHalfFloatCarbon(num.toHalfFloatCarbon(Math.fround(this._lightGroupData.innerRadius * perLightScaling)));
 
       const outerAngle = Math.fround(Math.fround(TRI_2PI * this._lightGroupData.outerAngle) / 360);
       const innerAngle = Math.fround(Math.fround(TRI_2PI * this._lightGroupData.innerAngle) / 360);
@@ -123,7 +123,7 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
       const rot = statics._debugArc;
       vec3.transformQuat(lightRotation, lightRotation, rotation);
       vec3.scale(lightRotation, vec3.normalize(lightRotation, lightRotation), -1);
-      quat.arcFromForward(rot, lightRotation);
+      quat.arcFromForwardCarbon(rot, lightRotation);
       // Carbon (row-vector): rot *= m_staticOffsetRotation - rot first.
       quat.multiply(rot, this.staticOffsetRotation, rot);
       // Carbon (row-vector): RotationMatrix( rot ) * TranslationMatrix( ligtPosition ) * m_worldTransform.

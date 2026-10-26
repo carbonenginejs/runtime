@@ -164,8 +164,8 @@ export function SelectDecalTriangles(lod, decalMatrix, inverseDecalMatrix, bound
             [ positions[c], positions[c + 1], positions[c + 2] ]
         );
 
-        if (!tri3.intersectsBounds(triangle, min, max)) continue;
-        if (!tri3.intersectsOrientedBox(triangle, inverseDecalMatrix)) continue;
+        if (!tri3.intersectsBoundsCarbon(triangle, min, max)) continue;
+        if (!tri3.intersectsOrientedBoxCarbon(triangle, inverseDecalMatrix)) continue;
 
         selected.push(indices[at], indices[at + 1], indices[at + 2]);
     }

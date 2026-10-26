@@ -59,7 +59,7 @@ num.clamp = function (a, min, max)
  * @param {number} v
  * @returns {number}
  */
-num.triLinearize = function (min, max, v)
+num.triLinearizeCarbon = function (min, max, v)
 {
     return num.clamp((v - min) / (max - min), 0, 1);
 };
@@ -763,7 +763,7 @@ num.linearFromSRGB = function (a)
  * @param {Number} a
  * @returns {Number}
  */
-num.linearToGamma = function (a)
+num.linearToGammaCarbon = function (a)
 {
     return Math.pow(a, 0.454545);
 };
@@ -778,7 +778,7 @@ num.linearToGamma = function (a)
  * @param {Number} a
  * @returns {Number}
  */
-num.gammaToLinear = function (a)
+num.gammaToLinearCarbon = function (a)
 {
     return Math.pow(a, 2.2);
 };
@@ -801,7 +801,7 @@ num.srgbFromLinear = function (a)
  * @param {number} value Float32 input.
  * @returns {number} Unsigned 16-bit storage word.
  */
-num.toCarbonHalfFloat = (function()
+num.toHalfFloatCarbon = (function()
 {
     const floats = new Float32Array(1);
     const words = new Uint32Array(floats.buffer);
@@ -840,7 +840,7 @@ num.toCarbonHalfFloat = (function()
  * @param {number} word Unsigned 16-bit storage word.
  * @returns {number} Decoded float32 value.
  */
-num.fromCarbonHalfFloat = function(word)
+num.fromHalfFloatCarbon = function(word)
 {
     if ((word & 0x7fff) === 0x7fff) return word & 0x8000 ? -NaN : NaN;
     if ((word & 0x7c00) !== 0x7c00) return num.fromHalfFloat(word);
@@ -893,7 +893,7 @@ export const {
     exponentialDecay,
     fract,
     fromHalfFloat,
-    fromCarbonHalfFloat,
+    fromHalfFloatCarbon,
     floor,
     getLongWordOrder,
     greaterThan,
@@ -929,7 +929,7 @@ export const {
     smoothStep,
     smootherStep,
     toHalfFloat,
-    toCarbonHalfFloat,
+    toHalfFloatCarbon,
     colorFromLinear,
     linearFromColor,
     hexFromLinear,
@@ -937,7 +937,7 @@ export const {
     unwrapDegrees,
     unwrapRadians,
     linearFromSRGB,
-    linearToGamma,
-    gammaToLinear,
+    linearToGammaCarbon,
+    gammaToLinearCarbon,
     srgbFromLinear
 } = num;

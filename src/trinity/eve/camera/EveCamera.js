@@ -8,7 +8,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
 import { CjsSchema, meta, type, blue } from "#schema";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { fromYawPitchRoll, quat } from "#math/quat";
+import { fromYawPitchRollCarbon, quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { Tr2CurveScalar } from "../../curves/curve/Tr2CurveScalar.js";
@@ -596,7 +596,7 @@ export class EveCamera extends IRoot
       }
     }
 
-    fromYawPitchRoll(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
+    fromYawPitchRollCarbon(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
   }
 
   /**
@@ -723,7 +723,7 @@ export class EveCamera extends IRoot
     this.pitch = cutoffYawPitch(this.pitch, this._pitchSpeed);
     this._CapPitchAndYaw();
 
-    fromYawPitchRoll(this.rotationAroundParent, this.yaw, this.pitch, 0);
+    fromYawPitchRollCarbon(this.rotationAroundParent, this.yaw, this.pitch, 0);
     vec3.set(CAMERA_TRANSLATION, 0, 0, this.translationFromParent);
     vec3.transformQuat(CAMERA_POSITION, CAMERA_TRANSLATION, this.rotationAroundParent);
     vec3.add(CAMERA_POSITION, CAMERA_POSITION, parentPosition);
@@ -824,7 +824,7 @@ export class EveCamera extends IRoot
       // Preserve Carbon's m_yaw test here (EveCamera.cpp:438).
       else if (this.yaw < this.minYaw) this._yawInt = this.minYaw;
     }
-    fromYawPitchRoll(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
+    fromYawPitchRollCarbon(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
 
     vec3.transformQuat(CAMERA_REAL_UP, this.alignment, this.rotationAroundParent);
     vec3.normalize(CAMERA_REAL_UP, CAMERA_REAL_UP);
@@ -1004,7 +1004,7 @@ export class EveCamera extends IRoot
     this._pitchInt = pitch;
     this._yawIntSpeed = yaw;
     this._pitchIntSpeed = pitch;
-    fromYawPitchRoll(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
+    fromYawPitchRollCarbon(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
   }
 
   /**

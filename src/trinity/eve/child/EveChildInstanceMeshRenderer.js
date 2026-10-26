@@ -448,8 +448,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
         const angle = Math.PI / 2 - Math.atan2(CAMERA_DIRECTION[0], CAMERA_DIRECTION[2]) * 0.5;
         quat.set(ROLL_ADJUSTMENT, 0, 0, Math.cos(angle), Math.sin(angle));
         // Carbon TriQuaternionRotationArc(out, from, to) - same argument order.
-        quat.rotationArc(ROTATION_ARC, UP, OBJECT_UP);
-        quat.rotationArc(OBJECT_UP_TO_CAMERA, CAMERA_DIRECTION, UP);
+        quat.rotationArcCarbon(ROTATION_ARC, UP, OBJECT_UP);
+        quat.rotationArcCarbon(OBJECT_UP_TO_CAMERA, CAMERA_DIRECTION, UP);
         quat.invert(INVERSE_ARC, OBJECT_UP_TO_CAMERA);
 
         // Carbon row-vector: rollAdjustment * rotationArc * inverse(cameraArc).
@@ -481,7 +481,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
         );
         vec3.normalize(MESH_DIRECTION, MESH_DIRECTION);
         vec3.scale(MESH_DIRECTION, MESH_DIRECTION, -1);
-        quat.arcFromForward(ROTATION, MESH_DIRECTION);
+        quat.arcFromForwardCarbon(ROTATION, MESH_DIRECTION);
       }
 
       // Carbon row-vector: staticOffsetRotation * rotation.

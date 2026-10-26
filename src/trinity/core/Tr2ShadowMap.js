@@ -422,7 +422,7 @@ export class Tr2ShadowMap
     LIGHT_DIRECTION_SCRATCH[0] = -lightDirection[0];
     LIGHT_DIRECTION_SCRATCH[1] = -lightDirection[1];
     LIGHT_DIRECTION_SCRATCH[2] = -lightDirection[2];
-    mat4.orthoNormalBasisZ(BASIS_SCRATCH, LIGHT_DIRECTION_SCRATCH);
+    mat4.orthoNormalBasisZCarbon(BASIS_SCRATCH, LIGHT_DIRECTION_SCRATCH);
     mat4.invert(LIGHT_VIEW_SCRATCH, BASIS_SCRATCH);
 
     Tr2ShadowMap.CalculateAABB(

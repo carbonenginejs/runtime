@@ -219,7 +219,7 @@ export class Tr2ShLightingManager extends IRoot
   {
     this.#sourceData.length = 0;
 
-    const maxLight = vec3.maxComponent(this.#sunColor);
+    const maxLight = vec3.maxComponentCarbon(this.#sunColor);
 
     for (const source of this.#sources)
     {
@@ -239,7 +239,7 @@ export class Tr2ShLightingManager extends IRoot
         albedo,
         cutoffMultiplier: 1,
         emissive,
-        maxColorComponent: Math.max(vec3.maxComponent(albedo) * maxLight, vec3.maxComponent(emissive))
+        maxColorComponent: Math.max(vec3.maxComponentCarbon(albedo) * maxLight, vec3.maxComponentCarbon(emissive))
       });
     }
 
@@ -257,7 +257,7 @@ export class Tr2ShLightingManager extends IRoot
         albedo: vec3.create(),
         cutoffMultiplier: 0,
         emissive,
-        maxColorComponent: vec3.maxComponent(emissive)
+        maxColorComponent: vec3.maxComponentCarbon(emissive)
       });
     }
 

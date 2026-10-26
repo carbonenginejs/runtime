@@ -2,7 +2,7 @@ import { exposure as be } from "#be";
 import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.h
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.cpp
-import { fromYawPitchRoll, quat } from "#math/quat";
+import { fromYawPitchRollCarbon, quat } from "#math/quat";
 import { ITriFunction, ITriQuaternionFunction, ITriScalarFunction, IInitialize, BlueList } from "#blue";
 import { meta, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
@@ -255,7 +255,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   {
     this.Compile();
     const context = this.GetContext(time);
-    return fromYawPitchRoll(out, Tr2CurveEulerRotationExpression._evaluate(this._programs[0], context), Tr2CurveEulerRotationExpression._evaluate(this._programs[1], context), Tr2CurveEulerRotationExpression._evaluate(this._programs[2], context));
+    return fromYawPitchRollCarbon(out, Tr2CurveEulerRotationExpression._evaluate(this._programs[0], context), Tr2CurveEulerRotationExpression._evaluate(this._programs[1], context), Tr2CurveEulerRotationExpression._evaluate(this._programs[2], context));
   }
 
   /**

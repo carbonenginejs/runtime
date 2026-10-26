@@ -396,7 +396,7 @@ export class EveCloudEditableVolume
     }
     for (let index = 0; index < pixels.length; index++)
     {
-      params.pixels[index] = Math.min(Math.max(num.linearToGamma(pixels[index]) * 255, 0), 255);
+      params.pixels[index] = Math.min(Math.max(num.linearToGammaCarbon(pixels[index]) * 255, 0), 255);
       if ((index & 16383) === 16383) yield;
     }
     params.status = Status.DataReady;
@@ -419,7 +419,7 @@ export class EveCloudEditableVolume
       }
       for (let index = 0; index < pixels.length; index += 4)
       {
-        params.pixels[index + channels[frame]] = Math.min(Math.max(num.linearToGamma(pixels[index + 3]) * 255, 0), 255);
+        params.pixels[index + channels[frame]] = Math.min(Math.max(num.linearToGammaCarbon(pixels[index + 3]) * 255, 0), 255);
         if ((index & 16383) === 16380) yield;
       }
     }
@@ -436,9 +436,9 @@ export class EveCloudEditableVolume
   @meta.adapted
   static *rasterizeBall(ball, params, pixels)
   {
-    const red = num.gammaToLinear(ball.selfIllumination[0]);
-    const green = num.gammaToLinear(ball.selfIllumination[1]);
-    const blue = num.gammaToLinear(ball.selfIllumination[2]);
+    const red = num.gammaToLinearCarbon(ball.selfIllumination[0]);
+    const green = num.gammaToLinearCarbon(ball.selfIllumination[1]);
+    const blue = num.gammaToLinearCarbon(ball.selfIllumination[2]);
     const dimensions = [params.width, params.height, params.depth];
     const minimum = dimensions.map((size, axis) => Math.max(Math.trunc((ball.position[axis] + 0.5 - ball.radius) * size), 0));
     const maximum = dimensions.map((size, axis) => Math.min(Math.trunc((ball.position[axis] + 0.5 + ball.radius) * size), size - 1));
