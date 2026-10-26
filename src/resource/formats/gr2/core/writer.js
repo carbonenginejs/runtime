@@ -565,6 +565,12 @@ function vertexData(vertex, options, typeSuffix)
             add("Binormal", tangents.values.binormal, 3, M.Real32);
         }
     }
+    else
+    {
+        // Normals without a tangent frame, as EVE's morph targets store them
+        // (vertex type Position, Normal).
+        add("Normal", vertex.normal, 3, M.Real32);
+    }
     add("DiffuseColor0", vertex.color0, 4, M.NormalUInt8,
         value => Math.round(Math.max(0, Math.min(1, value)) * 255));
     add("TextureCoordinates0", vertex.texcoord0, 2, M.Real32);

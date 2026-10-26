@@ -478,3 +478,18 @@ test("writes native CMF graphs read from binary CMF bytes", () =>
     assert.deepEqual(track.position.controls, [ 0, 0, 0, 1, 2, 3 ]);
     assert.ok(Math.abs(track.orientation.controls[5] - 0.38268343) < 1e-4);
 });
+
+test("keeps normals that have no tangent frame, such as morph targets' position and normal", () =>
+{
+    const shared = geometry();
+    shared.meshes[0].morphTargets = [ {
+        name: "bulge",
+        dataIsDeltas: false,
+        vertex: { position: [ 0, 0, 1, 1, 0, 1, 0, 1, 1 ], normal: [ 0, 1, 0, 0, 1, 0, 0, 1, 0 ] }
+    } ];
+    const read = CjsGr2Format.read(CjsGr2Format.writeShared(shared));
+    const target = read.meshes[0].morphTargets[0];
+    assert.equal(target.name, "bulge");
+    assert.deepEqual(Array.from(target.vertex.position), [ 0, 0, 1, 1, 0, 1, 0, 1, 1 ]);
+    assert.deepEqual(Array.from(target.vertex.normal), [ 0, 1, 0, 0, 1, 0, 0, 1, 0 ]);
+});
