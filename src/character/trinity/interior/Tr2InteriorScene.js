@@ -502,15 +502,15 @@ export class Tr2InteriorScene extends ITr2PickableScene
   @meta.implemented
   GetPickingObjectsToRender__FovAspect(dirWorld, fov, aspect)
   {
-    const { mat4_0, mat4_1, vec3_0, vec3_1 } = Tr2InteriorScene.scratch;
+    const { view, projection, focus, up } = Tr2InteriorScene.pickingScratch;
     const eye = Tr2Renderer.GetViewPosition();
-    vec3.subtract(vec3_0, eye, dirWorld);
-    vec3.set(vec3_1, 0, 1, 0);
-    mat4.lookAtD3D(mat4_0, eye, vec3_0, vec3_1);
-    mat4.perspectiveFovCarbon(mat4_1, fov, aspect, Tr2Renderer.GetFrontClip(), Tr2Renderer.GetBackClip());
+    vec3.subtract(focus, eye, dirWorld);
+    vec3.set(up, 0, 1, 0);
+    mat4.lookAtD3D(view, eye, focus, up);
+    mat4.perspectiveFovCarbon(projection, fov, aspect, Tr2Renderer.GetFrontClip(), Tr2Renderer.GetBackClip());
     this._visibleObjects.length = 0;
     this._visibilityQueryType = VisibilityQueryType.PICKING_QUERY;
-    this._ResolveVisibility(mat4_0, mat4_1, false);
+    this._ResolveVisibility(view, projection, false);
     return this._visibleObjects;
   }
 
@@ -1362,6 +1362,9 @@ export class Tr2InteriorScene extends ITr2PickableScene
     projection: mat4.create(), view: mat4.create(), viewProjection: mat4.create(),
     fitProjection: mat4.create(), fitView: mat4.create(), fitViewProjection: mat4.create()
   };
+
+  /** The picking query's view and projection, apart from the shared scratch _ResolveVisibility writes. */
+  static pickingScratch = { view: mat4.create(), projection: mat4.create(), focus: vec3.create(), up: vec3.create() };
 
   static scratch = {
     mat4_0: mat4.create(), mat4_1: mat4.create(), mat4_2: mat4.create(),
