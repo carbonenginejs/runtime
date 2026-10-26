@@ -292,6 +292,10 @@ test("the callback file system serves res: through a page's function", async () 
   assert.equal(await paths.GetStreamFromPath("res:/b.bin"), null);
   assert.equal(seen[0][1], null, "no signal given: null");
 
+  // Content stores backslash, mixed-case paths; the function gets the normalized one (RemoteFileCache.cpp:311-319).
+  assert.deepEqual(await paths.GetStreamFromPath("res:\\A.BIN", { accept: [ TEXT ] }), { form: TEXT, data: "a" });
+  assert.equal(seen.at(-1)[0], "res:/a.bin");
+
   const wrong = new CjsBlueResFileSystemCallback(() => "text");
   await assert.rejects(wrong.GetStreamFromPath("res:/a", { form: BYTES }), /must return a Uint8Array or null/u);
   assert.throws(() => new CjsBlueResFileSystemCallback(null), TypeError);

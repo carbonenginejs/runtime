@@ -10,6 +10,7 @@
 // failure.
 import { CjsSchema, meta } from "#schema";
 import { BlueResFileSystemForm, IBlueResFileSystem } from "./IBlueResFileSystem.js";
+import { normalizeResPath } from "#utils/path";
 
 /** `CjsBlueResFileSystemCallback` - `res:` paths read through a page's function.
  *
@@ -60,7 +61,10 @@ export class CjsBlueResFileSystemCallback extends IBlueResFileSystem
 
   /**
    * `GetStreamFromPathW` - the function's bytes, or `null` when it returns
-   * none.
+   * none. The function is asked for the normalized path (lower case, forward
+   * slashes), as Carbon's remote file cache normalizes a path before its index
+   * lookup (`RemoteFileCache::GetFileInfo`, `blue/src/RemoteFileCache.cpp:311-319`):
+   * content stores paths such as `res:\Graphics\...\CostumeJF01.gr2`.
    *
    * @param {string} path Res path.
    * @param {import("./IBlueResFileSystem.js").BlueResFileSystemRequest} request Always the bytes form, and a signal.
@@ -68,7 +72,7 @@ export class CjsBlueResFileSystemCallback extends IBlueResFileSystem
    */
   async GetStreamFromPath(path, request)
   {
-    const data = await this._read(path, request.signal ?? null);
+    const data = await this._read(normalizeResPath(path) ?? path, request.signal ?? null);
     if (data === null || data === undefined) return null;
     if (!(data instanceof Uint8Array)) throw new TypeError(`CjsBlueResFileSystemCallback: the read function must return a Uint8Array or null (${path}).`);
     return { form: BlueResFileSystemForm.BYTES, data };
