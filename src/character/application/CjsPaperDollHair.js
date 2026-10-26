@@ -39,6 +39,15 @@ export class CjsPaperDollHair extends CjsPaperDollComponent
     set option(value)
     {
         super.option = value;
+        // Hair styles share their swatches, so a style keeps the picked one; a style not offering it starts from its own
+        // default: aura_hp, whose own palettes replace the swatches (a kept hair swatch coloured it as hair), and a
+        // shared-swatch style chosen after it.
+        const selected = this._options.get(this._option);
+        if (selected?.colorAreas.length && !selected.palettes.some(record => record.path === this._palette))
+        {
+            this._SetPreset(selected.defaultPalette ?? "");
+            this.Rebuild();
+        }
         // A style chosen before any secondary pick starts from its default secondary swatch.
         const fallback = this._options.get(this._option)?.defaultSecondaryPalette;
         if (!this._secondary && fallback) { this._secondary = fallback; this._ApplySecondary(); }
@@ -73,10 +82,14 @@ export class CjsPaperDollHair extends CjsPaperDollComponent
         this._ApplySecondary();
     }
 
-    /** Copies the secondary swatch's colours into areas 2 and 3 of the preset. */
+    /**
+     * Copies the secondary swatch's colours into areas 2 and 3 of the preset. A style offering no secondary
+     * swatches (aura_hp, whose own palette carries every area) keeps its palette's colours there rather than
+     * the swatch a previous style left selected.
+     */
     _ApplySecondary()
     {
-        if (!this._secondary) return;
+        if (!this._secondary || !this.GetSecondaryPalettes().length) return;
         const colors = this._palettes.get(this._secondary);
         for (const index of [ 1, 2 ])
         {
