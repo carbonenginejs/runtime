@@ -46,6 +46,16 @@ import { TriVariableContentType } from "../../../trinity/generated/trinityCore/e
 import { ITr2PickableScene } from "../../../trinity/core/scene/ITr2PickableScene.js";
 import { Tr2PickBuffer } from "../../../trinity/core/scene/Tr2PickBuffer.js";
 import { PROJECTION_TYPE } from "../../../trinity/generated/shader/enums.js";
+import { TriView } from "../../../trinity/core/view/TriView.js";
+import { TriProjection } from "../../../trinity/core/view/TriProjection.js";
+import { Tr2InteriorLightSource } from "./Tr2InteriorLightSource.js";
+import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
+
+/** RenderShadows' light up vector (cpp:744). */
+const Z_UP = vec3.fromValues(0, 0, 1);
+
+/** Carbon's uvAdjust (cpp:780-781): [-1, 1] clip to [0, 1] texture space, y flipped. */
+const UV_ADJUST = mat4.fromValues(0.5, 0, 0, 0, 0, -0.5, 0, 0, 0, 0, 1, 0, 0.5, 0.5, 0, 1);
 
 /**
  * Interior-scene state record for authored dynamics, lights, environment, fog,
@@ -93,6 +103,9 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /** Native m_whiteTexture (h:282), retained by the scene and shadow variables. */
   _whiteTexture = null;
+
+  /** Native m_noiseTexture (cpp:178-179), registered as NoiseMap by RenderShadows. */
+  _noiseTexture = null;
   /**
    * Carbon Tr2InteriorScene.cpp:229-284 updates lights and dynamic membership.
    * Adapted: array identity search replaces FindKey; JS has no QI reference unlock.
@@ -930,14 +943,169 @@ export class Tr2InteriorScene extends ITr2PickableScene
   }
 
   /**
-   * Carbon RenderShadows (h:148, cpp:687-809). Only the disabled-shadow early
-   * return is ported; enabled shadows must not silently render without their pass.
+   * Carbon RenderShadows (h:148, cpp:683-809): one perspective shadow map per
+   * spotlight among the first `shadowCount` lights, each drawn with every
+   * batch's "Shadow" technique from the light, then bound to
+   * SpotlightShadow{i}; the light keeps its view-projection for the avatar
+   * shaders (Tr2InteriorLightSet copies it into spotLights[i]).
+   *
+   * Adapted: Carbon's interior targets clear to depth 1 and test forward; the
+   * state manager's inverted depth test is turned off for the pass and
+   * restored after. The per-frame VS matrices come from the renderer's
+   * transforms, which hold the light's here, so Carbon's explicit
+   * ViewMat/ProjectionMat/ViewProjectionMat assignments (cpp:774-777) are the
+   * values _PopulatePerFrameVSData already writes.
+   * @param {Tr2RenderContext} renderContext The frame's context.
    */
-  @meta.notImplemented
-  _RenderShadows(_renderContext)
+  @meta.adapted
+  _RenderShadows(renderContext)
   {
     if (!this.renderShadows) return;
-    throw new Error("Tr2InteriorScene.RenderShadows is not implemented; disable shadows for forward-only rendering.");
+    if (!this._lightDepthStencil) this.SetupShadowMaps(renderContext);
+
+    const store = Tr2VariableStore.globalStore();
+    if (this._noiseTexture) store.RegisterVariableInternal("NoiseMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._noiseTexture);
+
+    const esm = renderContext.GetEffectStateManager();
+    const { projection, view, viewProjection } = Tr2InteriorScene.shadowScratch;
+    const lightView = new TriView();
+    const lightProjection = new TriProjection();
+    const position = vec3.create(), target = vec3.create();
+
+    // The camera's frustum, for fitting each shadow map to the character.
+    const cameraFrustum = new TriFrustum();
+    cameraFrustum.DeriveFrustum(Tr2Renderer.GetViewTransform(), Tr2Renderer.GetViewPosition(), Tr2Renderer.GetProjectionTransform(), esm.GetViewport());
+
+    for (let i = 0; i < 4; i++) store.FindVariable(`SpotlightShadow${i}`).SetValue(this._whiteTexture);
+
+    Tr2Renderer.PushProjection();
+    Tr2Renderer.PushViewTransform();
+    esm.PushViewport();
+    esm.PushRenderTarget();
+    esm.PushDepthStencilBuffer(null);
+    const inverted = esm.IsDepthTestInverted();
+    esm.SetInvertedDepthTest(false);
+    try
+    {
+      for (let i = 0; i < this.lights.length && i < this.shadowCount; i++)
+      {
+        // The render target might not be created yet (cpp:731-735).
+        if (i >= this.lightRenderTargets.length) return;
+        const light = CjsSchema.cast(this.lights[i], Tr2InteriorLightSource);
+        if (!light || light.coneAlphaOuter >= 90) continue;
+
+        const fov = light.coneAlphaOuter * Math.PI / 90;
+        lightProjection.PerspectiveFov(fov, 1, 0.1, light.radius);
+        vec3.copy(position, light.position);
+        vec3.add(target, light.position, light.coneDirection);
+        lightView.SetLookAtPosition(position, target, Z_UP);
+
+        if (this.optimizeShadows) this._MaximizeShadowMapUsage(lightProjection, lightView, cameraFrustum);
+
+        const renderTarget = this.lightRenderTargets[i];
+        esm.SetRenderTarget(0, renderTarget.GetRenderTarget());
+        esm.SetDepthStencilBuffer(this._lightDepthStencil.GetDepthStencil());
+        renderContext.Clear({ clearColor: true, clearDepth: true, color: 0xffffffff, depth: 1 });
+
+        lightProjection.GetTransform(projection);
+        lightView.GetTransform(view);
+        Tr2Renderer.SetProjectionTransform(projection);
+        Tr2Renderer.SetViewTransform(view);
+
+        this.VisibilityQuery(this.visibilityResults, renderContext);
+        this._GatherFullForwardBatches(this.visibilityResults);
+
+        this._PopulatePerFramePSData(this._perFramePSData, renderContext);
+        this._PopulatePerFrameVSData(this._perFrameVSData);
+        this._perFramePSData.Set("radius", light.radius);
+
+        // Carbon (row-vector): VP = view * projection, then VP * uvAdjust maps
+        // [-1, 1] to [0, 1]; gl-matrix reverses both products. The shaders
+        // read it transposed (cpp:776-786).
+        mat4.multiply(viewProjection, projection, view);
+        mat4.multiply(viewProjection, UV_ADJUST, viewProjection);
+        mat4.transpose(light.viewProjection, viewProjection);
+
+        const vs = this._perFrameVSData.GetData(), ps = this._perFramePSData.GetData();
+        Tr2RenderUtils.fillAndSetConstants(this._perFrameVSBuffer, vs, vs.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_FRAME_VS, renderContext);
+        Tr2RenderUtils.fillAndSetConstants(this._perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);
+
+        this._primaryRenderBatches.Finalize();
+        esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
+        renderContext.RenderBatches(this._primaryRenderBatches, "Shadow");
+
+        store.FindVariable(`SpotlightShadow${i}`).SetValue(renderTarget);
+        this._primaryRenderBatches.Clear();
+      }
+    }
+    finally
+    {
+      esm.SetInvertedDepthTest(inverted);
+      esm.PopDepthStencilBuffer();
+      esm.PopRenderTarget();
+      esm.PopViewport();
+      Tr2Renderer.PopViewTransform();
+      Tr2Renderer.PopProjection();
+    }
+  }
+
+  /**
+   * Carbon MaximizeShadowMapUsage (h:150, cpp:300-397): with exactly one
+   * character in the scene, narrows the light's projection to the screen-space
+   * box of the character's clipped bounds, so the shadow map covers only it.
+   * @param {TriProjection} projection The light's projection, narrowed in place.
+   * @param {TriView} view The light's view.
+   * @param {TriFrustum} frustum The camera frustum the bounds are clipped to.
+   */
+  @meta.implemented
+  _MaximizeShadowMapUsage(projection, view, frustum)
+  {
+    let character = null;
+    for (const dynamic of this.dynamics)
+    {
+      const found = CjsSchema.cast(dynamic, Tr2SkinnedObject);
+      if (!found) continue;
+      if (character) return;
+      character = found;
+    }
+    if (!character) return;
+
+    const obb = character.GetClippedWorldBoundingObb(character.GetSkinningTransform(), frustum);
+    if (!obb) return;
+
+    const { fitProjection, fitView, fitViewProjection } = Tr2InteriorScene.shadowScratch;
+    projection.GetTransform(fitProjection);
+    view.GetTransform(fitView);
+    // Carbon VP = view * projection (row-vector); gl-matrix reverses it.
+    const viewProjection = mat4.multiply(fitViewProjection, fitProjection, fitView);
+    const point = vec4.create(), clip = vec4.create();
+    let minX = 1, minY = 1, maxX = -1, maxY = -1;
+    for (let i = 0; i < 8; i++)
+    {
+      vec4.set(point, obb.center[0], obb.center[1], obb.center[2], 1);
+      for (const [ bit, axis, size ] of [ [ 1, obb.x, obb.sizes[0] ], [ 2, obb.y, obb.sizes[1] ], [ 4, obb.z, obb.sizes[2] ] ])
+      {
+        const scale = (i & bit) !== 0 ? size : -size;
+        point[0] += scale * axis[0];
+        point[1] += scale * axis[1];
+        point[2] += scale * axis[2];
+      }
+      vec4.transformMat4(clip, point, viewProjection);
+      if (clip[3] < 0.0001) continue;
+      minX = Math.min(minX, clip[0] / clip[3]);
+      minY = Math.min(minY, clip[1] / clip[3]);
+      maxX = Math.max(maxX, clip[0] / clip[3]);
+      maxY = Math.max(maxY, clip[1] / clip[3]);
+    }
+    const constrain = value => Math.max(-1, Math.min(1, value));
+    minX = constrain(minX); maxX = constrain(maxX); minY = constrain(minY); maxY = constrain(maxY);
+    if (minX >= maxX || minY >= maxY) return;
+
+    const scaleX = 2 / (maxX - minX), scaleY = 2 / (maxY - minY);
+    const biasX = (minX + maxX) / (minX - maxX), biasY = (minY + maxY) / (minY - maxY);
+    // Carbon custom = projection * fit (row-vector); gl-matrix reverses it.
+    const fit = mat4.fromValues(scaleX, 0, 0, 0, 0, scaleY, 0, 0, 0, 0, 1, 0, biasX, biasY, 0, 1);
+    projection.CustomProjection(mat4.multiply(fit, fit, fitProjection));
   }
 
   /** Carbon RenderGeometry (h:222, cpp:811-829) submits through the normal context. */
@@ -965,6 +1133,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
   {
     this.SetBackgroundCubemapResPath();
     this._whiteTexture = blue.resMan.GetResource("res:/texture/global/white.dds");
+    this._noiseTexture = blue.resMan.GetResource("res:/texture/global/noise.png");
     const store = Tr2VariableStore.globalStore();
     for (let i = 0; i < 4; i++) store.FindVariable(`SpotlightShadow${i}`).SetValue(this._whiteTexture);
     return true;
@@ -1179,6 +1348,7 @@ export class Tr2InteriorScene extends ITr2PickableScene
     this._lightDepthStencil = null;
     this.backgroundCubemapRes = null;
     this._whiteTexture = null;
+    this._noiseTexture = null;
     // Carbon's destructor (cpp:191-194).
     this._pickingBatches.Clear();
     this._opaquePickingBatches.Clear();
@@ -1186,6 +1356,12 @@ export class Tr2InteriorScene extends ITr2PickableScene
   }
 
   static VisualizeMethod = VisualizeMethod;
+
+  /** RenderShadows' and MaximizeShadowMapUsage's matrices, apart from the shared scratch the passes they call use. */
+  static shadowScratch = {
+    projection: mat4.create(), view: mat4.create(), viewProjection: mat4.create(),
+    fitProjection: mat4.create(), fitView: mat4.create(), fitViewProjection: mat4.create()
+  };
 
   static scratch = {
     mat4_0: mat4.create(), mat4_1: mat4.create(), mat4_2: mat4.create(),

@@ -14,6 +14,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsCharacterRigBinding } from "../../controls/CjsCharacterRigBinding.js";
 import { Tr2SkinnedObjectLod } from "./Tr2SkinnedObjectLod.js";
+import { Obb } from "../../../trinity/utilities/Obb.js";
 import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
 /**
@@ -171,6 +172,27 @@ export class Tr2SkinnedObject extends IRoot
     }
     return this.visualModel ? this.visualModel.GetBoundingBox(min, max) : false;
   }
+
+  /**
+   * Carbon GetClippedWorldBoundingObb (Tr2SkinnedObject.cpp:659-675): the local
+   * bounding box in world space, tightened against the camera frustum.
+   * Carbon's five output vectors become the returned Obb.
+   * @param {mat4} localToWorld The skinning transform.
+   * @param {TriFrustum|null} cameraFrustum Frustum to clip against, or null.
+   * @returns {Obb|null} The box, or null without local bounds.
+   */
+  @meta.adapted
+  GetClippedWorldBoundingObb(localToWorld, cameraFrustum)
+  {
+    const { vec3_0, vec3_1 } = Tr2SkinnedObject.boundsScratch;
+    if (!this.GetLocalBoundingBox(vec3_0, vec3_1)) return null;
+    const obb = new Obb();
+    obb.CreateClippedWorldBoundingObb(vec3_0, vec3_1, localToWorld, cameraFrustum);
+    return obb;
+  }
+
+  /** GetClippedWorldBoundingObb's local bounds. */
+  static boundsScratch = { vec3_0: vec3.create(), vec3_1: vec3.create() };
 
   /** World position awaits the maintained TriMatrix storage conversion contract. */
 

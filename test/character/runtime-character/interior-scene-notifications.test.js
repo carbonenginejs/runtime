@@ -23,9 +23,11 @@ test('interior scene initialization acquires cubemap and native white shadows an
   assert.equal(manager.requests[0].path,'res:/environment.dds');assert.equal(s.backgroundEffect,effect);
   assert.equal(s._whiteTexture,manager.resources.get('res:/texture/global/white.dds'));
   assert.equal(manager.requests[1].path,'res:/texture/global/white.dds');
+  // Carbon's constructor also takes the noise texture RenderShadows registers (cpp:178-179).
+  assert.equal(manager.requests[2].path,'res:/texture/global/noise.png');
   for(let i=0;i<4;i++)assert.equal(Tr2VariableStore.globalStore().FindVariable(`SpotlightShadow${i}`).GetValue(),s._whiteTexture);
   assert.deepEqual(s.lightRenderTargets,[]);assert.equal(s._lightDepthStencil,null);
-  CjsSchema.setValues(s,{backgroundCubemapPath:''});assert.equal(s.backgroundCubemapRes,null);assert.equal(manager.requests.length,2);
+  CjsSchema.setValues(s,{backgroundCubemapPath:''});assert.equal(s.backgroundCubemapRes,null);assert.equal(manager.requests.length,3);
 });
 
 test('coalesced background, count and size edits acquire once and allocate final shadow dimensions once',t=>{
@@ -92,4 +94,21 @@ test('cubemap acquisition uses the supplied host and clears the old reference be
   assert.equal(host.requests.length,1);s.backgroundCubemapPath='res:/broken.dds';
   assert.throws(()=>s.SetBackgroundCubemapResPath({GetResource(){throw Error('request failed');}}),/request failed/);
   assert.equal(s.backgroundCubemapRes,null);assert.equal(old.IsGood(),false,'shared resource is not destroyed by replacement');
+});
+
+test('RenderShadows draws a map for each spotlight, binds it and keeps the light view-projection; wide lights stay white',t=>{
+  const {scene,context}=setup(t),s=scene();s.Initialize();
+  const spot=CjsSchema.from('Tr2InteriorLightSource',{position:[0,2,2],coneDirection:[0,-1,-1],coneAlphaOuter:30,radius:3});
+  const wide=CjsSchema.from('Tr2InteriorLightSource',{position:[0,2,0],coneDirection:[0,-1,0],coneAlphaOuter:90,radius:3});
+  s.AddLightSource(spot);s.AddLightSource(wide);
+  CjsSchema.setValues(s,{renderShadows:true,shadowCount:4,shadowSize:32});
+  const store=Tr2VariableStore.globalStore();
+  // A frame always has a viewport; the stub context starts without one.
+  context.GetEffectStateManager().SetViewport({x:0,y:0,width:64,height:64,minZ:0,maxZ:1});
+  s._RenderShadows(context);
+  assert.equal(store.FindVariable('SpotlightShadow0').GetValue(),s.lightRenderTargets[0],'the spotlight binds its own map');
+  assert.equal(store.FindVariable('SpotlightShadow1').GetValue(),s._whiteTexture,'a light at 90 degrees or wider casts nothing');
+  assert.notDeepEqual(Array.from(spot.viewProjection),[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],'the spotlight keeps a view-projection');
+  assert.deepEqual(Array.from(wide.viewProjection),[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+  assert.equal(context.GetEffectStateManager().IsDepthTestInverted(),false,'the depth test is restored');
 });
