@@ -44,7 +44,10 @@ export const PaperDollLayer = Object.freeze({
     /** Trousers and skirts, over the top: the top tucked in. Working rank, to confirm in game. */
     BOTTOMOUTER: 170,
     /** Shoes and boots, over the bottoms: trousers tucked into boots. Working rank, to confirm in game. */
-    FEET: 180
+    FEET: 180,
+    /** Over-tops (topouter), then outer garments (jackets, suits, robes), over everything else. Working ranks, to confirm in game. */
+    TOPOUTER: 190,
+    OUTER: 200
 });
 
 /**

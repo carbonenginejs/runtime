@@ -22,6 +22,8 @@ import { CjsPaperDollTopMiddle } from "./CjsPaperDollTopMiddle.js";
 import { CjsPaperDollBottomMiddle } from "./CjsPaperDollBottomMiddle.js";
 import { CjsPaperDollBottomOuter } from "./CjsPaperDollBottomOuter.js";
 import { CjsPaperDollFeet } from "./CjsPaperDollFeet.js";
+import { CjsPaperDollTopOuter } from "./CjsPaperDollTopOuter.js";
+import { CjsPaperDollOuter } from "./CjsPaperDollOuter.js";
 import { CjsPaperDollHair } from "./CjsPaperDollHair.js";
 import { CjsPaperDollGlasses } from "./CjsPaperDollGlasses.js";
 import { CjsPaperDollEarsLow } from "./CjsPaperDollEarsLow.js";
@@ -149,6 +151,14 @@ export class CjsPaperDollDefinition
     feet = new CjsPaperDollFeet();
 
     @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollTopOuter")
+    topOuter = new CjsPaperDollTopOuter();
+
+    @meta.attribute(meta.READ)
+    @type.object.embed("CjsPaperDollOuter")
+    outer = new CjsPaperDollOuter();
+
+    @meta.attribute(meta.READ)
     @type.object.embed("CjsPaperDollHair")
     hair = new CjsPaperDollHair();
 
@@ -185,7 +195,7 @@ export class CjsPaperDollDefinition
     mask = new CjsPaperDollMask();
 
     /** The collected parts, by member name. Each pass composes its parts by bake rank, not by this order. */
-    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle", "bottomOuter", "feet", "hair", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ];
+    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle", "bottomOuter", "feet", "topOuter", "outer", "hair", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ];
 
     _layers = new Map();
     _dirty = true;
