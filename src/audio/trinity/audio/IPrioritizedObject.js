@@ -1,5 +1,6 @@
-// Source: audio/src/IPrioritizedObject.h:13-74.
 import { meta } from "#schema";
+// Source: audio/src/IPrioritizedObject.h:13-74.
+
 /**
  * Supplies the position, weight, and culling operations used by audio
  * prioritization. Carbon declares a plain C++ interface, with no Blue class
@@ -17,14 +18,14 @@ export class IPrioritizedObject
 
   /** @param {number} _distanceSq Squared distance to the listener. */
   @meta.abstract
-  SetDistanceSqFromListener(_distanceSq) {}
+  SetDistanceSqFromListener(distanceSq) {}
 
   /**
    * Recalculates the object's priority weight.
    * @param {number} _now Monotonic milliseconds, adapting Carbon's steady-clock time point.
    */
   @meta.abstract
-  CalculateCullingWeight(_now) {}
+  CalculateCullingWeight(now) {}
 
   /** @returns {number} The last calculated culling weight. */
   @meta.abstract

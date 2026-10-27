@@ -2,6 +2,7 @@ import { exposure as be } from "#be";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/IEveSmartLightGroup.h
 import { meta } from "#schema";
+
 /**
  * Contract for a group of smart lights driven by a distribution of placements
  * (IEveSmartLightGroup.h:8-22). Every method has an empty default body in

@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/IWorldPosition.h:11-15
-import { meta } from "#schema";
+
 /** Native IRoot-derived contract for a receiver's world position and rotation. */
 @be.interface("IWorldPosition")
 export class IWorldPosition extends IRoot
@@ -11,7 +11,7 @@ export class IWorldPosition extends IRoot
    * @param {Float32Array} out Caller-owned position.
    * @returns {Float32Array} out
    */
-  @meta.abstract
+  @be.abstract
   GetWorldPosition(out)
   {
   }
@@ -20,7 +20,7 @@ export class IWorldPosition extends IRoot
    * Gets the receiver's world rotation.
    * @returns {Float32Array} Rotation quaternion.
    */
-  @meta.abstract
+  @be.abstract
   GetWorldRotation()
   {
   }

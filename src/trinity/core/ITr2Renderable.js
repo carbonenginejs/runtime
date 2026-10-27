@@ -1,7 +1,7 @@
 import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2Renderable.h
-import { meta } from "#schema";
+
 /**
  * Trinity-owned contract for objects collected through the renderable path.
  *
@@ -23,18 +23,18 @@ export class ITr2Renderable extends IRoot
   }
 
   /** Emits batches of the requested type. */
-  @meta.abstract
-  GetBatches(_accumulator, _batchType, _perObjectData, _reason) {}
+  @be.abstract
+  GetBatches(batches, batchType, perObjectData, reason) {}
 
   /** Reports whether a transparent pass is required. */
-  @meta.abstract
+  @be.abstract
   HasTransparentBatches() {}
 
   /** Returns the current transparent-sort value. */
-  @meta.abstract
+  @be.abstract
   GetSortValue() {}
 
   /** Returns or allocates the renderable's per-object data. */
-  @meta.abstract
-  GetPerObjectData(_accumulator) {}
+  @be.abstract
+  GetPerObjectData(accumulator) {}
 }
