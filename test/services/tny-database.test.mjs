@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { Tny, TnyService } from "../../src/core/services/index.js";
+import { Tny, TnyService } from "../../src/wrap/services/index.js";
 
 const definition = { name: "types", description: "Item types", columns: [
     { name: "typeID", type: "int32", primaryKey: true, description: "Stable type ID" },

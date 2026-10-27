@@ -1,7 +1,7 @@
 import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { TnyInputMan } from "#input";
+import { TnyInputMan } from "../input/TnyInputMan.js";
 import { Tr2PrimitiveScene } from "../../trinity/core/scene/Tr2PrimitiveScene.js";
 import { Tr2TranslationTool } from "../../trinity/core/tool/Tr2TranslationTool.js";
 import { Tr2RotationTool } from "../../trinity/core/tool/Tr2RotationTool.js";

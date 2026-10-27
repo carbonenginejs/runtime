@@ -1,6 +1,6 @@
 import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math/mat4";
-import { TnyInputMan } from "#input";
+import { TnyInputMan } from "../input/TnyInputMan.js";
 import { EveCamera } from "../../trinity/eve/camera/EveCamera.js";
 
 const DEFAULT_KEYS = {

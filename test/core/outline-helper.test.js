@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { CjsLibrary, TnyOutlineHelper } from "../../npm/dist/core/index.js";
+import { TnyOutlineHelper } from "../../npm/dist/wrap/index.js";
 import { EveSpaceScene, EveSpaceSceneRenderDriver, TriView, TriProjection, TriRenderJob,
   Tr2StepExecuteRenderNode, Tr2RenderTarget, Tr2Renderer, Tr2RenderBatch } from "../../npm/dist/trinity/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
@@ -72,7 +72,7 @@ async function fixture(t, options = {})
   const fallback = new StubResMan();
   const resMan = composeStubResMan((path, request) => path.includes("/cjs/selection/") ? resource(path) : fallback.GetResource(path, request));
   SetEffectPathDefaults({ platformName: "webgpu", quality: "high" });
-  const outline = new CjsLibrary().CreateOutlineHelper(options);
+  const outline = new TnyOutlineHelper(options);
   assert.equal(await outline.loading, true, outline.error?.stack);
   const context = StubContext();
   const al = context.GetRenderContextAL();

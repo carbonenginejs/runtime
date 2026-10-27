@@ -1,5 +1,5 @@
 import { CjsSchema, meta } from "#schema";
-import { Tr2MainWindow } from "./Tr2MainWindow.js";
+import { Tr2MainWindow } from "#input/Tr2MainWindow";
 
 /** Approved browser extension: queued shared camera/tool routing over Tr2MainWindow. */
 export class TnyInputMan

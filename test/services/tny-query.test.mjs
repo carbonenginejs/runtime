@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Tny} from '../../src/core/services/Tny.js';
-import {TnyServiceAPI} from '../../src/core/services/TnyServiceAPI.js';
+import {Tny} from '../../src/wrap/services/Tny.js';
+import {TnyServiceAPI} from '../../src/wrap/services/TnyServiceAPI.js';
 import {CjsTableData} from '../../src/resource/format/CjsTableData.js';
 
 test('shared headers describe and round-trip positional rows without operational descriptions',async()=>{

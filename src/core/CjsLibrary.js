@@ -2,10 +2,6 @@ import { blue, installBlueServices } from "../global/blue/blue.js";
 import { BeCallbackMan } from "../global/blue/BlueCallbackMan.js";
 import { BlueCallbackManTicker } from "../global/blue/BlueCallbackManTicker.js";
 import { CjsSchema, meta } from "#schema";
-import { TnyInputMan } from "#input";
-import { TnyOutlineHelper } from "./outline/TnyOutlineHelper.js";
-import { TnyCameraControls } from "./cameras/TnyCameraControls.js";
-import { TnyTransformGizmo } from "./gizmos/TnyTransformGizmo.js";
 import { CjsOverlay2D } from "./overlay/CjsOverlay2D.js";
 
 import { IBlueResFileSystem } from "../global/blue/IBlueResFileSystem.js";
@@ -202,30 +198,6 @@ export class CjsLibrary
   }
 
 
-  /** Creates an inert input manager; the caller owns attachment and disposal. */
-  CreateInputManager()
-  {
-    return new TnyInputMan();
-  }
-
-  /** Creates an inert camera consumer for installation on the shared manager. */
-  CreateCameraControls(options)
-  {
-    return new TnyCameraControls(options);
-  }
-
-  /** Creates drawing-only hover/selection nodes using the installed resource manager. */
-  CreateOutlineHelper(options)
-  {
-    return new TnyOutlineHelper(options);
-  }
-
-  /** Composes native tools and a handle scene without attaching DOM listeners. */
-  CreateTransformGizmo(options)
-  {
-    return new TnyTransformGizmo(options);
-  }
-
   /** Creates the 2D overlay canvas over a 3D canvas; it draws on Blue ticks. */
   CreateOverlay2D(options)
   {
@@ -367,7 +339,6 @@ CjsSchema.meta.define(CjsLibrary, {
   className: "CjsLibrary",
   fields: {},
   methods: { Initialize: [], Shutdown: [], Fetch: [], SetConfiguration: [], GetConfiguration: [],
-    CreateOutlineHelper: [], CreateInputManager: [], CreateCameraControls: [], CreateTransformGizmo: [],
     CreateOverlay2D: [] }
 });
 

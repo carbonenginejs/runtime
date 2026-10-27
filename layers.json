@@ -325,6 +325,20 @@
         "trinity, or another backend."
       ]
     },
+    "wrap": {
+      "mayImport": [
+        "global",
+        "resource",
+        "trinity",
+        "sof",
+        "input",
+        "core"
+      ],
+      "why": [
+        "Tny: optional application wrappers (cameras, gizmos, outlines, input routing, storage).",
+        "It may use the engine; nothing in the runtime may import it (operator, 2026-10-27)."
+      ]
+    },
     "core": {
       "mayImport": [
         "global",

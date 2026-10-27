@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { TnyInputMan } from "../../npm/dist/input/index.js";
-import { TnyTransformGizmo } from "../../npm/dist/core/gizmos/TnyTransformGizmo.js";
-import { TnyCameraControls } from "../../npm/dist/core/cameras/TnyCameraControls.js";
+import { TnyInputMan } from "../../npm/dist/wrap/index.js";
+import { TnyTransformGizmo } from "../../npm/dist/wrap/gizmos/TnyTransformGizmo.js";
+import { TnyCameraControls } from "../../npm/dist/wrap/cameras/TnyCameraControls.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { EveCamera, Tr2Effect, TriDevice, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";

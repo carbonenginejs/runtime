@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TnyCameraControls } from '../../npm/dist/core/cameras/TnyCameraControls.js';
+import { TnyCameraControls } from '../../npm/dist/wrap/cameras/TnyCameraControls.js';
 import { EveCamera } from '../../npm/dist/trinity/index.js';
 
 function fixture()
