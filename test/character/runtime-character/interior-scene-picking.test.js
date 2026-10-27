@@ -47,3 +47,20 @@ test("a pick pixel decodes as Carbon's DecodeBufferPixel (Tr2InteriorScene.cpp:1
     scene.DecodeBufferPixel(Pixel(1, 0.4, 0.5, 0.75), PICK_UV | PICK_POSITION, uvDepth);
     assert.equal(Math.fround(uvDepth.depth), Math.fround(0.4), "with position too, green is the depth");
 });
+
+test("every pick re-runs the candidate query (CE-227, adapted: Carbon reuses the first pick's list)", t =>
+{
+    const scene = new Tr2InteriorScene();
+    const first = { name: "first" }, later = { name: "later" };
+    const found = [ [ first ], [ first, later ] ];
+    let queries = 0;
+    t.mock.method(scene, "_ResolveVisibility", function ()
+    {
+        for (const object of found[queries]) this._visibleObjects.push(object);
+        queries++;
+    });
+    assert.deepEqual(scene.GetPickingObjectsToRender([ 0, 0, 1 ]), [ first ]);
+    // An object added after the first pick is a candidate of the next one.
+    assert.deepEqual(scene.GetPickingObjectsToRender([ 0, 0, 1 ]), [ first, later ]);
+    assert.equal(queries, 2);
+});

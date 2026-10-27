@@ -466,22 +466,25 @@ export class Tr2InteriorScene extends ITr2PickableScene
 
   /**
    * Carbon GetPickingObjectsToRender(dirWorld) (h:217, cpp:1205-1214): the
-   * objects a picking visibility query found, running the query at the
-   * current field of view and aspect when the list is empty.
+   * objects a picking visibility query finds, at the current field of view
+   * and aspect.
    *
-   * Quirk, reproduced (cpp:1207-1213): a non-empty list from an earlier query
-   * is returned as it is, without a new query.
+   * Adapted: every pick runs the query. Carbon returns a non-empty list from
+   * an earlier query as it is (cpp:1207-1213; the list is cleared only by the
+   * fov overload, cpp:1233), so every pick after the first reuses the first
+   * pick's candidates, culled to that pick's view: an object added later, or
+   * outside the first pick's view, is never a candidate, and a removed one
+   * stays in the list. Carbon defect CE-227; fixed here at the operator's
+   * direction (2026-10-27), for character swaps and a moving camera.
    *
    * @param {vec3} dirWorld The pick ray's world direction.
    * @param {Tr2RenderContext} [_context] The base class's context argument, unused here.
    * @returns {object[]} The renderables to pick among.
    */
-  @meta.implemented
+  @meta.adapted
   GetPickingObjectsToRender(dirWorld, _context)
   {
-    if (this._visibleObjects.length === 0)
-      return this.GetPickingObjectsToRender__FovAspect(dirWorld, Tr2Renderer.GetFieldOfView(), Tr2Renderer.GetAspectRatio());
-    return this._visibleObjects;
+    return this.GetPickingObjectsToRender__FovAspect(dirWorld, Tr2Renderer.GetFieldOfView(), Tr2Renderer.GetAspectRatio());
   }
 
   /**
