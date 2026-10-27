@@ -349,3 +349,21 @@ describe("Quaternion", () =>
         closeTo(outAxis[2], Math.sin(angle / 2));
     });
 });
+
+describe("overload variants (rule 11)", () =>
+{
+    test("rotationQuaternion routes to exactly its specific variants", () =>
+    {
+        const m = Matrix.rotationMatrix__AxisAngle(new Float32Array(16), new Float32Array([0, 1, 0]), 0.4);
+        const axis = new Float32Array([0.3, -0.2, 0.9]);
+        const pairs = [
+            [ Quaternion.rotationQuaternion(new Float32Array(4), m), Quaternion.rotationQuaternion__Matrix(new Float32Array(4), m) ],
+            [ Quaternion.rotationQuaternion(new Float32Array(4), axis, 1.1), Quaternion.rotationQuaternion__AxisAngle(new Float32Array(4), axis, 1.1) ],
+            [ Quaternion.rotationQuaternion(new Float32Array(4), 0.2, -0.5, 1.3), Quaternion.rotationQuaternion__YawPitchRoll(new Float32Array(4), 0.2, -0.5, 1.3) ]
+        ];
+        for (const [ routed, specific ] of pairs)
+        {
+            assert.deepStrictEqual(Array.from(routed), Array.from(specific));
+        }
+    });
+});

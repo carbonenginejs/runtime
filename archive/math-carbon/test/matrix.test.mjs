@@ -625,3 +625,34 @@ describe("Matrix", () =>
         }
     });
 });
+
+describe("overload variants (rule 11)", () =>
+{
+    test("each router returns exactly what its specific variant returns", () =>
+    {
+        const v = new Float32Array([2, -3, 0.5]);
+        const q = Quaternion.normalize(new Float32Array(4), new Float32Array([0.1, 0.2, 0.3, 0.9]));
+        const m = m4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        const pairs = [
+            [ Matrix.translationMatrix(new Float32Array(16), 2, -3, 0.5), Matrix.translationMatrix__XYZ(new Float32Array(16), 2, -3, 0.5) ],
+            [ Matrix.translationMatrix(new Float32Array(16), v), Matrix.translationMatrix__Vector3(new Float32Array(16), v) ],
+            [ Matrix.scalingMatrix(new Float32Array(16), 2, -3, 0.5), Matrix.scalingMatrix__XYZ(new Float32Array(16), 2, -3, 0.5) ],
+            [ Matrix.scalingMatrix(new Float32Array(16), v), Matrix.scalingMatrix__Vector3(new Float32Array(16), v) ],
+            [ Matrix.rotationMatrix(new Float32Array(16), q), Matrix.rotationMatrix__Quaternion(new Float32Array(16), q) ],
+            [ Matrix.rotationMatrix(new Float32Array(16), v, 0.7), Matrix.rotationMatrix__AxisAngle(new Float32Array(16), v, 0.7) ],
+            [ Matrix.transform(new Float32Array(4), new Float32Array([1, 2, 3, 4]), m), Matrix.transform__Vector4(new Float32Array(4), new Float32Array([1, 2, 3, 4]), m) ],
+            [ Matrix.transform(new Float32Array(4), v, m), Matrix.transform__Vector3(new Float32Array(4), v, m) ],
+            [ Matrix.transform(new Float32Array(4), new Float32Array([1, 2]), m), Matrix.transform__Vector2(new Float32Array(4), new Float32Array([1, 2]), m) ]
+        ];
+        for (const [ routed, specific ] of pairs)
+        {
+            assert.deepStrictEqual(Array.from(routed), Array.from(specific));
+        }
+    });
+
+    test("transform throws for a point length no Carbon overload takes", () =>
+    {
+        assert.throws(() => Matrix.transform(new Float32Array(4), new Float32Array(5), Matrix.create()), TypeError);
+        assert.throws(() => Matrix.transform(new Float32Array(4), new Float32Array(1), Matrix.create()), TypeError);
+    });
+});

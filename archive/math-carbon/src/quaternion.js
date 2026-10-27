@@ -304,19 +304,134 @@ export class Quaternion
     } // Quaternion_inline.h:226
 
     /**
-     * Rotation quaternion, dispatched by arity like Carbon's overloads:
-     * (out, m) from a Matrix [Quaternion.cpp:7], (out, axis, angle) from
-     * axis+angle [Quaternion_inline.h:232], (out, yaw, pitch, roll) from Euler
-     * angles [Quaternion.cpp:60].
+     * Carbon: RotationQuaternion (math/include/Quaternion.h:56-58)
+     * Routes Carbon's three overloads by arity, which JS sees exactly: (out, m) from a
+     * Matrix [Quaternion.cpp:7], (out, axis, angle) [Quaternion_inline.h:232] and
+     * (out, yaw, pitch, roll) [Quaternion.cpp:60]. Engine code calls
+     * rotationQuaternion__Matrix, rotationQuaternion__AxisAngle or
+     * rotationQuaternion__YawPitchRoll.
      * @param {quaternion} out
+     * @param {Float32Array|number} a Matrix, axis, or yaw
+     * @param {number} [b] Angle, or pitch
+     * @param {number} [c] Roll
      * @returns {quaternion} out
      */
     static rotationQuaternion(out, a, b, c)
     {
-        if (c !== undefined) return rotationQuaternionYawPitchRoll(out, a, b, c);
-        if (b !== undefined) return rotationQuaternionAxisAngle(out, a, b);
-        return rotationQuaternionMatrix(out, a);
+        if (c !== undefined) return Quaternion.rotationQuaternion__YawPitchRoll(out, a, b, c);
+        if (b !== undefined) return Quaternion.rotationQuaternion__AxisAngle(out, a, b);
+        return Quaternion.rotationQuaternion__Matrix(out, a);
     }
+
+    /**
+     * Rotation quaternion from a Matrix (Carbon's 53-line branch version, ported exactly)
+     * @param {quaternion} out
+     * @param {Float32Array} m - matrix (16 floats, Carbon m[r][c] at [r*4+c])
+     * @returns {quaternion} out
+     */
+    static rotationQuaternion__Matrix(out, m)
+    {
+        let i, maxi;
+        let maxdiag, S;
+
+        const trace = m[0] + m[5] + m[10] + 1.0;
+        if (trace > 1.0)
+        {
+            out[0] = (m[6] - m[9]) / (2.0 * Math.sqrt(trace));
+            out[1] = (m[8] - m[2]) / (2.0 * Math.sqrt(trace));
+            out[2] = (m[1] - m[4]) / (2.0 * Math.sqrt(trace));
+            out[3] = Math.sqrt(trace) / 2.0;
+            return out;
+        }
+        maxi = 0;
+        maxdiag = m[0];
+        for (i = 1; i < 3; i++)
+        {
+            if (m[i * 4 + i] > maxdiag)
+            {
+                maxi = i;
+                maxdiag = m[i * 4 + i];
+            }
+        }
+        switch (maxi)
+        {
+            case 0:
+                S = 2.0 * Math.sqrt(1.0 + m[0] - m[5] - m[10]);
+                out[0] = 0.25 * S;
+                out[1] = (m[1] + m[4]) / S;
+                out[2] = (m[2] + m[8]) / S;
+                out[3] = (m[6] - m[9]) / S;
+                break;
+            case 1:
+                S = 2.0 * Math.sqrt(1.0 + m[5] - m[0] - m[10]);
+                out[0] = (m[1] + m[4]) / S;
+                out[1] = 0.25 * S;
+                out[2] = (m[6] + m[9]) / S;
+                out[3] = (m[8] - m[2]) / S;
+                break;
+            case 2:
+                S = 2.0 * Math.sqrt(1.0 + m[10] - m[0] - m[5]);
+                out[0] = (m[2] + m[8]) / S;
+                out[1] = (m[6] + m[9]) / S;
+                out[2] = 0.25 * S;
+                out[3] = (m[1] - m[4]) / S;
+                break;
+        }
+        return out;
+    } // Quaternion.cpp:7
+
+    /**
+     * Rotation quaternion from yaw/pitch/roll. Carbon calls
+     * XMQuaternionRotationRollPitchYaw(pitch, yaw, roll); DirectXMath's documented
+     * formula (half-angle products, x = cr*sp*cy + sr*cp*sy etc.) is identical to
+     * Carbon's own scalar __APPLE__ branch, which is what is ported here.
+     * @param {quaternion} out
+     * @param {number} yaw
+     * @param {number} pitch
+     * @param {number} roll
+     * @returns {quaternion} out
+     */
+    static rotationQuaternion__YawPitchRoll(out, yaw, pitch, roll)
+    {
+        const sinYaw = Math.sin(yaw / 2.0);
+        const cosYaw = Math.cos(yaw / 2.0);
+        const sinPitch = Math.sin(pitch / 2.0);
+        const cosPitch = Math.cos(pitch / 2.0);
+        const sinRoll = Math.sin(roll / 2.0);
+        const cosRoll = Math.cos(roll / 2.0);
+
+        out[0] = sinYaw * cosPitch * sinRoll + cosYaw * sinPitch * cosRoll;
+        out[1] = sinYaw * cosPitch * cosRoll - cosYaw * sinPitch * sinRoll;
+        out[2] = cosYaw * cosPitch * sinRoll - sinYaw * sinPitch * cosRoll;
+        out[3] = cosYaw * cosPitch * cosRoll + sinYaw * sinPitch * sinRoll;
+        return out;
+    } // Quaternion.cpp:60 (scalar branch :65-77)
+
+    /**
+     * Rotation quaternion from a (normalized-internally) axis and an angle
+     * @param {quaternion} out
+     * @param {Float32Array} axis - 3 floats
+     * @param {number} angle
+     * @returns {quaternion} out
+     */
+    static rotationQuaternion__AxisAngle(out, axis, angle)
+    {
+        // Vector3 Normalize, ported from Vector3_inline.h:181 (overflow-guarded)
+        const ax = axis[0], ay = axis[1], az = axis[2];
+        const max = Math.max(Math.max(Math.abs(ax), Math.abs(ay)), Math.abs(az));
+        const d = max ? max : 1;
+        const mx = ax / d, my = ay / d, mz = az / d;
+        let len = Math.sqrt(mx * mx + my * my + mz * mz);
+        if (len) len = 1 / len;
+        const tx = mx * len, ty = my * len, tz = mz * len;
+
+        const s = Math.sin(angle / 2.0);
+        out[0] = s * tx;
+        out[1] = s * ty;
+        out[2] = s * tz;
+        out[3] = Math.cos(angle / 2.0);
+        return out;
+    } // Quaternion_inline.h:232
 
     /**
      * Spherical linear interpolation with Carbon's exact 0.001 threshold branch
@@ -366,112 +481,3 @@ export class Quaternion
     } // Quaternion_inline.h:270
 }
 
-/**
- * Rotation quaternion from a Matrix (Carbon's 53-line branch version, ported exactly)
- * @param {quaternion} out
- * @param {Float32Array} m - matrix (16 floats, Carbon m[r][c] at [r*4+c])
- * @returns {quaternion} out
- */
-function rotationQuaternionMatrix(out, m)
-{
-    let i, maxi;
-    let maxdiag, S;
-
-    const trace = m[0] + m[5] + m[10] + 1.0;
-    if (trace > 1.0)
-    {
-        out[0] = (m[6] - m[9]) / (2.0 * Math.sqrt(trace));
-        out[1] = (m[8] - m[2]) / (2.0 * Math.sqrt(trace));
-        out[2] = (m[1] - m[4]) / (2.0 * Math.sqrt(trace));
-        out[3] = Math.sqrt(trace) / 2.0;
-        return out;
-    }
-    maxi = 0;
-    maxdiag = m[0];
-    for (i = 1; i < 3; i++)
-    {
-        if (m[i * 4 + i] > maxdiag)
-        {
-            maxi = i;
-            maxdiag = m[i * 4 + i];
-        }
-    }
-    switch (maxi)
-    {
-        case 0:
-            S = 2.0 * Math.sqrt(1.0 + m[0] - m[5] - m[10]);
-            out[0] = 0.25 * S;
-            out[1] = (m[1] + m[4]) / S;
-            out[2] = (m[2] + m[8]) / S;
-            out[3] = (m[6] - m[9]) / S;
-            break;
-        case 1:
-            S = 2.0 * Math.sqrt(1.0 + m[5] - m[0] - m[10]);
-            out[0] = (m[1] + m[4]) / S;
-            out[1] = 0.25 * S;
-            out[2] = (m[6] + m[9]) / S;
-            out[3] = (m[8] - m[2]) / S;
-            break;
-        case 2:
-            S = 2.0 * Math.sqrt(1.0 + m[10] - m[0] - m[5]);
-            out[0] = (m[2] + m[8]) / S;
-            out[1] = (m[6] + m[9]) / S;
-            out[2] = 0.25 * S;
-            out[3] = (m[1] - m[4]) / S;
-            break;
-    }
-    return out;
-} // Quaternion.cpp:7
-
-/**
- * Rotation quaternion from yaw/pitch/roll. Carbon calls
- * XMQuaternionRotationRollPitchYaw(pitch, yaw, roll); DirectXMath's documented
- * formula (half-angle products, x = cr*sp*cy + sr*cp*sy etc.) is identical to
- * Carbon's own scalar __APPLE__ branch, which is what is ported here.
- * @param {quaternion} out
- * @param {number} yaw
- * @param {number} pitch
- * @param {number} roll
- * @returns {quaternion} out
- */
-function rotationQuaternionYawPitchRoll(out, yaw, pitch, roll)
-{
-    const sinYaw = Math.sin(yaw / 2.0);
-    const cosYaw = Math.cos(yaw / 2.0);
-    const sinPitch = Math.sin(pitch / 2.0);
-    const cosPitch = Math.cos(pitch / 2.0);
-    const sinRoll = Math.sin(roll / 2.0);
-    const cosRoll = Math.cos(roll / 2.0);
-
-    out[0] = sinYaw * cosPitch * sinRoll + cosYaw * sinPitch * cosRoll;
-    out[1] = sinYaw * cosPitch * cosRoll - cosYaw * sinPitch * sinRoll;
-    out[2] = cosYaw * cosPitch * sinRoll - sinYaw * sinPitch * cosRoll;
-    out[3] = cosYaw * cosPitch * cosRoll + sinYaw * sinPitch * sinRoll;
-    return out;
-} // Quaternion.cpp:60 (scalar branch :65-77)
-
-/**
- * Rotation quaternion from a (normalized-internally) axis and an angle
- * @param {quaternion} out
- * @param {Float32Array} axis - 3 floats
- * @param {number} angle
- * @returns {quaternion} out
- */
-function rotationQuaternionAxisAngle(out, axis, angle)
-{
-    // Vector3 Normalize, ported from Vector3_inline.h:181 (overflow-guarded)
-    const ax = axis[0], ay = axis[1], az = axis[2];
-    const max = Math.max(Math.max(Math.abs(ax), Math.abs(ay)), Math.abs(az));
-    const d = max ? max : 1;
-    const mx = ax / d, my = ay / d, mz = az / d;
-    let len = Math.sqrt(mx * mx + my * my + mz * mz);
-    if (len) len = 1 / len;
-    const tx = mx * len, ty = my * len, tz = mz * len;
-
-    const s = Math.sin(angle / 2.0);
-    out[0] = s * tx;
-    out[1] = s * ty;
-    out[2] = s * tz;
-    out[3] = Math.cos(angle / 2.0);
-    return out;
-} // Quaternion_inline.h:232

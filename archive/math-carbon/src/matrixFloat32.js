@@ -666,7 +666,7 @@ function transformationMatrixCentered(out, scalingCenter, scalingRotation, scali
     }
     else
     {
-        Matrix.scalingMatrix(mat4_2, scaling);
+        Matrix.scalingMatrix__Vector3(mat4_2, scaling);
     }
     if (!rotation)
     {

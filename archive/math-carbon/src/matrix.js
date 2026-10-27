@@ -317,57 +317,178 @@ export class Matrix
     } // Matrix_inline.h:315
 
     /**
-     * Translation matrix: (out, x, y, z) or (out, v) by arity, like Carbon's two overloads
+     * Carbon: TranslationMatrix (math/include/Matrix.h:76-77)
+     * Routes Carbon's two overloads by arity, which JS sees exactly; engine code calls
+     * translationMatrix__XYZ or translationMatrix__Vector3.
      * @param {matrix} out
+     * @param {number|Float32Array} x X, or the translation vector
+     * @param {number} [y]
+     * @param {number} [z]
      * @returns {matrix} out
      */
     static translationMatrix(out, x, y, z)
     {
-        if (y === undefined)
-        {
-            const v = x;
-            x = v[0];
-            y = v[1];
-            z = v[2];
-        }
+        if (y === undefined) return Matrix.translationMatrix__Vector3(out, x);
+        return Matrix.translationMatrix__XYZ(out, x, y, z);
+    }
+
+    /**
+     * Carbon: TranslationMatrix( float x, float y, float z ) (math/include/Matrix_inline.h:325)
+     * @param {matrix} out
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @returns {matrix} out
+     */
+    static translationMatrix__XYZ(out, x, y, z)
+    {
         return Matrix.set(out,
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             x, y, z, 1);
-    } // Matrix_inline.h:325 (values) / :335 (Vector3)
+    } // Matrix_inline.h:325
 
     /**
-     * Scaling matrix: (out, sx, sy, sz) or (out, v) by arity, like Carbon's two overloads
+     * Carbon: TranslationMatrix( const Vector3& translation ) (math/include/Matrix_inline.h:335)
      * @param {matrix} out
+     * @param {Float32Array} translation
+     * @returns {matrix} out
+     */
+    static translationMatrix__Vector3(out, translation)
+    {
+        return Matrix.set(out,
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            translation[0], translation[1], translation[2], 1);
+    } // Matrix_inline.h:335
+
+    /**
+     * Carbon: ScalingMatrix (math/include/Matrix.h:78-79)
+     * Routes Carbon's two overloads by arity, which JS sees exactly; engine code calls
+     * scalingMatrix__XYZ or scalingMatrix__Vector3.
+     * @param {matrix} out
+     * @param {number|Float32Array} sx X scale, or the scaling vector
+     * @param {number} [sy]
+     * @param {number} [sz]
      * @returns {matrix} out
      */
     static scalingMatrix(out, sx, sy, sz)
     {
-        if (sy === undefined)
-        {
-            const v = sx;
-            sx = v[0];
-            sy = v[1];
-            sz = v[2];
-        }
+        if (sy === undefined) return Matrix.scalingMatrix__Vector3(out, sx);
+        return Matrix.scalingMatrix__XYZ(out, sx, sy, sz);
+    }
+
+    /**
+     * Carbon: ScalingMatrix( float sx, float sy, float sz ) (math/include/Matrix_inline.h:345)
+     * @param {matrix} out
+     * @param {number} sx
+     * @param {number} sy
+     * @param {number} sz
+     * @returns {matrix} out
+     */
+    static scalingMatrix__XYZ(out, sx, sy, sz)
+    {
         return Matrix.set(out,
             sx, 0, 0, 0,
             0, sy, 0, 0,
             0, 0, sz, 0,
             0, 0, 0, 1);
-    } // Matrix_inline.h:345 (values) / :355 (Vector3)
+    } // Matrix_inline.h:345
 
     /**
-     * Rotation matrix: (out, q) from a quaternion or (out, axis, angle) by arity
+     * Carbon: ScalingMatrix( const Vector3& scaling ) (math/include/Matrix_inline.h:355)
      * @param {matrix} out
+     * @param {Float32Array} scaling
+     * @returns {matrix} out
+     */
+    static scalingMatrix__Vector3(out, scaling)
+    {
+        return Matrix.set(out,
+            scaling[0], 0, 0, 0,
+            0, scaling[1], 0, 0,
+            0, 0, scaling[2], 0,
+            0, 0, 0, 1);
+    } // Matrix_inline.h:355
+
+    /**
+     * Carbon: RotationMatrix (math/include/Matrix.h:80-81)
+     * Routes Carbon's two overloads by arity, which JS sees exactly; engine code calls
+     * rotationMatrix__Quaternion or rotationMatrix__AxisAngle.
+     * @param {matrix} out
+     * @param {Float32Array} a Quaternion, or the rotation axis
+     * @param {number} [angle]
      * @returns {matrix} out
      */
     static rotationMatrix(out, a, angle)
     {
-        if (angle !== undefined) return rotationMatrixAxisAngle(out, a, angle);
-        return rotationMatrixQuaternion(out, a);
+        if (angle !== undefined) return Matrix.rotationMatrix__AxisAngle(out, a, angle);
+        return Matrix.rotationMatrix__Quaternion(out, a);
     }
+
+    /**
+     * Rotation matrix from a quaternion (not normalized first, as C++)
+     * @param {matrix} out
+     * @param {Float32Array} q - quaternion [x, y, z, w]
+     * @returns {matrix} out
+     */
+    static rotationMatrix__Quaternion(out, q)
+    {
+        const x = q[0], y = q[1], z = q[2], w = q[3];
+        out[0] = 1.0 - 2.0 * (y * y + z * z);
+        out[1] = 2.0 * (x * y + z * w);
+        out[2] = 2.0 * (x * z - y * w);
+        out[3] = 0.0;
+        out[4] = 2.0 * (x * y - z * w);
+        out[5] = 1.0 - 2.0 * (x * x + z * z);
+        out[6] = 2.0 * (y * z + x * w);
+        out[7] = 0.0;
+        out[8] = 2.0 * (x * z + y * w);
+        out[9] = 2.0 * (y * z - x * w);
+        out[10] = 1.0 - 2.0 * (x * x + y * y);
+        out[11] = 0.0;
+        out[12] = 0.0;
+        out[13] = 0.0;
+        out[14] = 0.0;
+        out[15] = 1.0;
+        return out;
+    } // Matrix_inline.h:365
+
+    /**
+     * Carbon: RotationMatrix (math/include/Matrix_inline.h:388-413)
+     * Rotation matrix from an axis (normalized internally) and an angle
+     * @param {matrix} out
+     * @param {Float32Array} axis - 3 floats
+     * @param {number} angle
+     * @returns {matrix} out
+     */
+    static rotationMatrix__AxisAngle(out, axis, angle)
+    {
+        const vec3_0 = v3Normalize(scratch.vec3_0, axis[0], axis[1], axis[2]);
+        const nx = vec3_0[0], ny = vec3_0[1], nz = vec3_0[2];
+
+        const sinAngle = Math.sin(angle);
+        const cosAngle = Math.cos(angle);
+
+        out[0] = (1.0 - cosAngle) * nx * nx + cosAngle;
+        out[4] = (1.0 - cosAngle) * nx * ny - sinAngle * nz;
+        out[8] = (1.0 - cosAngle) * nx * nz + sinAngle * ny;
+        out[12] = 0;
+        out[1] = (1.0 - cosAngle) * ny * nx + sinAngle * nz;
+        out[5] = (1.0 - cosAngle) * ny * ny + cosAngle;
+        out[9] = (1.0 - cosAngle) * ny * nz - sinAngle * nx;
+        out[13] = 0;
+        out[2] = (1.0 - cosAngle) * nz * nx - sinAngle * ny;
+        out[6] = (1.0 - cosAngle) * nz * ny + sinAngle * nx;
+        out[10] = (1.0 - cosAngle) * nz * nz + cosAngle;
+        out[14] = 0;
+        out[3] = 0;
+        out[7] = 0;
+        out[11] = 0;
+        out[15] = 1;
+        return out;
+    } // Matrix_inline.h:388
 
     /**
      * Rotation matrix about the X axis
@@ -591,7 +712,7 @@ export class Matrix
         }
         else
         {
-            Matrix.rotationMatrix(mat4_3, scalingRotation);
+            Matrix.rotationMatrix__Quaternion(mat4_3, scalingRotation);
             Matrix.inverse(mat4_1, mat4_3);
         }
         if (!scaling)
@@ -600,7 +721,7 @@ export class Matrix
         }
         else
         {
-            Matrix.scalingMatrix(mat4_2, scaling);
+            Matrix.scalingMatrix__Vector3(mat4_2, scaling);
         }
         if (!rotation)
         {
@@ -608,7 +729,7 @@ export class Matrix
         }
         else
         {
-            Matrix.rotationMatrix(mat4_5, rotation);
+            Matrix.rotationMatrix__Quaternion(mat4_5, rotation);
         }
         Matrix.identityMatrix(mat4_4);
         mat4_4[12] = pscx - prcx;
@@ -683,7 +804,7 @@ export class Matrix
         }
         else
         {
-            Matrix.scalingMatrix(mat4_2, scaling[0], scaling[1], 1.0);
+            Matrix.scalingMatrix__XYZ(mat4_2, scaling[0], scaling[1], 1.0);
         }
         if (rotation === 0)
         {
@@ -959,10 +1080,10 @@ export class Matrix
     } // Matrix_inline.h:580
 
     /**
-     * Carbon: Transform (math/include/Matrix_inline.h:589-617)
-     * Row-vector transform p * m (Carbon operator*(Vector4, Matrix) and the free
-     * Transform overloads; dispatches on point.length: 4, 3 or 2 - each branch
-     * ported literally, including the Vector3 overload's w term)
+     * Carbon: Transform (math/include/Matrix.h, three overloads)
+     * Routes by point.length, exactly 4, 3 or 2, and throws otherwise: a length is all JS
+     * can see of the C++ point type, so engine code calls transform__Vector4,
+     * transform__Vector3 or transform__Vector2.
      * @param {Float32Array} out - receiving vec4 (may alias point or the matrix)
      * @param {Float32Array} point - 4, 3 or 2 floats
      * @param {matrix} m
@@ -970,44 +1091,79 @@ export class Matrix
      */
     static transform(out, point, m)
     {
-        const x = point[0], y = point[1];
-        if (point.length >= 4)
+        switch (point.length)
         {
-            const z = point[2], w = point[3];
-            const result0 = x * m[0] + y * m[4] + z * m[8] + w * m[12];
-            const result1 = x * m[1] + y * m[5] + z * m[9] + w * m[13];
-            const result2 = x * m[2] + y * m[6] + z * m[10] + w * m[14];
-            const result3 = x * m[3] + y * m[7] + z * m[11] + w * m[15];
-            out[0] = result0;
-            out[1] = result1;
-            out[2] = result2;
-            out[3] = result3;
-        } // Matrix_inline.h:589 (and :293, identical arithmetic)
-        else if (point.length === 3)
-        {
-            const z = point[2];
-            const result0 = x * m[0] + y * m[4] + z * m[8] + m[12];
-            const result1 = x * m[1] + y * m[5] + z * m[9] + m[13];
-            const result2 = x * m[2] + y * m[6] + z * m[10] + m[14];
-            const result3 = m[3] + m[7] + m[11] + m[15];
-            out[0] = result0;
-            out[1] = result1;
-            out[2] = result2;
-            out[3] = result3;
-        } // Matrix_inline.h:599 (w is the plain column sum, as C++)
-        else
-        {
-            const result0 = x * m[0] + y * m[4] + m[12];
-            const result1 = x * m[1] + y * m[5] + m[13];
-            const result2 = x * m[2] + y * m[6] + m[14];
-            const result3 = x * m[3] + y * m[7] + m[15];
-            out[0] = result0;
-            out[1] = result1;
-            out[2] = result2;
-            out[3] = result3;
-        } // Matrix_inline.h:609
-        return out;
+            case 4: return Matrix.transform__Vector4(out, point, m);
+            case 3: return Matrix.transform__Vector3(out, point, m);
+            case 2: return Matrix.transform__Vector2(out, point, m);
+        }
+        throw new TypeError(`Matrix.transform: no Carbon overload takes a ${point.length}-component point.`);
     }
+
+    /**
+     * Carbon: Transform( const Vector4& point, const Matrix& transform ) (math/include/Matrix_inline.h:589)
+     * Row-vector transform p * m; also Carbon's operator*( Vector4, Matrix ) (:293, identical arithmetic).
+     * @param {Float32Array} out - receiving vec4 (may alias point or the matrix)
+     * @param {Float32Array} point - 4 floats
+     * @param {matrix} m
+     * @returns {Float32Array} out
+     */
+    static transform__Vector4(out, point, m)
+    {
+        const x = point[0], y = point[1], z = point[2], w = point[3];
+        const result0 = x * m[0] + y * m[4] + z * m[8] + w * m[12];
+        const result1 = x * m[1] + y * m[5] + z * m[9] + w * m[13];
+        const result2 = x * m[2] + y * m[6] + z * m[10] + w * m[14];
+        const result3 = x * m[3] + y * m[7] + z * m[11] + w * m[15];
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
+        return out;
+    } // Matrix_inline.h:589
+
+    /**
+     * Carbon: Transform( const Vector3& point, const Matrix& transform ) (math/include/Matrix_inline.h:599)
+     * Point transform with an implicit w of 1; Carbon's w is the plain column sum, ported as is.
+     * @param {Float32Array} out - receiving vec4 (may alias point or the matrix)
+     * @param {Float32Array} point - 3 floats
+     * @param {matrix} m
+     * @returns {Float32Array} out
+     */
+    static transform__Vector3(out, point, m)
+    {
+        const x = point[0], y = point[1], z = point[2];
+        const result0 = x * m[0] + y * m[4] + z * m[8] + m[12];
+        const result1 = x * m[1] + y * m[5] + z * m[9] + m[13];
+        const result2 = x * m[2] + y * m[6] + z * m[10] + m[14];
+        const result3 = m[3] + m[7] + m[11] + m[15];
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
+        return out;
+    } // Matrix_inline.h:599
+
+    /**
+     * Carbon: Transform( const Vector2& v, const Matrix& m ) (math/include/Matrix_inline.h:609)
+     * @param {Float32Array} out - receiving vec4 (may alias v or the matrix)
+     * @param {Float32Array} v - 2 floats
+     * @param {matrix} m
+     * @returns {Float32Array} out
+     */
+    static transform__Vector2(out, v, m)
+    {
+        const x = v[0], y = v[1];
+        const result0 = x * m[0] + y * m[4] + m[12];
+        const result1 = x * m[1] + y * m[5] + m[13];
+        const result2 = x * m[2] + y * m[6] + m[14];
+        const result3 = x * m[3] + y * m[7] + m[15];
+        out[0] = result0;
+        out[1] = result1;
+        out[2] = result2;
+        out[3] = result3;
+        return out;
+    } // Matrix_inline.h:609
 
     /**
      * Carbon: Matrix::operator* (math/include/Matrix_inline.h:304-311)
@@ -1101,7 +1257,7 @@ export class Matrix
             mat4_7[8] = m[8] / scaling[2];
             mat4_7[9] = m[9] / scaling[2];
             mat4_7[10] = m[10] / scaling[2];
-            Quaternion.rotationQuaternion(rotation, mat4_7);
+            Quaternion.rotationQuaternion__Matrix(rotation, mat4_7);
         }
     } // Matrix.cpp:225
 }
@@ -1163,69 +1319,6 @@ function v3Cross(out3, ax, ay, az, bx, by, bz)
 // ---------------------------------------------------------------------------
 // Factories
 // ---------------------------------------------------------------------------
-
-/**
- * Rotation matrix from a quaternion (not normalized first, as C++)
- * @param {matrix} out
- * @param {Float32Array} q - quaternion [x, y, z, w]
- * @returns {matrix} out
- */
-function rotationMatrixQuaternion(out, q)
-{
-    const x = q[0], y = q[1], z = q[2], w = q[3];
-    out[0] = 1.0 - 2.0 * (y * y + z * z);
-    out[1] = 2.0 * (x * y + z * w);
-    out[2] = 2.0 * (x * z - y * w);
-    out[3] = 0.0;
-    out[4] = 2.0 * (x * y - z * w);
-    out[5] = 1.0 - 2.0 * (x * x + z * z);
-    out[6] = 2.0 * (y * z + x * w);
-    out[7] = 0.0;
-    out[8] = 2.0 * (x * z + y * w);
-    out[9] = 2.0 * (y * z - x * w);
-    out[10] = 1.0 - 2.0 * (x * x + y * y);
-    out[11] = 0.0;
-    out[12] = 0.0;
-    out[13] = 0.0;
-    out[14] = 0.0;
-    out[15] = 1.0;
-    return out;
-} // Matrix_inline.h:365
-
-/**
- * Carbon: RotationMatrix (math/include/Matrix_inline.h:388-413)
- * Rotation matrix from an axis (normalized internally) and an angle
- * @param {matrix} out
- * @param {Float32Array} axis - 3 floats
- * @param {number} angle
- * @returns {matrix} out
- */
-function rotationMatrixAxisAngle(out, axis, angle)
-{
-    const vec3_0 = v3Normalize(scratch.vec3_0, axis[0], axis[1], axis[2]);
-    const nx = vec3_0[0], ny = vec3_0[1], nz = vec3_0[2];
-
-    const sinAngle = Math.sin(angle);
-    const cosAngle = Math.cos(angle);
-
-    out[0] = (1.0 - cosAngle) * nx * nx + cosAngle;
-    out[4] = (1.0 - cosAngle) * nx * ny - sinAngle * nz;
-    out[8] = (1.0 - cosAngle) * nx * nz + sinAngle * ny;
-    out[12] = 0;
-    out[1] = (1.0 - cosAngle) * ny * nx + sinAngle * nz;
-    out[5] = (1.0 - cosAngle) * ny * ny + cosAngle;
-    out[9] = (1.0 - cosAngle) * ny * nz - sinAngle * nx;
-    out[13] = 0;
-    out[2] = (1.0 - cosAngle) * nz * nx - sinAngle * ny;
-    out[6] = (1.0 - cosAngle) * nz * ny + sinAngle * nx;
-    out[10] = (1.0 - cosAngle) * nz * nz + cosAngle;
-    out[14] = 0;
-    out[3] = 0;
-    out[7] = 0;
-    out[11] = 0;
-    out[15] = 1;
-    return out;
-} // Matrix_inline.h:388
 
 // ---------------------------------------------------------------------------
 // Transpose / determinant / inverse
