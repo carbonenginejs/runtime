@@ -940,11 +940,12 @@ export class CjsSchema
         // two decorators, both factual and so both here rather than in
         // `compose`. See compose/interface.js for the black-reader branch that
         // proves they cannot be collapsed into one.
+        // Bases as separate arguments or one ordered array (`inherit([A, B])`).
         inherit: (...Bases) => carbonInheritDecorator(
-            Bases,
+            Bases.flat(),
             (Constructor, name, Contract) => CjsSchema.decorateMethod(
                 Constructor, name, ...CjsSchema._inheritedImplDecorators(Contract, name))),
-        interface: (...Interfaces) => carbonInterfaceDecorator(Interfaces),
+        interface: (...Interfaces) => carbonInterfaceDecorator(Interfaces.flat()),
         chainTo: Parent => carbonChainToDecorator(Parent),
         method: methodDecorator("carbon", { method: true }),
         /**
@@ -3808,7 +3809,8 @@ function createExposureNamespace(legacy)
         ...exposureConstants(),
         define: name => exposureClassDecorator(name, false),
         interface: name => exposureClassDecorator(name, true),
-        mapInterface: Interface => carbonInterfaceDecorator([ Interface ], true),
+        // One MAP_INTERFACE line, or several as one ordered array (`mapInterface([A, B])`), registered in that order.
+        mapInterface: (...Interfaces) => carbonInterfaceDecorator(Interfaces.flat(), true),
         exposureChainTo: Parent => carbonChainToDecorator(Parent),
         inherit: (...Bases) => CjsSchema.blue.inherit(...Bases),
         abstract: legacy.abstract,
