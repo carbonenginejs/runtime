@@ -960,10 +960,11 @@ export class EveSOF extends IRoot
    * caller rather than removing it. Anything that takes a registry here is the
    * round trip growing back.
    *
-   * Constructing objects is the caller's option, performed on the result:
-   * `RootClass.from(values)` against whatever classes that caller has. The
-   * direction matters — objects are built *from* the values, never in order to
-   * produce them.
+   * The SOF must always be able to return these values, because it is used as
+   * a service; that does not bar it from building objects (operator,
+   * 2026-10-27). An object build is its own path and leaves this one
+   * class-free. A caller holding values constructs with
+   * `RootClass.from(values)` against whatever classes it has.
    *
    * The output is sparse by default: it carries what SOF set, and class
    * defaults belong to whoever constructs. Pass `populateDefaults: true` to
@@ -1318,8 +1319,9 @@ export class EveSOF extends IRoot
    * `options.layout` object.
    *
    * Adapted: returns model values (BuildValuesFromDNA), not Carbon's live
-   * space-object instance. Whether this returns values or objects is still to
-   * be decided (operator, 2026-10-07).
+   * space-object instance; no object build is ported yet. The SOF may build
+   * objects, and must keep returning values as a service (operator,
+   * 2026-10-27).
    */
   @be.mapMethodAndWrap()
   @meta.adapted
