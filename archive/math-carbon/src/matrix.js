@@ -16,10 +16,10 @@ import { Quaternion } from "./quaternion.js";
  * temporaries.
  *
  * Overload folding (documented deviations from 1:1 names):
- * - Inverse(m) / Inverse(out, m) / Inverse(out, det, m) fold to
- *   inverse(out, m) (singular copies m to out, as Matrix.cpp:7) and
- *   inverseDet(out, m) which returns the determinant and leaves out
- *   untouched when singular (compare the determinant with zero, including for NaN).
+ * - Inverse(m) is inverse(out, m) (singular copies m to out, as Matrix.cpp:7); JS sees
+ *   it and Inverse(out, m) as the same (out, m), so the bare name is the form Carbon's
+ *   code calls. Inverse(out, det, m) is inverse__Det(out, m), returning the determinant
+ *   and leaving out untouched when singular; Inverse(out, m) is inverse__Out(out, m).
  * - TransformationMatrix's 6-pointer overload is transformationMatrixCentered.
  * - Transform's Vector4/Vector3/Vector2 overloads dispatch on input length.
  * - The four TransformCoords batch overloads fold to one explicit
@@ -1010,15 +1010,16 @@ export class Matrix
     } // Matrix.cpp:7
 
     /**
-     * Carbon: Inverse (math/src/Matrix.cpp:49-62)
+     * Carbon: bool Inverse( Matrix& out, float& det, const Matrix& m ) (math/src/Matrix.cpp:49-62)
      * Inverts a matrix and returns the determinant; when singular (0) out is left
-     * untouched. Adapted: Returns the determinant in place of the C++ output reference;
-     * test it against zero, not JS truthiness (NaN still takes the inversion path).
+     * untouched. Adapted: Returns the determinant in place of the C++ output reference
+     * and the bool; test it against zero, not JS truthiness (NaN still takes the
+     * inversion path, as C++ `!det` does).
      * @param {matrix} out - may alias m
      * @param {matrix} m
      * @returns {number} determinant
      */
-    static inverseDet(out, m)
+    static inverse__Det(out, m)
     {
         const det = Matrix.determinant(m);
         if (det === 0)
@@ -1027,7 +1028,19 @@ export class Matrix
         }
         inverseInto(out, m, det);
         return det;
-    } // Matrix.cpp:49 (bool Inverse(out, det, m); Matrix_inline.h:524 folds here)
+    } // Matrix.cpp:49
+
+    /**
+     * Carbon: bool Inverse( Matrix& out, const Matrix& m ) (math/include/Matrix_inline.h:524-528)
+     * Forwards to inverse__Det with a discarded determinant, as Carbon does.
+     * @param {matrix} out - may alias m
+     * @param {matrix} m
+     * @returns {boolean} false when m is singular and out was left untouched
+     */
+    static inverse__Out(out, m)
+    {
+        return Matrix.inverse__Det(out, m) !== 0;
+    } // Matrix_inline.h:524
 
     /**
      * Carbon: TransformCoord (math/include/Matrix_inline.h:560-577)

@@ -433,13 +433,13 @@ describe("Matrix", () =>
     {
         const mat1 = Matrix.create();
         const mat2 = new Float32Array(16);
-        const det1 = Matrix.inverseDet(mat2, mat1);
+        const det1 = Matrix.inverse__Det(mat2, mat1);
         assert.ok(det1);
         assert.strictEqual(det1, 1);
         assert.ok(Matrix.exactEquals(mat2, mat1));
 
         const mat3 = new Float32Array(16);
-        assert.ok(Matrix.inverseDet(mat3, mat1));
+        assert.ok(Matrix.inverse__Det(mat3, mat1));
         assert.ok(Matrix.exactEquals(mat3, mat1));
 
         let mat4 = Matrix.inverse(new Float32Array(16), mat1);
@@ -459,12 +459,12 @@ describe("Matrix", () =>
         // gtest compared these with EXPECT_EQ on float-computed values; JS
         // computes in double before the Float32 store, so the honest
         // equivalent here is EXPECT_FLOAT_EQ tolerance.
-        const det2 = Matrix.inverseDet(mat2, mat6);
+        const det2 = Matrix.inverse__Det(mat2, mat6);
         assert.ok(det2);
         closeTo(det2, 6.260443210601807);
         expectMatrixEq(mat6inv, mat2);
 
-        assert.ok(Matrix.inverseDet(mat3, mat6));
+        assert.ok(Matrix.inverse__Det(mat3, mat6));
         expectMatrixEq(mat6inv, mat3);
 
         mat4 = Matrix.inverse(new Float32Array(16), mat6);
@@ -628,6 +628,20 @@ describe("Matrix", () =>
 
 describe("overload variants (rule 11)", () =>
 {
+    test("inverse__Out reports singularity and leaves out untouched, as inverse__Det does", () =>
+    {
+        const m = m4(2, 0, 0, 0, 0, 4, 0, 0, 0, 0, 8, 0, 1, 2, 3, 1);
+        const viaOut = new Float32Array(16);
+        const viaDet = new Float32Array(16);
+        assert.strictEqual(Matrix.inverse__Out(viaOut, m), true);
+        Matrix.inverse__Det(viaDet, m);
+        assert.ok(Matrix.exactEquals(viaOut, viaDet));
+        const singular = new Float32Array(16);
+        const out = new Float32Array(16).fill(5);
+        assert.strictEqual(Matrix.inverse__Out(out, singular), false);
+        assert.ok(out.every(x => x === 5));
+    });
+
     test("each router returns exactly what its specific variant returns", () =>
     {
         const v = new Float32Array([2, -3, 0.5]);
