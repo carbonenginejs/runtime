@@ -36,5 +36,6 @@ export * as boundingBox from "./boundingBox.js";
 export * as boundingSphere from "./boundingSphere.js";
 export * as matrixUtils from "./matrixUtils.js";
 export { Float4x3 } from "./matrixUtils.js";
+export * as tangents from "./tangents.js";
 
 export { initializeMath } from "./initialize.js";
