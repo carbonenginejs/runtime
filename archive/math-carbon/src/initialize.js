@@ -13,6 +13,7 @@ import { Ray } from "./ray.js";
 import { Color } from "./color.js";
 import { Float_16, Vector2_16, Vector3_16, Vector4_16 } from "./float16.js";
 import * as triMath from "./triMath.js";
+import * as triUtil from "./triUtil.js";
 
 let initialized;
 
@@ -60,7 +61,7 @@ export function initializeMath(options = {})
     initialized = {
         precision, Matrix, Quaternion, Vector2, Vector3, Vector4, Plane, Sphere,
         AxisAlignedBox, AxisAlignedEllipsoid, Ray, Color, Float_16, Vector2_16, Vector3_16, Vector4_16,
-        triMath
+        triMath, triUtil
     };
     return initialized;
 }

@@ -29,5 +29,6 @@ export * from "./ray.js";
 export * from "./color.js";
 export * from "./float16.js";
 export * as triMath from "./triMath.js";
+export * as triUtil from "./triUtil.js";
 
 export { initializeMath } from "./initialize.js";
