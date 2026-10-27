@@ -1,8 +1,7 @@
+import { exposure as be } from "#be";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2Renderable.h
-import { CjsSchema, meta } from "#schema";
-
-
+import { meta } from "#schema";
 /**
  * Trinity-owned contract for objects collected through the renderable path.
  *
@@ -13,6 +12,7 @@ import { CjsSchema, meta } from "#schema";
  * `ReflectionRenderable` component registration call or validate this
  * interface directly rather than probing for methods.
  */
+@be.interface("ITr2Renderable")
 export class ITr2Renderable extends IRoot
 {
 
@@ -23,26 +23,18 @@ export class ITr2Renderable extends IRoot
   }
 
   /** Emits batches of the requested type. */
+  @meta.abstract
   GetBatches(_accumulator, _batchType, _perObjectData, _reason) {}
 
   /** Reports whether a transparent pass is required. */
+  @meta.abstract
   HasTransparentBatches() {}
 
   /** Returns the current transparent-sort value. */
+  @meta.abstract
   GetSortValue() {}
 
   /** Returns or allocates the renderable's per-object data. */
+  @meta.abstract
   GetPerObjectData(_accumulator) {}
 }
-
-
-for (const method of [
-  "GetBatches",
-  "HasTransparentBatches",
-  "GetSortValue",
-  "GetPerObjectData"
-])
-{
-  CjsSchema.decorateMethod(ITr2Renderable, method, meta.abstract);
-}
-CjsSchema.exposure.interface("ITr2Renderable")(ITr2Renderable);

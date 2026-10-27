@@ -6,9 +6,10 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // neighbours' SH lighting. EveEffectRoot2, EvePlanet and EveSpaceObject2
 // implement it; the scene registers each as it enters the scene's objects
 // (EveSpaceScene::OnListModified, cpp:3450-3456).
-import { CjsSchema, meta } from "#schema";
-
+import { meta } from "#schema";
 /** Contract for a secondary light source Tr2ShLightingManager can register. */
+@be.interface("ITr2SecondaryLightSource")
+@be.inherit(IRoot)
 export class ITr2SecondaryLightSource extends IRoot
 {
   /**
@@ -16,6 +17,7 @@ export class ITr2SecondaryLightSource extends IRoot
    *
    * @param {import("./Tr2ShLightingManager.js").Tr2ShLightingManager} _manager The scene's manager.
    */
+  @meta.abstract
   RegisterSecondaryLightSource(_manager)
   {
   }
@@ -25,14 +27,8 @@ export class ITr2SecondaryLightSource extends IRoot
    *
    * @param {import("./Tr2ShLightingManager.js").Tr2ShLightingManager} _manager The scene's manager.
    */
+  @meta.abstract
   UnregisterSecondaryLightSource(_manager)
   {
   }
 }
-
-for (const method of [ "RegisterSecondaryLightSource", "UnregisterSecondaryLightSource" ])
-{
-  CjsSchema.decorateMethod(ITr2SecondaryLightSource, method, meta.abstract);
-}
-be.inherit(IRoot)(ITr2SecondaryLightSource);
-CjsSchema.exposure.interface("ITr2SecondaryLightSource")(ITr2SecondaryLightSource);

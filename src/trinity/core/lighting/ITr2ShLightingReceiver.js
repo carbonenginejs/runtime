@@ -5,9 +5,10 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // A receiver of SH lighting from Tr2ShLightingManager. EveSpaceObject2
 // implements it; the scene clears a receiver's lighting as it leaves the
 // scene's objects (EveSpaceScene::OnListModified, cpp:3474-3488).
-import { CjsSchema, meta } from "#schema";
-
+import { meta } from "#schema";
 /** Contract for an object that receives SH lighting from Tr2ShLightingManager. */
+@be.interface("ITr2ShLightingReceiver")
+@be.inherit(IRoot)
 export class ITr2ShLightingReceiver extends IRoot
 {
   /**
@@ -16,19 +17,14 @@ export class ITr2ShLightingReceiver extends IRoot
    * @param {import("./Tr2ShLightingManager.js").Tr2ShLightingManager} _manager The scene's manager.
    * @param {object} _updateContext The frame's EveUpdateContext.
    */
+  @meta.abstract
   UpdateShLighting(_manager, _updateContext)
   {
   }
 
   /** Drops this object's SH lighting. */
+  @meta.abstract
   ClearShLighting()
   {
   }
 }
-
-for (const method of [ "UpdateShLighting", "ClearShLighting" ])
-{
-  CjsSchema.decorateMethod(ITr2ShLightingReceiver, method, meta.abstract);
-}
-be.inherit(IRoot)(ITr2ShLightingReceiver);
-CjsSchema.exposure.interface("ITr2ShLightingReceiver")(ITr2ShLightingReceiver);
