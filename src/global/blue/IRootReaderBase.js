@@ -31,7 +31,6 @@ import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
 import { mappedInterfaces } from "../compose/interface.js";
-import { num } from "#math/num";
 import { ICustomPersist } from "./ICustomPersist.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { InvalidAttributeException } from "./InvalidAttributeException.js";
@@ -322,12 +321,14 @@ export class IRootReaderBase
 
   /**
    * Whether a member's old and new values are the same, element by element for arrays. Numbers compare
-   * with num.equals (relative 1e-6), so float rounding is not a change; NaN equals NaN, as Object.is has it.
+   * within a relative 1e-6, the tolerance `num.equals` uses, written out here because Carbon's blue does not
+   * depend on its maths library (blue/vcpkg.json); float rounding is not a change. NaN equals NaN, as
+   * Object.is has it.
    */
   static areEquivalent(a, b)
   {
     if (Object.is(a, b)) return true;
-    if (typeof a === "number" && typeof b === "number") return num.equals(a, b);
+    if (typeof a === "number" && typeof b === "number") return Math.abs(a - b) <= 0.000001 * Math.max(1.0, Math.abs(a), Math.abs(b));
 
     if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b))
     {
