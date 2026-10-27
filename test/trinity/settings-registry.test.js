@@ -110,7 +110,7 @@ test("only approved extension names are exempt from Carbon setting-name checks",
   const ours = settings.GetNames().filter(name => !settings.FindSetting(name).carbon);
   assert.deepEqual(ours.slice().sort(), [...approved, "characterTextureQuality", "compressUncompressedTextures", "eveSpacePickingFramework"].sort());
   assert.equal(settings.FindSetting("characterTextureQuality").owner, CjsPaperDollDefinition);
-  assert.equal(settings.FindSetting("characterTextureQuality").applies, meta.setting.LOAD);
+  assert.equal(settings.FindSetting("characterTextureQuality").applies, meta.setting.CREATE);
   assert.equal(settings.GetValue("characterTextureQuality"), "4k");
   assert.equal(settings.FindSetting("compressUncompressedTextures").applies, meta.setting.LOAD);
   assert.equal(settings.GetValue("compressUncompressedTextures"), false);
