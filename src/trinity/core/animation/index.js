@@ -1,5 +1,6 @@
 export * from "./ITr2GrannyAnimationOwner.js";
 export * from "./ITr2PoseModifier.js";
+export * from "./ITr2AnimationUpdater.js";
 export * from "./Tr2GrannyAnimation.js";
 export * from "./Tr2GrannyAnimationLayer.js";
 export * from "./GrannyBoneOffset.js";

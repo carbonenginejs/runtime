@@ -1,4 +1,3 @@
-export * from "./ITr2AnimationUpdater.js";
 export * from "./ITr2SkinnedObject.js";
 export * from "./Tr2GStateAnimation.js";
 export * from "./Tr2GStateParameter.js";

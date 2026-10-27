@@ -1,7 +1,7 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 import { exposure as be } from "#be";
 import { IInitialize } from "#blue/IInitialize";
-import { ITr2AnimationUpdater } from "./ITr2AnimationUpdater.js";
+import { ITr2AnimationUpdater } from "../../../trinity/core/animation/ITr2AnimationUpdater.js";
 // Source: trinity/trinity/Tr2GStateAnimation.h
 import { meta, type } from "#schema";
 
