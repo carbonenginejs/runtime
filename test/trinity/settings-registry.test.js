@@ -16,6 +16,8 @@ import { meta } from "../../npm/dist/global/schema/index.js";
 
 // Import the platform owner so its three explicitly approved settings register.
 import { Tr2PlatformInfo } from "../../npm/dist/core/platform/Tr2PlatformInfo.js";
+// And the paper doll, whose character texture quality is ours.
+import { CjsPaperDollDefinition } from "../../npm/dist/character/application/CjsPaperDollDefinition.js";
 const settings = Tr2Renderer.getSettings();
 
 test("the ported settings are registered under Carbon's names", () =>
@@ -106,7 +108,10 @@ test("only approved extension names are exempt from Carbon setting-name checks",
 {
   const approved = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D", "webgpuTextureCompressionUnaligned", "webgpuFloat32Filterable" ];
   const ours = settings.GetNames().filter(name => !settings.FindSetting(name).carbon);
-  assert.deepEqual(ours.slice().sort(), [...approved, "compressUncompressedTextures", "eveSpacePickingFramework"].sort());
+  assert.deepEqual(ours.slice().sort(), [...approved, "characterTextureQuality", "compressUncompressedTextures", "eveSpacePickingFramework"].sort());
+  assert.equal(settings.FindSetting("characterTextureQuality").owner, CjsPaperDollDefinition);
+  assert.equal(settings.FindSetting("characterTextureQuality").applies, meta.setting.LOAD);
+  assert.equal(settings.GetValue("characterTextureQuality"), "4k");
   assert.equal(settings.FindSetting("compressUncompressedTextures").applies, meta.setting.LOAD);
   assert.equal(settings.GetValue("compressUncompressedTextures"), false);
   for (const name of approved)

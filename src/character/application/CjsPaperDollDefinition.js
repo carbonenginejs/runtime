@@ -53,6 +53,17 @@ import { PaperDollPass } from "./paperDollOrder.js";
 @meta.define("CjsPaperDollDefinition")
 export class CjsPaperDollDefinition
 {
+    /**
+     * Our character texture quality: the size tier of the paper-doll maps a
+     * character composes from (`4k`, `2k` for the unsuffixed files, `512`,
+     * `256`). A map missing at that tier is taken from the nearest smaller one,
+     * then the nearest larger. EVE has its own character quality controls in
+     * client code; Carbon registers no such setting. The setting registry
+     * records this non-Carbon name with carbon: false.
+     */
+    @meta.setting("characterTextureQuality", { applies: meta.setting.LOAD, values: [ "4k", "2k", "512", "256" ] })
+    static characterTextureQuality = "4k";
+
     /** The character's name. */
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
