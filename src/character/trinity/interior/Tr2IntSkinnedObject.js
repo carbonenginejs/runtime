@@ -170,6 +170,10 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
    * Adapted: uses the shared lazy geometry allocator and JS area objects in
    * place of native arena allocations. Scratch bounds start at zero rather
    * than retaining a previous object's data if a producer has no valid bounds.
+   * Each area's data also copies the object's user data, as Carbon's objectId
+   * picking revision did (92483097^, cpp:272): our objectId picking reads it
+   * (Tr2RenderContext.eveSpacePickingFramework), so without it every skinned
+   * object picked as candidate 0.
    */
   @blue.method
   @meta.adapted
@@ -213,6 +217,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
         if (count > TR2_MAX_BONES_PER_MESHAREA) continue;
         const data = new Tr2PerAreaDataSkinned();
         data.SetPickingPointer(perObjectData.GetPickingPointer());
+        data.SetUserData(perObjectData.GetUserData());
         const mapping = area.GetJointMappingAnimRig();
         if (this.visualModel.GetSkeleton() !== null && mapping !== null)
         {

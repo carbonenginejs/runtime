@@ -54,6 +54,9 @@ export class Tr2SkinnedModel extends Tr2Model
    * Carbon's private GetBatchesForArea (h:104, cpp:32-105).
    * Adapted: geometry allocation uses the existing lazy Trinity owner, as in
    * Tr2Model; JS constructs area objects instead of leasing native arena memory.
+   * Each area's data also copies the skinned data's user data, as Carbon's
+   * objectId picking revision did (92483097^, Tr2SkinnedModel.cpp:75), which our
+   * objectId picking reads (Tr2RenderContext.eveSpacePickingFramework).
    */
   @legacyBlue.method
   @meta.adapted
@@ -74,6 +77,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
       const areaData = new Tr2PerAreaDataSkinned();
       areaData.SetPickingPointer(skinnedData.GetPickingPointer());
+      areaData.SetUserData(skinnedData.GetUserData());
       const mapping = area.GetJointMappingAnimRig();
       if (this._skeletonIx !== NO_SKELETON && mapping !== null)
       {
