@@ -242,7 +242,8 @@ test("the real Crisis effect custom setter initializes once after population, an
   assert.ok(observations.length > 1, "an unsuppressed setter reproduces early initialization");
 });
 
-test("dictionary aliases dedupe canonical names while indexed members stay distinct", () =>
+// Member aliases were removed in runtime 8e7302c7e (2026-10-11): readers accept only the exposed name.
+test("indexed members sharing one key stay distinct in notifications", () =>
 {
   class Record
   {
@@ -251,17 +252,17 @@ test("dictionary aliases dedupe canonical names while indexed members stay disti
     calls = [];
     OnModified(names) { this.calls.push(names); return true; }
   }
-  CjsSchema.define(Record, { className: "SharedLoaderNotificationAliases", fields: [
-    { name: "value", key: "stored", aliases: ["oldValue"], type: { kind: "int32" }, edit: { notify: true } },
+  CjsSchema.define(Record, { className: "SharedLoaderNotificationIndexed", fields: [
+    { name: "value", key: "stored", type: { kind: "int32" }, edit: { notify: true } },
     { name: "first", key: "slots", index: 0, type: { kind: "int32" }, edit: { notify: true } },
     { name: "second", key: "slots", index: 1, type: { kind: "int32" }, edit: { notify: true } }
   ] });
   const record = new Record();
-  const changed = CjsSchema.setValues(record, { oldValue: 1, value: 2, first: 3, second: 4 });
+  const changed = CjsSchema.setValues(record, { value: 2, first: 3, second: 4 });
   assert.equal(record.stored, 2);
   assert.deepEqual(record.slots, [3, 4]);
   assert.deepEqual([...changed], ["value", "first", "second"]);
   assert.deepEqual(record.calls, [["value", "first", "second"]]);
-  CjsSchema.setValues(record, { oldValue: 2, value: 2, first: 3, second: 4 });
+  CjsSchema.setValues(record, { value: 2, first: 3, second: 4 });
   assert.equal(record.calls.length, 1);
 });
