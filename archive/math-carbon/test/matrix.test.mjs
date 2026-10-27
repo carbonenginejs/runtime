@@ -1,6 +1,6 @@
 ﻿import { describe, test } from "node:test";
 import assert from "node:assert";
-import { matrix, quaternion } from "../src/index.js";
+import { Matrix, Quaternion } from "../src/index.js";
 
 // gtest EXPECT_FLOAT_EQ equivalent: 1e-6 relative tolerance
 function closeTo(actual, expected, message)
@@ -19,7 +19,7 @@ function feq(actual, expected, message)
 
 function m4(...values)
 {
-    return matrix.set(new Float32Array(16), ...values);
+    return Matrix.set(new Float32Array(16), ...values);
 }
 
 function expectMatrixEq(expected, actual)
@@ -47,7 +47,7 @@ describe("Matrix", () =>
             }
         }
 
-        const mat2 = matrix.clone(mat1);
+        const mat2 = Matrix.clone(mat1);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -109,7 +109,7 @@ describe("Matrix", () =>
             75, 76, 77, 78,
             85, 86, 87, 88);
 
-        matrix.add(mat1, mat1, mat2);
+        Matrix.add(mat1, mat1, mat2);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -119,7 +119,7 @@ describe("Matrix", () =>
             }
         }
 
-        const mat3 = matrix.add(new Float32Array(16), mat1, mat2);
+        const mat3 = Matrix.add(new Float32Array(16), mat1, mat2);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -144,7 +144,7 @@ describe("Matrix", () =>
         }
         const mat2 = new Float32Array(elements);
 
-        matrix.subtract(mat1, mat1, mat2);
+        Matrix.subtract(mat1, mat1, mat2);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -153,7 +153,7 @@ describe("Matrix", () =>
             }
         }
 
-        const mat3 = matrix.subtract(new Float32Array(16), mat1, mat2);
+        const mat3 = Matrix.subtract(new Float32Array(16), mat1, mat2);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -171,7 +171,7 @@ describe("Matrix", () =>
             31, 32, 33, 34,
             41, 42, 43, 44);
 
-        matrix.scale(mat1, mat1, 0.5);
+        Matrix.scale(mat1, mat1, 0.5);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -180,7 +180,7 @@ describe("Matrix", () =>
             }
         }
 
-        const mat2 = matrix.scale(new Float32Array(16), mat1, 10);
+        const mat2 = Matrix.scale(new Float32Array(16), mat1, 10);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -189,7 +189,7 @@ describe("Matrix", () =>
             }
         }
 
-        matrix.divide(mat2, mat2, 2);
+        Matrix.divide(mat2, mat2, 2);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -198,7 +198,7 @@ describe("Matrix", () =>
             }
         }
 
-        const mat3 = matrix.divide(new Float32Array(16), mat2, 0.1);
+        const mat3 = Matrix.divide(new Float32Array(16), mat2, 0.1);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -207,7 +207,7 @@ describe("Matrix", () =>
             }
         }
 
-        matrix.scale(mat2, mat2, 0);
+        Matrix.scale(mat2, mat2, 0);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -216,7 +216,7 @@ describe("Matrix", () =>
             }
         }
 
-        matrix.divide(mat3, mat3, mat2[0]);
+        Matrix.divide(mat3, mat3, mat2[0]);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -225,7 +225,7 @@ describe("Matrix", () =>
             }
         }
 
-        const mat4 = matrix.scale(new Float32Array(16), mat1, 3);
+        const mat4 = Matrix.scale(new Float32Array(16), mat1, 3);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -243,13 +243,13 @@ describe("Matrix", () =>
             31, 32, 33, 34,
             41, 42, 43, 44);
 
-        const mat2 = matrix.clone(mat1);
+        const mat2 = Matrix.clone(mat1);
         for (let i = 0; i < 16; ++i)
         {
             assert.strictEqual(mat2[i], mat1[i]);
         }
 
-        const mat3 = matrix.negate(new Float32Array(16), mat1);
+        const mat3 = Matrix.negate(new Float32Array(16), mat1);
         for (let i = 0; i < 16; ++i)
         {
             assert.strictEqual(mat3[i], -mat1[i]);
@@ -274,19 +274,19 @@ describe("Matrix", () =>
             75, 76, 77, 78,
             85, 86, 87, 88);
 
-        assert.ok(matrix.exactEquals(mat1, mat2));
-        assert.ok(!matrix.exactEquals(mat1, mat3));
-        assert.ok(!(!matrix.exactEquals(mat1, mat2)));
-        assert.ok(!matrix.exactEquals(mat2, mat3));
+        assert.ok(Matrix.exactEquals(mat1, mat2));
+        assert.ok(!Matrix.exactEquals(mat1, mat3));
+        assert.ok(!(!Matrix.exactEquals(mat1, mat2)));
+        assert.ok(!Matrix.exactEquals(mat2, mat3));
 
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
             {
-                const mat4 = matrix.clone(mat1);
+                const mat4 = Matrix.clone(mat1);
                 mat4[i * 4 + j] += 1;
-                assert.ok(!matrix.exactEquals(mat4, mat1));
-                assert.ok(!matrix.exactEquals(mat4, mat1));
+                assert.ok(!Matrix.exactEquals(mat4, mat1));
+                assert.ok(!Matrix.exactEquals(mat4, mat1));
             }
         }
     });
@@ -298,12 +298,12 @@ describe("Matrix", () =>
             21, 22, 23, 24,
             31, 32, 33, 34,
             41, 42, 43, 44);
-        const mat2 = matrix.clone(mat1);
+        const mat2 = Matrix.clone(mat1);
 
-        const t = matrix.getTranslation([0, 0, 0], mat1);
+        const t = Matrix.getTranslation([0, 0, 0], mat1);
         assert.deepStrictEqual(t, [41, 42, 43]);
-        matrix.viewTranslation(mat2)[0] = 123;
-        assert.deepStrictEqual(matrix.getTranslation([0, 0, 0], mat2), [123, 42, 43]);
+        Matrix.viewTranslation(mat2)[0] = 123;
+        assert.deepStrictEqual(Matrix.getTranslation([0, 0, 0], mat2), [123, 42, 43]);
     });
 
     test("XRow", () =>
@@ -313,11 +313,11 @@ describe("Matrix", () =>
             21, 22, 23, 24,
             31, 32, 33, 34,
             41, 42, 43, 44);
-        const mat2 = matrix.clone(mat1);
+        const mat2 = Matrix.clone(mat1);
 
-        assert.deepStrictEqual(matrix.getX([0, 0, 0], mat1), [11, 12, 13]);
-        matrix.viewX(mat2)[0] = 123;
-        assert.deepStrictEqual(matrix.getX([0, 0, 0], mat2), [123, 12, 13]);
+        assert.deepStrictEqual(Matrix.getX([0, 0, 0], mat1), [11, 12, 13]);
+        Matrix.viewX(mat2)[0] = 123;
+        assert.deepStrictEqual(Matrix.getX([0, 0, 0], mat2), [123, 12, 13]);
     });
 
     test("YRow", () =>
@@ -327,11 +327,11 @@ describe("Matrix", () =>
             21, 22, 23, 24,
             31, 32, 33, 34,
             41, 42, 43, 44);
-        const mat2 = matrix.clone(mat1);
+        const mat2 = Matrix.clone(mat1);
 
-        assert.deepStrictEqual(matrix.getY([0, 0, 0], mat1), [21, 22, 23]);
-        matrix.viewY(mat2)[0] = 123;
-        assert.deepStrictEqual(matrix.getY([0, 0, 0], mat2), [123, 22, 23]);
+        assert.deepStrictEqual(Matrix.getY([0, 0, 0], mat1), [21, 22, 23]);
+        Matrix.viewY(mat2)[0] = 123;
+        assert.deepStrictEqual(Matrix.getY([0, 0, 0], mat2), [123, 22, 23]);
     });
 
     test("ZRow", () =>
@@ -341,16 +341,16 @@ describe("Matrix", () =>
             21, 22, 23, 24,
             31, 32, 33, 34,
             41, 42, 43, 44);
-        const mat2 = matrix.clone(mat1);
+        const mat2 = Matrix.clone(mat1);
 
-        assert.deepStrictEqual(matrix.getZ([0, 0, 0], mat1), [31, 32, 33]);
-        matrix.viewZ(mat2)[0] = 123;
-        assert.deepStrictEqual(matrix.getZ([0, 0, 0], mat2), [123, 32, 33]);
+        assert.deepStrictEqual(Matrix.getZ([0, 0, 0], mat1), [31, 32, 33]);
+        Matrix.viewZ(mat2)[0] = 123;
+        assert.deepStrictEqual(Matrix.getZ([0, 0, 0], mat2), [123, 32, 33]);
     });
 
     test("MatrixIdentity", () =>
     {
-        const mat2 = matrix.identityMatrix(new Float32Array(16));
+        const mat2 = Matrix.identityMatrix(new Float32Array(16));
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -368,9 +368,9 @@ describe("Matrix", () =>
             31, 32, 33, 34,
             41, 42, 43, 44);
 
-        assert.strictEqual(matrix.determinant(mat1), 0);
+        assert.strictEqual(Matrix.determinant(mat1), 0);
 
-        assert.strictEqual(matrix.determinant(matrix.create()), 1);
+        assert.strictEqual(Matrix.determinant(Matrix.create()), 1);
     });
 
     test("MatrixTranspose", () =>
@@ -381,7 +381,7 @@ describe("Matrix", () =>
             31, 32, 33, 34,
             41, 42, 43, 44);
 
-        const mat3 = matrix.transpose(new Float32Array(16), mat1);
+        const mat3 = Matrix.transpose(new Float32Array(16), mat1);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -415,14 +415,14 @@ describe("Matrix", () =>
             3430, 3560, 3690, 3820,
             4470, 4640, 4810, 4980);
 
-        const mat3 = matrix.multiply(new Float32Array(16), mat1, mat2);
+        const mat3 = Matrix.multiply(new Float32Array(16), mat1, mat2);
         for (let i = 0; i < 16; ++i)
         {
             assert.strictEqual(mat3[i], mat12[i]);
         }
 
-        const mat4 = matrix.clone(mat1);
-        matrix.multiply(mat4, mat4, mat4);
+        const mat4 = Matrix.clone(mat1);
+        Matrix.multiply(mat4, mat4, mat4);
         for (let i = 0; i < 16; ++i)
         {
             assert.strictEqual(mat4[i], mat11[i]);
@@ -431,19 +431,19 @@ describe("Matrix", () =>
 
     test("MatrixInverse", () =>
     {
-        const mat1 = matrix.create();
+        const mat1 = Matrix.create();
         const mat2 = new Float32Array(16);
-        const det1 = matrix.inverseDet(mat2, mat1);
+        const det1 = Matrix.inverseDet(mat2, mat1);
         assert.ok(det1);
         assert.strictEqual(det1, 1);
-        assert.ok(matrix.exactEquals(mat2, mat1));
+        assert.ok(Matrix.exactEquals(mat2, mat1));
 
         const mat3 = new Float32Array(16);
-        assert.ok(matrix.inverseDet(mat3, mat1));
-        assert.ok(matrix.exactEquals(mat3, mat1));
+        assert.ok(Matrix.inverseDet(mat3, mat1));
+        assert.ok(Matrix.exactEquals(mat3, mat1));
 
-        let mat4 = matrix.inverse(new Float32Array(16), mat1);
-        assert.ok(matrix.exactEquals(mat4, mat1));
+        let mat4 = Matrix.inverse(new Float32Array(16), mat1);
+        assert.ok(Matrix.exactEquals(mat4, mat1));
 
         const mat6 = m4(
             9.45227336883545, 0, 0, 0,
@@ -459,21 +459,21 @@ describe("Matrix", () =>
         // gtest compared these with EXPECT_EQ on float-computed values; JS
         // computes in double before the Float32 store, so the honest
         // equivalent here is EXPECT_FLOAT_EQ tolerance.
-        const det2 = matrix.inverseDet(mat2, mat6);
+        const det2 = Matrix.inverseDet(mat2, mat6);
         assert.ok(det2);
         closeTo(det2, 6.260443210601807);
         expectMatrixEq(mat6inv, mat2);
 
-        assert.ok(matrix.inverseDet(mat3, mat6));
+        assert.ok(Matrix.inverseDet(mat3, mat6));
         expectMatrixEq(mat6inv, mat3);
 
-        mat4 = matrix.inverse(new Float32Array(16), mat6);
+        mat4 = Matrix.inverse(new Float32Array(16), mat6);
         expectMatrixEq(mat6inv, mat4);
     });
 
     test("MatrixScaling", () =>
     {
-        const mat2 = matrix.scalingMatrix(new Float32Array(16), 4, 3, 2);
+        const mat2 = Matrix.scalingMatrix(new Float32Array(16), 4, 3, 2);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -485,7 +485,7 @@ describe("Matrix", () =>
 
     test("MatrixTranslation", () =>
     {
-        const mat2 = matrix.translationMatrix(new Float32Array(16), 4, 3, 2);
+        const mat2 = Matrix.translationMatrix(new Float32Array(16), 4, 3, 2);
         for (let i = 0; i < 4; ++i)
         {
             for (let j = 0; j < 4; ++j)
@@ -510,7 +510,7 @@ describe("Matrix", () =>
             0, -0.29552021622657776, 0.9553365111351013, 0,
             0, 0, 0, 1);
 
-        expectMatrixEq(rot03, matrix.rotationXMatrix(new Float32Array(16), 0.3));
+        expectMatrixEq(rot03, Matrix.rotationXMatrix(new Float32Array(16), 0.3));
     });
 
     test("MatrixRotationY", () =>
@@ -521,7 +521,7 @@ describe("Matrix", () =>
             0.3894183337688446, 0, 0.9210609793663025, 0,
             0, 0, 0, 1);
 
-        expectMatrixEq(rot04, matrix.rotationYMatrix(new Float32Array(16), 0.4));
+        expectMatrixEq(rot04, Matrix.rotationYMatrix(new Float32Array(16), 0.4));
     });
 
     test("MatrixRotationZ", () =>
@@ -532,7 +532,7 @@ describe("Matrix", () =>
             0, 0, 1, 0,
             0, 0, 0, 1);
 
-        expectMatrixEq(rot05, matrix.rotationZMatrix(new Float32Array(16), 0.5));
+        expectMatrixEq(rot05, Matrix.rotationZMatrix(new Float32Array(16), 0.5));
     });
 
     test("MatrixRotationAxis", () =>
@@ -544,19 +544,19 @@ describe("Matrix", () =>
             0.16753295063972473, -0.059839606285095215, 0.9840487241744995, 0,
             0, 0, 0, 1);
 
-        expectMatrixEq(result, matrix.rotationMatrix(new Float32Array(16), axis, 0.3));
+        expectMatrixEq(result, Matrix.rotationMatrix(new Float32Array(16), axis, 0.3));
     });
 
     test("MatrixRotationQuaternion", () =>
     {
-        const q2 = quaternion.set(quaternion.create(), 1, 2, 3, 4);
+        const q2 = Quaternion.set(Quaternion.create(), 1, 2, 3, 4);
         const result = m4(
             -25, 28, -10, 0,
             -20, -19, 20, 0,
             22, 4, -9, 0,
             0, 0, 0, 1);
 
-        expectMatrixEq(result, matrix.rotationMatrix(new Float32Array(16), q2));
+        expectMatrixEq(result, Matrix.rotationMatrix(new Float32Array(16), q2));
     });
 
     // --- sanity additions beyond the gtest ports (3 of the allowed 5) ---
@@ -565,30 +565,30 @@ describe("Matrix", () =>
     {
         // Carbon row-vector: S(2,3,4) * T(1,2,3) * T(10,20,30) scales first,
         // then translates twice: diag(2,3,4), row 4 = (11, 22, 33, 1).
-        const s = matrix.scalingMatrix(new Float32Array(16), 2, 3, 4);
-        const t1 = matrix.translationMatrix(new Float32Array(16), 1, 2, 3);
-        const t2 = matrix.translationMatrix(new Float32Array(16), 10, 20, 30);
-        const out = matrix.multiply(new Float32Array(16), s, t1);
-        matrix.multiply(out, out, t2);
+        const s = Matrix.scalingMatrix(new Float32Array(16), 2, 3, 4);
+        const t1 = Matrix.translationMatrix(new Float32Array(16), 1, 2, 3);
+        const t2 = Matrix.translationMatrix(new Float32Array(16), 10, 20, 30);
+        const out = Matrix.multiply(new Float32Array(16), s, t1);
+        Matrix.multiply(out, out, t2);
         const expected = m4(
             2, 0, 0, 0,
             0, 3, 0, 0,
             0, 0, 4, 0,
             11, 22, 33, 1);
-        assert.ok(matrix.exactEquals(out, expected));
+        assert.ok(Matrix.exactEquals(out, expected));
     });
 
     test("sanity: decompose recovers transformationMatrix inputs", () =>
     {
         const scaling = new Float32Array([2, 3, 4]);
-        const rotation = quaternion.rotationQuaternion(quaternion.create(), new Float32Array([0, 0, 1]), 0.5);
+        const rotation = Quaternion.rotationQuaternion(Quaternion.create(), new Float32Array([0, 0, 1]), 0.5);
         const translation = new Float32Array([5, 6, 7]);
-        const m = matrix.transformationMatrix(new Float32Array(16), scaling, rotation, translation);
+        const m = Matrix.transformationMatrix(new Float32Array(16), scaling, rotation, translation);
 
         const outS = new Float32Array(3);
         const outR = new Float32Array(4);
         const outT = new Float32Array(3);
-        matrix.decompose(outS, outR, outT, m);
+        Matrix.decompose(outS, outR, outT, m);
         for (let i = 0; i < 3; ++i)
         {
             closeTo(outS[i], scaling[i]);
@@ -602,10 +602,10 @@ describe("Matrix", () =>
 
     test("sanity: transformCoords strided batch matches transformCoord", () =>
     {
-        const m = matrix.transformationMatrix(
+        const m = Matrix.transformationMatrix(
             new Float32Array(16),
             new Float32Array([2, 3, 4]),
-            quaternion.rotationQuaternion(quaternion.create(), new Float32Array([1, 2, 3]), 0.7),
+            Quaternion.rotationQuaternion(Quaternion.create(), new Float32Array([1, 2, 3]), 0.7),
             new Float32Array([5, -6, 7]));
         const input = new Float32Array(2 + 3 * 5);
         const points = [[1, 2, 3], [-4, 5, -6], [0.5, -0.25, 8]];
@@ -614,10 +614,10 @@ describe("Matrix", () =>
             input.set(points[i], 2 + i * 5);
         }
         const output = new Float32Array(1 + 3 * 4);
-        matrix.transformCoords(output, 1, 4, input, 2, 5, 3, m);
+        Matrix.transformCoords(output, 1, 4, input, 2, 5, 3, m);
         for (let i = 0; i < 3; ++i)
         {
-            const single = matrix.transformCoord(new Float32Array(3), new Float32Array(points[i]), m);
+            const single = Matrix.transformCoord(new Float32Array(3), new Float32Array(points[i]), m);
             for (let k = 0; k < 3; ++k)
             {
                 assert.strictEqual(output[1 + i * 4 + k], single[k]);

@@ -1,5 +1,5 @@
 // Source: math/include/AxisAlignedBox_inline.h and math/src/AxisAlignedBox.cpp
-import { axisAlignedBox } from "./axisAlignedBox.js";
+import { AxisAlignedBox } from "./axisAlignedBox.js";
 import { matrixFloat32 } from "./matrixFloat32.js";
 import { vector3Float32 } from "./vector3Float32.js";
 
@@ -32,7 +32,7 @@ function getCenter(out, box)
  */
 function growScalar(box, by)
 {
-    if (!axisAlignedBox.isInitialized(box)) return box;
+    if (!AxisAlignedBox.isInitialized(box)) return box;
     const f = Math.fround;
     by = f(by);
     box[0] = f(box[0] - by); box[1] = f(box[1] - by); box[2] = f(box[2] - by);
@@ -49,7 +49,7 @@ function growScalar(box, by)
  */
 function scale(box, value)
 {
-    if (!axisAlignedBox.isInitialized(box)) return box;
+    if (!AxisAlignedBox.isInitialized(box)) return box;
     const f = Math.fround;
     value = f(value);
     for (let i = 0; i < 6; i++) box[i] = f(box[i] * value);
@@ -67,7 +67,7 @@ function scale(box, value)
 function transform(out, box, m)
 {
     const x0 = box[0], y0 = box[1], z0 = box[2], x1 = box[3], y1 = box[4], z1 = box[5];
-    if (!axisAlignedBox.isInitialized(box))
+    if (!AxisAlignedBox.isInitialized(box))
     {
         out[0] = x0; out[1] = y0; out[2] = z0;
         out[3] = x1; out[4] = y1; out[5] = z1;
@@ -104,7 +104,7 @@ function transform(out, box, m)
  */
 function intersectsRay(outIntersection, box, ray)
 {
-    if (!axisAlignedBox.isInitialized(box)) return false;
+    if (!AxisAlignedBox.isInitialized(box)) return false;
     const f = Math.fround;
     const temp = scratch.vec3_0;
     if (box[0] === box[3] && box[1] === box[4] && box[2] === box[5])

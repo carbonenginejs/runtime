@@ -27,19 +27,19 @@ These partial float32 tables are internal and absent from the archive barrel and
 The archive barrel now exports `initializeMath`; only its default double mode is available:
 
 ```js
-import { initializeMath } from "./src/index.js";
+import { initializeMath, Matrix } from "./src/index.js";
 
 const math = initializeMath({ precision: "double" }); // Also the default when omitted.
-const result = math.matrix.create();
-math.matrix.identityMatrix(result);
+const result = math.Matrix.create();
+Matrix.identityMatrix(result); // the same class, imported directly
 ```
 
 Selection is immutable per initializer module instance. Repeating the same selection returns
-the same frozen API; a conflicting selection throws. Calls use direct function tables without
-wrappers or per-operation precision branches. All archive operation tables, including legacy
-direct imports and internal float32 tables, are frozen when their modules load. Numeric results
-remain writable. Persistent values retain Float32Array storage (Uint16Array for half vectors);
-double intermediates do not imply a Float64Array value contract. Workers and separately loaded
+the same API; a conflicting selection throws. Calls go directly to the class statics without
+wrappers or per-operation precision branches. Each Carbon type is a class (`Vector3`, `Matrix`,
+`Float_16`, ...) whose camelCase statics take the output first and return it; the classes are not
+frozen (freezes are for enums only). The internal float32 tables are still frozen objects.
+Persistent values retain Float32Array storage (Uint16Array for half vectors); double intermediates do not imply a Float64Array value contract. Workers and separately loaded
 module instances have independent initialization state.
 
 Requesting `precision: "float32"` before initialization throws `CARBON_FLOAT32_UNAVAILABLE`

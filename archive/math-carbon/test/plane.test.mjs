@@ -1,6 +1,6 @@
 ﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { plane } from "../src/plane.js";
+import { Plane } from "../src/plane.js";
 
 // EXPECT_FLOAT_EQ stand-in
 function closeTo(expected, actual, message)
@@ -14,13 +14,13 @@ describe("Plane", () =>
 
     it("Constructors", () =>
     {
-        const p1 = plane.fromValues(1, 2, 3, 4);
+        const p1 = Plane.fromValues(1, 2, 3, 4);
         assert.equal(p1[0], 1);
         assert.equal(p1[1], 2);
         assert.equal(p1[2], 3);
         assert.equal(p1[3], 4);
 
-        const p2 = plane.copy(plane.create(), p1);
+        const p2 = Plane.copy(Plane.create(), p1);
         assert.equal(p2[0], 1);
         assert.equal(p2[1], 2);
         assert.equal(p2[2], 3);
@@ -29,46 +29,46 @@ describe("Plane", () =>
 
     it("Scaling", () =>
     {
-        const a = plane.fromValues(1, 2, 3, 4);
+        const a = Plane.fromValues(1, 2, 3, 4);
 
-        plane.multiplyScalar(a, a, 0.5);
+        Plane.multiplyScalar(a, a, 0.5);
         assert.equal(a[0], 0.5);
         assert.equal(a[1], 1);
         assert.equal(a[2], 1.5);
         assert.equal(a[3], 2);
 
-        const b = plane.multiplyScalar(plane.create(), a, -10);
+        const b = Plane.multiplyScalar(Plane.create(), a, -10);
         assert.equal(b[0], -5);
         assert.equal(b[1], -10);
         assert.equal(b[2], -15);
         assert.equal(b[3], -20);
 
-        plane.divideScalar(b, b, -2);
+        Plane.divideScalar(b, b, -2);
         assert.equal(b[0], 2.5);
         assert.equal(b[1], 5);
         assert.equal(b[2], 7.5);
         assert.equal(b[3], 10);
 
-        const c = plane.divideScalar(plane.create(), b, 0.1);
+        const c = Plane.divideScalar(Plane.create(), b, 0.1);
         assert.equal(c[0], 25);
         assert.equal(c[1], 50);
         assert.equal(c[2], 75);
         assert.equal(c[3], 100);
 
-        plane.multiplyScalar(b, b, 0);
+        Plane.multiplyScalar(b, b, 0);
         assert.equal(b[0], 0);
         assert.equal(b[1], 0);
         assert.equal(b[2], 0);
         assert.equal(b[3], 0);
 
-        plane.divideScalar(c, c, b[0]);
+        Plane.divideScalar(c, c, b[0]);
         assert.ok(!Number.isFinite(c[0]));
         assert.ok(!Number.isFinite(c[1]));
         assert.ok(!Number.isFinite(c[2]));
         assert.ok(!Number.isFinite(c[3]));
 
         // Plane d( 3.f * a ) - scale * plane commutes through multiplyScalar
-        const d = plane.multiplyScalar(plane.create(), a, 3);
+        const d = Plane.multiplyScalar(Plane.create(), a, 3);
         assert.equal(d[0], 1.5);
         assert.equal(d[1], 3);
         assert.equal(d[2], 4.5);
@@ -77,16 +77,16 @@ describe("Plane", () =>
 
     it("Signs", () =>
     {
-        const a = plane.fromValues(1, 2, 3, 4);
+        const a = Plane.fromValues(1, 2, 3, 4);
 
         // unary + is a copy
-        const b = plane.copy(plane.create(), a);
+        const b = Plane.copy(Plane.create(), a);
         assert.equal(b[0], 1);
         assert.equal(b[1], 2);
         assert.equal(b[2], 3);
         assert.equal(b[3], 4);
 
-        const c = plane.negate(plane.create(), a);
+        const c = Plane.negate(Plane.create(), a);
         assert.equal(c[0], -1);
         assert.equal(c[1], -2);
         assert.equal(c[2], -3);
@@ -95,41 +95,41 @@ describe("Plane", () =>
 
     it("Comparisons", () =>
     {
-        assert.ok(plane.equals(plane.fromValues(1, 2, 3, 4), plane.fromValues(1, 2, 3, 4)));
-        assert.ok(!plane.equals(plane.fromValues(1, 2, 3, 4), plane.fromValues(3, 2, 3, 4)));
-        assert.ok(!plane.equals(plane.fromValues(1, 2, 3, 4), plane.fromValues(1, 0, 3, 4)));
-        assert.ok(!plane.equals(plane.fromValues(1, 2, 3, 4), plane.fromValues(1, 2, 0, 4)));
-        assert.ok(!plane.equals(plane.fromValues(1, 0, 3, 4), plane.fromValues(1, 2, 3, 4)));
-        assert.ok(!plane.equals(plane.fromValues(1, 0, 3, 4), plane.fromValues(1, 2, 3, 5)));
+        assert.ok(Plane.equals(Plane.fromValues(1, 2, 3, 4), Plane.fromValues(1, 2, 3, 4)));
+        assert.ok(!Plane.equals(Plane.fromValues(1, 2, 3, 4), Plane.fromValues(3, 2, 3, 4)));
+        assert.ok(!Plane.equals(Plane.fromValues(1, 2, 3, 4), Plane.fromValues(1, 0, 3, 4)));
+        assert.ok(!Plane.equals(Plane.fromValues(1, 2, 3, 4), Plane.fromValues(1, 2, 0, 4)));
+        assert.ok(!Plane.equals(Plane.fromValues(1, 0, 3, 4), Plane.fromValues(1, 2, 3, 4)));
+        assert.ok(!Plane.equals(Plane.fromValues(1, 0, 3, 4), Plane.fromValues(1, 2, 3, 5)));
 
-        assert.ok(!plane.notEquals(plane.fromValues(1, 2, 3, 4), plane.fromValues(1, 2, 3, 4)));
-        assert.ok(plane.notEquals(plane.fromValues(1, 2, 3, 4), plane.fromValues(3, 2, 3, 4)));
-        assert.ok(plane.notEquals(plane.fromValues(1, 2, 3, 4), plane.fromValues(1, 0, 3, 4)));
-        assert.ok(plane.notEquals(plane.fromValues(1, 2, 3, 4), plane.fromValues(1, 2, 0, 4)));
-        assert.ok(plane.notEquals(plane.fromValues(1, 0, 3, 4), plane.fromValues(1, 2, 3, 4)));
-        assert.ok(plane.notEquals(plane.fromValues(1, 0, 3, 4), plane.fromValues(1, 2, 3, 5)));
+        assert.ok(!Plane.notEquals(Plane.fromValues(1, 2, 3, 4), Plane.fromValues(1, 2, 3, 4)));
+        assert.ok(Plane.notEquals(Plane.fromValues(1, 2, 3, 4), Plane.fromValues(3, 2, 3, 4)));
+        assert.ok(Plane.notEquals(Plane.fromValues(1, 2, 3, 4), Plane.fromValues(1, 0, 3, 4)));
+        assert.ok(Plane.notEquals(Plane.fromValues(1, 2, 3, 4), Plane.fromValues(1, 2, 0, 4)));
+        assert.ok(Plane.notEquals(Plane.fromValues(1, 0, 3, 4), Plane.fromValues(1, 2, 3, 4)));
+        assert.ok(Plane.notEquals(Plane.fromValues(1, 0, 3, 4), Plane.fromValues(1, 2, 3, 5)));
     });
 
     it("PlaneDotCoord", () =>
     {
-        const a = plane.fromValues(1, 2, 3, 4);
+        const a = Plane.fromValues(1, 2, 3, 4);
         const b = new Float32Array([4, 5, 6]);
-        assert.equal(plane.dotCoord(a, b), 36);
+        assert.equal(Plane.dotCoord(a, b), 36);
     });
 
     it("PlaneDotNormal", () =>
     {
-        const a = plane.fromValues(1, 2, 3, 4);
+        const a = Plane.fromValues(1, 2, 3, 4);
         const b = new Float32Array([4, 5, 6]);
-        assert.equal(plane.dotNormal(a, b), 32);
+        assert.equal(Plane.dotNormal(a, b), 32);
     });
 
     it("PlaneNormalize", () =>
     {
-        const a = plane.fromValues(1, 2, 3, 4);
+        const a = Plane.fromValues(1, 2, 3, 4);
         const l = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
 
-        const b = plane.normalize(plane.create(), a);
+        const b = Plane.normalize(Plane.create(), a);
         closeTo(a[0] / l, b[0], "a");
         closeTo(a[1] / l, b[1], "b");
         closeTo(a[2] / l, b[2], "c");
@@ -138,18 +138,18 @@ describe("Plane", () =>
 
     it("PlaneIntersectLine", () =>
     {
-        const p1 = plane.fromValues(1, 0, 0, 0);
+        const p1 = Plane.fromValues(1, 0, 0, 0);
         const a11 = new Float32Array([0, 2, 0]);
         const a12 = new Float32Array([0, 3, 0]);
 
         const out1 = new Float32Array(3);
-        assert.equal(plane.intersectLine(out1, p1, a11, a12), false);
+        assert.equal(Plane.intersectLine(out1, p1, a11, a12), false);
 
         const a21 = new Float32Array([1, 4, 0]);
         const a22 = new Float32Array([2, 4, 0]);
 
         const out2 = new Float32Array(3);
-        assert.equal(plane.intersectLine(out2, p1, a21, a22), true);
+        assert.equal(Plane.intersectLine(out2, p1, a21, a22), true);
         assert.equal(out2[0], 0);
         assert.equal(out2[1], 4);
         assert.equal(out2[2], 0);

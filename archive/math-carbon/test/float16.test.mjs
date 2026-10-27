@@ -7,11 +7,11 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { float16, vector2_16, vector3_16, vector4_16 } from "../src/float16.js";
+import { Float_16, Vector2_16, Vector3_16, Vector4_16 } from "../src/float16.js";
 
 const f32 = Math.fround;
-const to16 = float16.float32To16;
-const to32 = float16.float16To32;
+const to16 = Float_16.float32To16;
+const to32 = Float_16.float16To32;
 
 test("Float16.ConstructFromFloat", () =>
 {
@@ -52,8 +52,8 @@ test("Float16.Comparisons", () =>
     assert.ok(to16(0) !== to16(1));
     assert.ok(to16(-1) !== to16(1));
 
-    assert.ok(float16.exactEquals(to16(NaN), to16(NaN)));
-    assert.ok(!float16.exactEquals(to16(-0), to16(0)));
+    assert.ok(Float_16.exactEquals(to16(NaN), to16(NaN)));
+    assert.ok(!Float_16.exactEquals(to16(-0), to16(0)));
 });
 
 test("Float16.SpecialValueEncoding (JS-added)", () =>
@@ -114,17 +114,17 @@ test("Float16.ExhaustiveDecodeEncodeRoundTrip (JS-added)", () =>
 
 test("Float16.PackedVectors (JS-added)", () =>
 {
-    const v2 = vector2_16.set(vector2_16.create(), 1, -2);
+    const v2 = Vector2_16.set(Vector2_16.create(), 1, -2);
     assert.deepEqual(Array.from(v2), [0x3c00, 0xc000]);
-    const outV2 = vector2_16.toVector2(new Float32Array(2), v2);
+    const outV2 = Vector2_16.toVector2(new Float32Array(2), v2);
     assert.deepEqual(Array.from(outV2), [1, -2]);
 
-    const v3 = vector3_16.fromVector3(vector3_16.create(), new Float32Array([0.5, 65504, Math.pow(2, -24)]));
-    const outV3 = vector3_16.toVector3(new Float32Array(3), v3);
+    const v3 = Vector3_16.fromVector3(Vector3_16.create(), new Float32Array([0.5, 65504, Math.pow(2, -24)]));
+    const outV3 = Vector3_16.toVector3(new Float32Array(3), v3);
     assert.deepEqual(Array.from(outV3), [0.5, 65504, Math.pow(2, -24)]);
 
-    const v4 = vector4_16.set(vector4_16.create(), 0, -0, 1.5, -1.5);
+    const v4 = Vector4_16.set(Vector4_16.create(), 0, -0, 1.5, -1.5);
     assert.deepEqual(Array.from(v4), [0x0000, 0x8000, 0x3e00, 0xbe00]);
-    const outV4 = vector4_16.toVector4(new Float32Array(4), v4);
+    const outV4 = Vector4_16.toVector4(new Float32Array(4), v4);
     assert.deepEqual(Array.from(outV4), [0, -0, 1.5, -1.5]);
 });

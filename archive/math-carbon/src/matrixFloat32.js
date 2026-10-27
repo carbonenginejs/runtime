@@ -1,4 +1,4 @@
-import { matrix } from "./matrix.js";
+import { Matrix } from "./matrix.js";
 import { vector3Float32 } from "./vector3Float32.js";
 
 // Source: math/include/Matrix_inline.h
@@ -439,7 +439,7 @@ function orthographicProjection(out, width, height, zNear, zFar)
     height = f(height);
     zNear = f(zNear);
     zFar = f(zFar);
-    matrix.identityMatrix(out);
+    Matrix.identityMatrix(out);
     out[0] = f(2.0 / width);
     out[5] = f(2.0 / height);
     out[10] = f(1.0 / f(zNear - zFar));
@@ -464,7 +464,7 @@ function orthoMatrix(out, w, h, zn, zf)
     h = f(h);
     zn = f(zn);
     zf = f(zf);
-    matrix.identityMatrix(out);
+    Matrix.identityMatrix(out);
     out[0] = f(2.0 / w);
     out[5] = f(2.0 / h);
     out[10] = f(1.0 / f(zn - zf));
@@ -493,7 +493,7 @@ function perspectiveOffCenterMatrix(out, l, r, b, t, zn, zf)
     t = f(t);
     zn = f(zn);
     zf = f(zf);
-    matrix.identityMatrix(out);
+    Matrix.identityMatrix(out);
     out[0] = f(f(2.0 * zn) / f(r - l));
     out[5] = f(f(-2.0 * zn) / f(b - t));
     out[8] = f(1.0 + f(f(2.0 * l) / f(r - l)));
@@ -526,7 +526,7 @@ function orthoOffCenterMatrix(out, l, r, b, t, zn, zf)
     t = f(t);
     zn = f(zn);
     zf = f(zf);
-    matrix.identityMatrix(out);
+    Matrix.identityMatrix(out);
     out[0] = f(2.0 / f(r - l));
     out[5] = f(2.0 / f(t - b));
     out[10] = f(1.0 / f(zn - zf));
@@ -546,7 +546,7 @@ function orthoOffCenterMatrix(out, l, r, b, t, zn, zf)
 function orthoNormalBasisZ(out, z)
 {
     const vec3_0 = v3Normalize(scratch.vec3_0, z[0], z[1], z[2]);
-    matrix.identityMatrix(out);
+    Matrix.identityMatrix(out);
     out[8] = vec3_0[0];
     out[9] = vec3_0[1];
     out[10] = vec3_0[2];
@@ -646,14 +646,14 @@ function transformationMatrixCentered(out, scalingCenter, scalingRotation, scali
         pty = translation[1];
         ptz = translation[2];
     }
-    matrix.identityMatrix(mat4_0);
+    Matrix.identityMatrix(mat4_0);
     mat4_0[12] = -pscx;
     mat4_0[13] = -pscy;
     mat4_0[14] = -pscz;
     if (!scalingRotation)
     {
-        matrix.identityMatrix(mat4_1);
-        matrix.identityMatrix(mat4_3);
+        Matrix.identityMatrix(mat4_1);
+        Matrix.identityMatrix(mat4_3);
     }
     else
     {
@@ -662,25 +662,25 @@ function transformationMatrixCentered(out, scalingCenter, scalingRotation, scali
     }
     if (!scaling)
     {
-        matrix.identityMatrix(mat4_2);
+        Matrix.identityMatrix(mat4_2);
     }
     else
     {
-        matrix.scalingMatrix(mat4_2, scaling);
+        Matrix.scalingMatrix(mat4_2, scaling);
     }
     if (!rotation)
     {
-        matrix.identityMatrix(mat4_5);
+        Matrix.identityMatrix(mat4_5);
     }
     else
     {
         rotationMatrixQuaternion(mat4_5, rotation);
     }
-    matrix.identityMatrix(mat4_4);
+    Matrix.identityMatrix(mat4_4);
     mat4_4[12] = pscx - prcx;
     mat4_4[13] = pscy - prcy;
     mat4_4[14] = pscz - prcz;
-    matrix.identityMatrix(mat4_6);
+    Matrix.identityMatrix(mat4_6);
     mat4_6[12] = prcx + ptx;
     mat4_6[13] = prcy + pty;
     mat4_6[14] = prcz + ptz;
@@ -719,7 +719,7 @@ function decompose(scaling, rotation, translation, m)
     }
     else
     {
-        const mat4_7 = matrix.identityMatrix(scratch.mat4_7);
+        const mat4_7 = Matrix.identityMatrix(scratch.mat4_7);
         mat4_7[0] = m[0] / scaling[0];
         mat4_7[1] = m[1] / scaling[0];
         mat4_7[2] = m[2] / scaling[0];

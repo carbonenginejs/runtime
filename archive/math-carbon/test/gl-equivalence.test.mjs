@@ -7,7 +7,7 @@ import test from "node:test";
 // fixtures - the composition class that identity-parent fixtures cannot
 // distinguish (skill gotcha 2). Tolerance 1e-5 per the skill.
 import { mat4, quat, vec3, vec4 } from "../../../npm/dist/global/math/index.js";
-import { matrix, quaternion } from "../src/index.js";
+import { Matrix, Quaternion } from "../src/index.js";
 
 const ROT_A = quat.normalize(quat.create(), quat.fromValues(0.3, -0.5, 0.2, 0.79));
 const ROT_B = quat.normalize(quat.create(), quat.fromValues(-0.1, 0.6, -0.4, 0.68));
@@ -37,9 +37,9 @@ test("Carbon a*b equals gl multiply(out, b, a) - the operand swap, executed", ()
     const carbonOut = new Float32Array(16);
     const glOut = mat4.create();
 
-    matrix.multiply(carbonOut, A, B);
+    Matrix.multiply(carbonOut, A, B);
     mat4.multiply(glOut, B, A);
-    assertClose(carbonOut, glOut, "matrix.multiply");
+    assertClose(carbonOut, glOut, "Matrix.multiply");
 });
 
 test("Carbon quaternion q1*q2 equals gl quat.multiply(out, q2, q1)", () =>
@@ -47,16 +47,16 @@ test("Carbon quaternion q1*q2 equals gl quat.multiply(out, q2, q1)", () =>
     const carbonOut = new Float32Array(4);
     const glOut = quat.create();
 
-    quaternion.multiply(carbonOut, ROT_A, ROT_B);
+    Quaternion.multiply(carbonOut, ROT_A, ROT_B);
     quat.multiply(glOut, ROT_B, ROT_A);
-    assertClose(carbonOut, glOut, "quaternion.multiply");
+    assertClose(carbonOut, glOut, "Quaternion.multiply");
 });
 
 test("transformationMatrix(s, r, t) equals fromRotationTranslationScale(r, t, s)", () =>
 {
     const carbonOut = new Float32Array(16);
 
-    matrix.transformationMatrix(carbonOut, [ 2, 0.5, 1.5 ], ROT_A, [ 3, -2, 5 ]);
+    Matrix.transformationMatrix(carbonOut, [ 2, 0.5, 1.5 ], ROT_A, [ 3, -2, 5 ]);
     assertClose(carbonOut, A, "transformationMatrix");
 });
 
@@ -65,7 +65,7 @@ test("transformCoord equals vec3.transformMat4 on the shared layout", () =>
     const carbonOut = new Float32Array(3);
     const glOut = vec3.create();
 
-    matrix.transformCoord(carbonOut, POINT, A);
+    Matrix.transformCoord(carbonOut, POINT, A);
     vec3.transformMat4(glOut, POINT, A);
     assertClose(carbonOut, glOut, "transformCoord");
 });
@@ -78,7 +78,7 @@ test("transformNormal is the basis-only transform - no translation", () =>
 
     noTranslation[12] = noTranslation[13] = noTranslation[14] = 0;
     vec3.transformMat4(expected, POINT, noTranslation);
-    matrix.transformNormal(carbonOut, POINT, A);
+    Matrix.transformNormal(carbonOut, POINT, A);
     assertClose(carbonOut, expected, "transformNormal");
 });
 
@@ -91,12 +91,12 @@ test("transformByTranspose applies the transposed matrix - the m*p overload", ()
 
     mat4.transpose(transposed, A);
     vec4.transformMat4(expected, point4, transposed);
-    matrix.transformByTranspose(carbonOut, point4, A);
+    Matrix.transformByTranspose(carbonOut, point4, A);
     assertClose(carbonOut, expected, "transformByTranspose");
 
     const forward = new Float32Array(4);
 
-    matrix.transform(forward, point4, A);
+    Matrix.transform(forward, point4, A);
     vec4.transformMat4(expected, point4, A);
     assertClose(forward, expected, "transform (p*m)");
 });
@@ -106,7 +106,7 @@ test("rotationMatrix from quaternion equals mat4.fromQuat byte-for-byte", () =>
     const carbonOut = new Float32Array(16);
     const glOut = mat4.create();
 
-    matrix.rotationMatrix(carbonOut, ROT_A);
+    Matrix.rotationMatrix(carbonOut, ROT_A);
     mat4.fromQuat(glOut, ROT_A);
     assertClose(carbonOut, glOut, "rotationMatrix");
 });
@@ -118,8 +118,8 @@ test("translation-first composition matches gl's post-multiply translate", () =>
     const carbonT = new Float32Array(16);
     const glOut = mat4.create();
 
-    matrix.translationMatrix(carbonT, [ 3, -2, 5 ]);
-    matrix.multiply(carbonOut, carbonT, A);
+    Matrix.translationMatrix(carbonT, [ 3, -2, 5 ]);
+    Matrix.multiply(carbonOut, carbonT, A);
     mat4.translate(glOut, A, [ 3, -2, 5 ]);
     assertClose(carbonOut, glOut, "translate-first");
 });
@@ -133,8 +133,8 @@ test("a three-operand Carbon chain reads left-to-right in application order", ()
     const glOut = mat4.create();
     const glTmp = mat4.create();
 
-    matrix.multiply(carbonOut, A, B);
-    matrix.multiply(carbonOut, carbonOut, A);
+    Matrix.multiply(carbonOut, A, B);
+    Matrix.multiply(carbonOut, carbonOut, A);
     mat4.multiply(glTmp, B, A);
     mat4.multiply(glOut, A, glTmp);
     assertClose(carbonOut, glOut, "three-operand chain");
@@ -145,11 +145,11 @@ test("inverse and transpose agree with gl on the shared layout", () =>
     const carbonOut = new Float32Array(16);
     const glOut = mat4.create();
 
-    matrix.inverse(carbonOut, A);
+    Matrix.inverse(carbonOut, A);
     mat4.invert(glOut, A);
     assertClose(carbonOut, glOut, "inverse", 1e-4);
 
-    matrix.transpose(carbonOut, A);
+    Matrix.transpose(carbonOut, A);
     mat4.transpose(glOut, A);
     assertClose(carbonOut, glOut, "transpose");
 });

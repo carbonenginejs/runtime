@@ -1,28 +1,28 @@
 // JavaScript addition: the approved initialization-time precision selection.
 // Carbon supplies the operations; the host owns this once-per-module-instance choice.
-import { matrix } from "./matrix.js";
-import { quaternion } from "./quaternion.js";
-import { vector2 } from "./vector2.js";
-import { vector3 } from "./vector3.js";
-import { vector4 } from "./vector4.js";
-import { plane } from "./plane.js";
-import { sphere } from "./sphere.js";
-import { axisAlignedBox } from "./axisAlignedBox.js";
-import { axisAlignedEllipsoid } from "./axisAlignedEllipsoid.js";
-import { ray } from "./ray.js";
-import { color } from "./color.js";
-import { float16, vector2_16, vector3_16, vector4_16 } from "./float16.js";
+import { Matrix } from "./matrix.js";
+import { Quaternion } from "./quaternion.js";
+import { Vector2 } from "./vector2.js";
+import { Vector3 } from "./vector3.js";
+import { Vector4 } from "./vector4.js";
+import { Plane } from "./plane.js";
+import { Sphere } from "./sphere.js";
+import { AxisAlignedBox } from "./axisAlignedBox.js";
+import { AxisAlignedEllipsoid } from "./axisAlignedEllipsoid.js";
+import { Ray } from "./ray.js";
+import { Color } from "./color.js";
+import { Float_16, Vector2_16, Vector3_16, Vector4_16 } from "./float16.js";
 
 let initialized;
 
 /**
  * Selects the archived math API once per module instance, before consumer arithmetic.
- * JavaScript addition: repeated identical selection returns the same frozen API.
+ * JavaScript addition: repeated identical selection returns the same API.
  * Float32 selection is unavailable until the complete native-math backend is verified;
  * failure leaves initialization untouched and never substitutes double arithmetic.
  * All value APIs retain their documented Float32Array/Uint16Array storage contracts.
  * @param {{precision?: "double"|"float32"}} [options={}] Initialization options.
- * @returns {Readonly<object>} Frozen API with direct, unwrapped function tables.
+ * @returns {object} API holding the classes directly, unwrapped.
  * @throws {TypeError} For malformed options or an unknown precision.
  * @throws {Error} For conflicting initialization or an unavailable exact backend.
  */
@@ -56,9 +56,9 @@ export function initializeMath(options = {})
         error.code = "CARBON_FLOAT32_UNAVAILABLE";
         throw error;
     }
-    initialized = Object.freeze({
-        precision, matrix, quaternion, vector2, vector3, vector4, plane, sphere,
-        axisAlignedBox, axisAlignedEllipsoid, ray, color, float16, vector2_16, vector3_16, vector4_16
-    });
+    initialized = {
+        precision, Matrix, Quaternion, Vector2, Vector3, Vector4, Plane, Sphere,
+        AxisAlignedBox, AxisAlignedEllipsoid, Ray, Color, Float_16, Vector2_16, Vector3_16, Vector4_16
+    };
     return initialized;
 }

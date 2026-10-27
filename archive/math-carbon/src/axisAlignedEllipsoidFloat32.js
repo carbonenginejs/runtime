@@ -1,7 +1,7 @@
 // Source: math/include/AxisAlignedEllipsoid_inline.h
-import { axisAlignedBox } from "./axisAlignedBox.js";
+import { AxisAlignedBox } from "./axisAlignedBox.js";
 import { axisAlignedBoxFloat32 } from "./axisAlignedBoxFloat32.js";
-import { axisAlignedEllipsoid } from "./axisAlignedEllipsoid.js";
+import { AxisAlignedEllipsoid } from "./axisAlignedEllipsoid.js";
 
 /** Internal float32 ellipsoid kernels, pending complete precision-table selection. */
 export const axisAlignedEllipsoidFloat32 = { fromBox, isPointInside, includePoint, includeBox, includeSphere, scaleScalar };
@@ -71,9 +71,9 @@ function includePoint(e, point)
 {
     if (isPointInside(e, point)) return e;
     const box = scratch.box_0;
-    axisAlignedBox.fromEllipsoid(box, e);
+    AxisAlignedBox.fromEllipsoid(box, e);
     axisAlignedBoxFloat32.scale(box, ONE_OVER_SQRT_THREE);
-    axisAlignedBox.includePoint(box, point);
+    AxisAlignedBox.includePoint(box, point);
     return fromBox(e, box, true);
 }
 
@@ -88,9 +88,9 @@ function includeBox(e, box)
 {
     if (containsPoint(e, box[3], box[4], box[5]) && containsPoint(e, box[0], box[1], box[2])) return e;
     const bounds = scratch.box_0;
-    axisAlignedBox.fromEllipsoid(bounds, e);
+    AxisAlignedBox.fromEllipsoid(bounds, e);
     axisAlignedBoxFloat32.scale(bounds, ONE_OVER_SQRT_THREE);
-    axisAlignedBox.includeBox(bounds, box);
+    AxisAlignedBox.includeBox(bounds, box);
     return fromBox(e, bounds, true);
 }
 
@@ -103,7 +103,7 @@ function includeBox(e, box)
  */
 function includeSphere(e, s)
 {
-    axisAlignedBox.fromSphere(scratch.box_1, s);
+    AxisAlignedBox.fromSphere(scratch.box_1, s);
     return includeBox(e, scratch.box_1);
 }
 
@@ -116,7 +116,7 @@ function includeSphere(e, s)
  */
 function scaleScalar(e, scale)
 {
-    if (!axisAlignedEllipsoid.isInitialized(e)) return e;
+    if (!AxisAlignedEllipsoid.isInitialized(e)) return e;
     const f = Math.fround;
     scale = f(scale);
     e[0] = f(e[0] * scale); e[1] = f(e[1] * scale); e[2] = f(e[2] * scale);

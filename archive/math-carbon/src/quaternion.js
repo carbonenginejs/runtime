@@ -14,309 +14,357 @@
  * @typedef {Float32Array} quaternion
  */
 
-export const quaternion = {};
-
-/**
- * Creates an identity quaternion (Carbon's default constructor)
- * @returns {quaternion}
- */
-quaternion.create = function ()
+export class Quaternion
 {
-    const out = new Float32Array(4);
-    out[3] = 1;
-    return out;
-}; // Quaternion_inline.h:7
-
-/**
- * Sets a quaternion from values
- * @param {quaternion} out
- * @param {number} x
- * @param {number} y
- * @param {number} z
- * @param {number} w
- * @returns {quaternion} out
- */
-quaternion.set = function (out, x, y, z, w)
-{
-    out[0] = x;
-    out[1] = y;
-    out[2] = z;
-    out[3] = w;
-    return out;
-}; // Quaternion_inline.h:16
-
-/**
- * Copies a quaternion
- * @param {quaternion} out
- * @param {quaternion} a
- * @returns {quaternion} out
- */
-quaternion.copy = function (out, a)
-{
-    out[0] = a[0];
-    out[1] = a[1];
-    out[2] = a[2];
-    out[3] = a[3];
-    return out;
-}; // Quaternion.h:11 (implicit copy)
-
-/**
- * Clones a quaternion
- * @param {quaternion} a
- * @returns {quaternion}
- */
-quaternion.clone = function (a)
-{
-    return new Float32Array(a);
-}; // Quaternion.h:11 (implicit copy)
-
-/**
- * Adds two quaternions (Carbon operator+ / operator+=)
- * @param {quaternion} out
- * @param {quaternion} a
- * @param {quaternion} b
- * @returns {quaternion} out
- */
-quaternion.add = function (out, a, b)
-{
-    out[0] = a[0] + b[0];
-    out[1] = a[1] + b[1];
-    out[2] = a[2] + b[2];
-    out[3] = a[3] + b[3];
-    return out;
-}; // Quaternion_inline.h:46
-
-/**
- * Subtracts b from a (Carbon operator- / operator-=)
- * @param {quaternion} out
- * @param {quaternion} a
- * @param {quaternion} b
- * @returns {quaternion} out
- */
-quaternion.subtract = function (out, a, b)
-{
-    out[0] = a[0] - b[0];
-    out[1] = a[1] - b[1];
-    out[2] = a[2] - b[2];
-    out[3] = a[3] - b[3];
-    return out;
-}; // Quaternion_inline.h:56
-
-/**
- * Multiplies quaternions: Carbon `a * b` (a applied first), ported literally - do not swap
- * @param {quaternion} out - may alias a or b
- * @param {quaternion} a
- * @param {quaternion} b
- * @returns {quaternion} out
- */
-quaternion.multiply = function (out, a, b)
-{
-    const ax = a[0], ay = a[1], az = a[2], aw = a[3];
-    const bx = b[0], by = b[1], bz = b[2], bw = b[3];
-    out[0] = bw * ax + bx * aw + by * az - bz * ay;
-    out[1] = bw * ay - bx * az + by * aw + bz * ax;
-    out[2] = bw * az + bx * ay - by * ax + bz * aw;
-    out[3] = bw * aw - bx * ax - by * ay - bz * az;
-    return out;
-}; // Quaternion_inline.h:118
-
-/**
- * Scales a quaternion by a scalar (Carbon operator* float; also covers float * q)
- * @param {quaternion} out
- * @param {quaternion} a
- * @param {number} f
- * @returns {quaternion} out
- */
-quaternion.scale = function (out, a, f)
-{
-    out[0] = a[0] * f;
-    out[1] = a[1] * f;
-    out[2] = a[2] * f;
-    out[3] = a[3] * f;
-    return out;
-}; // Quaternion_inline.h:73 (and :153)
-
-/**
- * Divides a quaternion by a scalar (Carbon operator/ float: multiplies by 1/f)
- * @param {quaternion} out
- * @param {quaternion} a
- * @param {number} f
- * @returns {quaternion} out
- */
-quaternion.divide = function (out, a, f)
-{
-    const fDiv = 1.0 / f;
-    out[0] = a[0] * fDiv;
-    out[1] = a[1] * fDiv;
-    out[2] = a[2] * fDiv;
-    out[3] = a[3] * fDiv;
-    return out;
-}; // Quaternion_inline.h:83
-
-/**
- * Negates a quaternion (Carbon unary operator-)
- * @param {quaternion} out
- * @param {quaternion} a
- * @returns {quaternion} out
- */
-quaternion.negate = function (out, a)
-{
-    out[0] = -a[0];
-    out[1] = -a[1];
-    out[2] = -a[2];
-    out[3] = -a[3];
-    return out;
-}; // Quaternion_inline.h:100
-
-/**
- * Compares two quaternions exactly (Carbon operator==; != is the negation)
- * @param {quaternion} a
- * @param {quaternion} b
- * @returns {boolean}
- */
-quaternion.exactEquals = function (a, b)
-{
-    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
-}; // Quaternion_inline.h:141
-
-/**
- * Sets the identity quaternion
- * @param {quaternion} out
- * @returns {quaternion} out
- */
-quaternion.identityQuaternion = function (out)
-{
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = 1;
-    return out;
-}; // Quaternion_inline.h:159
-
-/**
- * Returns the squared length of a quaternion
- * @param {quaternion} q
- * @returns {number}
- */
-quaternion.lengthSq = function (q)
-{
-    return q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
-}; // Quaternion_inline.h:165
-
-/**
- * Returns the length of a quaternion
- * @param {quaternion} q
- * @returns {number}
- */
-quaternion.length = function (q)
-{
-    return Math.sqrt(quaternion.lengthSq(q));
-}; // Quaternion_inline.h:171
-
-/**
- * Carbon: Normalize (math/include/Quaternion_inline.h:177-181)
- * Normalizes a quaternion (Carbon scales by 1/Length; a zero quaternion yields NaNs)
- * @param {quaternion} out
- * @param {quaternion} q
- * @returns {quaternion} out
- */
-quaternion.normalize = function (out, q)
-{
-    const x = q[0], y = q[1], z = q[2], w = q[3];
-    const l = 1.0 / quaternion.length(q);
-    out[0] = x * l;
-    out[1] = y * l;
-    out[2] = z * l;
-    out[3] = w * l;
-    return out;
-}; // Quaternion_inline.h:177
-
-/**
- * Carbon: Inverse (math/include/Quaternion_inline.h:184-188)
- * Inverts a quaternion (conjugate over squared length)
- * @param {quaternion} out
- * @param {quaternion} q
- * @returns {quaternion} out
- */
-quaternion.inverse = function (out, q)
-{
-    const x = q[0], y = q[1], z = q[2], w = q[3];
-    const l = 1.0 / quaternion.lengthSq(q);
-    out[0] = -x * l;
-    out[1] = -y * l;
-    out[2] = -z * l;
-    out[3] = w * l;
-    return out;
-}; // Quaternion_inline.h:184
-
-/**
- * Conjugates a quaternion
- * @param {quaternion} out
- * @param {quaternion} q
- * @returns {quaternion} out
- */
-quaternion.conjugate = function (out, q)
-{
-    out[0] = -q[0];
-    out[1] = -q[1];
-    out[2] = -q[2];
-    out[3] = q[3];
-    return out;
-}; // Quaternion_inline.h:191
-
-/**
- * Carbon: Exp (math/include/Quaternion_inline.h:202-224)
- * Quaternion exponential (of a pure/vector quaternion; w input is ignored, as C++)
- * @param {quaternion} out
- * @param {quaternion} q
- * @returns {quaternion} out
- */
-quaternion.exp = function (out, q)
-{
-    const norm = Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2]);
-    if (norm !== 0)
+    /**
+     * Creates an identity quaternion (Carbon's default constructor)
+     * @returns {quaternion}
+     */
+    static create()
     {
-        const s = Math.sin(norm);
-        out[0] = s * q[0] / norm;
-        out[1] = s * q[1] / norm;
-        out[2] = s * q[2] / norm;
-        out[3] = Math.cos(norm);
-    }
-    else
+        const out = new Float32Array(4);
+        out[3] = 1;
+        return out;
+    } // Quaternion_inline.h:7
+
+    /**
+     * Sets a quaternion from values
+     * @param {quaternion} out
+     * @param {number} x
+     * @param {number} y
+     * @param {number} z
+     * @param {number} w
+     * @returns {quaternion} out
+     */
+    static set(out, x, y, z, w)
+    {
+        out[0] = x;
+        out[1] = y;
+        out[2] = z;
+        out[3] = w;
+        return out;
+    } // Quaternion_inline.h:16
+
+    /**
+     * Copies a quaternion
+     * @param {quaternion} out
+     * @param {quaternion} a
+     * @returns {quaternion} out
+     */
+    static copy(out, a)
+    {
+        out[0] = a[0];
+        out[1] = a[1];
+        out[2] = a[2];
+        out[3] = a[3];
+        return out;
+    } // Quaternion.h:11 (implicit copy)
+
+    /**
+     * Clones a quaternion
+     * @param {quaternion} a
+     * @returns {quaternion}
+     */
+    static clone(a)
+    {
+        return new Float32Array(a);
+    } // Quaternion.h:11 (implicit copy)
+
+    /**
+     * Adds two quaternions (Carbon operator+ / operator+=)
+     * @param {quaternion} out
+     * @param {quaternion} a
+     * @param {quaternion} b
+     * @returns {quaternion} out
+     */
+    static add(out, a, b)
+    {
+        out[0] = a[0] + b[0];
+        out[1] = a[1] + b[1];
+        out[2] = a[2] + b[2];
+        out[3] = a[3] + b[3];
+        return out;
+    } // Quaternion_inline.h:46
+
+    /**
+     * Subtracts b from a (Carbon operator- / operator-=)
+     * @param {quaternion} out
+     * @param {quaternion} a
+     * @param {quaternion} b
+     * @returns {quaternion} out
+     */
+    static subtract(out, a, b)
+    {
+        out[0] = a[0] - b[0];
+        out[1] = a[1] - b[1];
+        out[2] = a[2] - b[2];
+        out[3] = a[3] - b[3];
+        return out;
+    } // Quaternion_inline.h:56
+
+    /**
+     * Multiplies quaternions: Carbon `a * b` (a applied first), ported literally - do not swap
+     * @param {quaternion} out - may alias a or b
+     * @param {quaternion} a
+     * @param {quaternion} b
+     * @returns {quaternion} out
+     */
+    static multiply(out, a, b)
+    {
+        const ax = a[0], ay = a[1], az = a[2], aw = a[3];
+        const bx = b[0], by = b[1], bz = b[2], bw = b[3];
+        out[0] = bw * ax + bx * aw + by * az - bz * ay;
+        out[1] = bw * ay - bx * az + by * aw + bz * ax;
+        out[2] = bw * az + bx * ay - by * ax + bz * aw;
+        out[3] = bw * aw - bx * ax - by * ay - bz * az;
+        return out;
+    } // Quaternion_inline.h:118
+
+    /**
+     * Scales a quaternion by a scalar (Carbon operator* float; also covers float * q)
+     * @param {quaternion} out
+     * @param {quaternion} a
+     * @param {number} f
+     * @returns {quaternion} out
+     */
+    static scale(out, a, f)
+    {
+        out[0] = a[0] * f;
+        out[1] = a[1] * f;
+        out[2] = a[2] * f;
+        out[3] = a[3] * f;
+        return out;
+    } // Quaternion_inline.h:73 (and :153)
+
+    /**
+     * Divides a quaternion by a scalar (Carbon operator/ float: multiplies by 1/f)
+     * @param {quaternion} out
+     * @param {quaternion} a
+     * @param {number} f
+     * @returns {quaternion} out
+     */
+    static divide(out, a, f)
+    {
+        const fDiv = 1.0 / f;
+        out[0] = a[0] * fDiv;
+        out[1] = a[1] * fDiv;
+        out[2] = a[2] * fDiv;
+        out[3] = a[3] * fDiv;
+        return out;
+    } // Quaternion_inline.h:83
+
+    /**
+     * Negates a quaternion (Carbon unary operator-)
+     * @param {quaternion} out
+     * @param {quaternion} a
+     * @returns {quaternion} out
+     */
+    static negate(out, a)
+    {
+        out[0] = -a[0];
+        out[1] = -a[1];
+        out[2] = -a[2];
+        out[3] = -a[3];
+        return out;
+    } // Quaternion_inline.h:100
+
+    /**
+     * Compares two quaternions exactly (Carbon operator==; != is the negation)
+     * @param {quaternion} a
+     * @param {quaternion} b
+     * @returns {boolean}
+     */
+    static exactEquals(a, b)
+    {
+        return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+    } // Quaternion_inline.h:141
+
+    /**
+     * Sets the identity quaternion
+     * @param {quaternion} out
+     * @returns {quaternion} out
+     */
+    static identityQuaternion(out)
     {
         out[0] = 0;
         out[1] = 0;
         out[2] = 0;
         out[3] = 1;
+        return out;
+    } // Quaternion_inline.h:159
+
+    /**
+     * Returns the squared length of a quaternion
+     * @param {quaternion} q
+     * @returns {number}
+     */
+    static lengthSq(q)
+    {
+        return q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
+    } // Quaternion_inline.h:165
+
+    /**
+     * Returns the length of a quaternion
+     * @param {quaternion} q
+     * @returns {number}
+     */
+    static length(q)
+    {
+        return Math.sqrt(Quaternion.lengthSq(q));
+    } // Quaternion_inline.h:171
+
+    /**
+     * Carbon: Normalize (math/include/Quaternion_inline.h:177-181)
+     * Normalizes a quaternion (Carbon scales by 1/Length; a zero quaternion yields NaNs)
+     * @param {quaternion} out
+     * @param {quaternion} q
+     * @returns {quaternion} out
+     */
+    static normalize(out, q)
+    {
+        const x = q[0], y = q[1], z = q[2], w = q[3];
+        const l = 1.0 / Quaternion.length(q);
+        out[0] = x * l;
+        out[1] = y * l;
+        out[2] = z * l;
+        out[3] = w * l;
+        return out;
+    } // Quaternion_inline.h:177
+
+    /**
+     * Carbon: Inverse (math/include/Quaternion_inline.h:184-188)
+     * Inverts a quaternion (conjugate over squared length)
+     * @param {quaternion} out
+     * @param {quaternion} q
+     * @returns {quaternion} out
+     */
+    static inverse(out, q)
+    {
+        const x = q[0], y = q[1], z = q[2], w = q[3];
+        const l = 1.0 / Quaternion.lengthSq(q);
+        out[0] = -x * l;
+        out[1] = -y * l;
+        out[2] = -z * l;
+        out[3] = w * l;
+        return out;
+    } // Quaternion_inline.h:184
+
+    /**
+     * Conjugates a quaternion
+     * @param {quaternion} out
+     * @param {quaternion} q
+     * @returns {quaternion} out
+     */
+    static conjugate(out, q)
+    {
+        out[0] = -q[0];
+        out[1] = -q[1];
+        out[2] = -q[2];
+        out[3] = q[3];
+        return out;
+    } // Quaternion_inline.h:191
+
+    /**
+     * Carbon: Exp (math/include/Quaternion_inline.h:202-224)
+     * Quaternion exponential (of a pure/vector quaternion; w input is ignored, as C++)
+     * @param {quaternion} out
+     * @param {quaternion} q
+     * @returns {quaternion} out
+     */
+    static exp(out, q)
+    {
+        const norm = Math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2]);
+        if (norm !== 0)
+        {
+            const s = Math.sin(norm);
+            out[0] = s * q[0] / norm;
+            out[1] = s * q[1] / norm;
+            out[2] = s * q[2] / norm;
+            out[3] = Math.cos(norm);
+        }
+        else
+        {
+            out[0] = 0;
+            out[1] = 0;
+            out[2] = 0;
+            out[3] = 1;
+        }
+        return out;
+    } // Quaternion_inline.h:202
+
+    /**
+     * Dot product of two quaternions
+     * @param {quaternion} q1
+     * @param {quaternion} q2
+     * @returns {number}
+     */
+    static dot(q1, q2)
+    {
+        return q1[0] * q2[0] + q1[1] * q2[1] + q1[2] * q2[2] + q1[3] * q2[3];
+    } // Quaternion_inline.h:226
+
+    /**
+     * Rotation quaternion, dispatched by arity like Carbon's overloads:
+     * (out, m) from a Matrix [Quaternion.cpp:7], (out, axis, angle) from
+     * axis+angle [Quaternion_inline.h:232], (out, yaw, pitch, roll) from Euler
+     * angles [Quaternion.cpp:60].
+     * @param {quaternion} out
+     * @returns {quaternion} out
+     */
+    static rotationQuaternion(out, a, b, c)
+    {
+        if (c !== undefined) return rotationQuaternionYawPitchRoll(out, a, b, c);
+        if (b !== undefined) return rotationQuaternionAxisAngle(out, a, b);
+        return rotationQuaternionMatrix(out, a);
     }
-    return out;
-}; // Quaternion_inline.h:202
 
-/**
- * Dot product of two quaternions
- * @param {quaternion} q1
- * @param {quaternion} q2
- * @returns {number}
- */
-quaternion.dot = function (q1, q2)
-{
-    return q1[0] * q2[0] + q1[1] * q2[1] + q1[2] * q2[2] + q1[3] * q2[3];
-}; // Quaternion_inline.h:226
+    /**
+     * Spherical linear interpolation with Carbon's exact 0.001 threshold branch
+     * @param {quaternion} out
+     * @param {quaternion} q1
+     * @param {quaternion} q2
+     * @param {number} t
+     * @returns {quaternion} out
+     */
+    static slerp(out, q1, q2, t)
+    {
+        let epsilon = 1.0;
+        let temp = 1.0 - t;
+        let u = t;
+        let dot = Quaternion.dot(q1, q2);
+        if (dot < 0.0)
+        {
+            epsilon = -1.0;
+            dot = -dot;
+        }
+        if (1.0 - dot > 0.001)
+        {
+            const theta = Math.acos(dot);
+            temp = Math.sin(theta * temp) / Math.sin(theta);
+            u = Math.sin(theta * u) / Math.sin(theta);
+        }
+        const x1 = q1[0], y1 = q1[1], z1 = q1[2], w1 = q1[3];
+        out[0] = temp * x1 + epsilon * u * q2[0];
+        out[1] = temp * y1 + epsilon * u * q2[1];
+        out[2] = temp * z1 + epsilon * u * q2[2];
+        out[3] = temp * w1 + epsilon * u * q2[3];
+        return out;
+    } // Quaternion_inline.h:244
 
-/**
- * Rotation quaternion, dispatched by arity like Carbon's overloads:
- * (out, m) from a Matrix [Quaternion.cpp:7], (out, axis, angle) from
- * axis+angle [Quaternion_inline.h:232], (out, yaw, pitch, roll) from Euler
- * angles [Quaternion.cpp:60].
- * @param {quaternion} out
- * @returns {quaternion} out
- */
-quaternion.rotationQuaternion = function (out, a, b, c)
-{
-    if (c !== undefined) return rotationQuaternionYawPitchRoll(out, a, b, c);
-    if (b !== undefined) return rotationQuaternionAxisAngle(out, a, b);
-    return rotationQuaternionMatrix(out, a);
-};
+    /**
+     * Extracts axis and angle: writes the raw (x, y, z) to outAxis and returns acos(w) * 2
+     * @param {Float32Array} outAxis - receiving vec3
+     * @param {quaternion} q
+     * @returns {number} angle
+     */
+    static getAxisAngle(outAxis, q)
+    {
+        outAxis[0] = q[0];
+        outAxis[1] = q[1];
+        outAxis[2] = q[2];
+        return Math.acos(q[3]) * 2;
+    } // Quaternion_inline.h:270
+}
 
 /**
  * Rotation quaternion from a Matrix (Carbon's 53-line branch version, ported exactly)
@@ -427,53 +475,3 @@ function rotationQuaternionAxisAngle(out, axis, angle)
     out[3] = Math.cos(angle / 2.0);
     return out;
 } // Quaternion_inline.h:232
-
-/**
- * Spherical linear interpolation with Carbon's exact 0.001 threshold branch
- * @param {quaternion} out
- * @param {quaternion} q1
- * @param {quaternion} q2
- * @param {number} t
- * @returns {quaternion} out
- */
-quaternion.slerp = function (out, q1, q2, t)
-{
-    let epsilon = 1.0;
-    let temp = 1.0 - t;
-    let u = t;
-    let dot = quaternion.dot(q1, q2);
-    if (dot < 0.0)
-    {
-        epsilon = -1.0;
-        dot = -dot;
-    }
-    if (1.0 - dot > 0.001)
-    {
-        const theta = Math.acos(dot);
-        temp = Math.sin(theta * temp) / Math.sin(theta);
-        u = Math.sin(theta * u) / Math.sin(theta);
-    }
-    const x1 = q1[0], y1 = q1[1], z1 = q1[2], w1 = q1[3];
-    out[0] = temp * x1 + epsilon * u * q2[0];
-    out[1] = temp * y1 + epsilon * u * q2[1];
-    out[2] = temp * z1 + epsilon * u * q2[2];
-    out[3] = temp * w1 + epsilon * u * q2[3];
-    return out;
-}; // Quaternion_inline.h:244
-
-/**
- * Extracts axis and angle: writes the raw (x, y, z) to outAxis and returns acos(w) * 2
- * @param {Float32Array} outAxis - receiving vec3
- * @param {quaternion} q
- * @returns {number} angle
- */
-quaternion.getAxisAngle = function (outAxis, q)
-{
-    outAxis[0] = q[0];
-    outAxis[1] = q[1];
-    outAxis[2] = q[2];
-    return Math.acos(q[3]) * 2;
-}; // Quaternion_inline.h:270
-
-// Operation tables are immutable; numeric results and caller-owned outputs stay writable.
-Object.freeze(quaternion);
