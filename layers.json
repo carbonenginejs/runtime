@@ -164,7 +164,12 @@
         "global/compose",
         "global/utils",
         "global/math",
-        "global/consts"
+        "global/consts",
+        "global/logging"
+      ],
+      "why": [
+        "global/logging is Carbon core's CcpLog with no Blue or model dependency; the schema stamps",
+        "CcpLogChannel_t as a Carbon class."
       ]
     },
     "global/model": {
@@ -293,7 +298,12 @@
       "mayImport": [
         "global",
         "resource",
-        "trinity"
+        "trinity",
+        "trinityal"
+      ],
+      "why": [
+        "Carbon's interior and skinned-object code uses abstraction-layer types directly, as trinity does:",
+        "Tr2InteriorScene holds Tr2ConstantBufferAL members (Interior/Tr2InteriorScene.h:303-304)."
       ]
     },
     "input": {
