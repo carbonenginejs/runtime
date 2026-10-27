@@ -1025,6 +1025,29 @@ test("fragment lowering emits the derivative-uniformity opt-out for implicit-LOD
     assert.match(code, /textureSample\(/);
 });
 
+test("a sample after an early return under a non-uniform condition takes the derivative-uniformity opt-out", () =>
+{
+    // The shipped sculptingoverlay pixel shader's shape: `if (varying) { ...; ret } endif`, then an
+    // implicit-LOD sample. Pixels of a quad that returned leave the rest non-uniform, so WGSL rejects the
+    // sample unless the module opts out (createShaderModule failed and the frame was lost).
+    const sampleOnlyAfterReturn = (gate) =>
+    {
+        const fixture = fragmentFixture();
+        fixture.instructions.find((entry) => entry.offset === 12).operands[1] = gate;
+        const inner = fixture.instructions.find((entry) => entry.offset === 18);
+        inner.opcodeName = "mov";
+        inner.operands = [ register("temp", 1, { mask: "yz" }), register("input", 1, { swizzle: "xyxx" }) ];
+        return fixture;
+    };
+    const uniform = CjsWebgpuFormat.buildWgsl(sampleOnlyAfterReturn(immediate([ 0 ]))).code;
+    assert.match(uniform, /textureSample\(/);
+    assert.doesNotMatch(uniform, /diagnostic\(off, derivative_uniformity\)/, "an immediate gate is uniform");
+
+    const varying = CjsWebgpuFormat.buildWgsl(sampleOnlyAfterReturn(register("input", 1, { selected: "x" }))).code;
+    assert.match(varying, /^diagnostic\(off, derivative_uniformity\);/m);
+    assert.match(varying, /textureSample\(/);
+});
+
 test("fragment lowering opts out for derivatives under a non-uniform branch but keeps them clean under a uniform one", () =>
 {
     // Uniform (immediate-gated) branch: a derivative inside is legal, no opt-out.

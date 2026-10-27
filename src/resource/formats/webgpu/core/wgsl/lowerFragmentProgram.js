@@ -2608,12 +2608,18 @@ function lowerProgramBody(program, options, compute)
         }));
     }
 
+    // Returns lowered under non-uniform control flow, across every nesting level. A
+    // selection whose arms raised this count let some pixels of a quad leave early,
+    // so whatever follows it runs non-uniformly in every enclosing range too.
+    let nonUniformReturns = 0;
+
     function lowerRange(start, end, rangeWritten, inLoop = false, nonUniform = false, loopExit = null)
     {
         const statements = [];
         // Non-uniformity accumulates within a range: once a loop with a non-uniform
-        // exit is lowered, every subsequent statement in this range is non-uniform
-        // (WGSL propagates the break-edge non-uniformity past the loop merge).
+        // exit, or a selection holding a non-uniform return, is lowered, every
+        // subsequent statement in this range is non-uniform (WGSL propagates the
+        // break-edge or return-edge non-uniformity past the merge).
         let flowNonUniform = nonUniform;
         for (let index = start; index < end; index += 1)
         {
@@ -2687,7 +2693,9 @@ function lowerProgramBody(program, options, compute)
                 }
                 const lowered = lowerInstruction(
                     program, program.instructions[index], inputs, outputs, bindings, rangeWritten, readValueIds, flowNonUniform, context);
-                statements.push(...(Array.isArray(lowered) ? lowered : [ lowered ]));
+                const loweredStatements = Array.isArray(lowered) ? lowered : [ lowered ];
+                if (flowNonUniform && loweredStatements.some((statement) => statement?.kind === "return")) nonUniformReturns += 1;
+                statements.push(...loweredStatements);
                 continue;
             }
             if (plan.kind === "loop")
@@ -2759,6 +2767,7 @@ function lowerProgramBody(program, options, compute)
                 }
                 const selector = operandExpression(program, switchInstruction, 0, "x", 1, "uint32", inputs, bindings);
                 const clauseNonUniform = flowNonUniform || !conditionIsUniform(switchInstruction, varying);
+                const returnsBefore = nonUniformReturns;
                 const clauses = [];
                 const clauseResults = [];
                 for (let clauseIndex = 0; clauseIndex < plan.clauses.length; clauseIndex += 1)
@@ -2793,6 +2802,7 @@ function lowerProgramBody(program, options, compute)
                     selector: { code: selector, type: "u32" },
                     clauses
                 });
+                if (nonUniformReturns > returnsBefore) flowNonUniform = true;
                 if (plan.region.defaultInstruction !== null)
                 {
                     const continuing = clauseResults.filter((entry) => !entry.returns);
@@ -2844,6 +2854,7 @@ function lowerProgramBody(program, options, compute)
             const condition = operandExpression(program, ifInstruction, 0, "x", 1, "uint32", inputs, bindings);
             const comparison = ifInstruction.testBoolean === "zero" ? "==" : "!=";
             const branchNonUniform = flowNonUniform || !conditionIsUniform(ifInstruction, varying);
+            const returnsBefore = nonUniformReturns;
             const trueBodyEnd = plan.hasElse ? plan.region.elseInstruction : plan.region.endInstruction;
             const trueWritten = cloneWritten(rangeWritten);
             const trueStatements = lowerRange(index + 1, trueBodyEnd, trueWritten, inLoop, branchNonUniform, loopExit);
@@ -2889,6 +2900,8 @@ function lowerProgramBody(program, options, compute)
                 statements: trueStatements,
                 ...(falseStatements ? { elseStatements: falseStatements } : {})
             });
+            // An arm that returned under non-uniform flow (here or nested) leaves the rest non-uniform.
+            if (nonUniformReturns > returnsBefore) flowNonUniform = true;
             if (plan.hasElse)
             {
                 const trueReturns = trueStatements.at(-1)?.kind === "return";
