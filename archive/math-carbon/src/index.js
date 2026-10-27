@@ -14,7 +14,9 @@
 // triMath takes std::mt19937 from global/math/random.js, the one port of that engine.
 //
 // Carbon header homes for free functions are camelCase namespaces: triMath is
-// trinity/trinity/Include/TriMath.h (its one class, TriPerlinNoise, included).
+// trinity/trinity/Include/TriMath.h (its one class, TriPerlinNoise, included), triUtil
+// TriUtil.h, and boundingBox, boundingSphere and matrixUtils the trinity Utilities headers
+// of those names (MatrixUtils.h's Float4x3 struct is a class).
 
 export * from "./matrix.js";
 export * from "./quaternion.js";
@@ -30,5 +32,9 @@ export * from "./color.js";
 export * from "./float16.js";
 export * as triMath from "./triMath.js";
 export * as triUtil from "./triUtil.js";
+export * as boundingBox from "./boundingBox.js";
+export * as boundingSphere from "./boundingSphere.js";
+export * as matrixUtils from "./matrixUtils.js";
+export { Float4x3 } from "./matrixUtils.js";
 
 export { initializeMath } from "./initialize.js";

@@ -14,6 +14,9 @@ import { Color } from "./color.js";
 import { Float_16, Vector2_16, Vector3_16, Vector4_16 } from "./float16.js";
 import * as triMath from "./triMath.js";
 import * as triUtil from "./triUtil.js";
+import * as boundingBox from "./boundingBox.js";
+import * as boundingSphere from "./boundingSphere.js";
+import * as matrixUtils from "./matrixUtils.js";
 
 let initialized;
 
@@ -61,7 +64,7 @@ export function initializeMath(options = {})
     initialized = {
         precision, Matrix, Quaternion, Vector2, Vector3, Vector4, Plane, Sphere,
         AxisAlignedBox, AxisAlignedEllipsoid, Ray, Color, Float_16, Vector2_16, Vector3_16, Vector4_16,
-        triMath, triUtil
+        triMath, triUtil, boundingBox, boundingSphere, matrixUtils, Float4x3: matrixUtils.Float4x3
     };
     return initialized;
 }

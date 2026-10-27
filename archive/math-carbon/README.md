@@ -42,7 +42,10 @@ frozen (freezes are for enums only). The internal float32 tables are still froze
 Carbon headers that only hold free functions become camelCase namespaces: `triUtil` holds
 `TriUtil.h`'s gamma conversions, and `triMath` is
 `trinity/trinity/Include/TriMath.h` (`triMath.triClamp` for `TriClamp`), including its
-`TriPerlinNoise` class and the double-precision `Matrix4d*` functions.
+`TriPerlinNoise` class and the double-precision `Matrix4d*` functions. `boundingBox`,
+`boundingSphere` and `matrixUtils` are `trinity/trinity/Utilities/BoundingBox.h`,
+`BoundingSphere.h` and `MatrixUtils.h`; `MatrixUtils.h`'s `Float4x3` struct is a class.
+Each namespace splits Carbon's overloads by rule 11 (`boundingBoxUpdate__Pos`).
 Persistent values retain Float32Array storage (Uint16Array for half vectors); double intermediates do not imply a Float64Array value contract. Workers and separately loaded
 module instances have independent initialization state.
 
