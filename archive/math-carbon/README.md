@@ -39,6 +39,9 @@ the same API; a conflicting selection throws. Calls go directly to the class sta
 wrappers or per-operation precision branches. Each Carbon type is a class (`Vector3`, `Matrix`,
 `Float_16`, ...) whose camelCase statics take the output first and return it; the classes are not
 frozen (freezes are for enums only). The internal float32 tables are still frozen objects.
+Carbon headers that only hold free functions become camelCase namespaces: `triMath` is
+`trinity/trinity/Include/TriMath.h` (`triMath.triClamp` for `TriClamp`), including its
+`TriPerlinNoise` class and the double-precision `Matrix4d*` functions.
 Persistent values retain Float32Array storage (Uint16Array for half vectors); double intermediates do not imply a Float64Array value contract. Workers and separately loaded
 module instances have independent initialization state.
 

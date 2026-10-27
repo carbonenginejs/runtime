@@ -10,7 +10,11 @@
 // vice versa; only the composition conventions differ (Carbon is row-vector,
 // v' = v * M, compositions read left-to-right in application order).
 //
-// This module changes no existing code and delegates to none of it.
+// This module changes no existing code. It delegates to one production module:
+// triMath takes std::mt19937 from global/math/random.js, the one port of that engine.
+//
+// Carbon header homes for free functions are camelCase namespaces: triMath is
+// trinity/trinity/Include/TriMath.h (its one class, TriPerlinNoise, included).
 
 export * from "./matrix.js";
 export * from "./quaternion.js";
@@ -24,5 +28,6 @@ export * from "./axisAlignedEllipsoid.js";
 export * from "./ray.js";
 export * from "./color.js";
 export * from "./float16.js";
+export * as triMath from "./triMath.js";
 
 export { initializeMath } from "./initialize.js";
