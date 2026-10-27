@@ -385,12 +385,40 @@ export class Tr2InteriorScene extends ITr2PickableScene
     this.SetupShadowMaps();
   }
 
-  /** Carbon method Pick -> PyPick (MAP_METHOD). */
+  /**
+   * Carbon Pick (PyPick, Tr2InteriorScene_Blue.cpp:119-212, MAP_METHOD :362): a pick of the requested
+   * components through ITr2PickableScene::PickObject, answered as a component -> value map with an entry
+   * for each component the pick produced. PICK_OBJECT maps to the object or null; PICK_AREA to
+   * [meshID, areaID] from the packed area (low eight bits the area from 1, rebased to 0); PICK_POSITION
+   * to the world point; PICK_UV to the texture coordinate.
+   *
+   * Adapted: awaited, as `PickObject` is, and a Map in place of the Python dict.
+   *
+   * @param {number} x Pixel column in the viewport.
+   * @param {number} y Pixel row in the viewport.
+   * @param {TriProjection} projection The camera projection.
+   * @param {TriView} view The camera view.
+   * @param {TriViewport} viewport The viewport the pixel is in.
+   * @param {number} components The requested ITr2PickableScene.PickComponent bits.
+   * @returns {Promise<Map<number, *>>} The picked components.
+   */
   @be.mapMethod()
-  @meta.notImplemented
-  Pick(...args)
+  @meta.adapted
+  async Pick(x, y, projection, view, viewport, components)
   {
-    throw new Error("Tr2InteriorScene.Pick is not implemented in CarbonEngineJS.");
+    const { PICK_OBJECT, PICK_AREA, PICK_POSITION, PICK_UV } = ITr2PickableScene.PickComponent;
+    const results = { components, object: null, area: 0, position: null, uv: [ 0, 0 ] };
+    await super.PickObject(Tr2RenderContext_GetMainThreadRenderContext(), x, y, projection, view, viewport, results);
+    const out = new Map();
+    if (results.components & PICK_OBJECT) out.set(PICK_OBJECT, results.object ?? null);
+    if (results.components & PICK_AREA)
+    {
+      const areaID = results.area & 0xff;
+      out.set(PICK_AREA, [ (results.area - areaID) >>> 8, areaID - 1 ]);
+    }
+    if (results.components & PICK_POSITION) out.set(PICK_POSITION, results.position);
+    if (results.components & PICK_UV) out.set(PICK_UV, results.uv);
+    return out;
   }
 
   /** Carbon method PickObjectAndArea -> PyPickObjectAndArea (MAP_METHOD). */

@@ -48,6 +48,24 @@ test("a pick pixel decodes as Carbon's DecodeBufferPixel (Tr2InteriorScene.cpp:1
     assert.equal(Math.fround(uvDepth.depth), Math.fround(0.4), "with position too, green is the depth");
 });
 
+test("Pick answers each produced component as PyPick does (Tr2InteriorScene_Blue.cpp:119-212)", async t =>
+{
+    const scene = new Tr2InteriorScene();
+    const object = { name: "head" };
+    const requested = [];
+    t.mock.method(ITr2PickableScene.prototype, "PickObject", async (_context, _x, _y, _projection, _view, _viewport, results) =>
+    {
+        requested.push(results.components);
+        Object.assign(results, { components: PICK_OBJECT | PICK_AREA | PICK_UV, object, area: (3 << 8) | 2, uv: [ 0.25, 0.5 ] });
+    });
+    const picked = await scene.Pick(1, 2, null, null, null, PICK_OBJECT | PICK_AREA | PICK_UV);
+    assert.deepEqual(requested, [ PICK_OBJECT | PICK_AREA | PICK_UV ]);
+    assert.equal(picked.get(PICK_OBJECT), object);
+    assert.deepEqual(picked.get(PICK_AREA), [ 3, 1 ], "mesh from the high bits, area rebased from 1");
+    assert.deepEqual(picked.get(PICK_UV), [ 0.25, 0.5 ]);
+    assert.equal(picked.has(PICK_POSITION), false, "a component the pick did not produce has no entry");
+});
+
 test("every pick re-runs the candidate query (CE-227, adapted: Carbon reuses the first pick's list)", t =>
 {
     const scene = new Tr2InteriorScene();
