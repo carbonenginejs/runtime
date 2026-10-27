@@ -145,14 +145,15 @@ export class CjsPaperDollComponent
 
     /**
      * The settings one pass reads, copied so later edits cannot reach them: the
-     * selected option (empty while disabled), its colour areas and their colours.
+     * selected option (empty while disabled), its colour areas, their colours, and
+     * the picked palette (a patterned palette composes differently from its colours).
      * @param {PaperDollPass} pass The pass being captured.
-     * @returns {{option: string, colorAreas: number[], colors: Float32Array[]}}
+     * @returns {{option: string, colorAreas: number[], colors: Float32Array[], palette: string}}
      */
     Capture(pass = PaperDollPass.HEAD)
     {
         const option = this.enabled ? this.option : "";
-        return { option, colors: this.GetColors().map(value => Float32Array.from(value)), colorAreas: option ? [...this.GetColorAreas()] : [] };
+        return { option, colors: this.GetColors().map(value => Float32Array.from(value)), colorAreas: option ? [...this.GetColorAreas()] : [], palette: option ? this._palette : "" };
     }
 
     /** Restores the original foundation and clears remembered manual values. */
