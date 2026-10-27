@@ -229,8 +229,9 @@ export class AxisAlignedEllipsoid
     }
 }
 
-const SQRT_THREE = Math.sqrt(3.0);              // NumConst.h:9
-const ONE_OVER_SQRT_THREE = 1.0 / Math.sqrt(3.0); // NumConst.h:10
+// Carbon declares both `const float` (NumConst.h:9-10), so they are float values here too
+const SQRT_THREE = Math.fround(Math.sqrt(3.0));               // NumConst.h:9
+const ONE_OVER_SQRT_THREE = Math.fround(1.0 / SQRT_THREE);   // NumConst.h:10
 
 const scratchBox = new Float32Array(6);
 
