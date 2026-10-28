@@ -51,7 +51,7 @@ function writeError(message)
 /**
  * Resolves an enum name, `Unknown(n)` label or number to its numeric value.
  *
- * @param {ReadonlyArray<string>} names Enum names indexed by value.
+ * @param {Object<string, number>} names Registered enum values by name.
  * @param {string|number} value Name, label or number.
  * @param {string} label Enum label for errors.
  * @returns {number} The numeric value.
@@ -60,7 +60,7 @@ function writeError(message)
 function enumValue(names, value, label)
 {
     if (typeof value === "number") return value;
-    const index = names.indexOf(value);
+    const index = typeof value === "string" && Object.hasOwn(names, value) ? names[value] : -1;
     if (index >= 0) return index;
     const unknown = /^Unknown\((\d+)\)$/u.exec(String(value ?? ""));
     if (unknown) return Number(unknown[1]);

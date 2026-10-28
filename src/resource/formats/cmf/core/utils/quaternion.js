@@ -309,7 +309,7 @@ export function maximumQuaternionLerpAngularDifference(startA, endA, startB, end
 }
 
 /** Representative interior fractions used to validate quaternion segments. */
-export const QUATERNION_SEGMENT_SAMPLE_FRACTIONS = Object.freeze([ 0.25, 0.5, 0.75 ]);
+export const QUATERNION_SEGMENT_SAMPLE_FRACTIONS = [ 0.25, 0.5, 0.75 ];
 
 /**
  * Test representative interior ticks before accepting a quaternion bake segment.

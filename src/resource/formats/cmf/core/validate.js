@@ -209,8 +209,8 @@ function validateVertexDeclaration(value, label, options)
     {
         const element = decl[index];
         if (!element || typeof element !== "object") invalid(`${label}[${index}] must be an object`, options);
-        if (!Usage.includes(element.usage)) invalid(`${label}[${index}] has invalid usage`, options);
-        if (!ElementType.includes(element.type)) invalid(`${label}[${index}] has invalid element type`, options);
+        if (!(typeof (element.usage) === "string" && Object.hasOwn(Usage, element.usage))) invalid(`${label}[${index}] has invalid usage`, options);
+        if (!(typeof (element.type) === "string" && Object.hasOwn(ElementType, element.type))) invalid(`${label}[${index}] has invalid element type`, options);
         const usageIndex = uint(element.usageIndex ?? 0, UINT8_MAX, `${label}[${index}].usageIndex`, options);
         const elementCount = uint(element.elementCount, UINT8_MAX, `${label}[${index}].elementCount`, options);
         const offset = uint(element.offset ?? 0, UINT32_MAX, `${label}[${index}].offset`, options);
@@ -491,7 +491,7 @@ function validateMesh(mesh, meshIndex, graph, options)
     const label = `mesh ${JSON.stringify(mesh.name ?? "")}`;
     const decl = validateVertexDeclaration(mesh.decl, `${label} declaration`, options);
     const topology = mesh.topology ?? "TriangleList";
-    if (!MeshTopology.includes(topology)) invalid(`${label} has invalid topology`, options);
+    if (!(typeof (topology) === "string" && Object.hasOwn(MeshTopology, topology))) invalid(`${label} has invalid topology`, options);
     const areas = array(mesh.areas, `${label} areas`, options);
     const boneBindings = array(mesh.boneBindings, `${label} bone bindings`, options);
     const lods = array(mesh.lods, `${label} LODs`, options);
@@ -723,9 +723,9 @@ function validateCurve(curve, animationLabel, curveIndex, options)
     if (!curve || typeof curve !== "object") invalid(`${label} must be an object`, options);
     const knotCount = uint(curve.knotCount, UINT32_MAX, `${label} knotCount`, options);
     if (!knotCount) invalid(`${label} has no keyframes`, options);
-    if (!ElementType.includes(curve.knotType)) invalid(`${label} has invalid knotType`, options);
-    if (!ElementType.includes(curve.valueType)) invalid(`${label} has invalid valueType`, options);
-    if (!Interpolation.includes(curve.interpolation)) invalid(`${label} has invalid interpolation`, options);
+    if (!(typeof (curve.knotType) === "string" && Object.hasOwn(ElementType, curve.knotType))) invalid(`${label} has invalid knotType`, options);
+    if (!(typeof (curve.valueType) === "string" && Object.hasOwn(ElementType, curve.valueType))) invalid(`${label} has invalid valueType`, options);
+    if (!(typeof (curve.interpolation) === "string" && Object.hasOwn(Interpolation, curve.interpolation))) invalid(`${label} has invalid interpolation`, options);
     const valueDimension = uint(curve.valueDimension, UINT8_MAX, `${label} valueDimension`, options);
     if (!valueDimension) invalid(`${label} has zero valueDimension`, options);
     const knots = byteArray(curve.knots, `${label} knots`, options);
@@ -769,7 +769,7 @@ function validateAnimation(animation, animationIndex, options)
         const channel = channels[index];
         if (!channel || typeof channel !== "object") invalid(`${label} channel ${index} must be an object`, options);
         name(channel.target, `${label} channel ${index} target`, options, false);
-        if (!AnimationChannelTargetType.includes(channel.targetType)) invalid(`${label} channel ${index} has invalid targetType`, options);
+        if (!(typeof (channel.targetType) === "string" && Object.hasOwn(AnimationChannelTargetType, channel.targetType))) invalid(`${label} channel ${index} has invalid targetType`, options);
         const curveIndex = uint(channel.curveIndex, UINT32_MAX, `${label} channel ${index} curveIndex`, options);
         if (curveIndex >= curves.length) invalid(`${label} channel ${index} references an out-of-range curve`, options);
         const dimension = curves[curveIndex].valueDimension;
@@ -839,8 +839,8 @@ export function validateCmfSections(header, fileSize, options = {})
     for (let index = 0; index < sections.length; index++)
     {
         const section = sections[index];
-        if (!SectionType.includes(section.type)) invalid(`section ${index} has invalid type`, options);
-        if (!SectionCompression.includes(section.compression)) invalid(`section ${index} has invalid compression`, options);
+        if (!(typeof (section.type) === "string" && Object.hasOwn(SectionType, section.type))) invalid(`section ${index} has invalid type`, options);
+        if (!(typeof (section.compression) === "string" && Object.hasOwn(SectionCompression, section.compression))) invalid(`section ${index} has invalid compression`, options);
         uint(section.offset, UINT32_MAX, `section ${index}.offset`, options);
         uint(section.compressedSize, UINT32_MAX, `section ${index}.compressedSize`, options);
         uint(section.uncompressedSize, UINT32_MAX, `section ${index}.uncompressedSize`, options);

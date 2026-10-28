@@ -671,7 +671,7 @@ function morphChannelSpecs(baseVertex, targets)
         }
     }
     return specs.sort((left, right) =>
-        Usage.indexOf(left[1]) - Usage.indexOf(right[1]) || (left[3] ?? 0) - (right[3] ?? 0));
+        (typeof (left[1]) === "string" && Object.hasOwn(Usage, left[1]) ? Usage[left[1]] : -1) - (typeof (right[1]) === "string" && Object.hasOwn(Usage, right[1]) ? Usage[right[1]] : -1) || (left[3] ?? 0) - (right[3] ?? 0));
 }
 
 /**
@@ -767,7 +767,7 @@ function buildDecl(vertex, options = {}, explicitVertexCount)
         }
     }
     dynamicChannels.sort((left, right) =>
-        Usage.indexOf(left[1]) - Usage.indexOf(right[1]) ||
+        (typeof (left[1]) === "string" && Object.hasOwn(Usage, left[1]) ? Usage[left[1]] : -1) - (typeof (right[1]) === "string" && Object.hasOwn(Usage, right[1]) ? Usage[right[1]] : -1) ||
         left[3] - right[3]);
 
     for (const channel of [

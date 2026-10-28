@@ -64,10 +64,10 @@ export function isGr2Animation(animation)
     return !!animation && Array.isArray(animation.trackGroups);
 }
 
-const IDENTITY_MATRIX = Object.freeze([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);
+const IDENTITY_MATRIX = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ];
 const FLOAT32_EPSILON = 2 ** -23;
 const SCALE_SHEAR_RELATIVE_EPSILONS = 4;
-const SCALE_SHEAR_OFF_DIAGONALS = Object.freeze([ 1, 2, 3, 5, 6, 7 ]);
+const SCALE_SHEAR_OFF_DIAGONALS = [ 1, 2, 3, 5, 6, 7 ];
 
 /**
  * Tests a 3x3 scale/shear block for off-diagonal values beyond a small

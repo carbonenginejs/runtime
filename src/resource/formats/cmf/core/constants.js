@@ -1,3 +1,4 @@
+import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
 export const FILE_SIGNATURE = 0x66666D63;
 export const FILE_VERSION = 1;
 
@@ -35,63 +36,63 @@ export const STRUCT_SIZE = Object.freeze({
     Mesh: 216
 });
 
-export const Usage = Object.freeze([
-    "Position",
-    "Normal",
-    "Tangent",
-    "Binormal",
-    "TexCoord",
-    "Color",
-    "BoneIndices",
-    "BoneWeights",
-    "PackedTangent",
-    "PackedTangentLegacy"
-]);
+export const Usage = blueEnums.Create("resource.cmf.Usage", {
+    "Position": 0,
+    "Normal": 1,
+    "Tangent": 2,
+    "Binormal": 3,
+    "TexCoord": 4,
+    "Color": 5,
+    "BoneIndices": 6,
+    "BoneWeights": 7,
+    "PackedTangent": 8,
+    "PackedTangentLegacy": 9
+});
 
-export const ElementType = Object.freeze([
-    "Float32",
-    "Float16",
-    "UInt16Norm",
-    "UInt16",
-    "Int16Norm",
-    "Int16",
-    "UInt8Norm",
-    "UInt8",
-    "Int8Norm",
-    "Int8"
-]);
+export const ElementType = blueEnums.Create("resource.cmf.ElementType", {
+    "Float32": 0,
+    "Float16": 1,
+    "UInt16Norm": 2,
+    "UInt16": 3,
+    "Int16Norm": 4,
+    "Int16": 5,
+    "UInt8Norm": 6,
+    "UInt8": 7,
+    "Int8Norm": 8,
+    "Int8": 9
+});
 
-export const MeshTopology = Object.freeze([
-    "TriangleList",
-    "PointList"
-]);
+export const MeshTopology = blueEnums.Create("resource.cmf.MeshTopology", {
+    "TriangleList": 0,
+    "PointList": 1
+});
 
-export const SectionType = Object.freeze([
-    "Data",
-    "GpuBuffer",
-    "Metadata"
-]);
+export const SectionType = blueEnums.Create("resource.cmf.SectionType", {
+    "Data": 0,
+    "GpuBuffer": 1,
+    "Metadata": 2
+});
 
-export const SectionCompression = Object.freeze([
-    "None",
-    "MeshOptimizerVertexBuffer",
-    "MeshOptimizerIndexBuffer"
-]);
+export const SectionCompression = blueEnums.Create("resource.cmf.SectionCompression", {
+    "None": 0,
+    "MeshOptimizerVertexBuffer": 1,
+    "MeshOptimizerIndexBuffer": 2
+});
 
-export const AnimationChannelTargetType = Object.freeze([
-    "BonePosition",
-    "BoneRotation",
-    "BoneScale",
-    "MorphTarget",
-    "Other"
-]);
+export const AnimationChannelTargetType = blueEnums.Create("resource.cmf.AnimationChannelTargetType", {
+    "BonePosition": 0,
+    "BoneRotation": 1,
+    "BoneScale": 2,
+    "MorphTarget": 3,
+    "Other": 4
+});
 
-export const Interpolation = Object.freeze([
-    "Step",
-    "Linear"
-]);
+export const Interpolation = blueEnums.Create("resource.cmf.Interpolation", {
+    "Step": 0,
+    "Linear": 1
+});
 
-export const CMF_CLASS_KEYS = Object.freeze([
+export const CMF_CLASS_KEYS = [
     "Root",
     "Section",
     "Metadata",
@@ -113,9 +114,9 @@ export const CMF_CLASS_KEYS = Object.freeze([
     "Animation",
     "AnimationChannel",
     "AnimationCurve"
-]);
+];
 
-export const GR2_CLASS_KEYS = Object.freeze([
+export const GR2_CLASS_KEYS = [
     "Root",
     "Mesh",
     "BoneBinding",
@@ -129,7 +130,7 @@ export const GR2_CLASS_KEYS = Object.freeze([
     "TransformTrack",
     "VectorTrack",
     "Curve"
-]);
+];
 
 export const CLASS_KEYS = Array.from(new Set([
     ...CMF_CLASS_KEYS,

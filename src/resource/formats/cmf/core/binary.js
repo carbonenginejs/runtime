@@ -1,3 +1,4 @@
+import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
 import { CjsSchema } from "#schema/CjsSchema";
 
 import { crc32 as sharedCrc32 } from "#utils/checksum";
@@ -217,13 +218,13 @@ export class BinaryReader
  * Returns the symbolic enum name or an unknown-value label for the CMF binary
  * reader.
  *
- * @param {Array<string>} names Enum names indexed by value.
+ * @param {Object<string, number>} names Registered enum values by name.
  * @param {number} value Enum value.
  * @returns {string} The name, or `Unknown(value)`.
  */
 export function enumName(names, value)
 {
-    return names[value] ?? `Unknown(${value})`;
+    return blueEnums.GetEnumInfo(blueEnums.GetEnumName(names)).members[value]?.name ?? `Unknown(${value})`;
 }
 
 /**
