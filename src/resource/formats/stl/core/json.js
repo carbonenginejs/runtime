@@ -2,7 +2,7 @@
  * JSON hydration helpers for the shared CarbonEngineJS mesh schema.
  */
 
-export const CLASS_KEYS = Object.freeze([ "Root", "Mesh", "IndexGroup" ]);
+export const CLASS_KEYS = [ "Root", "Mesh", "IndexGroup" ];
 
 function build(classes, key, props, hydrationOptions = {})
 {
