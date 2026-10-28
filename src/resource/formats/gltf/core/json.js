@@ -2,10 +2,10 @@
  * Hydration helpers for the shared CarbonEngineJS mesh/animation schema.
  */
 
-export const CLASS_KEYS = Object.freeze([
+export const CLASS_KEYS = [
     "Root", "Mesh", "BoneBinding", "IndexGroup", "MorphTarget", "Model",
     "Skeleton", "Bone", "Animation", "TrackGroup", "TransformTrack", "VectorTrack", "Curve"
-]);
+];
 
 /**
  * Builds one node with the class registered for its key, or returns the plain props when none is.
