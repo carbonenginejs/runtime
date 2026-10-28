@@ -1,12 +1,36 @@
+import { configureResourceManager } from "../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { RegisterShaderResources, ShaderResourceExtensions, Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
+import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
 import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js";
+import { CjsCarbonEffectWriter } from "../../npm/dist/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
+import { buildSyntheticDescription } from "../resource/runtime-resource/format/carbonEffectSynthetic.js";
+
+test("CjsLibrary loads an effect and retains its permutation reader", async () =>
+{
+  const writer = new CjsCarbonEffectWriter({
+    compilerVersion: [1, 2, 6, 0], sourceHash: "0123456789abcdef0123456789abcdef"
+  });
+  writer.addBody(0, buildSyntheticDescription({ label: "registered" }));
+  const bytes = writer.toBytes();
+  let reads = 0;
+  const manager = await configureResourceManager(new CjsBlueResMan({
+    source: { Read() { reads++; return bytes; } }
+  }));
+  const effect = await manager.FetchResource("res:/registered.sm_hi");
+  assert.ok(effect instanceof Tr2EffectRes);
+  assert.ok(effect.IsGood());
+  const shader = effect.GetShaderByIndex(0);
+  assert.ok(shader);
+  assert.equal(effect.GetShaderByIndex(0), shader);
+  assert.equal(await manager.FetchResource("res:/registered.sm_hi"), effect);
+  assert.equal(reads, 1);
+});
 
 /**
  * Runs a body with a manager installed globally, always uninstalling after.
@@ -14,13 +38,13 @@ import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js
  * The accessor is process-wide, so a leaked manager would make every later test
  * in the run acquire resources it never asked for.
  */
-function withGlobalManager(run)
+async function withGlobalManager(run)
 {
   // A manager with no source cannot begin a read, and acquiring is meant to
   // start one. The bytes are irrelevant here - these tests assert the route and
   // the handle, not container decoding.
   const source = { Read() { return new Uint8Array(0); } };
-  const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source }));
+  const resourceManager = await configureResourceManager(new CjsBlueResMan({ source }));
   const previous = blue.resMan;
   blue.resMan = resourceManager;
   try
@@ -34,9 +58,9 @@ function withGlobalManager(run)
   }
 }
 
-test("effect path edits replace internal acquisitions and clearing releases the old resource", () =>
+test("effect path edits replace internal acquisitions and clearing releases the old resource", async () =>
 {
-  withGlobalManager(() =>
+  await withGlobalManager(() =>
   {
     const effect = new Tr2Effect();
     effect.SetEffectPathName("res:/a.sm_depth");
@@ -69,9 +93,9 @@ test("effect path edits replace internal acquisitions and clearing releases the 
   });
 });
 
-test("external resource replacement detaches the earlier acquisition and keeps the caller's resource", () =>
+test("external resource replacement detaches the earlier acquisition and keeps the caller's resource", async () =>
 {
-  withGlobalManager(() =>
+  await withGlobalManager(() =>
   {
     const effect = new Tr2Effect();
     effect.SetEffectPathName("res:/a.sm_depth");
@@ -89,23 +113,23 @@ test("external resource replacement detaches the earlier acquisition and keeps t
   });
 });
 
-test("every compiled shader extension routes to Tr2EffectRes", () =>
+test("every compiled shader extension routes to Tr2EffectRes", async () =>
 {
-  const resourceManager = RegisterShaderResources(new CjsBlueResMan());
+  const resourceManager = await configureResourceManager(new CjsBlueResMan());
 
   // Carbon's nine, not three: the older compiled tiers still occur in shipped
   // trees. Plus Incarna's fxt.
-  assert.equal(ShaderResourceExtensions.length, 10);
-  assert.ok(ShaderResourceExtensions.includes("fxt"));
-  for (const extension of ShaderResourceExtensions)
+  assert.equal([...Tr2EffectRes.extensions, ...Tr2EffectRes.additionalExtensions].map(x => x.toLowerCase()).length, 10);
+  assert.ok([...Tr2EffectRes.extensions, ...Tr2EffectRes.additionalExtensions].map(x => x.toLowerCase()).includes("fxt"));
+  for (const extension of [...Tr2EffectRes.extensions, ...Tr2EffectRes.additionalExtensions].map(x => x.toLowerCase()))
   {
     assert.equal(typeof resourceManager.GetObjectLoader(extension), "function");
   }
 });
 
-test("an authored .fx path resolves into the committed backend's tree", () =>
+test("an authored .fx path resolves into the committed backend's tree", async () =>
 {
-  withGlobalManager(() =>
+  await withGlobalManager(() =>
   {
     SetEffectPathDefaults({ platformName: "webgpu", shaderModel: "high" });
 
@@ -120,9 +144,9 @@ test("an authored .fx path resolves into the committed backend's tree", () =>
   });
 });
 
-test("Initialize acquires an effect resource through the installed manager", () =>
+test("Initialize acquires an effect resource through the installed manager", async () =>
 {
-  withGlobalManager(() =>
+  await withGlobalManager(() =>
   {
     SetEffectPathDefaults({ platformName: "webgpu" });
 
@@ -137,9 +161,9 @@ test("Initialize acquires an effect resource through the installed manager", () 
   });
 });
 
-test("the same path yields the same resource handle", () =>
+test("the same path yields the same resource handle", async () =>
 {
-  withGlobalManager(() =>
+  await withGlobalManager(() =>
   {
     SetEffectPathDefaults({ platformName: "webgpu" });
 
@@ -155,12 +179,12 @@ test("the same path yields the same resource handle", () =>
   });
 });
 
-test("an unresolvable path acquires nothing rather than throwing", () =>
+test("an unresolvable path acquires nothing rather than throwing", async () =>
 {
   // No platform name installed means no backend is committed, so an authored
   // /effect/ path has no compiled tree to resolve into. Carbon blanks the path
   // and does not fetch; hydration must not explode.
-  withGlobalManager(() =>
+  await withGlobalManager(() =>
   {
     const effect = new Tr2Effect();
     effect.effectFilePath = "res:/graphics/effect/ship/main.fx";
@@ -171,7 +195,7 @@ test("an unresolvable path acquires nothing rather than throwing", () =>
   });
 });
 
-test("a hand-assigned resource is not replaced, and is not fetched for", () =>
+test("a hand-assigned resource is not replaced, and is not fetched for", async () =>
 {
   // This test used to prove that an effect with NO manager installed resolved
   // its path and left effectResource null. That only held because the old
@@ -203,9 +227,9 @@ test("a hand-assigned resource is not replaced, and is not fetched for", () =>
   }
 });
 
-test("a hand-assigned resource is never replaced", () =>
+test("a hand-assigned resource is never replaced", async () =>
 {
-  withGlobalManager(() =>
+  await withGlobalManager(() =>
   {
     SetEffectPathDefaults({ platformName: "webgpu" });
 
@@ -219,7 +243,7 @@ test("a hand-assigned resource is never replaced", () =>
   });
 });
 
-test("the slot names the contract, not the implementation", () =>
+test("the slot names the contract, not the implementation", async () =>
 {
   // This replaces a test that asserted SetGlobal refused anything that was not
   // a CjsBlueResMan. That check was the problem: it nailed every consumer to one
@@ -244,7 +268,7 @@ test("the slot names the contract, not the implementation", () =>
   finally { blue.resMan = previous; }
 });
 
-test("container bytes handed to SetPayload load through DoLoad", () =>
+test("container bytes handed to SetPayload load through DoLoad", async () =>
 {
   // The publish path calls SetPayload. Tr2EffectRes derives its payload from
   // bytes it must go on holding, so bytes route to DoLoad instead of being

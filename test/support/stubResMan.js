@@ -2,14 +2,14 @@ import { CjsAudioRes } from "../../npm/dist/audio/resources/index.js";
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { getResourceExtension, normalizeResourcePath } from "../../npm/dist/global/utils/path.js";
 import { CjsResource, Tr2ImageRes, Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriGrannyRes, TriTextureRes } from "../../npm/dist/resource/index.js";
-import { Tr2EffectRes, ShaderResourceExtensions } from "../../npm/dist/trinity/shader/index.js";
+import { Tr2EffectRes } from "../../npm/dist/trinity/shader/index.js";
 
 // Carbon: GetResourceHelper (blue/src/BlueResMan.cpp:249-278).
 // The source extension plus request suffix selects the class. Unknown keys
 // have no factory; the stub must not hide missing registrations with a base res.
 const RESOURCE_BY_EXTENSION = new Map([
   ...["dds", "png", "sdd", "tga", "jpg", "jpeg", "bmp", "ecs", "ctr", "vta", "gif"].map(key => [key, TriTextureRes]),
-  ...ShaderResourceExtensions.map(key => [key, Tr2EffectRes]),
+  ...[...Tr2EffectRes.extensions, ...Tr2EffectRes.additionalExtensions].map(key => [key.toLowerCase(), Tr2EffectRes]),
   [ "gr2", TriGeometryRes ],
   [ "cmf", TriGeometryRes ],
   [ "pngraw", Tr2ImageRes ],

@@ -1,3 +1,4 @@
+import { configureResourceManager } from "../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import test, { after } from "node:test";
 import { Worker } from "node:worker_threads";
@@ -8,7 +9,7 @@ import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
 import { IMAGE_DECODE_CALLBACK_MODULES, DECODE_BITMAP_CALLBACK } from "../../npm/dist/resource/imageio/imageDecodeCallbacks.js";
 import { HostBitmap, LoadParameters, Metadata } from "../../npm/dist/global/imageio/index.js";
-import { RegisterTextureResources } from "../../npm/dist/trinity/resources/texture/index.js";
+
 
 // Carbon decodes a texture on resMan's background queue, which is BeCallbackMan
 // (BlueResMan.cpp:109). Here BeCallbackMan is started as a composition would
@@ -46,7 +47,7 @@ test("a PNG texture decodes as BeCallbackMan's image.decodeBitmap job on a worke
   BeCallbackMan.constructor.CALLBACKMAN_DEBUGGING = true;
 
   const manager = new CjsBlueResMan({ source: { Read: () => png } });
-  RegisterTextureResources(manager);
+  await configureResourceManager(manager);
   const image = await manager.FetchResource("res:/worker.png", { ex: "raw" });
 
   assert.ok(jobs.some(job => job.label === DECODE_BITMAP_CALLBACK && job.subtitle === "BeCallbackMan" && /^BeCallbackMan_\d$/u.test(job.thread)),

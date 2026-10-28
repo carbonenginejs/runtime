@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import {projectShared} from '../../../../../src/resource/formats/gr2/core/shared.js';
 import {buildCmfFromShared} from '../../../../../src/resource/formats/cmf/core/shared.js';
 import {packGraphBuffers} from '../../../../../src/resource/formats/cmf/core/pack.js';
-import {PackLodGeometry} from '../../../../../src/trinity/resources/geometry/packGeometry.js';
+import { TriGeometryRes } from '../../../../../npm/dist/trinity/resources/geometry/TriGeometryRes.js';
 
 function fixture(wide = false) {
   const vertices = Array.from({length: 6}, (_, i) => ({Position: [i % 3, Math.floor(i / 3), 0]}));
@@ -52,7 +52,7 @@ for (const wide of [false, true]) {
     const bytes = packed.buffers[view.index].data;
     const values = wide ? new Uint32Array(bytes.buffer) : new Uint16Array(bytes.buffer);
     assert.deepEqual(Array.from(values), stream);
-    assert.deepEqual(PackLodGeometry(mesh).index.bytes, bytes);
+    assert.deepEqual(TriGeometryRes.packLodGeometry(mesh).index.bytes, bytes);
   });
 }
 
@@ -74,7 +74,7 @@ test('retains ungrouped meshes and validates orphan triangle indices', () => {
   raw.Meshes[0].PrimaryTopology.Groups = [];
   const shared = projectShared(raw, 7);
   const mesh = buildCmfFromShared(shared).meshes[0];
-  assert.equal(PackLodGeometry(mesh).index.count, stream.length);
+  assert.equal(TriGeometryRes.packLodGeometry(mesh).index.count, stream.length);
   shared.meshes[0].indexBuffer[11] = 10;
   assert.throws(() => buildCmfFromShared(shared), /vertex range/);
 });
@@ -104,6 +104,6 @@ test('real Granny retains every native index through projection and upload packi
     const scalar = value => typeof value === 'object' ? Object.values(value)[0] : value;
     const native = topology.Indices?.length ? topology.Indices.map(v => scalar(v) >>> 0) : topology.Indices16.map(v => scalar(v) & 65535);
     assert.deepEqual(Array.from(shared.meshes[i].indexBuffer), native);
-    assert.equal(PackLodGeometry(cmf.meshes[i]).index.count, native.length);
+    assert.equal(TriGeometryRes.packLodGeometry(cmf.meshes[i]).index.count, native.length);
   }
 });

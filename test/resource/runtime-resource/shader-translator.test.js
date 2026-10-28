@@ -1,8 +1,9 @@
+import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsBlueResMan, ResourceRequirement } from "../../../npm/dist/resource/index.js";
-import { RegisterShaderResources, Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
+import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/index.js";
 
 // A browser backend has no shipped containers of its own. The orchestrator
 // commits the source tree, target and translator once; the loader passes the
@@ -24,7 +25,7 @@ Tr2EffectRes.CommitBackend({ source: "dx11", target: "webgpu", translator });
 async function Load(path)
 {
   calls.length = 0;
-  const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source: { Read: () => SHIPPED } }));
+  const resourceManager = await configureResourceManager(new CjsBlueResMan({ source: { Read: () => SHIPPED } }));
   const resource = resourceManager.GetResource(path, { requirement: ResourceRequirement.SHADER });
   // The synthetic bytes are not a container; the load fails after the
   // translation decision, which is what these tests observe.
@@ -32,13 +33,13 @@ async function Load(path)
   return [ ...calls ];
 }
 
-test("the loader passes shipped bytes through and takes no translation options", () =>
+test("the loader passes shipped bytes through and takes no translation options", async () =>
 {
-  const resourceManager = RegisterShaderResources(new CjsBlueResMan());
+  const resourceManager = await configureResourceManager(new CjsBlueResMan());
   const loader = resourceManager.GetObjectLoader("sm_hi");
 
   assert.equal(loader(SHIPPED, {}), SHIPPED);
-  assert.equal(RegisterShaderResources.length, 1);
+  assert.equal(Tr2EffectRes.readShaderResource.length, 1);
 });
 
 test("a shipped effect.dx11 path is translated on load, told its own path", async () =>

@@ -1,3 +1,4 @@
+import { configureResourceManager } from "../support/configuredResMan.js";
 import { createDdsBitmap } from "../../npm/dist/resource/formats/dds/ddsBitmap.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -8,8 +9,8 @@ import { CjsDdsFormat } from "../../npm/dist/resource/formats/dds/index.js";
 import { CjsPngFormat } from "../../npm/dist/resource/formats/png/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
 import { LoadParameters, Metadata } from "../../npm/dist/global/imageio/index.js";
-import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
-import { RegisterTextureResources, RegisterTextureArray, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/index.js";
+import { RegisterTextureArray, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -56,7 +57,7 @@ test("GR2 actual worker matches main decode and queued existing-byte preparation
   const bytes = grannyBytes();
   const expected = CjsGr2Format.read(bytes, { emit: "json", rebuildMissingBounds: true });
   const manager = new CjsBlueResMan({ workerLoader: loader });
-  RegisterGeometryResources(manager);
+  await configureResourceManager(manager);
   let reads = 0;
   manager.SetSource({ Read() { reads++; throw new Error("existing bytes must not fetch"); } });
   const resource = new TriGeometryRes();
@@ -85,7 +86,7 @@ test("registered GR2 route fetches and decodes once for concurrent consumers", a
   let reads = 0;
   const bytes = grannyBytes();
   const manager = new CjsBlueResMan({ workerLoader: loader, source: {Read(){reads++;return bytes;}} });
-  RegisterGeometryResources(manager);
+  await configureResourceManager(manager);
   const [first,second] = await Promise.all([manager.FetchResource("res:/same.gr2"),manager.FetchResource("res:/same.gr2")]);
   assert.equal(first,second);
   assert.equal(first.IsUsingCMF(),false);
@@ -118,7 +119,7 @@ test("DDS texture and image routes execute in the worker", async t =>
 {
   const {loader,messages} = workerLoader(t);
   const manager = new CjsBlueResMan({workerLoader:loader,source:{Read:()=>ddsBytes()}});
-  RegisterTextureResources(manager);
+  await configureResourceManager(manager);
   const texture = await manager.FetchResource("res:/test.dds");
   const image = await manager.FetchResource("res:/test.dds", {ex:"raw"});
   assert.ok(CjsSchema.cast(texture,TriTextureRes));
@@ -135,7 +136,7 @@ test("detail arrays and named texture parameters fetch and decode each cached DD
     const manager = new CjsBlueResMan({ workerLoader: loader, source: {
       Read(path) { reads.set(path, (reads.get(path) || 0) + 1); return ddsBytes(); }
     } });
-    RegisterTextureResources(manager);
+    await configureResourceManager(manager);
     RegisterTextureArray(manager);
     const paths = [ "res:/detail1.dds", "res:/detail2.dds", "res:/detail3.dds" ];
     const start = messages.length;
@@ -163,7 +164,7 @@ test("DDS loader honors the selected source and explicit shared decode policy", 
   let reads = 0;
   const source = { Read() { reads++; return ddsBytes(); } };
   const manager = new CjsBlueResMan({ workerLoader: loader });
-  RegisterTextureResources(manager);
+  await configureResourceManager(manager);
   const options = { source, cacheSource: true, cacheFormat: true };
   const [ texture, image ] = await Promise.all([
     manager.FetchResource("res:/shared.dds", options),
@@ -198,7 +199,7 @@ test("deleting a resource rejects its late worker result without occupying the m
 {
   const {loader,adapter} = workerLoader(t);
   const manager = new CjsBlueResMan({workerLoader:loader,source:{Read:()=>grannyBytes()}});
-  RegisterGeometryResources(manager);
+  await configureResourceManager(manager);
   let received;
   const arrival = new Promise(resolve => {received=resolve;});
   const deliver = adapter.onmessage;
@@ -248,7 +249,7 @@ test("DDS volume header flag survives worker decoding and texture resource mater
   for (let i = 0; i < 24; i++) bytes[128 + i] = i + 1;
   const { loader, messages } = workerLoader(t);
   const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => bytes } });
-  RegisterTextureResources(manager);
+  await configureResourceManager(manager);
   const texture = await manager.FetchResource("res:/volume.dds");
   const bitmap = texture.GetBitmap();
   assert.equal(bitmap.GetType(), TextureType.TEX_TYPE_3D);
@@ -267,7 +268,7 @@ test("PNG textures never go to the resource worker, and match the main-thread Im
   const png = await CjsPngFormat.writeAsync({ width: 5, height: 3, data: rgba });
   const { loader, messages } = workerLoader(t);
   const manager = new CjsBlueResMan({ workerLoader: loader, source: { Read: () => png } });
-  RegisterTextureResources(manager);
+  await configureResourceManager(manager);
   const image = await manager.FetchResource("res:/test.png", { ex: "raw" });
   assert.ok(!messages.some(message => message.operation === "format.read"), "the resource worker decodes no PNG");
   const main = new HostBitmap();
@@ -283,7 +284,7 @@ test("a PNG decodes on this thread when no worker is available", async () =>
   ImageIO.registerImageHandler(CjsPngFormat);
   const png = await CjsPngFormat.writeAsync({ width: 2, height: 2, data: new Uint8Array(16).fill(200) });
   const manager = new CjsBlueResMan({ source: { Read: () => png } });
-  RegisterTextureResources(manager);
+  await configureResourceManager(manager);
   const image = await manager.FetchResource("res:/plain.png", { ex: "raw" });
   assert.equal(image.GetBitmap().GetWidth(), 2);
 });

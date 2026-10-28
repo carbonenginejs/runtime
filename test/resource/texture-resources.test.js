@@ -1,3 +1,4 @@
+import { configureResourceManager } from "../support/configuredResMan.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/index.js";
 import { ImageIO } from "../../npm/dist/resource/imageio/index.js";
@@ -5,7 +6,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildVta } from "../support/vtaFixture.js";
 
-import { CjsBlueResMan, RegisterTextureResources, TextureResourceExtensions, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/index.js";
+import { CjsBlueResMan, TriTextureRes, Tr2ImageRes } from "../../npm/dist/resource/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 
@@ -35,25 +36,25 @@ function legacyDds(width, height, pixels)
 }
 
 /** A manager serving one in-memory file. */
-function managerServing(path, bytes, options = {})
+async function managerServing(path, bytes, options = {})
 {
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: () => Promise.resolve(bytes) } });
-  RegisterTextureResources(resMan, options);
+  await configureResourceManager(resMan, options);
   return resMan;
 }
 
-test("RegisterTextureResources routes Carbon's image extensions", () =>
+test("resource declarations preserve Carbon's list and explicitly mark unsupported routes", async () =>
 {
-  assert.deepEqual([ ...TextureResourceExtensions ], [ "dds", "png", "jpg", "jpeg", "tga", "vta", "gif" ]);
-  assert.throws(() => RegisterTextureResources({}), TypeError);
-  assert.throws(() => RegisterTextureResources(new CjsBlueResMan(), { Handler: HostBitmap }), TypeError);
+  assert.deepEqual(TriTextureRes.extensions, ["dds", "png", "sdd", "tga", "jpg", "jpeg", "bmp", "ecs", "ctr", "vta"]);
+  assert.deepEqual(Object.keys(TriTextureRes.unroutedExtensions), ["sdd", "ecs", "ctr"]);
+  assert.deepEqual(Tr2ImageRes.extensions, ["pngraw", "ddsraw", "sddraw", "tgaraw"]);
 });
 
 test("a texture resource loads as Carbon's HostBitmap, not a plain payload", async () =>
 {
   const bytes = legacyDds(2, 1, [ 1, 2, 3, 255, 4, 5, 6, 255 ]);
-  const resMan = managerServing("res:/x/y.dds", bytes);
+  const resMan = await managerServing("res:/x/y.dds", bytes);
 
   const resource = await resMan.LoadObject("res:/x/y.dds");
 
@@ -71,10 +72,36 @@ test("a texture resource loads as Carbon's HostBitmap, not a plain payload", asy
   assert.equal(resource.cpuMip, 1);
 });
 
+test("CjsLibrary routes BMP through its existing native image handler", async () =>
+{
+  // Two 24-bit BGR pixels and two padding bytes in one bottom-up scanline.
+  const bytes = new Uint8Array(62);
+  const view = new DataView(bytes.buffer);
+  view.setUint16(0, 0x4d42, true);
+  view.setUint32(2, bytes.length, true);
+  view.setUint32(10, 54, true);
+  view.setUint32(14, 40, true);
+  view.setInt32(18, 2, true);
+  view.setInt32(22, 1, true);
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 24, true);
+  view.setUint32(34, 8, true);
+  bytes.set([10, 20, 30, 40, 50, 60, 0, 0], 54);
+  const manager = await managerServing("res:/two-pixels.bmp", bytes);
+  const texture = await manager.FetchResource("res:/two-pixels.bmp");
+  assert.ok(texture instanceof TriTextureRes);
+  assert.equal(texture.GetWidth(), 2);
+  assert.equal(texture.GetHeight(), 1);
+  const bitmap = texture.GetBitmap();
+  assert.deepEqual(Array.from(bitmap.GetRawData()).slice(0, 3), [10, 20, 30]);
+  assert.deepEqual(Array.from(bitmap.GetRawData()).slice(4, 7), [40, 50, 60]);
+  assert.equal(await manager.FetchResource("res:/two-pixels.bmp"), texture);
+});
+
 test("the same route serves Tr2ImageRes, which is Carbon's CPU-only image", async () =>
 {
   const bytes = legacyDds(1, 1, [ 10, 20, 30, 255 ]);
-  const resMan = managerServing("res:/x/icon.dds", bytes, { Handler: Tr2ImageRes });
+  const resMan = await managerServing("res:/x/icon.dds", bytes, { extensions: { dds: Tr2ImageRes } });
 
   const resource = await resMan.LoadObject("res:/x/icon.dds");
 
@@ -87,7 +114,7 @@ test("the same route serves Tr2ImageRes, which is Carbon's CPU-only image", asyn
 
 test("a file the image handlers refuse fails the load, as Carbon's DoLoad does", async () =>
 {
-  const resMan = managerServing("res:/x/broken.dds", new Uint8Array(128));
+  const resMan = await managerServing("res:/x/broken.dds", new Uint8Array(128));
 
   await assert.rejects(
     () => resMan.LoadObject("res:/x/broken.dds"),
@@ -104,7 +131,7 @@ test("a texture built from a pipeline packs images loaded as raw Tr2ImageRes (Ca
   };
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
-  RegisterTextureResources(resMan);
+  await configureResourceManager(resMan);
 
   const pack = new Tr2TexturePipelineStepPack();
   pack.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
@@ -118,7 +145,7 @@ test("a texture built from a pipeline packs images loaded as raw Tr2ImageRes (Ca
   assert.equal(await texture.LoadPipeline(pipeline, resMan), true);
 
   // Each input was loaded once, as Carbon's "raw" image, not as a texture.
-  assert.ok(resMan.GetResource("res:/x/red.dds", { requirement: "image" }) instanceof Tr2ImageRes);
+  assert.ok(resMan.GetResource("res:/x/red.dds", { ex: "raw" }) instanceof Tr2ImageRes);
 
   const bitmap = texture.GetBitmap();
   assert.equal(bitmap.GetWidth(), 2);
@@ -131,7 +158,7 @@ test("a pipeline whose input fails leaves the texture prepared without a bitmap,
   const { Tr2TexturePipeline, Tr2TexturePipelineStepLoad } = await import("../../npm/dist/resource/index.js");
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: () => Promise.resolve(new Uint8Array(128)) } });
-  RegisterTextureResources(resMan);
+  await configureResourceManager(resMan);
 
   const load = new Tr2TexturePipelineStepLoad();
   load.path = "res:/x/broken.dds";
@@ -153,7 +180,7 @@ test("dynamic:/texturepack builds a recipe and packs channels from separate imag
   };
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
-  RegisterTextureResources(resMan);
+  await configureResourceManager(resMan);
   RegisterTexturePack(resMan);
 
   const texture = resMan.GetResource("dynamic:/texturepack/res:/x/rough.dds;res:/x/metal.dds");
@@ -184,7 +211,7 @@ test("dynamic:/texturearray stacks separate images as the layers of one array", 
   };
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
-  RegisterTextureResources(resMan);
+  await configureResourceManager(resMan);
   RegisterTextureArray(resMan);
 
   const texture = resMan.GetResource("dynamic:/texturearray/res:/x/detail1.dds;res:/x/detail2.dds");
@@ -211,7 +238,7 @@ test("a loaded texture resource handed to a runtime texture parameter is made on
   const { StubContext } = await import("../support/stubContext.js");
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: () => Promise.resolve(legacyDds(2, 1, [ 0, 0, 200, 255, 0, 0, 100, 255 ])) } });
-  RegisterTextureResources(resMan);
+  await configureResourceManager(resMan);
 
   const load = new Tr2TexturePipelineStepLoad();
   load.path = "res:/texture/ssao/lookup.dds";
@@ -243,7 +270,7 @@ test("VTA textures load the first volume frame through the ordinary texture reso
     grids: [ { name: "density", encoding: 0, width: 2, height: 1, depth: 2 } ],
     frames: [ [ [ 1, 2, 3, 4 ] ], [ [ 5, 6, 7, 8 ] ] ]
   });
-  const resource = await managerServing(path, bytes).LoadObject(path);
+  const resource = await (await managerServing(path, bytes)).LoadObject(path);
   assert.equal(resource.constructor, TriTextureRes);
   const bitmap = resource.GetBitmap();
   assert.equal(bitmap.constructor, HostBitmap);

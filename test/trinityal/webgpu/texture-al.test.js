@@ -1,9 +1,10 @@
+import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { CjsBlueResMan, RegisterTextureResources, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
+import { CjsBlueResMan, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
 import { DescribeBitmap, RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { Tr2BaseDeviceResourceAL, Tr2TextureAL, ALResult, Tr2BitmapDimensions, Tr2MsaaDesc, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
@@ -69,7 +70,7 @@ function bc1Mips()
   ];
 }
 
-test("a UAV texture WebGPU cannot store to is created in a storage-capable format", () =>
+test("a UAV texture WebGPU cannot store to is created in a storage-capable format", async () =>
 {
   const { al, calls } = composed();
   const uav = Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE;
@@ -98,7 +99,7 @@ test("a UAV texture WebGPU cannot store to is created in a storage-capable forma
   assert.equal(sampled.GetDeviceStorageView("2d", 0), null);
 });
 
-test("a render-target view names one mip and one slice, and is cached", () =>
+test("a render-target view names one mip and one slice, and is cached", async () =>
 {
   const { al, calls } = composed();
   const depth = new CjsWebgpuTextureAL();
@@ -118,7 +119,7 @@ test("a render-target view names one mip and one slice, and is cached", () =>
   assert.equal(calls.views.length, 1);
 });
 
-test("Create makes the texture with its sRGB sibling declared and uploads one write per subresource", () =>
+test("Create makes the texture with its sRGB sibling declared and uploads one write per subresource", async () =>
 {
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
@@ -148,7 +149,7 @@ test("Create makes the texture with its sRGB sibling declared and uploads one wr
   assert.equal(texture.GetSrvIndexInHeap(), 0xffffffff);
 });
 
-test("views are made per dimension and colour space, once each; sRGB reinterprets the format", () =>
+test("views are made per dimension and colour space, once each; sRGB reinterprets the format", async () =>
 {
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
@@ -173,7 +174,7 @@ test("views are made per dimension and colour space, once each; sRGB reinterpret
   assert.equal(calls.textures[1].viewFormats, undefined);
 });
 
-test("a cube uploads six layers in Carbon's mip + layer * mipCount order, and views as a cube", () =>
+test("a cube uploads six layers in Carbon's mip + layer * mipCount order, and views as a cube", async () =>
 {
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
@@ -187,7 +188,7 @@ test("a cube uploads six layers in Carbon's mip + layer * mipCount order, and vi
   assert.equal(texture.GetDeviceTextureView("2d-array").dimension, "2d-array", "a cube binds as an array when the layout says so");
 });
 
-test("Carbon's refusals: no data for an unwritable texture, an unknown format, a cube that is not faces", () =>
+test("Carbon's refusals: no data for an unwritable texture, an unknown format, a cube that is not faces", async () =>
 {
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
@@ -210,7 +211,7 @@ test("Carbon's refusals: no data for an unwritable texture, an unknown format, a
   assert.equal(texture.IsValid(), false);
 });
 
-test("the context creates the backend's texture, and Create accepts Trinity's context", () =>
+test("the context creates the backend's texture, and Create accepts Trinity's context", async () =>
 {
   const { al } = composed();
   const desc = Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
@@ -226,7 +227,7 @@ test("the context creates the backend's texture, and Create accepts Trinity's co
   assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, data, { GetRenderContextAL: () => al }), ALResult.S_OK);
 });
 
-test("CjsWebgpuUtils carries Metal's pixel format table (MetalUtils.mm:12-121)", () =>
+test("CjsWebgpuUtils carries Metal's pixel format table (MetalUtils.mm:12-121)", async () =>
 {
   const utils = new CjsWebgpuUtils();
 
@@ -274,7 +275,7 @@ test("a 24-bit volume DDS becomes a 3D bgra8unorm texture, one write for all its
 {
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: () => Promise.resolve(volumeDds(4)) } });
-  RegisterTextureResources(resMan);
+  await configureResourceManager(resMan);
 
   const resource = await resMan.LoadObject("res:/texture/global/noise.dds");
   const bitmap = resource.GetBitmap();
@@ -340,7 +341,7 @@ test("MapForWriting refuses a texture without CPU write and an incomplete box", 
   assert.equal(writable.MapForWriting(boxed, al).result, ALResult.E_INVALIDARG);
 });
 
-test("a sampled depth texture is read through an r32float shadow copied via a row-aligned buffer", () =>
+test("a sampled depth texture is read through an r32float shadow copied via a row-aligned buffer", async () =>
 {
   const { al, calls } = composed();
   const depth = new CjsWebgpuTextureAL();
@@ -380,7 +381,7 @@ test("a sampled depth texture is read through an r32float shadow copied via a ro
   assert.equal(attachmentOnly.EncodeDepthShadowCopy(encoder), false);
 });
 
-test("TAA's R16G16B16A16_UNORM accumulator renders into rgba16float", () =>
+test("TAA's R16G16B16A16_UNORM accumulator renders into rgba16float", async () =>
 {
   // rgba16unorm is not core WebGPU; Carbon's TAA accumulators use it
   // (Tr2PostProcessRenderer.cpp:1450-1463).
@@ -391,7 +392,7 @@ test("TAA's R16G16B16A16_UNORM accumulator renders into rgba16float", () =>
   assert.equal(calls.textures.at(-1).format, "rgba16float");
 });
 
-test("R16_UNORM data uploads into r16float as half floats, so it can be filtered", () =>
+test("R16_UNORM data uploads into r16float as half floats, so it can be filtered", async () =>
 {
   // CORTAO samples its R16_UNORM lookup table linearly (Tr2SSAO.cpp:108), as
   // D3D and Metal filter it; WebGPU's r16unorm needs texture-formats-tier1
@@ -411,7 +412,7 @@ test("R16_UNORM data uploads into r16float as half floats, so it can be filtered
   assert.deepEqual([ ...halves ], [ 0x0000, 0x3c00, 0x3800 ]);
 });
 
-test("a texture past the device's size limit is refused rather than made invalid", () =>
+test("a texture past the device's size limit is refused rather than made invalid", async () =>
 {
   // Carbon's cascaded shadow atlas is 16384 x 4096 at its default cell
   // (Tr2ShadowMap.h:14); an invalid GPUTexture would fail every submit using it.
@@ -424,7 +425,7 @@ test("a texture past the device's size limit is refused rather than made invalid
   assert.equal(atlas.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8192, 4096, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), new Tr2MsaaDesc(), Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
 });
 
-test("a BC 3D texture is made only on a device with texture-compression-bc-sliced-3d", () =>
+test("a BC 3D texture is made only on a device with texture-compression-bc-sliced-3d", async () =>
 {
   // The impact effects' volume maps (fisfx/impact/3dfx_*.dds) are BC3. Without
   // the feature the GPUTexture is invalid and every submit binding it fails.
@@ -443,7 +444,7 @@ test("a BC 3D texture is made only on a device with texture-compression-bc-slice
   assert.equal(calls.textures.at(-1).dimension, "3d");
 });
 
-test("depth clip off becomes unclippedDepth only on a device with depth-clip-control", () =>
+test("depth clip off becomes unclippedDepth only on a device with depth-clip-control", async () =>
 {
   // Carbon draws its shadow cascades with RS_DEPTH_CLIP_ENABLE off
   // (EveSpaceScene.cpp:748); WebGPU spells that primitive.unclippedDepth.
@@ -463,7 +464,7 @@ test("depth clip off becomes unclippedDepth only on a device with depth-clip-con
   assert.equal(al.GetPsoDescription().unclippedDepth, false, "back on");
 });
 
-test("cache eviction reaches WebGPU AL Destroy on every texture reload without a GPU", () =>
+test("cache eviction reaches WebGPU AL Destroy on every texture reload without a GPU", async () =>
 {
   const { al, calls } = composed();
   // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
@@ -489,7 +490,7 @@ test("cache eviction reaches WebGPU AL Destroy on every texture reload without a
   }
 });
 
-test("TriTextureRes.SetTexture borrows caller storage across eviction", () =>
+test("TriTextureRes.SetTexture borrows caller storage across eviction", async () =>
 {
   const { al, calls } = composed();
   const value = al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(2, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
@@ -504,7 +505,7 @@ test("TriTextureRes.SetTexture borrows caller storage across eviction", () =>
   assert.equal(calls.destroyed, true);
 });
 
-test("core WebGPU widens RG8 UAV storage and preserves the other format conversions", () =>
+test("core WebGPU widens RG8 UAV storage and preserves the other format conversions", async () =>
 {
   const { al, calls } = composed();
   for (const [format, expected] of [
@@ -527,7 +528,7 @@ test("core WebGPU widens RG8 UAV storage and preserves the other format conversi
 });
 
 
-test("native R8 volumes reach writeTexture without an estimated staging-buffer limit", () =>
+test("native R8 volumes reach writeTexture without an estimated staging-buffer limit", async () =>
 {
   const { al, calls } = composed();
   const device = al.GetWebgpu().GetDevice();
@@ -543,7 +544,7 @@ test("native R8 volumes reach writeTexture without an estimated staging-buffer l
   assert.deepEqual(calls.writes[0].size, { width: 19, height: 9, depthOrArrayLayers: 2 });
 });
 
-test("BC DDS content without enabled BC support fails explicitly before texture creation", () =>
+test("BC DDS content without enabled BC support fails explicitly before texture creation", async () =>
 {
   const { al, calls } = composed();
   al.GetWebgpu().GetDevice().features.clear();
@@ -552,7 +553,7 @@ test("BC DDS content without enabled BC support fails explicitly before texture 
 });
 
 
-test("texture factory unregisters failed BC and throwing writeTexture implementations", () =>
+test("texture factory unregisters failed BC and throwing writeTexture implementations", async () =>
 {
   const { al } = composed();
   const device = al.GetWebgpu().GetDevice();
@@ -570,7 +571,7 @@ test("texture factory unregisters failed BC and throwing writeTexture implementa
   assert.equal(Tr2BaseDeviceResourceAL.GetResourceCount(), count);
 });
 
-test("float32 sampled views require the active filtering feature, including cached depth copies", () =>
+test("float32 sampled views require the active filtering feature, including cached depth copies", async () =>
 {
   const { al, calls } = composed();
   const device = al.GetWebgpu().GetDevice();
@@ -620,7 +621,7 @@ test("boxed atlas writes upload only their rectangle and preserve adjacent texel
 });
 
 
-test("unaligned BC textures retain compressed mip data with Carbon block-rounded allocation", () =>
+test("unaligned BC textures retain compressed mip data with Carbon block-rounded allocation", async () =>
 {
   for (const size of [ 627, 125, 9 ])
   {

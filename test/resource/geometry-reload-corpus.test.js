@@ -1,10 +1,11 @@
+import { configureResourceManager } from "../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import {createHash} from "node:crypto";
 import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import test from "node:test";
 import {CjsBlueResMan, CjsMotherLode} from "../../npm/dist/global/blue/index.js";
-import {RegisterGeometryResources} from "../../npm/dist/resource/index.js";
+
 import {Tr2Mesh, Tr2MeshArea, Tr2RenderContext} from "../../npm/dist/trinity/index.js";
 
 const corpus = process.env.GEOMETRY_GR2_CORPUS_DIR;
@@ -21,7 +22,7 @@ test("real cf2_t2a survives payload expiry and retained handles reload after rel
   const manager = new CjsBlueResMan({motherLode: new CjsMotherLode({now: () => time}), source: {
     Read(request){assert.equal(request, path); reads++; return bytes;}
   }});
-  RegisterGeometryResources(manager);
+  await configureResourceManager(manager);
   const geometry = manager.GetResource(path);
   await geometry.Ready();
   t.after(() => manager.PurgeInactive({maxIdleFrames: 0, maxIdleMilliseconds: 0}));

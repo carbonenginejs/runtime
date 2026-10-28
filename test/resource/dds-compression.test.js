@@ -10,7 +10,7 @@ import { TextureType as T } from "../../npm/dist/global/consts/renderContext/ind
 import { getRawDataSize } from "../../npm/dist/resource/codecs/bcn/index.js";
 import { Tr2DxtCompressControl, Tr2DxtCompressor, Tr2HostBitmap } from "../../npm/dist/trinity/core/index.js";
 import { Tr2TexturePipeline, Tr2TexturePipelineStepLoad, Tr2TexturePipelineStepCompress } from "../../npm/dist/trinity/resources/texture/index.js";
-import { RegisterTextureResources, TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
+import { TriTextureRes, Tr2ImageRes } from "../../npm/dist/trinity/resources/texture/index.js";
 import { BeCallbackMan, BlueCallbackMan } from "../../npm/dist/global/blue/BlueCallbackMan.js";
 import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 
@@ -231,8 +231,8 @@ test("load hook snapshots LOAD settings, bypasses raw images, and publishes pair
     CcpLog.RegisterLogEcho(echo);
     t.after(() => CcpLog.UnregisterLogEcho(echo));
     const loaders = new Map();
-    const manager = { RegisterObjectLoader(ext,loader) { loaders.set(ext,loader); }, RegisterExtension() {}, RegisterResourceType() {} };
-    RegisterTextureResources(manager, { compression: { backend:"webgpu", features:["texture-compression-bc","texture-compression-unaligned"], resolveRole:()=>"colour" } });
+    loaders.set("dds", (bytes, context) => TriTextureRes.readImageResource(bytes, context,
+      { backend:"webgpu", features:["texture-compression-bc","texture-compression-unaligned"], resolveRole:()=>"colour" }));
     let release;
     const resource = new TriTextureRes(); resource.Initialize("res:/colour.dds","dds");
     const context = { resource, path: "res:/colour.dds", resMan: { ReadFormatOnce() { return new Promise(resolve=>{release=resolve;}); } } };

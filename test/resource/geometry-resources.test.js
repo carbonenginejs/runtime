@@ -1,4 +1,5 @@
-// The .gr2 geometry route (RegisterGeometryResources) and the reader it hands
+import { DefaultConfiguration } from "../../npm/dist/core/index.js";
+// The .gr2 geometry route (CjsLibrary) and the reader it hands
 // the bytes to, TriGeometryRes.ReadGrannyFile.
 //
 // A granny file carries no mesh-level bounding box; Carbon's
@@ -14,21 +15,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { RegisterGeometryResources, TriGeometryRes } from "../../npm/dist/resource/index.js";
+import { TriGeometryRes } from "../../npm/dist/resource/index.js";
 import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/index.js";
-
-function RecordingManager()
-{
-  const loaders = new Map();
-  const extensions = new Map();
-  return {
-    loaders,
-    extensions,
-    RegisterObjectLoader: (extension, loader) => loaders.set(extension, loader),
-    RegisterExtension: (extension, type, route) => { extensions.set(extension, type); loaders.set(extension, route); }
-  };
-}
 
 /** Replaces the two format readers for the body; the granny read is `{ granny: true }`. */
 function WithStubbedReaders(t)
@@ -52,11 +41,10 @@ function WithStubbedReaders(t)
 test("the .gr2 format route retains Granny provenance and rebuilds missing bounds", (t) =>
 {
   const seen = WithStubbedReaders(t);
-  const manager = RegisterGeometryResources(RecordingManager());
-  assert.equal(manager.extensions.get("gr2"), TriGeometryRes);
+  assert.equal(DefaultConfiguration.extensions.gr2.Handler, TriGeometryRes);
 
   const resource = new TriGeometryRes();
-  const route = manager.loaders.get("gr2");
+  const route = DefaultConfiguration.extensions.gr2;
   const decoded = route.Format.read(new Uint8Array(4), route.defaults);
   decoded.grannyFileFormatRevision = 7;
   resource.SetPayload(decoded);

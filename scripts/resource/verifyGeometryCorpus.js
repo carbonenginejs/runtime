@@ -12,9 +12,9 @@
 //   node bin/cjs-tools-service.js --host 127.0.0.1 --port 5510 \
 //     --cache <cache> --data <data> --no-audio-auto-prepare --no-sde-auto-prepare
 //
-// Then run from runtime/. The gate deliberately imports the narrow,
-// undecorated GR2, CMF, packing and binding modules from source so it exercises
-// the worktree without requiring a package build:
+// Run after building runtime. Format and binding modules are imported from
+// source; packing uses the built TriGeometryRes class, so npm/dist must match
+// the worktree:
 //
 //   node scripts/resource/verifyGeometryCorpus.js
 //   node scripts/resource/verifyGeometryCorpus.js --limit 900
@@ -27,7 +27,7 @@ import { buildCmfFromRaw } from "../../src/resource/formats/gr2/core/targets.js"
 import { CarbonVertexElements } from "../../src/trinity/core/vertex/vertexUsage.js";
 import { Tr2EffectStateManager } from "../../src/trinity/shader/Tr2EffectStateManager.js";
 import { WebgpuVertexFormat } from "../../src/trinityal/webgpu/core/vertexFormat.js";
-import { PackLodGeometry } from "../../src/trinity/resources/geometry/packGeometry.js";
+import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 import {
     createGeometryCorpusProgress,
     fetchGeometryCorpusBytes,
@@ -147,7 +147,7 @@ function inspectMesh(mesh, path)
         {
             const
                 lod = lods[lodIndex],
-                packed = PackLodGeometry(mesh, lodIndex),
+                packed = TriGeometryRes.packLodGeometry(mesh, lodIndex),
                 source = lod?.vertex ?? mesh.vertex ?? {},
                 positionCount = Math.floor((source.position ?? []).length / 3),
                 descriptor = lod?.vb,

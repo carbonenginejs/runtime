@@ -5,8 +5,6 @@ import { TriTextureRes } from "../trinity/resources/texture/TriTextureRes.js";
 import { Tr2ImageRes } from "../trinity/resources/texture/Tr2ImageRes.js";
 import { TriGeometryRes } from "../trinity/resources/geometry/TriGeometryRes.js";
 import { Tr2EffectRes } from "../trinity/shader/Tr2EffectRes.js";
-import { ReadImageResource } from "../trinity/resources/texture/registerTextureResources.js";
-import { ReadShaderResource } from "../trinity/shader/registerShaderResources.js";
 import { CreateBlackObjectBuilder } from "../global/blue/formats/black/CreateBlackObjectBuilder.js";
 import { SolidColorTextureConstructor } from "../trinity/resources/procedural/SolidColorTextureConstructor.js";
 import { CjsTextureArrayConstructor } from "../trinity/resources/texture/CjsTextureArrayConstructor.js";
@@ -18,7 +16,16 @@ import { TriGrannyRes } from "../trinity/resources/geometry/granny/TriGrannyRes.
 import { BCN_CALLBACK_MODULES } from "../resource/codecs/bcn/carbon/dxtCompressionAsync.js";
 import { IMAGE_DECODE_CALLBACK_MODULES } from "../resource/imageio/imageDecodeCallbacks.js";
 
-const shaderLoader = ReadShaderResource;
+// Carbon stores these declarations with each Res class. CjsLibrary consumes
+// this data through its existing configuration path; importing it registers nothing.
+const textureExtensions = [...TriTextureRes.extensions, ...TriTextureRes.additionalExtensions]
+  .filter(extension => !Object.hasOwn(TriTextureRes.unroutedExtensions, extension));
+const imageExtensions = [...Tr2ImageRes.extensions, ...Tr2ImageRes.additionalExtensions]
+  .filter(extension => !Object.hasOwn(Tr2ImageRes.unroutedExtensions, extension));
+const shaderExtensions = [...Tr2EffectRes.extensions, ...Tr2EffectRes.additionalExtensions]
+  .map(extension => extension.toLowerCase());
+const geometryExtensions = TriGeometryRes.extensions
+  .filter(extension => !Object.hasOwn(TriGeometryRes.unroutedExtensions, extension));
 
 /**
  * Explicit Trinity resource defaults. Importing this data installs nothing.
@@ -33,78 +40,25 @@ export const DefaultConfiguration = {
   },
 
   extensions: {
-    dds: TriTextureRes,
-    png: TriTextureRes,
-    jpg: TriTextureRes,
-    jpeg: TriTextureRes,
-    tga: TriTextureRes,
-    vta: TriTextureRes,
-    gif: TriTextureRes,
+    ...Object.fromEntries(textureExtensions.map(extension => [extension, TriTextureRes])),
+    ...Object.fromEntries(imageExtensions.map(extension => [extension, Tr2ImageRes])),
+    ...Object.fromEntries(shaderExtensions.map(extension => [extension, Tr2EffectRes])),
+    ...Object.fromEntries(geometryExtensions.map(extension => [extension, {
+      Handler: TriGeometryRes,
+      Format: TriGeometryRes.extensionFormats[extension],
+      defaults: TriGeometryRes.readOptions[extension]
+    }])),
 
-    // Native factory suffix: the source remains .dds (Tr2ImageRes_Blue.cpp:16).
-    ddsraw: Tr2ImageRes,
-    pngraw: Tr2ImageRes,
-    jpgraw: Tr2ImageRes,
-    jpegraw: Tr2ImageRes,
-    tgaraw: Tr2ImageRes,
-    vtaraw: Tr2ImageRes,
-    gifraw: Tr2ImageRes,
-
-    // Carbon: Tr2LightProfileRes_Blue.cpp:25-26. No compression policy applies
-    // to these R16F profile strips; the light-profile resource checks the bitmap.
+    // Carbon: Tr2LightProfileRes_Blue.cpp:25-26. Profile strips are never compressed.
     ddslp: Tr2LightProfileRes,
     ieslp: { Handler: Tr2LightProfileRes, Format: CjsIESFormat, defaults: { emit: "lightProfile" } },
-    gr2raw: { Handler: TriGrannyRes, Format: CjsGr2Format, defaults: { emit: "json" } },
-
-    sm_hi: Tr2EffectRes,
-    sm_lo: Tr2EffectRes,
-    sm_depth: Tr2EffectRes,
-    sm_3_0_hi: Tr2EffectRes,
-    sm_3_0_lo: Tr2EffectRes,
-    sm_3_0_depth: Tr2EffectRes,
-    sm_2_0_hi: Tr2EffectRes,
-    sm_2_0_lo: Tr2EffectRes,
-    sm_1_1: Tr2EffectRes,
-    // Incarna-era; see ShaderResourceExtensions.
-    fxt: Tr2EffectRes,
-
-    gr2: {
-      Handler: TriGeometryRes,
-      Format: CjsGr2Format,
-      defaults: {
-        emit: "json",
-        rebuildMissingBounds: true
-      }
-    }
+    gr2raw: { Handler: TriGrannyRes, Format: CjsGr2Format, defaults: { emit: "json" } }
   },
 
   objectLoaders: {
-    dds: ReadImageResource,
-    png: ReadImageResource,
-    jpg: ReadImageResource,
-    jpeg: ReadImageResource,
-    tga: ReadImageResource,
-    vta: ReadImageResource,
-    gif: ReadImageResource,
-    ddsraw: ReadImageResource,
-    pngraw: ReadImageResource,
-    jpgraw: ReadImageResource,
-    jpegraw: ReadImageResource,
-    tgaraw: ReadImageResource,
-    vtaraw: ReadImageResource,
-    gifraw: ReadImageResource,
-    ddslp: ReadImageResource,
-
-    sm_hi: shaderLoader,
-    sm_lo: shaderLoader,
-    sm_depth: shaderLoader,
-    sm_3_0_hi: shaderLoader,
-    sm_3_0_lo: shaderLoader,
-    sm_3_0_depth: shaderLoader,
-    sm_2_0_hi: shaderLoader,
-    sm_2_0_lo: shaderLoader,
-    sm_1_1: shaderLoader,
-    fxt: shaderLoader
+    ...Object.fromEntries([...textureExtensions, ...imageExtensions, "ddslp"]
+      .map(extension => [extension, TriTextureRes.readImageResource])),
+    ...Object.fromEntries(shaderExtensions.map(extension => [extension, Tr2EffectRes.readShaderResource]))
   },
 
   // Carbon's LoadObject chooses its reader by header, so a YAML object file (a
@@ -123,6 +77,7 @@ export const DefaultConfiguration = {
   },
 
   imageHandlers: {
+    bmp: TriTextureRes.extensionFormats.bmp,
     png: CjsPngFormat,
     vta: CjsVtaFormat
   },

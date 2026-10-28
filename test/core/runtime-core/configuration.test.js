@@ -7,7 +7,6 @@ import { CjsPngFormat } from "../../../npm/dist/resource/formats/png/CjsPngForma
 import { CjsVtaFormat } from "../../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
 import { TriSettingsRegistrar } from "../../../npm/dist/trinity/core/TriSettingsRegistrar.js";
 import { CreateBlackObjectBuilder } from "../../../npm/dist/global/blue/formats/black/CreateBlackObjectBuilder.js";
-import { ReadImageResource } from "../../../npm/dist/trinity/resources/texture/registerTextureResources.js";
 import { TriTextureRes } from "../../../npm/dist/trinity/resources/texture/TriTextureRes.js";
 import { Tr2EffectRes } from "../../../npm/dist/trinity/shader/Tr2EffectRes.js";
 import { GetEffectPathDefaults, SetEffectPathDefaults } from "../../../npm/dist/global/utils/effectPath.js";
@@ -51,7 +50,7 @@ test("construction is inert and entry overrides preserve classes without deep me
   const state = library.GetConfiguration();
   assert.deepEqual(state.requested.backends.webgpu, { limits: { y: 2 } });
   assert.equal(state.requested.formats.png, CjsPngFormat);
-  assert.equal(state.requested.objectLoaders.dds, ReadImageResource);
+  assert.equal(state.requested.objectLoaders.dds, TriTextureRes.readImageResource);
   assert.deepEqual(state.configured, {});
   assert.equal(state.initialized, false);
   assert.equal(state.owners, null);
@@ -74,7 +73,7 @@ test("Initialize configures the chosen owners and preserves loader and geometry 
   await library.Initialize(owners);
   assert.equal(oldRegister.mock.callCount(), 0);
   assert.equal(owners.resMan.maxConcurrentLoads, 3);
-  assert.equal(owners.resMan.GetExtensionRoute("dds").loader, ReadImageResource);
+  assert.equal(owners.resMan.GetExtensionRoute("dds").loader, TriTextureRes.readImageResource);
   assert.deepEqual(owners.resMan.GetExtensionRoute("gr2").formats[0].defaults, { emit: "json", rebuildMissingBounds: true });
   assert.equal(owners.resMan.GetObjectLoader("red"), CreateBlackObjectBuilder);
   assert.equal(owners.resMan.GetObjectLoader("black"), CreateBlackObjectBuilder);
@@ -136,8 +135,8 @@ test("pending reader policies do not call live owners or trigger a reload", asyn
   library.SetConfiguration({ objectLoaders: { dds: loader }, extensions: { dds: DefaultConfiguration.extensions.dds } });
   const state = library.GetConfiguration();
   assert.equal(state.requested.objectLoaders.dds, loader);
-  assert.equal(state.configured.objectLoaders.dds, ReadImageResource);
-  assert.equal(owners.resMan.GetExtensionRoute("dds").loader, ReadImageResource);
+  assert.equal(state.configured.objectLoaders.dds, TriTextureRes.readImageResource);
+  assert.equal(owners.resMan.GetExtensionRoute("dds").loader, TriTextureRes.readImageResource);
   assert.equal(register.mock.callCount(), 0);
   assert.equal(purge.mock.callCount(), 0);
   assert.equal(reload.mock.callCount(), 0);
@@ -223,15 +222,15 @@ test("deferred reader policy is installed on the next startup with fresh resourc
   t.after(() => library.Shutdown());
   await library.Initialize(owners);
   let reads = 0;
-  const loader = (bytes, context) => { reads++; return ReadImageResource(bytes, context); };
+  const loader = (bytes, context) => { reads++; return TriTextureRes.readImageResource(bytes, context); };
   library.SetConfiguration({ objectLoaders: { dds: loader } });
-  assert.equal(owners.resMan.GetObjectLoader("dds"), ReadImageResource);
+  assert.equal(owners.resMan.GetObjectLoader("dds"), TriTextureRes.readImageResource);
   await library.Shutdown();
 
   await library.Initialize(owners);
-  assert.equal(owners.resMan.GetObjectLoader("dds"), ReadImageResource, "reattaching the same cache is not reboot");
+  assert.equal(owners.resMan.GetObjectLoader("dds"), TriTextureRes.readImageResource, "reattaching the same cache is not reboot");
   assert.equal(library.GetConfiguration().requested.objectLoaders.dds, loader);
-  assert.equal(library.GetConfiguration().configured.objectLoaders.dds, ReadImageResource);
+  assert.equal(library.GetConfiguration().configured.objectLoaders.dds, TriTextureRes.readImageResource);
   await library.Shutdown();
 
   const next = services();
@@ -275,17 +274,17 @@ test("installed reader policy follows the resource owner across wrappers and own
   await first.Shutdown();
 
   await second.Initialize(firstOwners);
-  assert.equal(firstOwners.resMan.GetObjectLoader("dds"), ReadImageResource);
+  assert.equal(firstOwners.resMan.GetObjectLoader("dds"), TriTextureRes.readImageResource);
   assert.equal(second.GetConfiguration().requested.objectLoaders.dds, loader);
-  assert.equal(second.GetConfiguration().configured.objectLoaders.dds, ReadImageResource);
+  assert.equal(second.GetConfiguration().configured.objectLoaders.dds, TriTextureRes.readImageResource);
   await second.Shutdown();
 
   await second.Initialize(secondOwners);
   assert.equal(secondOwners.resMan.GetObjectLoader("dds"), loader);
   await second.Shutdown();
   await second.Initialize(firstOwners);
-  assert.equal(firstOwners.resMan.GetObjectLoader("dds"), ReadImageResource);
-  assert.equal(second.GetConfiguration().configured.objectLoaders.dds, ReadImageResource);
+  assert.equal(firstOwners.resMan.GetObjectLoader("dds"), TriTextureRes.readImageResource);
+  assert.equal(second.GetConfiguration().configured.objectLoaders.dds, TriTextureRes.readImageResource);
 });
 
 test("effects commit the source tree, target and translator once, at startup", async t =>

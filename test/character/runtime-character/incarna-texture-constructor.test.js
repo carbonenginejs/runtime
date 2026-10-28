@@ -1,6 +1,7 @@
+import { configureResourceManager } from "../../support/configuredResMan.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsBlueResMan, RegisterTextureResources } from "../../../npm/dist/resource/index.js";
+import { CjsBlueResMan } from "../../../npm/dist/resource/index.js";
 import { CjsIncarnaTextureConstructor, IncarnaTexturePrefix, RegisterIncarnaTextures } from "../../../npm/dist/character/index.js";
 import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 
@@ -34,12 +35,12 @@ function legacyDds(bgra)
 // One texel: red 10, green 20, blue 30, alpha 40.
 const SOURCE = "res:/x/walkway_os.dds";
 
-function manager()
+async function manager()
 {
   const files = { [SOURCE]: legacyDds([ 30, 20, 10, 40 ]) };
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
-  RegisterTextureResources(resMan);
+  await configureResourceManager(resMan);
   RegisterIncarnaTextures(resMan);
   return resMan;
 }
@@ -56,7 +57,7 @@ for (const [ role, format, texel ] of [
 {
   test(`the ${role} role maps its channels`, async () =>
   {
-    const resMan = manager();
+    const resMan = await manager();
     const path = CjsIncarnaTextureConstructor.texturePath(role, SOURCE);
     assert.equal(path, `${IncarnaTexturePrefix}${role}/${SOURCE}`);
     const texture = resMan.GetResource(path);
@@ -69,12 +70,12 @@ for (const [ role, format, texel ] of [
   });
 }
 
-test("an unknown role or a missing source is not a recipe", () =>
+test("an unknown role or a missing source is not a recipe", async () =>
 {
   assert.equal(CjsIncarnaTextureConstructor.buildRecipe(`specular/${SOURCE}`), null);
   assert.equal(CjsIncarnaTextureConstructor.buildRecipe("albedo/"), null);
   assert.equal(CjsIncarnaTextureConstructor.buildRecipe(SOURCE), null);
-  assert.equal(manager().GetResource(`${IncarnaTexturePrefix}specular/${SOURCE}`).error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
+  assert.equal((await manager()).GetResource(`${IncarnaTexturePrefix}specular/${SOURCE}`).error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
 });
 
 /** A 2x2 BGRA DDS with its 1x1 mip, the shape of a shipped texture's chain. */
@@ -104,7 +105,7 @@ test("a source with mips keeps its chain, which a mip step would have refused", 
 {
   const resMan = new CjsBlueResMan();
   resMan.Register({ source: { Read: () => Promise.resolve(mippedDds()) } });
-  RegisterTextureResources(resMan);
+  await configureResourceManager(resMan);
   RegisterIncarnaTextures(resMan);
   const texture = resMan.GetResource(CjsIncarnaTextureConstructor.texturePath("albedo", "res:/x/mipped_os.dds"));
   await texture.Ready();
