@@ -1,3 +1,4 @@
+import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
 import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
 import { CjsByteReader } from "../../../format/CjsByteReader.js";
 import { CjsFormatReadError, CjsFormatWriteError } from "../../../format/CjsFormatError.js";
@@ -261,7 +262,7 @@ function writeBindingBody(writer, binding)
             break;
         }
         case "resource": {
-            const dimension = DxbcResourceDimensionNames.indexOf(binding.dimensionName);
+            const dimension = (typeof (binding.dimensionName) === "string" && Object.hasOwn(DxbcResourceDimensionNames, binding.dimensionName) ? DxbcResourceDimensionNames[binding.dimensionName] : -1);
             if (dimension < 0)
             {
                 throw new CjsFormatWriteError(
@@ -363,7 +364,7 @@ function readBindingBody(reader, kind)
 
             return {
                 samplerType,
-                dimensionName: DxbcResourceDimensionNames[dimension] ?? `dimension_${dimension}`,
+                dimensionName: blueEnums.GetEnumInfo("resource.dxbc.DxbcResourceDimensionNames").members[dimension]?.name ?? `dimension_${dimension}`,
                 ...(pairedSamplerRegisters.length ? { pairedSamplerRegisters } : {}),
                 ...(comparison ? { comparison: true, samplerRegisterIndices } : {})
             };
@@ -554,7 +555,7 @@ export function writeGlslBackendBlock(block)
         writer.u8(stageInputs.length);
         for (const input of stageInputs)
         {
-            const componentType = DxbcComponentTypeNames.indexOf(input.componentTypeName);
+            const componentType = (typeof (input.componentTypeName) === "string" && Object.hasOwn(DxbcComponentTypeNames, input.componentTypeName) ? DxbcComponentTypeNames[input.componentTypeName] : -1);
             if (componentType < 0)
             {
                 throw new CjsFormatWriteError(
@@ -630,7 +631,7 @@ export function readGlslBackendBlock(bytes, options = {})
                 name: readInlineString(reader),
                 semanticName: readInlineString(reader),
                 semanticIndex: reader.ReadUint8(),
-                componentTypeName: DxbcComponentTypeNames[reader.ReadUint8()],
+                componentTypeName: blueEnums.GetEnumInfo("resource.dxbc.DxbcComponentTypeNames").members[reader.ReadUint8()]?.name,
                 mask: reader.ReadUint8()
             });
         }

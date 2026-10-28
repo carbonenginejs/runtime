@@ -1,16 +1,17 @@
+import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
 import { DxbcReadError } from "./DxbcReadError.js";
 
 /**
  * Program type names indexed by the SM4/SM5 version-token program-type field.
  */
-export const DxbcProgramTypeNames = Object.freeze([
-    "pixel",
-    "vertex",
-    "geometry",
-    "hull",
-    "domain",
-    "compute"
-]);
+export const DxbcProgramTypeNames = blueEnums.Create("resource.dxbc.DxbcProgramTypeNames", {
+    "pixel": 0,
+    "vertex": 1,
+    "geometry": 2,
+    "hull": 3,
+    "domain": 4,
+    "compute": 5
+});
 
 /**
  * DXBC shader program chunk reader for `SHEX`/`SHDR` token streams.
@@ -99,7 +100,7 @@ export class DxbcShaderProgram
         this.minorVersion = versionToken & 0xf;
         this.majorVersion = (versionToken >>> 4) & 0xf;
         this.programType = (versionToken >>> 16) & 0xffff;
-        this.programTypeName = DxbcProgramTypeNames[this.programType] || "unknown";
+        this.programTypeName = blueEnums.GetEnumInfo("resource.dxbc.DxbcProgramTypeNames").members[this.programType]?.name || "unknown";
         this.lengthDwords = view.getUint32(4, true);
         if (this.lengthDwords < 2 || this.lengthDwords * 4 > bytes.length)
         {

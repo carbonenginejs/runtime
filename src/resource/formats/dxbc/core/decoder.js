@@ -1,3 +1,4 @@
+import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
 import { DxbcReadError } from "./DxbcReadError.js";
 import {
     DXBC_OPCODE_CUSTOMDATA,
@@ -10,52 +11,112 @@ import {
 const COMPONENTS = [ "x", "y", "z", "w" ];
 
 /**
- * Operand register-file names indexed by the operand-token type field.
+ * Operand register-file names mapped to the operand-token type field.
  */
-export const DxbcOperandTypeNames = Object.freeze([
-    "temp", "input", "output", "indexable_temp", "immediate32", "immediate64",
-    "sampler", "resource", "constant_buffer", "immediate_constant_buffer",
-    "label", "input_primitive_id", "output_depth", "null", "rasterizer",
-    "output_coverage", "stream", "function_body", "function_table", "interface",
-    "function_input", "function_output", "output_control_point_id",
-    "input_fork_instance_id", "input_join_instance_id", "input_control_point",
-    "output_control_point", "input_patch_constant", "input_domain_point",
-    "this_pointer", "uav", "thread_group_shared_memory", "input_thread_id",
-    "input_thread_group_id", "input_thread_id_in_group", "input_coverage_mask",
-    "input_thread_id_in_group_flattened", "input_gs_instance_id",
-    "output_depth_greater_equal", "output_depth_less_equal", "cycle_counter"
-]);
+export const DxbcOperandTypeNames = blueEnums.Create("resource.dxbc.DxbcOperandTypeNames", {
+    "temp": 0,
+    "input": 1,
+    "output": 2,
+    "indexable_temp": 3,
+    "immediate32": 4,
+    "immediate64": 5,
+    "sampler": 6,
+    "resource": 7,
+    "constant_buffer": 8,
+    "immediate_constant_buffer": 9,
+    "label": 10,
+    "input_primitive_id": 11,
+    "output_depth": 12,
+    "null": 13,
+    "rasterizer": 14,
+    "output_coverage": 15,
+    "stream": 16,
+    "function_body": 17,
+    "function_table": 18,
+    "interface": 19,
+    "function_input": 20,
+    "function_output": 21,
+    "output_control_point_id": 22,
+    "input_fork_instance_id": 23,
+    "input_join_instance_id": 24,
+    "input_control_point": 25,
+    "output_control_point": 26,
+    "input_patch_constant": 27,
+    "input_domain_point": 28,
+    "this_pointer": 29,
+    "uav": 30,
+    "thread_group_shared_memory": 31,
+    "input_thread_id": 32,
+    "input_thread_group_id": 33,
+    "input_thread_id_in_group": 34,
+    "input_coverage_mask": 35,
+    "input_thread_id_in_group_flattened": 36,
+    "input_gs_instance_id": 37,
+    "output_depth_greater_equal": 38,
+    "output_depth_less_equal": 39,
+    "cycle_counter": 40
+});
 
 /**
- * Operand modifier names indexed by the extended-operand modifier field.
+ * Operand modifier names mapped to the extended-operand modifier field.
  */
-export const DxbcOperandModifierNames = Object.freeze([ "none", "neg", "abs", "absneg" ]);
+export const DxbcOperandModifierNames = blueEnums.Create("resource.dxbc.DxbcOperandModifierNames", {
+    "none": 0,
+    "neg": 1,
+    "abs": 2,
+    "absneg": 3
+});
 
 /**
- * System-value names indexed by DXBC name-token values.
+ * System-value names mapped to DXBC name-token values.
  */
-export const DxbcSystemValueNames = Object.freeze([
-    "undefined", "position", "clip_distance", "cull_distance",
-    "render_target_array_index", "viewport_array_index", "vertex_id",
-    "primitive_id", "instance_id", "is_front_face", "sample_index"
-]);
+export const DxbcSystemValueNames = blueEnums.Create("resource.dxbc.DxbcSystemValueNames", {
+    "undefined": 0,
+    "position": 1,
+    "clip_distance": 2,
+    "cull_distance": 3,
+    "render_target_array_index": 4,
+    "viewport_array_index": 5,
+    "vertex_id": 6,
+    "primitive_id": 7,
+    "instance_id": 8,
+    "is_front_face": 9,
+    "sample_index": 10
+});
 
 /**
- * Resource dimension names indexed by declaration resource-dimension ids.
+ * Resource dimension names mapped to declaration resource-dimension ids.
  */
-export const DxbcResourceDimensionNames = Object.freeze([
-    "unknown", "buffer", "texture1d", "texture2d", "texture2dms", "texture3d",
-    "texturecube", "texture1darray", "texture2darray", "texture2dmsarray",
-    "texturecubearray", "raw_buffer", "structured_buffer"
-]);
+export const DxbcResourceDimensionNames = blueEnums.Create("resource.dxbc.DxbcResourceDimensionNames", {
+    "unknown": 0,
+    "buffer": 1,
+    "texture1d": 2,
+    "texture2d": 3,
+    "texture2dms": 4,
+    "texture3d": 5,
+    "texturecube": 6,
+    "texture1darray": 7,
+    "texture2darray": 8,
+    "texture2dmsarray": 9,
+    "texturecubearray": 10,
+    "raw_buffer": 11,
+    "structured_buffer": 12
+});
 
 /**
- * Resource return-type names indexed by return-type nibble values.
+ * Resource return-type names mapped to return-type nibble values.
  */
-export const DxbcResourceReturnTypeNames = Object.freeze([
-    "unknown", "unorm", "snorm", "sint", "uint", "float", "mixed", "double",
-    "continued"
-]);
+export const DxbcResourceReturnTypeNames = blueEnums.Create("resource.dxbc.DxbcResourceReturnTypeNames", {
+    "unknown": 0,
+    "unorm": 1,
+    "snorm": 2,
+    "sint": 3,
+    "uint": 4,
+    "float": 5,
+    "mixed": 6,
+    "double": 7,
+    "continued": 8
+});
 
 const RESINFO_RETURN_TYPE_NAMES = [ "float", "rcpfloat", "uint" ];
 const SAMPLER_MODE_NAMES = [ "default", "comparison", "mono" ];
@@ -124,7 +185,7 @@ function decodeOpcodeExtension(token)
     {
         out.typeName = "resource_dimension";
         out.resourceDimension = (token >>> 6) & 0x1f;
-        out.resourceDimensionName = DxbcResourceDimensionNames[out.resourceDimension] || "unknown";
+        out.resourceDimensionName = blueEnums.GetEnumInfo("resource.dxbc.DxbcResourceDimensionNames").members[out.resourceDimension]?.name || "unknown";
         out.structureStride = (token >>> 11) & 0xfff;
     }
     else if (type === 3)
@@ -151,7 +212,7 @@ function decodeReturnTypeToken(token)
     return {
         token,
         returnTypes,
-        returnTypeNames: returnTypes.map((value) => DxbcResourceReturnTypeNames[value] || `return_type_${value}`)
+        returnTypeNames: returnTypes.map((value) => blueEnums.GetEnumInfo("resource.dxbc.DxbcResourceReturnTypeNames").members[value]?.name || `return_type_${value}`)
     };
 }
 
@@ -497,7 +558,7 @@ export class DxbcInstructionDecoder
         const opcode = token0 & 0x7ff;
         const opcodeName = dxbcOpcodeName(opcode);
 
-        if (opcode >= DxbcOpcodeNames.length)
+        if (opcode >= blueEnums.GetEnumInfo("resource.dxbc.DxbcOpcodeNames").members.length)
         {
             throw new DxbcReadError("Unknown DXBC opcode", {
                 source: this.source,
@@ -778,7 +839,7 @@ export class DxbcInstructionDecoder
             case "dcl_resource": {
                 const dimension = (token0 >>> 11) & 0x1f;
                 declaration.resourceDimension = dimension;
-                declaration.resourceDimensionName = DxbcResourceDimensionNames[dimension] || `dimension_${dimension}`;
+                declaration.resourceDimensionName = blueEnums.GetEnumInfo("resource.dxbc.DxbcResourceDimensionNames").members[dimension]?.name || `dimension_${dimension}`;
                 declaration.sampleCount = (token0 >>> 16) & 0x7f;
                 const operand = takeOperand();
                 declaration.returnType = decodeReturnTypeToken(takeToken());
@@ -829,7 +890,7 @@ export class DxbcInstructionDecoder
                 // the globally-coherent access flag here rather than an MS sample count.
                 const dimension = (token0 >>> 11) & 0x1f;
                 declaration.resourceDimension = dimension;
-                declaration.resourceDimensionName = DxbcResourceDimensionNames[dimension] || `dimension_${dimension}`;
+                declaration.resourceDimensionName = blueEnums.GetEnumInfo("resource.dxbc.DxbcResourceDimensionNames").members[dimension]?.name || `dimension_${dimension}`;
                 declaration.globallyCoherent = (token0 & 0x00010000) !== 0;
                 const operand = takeOperand();
                 declaration.returnType = decodeReturnTypeToken(takeToken());
@@ -891,7 +952,7 @@ export class DxbcInstructionDecoder
                 declaration.registerIndex = takeOperand().registerIndex;
                 const nameToken = takeToken();
                 declaration.systemValue = nameToken & 0xffff;
-                declaration.systemValueName = DxbcSystemValueNames[declaration.systemValue] || `name_${declaration.systemValue}`;
+                declaration.systemValueName = blueEnums.GetEnumInfo("resource.dxbc.DxbcSystemValueNames").members[declaration.systemValue]?.name || `name_${declaration.systemValue}`;
                 break;
             }
             case "dcl_index_range":
@@ -975,7 +1036,7 @@ export class DxbcInstructionDecoder
         const operand = {
             token,
             type,
-            typeName: DxbcOperandTypeNames[type] || `operand_type_${type}`,
+            typeName: blueEnums.GetEnumInfo("resource.dxbc.DxbcOperandTypeNames").members[type]?.name || `operand_type_${type}`,
             componentCount: componentCountMode === 0 ? 0 : (componentCountMode === 1 ? 1 : 4),
             selectionModeName: "none",
             mask: "",
@@ -1028,7 +1089,7 @@ export class DxbcInstructionDecoder
             {
                 const modifier = (chainToken >>> 6) & 0xff;
                 const minPrecision = (chainToken >>> 14) & 0x7;
-                operand.modifierName = DxbcOperandModifierNames[modifier] || `modifier_${modifier}`;
+                operand.modifierName = blueEnums.GetEnumInfo("resource.dxbc.DxbcOperandModifierNames").members[modifier]?.name || `modifier_${modifier}`;
                 operand.minPrecisionName = MIN_PRECISION_NAMES[minPrecision] || `min_precision_${minPrecision}`;
                 operand.nonUniform = ((chainToken >>> 17) & 1) !== 0;
             }

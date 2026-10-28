@@ -1,3 +1,4 @@
+import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
 import { DxbcReader } from "./DxbcReader.js";
 import { DxbcReadError } from "./DxbcReadError.js";
 
@@ -25,7 +26,12 @@ const SIGNATURE_ELEMENT_LAYOUTS = {
 /**
  * Register component type names indexed by DXBC signature component-type ids.
  */
-export const DxbcComponentTypeNames = Object.freeze([ "unknown", "uint32", "int32", "float32" ]);
+export const DxbcComponentTypeNames = blueEnums.Create("resource.dxbc.DxbcComponentTypeNames", {
+    "unknown": 0,
+    "uint32": 1,
+    "int32": 2,
+    "float32": 3
+});
 
 /**
  * DXBC input/output signature chunk reader for `ISGN`-family chunks.
@@ -114,7 +120,7 @@ export class DxbcSignatureChunk
                 semanticIndex,
                 systemValueType,
                 componentType,
-                componentTypeName: DxbcComponentTypeNames[componentType] || "unknown",
+                componentTypeName: blueEnums.GetEnumInfo("resource.dxbc.DxbcComponentTypeNames").members[componentType]?.name || "unknown",
                 registerIndex,
                 mask,
                 readWriteMask,
