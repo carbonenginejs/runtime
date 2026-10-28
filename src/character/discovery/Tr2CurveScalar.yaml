@@ -1,0 +1,50 @@
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 6 files contain 23 named Tr2CurveScalar objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 3 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 18 objects in 3 files; keys ["keys","name"].
+# Example res:/graphics/character/global/paperdolllibrary/curvesets/2_default_0.black; MD5 7fdf8be669112f3b4ca3614143bb020a.
+# Verbatim hex at offset 1045; object span 738 bytes (96-byte truncated excerpt):
+# de020000040005002400000014006de7bb3e00000000000000000000000000000200cdcccc3ec5fe8a3ea7f73a40a7f73a40000002002db2dd3ec5729b3e7d0d8b3f7d0d8b3f000002008d97ee3e81b4af3e2b0201402b02014000000200ee7c
+# Separately decoded field evidence (not source YAML):
+# keys: {"byteOffset":1053,"byteLength":726}
+# name: "doll.Visemes.AA"
+#
+# Variant 2: 3 objects in 1 files; keys ["extrapolationAfter","extrapolationBefore","keys"].
+# Example res:/graphics/character/global/paperdolllibrary/curvesets/headskinglowcolor.black; MD5 e0b2ee0f6fd7b8dc42392e910ceaf201.
+# Verbatim hex at offset 299; object span 126 bytes (96-byte truncated excerpt):
+# 7a000000040005000500000014000cfd38bb4cc777b9000000000000000004000200bc46013f533104bb00000000000000000100020027667f3f9cb47c3f000000000000000002000200dbe3c13f10dc923b00000000000000000300020060c4
+# Separately decoded field evidence (not source YAML):
+# keys: {"byteOffset":307,"byteLength":106}
+# extrapolationBefore: 1
+# extrapolationAfter: 1
+#
+# Variant 3: 2 objects in 2 files; keys ["extrapolationAfter","extrapolationBefore","keys","name"].
+# Example res:/graphics/character/global/paperdolllibrary/curvesets/doll_gstate_talk_wave.black; MD5 ee01715435cc40d344b7c40fb2892780.
+# Verbatim hex at offset 128; object span 130 bytes (96-byte truncated excerpt):
+# 7e000000020003000500000014000cfd38bb4cc777b9000000000000000004000200bc46013f533104bb00000000000000000100020027667f3f9cb47c3f000000000000000002000200dbe3c13f10dc923b00000000000000000300020060c4
+# Separately decoded field evidence (not source YAML):
+# keys: {"byteOffset":136,"byteLength":106}
+# name: "Talk"
+# extrapolationBefore: 1
+# extrapolationAfter: 1
+#
+type: Tr2CurveScalar # class discriminator, not a default value
+# keys: 23 of 23 objects (6 files); kinds opaque.
+# Example: res:/graphics/character/global/paperdolllibrary/curvesets/2_default_0.black
+# Opaque native structure-list bytes; no inner member names are stored.
+keys: [int] # raw byte payload placeholder, not decoded native records
+# name: 20 of 23 objects (5 files); values "doll.Visemes.AA", "doll.Visemes.CH", "doll.Visemes.w", "doll.Visemes.AW", "doll.Visemes.f", "doll.Visemes.AH", "doll.Visemes.m", "doll.Visemes.l", "doll.Visemes.AO", "doll.Visemes.n", "doll.Visemes.IH", "doll.Visemes.r", "doll.Visemes.EY", "doll.Visemes.OY", "doll.Visemes.y", "doll.Visemes.EH", "Talk", "SkinglowThreshold", "AA".
+# Example: res:/graphics/character/global/paperdolllibrary/curvesets/2_default_0.black
+name: string
+# extrapolationBefore: 5 of 23 objects (3 files); values 1.
+# Example: res:/graphics/character/global/paperdolllibrary/curvesets/doll_gstate_talk_wave.black
+extrapolationBefore: int
+# extrapolationAfter: 5 of 23 objects (3 files); values 1.
+# Example: res:/graphics/character/global/paperdolllibrary/curvesets/doll_gstate_talk_wave.black
+extrapolationAfter: int

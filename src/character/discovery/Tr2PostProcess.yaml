@@ -1,0 +1,24 @@
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 4 files contain 4 named Tr2PostProcess objects; 4 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 4 objects in 4 files; keys ["stages"].
+# Example res:/graphics/character/global/paperdolllibrary/posts/defaultlut.black; MD5 2e8afa5edeeb647cf13c96718044bde4.
+# Verbatim hex at offset 264; object span 86 bytes (86-byte excerpt):
+# 520000000000010001000000020000004200000002000300040005000600070001000000180008000000000000000000003f0000003f0000003f0000003f090001000000030000000a0000000a0003000b000c000d00
+# Separately decoded field evidence (not source YAML):
+# stages: [{"referenceClass":"Tr2Effect"}]
+#
+type: Tr2PostProcess # class discriminator, not a default value
+# stages: 4 of 4 objects (4 files); kinds array:object:Tr2Effect.
+# Example: res:/graphics/character/global/paperdolllibrary/posts/defaultlut.black
+# Target counts: Tr2Effect 4.
+# Tr2Effect: inline-owned, 4 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 280; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/character/global/paperdolllibrary/posts/defaultlut.black
+# → Tr2Effect.yaml
+stages: [Tr2Effect] # class alternatives, not fixed list positions; inline objects

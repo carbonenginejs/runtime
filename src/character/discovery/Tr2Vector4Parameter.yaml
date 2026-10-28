@@ -1,0 +1,31 @@
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 1009 files contain 37291 named Tr2Vector4Parameter objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 2 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 33155 objects in 1008 files; keys ["name","value"].
+# Example res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black; MD5 2a9847f91b1e8b89da561ba60afcad5a.
+# Verbatim hex at offset 1233; object span 28 bytes (28-byte excerpt):
+# 18000000130003001400150000000000000000000000003f0000803f
+# Separately decoded field evidence (not source YAML):
+# name: "TransformUV0"
+# value: [0,0,0.5,1]
+#
+# Variant 2: 4136 objects in 992 files; keys ["name"].
+# Example res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black; MD5 2a9847f91b1e8b89da561ba60afcad5a.
+# Verbatim hex at offset 1317; object span 10 bytes (10-byte excerpt):
+# 06000000130003001d00
+# Separately decoded field evidence (not source YAML):
+# name: "MaterialDiffuseColor"
+#
+type: Tr2Vector4Parameter # class discriminator, not a default value
+# name: 37291 of 37291 objects (1009 files); 51 distinct values; examples "TransformUV0", "MaterialDiffuseColor", "MaterialSpecularCurve".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+name: string
+# value: 33155 of 37291 objects (1008 files); 121 distinct vectors; component ranges [[-1,600],[-0.009733499959111214,800],[-0.003155600046738982,300],[0,400]].
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+value: [float, float, float, float]

@@ -1,0 +1,31 @@
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 1006 files contain 2951 named Tr2FloatParameter objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 2 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 2261 objects in 1006 files; keys ["name","value"].
+# Example res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black; MD5 2a9847f91b1e8b89da561ba60afcad5a.
+# Verbatim hex at offset 1297; object span 16 bytes (16-byte excerpt):
+# 0c000000160003001c00150000000000
+# Separately decoded field evidence (not source YAML):
+# name: "CutMaskInfluence"
+# value: 0
+#
+# Variant 2: 690 objects in 549 files; keys ["name"].
+# Example res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black; MD5 2a9847f91b1e8b89da561ba60afcad5a.
+# Verbatim hex at offset 1265; object span 10 bytes (10-byte excerpt):
+# 06000000160003001700
+# Separately decoded field evidence (not source YAML):
+# name: "MaterialAmbientFactor"
+#
+type: Tr2FloatParameter # class discriminator, not a default value
+# name: 2951 of 2951 objects (1006 files); values "MaterialAmbientFactor", "CutMaskInfluence", "SkinGlowThreshold", "SkinGlowSpecularAlpha", "HairDiffuseBias", "FurLength", "UVScale", "AlphaMultiplier", "CombStrength", "FurGrainRotation", "MirrorGrain", "FurParallax".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+name: string
+# value: 2261 of 2951 objects (1006 files); values 0, 10, 0.6000000238418579, 0.8500000238418579, 0.800000011920929, 0.9990000128746033, 0.699999988079071, 0.10000000149011612, 0.125, 0.1004524976015091, 0.30000001192092896, 1.0099999904632568, 0.005078999791294336, 1.9824999570846558, -0.2647072970867157, 0.20000000298023224, 0.04117650166153908, -0.0003000000142492354, 0.00570000009611249, 2.5.
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+value: float
