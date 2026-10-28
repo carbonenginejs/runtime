@@ -1,0 +1,38 @@
+# Raw res-file shape; build 3646012.
+# Family: positions
+# Source pattern: res:/graphics/character/global/paperdolllibrary/positions/*
+# Files: 7
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 7 of 7; map ["rotation","translation"]
+# Example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# rotation: !!python/tuple
+# - 0.0
+# - 0.0
+# - 0.0
+# - 1.0
+# translation: !!python/tuple
+# - 0.0
+# - 0.0
+# - -0.5
+#
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 7 of 7
+# 7 of 7; kinds: sequence; lengths: 4; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+"rotation":
+  !!python/tuple
+  # Item 0: 7 of 7; kinds: number; values: 0, 5.705489842378194e-15, 3.278256031080673e-7; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+  # Item 1: 7 of 7; kinds: number; values: 0, -0.6427868008613586, 0.6427878141403198, 0.1783299595117569, -0.1783299595117569; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+  # Item 2: 7 of 7; kinds: number; values: 0, 1.2314978138812382e-15, 1.4901161193847656e-7; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+  # Item 3: 7 of 7; kinds: number; values: 1, 0.7660451531410217, 0.7660443186759949, 0.9839707612991333; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+  [float, float, float, float]
+# 7 of 7; kinds: sequence; lengths: 3; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+"translation":
+  !!python/tuple
+  # Item 0: 7 of 7; kinds: number; values: 0, 1.296875, -0.5, -0.612319827079773, 0.5, 0.612319827079773; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+  # Item 1: 7 of 7; kinds: number; values: 0, 0.19921875; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+  # Item 2: 7 of 7; kinds: number; values: -0.5, 0, 0.59765625; example: res:/graphics/character/global/paperdolllibrary/positions/center_behind.yaml
+  [float, float, float]

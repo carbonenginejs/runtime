@@ -1,0 +1,49 @@
+# Raw res-file shape; build 3646012.
+# Family: face
+# Source pattern: res:/graphics/character/global/facesetup/*
+# Files: 2
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 2 of 2; map ["fj_foreheadLower_centerLeft","fj_foreheadLower_centerRight","fj_foreheadLower_left","fj_foreheadLower_midLeft","fj_foreheadLower_midRight","fj_leftCheekBone_middle","fj_leftEye_upperLid_inner","fj_lip_cornerLeft","fj_lip_cornerRight","fj_rightCheekBone_middle","fj_rightEye_upperLid_inner"]
+# Example: res:/graphics/character/global/facesetup/basicface.face
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# fj_foreheadLower_centerLeft: [fj_foreheadLower_centerLeft, 4, y, 0.67575298195180011]
+# fj_foreheadLower_centerRight: [fj_foreheadLower_centerRight, 4, y, -0.66824626195180425]
+# fj_foreheadLower_left: [fj_foreheadLower_left, fj_foreheadLower_right, 3, 1.0, 0.0,
+#   8.8839998245239258, 9.2969999313354492]
+# fj_foreheadLower_midLeft: [fj_foreheadLower_midLeft, 1, x, 0.67049673178939884]
+# fj_foreheadLower_midRight: [fj_foreheadLower_midRight, 2, x, 0.67049673178939884]
+# fj_leftEye_upperLid_inner: [fj_leftEye_upperLid_inner, 10, x, -0.59002902614057007]
+# fj_lip_cornerLeft: [fj_lip_cornerLeft, 7, z, -1.4348320526959402]
+# fj_lip_cornerRight: [fj_lip_cornerRight, 8, z, -1.4348320526959242]
+# fj_rightEye_upperLid_inner: [fj_rightEye_upperLid_inner, 11, x, -0.59313124581484544]
+# fj_leftCheekBone_middle: [fj_leftCheekBone_middle, 5, x, 0.28794114420162487]
+# fj_rightCheekBone_middle: [fj_rightCheekBone_middle, 6, x, 0.28794114420156802]
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 2 of 2
+# Identifier keys: 11 distinct string keys; all: ["fj_foreheadLower_centerLeft","fj_foreheadLower_centerRight","fj_foreheadLower_left","fj_foreheadLower_midLeft","fj_foreheadLower_midRight","fj_leftEye_upperLid_inner","fj_lip_cornerLeft","fj_lip_cornerRight","fj_rightEye_upperLid_inner","fj_leftCheekBone_middle","fj_rightCheekBone_middle"]
+# 22 of 22; kinds: sequence; lengths: 4, 7; example: res:/graphics/character/global/facesetup/basicface.face
+<string key>:
+  # Item 0: 22 of 22; kinds: string; values: "fj_foreheadLower_centerLeft", "fj_foreheadLower_centerRight", "fj_foreheadLower_left", "fj_foreheadLower_midLeft", "fj_foreheadLower_midRight", "fj_leftEye_upperLid_inner", "fj_lip_cornerLeft", "fj_lip_cornerRight", "fj_rightEye_upperLid_inner", "fj_leftCheekBone_middle", "fj_rightCheekBone_middle"; example: res:/graphics/character/global/facesetup/basicface.face
+  -
+    string
+  # Item 1: 22 of 22; kinds: number|string; values: 4, "fj_foreheadLower_right", 1, 2, 10, 7, 8, 11, 5, 6; example: res:/graphics/character/global/facesetup/basicface.face
+  -
+    int|string
+  # Item 2: 22 of 22; kinds: string|number; values: "y", 3, "x", "z"; example: res:/graphics/character/global/facesetup/basicface.face
+  -
+    string|int
+  # Item 3: 22 of 22; kinds: number; distinct scalar values: 20; range: -1.4402005753265286 .. 1; example: res:/graphics/character/global/facesetup/basicface.face
+  -
+    float
+  # Item 4: 2 of 22; kinds: number; values: 0; example: res:/graphics/character/global/facesetup/basicface.face
+  -
+    float
+  # Item 5: 2 of 22; kinds: number; values: 8.883999824523926; example: res:/graphics/character/global/facesetup/basicface.face
+  -
+    float
+  # Item 6: 2 of 22; kinds: number; values: 9.29699993133545; example: res:/graphics/character/global/facesetup/basicface.face
+  -
+    float

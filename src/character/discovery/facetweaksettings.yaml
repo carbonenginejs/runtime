@@ -1,0 +1,40 @@
+# Raw res-file shape; build 3646012.
+# Family: facetweaksettings
+# Source pattern: res:/graphics/character/global/facesetup/*
+# Files: 1
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 1 of 1; map ["correctionMultiplier","gammaCurves","wrinkleMultiplier"]
+# Example: res:/graphics/character/global/facesetup/facetweaksettings.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# # gammaCurves lets you set a different power to speed up or slow down
+# # the fade-in of the wrinkle map.
+# # For every bone pair (use the same name as in the face file) you can
+# # use a value < 1 to speed it up, or > 1 to slow it down.
+# # The bone pair 'default' is used for any pair in the face file that doesn't
+# # exist here.
+# gammaCurves:
+#     default: 1.0
+#     # uncomment this for an example:
+#     #fj_foreheadLower_centerLeft: 0.1
+#
+# # multiplier for the wrinkle map normal
+# wrinkleMultiplier: 1.0
+# # multiplier for the correction map normal
+# correctionMultiplier: 2.0
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 1 of 1
+# 1 of 1; kinds: map; example: res:/graphics/character/global/facesetup/facetweaksettings.yaml
+"gammaCurves":
+  # Identifier keys: 1 distinct string keys; all: ["default"]
+  # 1 of 1; kinds: number; values: 1; example: res:/graphics/character/global/facesetup/facetweaksettings.yaml
+  <string key>:
+    float
+# 1 of 1; kinds: number; values: 1; example: res:/graphics/character/global/facesetup/facetweaksettings.yaml
+"wrinkleMultiplier":
+  float
+# 1 of 1; kinds: number; values: 2; example: res:/graphics/character/global/facesetup/facetweaksettings.yaml
+"correctionMultiplier":
+  float

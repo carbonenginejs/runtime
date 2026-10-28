@@ -1,0 +1,686 @@
+# Raw res-file shape; build 3646012.
+# Family: pose
+# Source pattern: res:/graphics/character/*
+# Files: 4
+# Variable shape: 3 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 2 of 4; map ["LeftHandIndex1","LeftHandIndex2","LeftHandIndex3","LeftHandIndex4","LeftHandMiddle1","LeftHandMiddle2","LeftHandMiddle3","LeftHandMiddle4","LeftHandPinky1","LeftHandPinky2","LeftHandPinky3","LeftHandPinky4","LeftHandRing1","LeftHandRing2","LeftHandRing3","LeftHandRing4","LeftHandThumb1","LeftHandThumb2","LeftHandThumb3","LeftHandThumb4","RightHandIndex1","RightHandIndex2","RightHandIndex3","RightHandIndex4","RightHandMiddle1","RightHandMiddle2","RightHandMiddle3","RightHandMiddle4","RightHandPinky1","RightHandPinky2","RightHandPinky3","RightHandPinky4","RightHandRing1","RightHandRing2","RightHandRing3","RightHandRing4","RightHandThumb1","RightHandThumb2","RightHandThumb3","RightHandThumb4","Trajectory","Trajectory_sync","fj_chin_group","fj_ear_wiggle","fj_eyeballLeft","fj_eyeballRight","fj_fang","fj_foreheadLower_centerLeft","fj_foreheadLower_centerRight","fj_foreheadLower_left","fj_foreheadLower_midLeft","fj_foreheadLower_midRight","fj_foreheadLower_right","fj_leftCheekBone_inner","fj_leftCheekBone_middle","fj_leftCheekBone_outer","fj_leftCheekInner_middle","fj_leftCheekInner_upper","fj_leftEye_lowerLid_inner","fj_leftEye_lowerLid_outer","fj_leftEye_upperLid_inner","fj_leftEye_upperLid_outer","fj_lip_cornerLeft","fj_lip_cornerRight","fj_lip_lower_center","fj_lip_lower_centerLeft","fj_lip_lower_centerRight","fj_lip_upper_center","fj_lip_upper_centerLeft","fj_lip_upper_centerRight","fj_nose_left","fj_nose_right","fj_rightCheekBone_inner","fj_rightCheekBone_middle","fj_rightCheekBone_outer","fj_rightCheekInner_middle","fj_rightCheekInner_upper","fj_rightEye_lowerLid_inner","fj_rightEye_lowerLid_outer","fj_rightEye_upperLid_inner","fj_rightEye_upperLid_outer"]
+# Example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# LeftHandIndex1:
+#   orientation: !!python/tuple [3.7898483276367187, 1.8993636500090372, -0.20519566535949529]
+#   rotation: !!python/tuple [-1.7592442327668718e-14, -8.1100846660098549e-15, -6.4573954839416796e-15]
+#   translation: [0.0, 0.0, 0.0]
+# LeftHandIndex2:
+#   orientation: !!python/tuple [0.0, 0.0, -0.79178905487062323]
+#   rotation: !!python/tuple [0.0, 0.0, 3.1549239251220688e-15]
+#   translation: [0.0029308199882507324, 1.4210854715202004e-16, -3.552713678800501e-17]
+# LeftHandIndex3:
+#   orientation: !!python/tuple [-1.3160316711946537e-06, -2.0146824226685537e-06, 0.40814042091368741]
+#   rotation: !!python/tuple [0.0, 0.0, 3.5716435946222137e-15]
+#   translation: [0.000563582181930542, 0.0, 3.552713678800501e-17]
+# LeftHandIndex4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-7.9513867964737758e-16, -3.1805547185895103e-15, 7.9513867964737758e-16]
+#   translation: [-0.0037712001800537108, -1.4210854715202004e-16, 0.0]
+# LeftHandMiddle1:
+#   orientation: !!python/tuple [-3.1087799072265625, -0.29598402976989791, 0.31766152381896995]
+#   rotation: !!python/tuple [-1.411371104758025e-14, -1.7896832087594024e-14, -7.1562476403703654e-15]
+#   translation: [0.0, 0.0, 0.0]
+# LeftHandMiddle2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.98458147048950817]
+#   rotation: !!python/tuple [0.0, 0.0, 2.673474421309224e-15]
+#   translation: [-6.1202049255371098e-06, 1.4210854715202004e-16, 1.4210854715202004e-16]
+# LeftHandMiddle3:
+#   orientation: !!python/tuple [0.0, 0.0, -3.4238157272338885]
+#   rotation: !!python/tuple [0.0, 0.0, 4.6769783921087656e-15]
+#   translation: [0.0015062260627746581, -1.4210854715202004e-16, 0.0]
+# LeftHandMiddle4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [3.1805547185895103e-15, -6.3611094371790206e-15, 0.0]
+#   translation: [-0.0014178323745727538, 0.0, -1.4210854715202004e-16]
+# LeftHandPinky1:
+#   orientation: !!python/tuple [-12.327690124511676, 5.2854015827178955, -0.092167109251022228]
+#   rotation: !!python/tuple [-1.8288190108345717e-14, 1.2175560750859061e-14, -4.3732628704094747e-15]
+#   translation: [0.0, 0.0, 0.0]
+# LeftHandPinky2:
+#   orientation: !!python/tuple [1.5636065882063122e-06, -2.9621223746459156e-24, 7.1600227355957031]
+#   rotation: !!python/tuple [0.0, 0.0, 5.4599951303084277e-15]
+#   translation: [-0.0031583261489868163, 0.0, -7.105427357601002e-17]
+# LeftHandPinky3:
+#   orientation: !!python/tuple [-1.578462729412424e-06, 2.073772975563768e-06, 7.7034168243408221]
+#   rotation: !!python/tuple [0.0, 0.0, 7.297940158820012e-15]
+#   translation: [0.0024619138240814208, 1.4210854715202004e-16, -7.105427357601002e-17]
+# LeftHandPinky4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [3.9756933982368879e-16, -3.1805547185895103e-15, 2.3854160918816919e-15]
+#   translation: [0.00015850305557250975, -1.4210854715202004e-16, -1.4210854715202004e-16]
+# LeftHandRing1:
+#   orientation: !!python/tuple [-12.693023681640625, 0.29144978523253995, 1.3758629709482189]
+#   rotation: !!python/tuple [-1.0287106724186229e-14, 5.7461190482426677e-16, -1.192708045940846e-15]
+#   translation: [0.0, 0.0, 0.0]
+# LeftHandRing2:
+#   orientation: !!python/tuple [0.0, 0.0, -2.5947504043579084]
+#   rotation: !!python/tuple [0.0, 0.0, 8.0037388324491303e-15]
+#   translation: [0.00032771110534667968, 0.0, 0.0]
+# LeftHandRing3:
+#   orientation: !!python/tuple [0.0, -1.4554323115589804e-06, 4.8735587596893257]
+#   rotation: !!python/tuple [0.0, 0.0, 3.8778565929664839e-15]
+#   translation: [0.0041820752620697023, 0.0, -7.105427357601002e-17]
+# LeftHandRing4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-1.5902773592947552e-15, 3.1805547185895103e-15, -7.9513867964737758e-16]
+#   translation: [-0.0045743691921234127, 2.8421709430404008e-16, 0.0]
+# LeftHandThumb1:
+#   orientation: !!python/tuple [-1.57720947265625, -0.63241386413574396, 1.6867752075194815]
+#   rotation: !!python/tuple [-3.3793392482115228e-14, 6.3611094371790206e-15, 3.9309667446054547e-14]
+#   translation: [0.0, 0.0, 0.0]
+# LeftHandThumb2:
+#   orientation: !!python/tuple [-5.1953384172520007e-07, -1.8957583197733855e-22, 1.392328262329098]
+#   rotation: !!python/tuple [0.0, 0.0, -2.1585213339490351e-14]
+#   translation: [0.0011999702453613281, 1.4210854715202004e-16, 1.4210854715202004e-16]
+# LeftHandThumb3:
+#   orientation: !!python/tuple [-3.6205865399097067e-06, 0.0, -0.68277072906494318]
+#   rotation: !!python/tuple [0.0, 0.0, -1.937184679161319e-14]
+#   translation: [0.0032611608505249022, -3.552713678800501e-17, 1.4210854715202004e-16]
+# LeftHandThumb4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-2.8823777335740784e-15, -4.5720475270864293e-15, 3.1805547185895103e-15]
+#   translation: [-0.0047635626792907719, -3.552713678800501e-17, -1.4210854715202004e-16]
+# RightHandIndex1:
+#   orientation: !!python/tuple [3.789833068847571, 1.8993637654930469, -0.20519542694088821]
+#   rotation: !!python/tuple [-1.7393658941541185e-14, -1.1586534886371368e-14, 8.4172882693859391e-16]
+#   translation: [0.0, 0.0, 0.0]
+# RightHandIndex2:
+#   orientation: !!python/tuple [6.0846414271509317e-06, 1.2125406101404224e-06, -0.79178810119627663]
+#   rotation: !!python/tuple [0.0, 0.0, 4.0001694210994258e-15]
+#   translation: [-0.0029308199882507324, -4.263256414560601e-16, 0.0]
+# RightHandIndex3:
+#   orientation: !!python/tuple [-1.307427919527983e-05, 2.3696978997167325e-23, 0.4081404209136803]
+#   rotation: !!python/tuple [0.0, 0.0, -9.575047841802191e-16]
+#   translation: [-0.000563582181930542, 0.0, -7.105427357601002e-17]
+# RightHandIndex4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-1.9878467785277827e-15, -3.1805547185895103e-15, 3.9756933982368879e-16]
+#   translation: [0.0037712001800537108, 1.4210854715202004e-16, 0.0]
+# RightHandMiddle1:
+#   orientation: !!python/tuple [-3.1087875366210227, -0.29598426818847212, 0.31766152381896351]
+#   rotation: !!python/tuple [-2.4748691662104978e-14, -1.6182313735541021e-14, -3.1805547185895103e-15]
+#   translation: [0.0, 0.0, 0.0]
+# RightHandMiddle2:
+#   orientation: !!python/tuple [-8.0936692938848949e-06, 1.7016283209159177e-06, 0.9845833778381321]
+#   rotation: !!python/tuple [0.0, 0.0, -2.5630935345460166e-15]
+#   translation: [6.1202049255371098e-06, 0.0, -1.4210854715202004e-16]
+# RightHandMiddle3:
+#   orientation: !!python/tuple [-5.3224840712573445e-06, 1.8167946791436443e-06, -3.4238150119781476]
+#   rotation: !!python/tuple [0.0, 0.0, 3.9042696213607148e-15]
+#   translation: [-0.0015062260627746581, -2.8421709430404008e-16, -7.105427357601002e-17]
+# RightHandMiddle4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [7.9513867964737758e-16, 3.1805547185895103e-15, 0.0]
+#   translation: [0.0014178323745727538, 2.8421709430404008e-16, -1.4210854715202004e-16]
+# RightHandPinky1:
+#   orientation: !!python/tuple [-12.327705383300781, 5.2854018211364746, -0.092166341841220814]
+#   rotation: !!python/tuple [-1.669791285493008e-14, 1.6896696876332325e-15, -7.9513867964737758e-16]
+#   translation: [0.0, 0.0, 0.0]
+# RightHandPinky2:
+#   orientation: !!python/tuple [-5.364453045331172e-06, -4.739395799433465e-23, 7.1600238084793109]
+#   rotation: !!python/tuple [0.0, 0.0, 6.3510432976338505e-15]
+#   translation: [0.0031583261489868163, 0.0, -7.105427357601002e-17]
+# RightHandPinky3:
+#   orientation: !!python/tuple [5.5791756494727519e-06, -1.8028670183412053e-06, 7.7034149169921911]
+#   rotation: !!python/tuple [0.0, 0.0, 2.0474567221908041e-15]
+#   translation: [-0.0024619138240814208, 1.4210854715202004e-16, -7.105427357601002e-17]
+# RightHandPinky4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [3.9756933982368879e-16, -3.1805547185895103e-15, -7.9513867964737758e-16]
+#   translation: [-0.00015850305557250975, 1.4210854715202004e-16, 2.1316282072803005e-16]
+# RightHandRing1:
+#   orientation: !!python/tuple [-12.693016052246094, 0.29144954681395774, 1.375866845250129]
+#   rotation: !!python/tuple [-1.1380422124151243e-14, -6.215126696851531e-15, -4.7708321837633839e-15]
+#   translation: [0.0, 0.0, 0.0]
+# RightHandRing2:
+#   orientation: !!python/tuple [1.3668316569237508e-05, 3.4240869126733776e-06, -2.5947513580322479]
+#   rotation: !!python/tuple [0.0, 0.0, 9.1553216288557671e-15]
+#   translation: [-0.00032771110534667968, 0.0, 7.105427357601002e-17]
+# RightHandRing3:
+#   orientation: !!python/tuple [-1.4929704320820747e-05, 0.0, 4.8735598325729397]
+#   rotation: !!python/tuple [0.0, 0.0, 2.8758214868040933e-15]
+#   translation: [-0.0041820752620697023, 0.0, 0.0]
+# RightHandRing4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [3.9756935570555655e-15, 0.0, -2.3854160918816919e-15]
+#   translation: [0.0045743691921234127, 0.0, 1.4210854715202004e-16]
+# RightHandThumb1:
+#   orientation: !!python/tuple [-1.57720947265625, -0.63241386413574219, 1.6867713928222017]
+#   rotation: !!python/tuple [4.6515613897572111e-14, 4.7708321837633839e-15, -4.6639853302143583e-14]
+#   translation: [0.0, 0.0, 0.0]
+# RightHandThumb2:
+#   orientation: !!python/tuple [0.0, 0.0, 1.3923282623291051]
+#   rotation: !!python/tuple [0.0, 0.0, 3.5936131728784432e-14]
+#   translation: [-0.0011999702453613281, 0.0, -2.8421709430404008e-16]
+# RightHandThumb3:
+#   orientation: !!python/tuple [-3.3271419397351611e-06, 0.0, -0.68277168273925604]
+#   rotation: !!python/tuple [0.0, 0.0, -1.338159908368644e-15]
+#   translation: [-0.0032611608505249022, -7.105427357601002e-17, -1.4210854715202004e-16]
+# RightHandThumb4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 5.7150591970997998e-15, -3.1805547185895103e-15]
+#   translation: [0.0047635626792907719, -1.4210854715202004e-16, 0.0]
+# Trajectory:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0, 0.0, -0.016802321672439575]
+# Trajectory_sync:
+#   orientation: !!python/tuple [0.0, -180.0, 0.0]
+#   rotation: !!python/tuple [0.0, 180.0, -5.5315096607322285e-31]
+#   translation: [0.0, 0.0, -0.016802291870117187]
+# fj_chin_group:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-2.5887228548510112e-05, 0.0025738860070160284, 0.0016497972563151019]
+# fj_ear_wiggle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0030889395672346609, -5.2928872231860657e-05, 0.0044913957374420124]
+# fj_eyeballLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00095598623538222687, 0.00012636840343478452, 0.0052472864986359549]
+# fj_eyeballRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00095643545337566139, -3.1581521034209635e-05, 0.0052413233704114324]
+# fj_fang:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0029991750791171514, 2.4429004524065529e-05, 0.0020064006856778606]
+# fj_foreheadLower_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0012334164636629908, 0.00083672035300951691, 0.0015240742981089106]
+# fj_foreheadLower_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0012347270283160584, -0.00084461677634940281, 0.0015215653005773433]
+# fj_foreheadLower_left:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0022676648545399301, -0.0003914858497809437, 0.0017532699064990531]
+# fj_foreheadLower_midLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00051340379041192813, -0.00070927129507189599, 0.0012065867579946676]
+# fj_foreheadLower_midRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00051316223870003343, 0.00070411191702012042, 0.0012041145798399988]
+# fj_foreheadLower_right:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.002711443195310892, 0.00086976305620189542, 0.0022898813017702578]
+# fj_leftCheekBone_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00043167170498492168, -0.0013877451419829878, 0.0019194070815583863]
+# fj_leftCheekBone_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0022142379555145906, 2.2714138030921484e-05, 0.0034988839369422564]
+# fj_leftCheekBone_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0025256103827388187, 0.00029409764087456658, 0.0076870097543032404]
+# fj_leftCheekInner_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0012797526041342167, 0.00077519791085600253, 0.0036873882349483544]
+# fj_leftCheekInner_upper:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00018915129821749587, -6.0225230433355035e-05, 0.0039591266224737074]
+# fj_leftEye_lowerLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00067596945346821253, 0.00046014032998147324, 0.0049987574986787566]
+# fj_leftEye_lowerLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00055732792348720753, -0.00045690229337977064, 0.0038111716871157063]
+# fj_leftEye_upperLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0013102014770558412, 0.00073602654698766033, 0.0055075746836734749]
+# fj_leftEye_upperLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0017083327873038457, -0.0013053210965628904, 0.003924198491066129]
+# fj_lip_cornerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00054406305713939674, -0.00021192573547375914, 0.0016737916306513512]
+# fj_lip_cornerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00098803139333682568, -0.00019448041915903324, 0.0019853495044240966]
+# fj_lip_lower_center:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-2.0535406656471134e-05, -0.00089597646340678239, 4.1996098681016391e-05]
+# fj_lip_lower_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0004254653401108577, 0.0016677715695291794, 0.00053371458404847692]
+# fj_lip_lower_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.000415353412124817, 0.0016560223019152431, 0.00052944212320876543]
+# fj_lip_upper_center:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0012218088050479992, 1.9270319037390914e-05, 0.0001051684125153507]
+# fj_lip_upper_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00054513845781627884, -0.0016801354267018697, -0.0004285402716293163]
+# fj_lip_upper_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00056041221284573338, 0.0016738578655141078, -0.00043772795629385184]
+# fj_nose_left:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00086067603141458447, -0.00014528466076865309, 0.00076736086335779771]
+# fj_nose_right:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00087125711061446513, 0.0001228065571310133, 0.000775914567989755]
+# fj_rightCheekBone_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00043451036640107076, 0.0013775253295898837, 0.0019174614085518372]
+# fj_rightCheekBone_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0022195779208331601, -2.3701190948339777e-05, 0.0035142767743589864]
+# fj_rightCheekBone_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0025319962833998486, -0.00031315682208789221, 0.0076812576974323752]
+# fj_rightCheekInner_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0012822296547554402, -0.00079372780282382037, 0.0036807362599407868]
+# fj_rightCheekInner_upper:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00017774497386568555, 8.9107257105665031e-05, 0.004008700005776209]
+# fj_rightEye_lowerLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0014161189523892405, -0.00032743295792959427, 0.0047900912953017464]
+# fj_rightEye_lowerLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00016898127628735436, 0.00056755024848334393, 0.0034848639251241309]
+# fj_rightEye_upperLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0013380946147503892, -0.00061346424188552179, 0.0055467447275905184]
+# fj_rightEye_upperLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0016426464395760832, 0.0014141832497429042, 0.0038320854569714236]
+#
+# END VERBATIM RAW YAML
+# Variant 2: 1 of 4; map ["fj_chin_group","fj_ear_wiggle","fj_eyeballLeft","fj_eyeballRight","fj_fang","fj_foreheadLower_centerLeft","fj_foreheadLower_centerRight","fj_foreheadLower_left","fj_foreheadLower_midLeft","fj_foreheadLower_midRight","fj_foreheadLower_right","fj_leftCheekBone_inner","fj_leftCheekBone_middle","fj_leftCheekBone_outer","fj_leftCheekInner_middle","fj_leftCheekInner_upper","fj_leftEye_lowerLid_inner","fj_leftEye_lowerLid_outer","fj_leftEye_upperLid_inner","fj_leftEye_upperLid_outer","fj_lip_cornerLeft","fj_lip_cornerRight","fj_lip_lower_center","fj_lip_lower_centerLeft","fj_lip_lower_centerRight","fj_lip_upper_center","fj_lip_upper_centerLeft","fj_lip_upper_centerRight","fj_nose_left","fj_nose_right","fj_rightCheekBone_inner","fj_rightCheekBone_middle","fj_rightCheekBone_outer","fj_rightCheekInner_middle","fj_rightCheekInner_upper","fj_rightEye_lowerLid_inner","fj_rightEye_lowerLid_outer","fj_rightEye_upperLid_inner","fj_rightEye_upperLid_outer"]
+# Example: res:/graphics/character/male/paperdoll/head/head_generic/head_generic.pose
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# fj_chin_group:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.0240441880360078e-05, -0.0011884821262285073, -0.00041019527163853374]
+# fj_ear_wiggle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.010072854746240124, 5.4836729541331522e-05, 0.00027813925249621009]
+# fj_eyeballLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0021136588201537167, 0.00081249356269827541, -0.00066276597130350719]
+# fj_eyeballRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0021119059270239405, -0.00071770131587991061, -0.00068081533113701904]
+# fj_fang:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00095416126088338155, 7.7977324707554504e-07, 0.004736026418788359]
+# fj_foreheadLower_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00015795237814643316, -0.00022219907676985118, 0.00012129759860950883]
+# fj_foreheadLower_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00019902004428843157, 0.00018741022979957834, 0.00016785224010481769]
+# fj_foreheadLower_left:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [7.8080777041407141e-05, -0.00080814615861911853, -0.00087246381517656956]
+# fj_foreheadLower_midLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00073066845159274862, -0.00082452283620991994, -0.00070909517816533099]
+# fj_foreheadLower_midRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00070257438430274986, 0.00076515184164138272, -0.00067305243943996732]
+# fj_foreheadLower_right:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.5717009536285791e-05, 0.00079021708147014808, -0.00085069734778725698]
+# fj_leftCheekBone_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.7923710743968962e-05, -0.00051317334175136062, 0.00043710064451003562]
+# fj_leftCheekBone_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0011203382457409816, -0.00028348922729531267, 5.7977196142644519e-06]
+# fj_leftCheekBone_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0011210101795850846, -0.00024238707744848929, 0.00026831573653614884]
+# fj_leftCheekInner_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0011733663493816949, -1.9165110994876498e-05, 0.00049556059860305984]
+# fj_leftCheekInner_upper:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00065525823383296713, -0.00016413519976349545, 0.00022521519806405264]
+# fj_leftEye_lowerLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00067959490043676849, -0.00016904282408450655, -3.7969887474975651e-05]
+# fj_leftEye_lowerLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00063874246204761672, 0.00011226356125189518, 6.7094833968273093e-05]
+# fj_leftEye_upperLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00065539411889261603, 7.4694593251134482e-06, 9.6544624963179612e-05]
+# fj_leftEye_upperLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00048626073895206899, -0.00037401149288936788, -5.7612431222633376e-05]
+# fj_lip_cornerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00049364343768928617, -0.00074887298584024986, -0.00088862052288284587]
+# fj_lip_cornerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00015377273682986469, -0.00040087461471598028, -0.00011391170505856252]
+# fj_lip_lower_center:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-2.0456386480419056e-06, -0.00071262399018479528, 0.0011923980661971978]
+# fj_lip_lower_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00079423391291845837, 5.6235744813193381e-06, -0.00062967149446255808]
+# fj_lip_lower_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00084858142802417106, 2.1645302993533733e-05, -0.00062983361939640938]
+# fj_lip_upper_center:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0005094795727285373, 1.989347743793938e-05, -0.00064698277824275512]
+# fj_lip_upper_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00062808184759063576, -0.00086380094069445686, -0.00071663863998075786]
+# fj_lip_upper_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00075275100029699611, 0.00084851950186635603, -0.00094339260734411568]
+# fj_nose_left:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00048443663572157904, -0.0003844477018837633, -0.0003602726431057057]
+# fj_nose_right:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00058670837743164835, 0.00065965665192593945, -0.00053401670214734407]
+# fj_rightCheekBone_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [4.1229258901012141e-05, 0.00054299235343906237, 0.00045428680216526019]
+# fj_rightCheekBone_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0012317836920252034, 0.00029214784622165089, -0.00051329846573757722]
+# fj_rightCheekBone_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0010808593257968368, 0.00018807788848850036, 0.00027266761380513317]
+# fj_rightCheekInner_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0011679781175351423, 4.7989917207607036e-05, 0.00051391724707281481]
+# fj_rightCheekInner_upper:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00066887630764909999, 0.00014077017901088508, 0.00021342496597128501]
+# fj_rightEye_lowerLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00090493146324007508, 0.0010180281597859376, -0.00015979158378922164]
+# fj_rightEye_lowerLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-5.6822801973055448e-05, -1.7605690252135985e-05, -0.00023780644970612387]
+# fj_rightEye_upperLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00062434677785688569, 0.00013888594305214497, 0.00017542579008591018]
+# fj_rightEye_upperLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00054818158233928217, 0.00051034937930248602, -0.00018561945952933812]
+#
+# END VERBATIM RAW YAML
+# Variant 3: 1 of 4; map ["fj_chin_group","fj_chin_middle","fj_ear_wiggle","fj_eyeballLeft","fj_eyeballRight","fj_fang","fj_foreheadLower_centerLeft","fj_foreheadLower_centerRight","fj_foreheadLower_left","fj_foreheadLower_midLeft","fj_foreheadLower_midRight","fj_foreheadLower_right","fj_leftCheekInner_middle","fj_leftCheekInner_upper","fj_leftEye_lowerLid_inner","fj_leftEye_lowerLid_outer","fj_leftEye_upperLid_inner","fj_leftEye_upperLid_outer","fj_lip_cornerLeft","fj_lip_cornerRight","fj_lip_lower_center","fj_lip_lower_centerLeft","fj_lip_lower_centerRight","fj_lip_upper_center","fj_lip_upper_centerLeft","fj_lip_upper_centerRight","fj_nose_left","fj_nose_right","fj_rightCheekInner_middle","fj_rightCheekInner_upper","fj_rightEye_lowerLid_inner","fj_rightEye_lowerLid_outer","fj_rightEye_upperLid_inner","fj_rightEye_upperLid_outer","jf_leftCheekBone_inner","jf_leftCheekBone_middle","jf_leftCheekBone_outer","jf_rightCheekBone_inner","jf_rightCheekBone_middle","jf_rightCheekBone_outer"]
+# Example: res:/graphics/character/male/paperdoll/head/head_generic/v1/head_eyeimpright.pose
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# fj_chin_group:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.7010775628775732e-06, -0.0011885081144191645, -0.00041019267822635543]
+# fj_chin_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-1.9842367691971557e-06, 0.00094985956522094736, 0.00031645783584705712]
+# fj_ear_wiggle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-6.9983266294147768e-05, 0.009749030854131889, 0.0025487059474932038]
+# fj_eyeballLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00081249313117334407, 0.0018441002229644709, 0.0012271857237751505]
+# fj_eyeballRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00053347425223647881, 0.0041737749585502113, -0.0045272511901208647]
+# fj_fang:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [2.0461729944656645e-06, -5.8624237070148414e-06, -0.0012886042858235669]
+# fj_foreheadLower_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00022219896316544974, 0.00018560212477552795, -7.2290290654848375e-05]
+# fj_foreheadLower_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00024221777915937935, 0.00022235001147748789, -0.00023070555274998128]
+# fj_foreheadLower_left:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00080814838409439818, -0.00016888450199132877, 0.0008595273148355886]
+# fj_foreheadLower_midLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00082452297210709789, 0.00050335202287584476, 0.00088509487721687206]
+# fj_foreheadLower_midRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00064299106597883956, 0.00069158974812467023, 0.00028171546363218167]
+# fj_foreheadLower_right:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00085010051727278939, -0.00016882804567899256, 0.000810552137589795]
+# fj_leftCheekInner_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-1.9164085388316821e-05, -0.00098804444876662953, -0.00080380964256690393]
+# fj_leftCheekInner_upper:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00016413450241103077, -0.00056614291354549094, -0.00039939558411724365]
+# fj_leftEye_lowerLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00016904354095474529, 0.00064186087948627348, 0.00022642059669934157]
+# fj_leftEye_lowerLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00011226177215561073, 0.00063212192537207554, 0.00011416758420679685]
+# fj_leftEye_upperLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [7.4696540830965222e-06, 0.00065632193253264861, 9.0552591920456399e-05]
+# fj_leftEye_upperLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00037400960922257198, 0.00045082944048346007, 0.00019126383466897323]
+# fj_lip_cornerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00074887275695814106, -0.00072232176592990527, 0.00071522173614397384]
+# fj_lip_cornerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00084898471832262068, -0.0006793040804265615, 0.00067967184876032154]
+# fj_lip_lower_center:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-3.7472505573418606e-06, 0.00069992058454204197, 0.0016025926351512076]
+# fj_lip_lower_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00079253200616222989, 0.0011941527761774751, -0.00021947844504738968]
+# fj_lip_lower_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00079622264776843424, 0.001194457951963841, -0.00021901114454182748]
+# fj_lip_upper_center:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.8134779574855528e-06, -0.00066998493508265257, 0.00047878704305873046]
+# fj_lip_upper_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00086380124092115377, -0.00080329242981207476, 0.00051252847222556849]
+# fj_lip_upper_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00080656051635728864, -0.00099959532223607532, 0.00074964094577758547]
+# fj_nose_left:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00038444757461562283, -0.00056576145669254177, 0.00021051281026728929]
+# fj_nose_right:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0003701364994047629, -0.00051210159943309468, 0.00023818201759702616]
+# fj_rightCheekInner_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.799106597887068e-05, -0.00098792559019472031, -0.00080247566844462884]
+# fj_rightCheekInner_upper:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00016437768936143016, -0.00056638419826555259, -0.00039188063111893711]
+# fj_rightEye_lowerLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0037492513656614658, 0.0017411908267848731, -0.002847771953434304]
+# fj_rightEye_lowerLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0061307311058045903, 0.0025660224285061874, -0.0048879867807836066]
+# fj_rightEye_upperLid_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0034121179580686922, -0.0018946871822046773, -0.0036951576969002529]
+# fj_rightEye_upperLid_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0053825998306275928, -0.0007741292678366562, -0.0051174744279320807]
+# jf_leftCheekBone_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0005131733417512496, 0.00018740125979405776, -0.00040068126757475397]
+# jf_leftCheekBone_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.00028348922729507284, 0.0010772937384868442, 0.00030762074532077579]
+# jf_leftCheekBone_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-0.0002423858642579635, 0.0011513412633888721, 5.5761139042971307e-05]
+# jf_rightCheekBone_inner:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00051343321800216839, 0.00018793962222446225, -0.00040160540880059161]
+# jf_rightCheekBone_middle:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00058391332626327674, 0.0018477468940088216, -0.0012265856682278553]
+# jf_rightCheekBone_outer:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.00027591705322250527, 0.0010516479017374535, -0.00050394061354083416]
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 4 of 4
+# Identifier keys: 88 distinct string keys; examples: ["LeftHandIndex1","LeftHandIndex2","LeftHandIndex3","LeftHandIndex4","LeftHandMiddle1","LeftHandMiddle2","LeftHandMiddle3","LeftHandMiddle4","LeftHandPinky1","LeftHandPinky2","LeftHandPinky3","LeftHandPinky4"]
+# 241 of 241; kinds: map; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+<string key>:
+  # 241 of 241; kinds: sequence; lengths: 3; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+  "orientation":
+    !!python/tuple
+    # Item 0: 241 of 241; kinds: number; distinct scalar values: 31; range: -12.693023681640625 .. 3.7898483276367188; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    # Item 1: 241 of 241; kinds: number; distinct scalar values: 31; range: -180 .. 5.285401821136475; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    # Item 2: 241 of 241; kinds: number; distinct scalar values: 37; range: -3.4238157272338885 .. 7.703416824340822; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    [float, float, float]
+  # 241 of 241; kinds: sequence; lengths: 3; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+  "rotation":
+    !!python/tuple
+    # Item 0: 241 of 241; kinds: number; values: -1.7592442327668718e-14, 0, -7.951386796473776e-16, -1.411371104758025e-14, 3.1805547185895103e-15, -1.8288190108345717e-14, 3.975693398236888e-16, -1.0287106724186229e-14, -1.5902773592947552e-15, -3.379339248211523e-14, -2.8823777335740784e-15, -1.7393658941541185e-14, -1.9878467785277827e-15, -2.4748691662104978e-14, 7.951386796473776e-16, -1.669791285493008e-14, -1.1380422124151243e-14, 3.9756935570555655e-15, 4.651561389757211e-14; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    # Item 1: 241 of 241; kinds: number; values: -8.110084666009855e-15, 0, -3.1805547185895103e-15, -1.7896832087594024e-14, -6.361109437179021e-15, 1.2175560750859061e-14, 5.746119048242668e-16, 3.1805547185895103e-15, 6.361109437179021e-15, -4.572047527086429e-15, -1.1586534886371368e-14, -1.618231373554102e-14, 1.6896696876332325e-15, -6.215126696851531e-15, 4.770832183763384e-15, 5.7150591970998e-15, 180; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    # Item 2: 241 of 241; kinds: number; distinct scalar values: 37; range: -4.663985330214358e-14 .. 3.930966744605455e-14; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    [float, float, float]
+  # 241 of 241; kinds: sequence; lengths: 3; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+  "translation":
+    # Item 0: 241 of 241; kinds: number; distinct scalar values: 159; range: -0.00613073110580459 .. 0.010072854746240124; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    # Item 1: 241 of 241; kinds: number; distinct scalar values: 142; range: -0.0018946871822046773 .. 0.009749030854131889; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    # Item 2: 241 of 241; kinds: number; distinct scalar values: 136; range: -0.016802321672439575 .. 0.00768700975430324; example: res:/graphics/character/female/paperdoll/head/head_generic/head_generic.pose
+    [float, float, float]

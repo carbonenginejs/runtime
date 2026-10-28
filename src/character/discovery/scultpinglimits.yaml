@@ -1,0 +1,143 @@
+# Raw res-file shape; build 3646012.
+# Family: scultpinglimits
+# Source pattern: res:/graphics/character/global/facesetup/scultpinglimits/*
+# Files: 27
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 27 of 27; map ["gender","head","limits"]
+# Example: res:/graphics/character/global/facesetup/scultpinglimits/amarr_amarr_female_blendshape_limits.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# gender: female
+# head: amarr_amarr
+# limits:
+#   CheeksMiddle_backShape: [0, 0.33]
+#   CheeksMiddle_downShape: [0, 0.23]
+#   CheeksMiddle_forwardShape: [0, 0.26]
+#   CheeksMiddle_leftShape: [0, 0.23]
+#   CheeksMiddle_rightShape: [0, 0.35]
+#   CheeksMiddle_upShape: [0, 0.33]
+#   CheeksUpper_backShape: [0, 0.36]
+#   CheeksUpper_downShape: [0, 0.63]
+#   CheeksUpper_forwardShape: [0, 0.22]
+#   CheeksUpper_leftShape: [0, 0.31]
+#   CheeksUpper_rightShape: [0, 0.54]
+#   CheeksUpper_upShape: [0, 0.31]
+#   Chin_backShape: [0, 0.44]
+#   Chin_downShape: [0, 0.15]
+#   Chin_forwardShape: [0, 0.14]
+#   Chin_leftShape: [0, 0.25]
+#   Chin_rightShape: [0, 0.56]
+#   Chin_upShape: [0, 0.25]
+#   Ears_backShape: [0, 0.27]
+#   Ears_downShape: [0, 0.76]
+#   Ears_forwardShape: [0, 0.79]
+#   Ears_leftShape: [0, 0.88]
+#   Ears_rightShape: [0, 0.66]
+#   Ears_upShape: [0, 0.39]
+#   EyesInner_backShape: [0, 0.5]
+#   EyesInner_downShape: [0, 0.5]
+#   EyesInner_forwardShape: [0, 0.5]
+#   EyesInner_leftShape: [0, 0.5]
+#   EyesInner_rightShape: [0, 0.5]
+#   EyesInner_upShape: [0, 0.5]
+#   EyesOuter_backShape: [0, 0.18]
+#   EyesOuter_downShape: [0, 0.69]
+#   EyesOuter_forwardShape: [0, 0.48]
+#   EyesOuter_leftShape: [0, 0.27]
+#   EyesOuter_rightShape: [0, 0.5]
+#   EyesOuter_upShape: [0, 0.28]
+#   Eyes_backShape: [0, 0.33]
+#   Eyes_downShape: [0, 0.05]
+#   Eyes_forwardShape: [0, 0.25]
+#   Eyes_leftShape: [0, 0.25]
+#   Eyes_rightShape: [0, 0.19]
+#   Eyes_upShape: [0, 0.43]
+#   InnerBrow_backShape: [0, 0.41]
+#   InnerBrow_downShape: [0, 0.71]
+#   InnerBrow_forwardShape: [0, 0.65]
+#   InnerBrow_leftShape: [0, 0.5]
+#   InnerBrow_rightShape: [0, 0.5]
+#   InnerBrow_upShape: [0, 0.51]
+#   JawCheek_backShape: [0, 1.0]
+#   JawCheek_downShape: [0, 1.0]
+#   JawCheek_forwardShape: [0, 1.0]
+#   JawCheek_leftShape: [0, 0.38]
+#   JawCheek_rightShape: [0, 0.39]
+#   JawCheek_upShape: [0, 1.0]
+#   Jaw_backShape: [0, 0.52]
+#   Jaw_downShape: [0, 0.49]
+#   Jaw_forwardShape: [0, 1.0]
+#   Jaw_leftShape: [0, 0.52]
+#   Jaw_rightShape: [0, 0.25]
+#   Jaw_upShape: [0, 0.45]
+#   LowerLip_backShape: [0, 0.44]
+#   LowerLip_downShape: [0, 0.32]
+#   LowerLip_forwardShape: [0, 0.37]
+#   LowerLip_leftShape: [0, 0.5]
+#   LowerLip_rightShape: [0, 0.46]
+#   LowerLip_upShape: [0, 0.44]
+#   MouthCorner_backShape: [0, 0.27]
+#   MouthCorner_downShape: [0, 0.14]
+#   MouthCorner_forwardShape: [0, 0.27]
+#   MouthCorner_leftShape: [0, 0.24]
+#   MouthCorner_rightShape: [0, 0.33]
+#   MouthCorner_upShape: [0, 0.17]
+#   NoseBone_backShape: [0, 1.0]
+#   NoseBone_downShape: [0, 1.0]
+#   NoseBone_forwardShape: [0, 1.0]
+#   NoseBone_leftShape: [0, 1.0]
+#   NoseBone_rightShape: [0, 1.0]
+#   NoseBone_upShape: [0, 0.34]
+#   NoseTip_backShape: [0, 0.35]
+#   NoseTip_downShape: [0, 0.42]
+#   NoseTip_forwardShape: [0, 0.27]
+#   NoseTip_leftShape: [0, 0.37]
+#   NoseTip_rightShape: [0, 0.37]
+#   NoseTip_upShape: [0, 0.19]
+#   Nose_backShape: [0, 0.36]
+#   Nose_downShape: [0, 0.52]
+#   Nose_forwardShape: [0, 0.56]
+#   Nose_leftShape: [0, 0.44]
+#   Nose_rightShape: [0, 0.42]
+#   Nose_upShape: [0, 0.47]
+#   Nostrils_backShape: [0, 0.72]
+#   Nostrils_downShape: [0, 0.17]
+#   Nostrils_forwardShape: [0, 0.69]
+#   Nostrils_leftShape: [0, 0.56]
+#   Nostrils_rightShape: [0, 0.31]
+#   Nostrils_upShape: [0, 0.44]
+#   OuterBrow_backShape: [0, 0.5]
+#   OuterBrow_downShape: [0, 0.36]
+#   OuterBrow_forwardShape: [0, 0.2]
+#   OuterBrow_leftShape: [0, 0.55]
+#   OuterBrow_rightShape: [0, 0.3]
+#   OuterBrow_upShape: [0, 0.67]
+#   UpperLip_backShape: [0, 0.61]
+#   UpperLip_downShape: [0, 0.66]
+#   UpperLip_forwardShape: [0, 0.18]
+#   UpperLip_leftShape: [0, 0.5]
+#   UpperLip_rightShape: [0, 0.5]
+#   UpperLip_upShape: [0, 0.31]
+#   FatShape: [0, 1.0]
+#   ThinShape: [0, 0.75]
+#   MuscularShape: [0, 0.75]
+#   Abs_DownShape: [0, 0.3]
+#   Abs_ForwardShape: [0, 0.6]
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 27 of 27
+# 27 of 27; kinds: string; values: "female", "male"; example: res:/graphics/character/global/facesetup/scultpinglimits/amarr_amarr_female_blendshape_limits.yaml
+"gender":
+  string
+# 27 of 27; kinds: string; values: "amarr_amarr", "amarr_khanid", "amarr_nikunni", "caldari_achura", "caldari_civire", "caldari_deteis", "gallente_gallente", "gallente_intaki", "gallente_jinmei", "minmatar_brutor", "minmatar_sebiestor", "minmatar_vherokior"; example: res:/graphics/character/global/facesetup/scultpinglimits/amarr_amarr_female_blendshape_limits.yaml
+"head":
+  string
+# 27 of 27; kinds: map; example: res:/graphics/character/global/facesetup/scultpinglimits/amarr_amarr_female_blendshape_limits.yaml
+"limits":
+  # Identifier keys: 119 distinct string keys; examples: ["CheeksMiddle_backShape","CheeksMiddle_downShape","CheeksMiddle_forwardShape","CheeksMiddle_leftShape","CheeksMiddle_rightShape","CheeksMiddle_upShape","CheeksUpper_backShape","CheeksUpper_downShape","CheeksUpper_forwardShape","CheeksUpper_leftShape","CheeksUpper_rightShape","CheeksUpper_upShape"]
+  # 3051 of 3051; kinds: sequence; lengths: 2; example: res:/graphics/character/global/facesetup/scultpinglimits/amarr_amarr_female_blendshape_limits.yaml
+  <string key>:
+    # Item 0: 3051 of 3051; kinds: number; values: 0; example: res:/graphics/character/global/facesetup/scultpinglimits/amarr_amarr_female_blendshape_limits.yaml
+    # Item 1: 3051 of 3051; kinds: number; distinct scalar values: 80; range: 0.05 .. 1; example: res:/graphics/character/global/facesetup/scultpinglimits/amarr_amarr_female_blendshape_limits.yaml
+    [int, float]

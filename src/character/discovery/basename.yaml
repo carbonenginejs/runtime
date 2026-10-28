@@ -1,0 +1,59 @@
+# Raw res-file shape; build 3646012.
+# Family: basename
+# Source pattern: res:/graphics/character/global/paperdolllibrary/posts/*
+# Files: 1
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 1 of 1; string
+# Example: res:/graphics/character/global/paperdolllibrary/posts/basename
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# ./ENV_GrayOverbright.dds
+# ./ENV_GreyBrown.dds
+# ./ENV_GreyRed.dds
+# ./ENV_HighContrast.dds
+# ./ENV_HighContrastBlue.dds
+# ./ENV_MutedBlueAndPink.dds
+# ./ENV_MutedBrown.dds
+# ./ENV_MutedGreen2.dds
+# ./env_mutedgrey.dds
+# ./ENV_Orange.dds
+# ./env_pinkdelight.dds
+# ./ENV_Purple.dds
+# ./env_red.dds
+# ./LUTdefault.dds
+# ./NCC_bluegreen.dds
+# ./NCC_BR_blue.dds
+# ./NCC_BR_green.dds
+# ./NCC_BR_red.dds
+# ./NCC_bwcontrast.dds
+# ./NCC_bwhighkey.dds
+# ./NCC_bwlowkey.dds
+# ./NCC_cold.dds
+# ./NCC_crossblue.dds
+# ./NCC_cyan.dds
+# ./NCC_darkcyan.dds
+# ./NCC_green.dds
+# ./NCC_greenorange.dds
+# ./NCC_highblue.dds
+# ./NCC_highcontrast.dds
+# ./NCC_highkey.dds
+# ./NCC_lowcontrast.dds
+# ./NCC_lowkey.dds
+# ./NCC_lowsaturation.dds
+# ./NCC_normal.dds
+# ./NCC_orange.dds
+# ./NCC_portrait.dds
+# ./NCC_red.dds
+# ./NCC_redgreen.dds
+# ./NCC_redyellow.dds
+# ./NCC_sepia.dds
+# ./NCC_Sin.dds
+# ./NCC_vintage.dds
+# ./NCC_warm.dds
+# ./sanshaInfestLUT64.dds
+# ./TheraLUT64.dds
+#
+# END VERBATIM RAW YAML
+# Root variant: string ; 1 of 1
+string

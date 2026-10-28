@@ -1,0 +1,44 @@
+# Raw res-file shape; build 3646012.
+# Family: type
+# Source pattern: res:/graphics/character/*
+# Files: 2296
+# Variable shape: 2 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Authored tag: !!python/tuple
+# Variant 1: 2079 of 2296; sequence length 3
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/types/jewelryforehead_01.type
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# !!python/tuple
+# - accessories/brow/jewelryforehead_01
+# - ''
+# - ''
+#
+# END VERBATIM RAW YAML
+# Variant 2: 217 of 2296; sequence length 4
+# Example: res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/types/eyeimpf01_right_ep.type
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# !!python/tuple
+# - accessories/glasses/eyeimp01
+# - ''
+# - ep
+# - []
+#
+# END VERBATIM RAW YAML
+# Root variant: sequence !!python/tuple; 2296 of 2296
+!!python/tuple
+# Item 0: 2296 of 2296; kinds: string; distinct scalar values: 553; example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/types/jewelryforehead_01.type
+-
+  string
+# Item 1: 2296 of 2296; kinds: string; distinct scalar values: 38; example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/types/jewelryforehead_01.type
+-
+  string
+# Item 2: 2296 of 2296; kinds: string; distinct scalar values: 295; example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/types/jewelryforehead_01.type
+# (sampled 1415) → <name>.color in the part folder; verified 1415 of 1418 nonempty authored values
+-
+  string
+# Item 3: 217 of 2296; kinds: sequence; lengths: 0, 9; example: res:/graphics/character/female/paperdoll/accessories/glasses/eyeimp01/types/eyeimpf01_right_ep.type
+-
+  # Repeated item: 126 of 126; kinds: number; values: 5, 6, 13, 1, 2, 11, 7, 8, 12; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/types/tattooelabm_ld_01.type
+  -
+    int

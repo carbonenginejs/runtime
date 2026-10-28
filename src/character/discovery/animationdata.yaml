@@ -1,0 +1,65 @@
+# Raw res-file shape; build 3646012.
+# Family: animationdata
+# Source pattern: res:/graphics/character/global/facesetup/*
+# Files: 1
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 1 of 1; map ["amarr_amarr","amarr_khanid","amarr_nikunni","caldari_achura","caldari_civire","caldari_deteis","gallente_gallente","gallente_intaki","gallente_jinmei","jove_drifter","minmatar_brutor","minmatar_sebiestor","minmatar_vherokior"]
+# Example: res:/graphics/character/global/facesetup/animationdata.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# amarr_amarr:
+#   female: {BlinkMult: 0.7}
+#   male: {BlinkMult: 0.8}
+# amarr_khanid:
+#   female: {BlinkMult: 1.0}
+#   male: {BlinkMult: 0.5}
+# amarr_nikunni:
+#   female: {BlinkMult: 0.78}
+#   male: {BlinkMult: 0.9}
+# caldari_achura:
+#   female: {BlinkMult: 0.75}
+#   male: {BlinkMult: 0.6}
+# caldari_civire:
+#   female: {BlinkMult: 0.8}
+#   male: {BlinkMult: 0.65}
+# caldari_deteis:
+#   female: {BlinkMult: 1.0}
+#   male: {BlinkMult: 0.65}
+# gallente_gallente:
+#   female: {BlinkMult: 0.73}
+#   male: {BlinkMult: 0.73}
+# gallente_intaki:
+#   female: {BlinkMult: 0.95}
+#   male: {BlinkMult: 0.75}
+# gallente_jinmei:
+#   female: {BlinkMult: 0.84}
+#   male: {BlinkMult: 0.75}
+# minmatar_brutor:
+#   female: {BlinkMult: 0.84}
+#   male: {BlinkMult: 0.65}
+# minmatar_sebiestor:
+#   female: {BlinkMult: 0.85}
+#   male: {BlinkMult: 0.75}
+# minmatar_vherokior:
+#   female: {BlinkMult: 0.5}
+#   male: {BlinkMult: 0.52}
+# jove_drifter:
+#   female: {BlinkMult: 1.0}
+#   male: {BlinkMult: 0.65}
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 1 of 1
+# Identifier keys: 13 distinct string keys; all: ["amarr_amarr","amarr_khanid","amarr_nikunni","caldari_achura","caldari_civire","caldari_deteis","gallente_gallente","gallente_intaki","gallente_jinmei","minmatar_brutor","minmatar_sebiestor","minmatar_vherokior","jove_drifter"]
+# 13 of 13; kinds: map; example: res:/graphics/character/global/facesetup/animationdata.yaml
+<string key>:
+  # 13 of 13; kinds: map; example: res:/graphics/character/global/facesetup/animationdata.yaml
+  "female":
+    # 13 of 13; kinds: number; values: 0.7, 1, 0.78, 0.75, 0.8, 0.73, 0.95, 0.84, 0.85, 0.5; example: res:/graphics/character/global/facesetup/animationdata.yaml
+    "BlinkMult":
+      float
+  # 13 of 13; kinds: map; example: res:/graphics/character/global/facesetup/animationdata.yaml
+  "male":
+    # 13 of 13; kinds: number; values: 0.8, 0.5, 0.9, 0.6, 0.65, 0.73, 0.75, 0.52; example: res:/graphics/character/global/facesetup/animationdata.yaml
+    "BlinkMult":
+      float

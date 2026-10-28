@@ -1,0 +1,93 @@
+# Raw res-file shape; build 3646012.
+# Family: info
+# Source pattern: res:/graphics/character/*
+# Files: 2
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 2 of 2; map ["Materials"]
+# Example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# Materials:
+#   C_S2_AugmentationSuitF01:
+#     Attributes:
+#       ambientColor:
+#       - !!python/tuple [0.0, 0.0, 0.0]
+#       color:
+#       - !!python/tuple [0.5, 0.5, 0.5]
+#       incandescence:
+#       - !!python/tuple [0.0, 0.0, 0.0]
+#       transparency:
+#       - !!python/tuple [0.0, 0.0, 0.0]
+#     Textures: {}
+#   C_SkinShiny_Body:
+#     Attributes:
+#       ambientColor:
+#       - !!python/tuple [0.10000000149011612, 0.10000000149011612, 0.10000000149011612]
+#       color:
+#       - !!python/tuple [1.0, 1.0, 1.0]
+#       incandescence:
+#       - !!python/tuple [0.0, 0.0, 0.0]
+#       transparency:
+#       - !!python/tuple [0.0, 0.0, 0.0]
+#     Textures: {}
+#   lambert1:
+#     Attributes:
+#       ambientColor:
+#       - !!python/tuple [0.0, 0.0, 0.0]
+#       color:
+#       - !!python/tuple [0.5, 0.5, 0.5]
+#       incandescence:
+#       - !!python/tuple [0.0, 0.0, 0.0]
+#       transparency:
+#       - !!python/tuple [0.0, 0.0, 0.0]
+#     Textures: {}
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 2 of 2
+# 2 of 2; kinds: map; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+"Materials":
+  # Identifier keys: 5 distinct string keys; all: ["C_S2_AugmentationSuitF01","C_SkinShiny_Body","lambert1","C_S2_AugSuitM01","C_S2_AugmentationSuitM01"]
+  # 7 of 7; kinds: map; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+  <string key>:
+    # 7 of 7; kinds: map; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+    "Attributes":
+      # 7 of 7; kinds: sequence; lengths: 1; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+      "ambientColor":
+        # Item 0: 7 of 7; kinds: sequence; lengths: 3; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+        -
+          !!python/tuple
+          # Item 0: 7 of 7; kinds: number; values: 0, 0.10000000149011612; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          # Item 1: 7 of 7; kinds: number; values: 0, 0.10000000149011612; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          # Item 2: 7 of 7; kinds: number; values: 0, 0.10000000149011612; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          [float, float, float]
+      # 7 of 7; kinds: sequence; lengths: 1; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+      "color":
+        # Item 0: 7 of 7; kinds: sequence; lengths: 3; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+        -
+          !!python/tuple
+          # Item 0: 7 of 7; kinds: number; values: 0.5, 1, 0, 0.3409999907016754; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          # Item 1: 7 of 7; kinds: number; values: 0.5, 1, 0, 0.3409999907016754; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          # Item 2: 7 of 7; kinds: number; values: 0.5, 1, 0, 0.3409999907016754; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          [float, float, float]
+      # 7 of 7; kinds: sequence; lengths: 1; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+      "incandescence":
+        # Item 0: 7 of 7; kinds: sequence; lengths: 3; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+        -
+          !!python/tuple
+          # Item 0: 7 of 7; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          # Item 1: 7 of 7; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          # Item 2: 7 of 7; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          [float, float, float]
+      # 7 of 7; kinds: sequence; lengths: 1; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+      "transparency":
+        # Item 0: 7 of 7; kinds: sequence; lengths: 3; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+        -
+          !!python/tuple
+          # Item 0: 7 of 7; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          # Item 1: 7 of 7; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          # Item 2: 7 of 7; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+          [float, float, float]
+    # 7 of 7; kinds: map; example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/augmentationsuitf01.info
+    "Textures":
+      {}

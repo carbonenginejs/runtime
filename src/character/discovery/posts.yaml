@@ -1,0 +1,34 @@
+# Raw res-file shape; build 3646012.
+# Family: posts
+# Source pattern: res:/graphics/character/global/paperdolllibrary/posts/*
+# Files: 54
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 54 of 54; map ["lut","lut_influence","lut_path"]
+# Example: res:/graphics/character/global/paperdolllibrary/posts/air_balin_ship.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# lut: true
+# lut_influence: !!python/tuple
+# - 0.1875
+# - 1.0
+# - 1.0
+# - 1.0
+# lut_path: !!python/unicode 'res:/Graphics/Character/Global/PaperdollLibrary/Posts/NCC_BR_green.dds'
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 54 of 54
+# 54 of 54; kinds: boolean; values: true; example: res:/graphics/character/global/paperdolllibrary/posts/air_balin_ship.yaml
+"lut":
+  bool
+# 54 of 54; kinds: sequence; lengths: 4; example: res:/graphics/character/global/paperdolllibrary/posts/air_balin_ship.yaml
+"lut_influence":
+  !!python/tuple
+  # Item 0: 54 of 54; kinds: number; values: 0.1875, 0.2734375, 1, 10, 1.5, 3.5, 50; example: res:/graphics/character/global/paperdolllibrary/posts/air_balin_ship.yaml
+  # Item 1: 54 of 54; kinds: number; values: 1, 10, 1.5, 3.5, 50; example: res:/graphics/character/global/paperdolllibrary/posts/air_balin_ship.yaml
+  # Item 2: 54 of 54; kinds: number; values: 1, 10, 1.5, 3.5, 50; example: res:/graphics/character/global/paperdolllibrary/posts/air_balin_ship.yaml
+  # Item 3: 54 of 54; kinds: number; values: 1, 10, 1.5, 3.5, 50; example: res:/graphics/character/global/paperdolllibrary/posts/air_balin_ship.yaml
+  [float, float, float, float]
+# 54 of 54; kinds: string; distinct scalar values: 49; example: res:/graphics/character/global/paperdolllibrary/posts/air_balin_ship.yaml
+"lut_path":
+  string

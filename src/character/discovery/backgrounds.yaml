@@ -1,0 +1,36 @@
+# Raw res-file shape; build 3646012.
+# Family: backgrounds
+# Source pattern: res:/graphics/character/global/paperdolllibrary/backgrounds/*
+# Files: 132
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 132 of 132; map ["aspect_ratio","offset","path","scale"]
+# Example: res:/graphics/character/global/paperdolllibrary/backgrounds/a chs mockup amarr.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# aspect_ratio: 0.6127527216174183
+# offset: !!python/tuple
+# - 0
+# - 0
+# path: !!python/unicode 'res:/graphics/character/global/paperdolllibrary/backgrounds/a
+#   chs mockup amarr.png'
+# scale: 1
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 132 of 132
+# 132 of 132; kinds: number; values: 0.6127527216174183, 1.6, 1.8325, 1.7804651162790697, 2.3916666666666666, 2.3958333333333335, 2.388333333333333, 2.3825, 1.8604651162790697, 1, 1.855072463768116, 1.791044776119403, 2.0317460317460316, 2.054603854389722, 2.0225, 1.8614634146341464, 1.4543147208121827, 0.75; example: res:/graphics/character/global/paperdolllibrary/backgrounds/a chs mockup amarr.yaml
+"aspect_ratio":
+  float|int
+# 132 of 132; kinds: sequence; lengths: 2; example: res:/graphics/character/global/paperdolllibrary/backgrounds/a chs mockup amarr.yaml
+"offset":
+  !!python/tuple
+  # Item 0: 132 of 132; kinds: number; values: 0; example: res:/graphics/character/global/paperdolllibrary/backgrounds/a chs mockup amarr.yaml
+  # Item 1: 132 of 132; kinds: number; values: 0; example: res:/graphics/character/global/paperdolllibrary/backgrounds/a chs mockup amarr.yaml
+  [int, int]
+# 132 of 132; kinds: string; distinct scalar values: 132; example: res:/graphics/character/global/paperdolllibrary/backgrounds/a chs mockup amarr.yaml
+# (sampled 16) → res:/graphics/character/global/paperdolllibrary/backgrounds/*; verified 16 of 21 authored res paths in current index
+"path":
+  !!python/unicode string
+# 132 of 132; kinds: number; values: 1, 0.89, 1.01; example: res:/graphics/character/global/paperdolllibrary/backgrounds/a chs mockup amarr.yaml
+"scale":
+  int|float

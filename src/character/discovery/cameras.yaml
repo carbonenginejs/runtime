@@ -1,0 +1,143 @@
+# Raw res-file shape; build 3646012.
+# Family: cameras
+# Source pattern: res:/graphics/character/global/paperdolllibrary/cameras/*
+# Files: 22
+# Variable shape: 2 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 15 of 22; sequence length 6
+# Example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# - !!python/tuple
+#   - -0.2872055172920227
+#   - 1.6619285345077515
+#   - 1.464550256729126
+# - !!python/tuple
+#   - -0.0
+#   - 1.62
+#   - 0.0
+# - 0.3
+# - 0.1
+# - 200.0
+# - !!python/tuple
+#   - ''
+#   - ''
+#   - ''
+#   - ''
+#   - ''
+#
+# END VERBATIM RAW YAML
+# Variant 2: 7 of 22; map ["aspect_ratio","back_clip","field_of_view","front_clip","hook_names","point_of_interest","position","transform_hook_scale","viewport_size"]
+# Example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# aspect_ratio: 1.452247142791748
+# back_clip: 200.0
+# field_of_view: 0.3
+# front_clip: 0.1
+# hook_names:
+#   fov: ''
+#   name: ''
+#   target: ''
+#   transform: ''
+#   translation: ''
+# point_of_interest: !!python/tuple
+# - 0.012048397213220596
+# - 0.8815638422966003
+# - -0.030115211382508278
+# position: !!python/tuple
+# - -0.5385662317276001
+# - 0.8596316576004028
+# - 6.883656978607178
+# transform_hook_scale: 1.0
+# viewport_size: !!python/tuple
+# - 1034
+# - 712
+#
+# END VERBATIM RAW YAML
+# Root variant: sequence ; 15 of 22
+# Item 0: 15 of 15; kinds: sequence; lengths: 3; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+-
+  !!python/tuple
+  # Item 0: 15 of 15; kinds: number; values: -0.2872055172920227, 0.004864225164055824, 0, -1.8514782190322876, -0.05368763580918312, 1.7059236764907837, -0.035124942660331726, -0.009076271206140518, -0.8832597136497498, -1.4485880136489868, 0.0022968188859522343, 1.3667818307876587, 1.6479415893554688, 1.4661471843719482, 0.0025577573105692863; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  # Item 1: 15 of 15; kinds: number; values: 1.6619285345077515, 1.618359088897705, 1.7189197540283203, 1.5081431865692139, 0.4124043583869934, 1.5658652782440186, 1.6373733282089233, 1.6582722663879395, 2.666625499725342, 1.6062086820602417, 0.8797804117202759, 2.9200925827026367, 1.8204095363616943, 1.694048285484314, 2.4426486492156982; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  # Item 2: 15 of 15; kinds: number; values: 1.464550256729126, 3.3240835666656494, 1.0955431461334229, 2.7275567054748535, 3.0586791038513184, -0.6950460076332092, 0.538352906703949, 0.32851171493530273, 8.928526878356934, 0.36131566762924194, 0.8137186169624329, -2.3707172870635986, -2.9268157482147217, 0.27222880721092224, 9.392965316772461; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  [float, float, float]
+# Item 1: 15 of 15; kinds: sequence; lengths: 3; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+-
+  !!python/tuple
+  # Item 0: 15 of 15; kinds: number; values: -0, 0.004864225164055824, 0.021354490891098976, 0.03238248825073242, -0.2988485097885132, 0.02567318081855774, 0.0370185449719429, -0.8266883492469788, 0.0022968188859522343, 0.06176363676786423; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  # Item 1: 15 of 15; kinds: number; values: 1.62, 1.3206582069396973, 1.4947402477264404, 1.5872185230255127, 1.5316106081008911, 1.5657750368118286, 1.6045392751693726, 1.299337387084961, 1.6259989738464355, 1.0116934776306152; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  # Item 2: 15 of 15; kinds: number; values: 0, 0.027028314769268036, -0.0021391490008682013, -0.011634894646704197, 0.13185596466064453, -0.4572259783744812, -0.4593210816383362, 0.02447710931301117, 0.005539986304938793, 0.07429218292236328; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  [float, float, float]
+# Item 2: 15 of 15; kinds: number; values: 0.3; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+-
+  float
+# Item 3: 15 of 15; kinds: number; values: 0.1; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+-
+  float
+# Item 4: 15 of 15; kinds: number; values: 200; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+-
+  float
+# Item 5: 15 of 15; kinds: sequence; lengths: 5; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+-
+  !!python/tuple
+  # Item 0: 15 of 15; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  # Item 1: 15 of 15; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  # Item 2: 15 of 15; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  # Item 3: 15 of 15; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  # Item 4: 15 of 15; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/close-up (cu).yaml
+  [string, string, string, string, string]
+---
+# Root variant: map ; 7 of 22
+# 7 of 7; kinds: number; values: 1.452247142791748, 1.2859351634979248, 0.7478166222572327, 0.7860962748527527, 0.7486279010772705; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"aspect_ratio":
+  float
+# 7 of 7; kinds: number; values: 200; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"back_clip":
+  float
+# 7 of 7; kinds: number; values: 0.3, 0.2, 0.09; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"field_of_view":
+  float
+# 7 of 7; kinds: number; values: 0.1; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"front_clip":
+  float
+# 7 of 7; kinds: map; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"hook_names":
+  # 7 of 7; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  "fov":
+    string
+  # 7 of 7; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  "name":
+    string
+  # 7 of 7; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  "target":
+    string
+  # 7 of 7; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  "transform":
+    string
+  # 7 of 7; kinds: string; values: ""; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  "translation":
+    string
+# 7 of 7; kinds: sequence; lengths: 3; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"point_of_interest":
+  !!python/tuple
+  # Item 0: 7 of 7; kinds: number; values: 0.012048397213220596, 0.011998310685157776, 0.00695415772497654, 0.0007885844097472727, -0.01654062792658806, -0.010607576929032803, -0.01620514877140522; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  # Item 1: 7 of 7; kinds: number; values: 0.8815638422966003, 1.2684773206710815, 1.6026540994644165, 1.392952799797058, 1.346962809562683, 1.7373597621917725, 1.4862028360366821; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  # Item 2: 7 of 7; kinds: number; values: -0.030115211382508278, -0.020278582349419594, -0.005028142128139734, -0.015005620196461678, -0.01789170503616333, 0.00044082762906327844, -0.01143095176666975; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  [float, float, float]
+# 7 of 7; kinds: sequence; lengths: 3; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"position":
+  !!python/tuple
+  # Item 0: 7 of 7; kinds: number; values: -0.5385662317276001, -0.24811527132987976, -0.16262158751487732, -0.1687871813774109, -0.2904092073440552, -0.18010525405406952, -0.20372557640075684; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  # Item 1: 7 of 7; kinds: number; values: 0.8596316576004028, 0.9928082823753357, 1.4229384660720825, 1.2132371664047241, 1.0567173957824707, 1.5577263832092285, 1.2874689102172852; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  # Item 2: 7 of 7; kinds: number; values: 6.883656978607178, 5.934291362762451, 3.8769285678863525, 3.8669488430023193, 6.25154972076416, 3.8806169033050537, 4.281312465667725; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  [float, float, float]
+# 7 of 7; kinds: number; values: 1; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"transform_hook_scale":
+  float
+# 7 of 7; kinds: sequence; lengths: 2; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+"viewport_size":
+  !!python/tuple
+  # Item 0: 7 of 7; kinds: number; values: 1034, 832, 685, 441, 682; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  # Item 1: 7 of 7; kinds: number; values: 712, 647, 916, 561, 911; example: res:/graphics/character/global/paperdolllibrary/cameras/default full body.yaml
+  [int, int]

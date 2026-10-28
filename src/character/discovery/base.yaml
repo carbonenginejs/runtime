@@ -1,0 +1,21 @@
+# Raw res-file shape; build 3646012.
+# Family: base
+# Source pattern: res:/graphics/character/*
+# Files: 16
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Authored tag: !!python/tuple
+# Variant 1: 16 of 16; sequence length 4
+# Example: res:/graphics/character/female/paperdoll/hair/colors/basecolor.base
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# !!python/tuple [0.705882, 0.639216, 0.572549, 1]
+#
+# END VERBATIM RAW YAML
+# Root variant: sequence !!python/tuple; 16 of 16
+!!python/tuple
+# Item 0: 16 of 16; kinds: number; values: 0.705882, 0.584314, 0.729412, 0.505882, 0.760784, 0.7; example: res:/graphics/character/female/paperdoll/hair/colors/basecolor.base
+# Item 1: 16 of 16; kinds: number; values: 0.639216, 0.466667, 0.603922, 0.341176, 0.6, 0.7; example: res:/graphics/character/female/paperdoll/hair/colors/basecolor.base
+# Item 2: 16 of 16; kinds: number; values: 0.572549, 0.384314, 0.54902, 0.254902, 0.513725, 0.7; example: res:/graphics/character/female/paperdoll/hair/colors/basecolor.base
+# Item 3: 16 of 16; kinds: number; values: 1; example: res:/graphics/character/female/paperdoll/hair/colors/basecolor.base
+[float, float, float, int]

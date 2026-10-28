@@ -1,0 +1,604 @@
+# Raw res-file shape; build 3646012.
+# Family: basemalebindpose
+# Source pattern: res:/graphics/character/global/facesetup/*
+# Files: 1
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 1 of 1; map ["Head","Head_End","Hips","LeftArm","LeftArm_Roll1","LeftFoot","LeftFoot_End","LeftForeArm","LeftForeArm_Roll1","LeftForeArm_Roll2","LeftHand","LeftHandIndex1","LeftHandIndex2","LeftHandIndex3","LeftHandIndex4","LeftHandMiddle1","LeftHandMiddle2","LeftHandMiddle3","LeftHandMiddle4","LeftHandPinky1","LeftHandPinky2","LeftHandPinky3","LeftHandPinky4","LeftHandRing1","LeftHandRing2","LeftHandRing3","LeftHandRing4","LeftHandThumb1","LeftHandThumb2","LeftHandThumb3","LeftHandThumb4","LeftHand_End","LeftHand_Slot1_LeftWeaponType1","LeftHand_Slot2_LeftWeaponType2","LeftHand_Slot3_RightWeaponType1","LeftHand_Slot4_RightWeaponType2","LeftLeg","LeftLung","LeftShoulder","LeftToeBase","LeftToeBase_End","LeftUpLeg","LeftUpLeg_Roll1","Neck","Neck1","PelvisRoot","RightArm","RightArm_Roll1","RightFoot","RightFoot_End","RightForeArm","RightForeArm_Roll1","RightForeArm_Roll2","RightHand","RightHandIndex1","RightHandIndex2","RightHandIndex3","RightHandIndex4","RightHandMiddle1","RightHandMiddle2","RightHandMiddle3","RightHandMiddle4","RightHandPinky1","RightHandPinky2","RightHandPinky3","RightHandPinky4","RightHandRing1","RightHandRing2","RightHandRing3","RightHandRing4","RightHandThumb1","RightHandThumb2","RightHandThumb3","RightHandThumb4","RightHand_End","RightHand_Slot1_RightWeaponType1","RightHand_Slot2_RightWeaponType2","RightHand_Slot3_LeftWeaponType1","RightHand_Slot4_LeftWeaponType2","RightLeg","RightLung","RightShoulder","RightToeBase","RightToeBase_End","RightUpLeg","RightUpLeg_Roll1","Root","Root_Slot1_LeftWeaponType2","Root_Slot1_RightWeaponType2","Root_Slot2_LeftWeaponType3","Root_Slot2_RightWeaponType3","Spine","Spine1","Spine2","Spine3","SpineRoot","Trajectory","Trajectory_sync","fj_chin_group","fj_ear_wiggle","fj_eyeballLeft","fj_eyeballRight","fj_fang","fj_foreheadLower_centerLeft","fj_foreheadLower_centerRight","fj_foreheadLower_left","fj_foreheadLower_midLeft","fj_foreheadLower_midRight","fj_foreheadLower_right","fj_jaw","fj_leftCheekBone_inner","fj_leftCheekBone_middle","fj_leftCheekBone_outer","fj_leftCheekInner_middle","fj_leftCheekInner_upper","fj_leftEye_lowerLid_inner","fj_leftEye_lowerLid_outer","fj_leftEye_upperLid_inner","fj_leftEye_upperLid_outer","fj_lip_cornerLeft","fj_lip_cornerRight","fj_lip_lower_center","fj_lip_lower_centerLeft","fj_lip_lower_centerRight","fj_lip_upper_center","fj_lip_upper_centerLeft","fj_lip_upper_centerRight","fj_nose_left","fj_nose_right","fj_rightCheekBone_inner","fj_rightCheekBone_middle","fj_rightCheekBone_outer","fj_rightCheekInner_middle","fj_rightCheekInner_upper","fj_rightEye_lowerLid_inner","fj_rightEye_lowerLid_outer","fj_rightEye_upperLid_inner","fj_rightEye_upperLid_outer","fj_tongueBase","fj_tongue_1","fj_tongue_2","fj_tongue_End"]
+# Example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# Head:
+#   orientation: !!python/tuple [0.0, 14.156821250915531, 0.0]
+#   rotation: !!python/tuple [-8.3967385846468473e-29, 0.0, 6.8406128285243454e-28]
+#   translation: [4.7075052261352539, 2.7096247816464126e-16, -5.0503352611031005e-08]
+# Head_End:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [18.0, 8.6667924119115339e-16, -5.3290705182007514e-15]
+# Hips:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0, 102.89920043945312, 1.6802321672439575]
+# LeftArm:
+#   orientation: !!python/tuple [-3.7683105468750013, 31.580741882324226, -8.4612874984741318]
+#   rotation: !!python/tuple [1.2004694838196883e-07, 3.9341264823633537e-07, -2.7858305884365109e-07]
+#   translation: [15.516007423400879, 1.2434497875801753e-14, -2.8421709430404007e-14]
+# LeftArm_Roll1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-2.5769980993572972e-07, 0.0, 0.0]
+#   translation: [6.5409679412841797, 3.5527136788005009e-15, 0.0]
+# LeftFoot:
+#   orientation: !!python/tuple [-0.15511946380138397, -1.8930075168609632, 6.7657327651977566]
+#   rotation: !!python/tuple [-0.006957158911973238, 0.00069687073118984699, 0.00022765857283957305]
+#   translation: [47.368263244628906, -8.8817841970012523e-15, 8.8817841970012523e-15]
+# LeftFoot_End:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [8.4805545806884766, 0.0, 0.0]
+# LeftForeArm:
+#   orientation: !!python/tuple [1.6942593674684773e-06, 1.4054817256692338e-06, -45.298519134521491]
+#   rotation: !!python/tuple [0.0, 0.0, 1.4851055498213417e-12]
+#   translation: [26.163871765136719, -2.3447910280083306e-12, 8.8107299234252423e-13]
+# LeftForeArm_Roll1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [6.0819388636446092e-07, 0.0, 0.0]
+#   translation: [19.336137771606445, 0.0, 0.0]
+# LeftForeArm_Roll2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [2.2807270738667287e-07, 0.0, 0.0]
+#   translation: [12.89075756072998, -7.1054273576010019e-15, 0.0]
+# LeftHand:
+#   orientation: !!python/tuple [9.1112976074218714, 2.4799075126647976, -1.0674808025360119]
+#   rotation: !!python/tuple [3.4697509931902459e-07, -1.8286210661244695e-06, 2.9193623163337179e-07]
+#   translation: [25.781515121459961, -3.5527136788005009e-14, 7.9580786405131221e-13]
+# LeftHandIndex1:
+#   orientation: !!python/tuple [94.826728820800852, 0.099072419106958867, 5.0228114128112793]
+#   rotation: !!python/tuple [-0.0087008392438292503, 0.0083295349031686783, 0.098729461431503296]
+#   translation: [8.7595815658569336, -3.1104109287261963, 1.2447134256362915]
+# LeftHandIndex2:
+#   orientation: !!python/tuple [0.0, -1.2549008943096851e-06, -6.6469202041626012]
+#   rotation: !!python/tuple [0.0, 0.0, 5.2455556565078609e-10]
+#   translation: [3.8496499061584473, 1.3926637620897964e-11, -3.1121771826292388e-12]
+# LeftHandIndex3:
+#   orientation: !!python/tuple [-5.9242447492918341e-24, -1.5476122143809341e-06, -2.8321030139923096]
+#   rotation: !!python/tuple [0.0, 0.0, -4.2067002659074154e-10]
+#   translation: [2.5925874710083008, 1.3841372492606752e-11, 5.1741583462217022e-08]
+# LeftHandIndex4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-3.506138170905615e-07, 3.75166359845025e-06, 5.9954846642895632e-10]
+#   translation: [2.4051272869110107, 8.3844042819691822e-12, 1.591483567153773e-07]
+# LeftHandMiddle1:
+#   orientation: !!python/tuple [86.989303588867188, 2.435722589492797, 1.9819844961166377]
+#   rotation: !!python/tuple [3.8804117252766446e-08, 2.6035742450858379e-08, -4.156458999204915e-08]
+#   translation: [8.7535696029663086, -0.78352940082550049, 1.2000135183334351]
+# LeftHandMiddle2:
+#   orientation: !!python/tuple [-1.2863065421697688e-06, -0.0, -5.9044566154480007]
+#   rotation: !!python/tuple [0.0, 0.0, 4.9786036404597667e-10]
+#   translation: [4.3921298980712891, 1.6228796084760688e-11, -1.4424017535930034e-12]
+# LeftHandMiddle3:
+#   orientation: !!python/tuple [0.0, 0.0, -2.681216478347793]
+#   rotation: !!python/tuple [0.0, 0.0, -4.2757020146666486e-10]
+#   translation: [2.8162155151367187, 1.5205614545266144e-11, 2.9148409907975292e-08]
+# LeftHandMiddle4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [2.3005970888334559e-06, 2.6661609808797948e-06, 6.2874416784097775e-10]
+#   translation: [2.7494542598724365, 9.6349594969069585e-12, 1.1873729022227053e-07]
+# LeftHandPinky1:
+#   orientation: !!python/tuple [74.700149536132784, -1.2694429159164426, 0.1051775589585302]
+#   rotation: !!python/tuple [4.8258645080068163e-08, -5.6838920237112234e-09, 2.695009548858707e-08]
+#   translation: [7.4630494117736816, 3.1672923564910889, -0.037782713770866394]
+# LeftHandPinky2:
+#   orientation: !!python/tuple [0.0, -1.4495155937765964e-06, -6.4795155525207555]
+#   rotation: !!python/tuple [0.0, 0.0, 5.362897348426543e-10]
+#   translation: [3.9599902629852295, 1.4566126083082054e-11, 1.7763568394002505e-12]
+# LeftHandPinky3:
+#   orientation: !!python/tuple [0.0, -1.4461535329246553e-06, -8.0251722335815359]
+#   rotation: !!python/tuple [0.0, 0.0, -4.3308318042889482e-10]
+#   translation: [2.0951919555664062, 1.1425527191022411e-11, 4.8484018577710231e-08]
+# LeftHandPinky4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [1.5011705727374647e-06, 4.6442396524071228e-06, 6.1555344155195257e-10]
+#   translation: [2.0012302398681641, 6.7075234255753458e-12, 1.5463697877748928e-07]
+# LeftHandRing1:
+#   orientation: !!python/tuple [83.126998901367145, 2.209324121475218, 0.2375419288873665]
+#   rotation: !!python/tuple [5.8496112615102902e-05, -0.2356550395488739, -0.028443055227398869]
+#   translation: [8.2129592895507812, 1.2605581283569336, 0.79281944036483765]
+# LeftHandRing2:
+#   orientation: !!python/tuple [0.0, 0.0, -6.0264234542846706]
+#   rotation: !!python/tuple [0.0, 0.0, 5.1314114069000993e-10]
+#   translation: [4.5412158966064453, 1.6655121726216748e-11, -3.5527136788005009e-13]
+# LeftHandRing3:
+#   orientation: !!python/tuple [0.0, 0.0, -5.3531045913696289]
+#   rotation: !!python/tuple [0.0, 0.0, -4.4156592271527012e-10]
+#   translation: [2.5582089424133301, 1.3841372492606752e-11, -4.6512823814737203e-08]
+# LeftHandRing4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [1.8771661416394636e-06, -2.919066218964872e-06, 6.3060667798708891e-10]
+#   translation: [2.4838156700134277, 8.5265128291212022e-12, -1.3370114970712166e-07]
+# LeftHandThumb1:
+#   orientation: !!python/tuple [172.9073486328125, -0.098778024315834129, -38.17222595214843]
+#   rotation: !!python/tuple [9.695073458715342e-06, -0.094759330153465271, -0.011790566146373749]
+#   translation: [0.5073244571685791, -2.0050981044769287, -1.0945060253143311]
+# LeftHandThumb2:
+#   orientation: !!python/tuple [0.0, 0.0, -21.877092361450195]
+#   rotation: !!python/tuple [0.0, 0.0, 4.9429339094020364e-11]
+#   translation: [4.0375146865844727, 6.3723156529249536e-08, -9.1517904365900904e-12]
+# LeftHandThumb3:
+#   orientation: !!python/tuple [4.8216702452918929e-06, -0.0, -6.0049524307250914]
+#   rotation: !!python/tuple [0.0, 0.0, 2.2517996581955524e-12]
+#   translation: [3.9563705921173096, -4.4053649617126212e-13, 7.4180661613354459e-12]
+# LeftHandThumb4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [9.7287005118573688e-09, 8.1656487793679844e-08, 5.523987517408458e-11]
+#   translation: [3.5162591934204102, -1.1368683772161603e-13, 1.8332002582610585e-11]
+# LeftHand_End:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [19.079572677612305, 7.1054273576010019e-15, 0.0]
+# LeftHand_Slot1_LeftWeaponType1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.9819064140319824, -0.21201294660568237, -1.5472027063369751]
+# LeftHand_Slot2_LeftWeaponType2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.9819064140319824, -0.21201294660568237, -1.5472027063369751]
+# LeftHand_Slot3_RightWeaponType1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.9819064140319824, -0.21201294660568237, -1.5472027063369751]
+# LeftHand_Slot4_RightWeaponType2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.9819064140319824, -0.21201294660568237, -1.5472027063369751]
+# LeftLeg:
+#   orientation: !!python/tuple [-2.0423021851456728e-06, -1.4745288581252687e-06, -2.0800957679748509]
+#   rotation: !!python/tuple [0.0, 0.0, 8.083581633400172e-06]
+#   translation: [47.590858459472656, -3.1974423109204508e-14, 8.8817841970012523e-15]
+# LeftLung:
+#   orientation: !!python/tuple [6.4513626098632839, -0.0, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.03770890086889267, -8.4820003509521484, 7.865485668182373]
+# LeftShoulder:
+#   orientation: !!python/tuple [-89.999999999999986, 15.116526603698729, -96.050308227539063]
+#   rotation: !!python/tuple [-1.0774709835459363e-07, -9.3573333970198291e-08, -3.4530202697169443e-07]
+#   translation: [18.401100158691406, -5.4791231155395508, 1.5167294975526602e-07]
+# LeftToeBase:
+#   orientation: !!python/tuple [-1.7498808824341333e-06, 5.2279510498046848, 89.999977111816406]
+#   rotation: !!python/tuple [3.2242562786333195e-11, -3.6513563006490557e-11, 5.468067838798607e-12]
+#   translation: [6.1250171661376953, 10.41328239440918, -0.32556056976318359]
+# LeftToeBase_End:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [5.0, 0.0, 0.0]
+# LeftUpLeg:
+#   orientation: !!python/tuple [90.155548095703111, 4.6804957389831454, -88.094291687011747]
+#   rotation: !!python/tuple [0.0069945347495377072, -0.00012651873112190515, -3.9640071918256581e-06]
+#   translation: [9.5, 0.0, 0.0]
+# LeftUpLeg_Roll1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-0.0052483412437140942, 0.0, 0.0]
+#   translation: [11.897714614868164, -8.8817841970012523e-16, 0.0]
+# Neck:
+#   orientation: !!python/tuple [0.0, -22.515069961547848, 0.0]
+#   rotation: !!python/tuple [1.1737530910404145e-31, 3.1805547185895103e-15, -2.0741419145117938e-30]
+#   translation: [24.042690277099609, 1.4628689927093682e-15, 5.8514750378435565e-08]
+# Neck1:
+#   orientation: !!python/tuple [0.0, -3.8811457157135036, 0.0]
+#   rotation: !!python/tuple [-2.7920770701255464e-27, 2.3854160918816919e-15, -3.297590498601159e-32]
+#   translation: [4.6551823616027832, 2.7391780258739112e-16, -7.1188871686445054e-08]
+# PelvisRoot:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-3.9960009948847643e-38, 0.0, 0.0]
+#   translation: [0.0, 0.0, 0.0]
+# RightArm:
+#   orientation: !!python/tuple [-3.7683105468750013, 31.580741882324226, -8.4612874984741318]
+#   rotation: !!python/tuple [1.2004686311684054e-07, 3.9341324509223341e-07, -2.7858553153237153e-07]
+#   translation: [-15.516007423400879, -1.5987211554602254e-14, -1.1368683772161603e-13]
+# RightArm_Roll1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [1.3364522999381734e-07, 0.0, 0.0]
+#   translation: [-6.5409679412841797, 0.0, 0.0]
+# RightFoot:
+#   orientation: !!python/tuple [-0.15511181950569169, -1.8930075168609632, 6.7657322883606126]
+#   rotation: !!python/tuple [-0.0069571724161505699, 0.000696872069966048, 0.00022765892208553848]
+#   translation: [-47.368263244628906, 1.9539925233402755e-14, -1.9539925233402755e-14]
+# RightFoot_End:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-8.4805545806884766, 8.8817841970012523e-16, 0.0]
+# RightForeArm:
+#   orientation: !!python/tuple [2.9782900128338943e-06, -0.0, -45.298519134521491]
+#   rotation: !!python/tuple [0.0, 0.0, 1.9340774641551928e-12]
+#   translation: [-26.163871765136719, 4.5830006456526462e-13, -2.1316282072803006e-12]
+# RightForeArm_Roll1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [2.6934387733490439e-06, 0.0, 0.0]
+#   translation: [-19.336137771606445, 0.0, 0.0]
+# RightForeArm_Roll2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [1.0100402505486272e-06, 0.0, 0.0]
+#   translation: [-12.89075756072998, 0.0, 0.0]
+# RightHand:
+#   orientation: !!python/tuple [9.1112976074218714, 2.4799075126647963, -1.0674812793731692]
+#   rotation: !!python/tuple [3.188172001955536e-07, -1.8311861822439823e-06, 3.1432315950041811e-07]
+#   translation: [-25.781515121459961, 7.1054273576010019e-15, -3.1263880373444408e-13]
+# RightHandIndex1:
+#   orientation: !!python/tuple [94.826736450195341, 0.099072434008120755, 5.0228114128112793]
+#   rotation: !!python/tuple [-0.008700280450284481, 0.0083289742469787598, 0.098723776638507843]
+#   translation: [-8.7595815658569336, 3.1104109287261963, -1.2447134256362915]
+# RightHandIndex2:
+#   orientation: !!python/tuple [0.0, 1.6003571090550395e-06, -6.6469221115112225]
+#   rotation: !!python/tuple [0.0, 0.0, 4.2356165796952889e-10]
+#   translation: [-3.8496499061584473, -1.3528733688872308e-11, 2.2986057501839241e-12]
+# RightHandIndex3:
+#   orientation: !!python/tuple [-6.0280826801317727e-06, -1.9122992398479259e-06, -2.832103252410886]
+#   rotation: !!python/tuple [0.0, 0.0, -3.7571695754579082e-10]
+#   translation: [-2.5925874710083008, -1.3784529073745944e-11, -7.567280135845067e-13]
+# RightHandIndex4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-5.0708885979133811e-09, 5.7487188342975053e-08, 8.3267676087572795e-10]
+#   translation: [-2.4051272869110107, -9.0381035988684744e-12, -1.6484591469634324e-12]
+# RightHandMiddle1:
+#   orientation: !!python/tuple [86.989303588867216, 2.435723781585696, 1.9819846153259284]
+#   rotation: !!python/tuple [8.6563112233761785e-08, 2.4568787893031185e-08, -8.4600921823607678e-09]
+#   translation: [-8.7535696029663086, 0.78352940082550049, -1.2000135183334351]
+# RightHandMiddle2:
+#   orientation: !!python/tuple [-6.0633938119281083e-06, -0.0, -5.9044542312622026]
+#   rotation: !!python/tuple [0.0, 0.0, 3.876680920722464e-10]
+#   translation: [-4.3921298980712891, -1.4637180356658064e-11, -3.2684965844964609e-13]
+# RightHandMiddle3:
+#   orientation: !!python/tuple [1.2755247098539243e-06, -0.0, -2.6812162399291974]
+#   rotation: !!python/tuple [0.0, 0.0, -3.8046951700287934e-10]
+#   translation: [-2.8162155151367187, -1.375610736431554e-11, -3.4034997042908799e-12]
+# RightHandMiddle4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [1.289353068756327e-09, -6.4390009990589192e-10, 7.4191935928169528e-10]
+#   translation: [-2.7494542598724365, -9.4360075308941305e-12, -3.680611371237319e-12]
+# RightHandPinky1:
+#   orientation: !!python/tuple [74.700141906738324, -1.2694443464279168, 0.10517746210098246]
+#   rotation: !!python/tuple [5.6509243506752676e-08, -1.3901646056524442e-08, 4.5198902398624341e-08]
+#   translation: [-7.4630494117736816, -3.1672923564910889, 0.037782713770866394]
+# RightHandPinky2:
+#   orientation: !!python/tuple [0.0, 0.0, -6.4795155525207591]
+#   rotation: !!python/tuple [0.0, 0.0, 4.4957945699586332e-10]
+#   translation: [-3.9599902629852295, -1.2548184713523369e-11, -1.8332002582610585e-12]
+# RightHandPinky3:
+#   orientation: !!python/tuple [0.0, 0.0, -8.0251722335815483]
+#   rotation: !!python/tuple [0.0, 0.0, -4.0842310089495015e-10]
+#   translation: [-2.0951919555664062, -9.4502183856093325e-12, -3.922195901395753e-12]
+# RightHandPinky4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [3.5957168353917272e-09, -6.8535072728082014e-08, 6.0884086661161518e-10]
+#   translation: [-2.0012302398681641, -5.8122395785176195e-12, -5.3788085097039584e-12]
+# RightHandRing1:
+#   orientation: !!python/tuple [83.126998901367244, 2.2093253135681152, 0.23754207789897983]
+#   rotation: !!python/tuple [5.8512418036116287e-05, -0.23565512895584106, -0.028443040326237682]
+#   translation: [-8.2129592895507812, -1.2605581283569336, -0.79281944036483765]
+# RightHandRing2:
+#   orientation: !!python/tuple [2.0466095520532698e-06, -0.0, -6.0264234542846644]
+#   rotation: !!python/tuple [0.0, 0.0, 4.1231254521711946e-10]
+#   translation: [-4.5412158966064453, -1.4352963262354024e-11, -1.2150280781497713e-12]
+# RightHandRing3:
+#   orientation: !!python/tuple [6.7597607085190265e-06, -0.0, -5.3531017303466912]
+#   rotation: !!python/tuple [0.0, 0.0, -3.9378372784781845e-10]
+#   translation: [-2.5582089424133301, -1.1738165994756855e-11, -3.943512183468556e-12]
+# RightHandRing4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [1.2634245871723238e-09, -8.9777196787821367e-10, 6.6176675250773087e-10]
+#   translation: [-2.4838156700134277, -7.73070496506989e-12, -4.9169557314598933e-12]
+# RightHandThumb1:
+#   orientation: !!python/tuple [172.9073486328125, -0.098778076469897891, -38.172225952148452]
+#   rotation: !!python/tuple [9.6937501439242624e-06, -0.094759799540042877, -0.011790625751018524]
+#   translation: [-0.5073244571685791, 2.0050981044769287, 1.0945060253143311]
+# RightHandThumb2:
+#   orientation: !!python/tuple [1.7888928596221253e-06, -0.0, -21.877092361450202]
+#   rotation: !!python/tuple [0.0, 0.0, -5.7523232704914668e-11]
+#   translation: [-4.0375146865844727, -6.2629510466649663e-08, 2.0747847884194925e-12]
+# RightHandThumb3:
+#   orientation: !!python/tuple [-2.8077242859581045e-06, -0.0, -6.0049519538879439]
+#   rotation: !!python/tuple [0.0, 0.0, -7.1936671897088189e-11]
+#   translation: [-3.9563705921173096, -1.5489831639570184e-12, 2.5835333872237243e-11]
+# RightHandThumb4:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [1.9550090435416223e-09, 1.0628642410637212e-09, 9.6326280285552457e-11]
+#   translation: [-3.5162591934204102, -1.0302869668521453e-12, 2.5352164811920375e-11]
+# RightHand_End:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [6.6050472469214583e-07, 2.9950155067126616e-07, 2.7109780376122217e-07]
+#   translation: [-19.079572677612305, -3.5527136788005009e-15, -2.8421709430404007e-14]
+# RightHand_Slot1_RightWeaponType1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-3.5013309229725564e-07, -90.0, 0.0]
+#   translation: [-6.9819064140319824, 0.21201404929161072, 1.5472050905227661]
+# RightHand_Slot2_RightWeaponType2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-3.5013309229725564e-07, -90.0, 0.0]
+#   translation: [-6.9819064140319824, 0.21201404929161072, 1.5472050905227661]
+# RightHand_Slot3_LeftWeaponType1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-81.470733642578125, -90.0, 81.470733642578125]
+#   translation: [-6.9819064140319824, 0.21201404929161072, 1.5472050905227661]
+# RightHand_Slot4_LeftWeaponType2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-81.470733642578125, -90.0, 81.470733642578125]
+#   translation: [-6.9819064140319824, 0.21201404929161072, 1.5472050905227661]
+# RightLeg:
+#   orientation: !!python/tuple [-2.0423021851456728e-06, -1.4745288581252687e-06, -2.0800957679748509]
+#   rotation: !!python/tuple [0.0, 0.0, 8.0835779954213649e-06]
+#   translation: [-47.590858459472656, 2.7533531010703882e-14, -3.1974423109204508e-14]
+# RightLung:
+#   orientation: !!python/tuple [6.4513626098632839, -0.0, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.03770890086889267, 8.4820003509521484, 7.865485668182373]
+# RightShoulder:
+#   orientation: !!python/tuple [90.0, -15.116526603698738, -83.949691772460952]
+#   rotation: !!python/tuple [-1.0774706282745683e-07, -9.3573333970198291e-08, -3.45301998549985e-07]
+#   translation: [18.401100158691406, 5.4791231155395508, 1.5167294975526602e-07]
+# RightToeBase:
+#   orientation: !!python/tuple [5.5027362585698015e-06, 5.2279510498046866, 89.99997711181642]
+#   rotation: !!python/tuple [1.4213345778113505e-11, 8.7497307177386574e-09, 2.4507531420914219e-12]
+#   translation: [-6.1250171661376953, -10.41328239440918, 0.32556056976318359]
+# RightToeBase_End:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-5.0, 4.4408920985006262e-16, 0.0]
+# RightUpLeg:
+#   orientation: !!python/tuple [-89.844451904296889, -4.6804957389831561, 88.094291687011719]
+#   rotation: !!python/tuple [0.0069945482537150383, -0.00012651897850446403, -3.9640049180889037e-06]
+#   translation: [-9.5, 0.0, 0.0]
+# RightUpLeg_Roll1:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-0.0052452068775892258, 0.0, 0.0]
+#   translation: [-11.897714614868164, 8.8817841970012523e-16, -1.7763568394002505e-15]
+# Root:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0, 0.0, 0.0]
+# Root_Slot1_LeftWeaponType2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [45.838840484619141, 4.1099729537963867, 56.888820648193359]
+#   translation: [61.468357086181641, 124.53494262695312, 17.61064338684082]
+# Root_Slot1_RightWeaponType2:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [45.838840484619141, -4.1099729537963867, -56.888820648193359]
+#   translation: [-61.468357086181641, 124.53494262695312, 17.61064338684082]
+# Root_Slot2_LeftWeaponType3:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [45.838840484619141, 4.1099729537963867, 56.888820648193359]
+#   translation: [61.468357086181641, 124.53494262695312, 17.61064338684082]
+# Root_Slot2_RightWeaponType3:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [45.838840484619141, -4.1099729537963867, -56.888820648193359]
+#   translation: [-61.468357086181641, 124.53494262695312, 17.61064338684082]
+# Spine:
+#   orientation: !!python/tuple [0.0, -3.8326005935668932, 90.0]
+#   rotation: !!python/tuple [4.7857357284703233e-15, 0.0, 7.1438013382434107e-14]
+#   translation: [-1.2264063835385874e-14, 9.814208984375, 0.0]
+# Spine1:
+#   orientation: !!python/tuple [0.0, 3.9001967906951927, 0.0]
+#   rotation: !!python/tuple [7.0458943309191782e-31, 0.0, 8.3318727345596801e-34]
+#   translation: [6.6904158592224121, 4.0875385402681019e-16, 8.6170706126154073e-09]
+# Spine2:
+#   orientation: !!python/tuple [0.0, 1.5875118970870974, 0.0]
+#   rotation: !!python/tuple [-2.1177698701250486e-30, -1.9878466991184439e-16, 1.4012984643248171e-45]
+#   translation: [6.921727180480957, 4.2383291984228846e-16, 3.0540459050598656e-10]
+# Spine3:
+#   orientation: !!python/tuple [0.0, 4.7962546348571777, 0.0]
+#   rotation: !!python/tuple [-2.8847727870309382e-30, 0.0, 2.3805380435366755e-31]
+#   translation: [10.19694995880127, 6.2412272759673434e-16, -1.7364669702146784e-08]
+# SpineRoot:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [-3.9960009948847643e-38, 0.0, -7.159813649078306e-14]
+#   translation: [0.0, 0.0, 0.0]
+# Trajectory:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0, 0.0, 1.6802321672439575]
+# Trajectory_sync:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 180.0, 0.0]
+#   translation: [0.0, 0.0, 100.0]
+# fj_chin_group:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.35517736213842e-08, -4.692169189453125, 6.1322593688964844]
+# fj_ear_wiggle:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [4.5692405700683594, 2.7098013350763559e-16, 1.1950160264968872]
+# fj_eyeballLeft:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [7.7080764770507812, -3.0345284938812256, 7.4694485664367676]
+# fj_eyeballRight:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [7.7080764770507812, 3.0345284938812256, 7.4694485664367676]
+# fj_fang:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.33842265605926514, -4.0426870869198026e-17, 9.8854246139526367]
+# fj_foreheadLower_centerLeft:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [9.7379560470581055, -1.4900962114334106, 10.236647605895996]
+# fj_foreheadLower_centerRight:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [9.7379560470581055, 1.4900962114334106, 10.236647605895996]
+# fj_foreheadLower_left:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [9.1002388000488281, -5.1310677528381348, 8.044647216796875]
+# fj_foreheadLower_midLeft:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [9.8586759567260742, -3.8904376029968262, 9.5433979034423828]
+# fj_foreheadLower_midRight:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [9.8586759567260742, 3.8904376029968262, 9.5433979034423828]
+# fj_foreheadLower_right:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [9.1002388000488281, 5.1310677528381348, 8.044647216796875]
+# fj_jaw:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.5725233554840088, 7.6416771402441214e-17, 3.1387264728546143]
+# fj_leftCheekBone_inner:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [5.2845468521118164, -1.9371531009674072, 9.8386144638061523]
+# fj_leftCheekBone_middle:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.3181095123291016, -3.276782751083374, 8.9913463592529297]
+# fj_leftCheekBone_outer:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [5.8682980537414551, -5.209843635559082, 8.2684822082519531]
+# fj_leftCheekInner_middle:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.53001046180725098, -4.1107697486877441, 8.4996128082275391]
+# fj_leftCheekInner_upper:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [3.0959196090698242, -3.3882722854614258, 9.2927665710449219]
+# fj_leftEye_lowerLid_inner:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [7.3573555946350098, -2.6984696388244629, 9.0734729766845703]
+# fj_leftEye_lowerLid_outer:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [7.5189270973205566, -4.1171813011169434, 8.7283124923706055]
+# fj_leftEye_upperLid_inner:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [8.2742099761962891, -2.5724599361419678, 9.0477008819580078]
+# fj_leftEye_upperLid_outer:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [8.2475614547729492, -4.0633292198181152, 8.6940155029296875]
+# fj_lip_cornerLeft:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.65876990556716919, -2.557016134262085, 9.5312585830688477]
+# fj_lip_cornerRight:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.65876990556716919, 2.557016134262085, 9.5312585830688477]
+# fj_lip_lower_center:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.0013179465895518656, -1.7636668606708099, 7.4248600006103462]
+# fj_lip_lower_centerLeft:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.4829213619232178, -1.838348388671875, 7.0778579711914062]
+# fj_lip_lower_centerRight:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [-1.4829213619232178, -1.838348388671875, 7.0778579711914062]
+# fj_lip_upper_center:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.3964091539382935, 1.7020437206444296e-17, 11.019859313964844]
+# fj_lip_upper_centerLeft:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.1963636875152588, -1.749239444732666, 10.118943214416504]
+# fj_lip_upper_centerRight:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.1963636875152588, 1.749239444732666, 10.118943214416504]
+# fj_nose_left:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [4.120384693145752, -1.1367383003234863, 10.932607650756836]
+# fj_nose_right:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [4.120384693145752, 1.1367383003234863, 10.932607650756836]
+# fj_rightCheekBone_inner:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [5.2845468521118164, 1.9371531009674072, 9.8386144638061523]
+# fj_rightCheekBone_middle:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [6.3181095123291016, 3.276782751083374, 8.9913463592529297]
+# fj_rightCheekBone_outer:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [5.8682980537414551, 5.209843635559082, 8.2684822082519531]
+# fj_rightCheekInner_middle:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [0.53001046180725098, 4.1107697486877441, 8.4996128082275391]
+# fj_rightCheekInner_upper:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [3.0959196090698242, 3.3882722854614258, 9.2927665710449219]
+# fj_rightEye_lowerLid_inner:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [7.3573555946350098, 2.6984696388244629, 9.0734729766845703]
+# fj_rightEye_lowerLid_outer:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [7.5189270973205566, 4.1171813011169434, 8.7283124923706055]
+# fj_rightEye_upperLid_inner:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [8.2742099761962891, 2.5724599361419678, 9.0477008819580078]
+# fj_rightEye_upperLid_outer:
+#   orientation: !!python/tuple [-5.7880306243896662, -3.975693351829395e-16, -90.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [8.2475614547729492, 4.0633292198181152, 8.6940155029296875]
+# fj_tongueBase:
+#   orientation: !!python/tuple [-2.7140014171600355, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [2.3823490285543019e-21, -1.5066829919815063, 1.0649411678314209]
+# fj_tongue_1:
+#   orientation: !!python/tuple [11.789349555969235, -0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.0182038136900625e-16, 0.0, 1.6328487396240234]
+# fj_tongue_2:
+#   orientation: !!python/tuple [-1.8827230930328396, -0.044333800673484816, 0.0070815626531839284]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.0509196671843718e-16, 2.8421709430404007e-14, 1.6012067794799805]
+# fj_tongue_End:
+#   orientation: !!python/tuple [0.0, 0.0, 0.0]
+#   rotation: !!python/tuple [0.0, 0.0, 0.0]
+#   translation: [1.1015494072452725e-16, 0.0, 1.5857709646224976]
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 1 of 1
+# Identifier keys: 142 distinct string keys; examples: ["Head","Head_End","Hips","LeftArm","LeftArm_Roll1","LeftFoot","LeftFoot_End","LeftForeArm","LeftForeArm_Roll1","LeftForeArm_Roll2","LeftHand","LeftHandIndex1"]
+# 142 of 142; kinds: map; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+<string key>:
+  # 142 of 142; kinds: sequence; lengths: 3; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+  "orientation":
+    !!python/tuple
+    # Item 0: 142 of 142; kinds: number; distinct scalar values: 38; range: -89.99999999999999 .. 172.9073486328125; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    # Item 1: 142 of 142; kinds: number; distinct scalar values: 39; range: -22.515069961547848 .. 31.580741882324226; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    # Item 2: 142 of 142; kinds: number; distinct scalar values: 46; range: -96.05030822753906 .. 90; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    [float, float, float]
+  # 142 of 142; kinds: sequence; lengths: 3; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+  "rotation":
+    !!python/tuple
+    # Item 0: 142 of 142; kinds: number; distinct scalar values: 53; range: -81.47073364257812 .. 45.83884048461914; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    # Item 1: 142 of 142; kinds: number; distinct scalar values: 40; range: -90 .. 180; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    # Item 2: 142 of 142; kinds: number; distinct scalar values: 69; range: -56.88882064819336 .. 81.47073364257812; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    [float, float, float]
+  # 142 of 142; kinds: sequence; lengths: 3; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+  "translation":
+    # Item 0: 142 of 142; kinds: number; distinct scalar values: 111; range: -61.46835708618164 .. 61.46835708618164; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    # Item 1: 142 of 142; kinds: number; distinct scalar values: 115; range: -10.41328239440918 .. 124.53494262695312; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    # Item 2: 142 of 142; kinds: number; distinct scalar values: 94; range: -1.547202706336975 .. 100; example: res:/graphics/character/global/facesetup/basemalebindpose.yaml
+    [float, float, float]

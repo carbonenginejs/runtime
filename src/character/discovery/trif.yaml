@@ -1,0 +1,415 @@
+# Raw res-file shape; build 3646012.
+# Family: trif
+# Source pattern: res:/graphics/character/global/facesetup/*
+# Files: 3
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 3 of 3; map ["Fields"]
+# Example: res:/graphics/character/global/facesetup/defaultfields.trif
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# Fields:
+#   Default_Front:
+#     Attributes: [XXX_up, XXX_down, XXX_left, XXX_right]
+#     MarkerPosition: [0.0, 0.0, 0.0]
+#     Triangles:
+#       0: [0, 1, 4]
+#       1: [4, 2, 5]
+#       2: [6, 4, 7]
+#       3: [4, 5, 8]
+#       4: [3, 4, 6]
+#       5: [1, 2, 4]
+#       6: [4, 8, 7]
+#       7: [0, 4, 3]
+#     Tris:
+#     - - !!python/tuple
+#         - 0
+#         - !!python/tuple [-2.0, 2.0]
+#       - !!python/tuple
+#         - 1
+#         - !!python/tuple [0.0, 2.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#     - - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 2
+#         - !!python/tuple [2.0, 2.0]
+#       - !!python/tuple
+#         - 5
+#         - !!python/tuple [2.0, 0.0]
+#     - - !!python/tuple
+#         - 6
+#         - !!python/tuple [-2.0, -2.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 7
+#         - !!python/tuple [0.0, -2.0]
+#     - - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 5
+#         - !!python/tuple [2.0, 0.0]
+#       - !!python/tuple
+#         - 8
+#         - !!python/tuple [2.0, -2.0]
+#     - - !!python/tuple
+#         - 3
+#         - !!python/tuple [-2.0, 0.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 6
+#         - !!python/tuple [-2.0, -2.0]
+#     - - !!python/tuple
+#         - 1
+#         - !!python/tuple [0.0, 2.0]
+#       - !!python/tuple
+#         - 2
+#         - !!python/tuple [2.0, 2.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#     - - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 8
+#         - !!python/tuple [2.0, -2.0]
+#       - !!python/tuple
+#         - 7
+#         - !!python/tuple [0.0, -2.0]
+#     - - !!python/tuple
+#         - 0
+#         - !!python/tuple [-2.0, 2.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 3
+#         - !!python/tuple [-2.0, 0.0]
+#     VertData:
+#       0:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, -0.0]
+#       - [XXX_up, 1.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 1.0]
+#       - [XXX_right, 0.0]
+#       1:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, -0.0]
+#       - [XXX_up, 1.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       2:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, -0.0]
+#       - [XXX_up, 1.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, -0.0]
+#       - [XXX_right, 1.0]
+#       3:
+#       - [XXX_forward, -0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, -0.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 1.0]
+#       - [XXX_right, 0.0]
+#       4:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       5:
+#       - [XXX_forward, -0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, -0.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 1.0]
+#       6:
+#       - [XXX_forward, -0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 1.0]
+#       - [XXX_left, 1.0]
+#       - [XXX_right, 0.0]
+#       7:
+#       - [XXX_forward, -0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 1.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       8:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 1.0]
+#       - [XXX_left, -0.0]
+#       - [XXX_right, 1.0]
+#     VertPositions:
+#       0: [-2.0, 0.0, 2.0]
+#       1: [0.0, 0.0, 2.0]
+#       2: [2.0, 0.0, 2.0]
+#       3: [-2.0, 0.0, 0.0]
+#       4: [0.0, 0.0, 0.0]
+#       5: [2.0, 0.0, 0.0]
+#       6: [-2.0, 0.0, -2.0]
+#       7: [0.0, 0.0, -2.0]
+#       8: [2.0, 0.0, -2.0]
+#   Default_Side:
+#     Attributes: [XXX_forward, XXX_back, XXX_up, XXX_down]
+#     MarkerPosition: [0.0, 0.0, 0.0]
+#     Triangles:
+#       0: [0, 1, 4]
+#       1: [4, 2, 5]
+#       2: [6, 4, 7]
+#       3: [4, 5, 8]
+#       4: [3, 4, 6]
+#       5: [1, 2, 4]
+#       6: [4, 8, 7]
+#       7: [0, 4, 3]
+#     Tris:
+#     - - !!python/tuple
+#         - 0
+#         - !!python/tuple [-2.0, 2.0]
+#       - !!python/tuple
+#         - 1
+#         - !!python/tuple [0.0, 2.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#     - - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 2
+#         - !!python/tuple [2.0, 2.0]
+#       - !!python/tuple
+#         - 5
+#         - !!python/tuple [2.0, 0.0]
+#     - - !!python/tuple
+#         - 6
+#         - !!python/tuple [-2.0, -2.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 7
+#         - !!python/tuple [0.0, -2.0]
+#     - - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 5
+#         - !!python/tuple [2.0, 0.0]
+#       - !!python/tuple
+#         - 8
+#         - !!python/tuple [2.0, -2.0]
+#     - - !!python/tuple
+#         - 3
+#         - !!python/tuple [-2.0, 0.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 6
+#         - !!python/tuple [-2.0, -2.0]
+#     - - !!python/tuple
+#         - 1
+#         - !!python/tuple [0.0, 2.0]
+#       - !!python/tuple
+#         - 2
+#         - !!python/tuple [2.0, 2.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#     - - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 8
+#         - !!python/tuple [2.0, -2.0]
+#       - !!python/tuple
+#         - 7
+#         - !!python/tuple [0.0, -2.0]
+#     - - !!python/tuple
+#         - 0
+#         - !!python/tuple [-2.0, 2.0]
+#       - !!python/tuple
+#         - 4
+#         - !!python/tuple [0.0, 0.0]
+#       - !!python/tuple
+#         - 3
+#         - !!python/tuple [-2.0, 0.0]
+#     VertData:
+#       0:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, 1.0]
+#       - [XXX_up, 1.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       1:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 1.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       2:
+#       - [XXX_forward, 1.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 1.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       3:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, 1.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       4:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       5:
+#       - [XXX_forward, 1.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 0.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       6:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, 1.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 1.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       7:
+#       - [XXX_forward, 0.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 1.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#       8:
+#       - [XXX_forward, 1.0]
+#       - [XXX_back, 0.0]
+#       - [XXX_up, 0.0]
+#       - [XXX_down, 1.0]
+#       - [XXX_left, 0.0]
+#       - [XXX_right, 0.0]
+#     VertPositions:
+#       0: [-2.0, 0.0, 2.0]
+#       1: [0.0, 0.0, 2.0]
+#       2: [2.0, 0.0, 2.0]
+#       3: [-2.0, 0.0, 0.0]
+#       4: [0.0, 0.0, 0.0]
+#       5: [2.0, 0.0, 0.0]
+#       6: [-2.0, 0.0, -2.0]
+#       7: [0.0, 0.0, -2.0]
+#       8: [2.0, 0.0, -2.0]
+# END VERBATIM RAW YAML
+# Root variant: map ; 3 of 3
+# 3 of 3; kinds: map; example: res:/graphics/character/global/facesetup/defaultfields.trif
+"Fields":
+  # Identifier keys: 15 distinct string keys; all: ["Default_Front","Default_Side","NoseBridge_Front","NoseBridge_Side","Neck_Side","EyeRotation","EyebrowInner","EyebrowOuter","EyeClose","HeadLookAt","Jaw","MouthCorner","CheeksUpper","Forehead","Torso"]
+  # 15 of 15; kinds: map; example: res:/graphics/character/global/facesetup/defaultfields.trif
+  <string key>:
+    # 15 of 15; kinds: sequence; lengths: 1, 2, 3, 4, 5; example: res:/graphics/character/global/facesetup/defaultfields.trif
+    "Attributes":
+      # Repeated item: 35 of 35; kinds: string; distinct scalar values: 30; example: res:/graphics/character/global/facesetup/defaultfields.trif
+      -
+        string
+    # 15 of 15; kinds: sequence; lengths: 3; example: res:/graphics/character/global/facesetup/defaultfields.trif
+    "MarkerPosition":
+      # Item 0: 15 of 15; kinds: number; values: 0, -0.9753149151802063, 0.2673916220664978; example: res:/graphics/character/global/facesetup/defaultfields.trif
+      # Item 1: 15 of 15; kinds: number; values: 0, -0.06023741513490677, -0.05167579650878906; example: res:/graphics/character/global/facesetup/defaultfields.trif
+      # Item 2: 15 of 15; kinds: number; values: 0, 2.6162710189819336, 2.914470672607422, 0.5; example: res:/graphics/character/global/facesetup/defaultfields.trif
+      [float, float, float]
+    # 15 of 15; kinds: map; example: res:/graphics/character/global/facesetup/defaultfields.trif
+    "Triangles":
+      # Identifier keys: 8 distinct int keys; all: ["0","1","2","3","4","5","6","7"]
+      # 116 of 116; kinds: sequence; lengths: 3; example: res:/graphics/character/global/facesetup/defaultfields.trif
+      <int key>:
+        # Item 0: 116 of 116; kinds: number; values: 0, 4, 6, 3, 1, 2, 5, 7; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        # Item 1: 116 of 116; kinds: number; values: 1, 2, 4, 5, 8, 6, 3, 7; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        # Item 2: 116 of 116; kinds: number; values: 4, 5, 7, 8, 6, 3, 2, 1; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        [int, int, int]
+    # 15 of 15; kinds: sequence; lengths: 4, 8; example: res:/graphics/character/global/facesetup/defaultfields.trif
+    "Tris":
+      # Repeated item: 116 of 116; kinds: sequence; lengths: 3; example: res:/graphics/character/global/facesetup/defaultfields.trif
+      -
+        # Item 0: 116 of 116; kinds: sequence; lengths: 2; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        -
+          !!python/tuple
+          # Item 0: 116 of 116; kinds: number; values: 0, 4, 6, 3, 1, 2, 5, 7; example: res:/graphics/character/global/facesetup/defaultfields.trif
+          -
+            int
+          # Item 1: 116 of 116; kinds: sequence; lengths: 2; example: res:/graphics/character/global/facesetup/defaultfields.trif
+          -
+            !!python/tuple
+            # Item 0: 116 of 116; kinds: number; values: -2, 0, -1.2417354583740234, -1.1463977098464966, -1.423719882965088, 0.0792028084397316, 1.5298779010772705, 2.207761764526367, 0.8303044438362122; example: res:/graphics/character/global/facesetup/defaultfields.trif
+            # Item 1: 116 of 116; kinds: number; values: 2, 0, -2, 4.319701194763184, 1.0393649339675903, 0.9888514280319214, 2.6890687942504883, 0.8873041868209839, 1.9435094594955444, -0; example: res:/graphics/character/global/facesetup/defaultfields.trif
+            [float, float]
+        # Item 1: 116 of 116; kinds: sequence; lengths: 2; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        -
+          !!python/tuple
+          # Item 0: 116 of 116; kinds: number; values: 1, 2, 4, 5, 8, 6, 3, 7; example: res:/graphics/character/global/facesetup/defaultfields.trif
+          -
+            int
+          # Item 1: 116 of 116; kinds: sequence; lengths: 2; example: res:/graphics/character/global/facesetup/defaultfields.trif
+          -
+            !!python/tuple
+            # Item 0: 116 of 116; kinds: number; values: 0, 2, 0.8114522099494934, -1.120826244354248, 0.8287137150764465, 0.26146993041038513, -1.1267077922821045, 0.8303044438362122, 0.6913337707519531; example: res:/graphics/character/global/facesetup/defaultfields.trif
+            # Item 1: 116 of 116; kinds: number; values: 2, 0, -2, 3.007668972015381, 2.524770975112915, 4.6191792488098145, 2.9281368255615234, 2.5170576572418213, 1.9435094594955444, 4.795968532562256, -0; example: res:/graphics/character/global/facesetup/defaultfields.trif
+            [float, float]
+        # Item 2: 116 of 116; kinds: sequence; lengths: 2; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        -
+          !!python/tuple
+          # Item 0: 116 of 116; kinds: number; values: 4, 5, 7, 8, 6, 3, 2, 1; example: res:/graphics/character/global/facesetup/defaultfields.trif
+          -
+            int
+          # Item 1: 116 of 116; kinds: sequence; lengths: 2; example: res:/graphics/character/global/facesetup/defaultfields.trif
+          -
+            !!python/tuple
+            # Item 0: 116 of 116; kinds: number; values: 0, 2, -2, -1.120826244354248, 0.8114522099494934, 1.377274513244629, -1.1267077922821045, 0.26146993041038513, 2.207761764526367, 0.6913337707519531, 1.5298779010772705, 0.8303044438362122; example: res:/graphics/character/global/facesetup/defaultfields.trif
+            # Item 1: 116 of 116; kinds: number; values: 0, -2, 2.524770975112915, 3.007668972015381, 1.1910295486450195, 2.5170576572418213, 2.9281368255615234, 0.8873041868209839, 4.795968532562256, 2.6890687942504883, 1.9435094594955444, -0; example: res:/graphics/character/global/facesetup/defaultfields.trif
+            [float, float]
+    # 15 of 15; kinds: map; example: res:/graphics/character/global/facesetup/defaultfields.trif
+    "VertData":
+      # Identifier keys: 10 distinct int keys; all: ["0","1","2","3","4","5","6","7","8","28"]
+      # 134 of 134; kinds: sequence; lengths: 1, 2, 3, 5, 6; example: res:/graphics/character/global/facesetup/defaultfields.trif
+      <int key>:
+        # Repeated item: 362 of 362; kinds: sequence; lengths: 2; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        -
+          # Item 0: 362 of 362; kinds: string; distinct scalar values: 30; example: res:/graphics/character/global/facesetup/defaultfields.trif
+          # Item 1: 362 of 362; kinds: number; distinct scalar values: 44; range: -1 .. 1.7; example: res:/graphics/character/global/facesetup/defaultfields.trif
+          [string, float]
+    # 15 of 15; kinds: map; example: res:/graphics/character/global/facesetup/defaultfields.trif
+    "VertPositions":
+      # Identifier keys: 9 distinct int keys; all: ["0","1","2","3","4","5","6","7","8"]
+      # 131 of 131; kinds: sequence; lengths: 3; example: res:/graphics/character/global/facesetup/defaultfields.trif
+      <int key>:
+        # Item 0: 131 of 131; kinds: number; values: -2, 0, 2, -1.2417354583740234, 0.8287137150764465, -1.120826244354248, -1.1463977098464966, 0.8114522099494934, 1.377274513244629, -1.423719882965088, 0.6913337707519531, 1.5298779010772705, -1.1267077922821045, 0.0792028084397316, 2.207761764526367, 0.26146993041038513, 0.8303044438362122; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        # Item 1: 131 of 131; kinds: number; values: 0, -0.0370199978351593, -0.047602441161870956, -0.056651949882507324, 0.029699290171265602, -0.11078080534934998, -0.2049056887626648, -0.03944825381040573, -0.0621524453163147, -0.05182945728302002; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        # Item 2: 131 of 131; kinds: number; values: 2, 0, -2, 4.319701194763184, 4.6191792488098145, 2.524770975112915, 1.0393649339675903, 3.007668972015381, 1.1910295486450195, 4.795968532562256, 2.6890687942504883, 2.5170576572418213, 0.9888514280319214, 0.8873041868209839, 2.9281368255615234, 1.9435094594955444; example: res:/graphics/character/global/facesetup/defaultfields.trif
+        [float, float, float]

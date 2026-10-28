@@ -1,0 +1,612 @@
+# Raw res-file shape; build 3646012.
+# Family: prs
+# Source pattern: res:/graphics/character/*
+# Files: 63
+# Variable shape: 45 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 4 of 63; sequence length 40
+# Example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# - female
+# - category: head
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: head/head_generic
+#   tuck: true
+#   weight: 1.0
+# - category: facemodifiers
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: facemodifiers/lashes_upshape
+#   tuck: true
+#   weight: 1.0
+# - category: utilityshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: utilityshapes/pinchdrapeshape
+#   tuck: true
+#   weight: 1.0
+# - category: utilityshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: utilityshapes/pinchforearmlowshape
+#   tuck: true
+#   weight: 1.0
+# - category: utilityshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: utilityshapes/pinchchestshape
+#   tuck: true
+#   weight: 1.0
+# - category: utilityshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: utilityshapes/pinchinnershape
+#   tuck: true
+#   weight: 1.0
+# - category: utilityshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: utilityshapes/pinchtuckshape
+#   tuck: true
+#   weight: 1.0
+# - category: utilityshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: utilityshapes/pinchbootankleshape
+#   tuck: true
+#   weight: 1.0
+# - category: head
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: head/caldari_achura
+#   tuck: true
+#   weight: 1.0
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/cashape
+#   tuck: true
+#   weight: 1.0
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/legs_downshape
+#   tuck: true
+#   weight: 0.5499999999999998
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/legs_leftshape
+#   tuck: true
+#   weight: 0.7750000190734864
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/thinshape
+#   tuck: true
+#   weight: 0.2638888888888889
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/muscularshape
+#   tuck: true
+#   weight: 0.125
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/pelvis_leftshape
+#   tuck: true
+#   weight: 0.9849999999999999
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/abs_leftshape
+#   tuck: true
+#   weight: 0.8500000000000001
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/abs_downshape
+#   tuck: true
+#   weight: 0.07499999932944776
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/chest_backshape
+#   tuck: true
+#   weight: 0.57
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/chest_upshape
+#   tuck: true
+#   weight: 0.27
+# - category: bodyshapes
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: bodyshapes/pelvis_upshape
+#   tuck: true
+#   weight: 0.08999998569488525
+# - category: skintone
+#   colors: '[(0.898039, 0.9, 0.7843135, 1), (0.7607845, 0.7607845, 0.7607845, 1), (0.901961,
+#     0.9, 0.8392155, 1)]'
+#   colorvariation: achura_light
+#   path: skintone/basic
+#   tuck: true
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.203922, 0.0941176, 0.0705882, 1), (0.5, 0.5, 0.5, 1), (0.172549, 0.109804,
+#     0.0705882, 1)]'
+#   path: makeup/eyes/eyes_04
+#   tuck: true
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.00392157, 0.447059, 0.713725, 1), (0.113725, 0.866667, 0.94902, 1),
+#     (0.113725, 0.866667, 0.94902, 1)]'
+#   colorvariation:
+#   path: makeup/eyeshadow/eyeshadow_09
+#   tuck: true
+#   weight: 0.3925233644859813
+# - category: makeup
+#   colors: ((0.006435772404074669, 0.019307300448417664, 0.03539677709341049, 0.8205607533454895),
+#     (0.0235294, 0.0196078, 0.0156863, 1), (0.0392157, 0.0392157, 0.0392157, 1))
+#   colorvariation:
+#   path: makeup/eyebrows/eyebrows_02
+#   specularcolors: &id003
+#   - !!python/tuple
+#     - 0.235294
+#     - 0.25098
+#     - 0.25098
+#     - 1
+#   - !!python/tuple
+#     - 0.235294
+#     - 0.25098
+#     - 0.25098
+#     - 1
+#   - !!python/tuple
+#     - 0.235294
+#     - 0.25098
+#     - 0.25098
+#     - 1
+#   tuck: true
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.729412, 0.388235, 0.6, 1), (0.717647, 0.4, 0.478431, 1), (0.717647,
+#     0.4, 0.478431, 1)]'
+#   colorvariation:
+#   path: makeup/blush/blush_01
+#   tuck: true
+#   weight: 0.17757009345794392
+# - category: makeup
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: makeup/eyelashes/eyelashes_01
+#   tuck: true
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0, 0, 0, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   colorvariation:
+#   path: makeup/eyeliner/eyeliner_08
+#   tuck: true
+#   weight: 0.8037383177570093
+# - category: makeup
+#   colors: '[(0.568627, 0.168627, 0.27451, 1), (0.568627, 0.168627, 0.27451, 1), (0.5,
+#     0.5, 0.5, 1)]'
+#   path: makeup/lipstick/lipstick_02
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.525233644859813
+#     - 0.525233644859813
+#     - 0.525233644859813
+#     - 1.033644859813084
+#   - !!python/tuple
+#     - 0.48317757009345796
+#     - 0.48317757009345796
+#     - 0.48317757009345796
+#     - 1.0
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   tuck: true
+#   weight: 0.2336448598130841
+# - category: topinner
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: topinner/torso_nude
+#   tuck: true
+#   weight: 1.0
+# - category: feet
+#   colors: '[(0.0627451, 0.0784314, 0.0941176, 1), (0.278431, 0.309804, 0.337255, 1),
+#     (0.5, 0.5, 0.5, 1)]'
+#   colorvariation: achura
+#   path: feet/bootscf01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.682353
+#     - 0.682353
+#     - 0.682353
+#     - 1
+#   - &id001 !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   - *id001
+#   tuck: true
+#   variation: v0
+#   weight: 1.0
+# - category: topmiddle
+#   colors: '[(0.117647, 0.137255, 0.156863, 1), (0.0823529, 0.0862745, 0.101961, 1),
+#     (0.0823529, 0.0823529, 0.0823529, 1)]'
+#   colorvariation: achura
+#   path: topmiddle/shirtcf01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.117647
+#     - 0.121569
+#     - 0.141176
+#     - 1
+#   - !!python/tuple
+#     - 0.0901961
+#     - 0.101961
+#     - 0.117647
+#     - 0.2
+#   - !!python/tuple
+#     - 0.0901961
+#     - 0.0941176
+#     - 0.109804
+#     - 1
+#   tuck: true
+#   weight: 1.0
+# - category: dependants
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: dependants/drape/standard
+#   tuck: true
+#   variation: v1
+#   weight: 1.0
+# - category: dependants
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: dependants/ragdoll/ragdollhair
+#   tuck: true
+#   weight: 1.0
+# - category: dependants
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: dependants/ragdoll/ragdollthicktop
+#   tuck: true
+#   weight: 1.0
+# - category: dependants
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: dependants/boottucking/shin
+#   tuck: true
+#   variation: v1
+#   weight: 1.0
+# - category: bottomouter
+#   colors: '[(0.152941, 0.176471, 0.196078, 1), (0.0666667, 0.0666667, 0.0745098, 1),
+#     (0.12549, 0.141176, 0.168627, 1)]'
+#   colorvariation: achura
+#   path: bottomouter/pantscf01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.337255
+#     - 0.360784
+#     - 0.454902
+#     - 1
+#   - &id002 !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   - *id002
+#   tuck: true
+#   weight: 1.0
+# - category: hands
+#   colors: '[(0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   path: hands/hands_nude
+#   tuck: true
+#   weight: 1.0
+# - category: hair
+#   colors: '[(0.00784314, 0.0235294, 0.0431373, 1), (0.0235294, 0.0196078, 0.0156863,
+#     1), (0.0392157, 0.0392157, 0.0392157, 1)]'
+#   path: hair/hair_bun_02
+#   specularcolors: *id003
+#   tuck: true
+#   weight: 1.0
+# - category: outer
+#   colors: '[(0.0745098, 0.0862745, 0.0901961, 1), (0.121569, 0.121569, 0.121569, 1),
+#     (0.5, 0.5, 0.5, 1)]'
+#   colorvariation: achura
+#   path: outer/jacketcf01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.317647
+#     - 0.341176
+#     - 0.376471
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1
+#   - !!python/tuple
+#     - 0.34902
+#     - 0.352941
+#     - 0.4
+#     - 1
+#   tuck: true
+#   variation: v0
+#   weight: 1.0
+#
+# END VERBATIM RAW YAML
+# Variant 2: 4 of 63; sequence length 21
+# Example: res:/graphics/character/dnafiles/mannequin/femalemannequin.prs
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# - female
+# - category: utilityshapes
+#   path: utilityshapes/tucktopshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pushdrapeshape
+#   weight: 0.6
+# - category: utilityshapes
+#   path: utilityshapes/pushhemshape
+#   weight: 0.6
+# - category: utilityshapes
+#   path: utilityshapes/pushjackethighshape
+#   weight: 0.55
+# - category: head
+#   path: head/head_generic
+#   weight: 1.0
+# - category: head
+#   path: head/caldari_deteis
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/sleevesupper/standard
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/sleeveslower/standard
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/ragdoll/ragdollhair
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/waisttucking/standard
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/tuck/basic
+#   weight: 1.0
+# - category: archetypes
+#   path: archetypes/cdshape
+#   weight: 1.0
+# - category: archetypes
+#   path: archetypes/mannequinshape
+#   weight: 1.0
+# - category: makeup
+#   path: makeup/eyelashes/eyelashes_01
+#   weight: 1.0
+# - category: makeup
+#   path: makeup/eybrows/bushy_01
+#   weight: 1.0
+# - category: topinner
+#   path: topinner/torso_nude
+#   weight: 1.0
+# - category: bottomouter
+#   path: bottomouter/pantsmilf01
+#   variation: v2
+#   weight: 1.0
+# - category: accessories
+#   path: accessories/browbase/cd
+#   weight: 1.0
+# - category: feet
+#   path: feet/bootsmilf03
+#   variation: v2
+#   weight: 1.0
+# - category: hands
+#   path: hands/hands_nude
+#   weight: 1.0
+#
+# END VERBATIM RAW YAML
+# Variant 3: 3 of 63; sequence length 15
+# Example: res:/graphics/character/dnafiles/custom/aura.prs
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# - female
+# - category: utilityshapes
+#   path: utilityshapes/tightdrapeshape
+#   weight: 0.95
+# - category: utilityshapes
+#   path: utilityshapes/beltinshape
+#   weight: 1.0
+# - category: head
+#   path: head/head_generic
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/ragdoll/ragdollhair
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/sleevesupper/standard
+#   weight: 2.0
+# - category: dependants
+#   path: dependants/sleeveslower/standard
+#   weight: 2.0
+# - category: archetypes
+#   path: archetypes/aurashape
+#   weight: 1.0
+# - category: makeup
+#   path: makeup/eyelashes/eyelashes_01
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.917647, 0.917647, 0.917647, 1), (1, 1, 1, 1), (0.752941, 0.839216,
+#     0.894118, 1)]'
+#   colorvariation: default
+#   path: makeup/eyes/eyes_aura
+#   weight: 1.0
+# - category: makeup
+#   path: makeup/augmentations/face_01
+#   variation: v6
+#   weight: 1.0
+# - category: bottominner
+#   path: bottominner/legs_nude
+#   weight: 1.0
+# - category: topinner
+#   path: topinner/torso_nude
+#   weight: 1.0
+# - category: feet
+#   path: feet/feet_nude
+#   weight: 1.0
+# - category: hands
+#   path: hands/hands_nude
+#   weight: 1.0
+#
+# END VERBATIM RAW YAML
+# Variant 4: 3 of 63; sequence length 18
+# Example: res:/graphics/character/dnafiles/custom/r_female.prs
+# Variant 5: 3 of 63; sequence length 16
+# Example: res:/graphics/character/dnafiles/custom/r_male.prs
+# Variant 6: 2 of 63; sequence length 31
+# Example: res:/graphics/character/dnafiles/characterselect/amarrfemaleclothing.prs
+# Variant 7: 2 of 63; sequence length 25
+# Example: res:/graphics/character/dnafiles/characterselect/amarrmaleclothing.prs
+# Variant 8: 2 of 63; sequence length 74
+# Example: res:/graphics/character/dnafiles/characterselect/deteismaleclothing.prs
+# Variant 9: 2 of 63; sequence length 42
+# Example: res:/graphics/character/dnafiles/characterselect/nikunnifemaleclothing.prs
+# Variant 10: 2 of 63; sequence length 13
+# Example: res:/graphics/character/dnafiles/performancetests/malerobebald.prs
+# Variant 11: 2 of 63; sequence length 6
+# Example: res:/graphics/character/female/paperdoll/cdf_sculpt.prs
+# Variant 12: 1 of 63; sequence length 32
+# Example: res:/graphics/character/dnafiles/characterselect/achuramaleclothing.prs
+# Variant 13: 1 of 63; sequence length 44
+# Example: res:/graphics/character/dnafiles/characterselect/civirefemaleclothing.prs
+# Variant 14: 1 of 63; sequence length 20
+# Example: res:/graphics/character/dnafiles/characterselect/civiremaleclothing.prs
+# Variant 15: 1 of 63; sequence length 69
+# Example: res:/graphics/character/dnafiles/characterselect/deteisfemaleclothing.prs
+# Variant 16: 1 of 63; sequence length 27
+# Example: res:/graphics/character/dnafiles/characterselect/gallentemaleclothing.prs
+# Variant 17: 1 of 63; sequence length 41
+# Example: res:/graphics/character/dnafiles/characterselect/intakifemaleclothing.prs
+# Variant 18: 1 of 63; sequence length 38
+# Example: res:/graphics/character/dnafiles/characterselect/jinmeifemaleclothing.prs
+# Variant 19: 1 of 63; sequence length 26
+# Example: res:/graphics/character/dnafiles/characterselect/jinmeimaleclothing.prs
+# Variant 20: 1 of 63; sequence length 30
+# Example: res:/graphics/character/dnafiles/characterselect/khanidfemaleclothing.prs
+# Variant 21: 1 of 63; sequence length 28
+# Example: res:/graphics/character/dnafiles/characterselect/khanidmaleclothing.prs
+# Variant 22: 1 of 63; sequence length 29
+# Example: res:/graphics/character/dnafiles/characterselect/sebiestorfemaleclothing.prs
+# Variant 23: 1 of 63; sequence length 53
+# Example: res:/graphics/character/dnafiles/characterselect/sebiestormaleclothing.prs
+# Variant 24: 1 of 63; sequence length 49
+# Example: res:/graphics/character/dnafiles/characterselect/vherokiormaleclothing.prs
+# Variant 25: 1 of 63; sequence length 65
+# Example: res:/graphics/character/dnafiles/custom/tg_female.prs
+# Variant 26: 1 of 63; sequence length 24
+# Example: res:/graphics/character/dnafiles/custom/tg_male.prs
+# Variant 27: 1 of 63; sequence length 11
+# Example: res:/graphics/character/dnafiles/mannequin/malemannequin_nopants.prs
+# Variant 28: 1 of 63; sequence length 12
+# Example: res:/graphics/character/female/paperdoll/cdf_buff.prs
+# Variant 29: 1 of 63; sequence length 8
+# Example: res:/graphics/character/female/paperdoll/cdf_clothed.prs
+# Variant 30: 1 of 63; sequence length 7
+# Example: res:/graphics/character/female/paperdoll/default.prs
+# Variant 31: 1 of 63; sequence length 33
+# Example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/source/augmentationsuit_deathless.prs
+# Variant 32: 1 of 63; sequence length 43
+# Example: res:/graphics/character/female/paperdoll/outer/augmentationsuitf01/source/augmentationsuit_dna.prs
+# Variant 33: 1 of 63; sequence length 73
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/alexander_ducasse.prs
+# Variant 34: 1 of 63; sequence length 84
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/alixmoreau.prs
+# Variant 35: 1 of 63; sequence length 85
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/anyahorvak.prs
+# Variant 36: 1 of 63; sequence length 81
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/balinv1.prs
+# Variant 37: 1 of 63; sequence length 62
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/cephuszafir.prs
+# Variant 38: 1 of 63; sequence length 96
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/danahuginn.prs
+# Variant 39: 1 of 63; sequence length 82
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/lucastenzin.prs
+# Variant 40: 1 of 63; sequence length 72
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/sarvaburman.prs
+# Variant 41: 1 of 63; sequence length 108
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/sorayaroden.prs
+# Variant 42: 1 of 63; sequence length 101
+# Example: res:/graphics/character/global/paperdolllibrary/prs/npc/vesperv1.prs
+# Variant 43: 1 of 63; sequence length 34
+# Example: res:/graphics/character/male/paperdoll/outer/augmentationsuitm01/source/adam.prs
+# Variant 44: 1 of 63; sequence length 36
+# Example: res:/graphics/character/male/paperdoll/outer/augmentationsuitm01/source/drifter.prs
+# Variant 45: 1 of 63; sequence length 35
+# Example: res:/graphics/character/male/paperdoll/outer/augmentationsuitm01/v4/source/dna_deathless_m01.prs
+# Root variant: sequence ; 63 of 63
+# Optional first item: 58 of 63; kinds: string; values: "female", "male"; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+- string
+# Repeated entry: 2353 of 2353; kinds: map; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+-
+  # Nested key-set variant: 1091 of 2353; map ["category","path","weight"]; example: res:/graphics/character/dnafiles/custom/aura.prs
+  # Nested key-set variant: 641 of 2353; map ["category","colors","path","tuck","weight"]; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  # Nested key-set variant: 112 of 2353; map ["category","colors","colorvariation","path","specularcolors","weight"]; example: res:/graphics/character/dnafiles/custom/r_female.prs
+  # Nested key-set variant: 77 of 2353; map ["category","colors","colorvariation","path","specularcolors","tuck","weight"]; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  # Nested key-set variant: 65 of 2353; map ["category","path","variation","weight"]; example: res:/graphics/character/dnafiles/custom/aura.prs
+  # Nested key-set variant: 61 of 2353; map ["category","colors","colorvariation","path","tuck","weight"]; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  # Nested key-set variant: 50 of 2353; map ["category","colors","colorvariation","path","specularcolors","tuck","variation","weight"]; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  # Nested key-set variant: 39 of 2353; map ["category","colors","decaldata","decalweight","path","pattern","tuck","weight"]; example: res:/graphics/character/female/paperdoll/cdf_buff.prs
+  # Nested key-set variant: 33 of 2353; map ["category","colors","path","specularcolors","weight"]; example: res:/graphics/character/dnafiles/custom/aura_v2.prs
+  # Nested key-set variant: 31 of 2353; map ["category","colors","colorvariation","path","weight"]; example: res:/graphics/character/dnafiles/custom/aura.prs
+  # Nested key-set variant: 30 of 2353; map ["category","colors","path","specularcolors","tuck","weight"]; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  # Nested key-set variant: 23 of 2353; map ["category","colors","path","weight"]; example: res:/graphics/character/dnafiles/custom/aura_v2.prs
+  # Nested key-set variant: 19 of 2353; map ["category","path","tuck","weight"]; example: res:/graphics/character/dnafiles/mannequin/femalemannequin_nopants.prs
+  # Nested key-set variant: 18 of 2353; map ["category","colors","colorvariation","path","specularcolors","variation","weight"]; example: res:/graphics/character/dnafiles/custom/tg_female.prs
+  # Nested key-set variant: 14 of 2353; map ["category","colors","path","tuck","variation","weight"]; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  # Nested key-set variant: 12 of 2353; map ["category","colors","colorvariation","decaldata","decalweight","path","pattern","tuck","variation","weight"]; example: res:/graphics/character/female/paperdoll/default.prs
+  # Nested key-set variant: 8 of 2353; map ["category","colors","colorvariation","path","pattern","specularcolors","tuck","variation","weight"]; example: res:/graphics/character/dnafiles/characterselect/brutormaleclothing.prs
+  # Nested key-set variant: 8 of 2353; map ["category","colorvariation","path","weight"]; example: res:/graphics/character/dnafiles/custom/tg_female.prs
+  # Nested key-set variant: 7 of 2353; map ["category","colors","colorvariation","path","tuck","variation","weight"]; example: res:/graphics/character/dnafiles/characterselect/brutorfemaleclothing.prs
+  # Nested key-set variant: 4 of 2353; map ["category","colors","colorvariation","path","pattern","specularcolors","tuck","weight"]; example: res:/graphics/character/dnafiles/characterselect/brutorfemaleclothing.prs
+  # Nested key-set variant: 4 of 2353; map ["category","colors","path","specularcolors","variation","weight"]; example: res:/graphics/character/dnafiles/custom/tg_male.prs
+  # Nested key-set variant: 2 of 2353; map ["category","colors","colorvariation","path","pattern","specularcolors","variation","weight"]; example: res:/graphics/character/global/paperdolllibrary/prs/npc/danahuginn.prs
+  # Nested key-set variant: 2 of 2353; map ["category","colorvariation","path","variation","weight"]; example: res:/graphics/character/global/paperdolllibrary/prs/npc/danahuginn.prs
+  # Nested key-set variant: 1 of 2353; map ["category","colors","colorvariation","path","pattern","tuck","variation","weight"]; example: res:/graphics/character/dnafiles/characterselect/nikunnimaleclothing.prs
+  # Nested key-set variant: 1 of 2353; map ["category","colors","colorvariation","path","variation","weight"]; example: res:/graphics/character/global/paperdolllibrary/prs/npc/cephuszafir.prs
+  # 2353 of 2353; kinds: string; distinct scalar values: 23; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  "category":
+    string
+  # 1168 of 2353; kinds: string; distinct scalar values: 262; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  "colors":
+    string
+  # 2353 of 2353; kinds: string; distinct scalar values: 506; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  # (sampled 1262) → res:/graphics/character/<sex>/paperdoll/<path>/; verified folder prefixes 1262 of 2353
+  "path":
+    string
+  # 963 of 2353; kinds: boolean; values: true; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  "tuck":
+    bool
+  # 2353 of 2353; kinds: number; distinct scalar values: 425; range: 0.0075 .. 6; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  "weight":
+    float
+  # 394 of 2353; kinds: string|null; distinct scalar values: 64; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  "colorvariation":
+    string|null
+  # 338 of 2353; kinds: sequence; lengths: 3; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs; written as a YAML alias to an earlier identical value in the same file in 35 of 338 occurrences (anchors &id003, &id001, &id002); alias example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  "specularcolors":
+    # Item 0: 338 of 338; kinds: sequence; lengths: 4; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs; written as a YAML alias to an earlier identical value in the same file in 6 of 338 occurrences (anchors &id001, &id002, &id003); alias example: res:/graphics/character/dnafiles/characterselect/amarrfemaleclothing.prs
+    -
+      !!python/tuple
+      # Item 0: 338 of 338; kinds: number; distinct scalar values: 85; range: 0 .. 1; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 1: 338 of 338; kinds: number; distinct scalar values: 87; range: 0 .. 1; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 2: 338 of 338; kinds: number; distinct scalar values: 91; range: 0 .. 1; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 3: 338 of 338; kinds: number; distinct scalar values: 26; range: 0.1 .. 5; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      [float|int, float|int, float|int, int|float]
+    # Item 1: 338 of 338; kinds: sequence; lengths: 4; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs; written as a YAML alias to an earlier identical value in the same file in 2 of 338 occurrences (anchors &id001, &id002); alias example: res:/graphics/character/dnafiles/characterselect/amarrmaleclothing.prs
+    -
+      !!python/tuple
+      # Item 0: 338 of 338; kinds: number; distinct scalar values: 82; range: 0 .. 2; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 1: 338 of 338; kinds: number; distinct scalar values: 84; range: 0 .. 2; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 2: 338 of 338; kinds: number; distinct scalar values: 87; range: 0 .. 2; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 3: 338 of 338; kinds: number; values: 1, 0.2, 2, 0.7, 0.15, 0.4, 1.5, 0.5, 0.6, 0.8, 1.1, 1.05; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      [float|int, float|int, float|int, int|float]
+    # Item 2: 338 of 338; kinds: sequence; lengths: 4; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs; written as a YAML alias to an earlier identical value in the same file in 21 of 338 occurrences (anchors &id001, &id002, &id003); alias example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+    -
+      !!python/tuple
+      # Item 0: 338 of 338; kinds: number; distinct scalar values: 71; range: 0 .. 1; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 1: 338 of 338; kinds: number; distinct scalar values: 72; range: 0 .. 1; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 2: 338 of 338; kinds: number; distinct scalar values: 76; range: 0 .. 1; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      # Item 3: 338 of 338; kinds: number; values: 1, 2, 0.25, 0.7, 0.2, 0.6, 0.5, 1.1, 0, 1.4, 1.05, 1.2, 0.9, 1.5; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+      [float|int, float|int, float|int, int|float]
+  # 184 of 2353; kinds: string; values: "v0", "v1", "v2", "v3", "v6", "", "v19", "v4", "v5", "v15", "v32"; example: res:/graphics/character/dnafiles/characterselect/achurafemaleclothing.prs
+  "variation":
+    string
+  # 66 of 2353; kinds: string; values: "Camo_Minmatar", "CamoTriangular", "CamoCaldari", "Hexagon", "galente", "Amarr_B", "Amarr_N_Pants", "Amarr_N_Flowers", "", "CamoJungle"; example: res:/graphics/character/dnafiles/characterselect/brutorfemaleclothing.prs
+  "pattern":
+    string
+  # 51 of 2353; kinds: null; values: null; example: res:/graphics/character/female/paperdoll/cdf_buff.prs
+  "decaldata":
+    null
+  # 51 of 2353; kinds: number; values: 1; example: res:/graphics/character/female/paperdoll/cdf_buff.prs
+  "decalweight":
+    float

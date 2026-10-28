@@ -1,0 +1,40 @@
+# Raw res-file shape; build 3646012.
+# Family: modifiernames
+# Source pattern: res:/graphics/character/*
+# Files: 6
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 6 of 6; string
+# Example: res:/graphics/character/female/paperdoll/bodyshapes/modifiernames.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# chest_downShape
+# chest_rightShape
+# chest_forwardShape
+# chest_backShape
+# chest_upShape
+# chest_leftShape
+# pelvis_upShape
+# pelvis_leftShape
+# pelvis_forwardShape
+# pelvis_downShape
+# pelvis_backShape
+# abs_downShape
+# legs_upShape
+# legs_downShape
+# shoulders_upShape
+# shoulders_downShape
+# thinShape
+# fatShape
+# muscularShape
+# neck_leftShape
+# abs_forwardShape
+# abs_backShape
+# abs_leftShape
+# abs_rightShape
+# pelvis_rightShape
+# feet_upShape
+#
+# END VERBATIM RAW YAML
+# Root variant: string ; 6 of 6
+string
