@@ -5,7 +5,7 @@
 /**
  * Node keys accepted by CjsObjFormat's `classes` map.
  */
-export const CLASS_KEYS = Object.freeze([ "Root", "Mesh", "IndexGroup" ]);
+export const CLASS_KEYS = [ "Root", "Mesh", "IndexGroup" ];
 
 /**
  * Instantiate and populate a node class, or return the plain props unchanged.
