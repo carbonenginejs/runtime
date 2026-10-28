@@ -7,28 +7,23 @@ export class CjsCharacterModifierReference
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     authoredValue = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     modifierPath = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterPartSource")
     partSource = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterModifierLocation")
     modifierLocation = null;
 
     /** Effective weight for a proved weighted logical modifier; otherwise null. */
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.float64
     weight = null;
 

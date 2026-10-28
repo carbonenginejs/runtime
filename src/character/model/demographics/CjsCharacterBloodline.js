@@ -8,52 +8,42 @@ export class CjsCharacterBloodline extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.int32
     charisma = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     corporationID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     descriptionID = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     iconID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.int32
     intelligence = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.int32
     memory = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     nameID = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.int32
     perception = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterRace")
     raceID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.int32
     willpower = 0;
 

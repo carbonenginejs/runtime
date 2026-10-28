@@ -7,22 +7,18 @@ export class CjsCharacterSculptSelection
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.float64
     weightForwardBack = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.float64
     weightLeftRight = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.float64
     weightUpDown = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterSculptingLocation")
     sculptLocationID = null;
 

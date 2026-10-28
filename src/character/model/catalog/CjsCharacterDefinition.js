@@ -16,17 +16,14 @@ export class CjsCharacterDefinition extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.path
     sourcePath = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     extension = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.unknown
     values = null;
 

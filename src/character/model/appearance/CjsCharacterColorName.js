@@ -8,12 +8,10 @@ export class CjsCharacterColorName extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     colorName = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.uint8
     hairColor = 0;
 

@@ -4,6 +4,7 @@ import { meta, type } from "#schema";
 @meta.define("CjsCharacterMaterialBinding")
 export class CjsCharacterMaterialBinding
 {
+    
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
     kind = "";

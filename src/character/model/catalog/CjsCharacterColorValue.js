@@ -8,7 +8,6 @@ export class CjsCharacterColorValue
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.vec4
     value = vec4.fromValues(0, 0, 0, 1);
 

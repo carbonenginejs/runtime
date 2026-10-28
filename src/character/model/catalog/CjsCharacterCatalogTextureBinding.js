@@ -4,6 +4,7 @@ import { meta, type } from "#schema";
 @meta.define("CjsCharacterCatalogTextureBinding")
 export class CjsCharacterCatalogTextureBinding
 {
+
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.path
     path = "";

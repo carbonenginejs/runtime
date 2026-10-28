@@ -8,27 +8,22 @@ export class CjsCharacterRace extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.map("int32")
     skills = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     descriptionID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     iconID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     nameID = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     shipTypeID = null;
 

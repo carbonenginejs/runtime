@@ -14,32 +14,26 @@ export class CjsCharacterPartModelBundle
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.path
     configurationPath = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.path
     geometryPath = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.int32
     lod = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     lodOrigin = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     modelFamily = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     modelFamilyOrigin = null;
 

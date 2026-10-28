@@ -8,22 +8,18 @@ export class CjsCharacterArchetype extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.list("string")
     contentTags = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     location = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     descriptionID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     titleID = null;
 

@@ -7,27 +7,22 @@ export class CjsCharacterColorSelection
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.float64
     gloss = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.float64
     weight = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterColorLocation")
     colorID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterColorName")
     colorNameA = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterColorName")
     colorNameBC = null;
 

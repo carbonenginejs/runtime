@@ -16,82 +16,66 @@ export class CjsCharacterPartMetadata extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.path
     sourcePath = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     alternativeTextureSourcePath = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.boolean
     forcesLooseTop = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.boolean
     hidesBootShin = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     lod1Replacement = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     lod2Replacement = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.int32
     numColorAreas = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.list("string")
     dependentModifiers = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.list("string")
     occludesModifiers = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.list("CjsCharacterModifierReference")
     dependencies = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.list("CjsCharacterModifierReference")
     occlusions = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.int32
     soundTag = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.boolean
     swapTops = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.boolean
     swapBottom = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.boolean
     swapSocks = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.boolean
     wap = null;
 

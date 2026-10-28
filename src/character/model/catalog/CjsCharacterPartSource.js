@@ -14,32 +14,26 @@ export class CjsCharacterPartSource extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.path
     sourcePath = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.list("string")
     sourcePaths = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     sex = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     partPath = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.list("CjsCharacterPartSourceVersion")
     versions = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterPartMetadata")
     metadata = null;
 
