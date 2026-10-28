@@ -10,6 +10,8 @@ import { join } from "node:path";
 import test from "node:test";
 
 import "../../npm/dist/index.js";
+// This test walks optional character sources as well as the default runtime.
+import "../../npm/dist/character/index.js";
 import { CjsSchema, type } from "../../npm/dist/global/schema/index.js";
 
 

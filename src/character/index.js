@@ -18,3 +18,5 @@ export * from "./generated/index.js";
 export * from "./trinity/index.js";
 export * from "./incarna/index.js";
 export * from "./application/index.js";
+export { createCharacterYamlTagHandlers, readCharacterYamlObject } from "./library/yaml.js";
+export * from "./library/kinds/index.js";

@@ -11,7 +11,7 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * read it; a consumer that needs a profile-to-part join must diagnose a
  * missing one rather than assume the catalog is populated.
  */
-@meta.define("CjsProjectedDecal")
+@meta.define({ className: "CjsProjectedDecal", aliases: [ "paperDoll.ProjectedDecal", "eve.client.script.paperDoll.projectedDecals.ProjectedDecal" ] })
 export class CjsProjectedDecal extends CjsCharacterRecord
 {
 
@@ -21,7 +21,7 @@ export class CjsProjectedDecal extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    label = null;
+    label = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.int32
@@ -41,21 +41,21 @@ export class CjsProjectedDecal extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.path
-    texturePath = null;
+    texturePath = "";
 
     /** The content census contains only null; the non-null resource type is unresolved. */
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    textureResource = null;
+    textureResource = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.path
-    maskPath = null;
+    maskPath = "";
 
     /** The content census contains only null; the non-null resource type is unresolved. */
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    maskResource = null;
+    maskResource = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
@@ -84,6 +84,12 @@ export class CjsProjectedDecal extends CjsCharacterRecord
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.int32
     layer = 0;
+
+    /** Optional scene-recipe spelling, preserved separately from layer when authored. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.int32
+    layeres = null;
+
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean

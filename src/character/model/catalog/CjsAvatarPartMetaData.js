@@ -13,7 +13,7 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * optional normalized unsuffixed `modifierPath`, and exact `partSource` /
  * `modifierLocation` relationships only when a join is exact.
  */
-@meta.define("CjsAvatarPartMetaData")
+@meta.define({ className: "CjsAvatarPartMetaData", aliases: [ "paperDoll.AvatarPartMetaData" ] })
 export class CjsAvatarPartMetaData extends CjsCharacterRecord
 {
 
@@ -23,7 +23,7 @@ export class CjsAvatarPartMetaData extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    alternativeTextureSourcePath = null;
+    alternativeTextureSourcePath = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
@@ -35,11 +35,11 @@ export class CjsAvatarPartMetaData extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    lod1Replacement = null;
+    lod1Replacement = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
-    lod2Replacement = null;
+    lod2Replacement = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.int32
