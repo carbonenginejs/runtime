@@ -1,0 +1,14 @@
+{
+  "className": "CjsCharacterDefinition",
+  "status": "live-deprecated",
+  "deprecatedAt": "2026-10-29",
+  "removedAt": null,
+  "replacement": "CjsCharacterObjectBuilder and the typed source kinds",
+  "reason": "The legacy prepared-document representation remains supported while the approved flat library stores source-shaped values and keeps preparation policy separate.",
+  "source": "src/character/model/catalog/CjsCharacterDefinition.js",
+  "removalGate": [
+    "Migrate consumers of lossless definition envelopes to typed source records and original-format writing.",
+    "Prove existing document and Graphene behavior at each migration step.",
+    "Remove legacy imports/registration only when no supported caller uses them, then update this record."
+  ]
+}

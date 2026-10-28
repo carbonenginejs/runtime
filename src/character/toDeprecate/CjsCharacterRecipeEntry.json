@@ -1,0 +1,14 @@
+{
+  "className": "CjsCharacterRecipeEntry",
+  "status": "live-deprecated",
+  "deprecatedAt": "2026-10-29",
+  "removedAt": null,
+  "replacement": "CjsCharacterRecipeModifier",
+  "reason": "The legacy prepared-document representation remains supported while the approved flat library stores source-shaped values and keeps preparation policy separate.",
+  "source": "src/character/model/catalog/CjsCharacterRecipeEntry.js",
+  "removalGate": [
+    "Migrate renamed recipe-entry fields and prove original PRS tuple/string/reference round trips.",
+    "Prove existing document and Graphene behavior at each migration step.",
+    "Remove legacy imports/registration only when no supported caller uses them, then update this record."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "className": "CjsCharacterPartSource",
+  "status": "live-deprecated",
+  "deprecatedAt": "2026-10-29",
+  "removedAt": null,
+  "replacement": "CjsCharacterLibraryManager.GetPart",
+  "reason": "The legacy prepared-document representation remains supported while the approved flat library stores source-shaped values and keeps preparation policy separate.",
+  "source": "src/character/model/catalog/CjsCharacterPartSource.js",
+  "removalGate": [
+    "Migrate prepared part/version/material consumers to the raw part join plus their separate preparation policy.",
+    "Prove existing document and Graphene behavior at each migration step.",
+    "Remove legacy imports/registration only when no supported caller uses them, then update this record."
+  ]
+}

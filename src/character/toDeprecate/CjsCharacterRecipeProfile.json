@@ -1,0 +1,14 @@
+{
+  "className": "CjsCharacterRecipeProfile",
+  "status": "live-deprecated",
+  "deprecatedAt": "2026-10-29",
+  "removedAt": null,
+  "replacement": "CjsCharacterRecipe",
+  "reason": "The legacy prepared-document representation remains supported while the approved flat library stores source-shaped values and keeps preparation policy separate.",
+  "source": "src/character/model/catalog/CjsCharacterRecipeProfile.js",
+  "removalGate": [
+    "Migrate prepared recipe profiles and retain leading sex and authored optionality.",
+    "Prove existing document and Graphene behavior at each migration step.",
+    "Remove legacy imports/registration only when no supported caller uses them, then update this record."
+  ]
+}

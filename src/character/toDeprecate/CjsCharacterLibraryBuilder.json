@@ -1,0 +1,31 @@
+{
+  "className": "CjsCharacterLibraryBuilder",
+  "status": "live-deprecated",
+  "deprecatedAt": "2026-10-29",
+  "removedAt": null,
+  "replacement": "CjsCharacterLibraryBuilder Blue source-loading route; later factory/tools preparation",
+  "reason": "The legacy prepared-document representation remains supported while the approved flat library stores source-shaped values and keeps preparation policy separate.",
+  "source": "src/character/library-builder/CjsCharacterLibraryBuilder.js",
+  "removalGate": [
+    "Retire only the legacy prepared-document route after all current Graphene and tools callers migrate; retain this canonical builder class for Blue loading.",
+    "Prove existing document and Graphene behavior at each migration step.",
+    "Remove legacy imports/registration only when no supported caller uses them, then update this record."
+  ],
+  "scope": "legacy prepared-document methods only; canonical class retained",
+  "methods": [
+    {
+      "name": "prepareCatalog",
+      "status": "live-deprecated",
+      "deprecatedAt": "2026-10-29",
+      "removedAt": null,
+      "replacement": "Blue-only source loading for storage; an explicitly approved factory/tools owner for preparation policy",
+      "reason": "Acquisition evidence, DDS/PNG qualification, material choices and provenance are outside the flat data library.",
+      "source": "src/character/library-builder/CjsCharacterLibraryBuilder.js",
+      "removalGate": [
+        "Migrate every prepareCatalog caller without changing its present output.",
+        "Relocate texture qualification, material binding, pattern selection and version policy to their approved owners.",
+        "Prove old serialized-library compatibility before removing the method."
+      ]
+    }
+  ]
+}

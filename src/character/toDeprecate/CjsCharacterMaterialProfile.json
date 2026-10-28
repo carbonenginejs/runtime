@@ -1,0 +1,14 @@
+{
+  "className": "CjsCharacterMaterialProfile",
+  "status": "live-deprecated",
+  "deprecatedAt": "2026-10-29",
+  "removedAt": null,
+  "replacement": "CjsCharacterColorVariation plus a future material preparation owner",
+  "reason": "The legacy prepared-document representation remains supported while the approved flat library stores source-shaped values and keeps preparation policy separate.",
+  "source": "src/character/model/catalog/CjsCharacterMaterialProfile.js",
+  "removalGate": [
+    "Move derived pattern/provenance/material policy into its approved factory or tools owner; migrate all profile consumers.",
+    "Prove existing document and Graphene behavior at each migration step.",
+    "Remove legacy imports/registration only when no supported caller uses them, then update this record."
+  ]
+}

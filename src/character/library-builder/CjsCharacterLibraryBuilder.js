@@ -25,6 +25,8 @@ export class CjsCharacterLibraryBuilder
 
     /**
      * Projects qualified schema-12 joins from exact indexed acquisition evidence.
+     * Replacement: Blue-only source loading plus the later factory/tools preparation owner;
+     * lifecycle: ../toDeprecate/CjsCharacterLibraryBuilder.json (prepareCatalog removal gates).
      * Rebuilds only producer-owned fields; supplied material profiles remain intact.
      * Without evidence this is a structural library, not a prepared character.
      * `fullCanvasDdsPaths` opts exact, externally qualified PNG/DDS siblings into
