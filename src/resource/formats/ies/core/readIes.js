@@ -4,11 +4,11 @@ import { asUint8Array } from "#utils/bytes";
 // trinity/Resources/Tr2LightProfileRes.cpp, ParseIes. Reading retains every
 // horizontal slice; selecting a slice and generating a light texture are
 // deliberately outside this byte reader.
-const HEADER_FIELDS = Object.freeze([
+const HEADER_FIELDS = [
     "lampCount", "lumensPerLamp", "candelaMultiplier", "verticalAngleCount",
     "horizontalAngleCount", "photometricType", "unitsType", "width", "length",
     "height", "ballastFactor", "futureUse", "inputWatts"
-]);
+];
 const INTEGER_FIELDS = new Set([
     "lampCount", "verticalAngleCount", "horizontalAngleCount", "photometricType", "unitsType"
 ]);
