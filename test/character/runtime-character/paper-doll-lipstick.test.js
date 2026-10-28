@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
@@ -37,6 +38,7 @@ function Doll()
     doll.lipstick.Configure([ { id: "lipstick_01", colorAreas: [ 1 ], defaultPalette: "red_glossy",
         palettes: [ { path: "red_glossy", label: "Red glossy" }, { path: "pink_matte", label: "Pink matte" } ] } ],
     new Map([ [ "red_glossy", red ], [ "pink_matte", pink ] ]), { option: "" });
+    CjsSchema.setValues(doll.lipstick, { palette: "red_glossy", color1: red[0], color2: red[1], color3: red[2] });
     return doll;
 }
 
@@ -54,11 +56,11 @@ test("a lipstick style reaches the head (diffuse) and surface (specular and glos
     Update(doll, bindings);
     bindings.heads.length = bindings.surfaces.length = 0;
 
-    doll.lipstick.option = "lipstick_01";
+    CjsSchema.setValues(doll.lipstick, { option: "lipstick_01" });
     Update(doll, bindings);
     assert.equal(bindings.heads.at(-1).lipstick.option, "lipstick_01");
     assert.equal(bindings.surfaces.at(-1).lipstick.option, "lipstick_01");
-    assert.equal(bindings.surfaces.at(-1).lipstick.palette, "red_glossy", "the default palette selects the specular colours");
+    assert.equal(bindings.surfaces.at(-1).lipstick.palette, "red_glossy", "the supplied palette selects the specular colours");
     assert.deepEqual(doll.lipstick.GetControls().map(property => property.key), [ "palette", "customColors", "color1" ]);
 });
 
@@ -66,15 +68,16 @@ test("with custom colours on, a palette change still changes the specular", () =
 {
     const doll = Doll();
     const bindings = Bindings();
-    doll.lipstick.option = "lipstick_01";
+    CjsSchema.setValues(doll.lipstick, { option: "lipstick_01" });
     Update(doll, bindings);
-    doll.lipstick.color1 = Float32Array.of(.2, .1, .6, 1);
+    CjsSchema.setValues(doll.lipstick, { customColors: true });
+    CjsSchema.setValues(doll.lipstick, { color1: Float32Array.of(.2, .1, .6, 1) });
     Update(doll, bindings);
     bindings.heads.length = bindings.surfaces.length = 0;
 
-    // Choosing a palette turns custom colours off, so pick it and turn them back on.
-    doll.lipstick.palette = "pink_matte";
-    doll.lipstick.customColors = true;
+    // Palette and custom-colour inputs are independent; only specular changes here.
+    CjsSchema.setValues(doll.lipstick, { palette: "pink_matte" });
+    CjsSchema.setValues(doll.lipstick, { customColors: true });
     Update(doll, bindings);
     assert.equal(bindings.surfaces.at(-1).lipstick.palette, "pink_matte", "the surface pass sees the new palette");
     assert.equal(bindings.heads.length, 0, "the custom diffuse colour is unchanged, so the head is not recomposed");

@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import { IsMatch } from "#blue/INotify";
 
 /**
  * Application-owned foundation selection; prepared records retain resource provenance.
@@ -12,77 +13,85 @@ import { meta, type } from "#schema";
 @meta.define("CjsPaperDollArchetype")
 export class CjsPaperDollArchetype
 {
+
     _options = new Map();
-    _option = "";
+
     _defaultOption = "";
+
     _dirty = false;
+
     _foundationDirty = false;
-    _strength = 1;
+
     _defaultStrength = 1;
+
     _sculpt = new Map();
 
     /** Selected prepared foundation identity. */
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Archetype")
-    get option() { return this._option; }
-    /** Selects only a fully resolved prepared foundation. */
-    set option(value)
-    {
-        if (!this._options.has(value)) throw new RangeError("Unknown prepared archetype");
-        if (value !== this._option) { this._option = value; this._dirty = true; this._foundationDirty = true; }
-    }
+    option = "";
 
-    /** User-selected shape weight, independent of retained authored dependency weights. */
-    @meta.property()
+    /** Shape weight, independent of retained authored dependency weights. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.float32
     @meta.ui.description("Archetype strength")
-    get strength() { return this._strength; }
-    /** Marks the foundation dirty without resetting any other component selection. */
-    set strength(value)
+    strength = 1;
+
+    /**
+     * Marks pending work, distinguishing foundation replacement from shape edits.
+     * @param {string|string[]|null} propertyName The notified input names.
+     * @returns {void}
+     */
+    OnModified(propertyName)
     {
-        const weight = Math.fround(value);
-        if (!Number.isFinite(weight) || weight < 0) throw new RangeError("Archetype strength must be a finite nonnegative float");
-        if (weight !== this._strength) { this._strength = weight; this._dirty = true; }
+        this._dirty = true;
+        if (IsMatch(propertyName, "option")) this._foundationDirty = true;
     }
 
-    /** Validates every prepared foundation before replacing the selection catalog. */
+    /** Resolves prepared foundation graphs and installs the initial input values. */
     Configure(options, { option, strength = 1 } = {})
     {
         const prepared = new Map();
         for (const entry of options)
         {
-            if (!entry.id || prepared.has(entry.id)) throw new TypeError("Invalid archetype identity");
             prepared.set(entry.id, { id: entry.id, label: entry.label || entry.id,
                 foundation: CjsPaperDollArchetype.resolve(entry) });
         }
-        if (!prepared.has(option)) throw new RangeError("An explicit prepared archetype is required");
         const weight = Math.fround(strength);
-        if (!Number.isFinite(weight) || weight < 0) throw new RangeError("Invalid initial archetype strength");
-        this._strength = weight;
+        this.strength = weight;
         this._defaultStrength = weight;
         this._options = prepared;
         this._defaultOption = option;
-        this._option = option;
+        this.option = option;
         this._foundationDirty = true;
         this._dirty = true;
     }
 
     /** Returns qualified choices; there is no optional or disabled foundation. */
-    GetOptions() { return [...this._options.values()].map(({ id, label }) => ({ id, label })); }
+    GetOptions()
+    {
+        return [...this._options.values()].map(({ id, label }) => ({ id, label }));
+    }
 
     /**
      * One morph's sculpted weight.
      * @param {string} name The morph name.
      * @returns {number} Its weight; 0 when unsculpted.
      */
-    GetSculpt(name) { return this._sculpt.get(name) ?? 0; }
+    GetSculpt(name)
+    {
+        return this._sculpt.get(name) ?? 0;
+    }
 
     /**
      * Every sculpted morph and its weight.
      * @returns {Object<string, number>} Weights by morph name; unsculpted morphs are absent.
      */
-    GetSculpts() { return Object.fromEntries(this._sculpt); }
+    GetSculpts()
+    {
+        return Object.fromEntries(this._sculpt);
+    }
 
     /**
      * Sculpts one morph. A weight of 0 removes it.
@@ -92,9 +101,7 @@ export class CjsPaperDollArchetype
      */
     SetSculpt(name, value)
     {
-        if (typeof name !== "string" || !name) throw new TypeError("A sculpt needs a morph name");
         const weight = Math.fround(value);
-        if (!Number.isFinite(weight)) throw new RangeError("A sculpt weight must be finite");
         if (weight === this.GetSculpt(name)) return;
         if (weight === 0) this._sculpt.delete(name);
         else this._sculpt.set(name, weight);
@@ -102,25 +109,60 @@ export class CjsPaperDollArchetype
     }
 
     /** Removes every sculpt. @returns {void} */
-    ClearSculpts() { if (this._sculpt.size) { this._sculpt.clear(); this._dirty = true; } }
+    ClearSculpts()
+    {
+        if (this._sculpt.size)
+        {
+            this._sculpt.clear();
+            this._dirty = true;
+        }
+    }
 
     /** Returns an owned snapshot (the foundation, its strength and the sculpt); callers cannot mutate the retained foundation. */
-    Resolve() { return this._option ? { ...structuredClone(this._options.get(this._option).foundation), strength: this._strength, sculpt: this.GetSculpts() } : null; }
+    Resolve()
+    {
+        return this.option ? { ...structuredClone(this._options.get(this.option).foundation), strength: this.strength, sculpt: this.GetSculpts() } : null;
+    }
 
     /** Restores the configured initial foundation without resetting modifier values. */
-    Reset() { if (this._defaultOption) { this.option = this._defaultOption; this.strength = this._defaultStrength; } }
+    Reset()
+    {
+        if (this._defaultOption)
+        {
+            this.option = this._defaultOption;
+            this.strength = this._defaultStrength;
+            this.Rebuild();
+        }
+    }
 
     /** Reports an unapplied foundation selection. */
-    IsDirty() { return this._dirty; }
+    IsDirty()
+    {
+        return this._dirty;
+    }
 
     /** Distinguishes foundation replacement/forced rebuilding from a shape-only edit. */
-    IsFoundationDirty() { return this._foundationDirty; }
+    IsFoundationDirty()
+    {
+        return this._foundationDirty;
+    }
 
     /** Acknowledges the captured selection before invoking a prepared binding. */
-    ClearDirty() { this._dirty = false; this._foundationDirty = false; }
+    ClearDirty()
+    {
+        this._dirty = false;
+        this._foundationDirty = false;
+    }
 
     /** Requests reapplication of the selected foundation. */
-    Rebuild() { if (this._option) { this._dirty = true; this._foundationDirty = true; } }
+    Rebuild()
+    {
+        if (this.option)
+        {
+            this._dirty = true;
+            this._foundationDirty = true;
+        }
+    }
 
     /**
      * Resolves an explicitly prepared foundation graph, never filename heuristics.
@@ -185,4 +227,5 @@ export class CjsPaperDollArchetype
             supportBindings, models, dependencies, parts: [...visited].map(key => records.get(key)),
             source: entry.source, selections: entry.selections || [] });
     }
+
 }

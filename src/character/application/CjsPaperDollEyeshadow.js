@@ -1,7 +1,6 @@
-import { CjsSchema, meta, type } from "#schema";
+import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
 import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
-import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
 /**
  * Application-owned eye shadow settings: the style, two independent swatch
@@ -17,116 +16,65 @@ import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 @meta.define("CjsPaperDollEyeshadow")
 export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
 {
-    static layer = PaperDollLayer.EYESHADOW;
-    static passes = PaperDollPass.HEAD;
-    static category = "makeup/eyeshadow";
 
-    _item = new CjsPaperDollItem(this);
-    _itemClasses = new Map([ "", "1", "2", "3", "1,2", "1,3", "2,3", "1,2,3" ].map(key => [ key, CjsPaperDollItem ]));
-    _weight = 1;
     _defaultWeight = 1;
-    _secondary = "";
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Eye shadow")
-    get enabled() { return super.enabled; }
-    set enabled(value) { super.enabled = value; }
+    enabled = true;
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Style")
-    get option() { return super.option; }
-    set option(value)
-    {
-        super.option = value;
-        // A style chosen before any secondary pick starts from its default secondary swatch.
-        const fallback = this._options.get(this._option)?.defaultSecondaryPalette;
-        if (!this._secondary && fallback) { this._secondary = fallback; this._ApplySecondary(); }
-    }
+    option = "";
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.float32
     @meta.ui.description("Opacity")
-    get weight() { return this._weight; }
-    set weight(value)
-    {
-        if (!Number.isFinite(value) || value < 0 || value > 1) throw new RangeError("Opacity must be between zero and one");
-        value = Math.fround(value);
-        if (value !== this._weight) { this._weight = value; this.Rebuild(); }
-    }
+    weight = 1;
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Colour")
-    get palette() { return super.palette; }
-    set palette(value) { super.palette = value; }
+    palette = "";
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Secondary colour")
-    get secondaryPalette() { return this._secondary; }
-    set secondaryPalette(value)
-    {
-        if (value !== "" && !this._palettes.has(value)) throw new RangeError("Unknown secondary swatch");
-        this._secondary = value;
-        this._ApplySecondary();
-        this._custom = false;
-        this.Rebuild();
-    }
+    secondaryPalette = "";
 
-    /** The selected style's secondary swatches. */
-    GetSecondaryPalettes() { return [...(this._options.get(this._option)?.secondaryPalettes ?? [])]; }
-
-    /** Sets the primary swatch's colours, then the secondary swatch's over areas 2 and 3. */
-    _SetPreset(id)
-    {
-        super._SetPreset(id);
-        this._ApplySecondary();
-    }
-
-    /** Copies the secondary swatch's colours into areas 2 and 3 of the preset. */
-    _ApplySecondary()
-    {
-        if (!this._secondary) return;
-        const colors = this._palettes.get(this._secondary);
-        for (const index of [ 1, 2 ])
-        {
-            this._preset[index].set(colors[index]);
-            if (!this._initialized) this._colors[index].set(this._preset[index]);
-        }
-    }
-
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Custom colours")
-    get customColors() { return super.customColors; }
-    set customColors(value) { super.customColors = value; }
+    customColors = false;
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Custom colour")
-    get color1() { return this.GetColors()[0]; }
-    set color1(value) { this.SetColor(0, value); }
+    color1 = Float32Array.of(.5, .5, .5, 1);
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Custom secondary colour")
-    get color2() { return this.GetColors()[1]; }
-    set color2(value) { this.SetColor(1, value); }
+    color2 = Float32Array.of(.5, .5, .5, 1);
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Custom third colour")
-    get color3() { return this.GetColors()[2]; }
-    set color3(value) { this.SetColor(2, value); }
+    color3 = Float32Array.of(.5, .5, .5, 1);
+
+    /** The selected style's secondary swatches. */
+    GetSecondaryPalettes()
+    {
+        return [...(this._options.get(this.option)?.secondaryPalettes ?? [])];
+    }
 
     /** Installs prepared options and the reset opacity. */
     Configure(options, palettes, { option = "", weight = 1 } = {})
     {
-        if (!Number.isFinite(weight) || weight < 0 || weight > 1) throw new RangeError("Invalid default opacity");
         super.Configure(options, palettes, { option });
-        this._defaultWeight = Math.fround(weight);
+        this._defaultWeight = weight;
         this.weight = weight;
     }
 
@@ -138,19 +86,18 @@ export class CjsPaperDollEyeshadow extends CjsPaperDollComponent
         return state;
     }
 
-    /** The two swatch picks, the custom switch and the colour slots the selected style's zone map uses. */
-    GetControls()
+    /** Restores the default style, swatches and opacity. */
+    Reset()
     {
-        const areas = this.GetColorAreas();
-        if (!areas.length) return [];
-
-        const order = [ "palette", "secondaryPalette", "customColors", "color1", "color2", "color3" ];
-        return CjsSchema.getSchema(this.constructor).properties
-            .filter(property => order.includes(property.key))
-            .filter(property => !/^color\d$/.test(property.key) || areas.includes(Number(property.key.slice(5))))
-            .sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+        this.secondaryPalette = "";
+        super.Reset();
+        this.weight = this._defaultWeight;
     }
 
-    /** Restores the default style, swatches and opacity. */
-    Reset() { this._secondary = ""; super.Reset(); this.weight = this._defaultWeight; }
+    static layer = PaperDollLayer.EYESHADOW;
+
+    static passes = PaperDollPass.HEAD;
+
+    static category = "makeup/eyeshadow";
+
 }

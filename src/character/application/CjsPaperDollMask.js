@@ -5,5 +5,7 @@ import { CjsPaperDollAccessory } from "./CjsPaperDollAccessory.js";
 @meta.define("CjsPaperDollMask")
 export class CjsPaperDollMask extends CjsPaperDollAccessory
 {
+
     static category = "accessories/masks";
+
 }

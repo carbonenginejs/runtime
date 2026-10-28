@@ -1,55 +1,88 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDollDefinition } from "../../../npm/dist/character/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsPaperDollDefinition, PaperDollPass } from "../../../npm/dist/character/index.js";
 
-const colors = value => [ 0, 1, 2 ].map(() => Float32Array.of(value, value, value, 1));
-
-test("a garment option selects the palette it names; custom colours are kept", () =>
+test("component fields are independent engine inputs and schema notification only dirties", () =>
 {
-    const doll = new CjsPaperDollDefinition();
-    const palettes = new Map([ [ "a/amarr.color", colors(0.1) ], [ "c/achura.color", colors(0.7) ] ]);
-    doll.bottomOuter.Configure([
-        { id: "pantsa_amarr", path: "bottomouter/a", occludes: [], colorAreas: [ 1, 2, 3 ], defaultPalette: "a/amarr.color", palettes: [ { path: "a/amarr.color", label: "amarr" } ] },
-        { id: "pantsc_achura", path: "bottomouter/c", occludes: [], colorAreas: [ 1, 2, 3 ], defaultPalette: "c/achura.color", palettes: [ { path: "c/achura.color", label: "achura" } ] }
-    ], palettes, { option: "" });
+    const component = new CjsPaperDollDefinition().bottomOuter;
+    component.Configure([{ id: "pants", colorAreas: [1], defaultPalette: "authored" }],
+        new Map([["authored", [0, 1, 2].map(() => Float32Array.of(.1, .2, .3, 1))]]));
+    component.ClearDirty();
+    component.option = "pants";
+    assert.equal(component.IsDirty(), false, "ordinary writes are not intercepted");
+    assert.equal(component.palette, "");
+    assert.equal(component.color1[0], .5);
 
-    doll.bottomOuter.option = "pantsa_amarr";
-    assert.equal(doll.bottomOuter.palette, "a/amarr.color");
-    doll.bottomOuter.option = "pantsc_achura";
-    assert.equal(doll.bottomOuter.palette, "c/achura.color");
-    assert.equal(doll.bottomOuter.GetColors()[0][0], Math.fround(0.7));
-
-    doll.bottomOuter.customColors = true;
-    doll.bottomOuter.color1 = Float32Array.of(0.3, 0.3, 0.3, 1);
-    doll.bottomOuter.option = "pantsa_amarr";
-    assert.equal(doll.bottomOuter.customColors, true);
-    assert.equal(doll.bottomOuter.GetColors()[0][0], Math.fround(0.3));
+    component.customColors = true;
+    const color = component.color1;
+    CjsSchema.setValues(component, { palette: "authored" });
+    assert.equal(component.IsDirty(), true);
+    assert.equal(component.customColors, true, "notification applies no palette convenience");
+    assert.strictEqual(component.color1, color);
+    assert.equal(component.color1[0], .5);
+    component.ClearDirty();
+    CjsSchema.setValues(component, { palette: "authored" });
+    assert.equal(component.IsDirty(), false, "an equal schema write does not rebuild");
 });
 
-test("a garment option naming no palette resets it rather than keeping the previous one", () =>
+test("direct colour replacement is captured without enabling custom colours", () =>
 {
-    const doll = new CjsPaperDollDefinition();
-    doll.bottomOuter.Configure([
-        { id: "pantsa_amarr", path: "bottomouter/a", occludes: [], colorAreas: [ 1 ], defaultPalette: "a/amarr.color", palettes: [ { path: "a/amarr.color", label: "amarr" } ] },
-        { id: "pantsx", path: "bottomouter/x", occludes: [], colorAreas: [ 1 ], palettes: [] }
-    ], new Map([ [ "a/amarr.color", colors(0.1) ] ]), { option: "" });
-    doll.bottomOuter.option = "pantsa_amarr";
-    doll.bottomOuter.option = "pantsx";
-    assert.equal(doll.bottomOuter.palette, "");
+    const component = new CjsPaperDollDefinition().eyes;
+    component.Configure([{ id: "eyes", colorAreas: [1, 2, 3] }], new Map(), { option: "eyes" });
+    component.color1 = Float32Array.of(.1, .2, .3, 1);
+    component.palette = "palette-input";
+    const state = component.Capture();
+    assert.deepEqual(Object.keys(state), ["option", "colors", "colorAreas", "palette"]);
+    assert.deepEqual(state.colors[0], component.color1);
+    assert.notStrictEqual(state.colors[0], component.color1);
+    assert.equal(component.customColors, false);
+    assert.equal(state.palette, "palette-input");
+    component.color1[0] = 1;
+    assert.notEqual(state.colors[0][0], 1);
+    component.enabled = false;
+    assert.deepEqual(component.Capture().colorAreas, []);
+    assert.equal(component.Capture().option, "");
+    assert.equal(component.Capture().palette, "");
 });
 
-test("hair keeps the picked swatch across styles", () =>
+test("component inputs do not validate assignments or select other fields", () =>
 {
     const doll = new CjsPaperDollDefinition();
-    const palettes = new Map([ [ "01_a.color", colors(0.9) ], [ "10_a.color", colors(0.2) ] ]);
-    const swatches = [ { path: "01_a.color", label: "01" }, { path: "10_a.color", label: "10" } ];
-    doll.hair.Configure([
-        { id: "long", path: "hair/long", occludes: [], colorAreas: [ 1 ], defaultPalette: "01_a.color", palettes: swatches },
-        { id: "short", path: "hair/short", occludes: [], colorAreas: [ 1 ], defaultPalette: "01_a.color", palettes: swatches }
-    ], palettes, { option: "" });
+    doll.blush.option = "unknown";
+    doll.blush.weight = 9;
+    doll.blush.enabled = "caller-bug";
+    doll.blush.color1 = [1, 2];
+    doll.archetype.option = "unprepared";
+    doll.archetype.strength = -1;
+    assert.equal(doll.blush.option, "unknown");
+    assert.equal(doll.blush.weight, 9);
+    assert.equal(doll.blush.enabled, "caller-bug");
+    assert.deepEqual(doll.blush.color1, [1, 2]);
+    assert.equal(doll.archetype.strength, -1);
+});
 
-    doll.hair.option = "long";
-    doll.hair.palette = "10_a.color";
-    doll.hair.option = "short";
-    assert.equal(doll.hair.palette, "10_a.color");
+test("archetype notifications distinguish foundation and shape inputs", () =>
+{
+    const component = new CjsPaperDollDefinition().archetype;
+    component.ClearDirty();
+    CjsSchema.setValues(component, { strength: .5 });
+    assert.equal(component.IsDirty(), true);
+    assert.equal(component.IsFoundationDirty(), false);
+    component.ClearDirty();
+    CjsSchema.setValues(component, { option: "foundation-input" });
+    assert.equal(component.IsDirty(), true);
+    assert.equal(component.IsFoundationDirty(), true);
+});
+
+test("lipstick surface capture keeps its palette with custom diffuse inputs", () =>
+{
+    const component = new CjsPaperDollDefinition().lipstick;
+    component.Configure([{ id: "lip", colorAreas: [1] }], new Map(), { option: "lip" });
+    component.customColors = true;
+    component.palette = "gloss";
+    assert.equal(component.Capture(PaperDollPass.HEAD).palette, "");
+    assert.deepEqual(component.Capture(PaperDollPass.SURFACE), {
+        option: "lip", palette: "gloss", colorAreas: [], colors: []
+    });
 });

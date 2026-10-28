@@ -53,11 +53,12 @@ test("sculpt weights reach the foundation binding as a shape-only edit", () =>
     assert.deepEqual(foundations.at(-1).sculpt, {});
 });
 
-test("a sculpt needs a morph name and a finite weight", () =>
+test("sculpt inputs do not perform component validation", () =>
 {
     const doll = new CjsPaperDollDefinition();
     doll.archetype.Configure([ Foundation() ], { option: "archetype", strength: 1 });
-    assert.throws(() => doll.archetype.SetSculpt("", 1), TypeError);
-    assert.throws(() => doll.archetype.SetSculpt("Jaw_downShape", Number.NaN), RangeError);
-    assert.equal(doll.archetype.GetSculpt("Jaw_downShape"), 0);
+    doll.archetype.SetSculpt("", 1);
+    assert.equal(doll.archetype.GetSculpt(""), 1);
+    doll.archetype.SetSculpt("Jaw_downShape", Number.NaN);
+    assert.equal(Number.isNaN(doll.archetype.GetSculpt("Jaw_downShape")), true);
 });

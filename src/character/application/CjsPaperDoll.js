@@ -16,6 +16,7 @@ import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
 @meta.define("CjsPaperDoll")
 export class CjsPaperDoll
 {
+
     /** Who and what this character is: identity, foundation and part settings. */
     @meta.attribute(meta.READ)
     @type.object.embed("CjsPaperDollDefinition")
@@ -44,4 +45,5 @@ export class CjsPaperDoll
     {
         return this.front ? this.front.Update(this.definition) : false;
     }
+
 }

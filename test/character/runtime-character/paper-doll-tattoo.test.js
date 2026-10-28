@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
@@ -52,11 +53,13 @@ test("tattoo controls offer only the colour slots the selected profile's zone us
     const doll = Doll();
     assert.deepEqual(doll.tattoo.GetControls().map(property => property.key), [], "no profile, no ink controls");
 
-    doll.tattoo.option = "areaOne";
+    CjsSchema.setValues(doll.tattoo, { option: "areaOne" });
     assert.deepEqual(doll.tattoo.GetControls().map(property => property.key), [ "palette", "customColors", "color1" ]);
 
-    assert.deepEqual(Array.from(doll.tattoo.color1), Array.from(ink[0]), "the default palette supplies the zone's colour");
-    assert.throws(() => doll.tattoo.Configure([ { id: "areaThree", colorAreas: [ 3 ] } ], new Map()), RangeError, "unqualified zone shapes are refused");
+    CjsSchema.setValues(doll.tattoo, { color1: Float32Array.from(ink[0]) });
+    assert.deepEqual(Array.from(doll.tattoo.Capture().colors[0]), Array.from(ink[0]));
+    doll.tattoo.Configure([ { id: "areaThree", colorAreas: [ 3 ] } ], new Map(), { option: "areaThree" });
+    assert.deepEqual(doll.tattoo.GetColorAreas(), [3]);
 });
 
 test("tattoo edits reach the head binding with the captured option and colours", () =>
@@ -66,17 +69,17 @@ test("tattoo edits reach the head binding with the captured option and colours",
     Update(doll, bindings);
     bindings.heads.length = 0;
 
-    doll.tattoo.option = "areaOne";
+    CjsSchema.setValues(doll.tattoo, { option: "areaOne" });
     Update(doll, bindings);
     assert.equal(bindings.heads.length, 1);
     assert.equal(bindings.heads[0].tattoo.option, "areaOne");
 
-    doll.tattoo.color1 = Float32Array.of(.8, 0, 0, 1);
+    CjsSchema.setValues(doll.tattoo, { color1: Float32Array.of(.8, 0, 0, 1) });
     Update(doll, bindings);
     assert.equal(bindings.heads.length, 2);
     assert.deepEqual(Array.from(bindings.heads[1].tattoo.colors[0]), [ .800000011920929, 0, 0, 1 ]);
 
-    doll.tattoo.enabled = false;
+    CjsSchema.setValues(doll.tattoo, { enabled: false });
     Update(doll, bindings);
     assert.equal(bindings.heads.at(-1).tattoo.option, "", "a disabled tattoo captures no option");
 });
@@ -88,15 +91,15 @@ test("a strength-only edit rebuilds the head only while a tattoo is selected", (
     Update(doll, bindings);
     bindings.heads.length = 0;
 
-    doll.archetype.strength = .5;
+    CjsSchema.setValues(doll.archetype, { strength: .5 });
     Update(doll, bindings);
     assert.equal(bindings.heads.length, 0, "without a tattoo a geometry-only edit leaves cosmetic maps alone");
 
-    doll.tattoo.option = "areaOne";
+    CjsSchema.setValues(doll.tattoo, { option: "areaOne" });
     Update(doll, bindings);
     bindings.heads.length = 0;
 
-    doll.archetype.strength = .75;
+    CjsSchema.setValues(doll.archetype, { strength: .75 });
     Update(doll, bindings);
     assert.equal(bindings.heads.length, 1, "the tattoo is baked from the morphed face, so it rebakes");
 });

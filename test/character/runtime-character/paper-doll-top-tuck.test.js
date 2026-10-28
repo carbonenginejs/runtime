@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
@@ -43,12 +44,12 @@ test("a top's tuck state is captured into the body pass and rebuilds it when cha
     instance.Update(doll);
     assert.deepEqual(calls.body, [ 0 ]);
 
-    doll.topMiddle.tuck = 3;
+    CjsSchema.setValues(doll.topMiddle, { tuck: 3 });
     assert.equal(instance.Update(doll), true);
     assert.deepEqual(calls.body, [ 0, 3 ]);
 
     // Unchanged: nothing rebuilds.
-    doll.topMiddle.tuck = 3;
+    CjsSchema.setValues(doll.topMiddle, { tuck: 3 });
     assert.equal(instance.Update(doll), false);
 
     doll.topMiddle.Reset();
@@ -57,12 +58,14 @@ test("a top's tuck state is captured into the body pass and rebuilds it when cha
     assert.equal(calls.body.at(-1), 0);
 });
 
-test("tucking takes only a state index, and is 0 while no top is selected", () =>
+test("tucking is an unvalidated input and captures 0 while no top is selected", () =>
 {
     const doll = Doll();
-    assert.throws(() => { doll.topMiddle.tuck = -1; }, RangeError);
-    assert.throws(() => { doll.topMiddle.tuck = 1.5; }, RangeError);
-    doll.topMiddle.tuck = 2;
-    doll.topMiddle.enabled = false;
+    doll.topMiddle.tuck = -1;
+    assert.equal(doll.topMiddle.tuck, -1);
+    doll.topMiddle.tuck = 1.5;
+    assert.equal(doll.topMiddle.tuck, 1.5);
+    CjsSchema.setValues(doll.topMiddle, { tuck: 2 });
+    CjsSchema.setValues(doll.topMiddle, { enabled: false });
     assert.equal(doll.topMiddle.Capture().tuck, 0);
 });

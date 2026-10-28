@@ -5,5 +5,7 @@ import { CjsPaperDollAccessory } from "./CjsPaperDollAccessory.js";
 @meta.define("CjsPaperDollEarsLow")
 export class CjsPaperDollEarsLow extends CjsPaperDollAccessory
 {
+
     static category = "accessories/earslow";
+
 }

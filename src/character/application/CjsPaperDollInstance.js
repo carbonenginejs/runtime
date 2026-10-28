@@ -19,27 +19,19 @@ import { PaperDollPass } from "./paperDollOrder.js";
 @meta.define("CjsPaperDollInstance")
 export class CjsPaperDollInstance
 {
-    /**
-     * The passes after the foundation, in binding order. `whenSelected` skips a
-     * pass while none of its parts has a selection, before or after the edit;
-     * `reads` names a pass whose rebuilt output this one draws over.
-     */
-    static passOrder = [
-        { pass: PaperDollPass.SKIN, binding: "skin", whenSelected: true, reads: 0 },
-        { pass: PaperDollPass.SURFACE, binding: "surface", whenSelected: true, reads: 0 },
-        { pass: PaperDollPass.EYES, binding: "eyes", whenSelected: false, reads: 0 },
-        { pass: PaperDollPass.HEAD, binding: "head", whenSelected: false, reads: PaperDollPass.SKIN },
-        { pass: PaperDollPass.BODY, binding: "body", whenSelected: false, reads: PaperDollPass.SKIN }
-    ];
+
+    _bindings = null;
+
+    _appliedFoundation = null;
+
+    _applied = new Map();
+
+    _passDirty = 0;
+
+    _applying = false;
 
     /** The skinned objects drawn for this character, added to a scene by its manager. */
     objects = [];
-
-    _bindings = null;
-    _appliedFoundation = null;
-    _applied = new Map();
-    _passDirty = 0;
-    _applying = false;
 
     /**
      * @param {{foundation: Function, skin: Function, surface: Function, eyes: Function, head: Function, body: Function}} bindings
@@ -152,4 +144,18 @@ export class CjsPaperDollInstance
         finally { this._applying = false; }
         return foundationPending || changedPasses !== 0;
     }
+
+    /**
+     * The passes after the foundation, in binding order. `whenSelected` skips a
+     * pass while none of its parts has a selection, before or after the edit;
+     * `reads` names a pass whose rebuilt output this one draws over.
+     */
+    static passOrder = [
+        { pass: PaperDollPass.SKIN, binding: "skin", whenSelected: true, reads: 0 },
+        { pass: PaperDollPass.SURFACE, binding: "surface", whenSelected: true, reads: 0 },
+        { pass: PaperDollPass.EYES, binding: "eyes", whenSelected: false, reads: 0 },
+        { pass: PaperDollPass.HEAD, binding: "head", whenSelected: false, reads: PaperDollPass.SKIN },
+        { pass: PaperDollPass.BODY, binding: "body", whenSelected: false, reads: PaperDollPass.SKIN }
+    ];
+
 }

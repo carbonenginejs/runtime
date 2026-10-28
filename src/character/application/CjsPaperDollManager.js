@@ -14,6 +14,7 @@ import { meta } from "#schema";
 @meta.define("CjsPaperDollManager")
 export class CjsPaperDollManager
 {
+
     /** The interior scene the dolls are drawn in. */
     scene = null;
 
@@ -68,4 +69,5 @@ export class CjsPaperDollManager
         for (const doll of this.dolls) rebuilt = doll.Update() || rebuilt;
         return rebuilt;
     }
+
 }

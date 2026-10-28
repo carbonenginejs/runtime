@@ -1,7 +1,6 @@
-import { CjsSchema, meta, type } from "#schema";
+import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
 import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
-import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
 /**
  * Application-owned head tattoo settings: the projected profile, its ink
@@ -16,66 +15,48 @@ import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 @meta.define("CjsPaperDollTattoo")
 export class CjsPaperDollTattoo extends CjsPaperDollComponent
 {
-    static layer = PaperDollLayer.TATTOO;
-    static passes = PaperDollPass.HEAD;
-    static category = "tattoo";
-    static shapeDependent = true;
 
-    _item = new CjsPaperDollItem(this);
-    _itemClasses = new Map([ [ "", CjsPaperDollItem ], [ "1", CjsPaperDollItem ] ]);
-
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Tattoos")
-    get enabled() { return super.enabled; }
-    set enabled(value) { super.enabled = value; }
+    enabled = true;
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Tattoo")
-    get option() { return super.option; }
-    set option(value) { super.option = value; }
+    option = "";
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Tattoo ink")
-    get palette() { return super.palette; }
-    set palette(value) { super.palette = value; }
+    palette = "";
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Tattoo custom ink")
-    get customColors() { return super.customColors; }
-    set customColors(value) { super.customColors = value; }
+    customColors = false;
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Ink colour")
-    get color1() { return this.GetColors()[0]; }
-    set color1(value) { this.SetColor(0, value); }
+    color1 = Float32Array.of(.5, .5, .5, 1);
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Ink colour")
-    get color2() { return this.GetColors()[1]; }
-    set color2(value) { this.SetColor(1, value); }
+    color2 = Float32Array.of(.5, .5, .5, 1);
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.color
     @meta.ui.description("Ink colour")
-    get color3() { return this.GetColors()[2]; }
-    set color3(value) { this.SetColor(2, value); }
+    color3 = Float32Array.of(.5, .5, .5, 1);
 
-    /** The palette, the custom switch and the colour slots the selected profile's zone map uses. */
-    GetControls()
-    {
-        const areas = this.GetColorAreas();
-        if (!areas.length) return [];
+    static layer = PaperDollLayer.TATTOO;
 
-        const order = [ "palette", "customColors", "color1", "color2", "color3" ];
-        return CjsSchema.getSchema(this.constructor).properties
-            .filter(property => order.includes(property.key))
-            .filter(property => !/^color\d$/.test(property.key) || areas.includes(Number(property.key.slice(5))))
-            .sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
-    }
+    static passes = PaperDollPass.HEAD;
+
+    static category = "tattoo";
+
+    static shapeDependent = true;
+
 }

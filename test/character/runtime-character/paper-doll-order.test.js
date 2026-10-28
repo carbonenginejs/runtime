@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsPaperDollDefinition, CjsPaperDollInstance, PaperDollLayer, PaperDollPass } from "../../../npm/dist/character/index.js";
@@ -91,12 +92,12 @@ test("an active occluder draws after the parts it occludes, matched by category 
     assert.ok(order.indexOf("bodyAugmentation") > order.indexOf("topUnderwear"), "over the top underwear, by category");
     assert.ok(order.indexOf("bodyAugmentation") > order.indexOf("armLeft"), "over the arm, by path");
 
-    doll.bodyAugmentation.enabled = false;
+    CjsSchema.setValues(doll.bodyAugmentation, { enabled: false });
     const plain = doll.GetLayerOrder(PaperDollPass.BODY);
     assert.ok(plain.indexOf("bodyAugmentation") < plain.indexOf("topUnderwear"), "off, it keeps its rank");
 
-    doll.bodyAugmentation.enabled = true;
-    doll.topUnderwear.enabled = false;
+    CjsSchema.setValues(doll.bodyAugmentation, { enabled: true });
+    CjsSchema.setValues(doll.topUnderwear, { enabled: false });
     const bra = doll.GetLayerOrder(PaperDollPass.BODY);
     assert.ok(bra.indexOf("bodyAugmentation") > bra.indexOf("armLeft"), "still over the arm it occludes");
 });
@@ -110,9 +111,9 @@ test("the captured occlusion targets name geometry the doll does not collect", (
     assert.ok(CjsPaperDollDefinition.occludes(doll.GetOccluded(), "accessories/browbase/browbase_01"));
     assert.ok(!CjsPaperDollDefinition.occludes(doll.GetOccluded(), "accessories/browbaseextra"));
 
-    doll.augmentations.option = "plain";
+    CjsSchema.setValues(doll.augmentations, { option: "plain" });
     assert.deepEqual(doll.GetOccluded(), []);
-    doll.augmentations.option = "paint";
-    doll.augmentations.enabled = false;
+    CjsSchema.setValues(doll.augmentations, { option: "paint" });
+    CjsSchema.setValues(doll.augmentations, { enabled: false });
     assert.deepEqual(doll.GetOccluded(), []);
 });

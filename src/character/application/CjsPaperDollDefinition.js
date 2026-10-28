@@ -53,18 +53,12 @@ import { PaperDollPass } from "./paperDollOrder.js";
 @meta.define("CjsPaperDollDefinition")
 export class CjsPaperDollDefinition
 {
-    /**
-     * Our character texture quality: the size tier of the paper-doll maps a
-     * character composes from (`4k`, `2k` for the unsuffixed files, `512`,
-     * `256`). A map missing at that tier is taken from the nearest smaller one,
-     * then the nearest larger. A character copies it when it is built, so a
-     * change shows from the next build (CREATE: the library holds LOAD
-     * settings back until it reboots). EVE has its own character quality
-     * controls in client code; Carbon registers no such setting. The setting
-     * registry records this non-Carbon name with carbon: false.
-     */
-    @meta.setting("characterTextureQuality", { applies: meta.setting.CREATE, values: [ "4k", "2k", "512", "256" ] })
-    static characterTextureQuality = "4k";
+
+    _layers = new Map();
+
+    _dirty = true;
+
+    _passDirty = 0;
 
     /** The character's name. */
     @meta.attribute(meta.READWRITE | meta.PERSIST)
@@ -207,13 +201,6 @@ export class CjsPaperDollDefinition
     @type.object.embed("CjsPaperDollMask")
     mask = new CjsPaperDollMask();
 
-    /** The collected parts, by member name. Each pass composes its parts by bake rank, not by this order. */
-    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle", "bottomOuter", "feet", "topOuter", "outer", "hair", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ];
-
-    _layers = new Map();
-    _dirty = true;
-    _passDirty = 0;
-
     /**
      * Forces the selected foundation and every pass on the next build.
      * @returns {void}
@@ -262,7 +249,10 @@ export class CjsPaperDollDefinition
      * @param {string} name The part's member name.
      * @returns {number|null}
      */
-    GetLayer(name) { return this._layers.has(name) ? this._layers.get(name) : this[name].constructor.layer; }
+    GetLayer(name)
+    {
+        return this._layers.has(name) ? this._layers.get(name) : this[name].constructor.layer;
+    }
 
     /**
      * Overrides a part's bake rank, to place a layer by eye against the game,
@@ -357,19 +347,6 @@ export class CjsPaperDollDefinition
     }
 
     /**
-     * Whether occlusion targets cover a modifier path: a target names the path
-     * itself or a folder above it (`accessories/browbase` covers
-     * `accessories/browbase/browbase_01`).
-     * @param {string[]} targets Occlusion targets, as `GetOccluded` returns them.
-     * @param {string} path A modifier path below the paper doll root.
-     * @returns {boolean}
-     */
-    static occludes(targets, path)
-    {
-        return path !== "" && targets.some(target => target === path || path.startsWith(target + "/"));
-    }
-
-    /**
      * One pass's captured settings, copied so later edits cannot reach them:
      * `order` lists its parts in bake order, `occluded` the active occlusion
      * targets, then each part's capture under its name.
@@ -383,4 +360,34 @@ export class CjsPaperDollDefinition
         for (const name of names) state[name] = this[name].Capture(pass);
         return state;
     }
+
+    /**
+     * Whether occlusion targets cover a modifier path: a target names the path
+     * itself or a folder above it (`accessories/browbase` covers
+     * `accessories/browbase/browbase_01`).
+     * @param {string[]} targets Occlusion targets, as `GetOccluded` returns them.
+     * @param {string} path A modifier path below the paper doll root.
+     * @returns {boolean}
+     */
+    static occludes(targets, path)
+    {
+        return path !== "" && targets.some(target => target === path || path.startsWith(target + "/"));
+    }
+
+    /**
+     * Our character texture quality: the size tier of the paper-doll maps a
+     * character composes from (`4k`, `2k` for the unsuffixed files, `512`,
+     * `256`). A map missing at that tier is taken from the nearest smaller one,
+     * then the nearest larger. A character copies it when it is built, so a
+     * change shows from the next build (CREATE: the library holds LOAD
+     * settings back until it reboots). EVE has its own character quality
+     * controls in client code; Carbon registers no such setting. The setting
+     * registry records this non-Carbon name with carbon: false.
+     */
+    @meta.setting("characterTextureQuality", { applies: meta.setting.CREATE, values: [ "4k", "2k", "512", "256" ] })
+    static characterTextureQuality = "4k";
+
+    /** The collected parts, by member name. Each pass composes its parts by bake rank, not by this order. */
+    static parts = [ "skin", "eyes", "eyebrows", "blush", "freckles", "aging", "scarring", "scars", "tattoo", "augmentations", "bodyAugmentation", "armLeft", "armRight", "eyeshadow", "eyeliner", "lipstick", "bottomUnderwear", "topUnderwear", "bottomMiddle", "topMiddle", "bottomOuter", "feet", "topOuter", "outer", "hair", "glasses", "earsLow", "earsHigh", "nose", "lips", "chin", "brow", "mask" ];
+
 }

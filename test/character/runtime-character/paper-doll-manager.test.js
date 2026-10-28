@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsPaperDoll, CjsPaperDollDefinition, CjsPaperDollInstance, CjsPaperDollManager } from "../../../npm/dist/character/index.js";
@@ -60,7 +61,7 @@ test("two dolls build from their own definitions: an edit to one never reaches t
     manager.Update();
     first.bindings.heads.length = second.bindings.heads.length = 0;
 
-    first.doll.definition.lipstick.option = "lipstick_01";
+    CjsSchema.setValues(first.doll.definition.lipstick, { option: "lipstick_01" });
     assert.equal(manager.Update(), true);
     assert.deepEqual(first.bindings.heads, [ "lipstick_01" ]);
     assert.deepEqual(second.bindings.heads, [], "the other doll's head pass did not run");

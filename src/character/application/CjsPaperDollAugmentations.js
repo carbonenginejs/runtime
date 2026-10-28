@@ -1,7 +1,6 @@
 import { meta, type } from "#schema";
 import { CjsPaperDollComponent } from "./CjsPaperDollComponent.js";
 import { PaperDollLayer, PaperDollPass } from "./paperDollOrder.js";
-import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 
 /**
  * Application-owned face augmentation settings: one authored type, which
@@ -12,26 +11,21 @@ import { CjsPaperDollItem } from "./CjsPaperDollItem.js";
 @meta.define("CjsPaperDollAugmentations")
 export class CjsPaperDollAugmentations extends CjsPaperDollComponent
 {
-    static layer = PaperDollLayer.AUGMENTATIONS;
-    static passes = PaperDollPass.HEAD | PaperDollPass.BODY | PaperDollPass.SURFACE;
-    static category = "makeup/augmentations";
 
-    _item = new CjsPaperDollItem(this);
-    _itemClasses = new Map([["", CjsPaperDollItem]]);
-
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.boolean
     @meta.ui.description("Augmentations")
-    get enabled() { return super.enabled; }
-    set enabled(value) { super.enabled = value; }
+    enabled = true;
 
-    @meta.property()
+    @meta.attribute(meta.READWRITE | meta.PERSIST | meta.NOTIFY)
     @type.string
     @meta.ui.description("Style")
-    get option() { return super.option; }
-    set option(value) { super.option = value; }
+    option = "";
 
-    @meta.property()
-    @type.object.embed("CjsPaperDollItem")
-    get item() { return this._item; }
+    static layer = PaperDollLayer.AUGMENTATIONS;
+
+    static passes = PaperDollPass.HEAD | PaperDollPass.BODY | PaperDollPass.SURFACE;
+
+    static category = "makeup/augmentations";
+
 }
