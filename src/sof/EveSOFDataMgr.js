@@ -741,7 +741,6 @@ function projectHullChildSets(values)
 {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
-    visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     // Carbon hashes the group and keeps no name; the catalog retains it so
     // callers can report which groups a hull offers (never emitted in a document).
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
