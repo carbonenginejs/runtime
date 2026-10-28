@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import {
-  blue, BlueAsyncRes, BlueResManQueue, IBlueAsyncResNotifyTarget, IBlueCallbackMan, IBlueResMan, IBluePaths, IBlueResource
+  blue, BlueAsyncRes, CjsBlueResMan, BlueResManQueue, IBlueAsyncResNotifyTarget, IBlueCallbackMan, IBlueResMan, IBluePaths, IBlueResource
 } from "../../npm/dist/global/blue/index.js";
 
 /** Records queued callbacks so a test can run them as the queue would. */
@@ -136,6 +136,34 @@ test("a successful load opens the file without its query, prepares and notifies"
   const late = new Target();
   res.AddNotifyTarget(late);
   assert.deepEqual(late.calls, [ [ "rebuild", res ] ]);
+});
+
+test("a data stream loads and closes through the real resMan without a memory-budget limit", async t =>
+{
+  const { resMan: queue, paths } = setup(t);
+  const resMan = new CjsBlueResMan();
+  const bytes = new Uint8Array([ 1, 2, 3 ]);
+  paths.files.set("res:/budget.bin", { form: "bytes", data: bytes });
+  const res = new TestRes(), target = new Target();
+  res.AddNotifyTarget(target);
+  res.Initialize("res:/budget.bin", "");
+
+  // The queue fixture dispatches Carbon's numeric queue ID; the load itself
+  // uses the real manager's reserve/release and main-thread methods.
+  blue.resMan = resMan;
+  await queue.Run(queue.queued[0]);
+
+  assert.equal(res.loadedBytes, bytes);
+  assert.equal(res.IsGood(), true);
+  assert.equal(res.IsPrepared(), true);
+  assert.equal(res.IsLoading(), false);
+  assert.equal(res._dataStream, null);
+  assert.equal(res._reservedMemory, 0);
+  assert.deepEqual(target.calls, [ [ "rebuild", res ] ]);
+  for (const method of [ "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
+  {
+    assert.equal(CjsSchema.getMethod(CjsBlueResMan, method).impl.status, "noop");
+  }
 });
 
 test("off the main thread prepare is queued on the main queue; DONTNOTIFY skips the targets", async t =>

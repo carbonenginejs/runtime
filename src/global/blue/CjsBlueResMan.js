@@ -784,25 +784,26 @@ export class CjsBlueResMan
   /**
    * `ReserveBackgroundLoadMemory` (BlueResMan.cpp:401-418).
    *
-   * Not implemented: Carbon reserves a file's size before loading it; in the
+   * Deliberate no-op: Carbon reserves a file's size before loading it; in the
    * browser that size is unknown or wrong (compressed transfers, decoded and
    * converted results), so loads are limited by counts and time instead.
    *
-   * @throws {Error} Always.
+   * The 2026-10-13 decision in docs/internal/decisions/resman-in-the-browser.md
+   * leaves Carbon's 256 MB budget (BlueResMan.cpp:75,401-418) unported as a limit.
    */
-  ReserveBackgroundLoadMemory(_size) {
-    throw new Error("CjsBlueResMan.ReserveBackgroundLoadMemory is not implemented: loads are limited by counts and time.");
+  ReserveBackgroundLoadMemory(_size)
+  {
   }
 
   /**
    * `ReleaseBackgroundLoadMemory` (BlueResMan.cpp:420-432).
    *
-   * Not implemented, as `ReserveBackgroundLoadMemory`.
-   *
-   * @throws {Error} Always.
+   * Deliberate no-op, paired with `ReserveBackgroundLoadMemory`: the
+   * 2026-10-13 decision in docs/internal/decisions/resman-in-the-browser.md
+   * leaves Carbon's budget (BlueResMan.cpp:75,401-418) unported as a limit.
    */
-  ReleaseBackgroundLoadMemory(_size) {
-    throw new Error("CjsBlueResMan.ReleaseBackgroundLoadMemory is not implemented: loads are limited by counts and time.");
+  ReleaseBackgroundLoadMemory(_size)
+  {
   }
 
   /**
@@ -5336,9 +5337,10 @@ CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceW", blue.method, meta.adapte
 CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "WaitUrgent", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "SaveObject", blue.method, meta.implemented);
-for (const method of [ "SaveObjectW", "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
+CjsSchema.decorateMethod(CjsBlueResMan, "SaveObjectW", blue.method, meta.notImplemented);
+for (const method of [ "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
 {
-  CjsSchema.decorateMethod(CjsBlueResMan, method, blue.method, meta.notImplemented);
+  CjsSchema.decorateMethod(CjsBlueResMan, method, blue.method, meta.noop);
 }
 CjsSchema.decorateMethod(CjsBlueResMan, "AddToQueue", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "CancelFromQueue", meta.adapted);
