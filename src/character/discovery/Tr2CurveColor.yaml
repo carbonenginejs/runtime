@@ -1,0 +1,52 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 40 files contain 64 named Tr2CurveColor objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 64 objects in 40 files; keys ["a","b","g","name","r"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black; MD5 88543933006709b5ac7c8e980143df2a.
+# Verbatim hex at offset 403; object span 234 bytes (96-byte truncated excerpt):
+# e6000000040001000500060032000000070008000200000014000000004041f1733f0000000000000000010002000000804027a0093b00000000000000000200020009003200000007000800020000001400000000400ebeb03d000000000000
+# Separately decoded field evidence (not source YAML):
+# name: "BackLeftLight"
+# r: {"referenceClass":"Tr2CurveScalar"}
+# g: {"referenceClass":"Tr2CurveScalar"}
+# b: {"referenceClass":"Tr2CurveScalar"}
+# a: {"referenceClass":"Tr2CurveScalar"}
+#
+type: Tr2CurveColor # class discriminator, not a default value
+# name: 64 of 64 objects (40 files); values "BackLeftLight", "BackRightLight", "FrontAmbientLight", "FrontMainLight".
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+name: string
+# r: 64 of 64 objects (40 files); kinds object:Tr2CurveScalar.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# Target counts: Tr2CurveScalar 64.
+# Tr2CurveScalar: inline-owned, 64 occurrences. Wire example: embedded payload at offset 415; no other pointer to this object observed in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# → scenes_Tr2CurveScalar.yaml
+r: Tr2CurveScalar
+# g: 64 of 64 objects (40 files); kinds object:Tr2CurveScalar.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# Target counts: Tr2CurveScalar 64.
+# Tr2CurveScalar: inline-owned, 64 occurrences. Wire example: embedded payload at offset 471; no other pointer to this object observed in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# → scenes_Tr2CurveScalar.yaml
+g: Tr2CurveScalar
+# b: 64 of 64 objects (40 files); kinds object:Tr2CurveScalar.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# Target counts: Tr2CurveScalar 64.
+# Tr2CurveScalar: inline-owned, 64 occurrences. Wire example: embedded payload at offset 527; no other pointer to this object observed in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# → scenes_Tr2CurveScalar.yaml
+b: Tr2CurveScalar
+# a: 64 of 64 objects (40 files); kinds object:Tr2CurveScalar.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# Target counts: Tr2CurveScalar 64.
+# Tr2CurveScalar: inline-owned, 64 occurrences. Wire example: embedded payload at offset 583; no other pointer to this object observed in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# → scenes_Tr2CurveScalar.yaml
+a: Tr2CurveScalar

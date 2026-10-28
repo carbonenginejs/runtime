@@ -1,0 +1,32 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 7 files contain 29 named TriTextureParameter objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 2 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 26 objects in 7 files; keys ["name","resourcePath"].
+# Example res:/dx9/scene/postprocess/character_postprocess.black; MD5 605346688d4023d82c126cae79d900a5.
+# Verbatim hex at offset 412; object span 14 bytes (14-byte excerpt):
+# 0a0000000a0003000b000c000d00
+# Separately decoded field evidence (not source YAML):
+# name: "TexLUT"
+# resourcePath: "res:/dx9/scene/postprocess/LUTdefault.dds"
+#
+# Variant 2: 3 objects in 1 files; keys ["name"].
+# Example res:/graphics/interior/charactercreation/raceselection/exports/wodinteriorstatic1.black; MD5 f22e4580a9cafb1663c168cfa614f8a6.
+# Verbatim hex at offset 970; object span 10 bytes (10-byte excerpt):
+# 06000000190001001a00
+# Separately decoded field evidence (not source YAML):
+# name: "IrradianceMap"
+#
+type: TriTextureParameter # class discriminator, not a default value
+# name: 29 of 29 objects (7 files); values "TexLUT", "NormalMap", "SpecularMap", "DiffuseMap", "IrradianceMap", "GlowMap".
+# Example: res:/dx9/scene/postprocess/character_postprocess.black
+name: string
+# resourcePath: 26 of 29 objects (7 files); values "res:/dx9/scene/postprocess/LUTdefault.dds", "res:/dx9/scene/postprocess/NCC_normal.dds", "res:/Texture/Global/flatnormal.dds", "res:/Texture/Global/50gray.dds", "res:/Texture/Global/black.dds", "res:/Texture/Global/white.dds".
+# Example: res:/dx9/scene/postprocess/character_postprocess.black
+# → exact indexed resource paths: res:/dx9/scene/postprocess/LUTdefault.dds, res:/dx9/scene/postprocess/NCC_normal.dds, res:/Texture/Global/flatnormal.dds.
+resourcePath: string

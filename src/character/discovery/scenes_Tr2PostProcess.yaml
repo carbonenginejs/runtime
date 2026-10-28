@@ -1,0 +1,24 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 2 files contain 2 named Tr2PostProcess objects; 2 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 2 objects in 2 files; keys ["stages"].
+# Example res:/dx9/scene/postprocess/character_postprocess.black; MD5 605346688d4023d82c126cae79d900a5.
+# Verbatim hex at offset 340; object span 136 bytes (96-byte truncated excerpt):
+# 840000000000010002000000020000004200000002000300040005000600070001000000180008000000000000000000003f0000003f0000003f0000003f090001000000030000000a0000000a0003000b000c000d00040000002a0000000200
+# Separately decoded field evidence (not source YAML):
+# stages: [{"referenceClass":"Tr2Effect"},{"referenceClass":"Tr2Effect"}]
+#
+type: Tr2PostProcess # class discriminator, not a default value
+# stages: 2 of 2 objects (2 files); kinds array:object:Tr2Effect.
+# Example: res:/dx9/scene/postprocess/character_postprocess.black
+# Target counts: Tr2Effect 3.
+# Tr2Effect: inline-owned, 3 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 356; no other pointer to this object observed in this file.
+# Wire source: res:/dx9/scene/postprocess/character_postprocess.black
+# → scenes_Tr2Effect.yaml
+stages: [Tr2Effect] # class alternatives, not fixed list positions; inline objects

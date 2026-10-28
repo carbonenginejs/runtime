@@ -1,0 +1,32 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 4 files contain 4 named WodPlaceableRes objects; 4 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 4 objects in 4 files; keys ["farFadeDistance","nearFadeDistance","visualModel"].
+# Example res:/graphics/interior/charactercreation/plane/floor1_res.black; MD5 567c4e93efb115904441516b6f33bebd.
+# Verbatim hex at offset 639; object span 380 bytes (96-byte truncated excerpt):
+# 78010000000001000200000060010000020003000100000003000000500100000400050006000700080009000100000004000000380100000a0007000b000c0005000000280100000d0007000b000e000f001000080000000600000006000000
+# Separately decoded field evidence (not source YAML):
+# visualModel: {"referenceClass":"Tr2Model"}
+# farFadeDistance: 90
+# nearFadeDistance: 80
+#
+type: WodPlaceableRes # class discriminator, not a default value
+# visualModel: 4 of 4 objects (4 files); kinds object:Tr2Model.
+# Example: res:/graphics/interior/charactercreation/plane/floor1_res.black
+# Target counts: Tr2Model 4.
+# Tr2Model: inline-owned, 4 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 651; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/interior/charactercreation/plane/floor1_res.black
+# → Tr2Model.yaml
+visualModel: Tr2Model
+# farFadeDistance: 4 of 4 objects (4 files); values 90.
+# Example: res:/graphics/interior/charactercreation/plane/floor1_res.black
+farFadeDistance: int
+# nearFadeDistance: 4 of 4 objects (4 files); values 80.
+# Example: res:/graphics/interior/charactercreation/plane/floor1_res.black
+nearFadeDistance: int

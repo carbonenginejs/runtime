@@ -1,0 +1,24 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 4 files contain 4 named Tr2InteriorPlaceable objects; 4 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 4 objects in 4 files; keys ["placeableResPath","transform"].
+# Example res:/graphics/interior/charactercreation/plane/floor.black; MD5 a656569a7d4d2d83049442c8e3c7b3ab.
+# Verbatim hex at offset 171; object span 60 bytes (60-byte excerpt):
+# 3800000000000100020003002c000000040005000000a041060008ea6f370700fbff9f4108000000a0c1090008ea6f370a00cdcccc3c0b00000020c1
+# Separately decoded field evidence (not source YAML):
+# placeableResPath: "res:/Graphics/Interior/characterCreation/Plane/Floor_res.red"
+# transform: [20,0,0,0,0,0.000014299999747890979,19.999990463256836,0,0,-20,0.000014299999747890979,0,0,0.02500000037252903,-10,1]
+#
+type: Tr2InteriorPlaceable # class discriminator, not a default value
+# placeableResPath: 4 of 4 objects (4 files); values "res:/Graphics/Interior/characterCreation/Plane/Floor_res.red", "res:/Graphics/Interior/characterCreation/Plane/Floor1_res.red", "res:/Graphics/Interior/characterCreation/Plane/Floor2_res.red", "res:/Graphics/Interior/characterCreation/Plane/plane_res.red".
+# Example: res:/graphics/interior/charactercreation/plane/floor.black
+placeableResPath: string
+# transform: 4 of 4 objects (4 files); values [20,0,0,0,0,0.000014299999747890979,19.999990463256836,0,0,-20,0.000014299999747890979,0,0,0.02500000037252903,-10,1].
+# Example: res:/graphics/interior/charactercreation/plane/floor.black
+transform: [float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float]

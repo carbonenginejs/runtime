@@ -1,0 +1,61 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 5057 files contain 10015 named Tr2CurveScalar objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 6 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 8200 objects in 4385 files; keys ["keys","name"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_headglow_specularalpha_0.black; MD5 5db8b2eefb2816c0395ca347f9736916.
+# Verbatim hex at offset 302; object span 38 bytes (38-byte excerpt):
+# 2200000004000500010000001400000000000000803f00000000000000000100020001000600
+# Separately decoded field evidence (not source YAML):
+# keys: {"byteOffset":310,"byteLength":26}
+# name: "SkinglowSpecularAlpha"
+#
+# Variant 2: 858 objects in 286 files; keys ["extrapolationAfter","extrapolationBefore","keys","timeOffset"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black; MD5 7c4b330b47c23cee3505a9d8cd495b58.
+# Verbatim hex at offset 352; object span 132 bytes (96-byte truncated excerpt):
+# 8000000006000700050000001400000000000000003f7f7e31be7f7e31be040002020000803f0000003f0000003e0000003e05000201000000400000403f0000003e0000003e06000201000040400000403f499d00be499d00be070002020000
+# Separately decoded field evidence (not source YAML):
+# keys: {"byteOffset":360,"byteLength":106}
+# extrapolationBefore: 1
+# extrapolationAfter: 1
+# timeOffset: 1
+#
+# Variant 3: 386 objects in 116 files; keys ["keys","timeOffset"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2759_1/curvesets/aura_v3_effect_bodyglow_red_0.black; MD5 93c5db5744b4cf0c75775bfa9cad934f.
+# Verbatim hex at offset 305; object span 40 bytes (40-byte excerpt):
+# 2400000006000700010000001400000000000000803f00000000000000000400020008000000803f
+# Separately decoded field evidence (not source YAML):
+# keys: {"byteOffset":313,"byteLength":26}
+# timeOffset: 1
+#
+# Variant 4: 350 objects in 66 files; keys ["keys"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black; MD5 88543933006709b5ac7c8e980143df2a.
+#
+# Variant 5: 220 objects in 207 files; keys ["keys","name","timeOffset"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_headglow_threshold_0.black; MD5 22838ab87768664418b360b48afbd788.
+#
+# Variant 6: 1 objects in 1 files; keys ["extrapolationAfter","extrapolationBefore","keys"].
+# Example res:/dx9/model/character/corpse/corpse_rotation.black; MD5 95a95657624317a8a571e52194e85d80.
+#
+type: Tr2CurveScalar # class discriminator, not a default value
+# keys: 10015 of 10015 objects (5057 files); kinds opaque.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+# Opaque native structure-list bytes; no inner member names are stored.
+keys: [int] # raw byte payload placeholder, not decoded native records
+# extrapolationBefore: 859 of 10015 objects (287 files); values 1.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+extrapolationBefore: int
+# extrapolationAfter: 859 of 10015 objects (287 files); values 1.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+extrapolationAfter: int
+# timeOffset: 1464 of 10015 objects (609 files); values 1, 18, 0.5.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+timeOffset: float
+# name: 8420 of 10015 objects (4592 files); 43 distinct values; examples "SkinglowSpecularAlpha", "SkinglowThreshold", "Curve01".
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_headglow_specularalpha_0.black
+name: string

@@ -1,0 +1,46 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 5 files contain 7 named Tr2Mesh objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 2 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 4 objects in 4 files; keys ["geometryResPath","name","opaqueAreas"].
+# Example res:/graphics/interior/charactercreation/plane/floor1_res.black; MD5 567c4e93efb115904441516b6f33bebd.
+# Verbatim hex at offset 667; object span 340 bytes (96-byte truncated excerpt):
+# 500100000400050006000700080009000100000004000000380100000a0007000b000c0005000000280100000d0007000b000e000f00100008000000060000000600000011000700120007000000180000001100070013001400000000000000
+# Separately decoded field evidence (not source YAML):
+# geometryResPath: "res:/Graphics/Interior/characterCreation/Plane/Plane.gr2"
+# name: "ComboShape"
+# opaqueAreas: [{"referenceClass":"Tr2MeshArea"}]
+#
+# Variant 2: 3 objects in 1 files; keys ["geometryResPath","meshIndex","name","opaqueAreas"].
+# Example res:/graphics/interior/charactercreation/raceselection/exports/wodinteriorstatic1.black; MD5 f22e4580a9cafb1663c168cfa614f8a6.
+# Verbatim hex at offset 752; object span 300 bytes (96-byte truncated excerpt):
+# 2801000004000500060001000700080001000000090001000000030000000a0100000a0001000b000c0004000000fa0000000d0001000b000e000f00100005000000050000001800000011000100120013000000003f0000003f0000003f0000
+# Separately decoded field evidence (not source YAML):
+# geometryResPath: "res:/Graphics/Interior/CharacterCreation/RaceSelection/exports/wodInteriorStatic1.gr2"
+# name: "pSphereShape1"
+# meshIndex: 1
+# opaqueAreas: [{"referenceClass":"Tr2MeshArea"}]
+#
+type: Tr2Mesh # class discriminator, not a default value
+# geometryResPath: 7 of 7 objects (5 files); values "res:/Graphics/Interior/characterCreation/Plane/Plane.gr2", "res:/Graphics/Interior/CharacterCreation/RaceSelection/exports/wodInteriorStatic1.gr2".
+# Example: res:/graphics/interior/charactercreation/plane/floor1_res.black
+# → exact indexed resource paths: res:/Graphics/Interior/characterCreation/Plane/Plane.gr2, res:/Graphics/Interior/CharacterCreation/RaceSelection/exports/wodInteriorStatic1.gr2.
+geometryResPath: string
+# name: 7 of 7 objects (5 files); values "ComboShape", "pSphereShape1", "pCylinderShape1", "pCubeShape1".
+# Example: res:/graphics/interior/charactercreation/plane/floor1_res.black
+name: string
+# opaqueAreas: 7 of 7 objects (5 files); kinds array:object:Tr2MeshArea.
+# Example: res:/graphics/interior/charactercreation/plane/floor1_res.black
+# Target counts: Tr2MeshArea 7.
+# Tr2MeshArea: inline-owned, 7 occurrences. Wire example: first U32 object ID 4 plus inline payload at offset 691; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/interior/charactercreation/plane/floor1_res.black
+# → scenes_Tr2MeshArea.yaml
+opaqueAreas: [Tr2MeshArea] # class alternatives, not fixed list positions; inline objects
+# meshIndex: 3 of 7 objects (1 files); values 1, 2, 3.
+# Example: res:/graphics/interior/charactercreation/raceselection/exports/wodinteriorstatic1.black
+meshIndex: int

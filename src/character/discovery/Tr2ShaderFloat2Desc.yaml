@@ -1,0 +1,36 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 8 files contain 14 named Tr2ShaderFloat2Desc objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 14 objects in 8 files; keys ["defaultValue","helpText","name","parameterName","section"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 4235; object span 32 bytes (32-byte excerpt):
+# 1c00000025001b00000000400000803f0700260001002700090028000b002000
+# Separately decoded field evidence (not source YAML):
+# defaultValue: [2,1]
+# parameterName: "DetailDiffuseTile"
+# name: "Detail UV Scale"
+# helpText: "The frequency of the detail pattern (higher values is higher frequency patterns)"
+# section: "Diffuse"
+#
+type: Tr2ShaderFloat2Desc # class discriminator, not a default value
+# defaultValue: 14 of 14 objects (8 files); values [2,1], [0.5,0].
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+defaultValue: [float, float]
+# parameterName: 14 of 14 objects (8 files); values "DetailDiffuseTile", "GrimeTile", "OilFilmSpecularDependancy".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+parameterName: string
+# name: 14 of 14 objects (8 files); values "Detail UV Scale", "Grime UV Scale", "Oil Film Specular Dependancy".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+name: string
+# helpText: 14 of 14 objects (8 files); values "The frequency of the detail pattern (higher values is higher frequency patterns)", "The frequency of the grime pattern (higher values is higher frequency patterns)", "Specular lighting dependancy (scale and bias) of oil film effect".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+helpText: string
+# section: 14 of 14 objects (8 files); values "Diffuse", "Grime and Glow", "OilFilm", "Detail".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+section: string

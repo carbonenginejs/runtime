@@ -1,0 +1,28 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 5 files contain 7 named Tr2MeshArea objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 7 objects in 5 files; keys ["effect","name"].
+# Example res:/graphics/interior/charactercreation/plane/floor1_res.black; MD5 567c4e93efb115904441516b6f33bebd.
+# Verbatim hex at offset 691; object span 316 bytes (96-byte truncated excerpt):
+# 380100000a0007000b000c0005000000280100000d0007000b000e000f00100008000000060000000600000011000700120007000000180000001100070013001400000000000000484200000000000000000800000018000000110007001500
+# Separately decoded field evidence (not source YAML):
+# name: "lambert1"
+# effect: {"referenceClass":"Tr2Effect"}
+#
+type: Tr2MeshArea # class discriminator, not a default value
+# name: 7 of 7 objects (5 files); values "lambert1".
+# Example: res:/graphics/interior/charactercreation/plane/floor1_res.black
+name: string
+# effect: 7 of 7 objects (5 files); kinds object:Tr2Effect.
+# Example: res:/graphics/interior/charactercreation/plane/floor1_res.black
+# Target counts: Tr2Effect 7.
+# Tr2Effect: inline-owned, 7 occurrences. Wire example: first U32 object ID 5 plus inline payload at offset 707; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/interior/charactercreation/plane/floor1_res.black
+# → scenes_Tr2Effect.yaml
+effect: Tr2Effect

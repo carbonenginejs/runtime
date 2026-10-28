@@ -1,0 +1,84 @@
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 642 files contain 642 named Tr2InteriorScene objects; 325 Black roots and 317 YAML roots.
+# Variable shape: 4 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 317 objects in 317 files; keys ["lights","type"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights.yaml; MD5 f5ecf3cb4e33e72ed94b48256e9bdfb4.
+# Verbatim authored YAML excerpt:
+# type: Tr2InteriorScene
+# lights:
+# -   type: Tr2InteriorLightSource
+#     name: "BackLeft"
+#     position: [-1.1647642, 1.9526398, -0.4567019]
+#     radius: 3.0
+#     color: [0.0, 0.565098, 1.1, 1.0]
+#     kelvinColor:
+#         type: Tr2KelvinColor
+#     falloff: 50.0
+#     coneAlphaOuter: 30.0
+#     coneAlphaInner: 15.0
+#     coneDirection: [0.7167743, -0.5106208, 0.4748693]
+# -   type: Tr2InteriorLightSource
+#     name: "BackRight"
+#     position: [0.9143062, 2.305743, -0.4106716]
+#     radius: 2.7352941
+#     color: [1.2644337, 0.2280939, 0.7884116, 1.0]
+#     kelvinColor:
+#         type: Tr2KelvinColor
+#     falloff: 3.5219741
+#     coneAlphaOuter: 40.8186607
+#     coneAlphaInner: 15.0
+#     coneDirection: [-0.6961897, -0.6246315, 0.3537734]
+# -   type: Tr2InteriorLightSource
+#     name: "FrontMain"
+#     position: [-0.0769356, 2.0199583, 0.8128498]
+#     radius: 3.0
+#     color: [0.1098039, 0.1098039, 0.1568628, 1.0]
+#     kelvinColor:
+#         type: Tr2KelvinColor
+#     falloff: 5.5934029
+# [excerpt truncated after 32 lines]
+#
+# Variant 2: 316 objects in 316 files; keys ["lights"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black; MD5 d2dd459d413e6528f8a7531eb7ac4a7e.
+# Verbatim hex at offset 219; object span 390 bytes (96-byte truncated excerpt):
+# 8201000000000100040000000200000058000000020003000400050069909dbdff460140ed16503f0600000040400700dee0e03ddee0e03da4a0203e0000803f0800030000000200000009000a0028fdb2400b00000020420c00000070410d00
+# Separately decoded field evidence (not source YAML):
+# lights: [{"referenceClass":"Tr2InteriorLightSource"},{"referenceClass":"Tr2InteriorLightSource"},{"referenceClass":"Tr2InteriorLightSource"}]
+#
+# Variant 3: 8 objects in 8 files; keys ["curveSets","lights"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/lights_client.black; MD5 8ae5b0e57760a1bc0320f9a92f6fc274.
+# Verbatim hex at offset 886; object span 2978 bytes (96-byte truncated excerpt):
+# 9e0b00000000010004000000020000005800000002000300040005002041f1bdeeeba03f9a99b93e0600000040400700d3dee03dd3dee03d2e90203e0000803f0800030000000200000009000a0028fdb2400b00000020420c00000070410d00
+# Separately decoded field evidence (not source YAML):
+# lights: [{"referenceClass":"Tr2InteriorLightSource"},{"referenceClass":"Tr2InteriorLightSource"},{"referenceClass":"Tr2InteriorLightSource"}]
+# curveSets: [{"referenceClass":"TriCurveSet"},{"referenceClass":"TriCurveSet"},{"referenceClass":"TriCurveSet"}]
+#
+# Variant 4: 1 objects in 1 files; keys [].
+# Example res:/graphics/interior/charactercreation/raceselection.black; MD5 56dbcc35621fa32899c797b21d502e81.
+#
+type: Tr2InteriorScene # class discriminator, not a default value
+# lights: 641 of 642 objects (641 files); kinds array:object:Tr2InteriorLightSource.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+# Target counts: Tr2InteriorLightSource 2565.
+# Tr2InteriorLightSource: inline-owned, 1264 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 235; no other pointer to this object observed in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+# Tr2InteriorLightSource: inline-shared, 32 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 902; referenced elsewhere in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/lights_client.black
+# Tr2InteriorLightSource: yaml-inline-owned, 1269 occurrences. Wire example: authored nested YAML object, no reference alias.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights.yaml
+# → scenes_Tr2InteriorLightSource.yaml
+lights: [Tr2InteriorLightSource] # class alternatives, not fixed list positions; shared/reference links
+# curveSets: 8 of 642 objects (8 files); kinds array:object:TriCurveSet.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/lights_client.black
+# Target counts: TriCurveSet 59.
+# TriCurveSet: inline-owned, 59 occurrences. Wire example: first U32 object ID 10 plus inline payload at offset 1286; no other pointer to this object observed in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/lights_client.black
+# → scenes_TriCurveSet.yaml
+curveSets: [TriCurveSet] # class alternatives, not fixed list positions; inline objects
+# Authored type key: 317 of 642 objects; values "Tr2InteriorScene".
