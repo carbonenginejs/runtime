@@ -43,13 +43,13 @@ import {
 } from "./lowerSortInnerComputeProgram.js";
 
 const COMPONENTS = Object.freeze([ "x", "y", "z", "w" ]);
-const DECLARATION_OPCODES = Object.freeze([
+const DECLARATION_OPCODES = [
     "dcl_global_flags",
     "dcl_resource",
     "dcl_unordered_access_view_typed",
     "dcl_temps",
     "dcl_thread_group"
-]);
+];
 const ARITHMETIC_RULES = {
     imul: {
         rule: "signed-integer",

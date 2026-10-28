@@ -4,8 +4,8 @@ const DOT_LANES = {
     dp4: [ "x", "y", "z", "w" ]
 };
 
-const XY = Object.freeze([ "x", "y" ]);
-const XYZ = Object.freeze([ "x", "y", "z" ]);
+const XY = [ "x", "y" ];
+const XYZ = [ "x", "y", "z" ];
 
 function sampledResourceDimension(instruction, program)
 {

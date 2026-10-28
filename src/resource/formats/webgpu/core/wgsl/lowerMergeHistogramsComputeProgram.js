@@ -8,7 +8,7 @@ import { requireRefactoringAllowed } from "./precisionControls.js";
 import { buildSelectionPlans } from "./selectionPlans.js";
 
 const COMPONENTS = Object.freeze([ "x", "y", "z", "w" ]);
-const DECLARATION_OPCODES = Object.freeze([
+const DECLARATION_OPCODES = [
     "dcl_global_flags",
     "dcl_constant_buffer",
     "dcl_resource",
@@ -18,15 +18,15 @@ const DECLARATION_OPCODES = Object.freeze([
     "dcl_temps",
     "dcl_thread_group_shared_memory_structured",
     "dcl_thread_group"
-]);
-const BODY_OPCODES = Object.freeze([
+];
+const BODY_OPCODES = [
     "ult", "if", "store_structured", "endif", "sync", "ftou", "imul", "ult",
     "if", "ishl", "ushr", "mov", "mov", "mov", "loop", "uge", "breakc",
     "ushr", "iadd", "ld", "atomic_iadd", "iadd", "atomic_iadd", "iadd",
     "atomic_iadd", "atomic_iadd", "iadd", "endloop", "endif", "sync", "if",
     "ld_structured", "atomic_iadd", "endif", "ret"
-]);
-const BODY_OPERANDS_SM50 = Object.freeze([
+];
+const BODY_OPERANDS_SM50 = [
     "temp:0:x:0::none:default:uniform:4 | input_thread_id_in_group::x:::none:default:uniform:4 | immediate32::::#64:none:default:uniform:1",
     "temp:0:x:0::none:default:uniform:4",
     "thread_group_shared_memory:0:x:0::none:default:uniform:4 | input_thread_id_in_group::x:::none:default:uniform:4 | immediate32::::#0:none:default:uniform:1 | immediate32::::#0:none:default:uniform:1",
@@ -62,7 +62,7 @@ const BODY_OPERANDS_SM50 = Object.freeze([
     "uav:0::0::none:default:uniform:0 | input_thread_id_in_group::x:::none:default:uniform:4 | temp:0:x:0::none:default:uniform:4",
     "",
     ""
-]);
+];
 const BODY_OPERANDS_SM51 = BODY_OPERANDS_SM50.map((signature) =>
     signature
         .replaceAll("constant_buffer:0:xxyx:0,0::", "constant_buffer:0:xxyx:0,0,0::")
@@ -84,7 +84,7 @@ const CONTROL_KIND = Object.freeze({
     endloop: "loop",
     ret: "termination"
 });
-const SELECTION_STARTS = Object.freeze([ 1, 8, 30 ]);
+const SELECTION_STARTS = [ 1, 8, 30 ];
 
 function buildBlocks(instructions)
 {

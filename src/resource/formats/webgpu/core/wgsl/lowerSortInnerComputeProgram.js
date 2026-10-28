@@ -8,7 +8,7 @@ import { requireRefactoringAllowed } from "./precisionControls.js";
 import { buildSelectionPlans } from "./selectionPlans.js";
 
 const COMPONENTS = Object.freeze([ "x", "y", "z", "w" ]);
-const DECLARATION_OPCODES = Object.freeze([
+const DECLARATION_OPCODES = [
     "dcl_global_flags",
     "dcl_resource",
     "dcl_unordered_access_view_structured",
@@ -18,8 +18,8 @@ const DECLARATION_OPCODES = Object.freeze([
     "dcl_temps",
     "dcl_thread_group_shared_memory_structured",
     "dcl_thread_group"
-]);
-const BODY_OPCODES = Object.freeze([
+];
+const BODY_OPCODES = [
     "ld", "ishl", "iadd", "imax", "imin", "imad", "ilt", "if", "ilt", "if",
     "ld_structured", "store_structured", "endif", "iadd", "ilt", "if", "iadd",
     "ld_structured", "store_structured", "endif", "endif", "sync", "mov", "loop",
@@ -28,8 +28,8 @@ const BODY_OPCODES = Object.freeze([
     "store_structured", "endif", "endif", "sync", "ishr", "endloop", "if", "ilt",
     "if", "ld_structured", "store_structured", "endif", "iadd", "ilt", "if", "iadd",
     "ld_structured", "store_structured", "endif", "endif", "ret"
-]);
-const BODY_OPERANDS_SM50 = Object.freeze([
+];
+const BODY_OPERANDS_SM50 = [
     "temp:0:x:0::none:default:uniform:4 | immediate32::::#3,#3,#3,#3:none:default:uniform:4 | resource:0:xyzw:0::none:default:uniform:4",
     "temp:0:y:0::none:default:uniform:4 | input_thread_group_id::x:::none:default:uniform:4 | immediate32::::#9:none:default:uniform:1",
     "temp:0:y:0::none:default:uniform:4 | temp:0:y:0::neg:default:uniform:4 | temp:0:x:0::none:default:uniform:4",
@@ -91,7 +91,7 @@ const BODY_OPERANDS_SM50 = Object.freeze([
     "",
     "",
     ""
-]);
+];
 const BODY_OPERANDS_SM51 = BODY_OPERANDS_SM50.map((signature) =>
     signature
         .replaceAll("resource:0:xyzw:0::", "resource:0:xyzw:0,0::")
@@ -110,7 +110,7 @@ const CONTROL_KIND = Object.freeze({
     endloop: "loop",
     ret: "termination"
 });
-const SELECTION_STARTS = Object.freeze([ 7, 9, 15, 33, 38, 46, 48, 54 ]);
+const SELECTION_STARTS = [ 7, 9, 15, 33, 38, 46, 48, 54 ];
 
 function buildBlocks(instructions)
 {

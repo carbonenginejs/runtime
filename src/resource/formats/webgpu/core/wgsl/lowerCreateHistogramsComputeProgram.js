@@ -7,7 +7,7 @@ import { lowerBindingLayout } from "./lowerBindingLayout.js";
 import { requireRefactoringAllowed } from "./precisionControls.js";
 import { buildSelectionPlans } from "./selectionPlans.js";
 
-const DECLARATION_OPCODES = Object.freeze([
+const DECLARATION_OPCODES = [
     "dcl_global_flags",
     "dcl_constant_buffer",
     "dcl_resource",
@@ -18,7 +18,7 @@ const DECLARATION_OPCODES = Object.freeze([
     "dcl_temps",
     "dcl_thread_group_shared_memory_structured",
     "dcl_thread_group"
-]);
+];
 const BLOCK_BEFORE = new Set([
     "loop", "else", "endif", "endloop", "case", "default", "endswitch"
 ]);
@@ -32,10 +32,10 @@ const CONTROL_KIND = Object.freeze({
     endif: "selection",
     ret: "termination"
 });
-const SYNC_NAMES = Object.freeze([
+const SYNC_NAMES = [
     "threads_in_group",
     "thread_group_shared_memory"
-]);
+];
 
 function expectedOperand(
     typeName,

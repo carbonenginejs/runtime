@@ -10,7 +10,7 @@ import {
 import { requireRefactoringAllowed } from "./precisionControls.js";
 import { buildSelectionPlans } from "./selectionPlans.js";
 
-const DECLARATION_OPCODES = Object.freeze([
+const DECLARATION_OPCODES = [
     "dcl_global_flags",
     "dcl_constant_buffer",
     "dcl_unordered_access_view_structured",
@@ -22,8 +22,8 @@ const DECLARATION_OPCODES = Object.freeze([
     "dcl_temps",
     "dcl_thread_group_shared_memory_raw",
     "dcl_thread_group"
-]);
-const OPCODES_SM50 = Object.freeze([
+];
+const OPCODES_SM50 = [
     "if", "imul", "store_raw", "store_raw", "store_raw", "store_raw",
     "store_raw", "store_raw", "store_raw", "endif", "sync", "ld_raw",
     "ushr", "iadd", "xor", "ushr", "xor", "imul", "ushr", "xor",
@@ -43,8 +43,8 @@ const OPCODES_SM50 = Object.freeze([
     "ishl", "xor", "utof", "mul", "mad", "mad", "mad", "ishl",
     "xor", "ushr", "xor", "ishl", "xor", "bfi", "store_structured",
     "store_structured", "else", "break", "endif", "iadd", "endloop", "ret"
-]);
-const OPCODES_SM51 = Object.freeze([
+];
+const OPCODES_SM51 = [
     "if", "imul", "store_raw", "store_raw", "store_raw", "store_raw",
     "store_raw", "store_raw", "store_raw", "endif", "sync", "ld_raw",
     "ushr", "iadd", "xor", "ushr", "xor", "imul", "ushr", "xor",
@@ -65,7 +65,7 @@ const OPCODES_SM51 = Object.freeze([
     "add", "mad", "mad", "ishl", "xor", "ushr", "xor", "ishl",
     "xor", "bfi", "store_structured", "store_structured", "else", "break",
     "endif", "iadd", "endloop", "ret"
-]);
+];
 const PARTICLE_EMIT_SEMANTIC_DIGESTS = Object.freeze({
     0: "34136a691e74b7b0dabda66147d71bb6d663e962e300aaddda453e26cbcd8190",
     1: "70a206cc8d2c0cbfb44ad7ce1ae96bb1c5d90787ea63b5ae6bcefd4e50917dd1"

@@ -33,7 +33,7 @@ const BINDING_DECLARATIONS = {
     }
 };
 
-const RANGE_FIELDS = Object.freeze([
+const RANGE_FIELDS = [
     "bindingModel",
     "rangeId",
     "lowerBound",
@@ -41,7 +41,7 @@ const RANGE_FIELDS = Object.freeze([
     "unbounded",
     "registerCount",
     "registerSpace"
-]);
+];
 
 const RETURN_TYPE_NAMES = Object.freeze({
     3: "sint",

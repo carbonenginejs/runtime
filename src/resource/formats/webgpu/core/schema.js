@@ -1,4 +1,4 @@
-export const CLASS_KEYS = Object.freeze([
+export const CLASS_KEYS = [
     "Package",
     "Resource",
     "Buffer",
@@ -7,4 +7,4 @@ export const CLASS_KEYS = Object.freeze([
     "Pipeline",
     "BindGroup",
     "Sampler"
-]);
+];

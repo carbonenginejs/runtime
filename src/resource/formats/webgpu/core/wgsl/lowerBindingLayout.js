@@ -17,8 +17,8 @@ const KIND_PREFIX = Object.freeze({
 });
 
 const STAGE_VISIBILITY = Object.freeze({ vertex: "vertex", pixel: "fragment", compute: "compute" });
-const STAGES = Object.freeze([ "vertex", "fragment", "compute" ]);
-const LEGACY_SHARED_STAGES = Object.freeze([ "vertex", "fragment" ]);
+const STAGES = [ "vertex", "fragment", "compute" ];
+const LEGACY_SHARED_STAGES = [ "vertex", "fragment" ];
 const IDENTITY_PATTERN = /^(uniform-buffer|sampled-resource|sampler|storage-resource):\d+:\d+$/u;
 
 function bindingRegister(binding)

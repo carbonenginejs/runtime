@@ -10,12 +10,12 @@ import { buildSelectionPlans } from "./selectionPlans.js";
 const RESET_KEY = "Main.pass0.compute";
 const CLEAR_KEY = "Main.pass1.compute";
 const PROOF_CLASS = "particle-clear-r32sint-v1";
-const RESET_DECLARATIONS = Object.freeze([
+const RESET_DECLARATIONS = [
     "dcl_global_flags",
     "dcl_unordered_access_view_typed",
     "dcl_thread_group"
-]);
-const CLEAR_DECLARATIONS = Object.freeze([
+];
+const CLEAR_DECLARATIONS = [
     "dcl_global_flags",
     "dcl_constant_buffer",
     "dcl_unordered_access_view_structured",
@@ -24,16 +24,16 @@ const CLEAR_DECLARATIONS = Object.freeze([
     "dcl_input",
     "dcl_temps",
     "dcl_thread_group"
-]);
-const RESET_OPCODES = Object.freeze([ "store_uav_typed", "ret" ]);
-const CLEAR_OPCODES = Object.freeze([
+];
+const RESET_OPCODES = [ "store_uav_typed", "ret" ];
+const CLEAR_OPCODES = [
     "ushr", "mov", "loop", "uge", "breakc", "bfi",
     "store_structured", "store_structured", "imm_atomic_iadd",
     "store_structured", "iadd", "endloop",
     "if", "and", "mov", "loop", "uge", "breakc",
     "store_structured", "store_structured", "imm_atomic_iadd",
     "store_structured", "iadd", "endloop", "endif", "ret"
-]);
+];
 const BLOCK_BEFORE = new Set([
     "loop", "else", "endif", "endloop", "case", "default", "endswitch"
 ]);

@@ -9,7 +9,7 @@ import { buildSelectionPlans } from "./selectionPlans.js";
 import { validateSm50ResourceExtensions } from "./validateExactComputeIr.js";
 
 const COMPONENTS = Object.freeze([ "x", "y", "z", "w" ]);
-const DECLARATION_OPCODES = Object.freeze([
+const DECLARATION_OPCODES = [
     "dcl_global_flags",
     "dcl_constant_buffer",
     "dcl_resource_structured",
@@ -18,8 +18,8 @@ const DECLARATION_OPCODES = Object.freeze([
     "dcl_input",
     "dcl_temps",
     "dcl_thread_group"
-]);
-const BODY_OPCODES = Object.freeze([
+];
+const BODY_OPCODES = [
     "ult", "if", "imad", "ld_structured", "iadd", "ld_structured",
     "ld_structured", "ld_structured", "ine", "if", "and", "ubfe", "ushr",
     "imad", "ld_structured", "and", "ubfe", "ushr", "utof", "utof", "mul",
@@ -31,8 +31,8 @@ const BODY_OPCODES = Object.freeze([
     "ld_structured", "ld_structured", "ld_structured", "endif", "mov", "dp4",
     "dp4", "dp4", "imad", "store_structured", "iadd", "store_structured",
     "store_structured", "endif", "ret"
-]);
-const BODY_OPERANDS = Object.freeze([
+];
+const BODY_OPERANDS = [
     "temp:0:x:0: | input_thread_id::x:: | constant_buffer:3:x:3,0:",
     "temp:0:x:0:",
     "temp:0:xy:0: | input_thread_id::xxxx:: | constant_buffer:3:yyyy:3,0: | constant_buffer:3:zwzz:3,0:",
@@ -99,7 +99,7 @@ const BODY_OPERANDS = Object.freeze([
     "uav:0:x:0: | temp:1:y:1: | immediate32::::#0 | temp:0:z:0:",
     "",
     ""
-]);
+];
 const BLOCK_BEFORE = new Set([ "else", "endif" ]);
 const BLOCK_AFTER = new Set([ "if", "else", "endif", "ret" ]);
 const CONTROL_KIND = Object.freeze({

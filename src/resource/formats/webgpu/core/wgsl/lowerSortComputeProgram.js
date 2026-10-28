@@ -8,7 +8,7 @@ import { requireRefactoringAllowed } from "./precisionControls.js";
 import { buildSelectionPlans } from "./selectionPlans.js";
 
 const COMPONENTS = Object.freeze([ "x", "y", "z", "w" ]);
-const DECLARATION_OPCODES = Object.freeze([
+const DECLARATION_OPCODES = [
     "dcl_global_flags",
     "dcl_resource",
     "dcl_unordered_access_view_structured",
@@ -18,8 +18,8 @@ const DECLARATION_OPCODES = Object.freeze([
     "dcl_temps",
     "dcl_thread_group_shared_memory_structured",
     "dcl_thread_group"
-]);
-const BODY_OPCODES = Object.freeze([
+];
+const BODY_OPCODES = [
     "ld", "if", "ret", "endif", "imad", "ishl", "iadd", "imin", "imax", "ult",
     "if", "ld_structured", "store_structured", "endif", "iadd", "ult", "if",
     "iadd", "ld_structured", "store_structured", "endif", "sync", "mov", "loop",
@@ -29,8 +29,8 @@ const BODY_OPCODES = Object.freeze([
     "store_structured", "store_structured", "endif", "endif", "sync", "ishr",
     "endloop", "ishl", "endloop", "if", "ld_structured", "store_structured",
     "endif", "if", "iadd", "ld_structured", "store_structured", "endif", "ret"
-]);
-const BODY_OPERANDS_SM50 = Object.freeze([
+];
+const BODY_OPERANDS_SM50 = [
     "temp:0:x:0::none:default:uniform:4 | immediate32::::#3,#3,#3,#3:none:default:uniform:4 | resource:0:xyzw:0::none:default:uniform:4",
     "temp:0:x:0::none:default:uniform:4",
     "",
@@ -100,7 +100,7 @@ const BODY_OPERANDS_SM50 = Object.freeze([
     "uav:0:xy:0::none:default:uniform:4 | temp:0:x:0::none:default:uniform:4 | immediate32::::#0:none:default:uniform:1 | temp:0:yzyy:0::none:default:uniform:4",
     "",
     ""
-]);
+];
 const BODY_OPERANDS_SM51 = BODY_OPERANDS_SM50.map((signature) =>
     signature
         .replaceAll("resource:0:xyzw:0::", "resource:0:xyzw:0,0::")
@@ -120,7 +120,7 @@ const CONTROL_KIND = Object.freeze({
     endloop: "loop",
     ret: "termination"
 });
-const SELECTION_STARTS = Object.freeze([ 1, 10, 16, 44, 49, 59, 63 ]);
+const SELECTION_STARTS = [ 1, 10, 16, 44, 49, 59, 63 ];
 
 function buildBlocks(instructions)
 {

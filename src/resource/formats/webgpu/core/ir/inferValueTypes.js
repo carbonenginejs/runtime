@@ -3,9 +3,9 @@ import { compareUtf8 } from "../../../../format/compareUtf8.js";
 const COMPONENTS = [ "x", "y", "z", "w" ];
 const COMPONENT_INDEX = new Map(COMPONENTS.map((component, index) => [ component, index ]));
 
-export const SCALAR_TYPES = Object.freeze([
+export const SCALAR_TYPES = [
     "unknown", "float32", "int32", "uint32", "bool", "bitpattern32"
-]);
+];
 
 const FLOAT_OPS = new Set([
     "add", "deriv_rtx", "deriv_rty", "deriv_rtx_coarse", "deriv_rtx_fine",

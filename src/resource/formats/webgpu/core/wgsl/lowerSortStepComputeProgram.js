@@ -9,7 +9,7 @@ import { buildSelectionPlans } from "./selectionPlans.js";
 import { validateSm50ResourceExtensions } from "./validateExactComputeIr.js";
 
 const COMPONENTS = Object.freeze([ "x", "y", "z", "w" ]);
-const DECLARATION_OPCODES = Object.freeze([
+const DECLARATION_OPCODES = [
     "dcl_global_flags",
     "dcl_constant_buffer",
     "dcl_resource",
@@ -18,13 +18,13 @@ const DECLARATION_OPCODES = Object.freeze([
     "dcl_input",
     "dcl_temps",
     "dcl_thread_group"
-]);
-const BODY_OPCODES = Object.freeze([
+];
+const BODY_OPCODES = [
     "ld", "imad", "iadd", "and", "iadd", "ishl", "iadd", "imad",
     "ult", "if", "iadd", "ld_structured", "ld_structured", "lt", "if",
     "store_structured", "store_structured", "endif", "endif", "ret"
-]);
-const BODY_OPERANDS_BASE_SM50 = Object.freeze([
+];
+const BODY_OPERANDS_BASE_SM50 = [
     "temp:0:x:0::none:default:uniform | immediate32::::#3,#3,#3,#3:none:default:uniform | resource:0:xyzw:0::none:default:uniform",
     "temp:0:y:0::none:default:uniform | input_thread_group_id::x:::none:default:uniform | immediate32::::#256:none:default:uniform | input_thread_id_in_group::x:::none:default:uniform",
     "temp:0:z:0::none:default:uniform | constant_buffer:3:x:3,0::none:default:uniform | immediate32::::#4294967295:none:default:uniform",
@@ -45,7 +45,7 @@ const BODY_OPERANDS_BASE_SM50 = Object.freeze([
     "",
     "",
     ""
-]);
+];
 const BODY_COMPONENT_COUNTS = [
     [ 4, 4, 4 ],
     [ 4, 4, 1, 4 ],
