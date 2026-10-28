@@ -11,7 +11,7 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 
 /** Large back-reference sizes selected by Oodle1 size codes 61..64. */
-export const OODLE1_BACKREF_SIZES = Object.freeze([ 128, 192, 256, 512 ]);
+export const OODLE1_BACKREF_SIZES = [ 128, 192, 256, 512 ];
 
 /** Number of bytes occupied by the three Oodle1 parameter blocks. */
 export const OODLE1_PARAMETER_BYTES = 36;

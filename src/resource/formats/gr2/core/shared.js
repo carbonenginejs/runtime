@@ -48,10 +48,10 @@ const
  * instantiated with `new` and populated with that node's usual fields instead
  * of a plain object literal.
  */
-export const CLASS_KEYS = Object.freeze([
+export const CLASS_KEYS = [
     "Root", "Mesh", "BoneBinding", "IndexGroup", "MorphTarget", "Model",
     "Skeleton", "Bone", "Animation", "TrackGroup", "TransformTrack", "VectorTrack", "Curve"
-]);
+];
 
 /**
  * Constructors used to hydrate shared projection nodes as class instances.

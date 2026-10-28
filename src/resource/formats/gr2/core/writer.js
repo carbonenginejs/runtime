@@ -14,9 +14,9 @@ import {
 import { CURVE_FORMATS as F } from "./curves.js";
 import { GRANNY_MEMBER_TYPES as M } from "./reader.js";
 
-const POSITION_IDENTITY = Object.freeze([ 0, 0, 0 ]);
-const ORIENTATION_IDENTITY = Object.freeze([ 0, 0, 0, 1 ]);
-const SCALE_SHEAR_IDENTITY = Object.freeze([ 1, 0, 0, 0, 1, 0, 0, 0, 1 ]);
+const POSITION_IDENTITY = [ 0, 0, 0 ];
+const ORIENTATION_IDENTITY = [ 0, 0, 0, 1 ];
+const SCALE_SHEAR_IDENTITY = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
 /**
  * Build one member definition for `gr2Type`.
  *
