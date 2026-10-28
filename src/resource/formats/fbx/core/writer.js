@@ -45,12 +45,12 @@ const FOOT_MAGIC = Uint8Array.from([
     0xf8, 0x5a, 0x8c, 0x6a, 0xde, 0xf5, 0xd9, 0x7e,
     0xec, 0xe9, 0x0c, 0xe3, 0x75, 0x8f, 0x29, 0x0b
 ]);
-const IDENTITY_MATRIX4 = Object.freeze([
+const IDENTITY_MATRIX4 = [
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
     0, 0, 0, 1
-]);
+];
 const SUPPORTED_VERTEX_CHANNELS = Object.freeze({
     position: 3,
     normal: 3,

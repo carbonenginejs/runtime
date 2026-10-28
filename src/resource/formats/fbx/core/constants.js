@@ -1,5 +1,5 @@
 /** Standard FBX Model Properties70 fields interpreted by the geometry reader. */
-export const FBX_MODEL_TRANSFORM_PROPERTY_NAMES = Object.freeze([
+export const FBX_MODEL_TRANSFORM_PROPERTY_NAMES = [
     "Lcl Translation",
     "Lcl Rotation",
     "Lcl Scaling",
@@ -14,7 +14,7 @@ export const FBX_MODEL_TRANSFORM_PROPERTY_NAMES = Object.freeze([
     "PreRotation",
     "PostRotation",
     "ScalingOffset"
-]);
+];
 
 /** Properties that cannot safely share the bone Properties70 namespace with masks. */
 export const FBX_RESERVED_BONE_MASK_PROPERTY_NAMES = [

@@ -1,3 +1,4 @@
+import { blueEnums } from "../../../../global/blue/enums/CjsBlueEnumRegistry.js";
 import { CjsSchema } from "#schema/CjsSchema";
 
 import { adler32 } from "#utils/checksum";
@@ -73,20 +74,27 @@ const OPTION_KEYS = new Set([
     "maxProperties",
     "maxArrayLength"
 ]);
-const DEFLATE_CODE_LENGTH_ORDER = Object.freeze([ 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 ]);
-const DEFLATE_LENGTH_BASE = Object.freeze([ 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258 ]);
-const DEFLATE_LENGTH_EXTRA = Object.freeze([ 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0 ]);
-const DEFLATE_DISTANCE_BASE = Object.freeze([ 1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577 ]);
-const DEFLATE_DISTANCE_EXTRA = Object.freeze([ 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13 ]);
+const DEFLATE_CODE_LENGTH_ORDER = [ 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 ];
+const DEFLATE_LENGTH_BASE = [ 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258 ];
+const DEFLATE_LENGTH_EXTRA = [ 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0 ];
+const DEFLATE_DISTANCE_BASE = [ 1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577 ];
+const DEFLATE_DISTANCE_EXTRA = [ 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13 ];
 const TRIANGULATION_EPSILON = 1e-10;
-const IDENTITY_MATRIX4 = Object.freeze([
+const IDENTITY_MATRIX4 = [
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
     0, 0, 0, 1
-]);
+];
 const DEFAULT_ROTATION_ORDER = "XYZ";
-const FBX_ROTATION_ORDERS = Object.freeze([ "XYZ", "XZY", "YZX", "YXZ", "ZXY", "ZYX" ]);
+const FBX_ROTATION_ORDERS = blueEnums.Create("resource.fbx.FBX_ROTATION_ORDERS", {
+    "XYZ": 0,
+    "XZY": 1,
+    "YZX": 2,
+    "YXZ": 3,
+    "ZXY": 4,
+    "ZYX": 5
+});
 const FBX_TICKS_PER_SECOND = 46186158000;
 const CMF_VERTEX_CHANNELS = [
     [ "position", "Position", 3 ],
@@ -100,7 +108,7 @@ const CMF_VERTEX_CHANNELS = [
     [ "blendWeight", "BoneWeights", 4, 0 ]
 ];
 const CMF_MORPH_CHANNELS = CMF_VERTEX_CHANNELS.slice(0, 4);
-const FEATURE_SCAN_ROOT_NODES = Object.freeze([ "GlobalSettings", "Objects", "Connections" ]);
+const FEATURE_SCAN_ROOT_NODES = [ "GlobalSettings", "Objects", "Connections" ];
 const SUPPORTED_GEOMETRY_CLASSES = new Set([ "", "Mesh", "Shape" ]);
 const SUPPORTED_LAYER_ELEMENTS = new Set([
     "LayerElementNormal",
@@ -5825,7 +5833,7 @@ function propertyRotationOrder(properties)
     {
         return DEFAULT_ROTATION_ORDER;
     }
-    return FBX_ROTATION_ORDERS[value] || DEFAULT_ROTATION_ORDER;
+    return blueEnums.GetEnumInfo("resource.fbx.FBX_ROTATION_ORDERS").members[value]?.name || DEFAULT_ROTATION_ORDER;
 }
 
 /**
