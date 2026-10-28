@@ -13,11 +13,11 @@ const TRANSFORM_STAGE_NAMES = Object.freeze({
   compute: "compute"
 });
 
-const LOCAL_LIGHT_RECORD_REGISTERS = Object.freeze([
+const LOCAL_LIGHT_RECORD_REGISTERS = [
   "lightIndexRegister",
   "lightDataRegister",
   "lightProfileRegister"
-]);
+];
 
 /**
  * Inspects Carbon WebGL stage records for complete WebGL2 raster passes.

@@ -105,24 +105,31 @@ import { DxbcResourceDimensionNames } from "../../dxbc/core/decoder.js";
  * each block speaks its own backend's vocabulary, and the stage a record belongs
  * to is never inferred across the two.
  */
-export const GLSL_BACKEND_STAGE = Object.freeze([ "vertex", "pixel", "compute" ]);
+export const GLSL_BACKEND_STAGE = blueEnums.Create("resource.webgl.GLSL_BACKEND_STAGE", {
+    "vertex": 0,
+    "pixel": 1,
+    "compute": 2
+});
 
 /**
  * Binding kinds, ordered so the wire value is stable. These are the emitter's
  * own `binding.kind` values (`DxbcGlslEmitter.js`).
  */
-export const GLSL_BACKEND_BINDING_KIND = Object.freeze([
-    "constantBuffer",
-    "resource",
-    "bufferTexture",
-    "structuredTexture",
-    "structuredUbo",
-    "uavTexture",
-    "dispatchUniform"
-]);
+export const GLSL_BACKEND_BINDING_KIND = blueEnums.Create("resource.webgl.GLSL_BACKEND_BINDING_KIND", {
+    "constantBuffer": 0,
+    "resource": 1,
+    "bufferTexture": 2,
+    "structuredTexture": 3,
+    "structuredUbo": 4,
+    "uavTexture": 5,
+    "dispatchUniform": 6
+});
 
 /** Constant-buffer declaration styles. */
-export const GLSL_BACKEND_CONSTANT_BUFFER_STYLE = Object.freeze([ "array", "std140" ]);
+export const GLSL_BACKEND_CONSTANT_BUFFER_STYLE = blueEnums.Create("resource.webgl.GLSL_BACKEND_CONSTANT_BUFFER_STYLE", {
+    "array": 0,
+    "std140": 1
+});
 
 /** Sampler type per WebGL2-supported DXBC resource dimension. */
 const SAMPLER_TYPE_BY_DIMENSION = Object.freeze({
@@ -150,7 +157,11 @@ const DATA_TEXTURE_FORMAT = Object.freeze({
  * RGBA32F unless Carbon names the buffer's view (`hlsl/core/carbonTypedViews.js`),
  * which the host must upload the buffer in.
  */
-export const GLSL_BACKEND_BUFFER_TEXTURE_FORMAT = Object.freeze([ "RGBA32F", "R32F", "R32UI" ]);
+export const GLSL_BACKEND_BUFFER_TEXTURE_FORMAT = blueEnums.Create("resource.webgl.GLSL_BACKEND_BUFFER_TEXTURE_FORMAT", {
+    "RGBA32F": 0,
+    "R32F": 1,
+    "R32UI": 2
+});
 
 /** Marks an absent optional `u8`. */
 const ABSENT_U8 = 0xff;
@@ -167,10 +178,16 @@ const ABSENT_U8 = 0xff;
  * name is not carried onto the wire: it names a defunct package format rather
  * than the thing it describes. Renaming it at the emitter is a separate change.
  */
-export const GLSL_LOCAL_LIGHT_ROLE = Object.freeze([ "packed-texture", "constant-buffer" ]);
+export const GLSL_LOCAL_LIGHT_ROLE = blueEnums.Create("resource.webgl.GLSL_LOCAL_LIGHT_ROLE", {
+    "packed-texture": 0,
+    "constant-buffer": 1
+});
 
 /** Emitter `cjsSemantic` values, in the same order as the roles above. */
-const EMITTER_LIGHT_SEMANTIC = Object.freeze([ "packedLocalLights", "localLights" ]);
+const EMITTER_LIGHT_SEMANTIC = blueEnums.Create("resource.webgl.EMITTER_LIGHT_SEMANTIC", {
+    "packedLocalLights": 0,
+    "localLights": 1
+});
 
 /**
  * Writes the optional local-light lowering record.
@@ -184,7 +201,7 @@ const EMITTER_LIGHT_SEMANTIC = Object.freeze([ "packedLocalLights", "localLights
  */
 function writeLocalLightRecord(writer, binding)
 {
-    const role = EMITTER_LIGHT_SEMANTIC.indexOf(binding.cjsSemantic);
+    const role = (typeof (binding.cjsSemantic) === "string" && Object.hasOwn(EMITTER_LIGHT_SEMANTIC, binding.cjsSemantic) ? EMITTER_LIGHT_SEMANTIC[binding.cjsSemantic] : -1);
 
     if (!binding.cjsSemantic)
     {
@@ -221,7 +238,7 @@ function readLocalLightRecord(reader)
 {
     if (!reader.ReadUint8()) return null;
 
-    const role = GLSL_LOCAL_LIGHT_ROLE[reader.ReadUint8()];
+    const role = blueEnums.GetEnumInfo("resource.webgl.GLSL_LOCAL_LIGHT_ROLE").members[reader.ReadUint8()]?.name;
     const lightIndexRegister = reader.ReadUint8();
     const lightDataRegister = reader.ReadUint8();
     const profile = reader.ReadUint8();
@@ -249,7 +266,7 @@ function writeBindingBody(writer, binding)
     switch (binding.kind)
     {
         case "constantBuffer": {
-            const style = GLSL_BACKEND_CONSTANT_BUFFER_STYLE.indexOf(binding.style ?? "array");
+            const style = (typeof (binding.style ?? "array") === "string" && Object.hasOwn(GLSL_BACKEND_CONSTANT_BUFFER_STYLE, binding.style ?? "array") ? GLSL_BACKEND_CONSTANT_BUFFER_STYLE[binding.style ?? "array"] : -1);
             if (style < 0)
             {
                 throw new CjsFormatWriteError(
@@ -283,7 +300,7 @@ function writeBindingBody(writer, binding)
             break;
         }
         case "bufferTexture": {
-            const format = GLSL_BACKEND_BUFFER_TEXTURE_FORMAT.indexOf(binding.format ?? "RGBA32F");
+            const format = (typeof (binding.format ?? "RGBA32F") === "string" && Object.hasOwn(GLSL_BACKEND_BUFFER_TEXTURE_FORMAT, binding.format ?? "RGBA32F") ? GLSL_BACKEND_BUFFER_TEXTURE_FORMAT[binding.format ?? "RGBA32F"] : -1);
             if (format < 0)
             {
                 throw new CjsFormatWriteError(`Unknown buffer texture format "${binding.format}"`, { format: binding.format });
@@ -329,7 +346,7 @@ function readBindingBody(reader, kind)
     {
         case "constantBuffer": {
             const sizeInVec4 = reader.ReadUint16();
-            const style = GLSL_BACKEND_CONSTANT_BUFFER_STYLE[reader.ReadUint8()];
+            const style = blueEnums.GetEnumInfo("resource.webgl.GLSL_BACKEND_CONSTANT_BUFFER_STYLE").members[reader.ReadUint8()]?.name;
             return { sizeInVec4, style, ...(readLocalLightRecord(reader) ?? {}) };
         }
         case "resource": {
@@ -370,7 +387,7 @@ function readBindingBody(reader, kind)
             };
         }
         case "bufferTexture": {
-            const format = GLSL_BACKEND_BUFFER_TEXTURE_FORMAT[reader.ReadUint8()];
+            const format = blueEnums.GetEnumInfo("resource.webgl.GLSL_BACKEND_BUFFER_TEXTURE_FORMAT").members[reader.ReadUint8()]?.name;
             if (!format)
             {
                 throw new CjsFormatReadError("GLSL backend block has an unknown buffer texture format", {
@@ -526,19 +543,19 @@ export function writeGlslBackendBlock(block)
 
     // Canonical stage order, not object insertion order: two passes with the
     // same lowering must produce the same bytes so the arena dedupes them.
-    const present = GLSL_BACKEND_STAGE.filter((name) => stages[name]);
+    const present = Object.keys(GLSL_BACKEND_STAGE).filter((name) => stages[name]);
     writer.u8(present.length);
 
     for (const stageName of present)
     {
         const stage = stages[stageName];
-        writer.u8(GLSL_BACKEND_STAGE.indexOf(stageName));
+        writer.u8((typeof (stageName) === "string" && Object.hasOwn(GLSL_BACKEND_STAGE, stageName) ? GLSL_BACKEND_STAGE[stageName] : -1));
 
         const bindings = stage.bindings ?? [];
         writer.u8(bindings.length);
         for (const binding of bindings)
         {
-            const kind = GLSL_BACKEND_BINDING_KIND.indexOf(binding.kind);
+            const kind = (typeof (binding.kind) === "string" && Object.hasOwn(GLSL_BACKEND_BINDING_KIND, binding.kind) ? GLSL_BACKEND_BINDING_KIND[binding.kind] : -1);
             if (kind < 0)
             {
                 throw new CjsFormatWriteError(`Unknown binding kind "${binding.kind}"`, {
@@ -605,13 +622,13 @@ export function readGlslBackendBlock(bytes, options = {})
 
     for (let index = 0; index < stageCount; index += 1)
     {
-        const stageName = GLSL_BACKEND_STAGE[reader.ReadUint8()];
+        const stageName = blueEnums.GetEnumInfo("resource.webgl.GLSL_BACKEND_STAGE").members[reader.ReadUint8()]?.name;
 
         const bindings = [];
         const bindingCount = reader.ReadUint8();
         for (let bindingIndex = 0; bindingIndex < bindingCount; bindingIndex += 1)
         {
-            const kind = GLSL_BACKEND_BINDING_KIND[reader.ReadUint8()];
+            const kind = blueEnums.GetEnumInfo("resource.webgl.GLSL_BACKEND_BINDING_KIND").members[reader.ReadUint8()]?.name;
             const registerIndex = reader.ReadUint8();
             const name = readInlineString(reader);
             bindings.push({

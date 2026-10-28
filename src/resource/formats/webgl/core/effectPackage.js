@@ -695,10 +695,10 @@ function collectStages(effectDescription, selection)
 }
 
 /** Local-light lowering modes this packager accepts. */
-const LOCAL_LIGHT_MODES = Object.freeze([ "none", "packed-texture", "constant-buffer", "drop" ]);
+const LOCAL_LIGHT_MODES = [ "none", "packed-texture", "constant-buffer", "drop" ];
 
 /** How `LightProfileArray` is treated. */
-const LIGHT_PROFILE_MODES = Object.freeze([ "drop", "keep" ]);
+const LIGHT_PROFILE_MODES = [ "drop", "keep" ];
 
 /**
  * Normalizes the light-profile mode.
