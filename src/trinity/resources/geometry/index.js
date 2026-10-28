@@ -12,7 +12,5 @@ export * from "./TriJointBinding.js";
 export * from "./TriMorphTargetGeometryConstants.js";
 export * from "./TriRtGeometryConstants.js";
 export * from "./granny/index.js";
-export * from "./packGeometry.js";
-export * from "./registerGeometryResources.js";
 
 export * from "./AudioGeometryResData.js";

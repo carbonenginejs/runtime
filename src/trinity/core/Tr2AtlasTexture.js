@@ -392,7 +392,7 @@ export class Tr2AtlasTexture extends IRoot
    * Porting them needs decisions outside this class: `Tr2AtlasTexture` would
    * have to become a `CjsResource` (the BlueAsyncRes port), the extensions
    * would need a registrar composed by whoever builds a resource manager (as
-   * `registerTextureResources` is), and browser image decoding is
+   * `CjsLibrary configuration` is), and browser image decoding is
    * asynchronous, so the read moves into a loader as it does for
    * `Tr2ImageRes`. The atlas side (`Tr2TextureAtlas._DoPrepare`) is ported.
    *

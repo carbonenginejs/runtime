@@ -4,7 +4,7 @@ import { CjsSchema } from "#schema/CjsSchema";
 //
 // Carbon registers this constructor at static-initialisation time, inside its
 // own translation unit (SolidColorTexture.cpp:17-32). As with
-// RegisterShaderResources, we do not self-register at module scope: a module
+// CjsLibrary's effect configuration, we do not self-register at module scope: a module
 // side effect fires on import rather than on composition and cannot be tested in
 // isolation. Whoever composes a manager calls RegisterSolidColorTexture.
 import { IBlueDynamicResourceConstructor } from "#blue";

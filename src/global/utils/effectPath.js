@@ -94,7 +94,7 @@ export const TranslatedEffectPlatforms = [ "webgl", "webgl2", "webgpu" ];
  * whether a container is translated into the committed backend or loads as
  * stored. Two layouts name a platform: Carbon's `effect.<platform>/`, and the
  * Incarna-era `shaders/compiled/<platform>/` that holds `.fxt` containers
- * (see `ShaderResourceExtensions`).
+ * (see `Tr2EffectRes.extensions and Tr2EffectRes.additionalExtensions`).
  *
  * @param {string} path Resource path.
  * @returns {string|null} Platform name such as `webgpu`, or null.

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Procedural/GradientTexture.cpp
 //
 // Carbon registers this constructor at static-initialisation time
-// (GradientTexture.cpp:26-44). As with RegisterShaderResources and
+// (GradientTexture.cpp:26-44). As with CjsLibrary's effect configuration and
 // RegisterSolidColorTexture, registration here is an explicit composition call.
 import { IBlueDynamicResourceConstructor } from "#blue";
 import { TriTextureRes } from "#trinity/resources";

@@ -27,7 +27,7 @@ Each class is reconstructed from Black records, not ported from source:
 
 Incarna's compiled shaders, `graphics/shaders/compiled/<platform>/*.fxt`, load
 through `Tr2EffectRes`; `fxt` is registered as an Incarna-era extension
-(`trinity/shader/registerShaderResources.js`).
+(`Tr2EffectRes.additionalExtensions`, registered by `core/configuration.js` through `CjsLibrary`).
 
 An opaque request to a `Tr2InteriorStatic` also draws its meshes'
 `opaquePrepassAreas`. Incarna drew those in its light pre-pass, and current
