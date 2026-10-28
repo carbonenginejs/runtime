@@ -36,6 +36,7 @@
 // an accepted one: bytes to text and back, a stream to bytes or text. No
 // shared or bridgeable form is an error, never a guess.
 import { CjsSchema, meta, blue } from "#schema";
+import { normalizeResPath } from "#utils/path";
 import { BlueFileUtil } from "./BlueFileUtil.js";
 import { IBluePaths } from "./IBluePaths.js";
 import { BlueResFileSystemForm } from "./IBlueResFileSystem.js";
@@ -192,6 +193,107 @@ export class CjsBluePaths extends IBluePaths
     return results;
   }
 
+  /**
+   * Ours: lists matching resource files using GetDirectoryContents and IsDirectory.
+   * Carbon IBluePaths (blue/include/IBluePaths.h:25-28) has those directory
+   * primitives, but no Filter. No file bytes are read or downloaded.
+   *
+   * Filter(glob) requires a rooted res:/ glob. Filter(root, matcher) accepts a
+   * relative glob, RegExp or synchronous predicate. Globs match the whole path:
+   * * and ? stay within a segment; ** crosses segments. A globstar segment followed
+   * by a slash also matches zero directories. Other characters are literal.
+   * Walking starts at the glob's fixed directory prefix, or the explicit root.
+   *
+   * Matching is case-insensitive; predicates receive canonical lowercase paths.
+   * Regexes are copied with the i flag and start at lastIndex 0 for each file,
+   * without mutating the caller's regex. Only files are returned, sorted and
+   * deduplicated across file systems. Names are as GetDirectoryContents reports
+   * them; the remote file system lists stored .black as .red (Carbon).
+   *
+   * @param {string} path Rooted glob, or literal res:/ directory when matcher is supplied.
+   * @param {string|RegExp|function(string):*|null} [matcher=null] Relative glob, regex or predicate.
+   * @returns {string[]} Canonical lowercase res:/ file paths.
+   * @throws {TypeError} For a missing root, invalid matcher or glob escaping its explicit root.
+   * @example paths.Filter("res:/dx9/model/spaceobjectfactory/*.red")
+   * @example paths.Filter("res:/graphics/character/female/", "*.prs")
+   * @example paths.Filter("res:/graphics/character/", /\.color$/i)
+   * @example paths.Filter("res:/graphics/character/", path => path.endsWith(".prs"))
+   */
+  Filter(path, matcher = null)
+  {
+    let root = filterResPath(path);
+    let pattern = null;
+    let test = matcher;
+    let maxDepth = Infinity;
+
+    if (matcher === null)
+    {
+      pattern = root;
+    }
+    else
+    {
+      if (/[?*]/u.test(root)) throw new TypeError("Filter: the explicit root must be a literal directory.");
+      if (!root.endsWith("/")) root += "/";
+      if (typeof matcher === "string")
+      {
+        if (!matcher || /^[\\/]|^[A-Za-z][A-Za-z0-9+.-]*:/u.test(matcher))
+        {
+          throw new TypeError("Filter: a glob after the root must be relative.");
+        }
+        pattern = filterResPath(root + matcher);
+        if (!pattern.startsWith(root)) throw new TypeError("Filter: the glob escapes its root.");
+      }
+      else if (matcher instanceof RegExp)
+      {
+        const regex = new RegExp(matcher.source, matcher.flags.includes("i") ? matcher.flags : matcher.flags + "i");
+        test = value =>
+        {
+          regex.lastIndex = 0;
+          return regex.test(value);
+        };
+      }
+      else if (typeof matcher !== "function")
+      {
+        throw new TypeError("Filter: expected a glob, RegExp or predicate after the root.");
+      }
+    }
+
+    if (pattern !== null)
+    {
+      const wildcard = pattern.search(/[?*]/u);
+      root = pattern.slice(0, pattern.lastIndexOf("/", wildcard === -1 ? pattern.length : wildcard) + 1);
+      const tail = pattern.slice(root.length);
+      if (!tail.includes("**")) maxDepth = tail.split("/").length - 1;
+      const regex = filterGlob(pattern);
+      test = value => regex.test(value);
+    }
+
+    const matches = new Set();
+    const visited = new Set([root]);
+    const pending = [[root, 0]];
+    while (pending.length)
+    {
+      const [directory, depth] = pending.pop();
+      for (const name of this.GetDirectoryContents(directory))
+      {
+        const entry = filterResPath(directory + name);
+        if (!entry.startsWith(root)) throw new TypeError("Filter: a directory entry escapes the search root.");
+        if (this.IsDirectory(entry))
+        {
+          const child = entry + "/";
+          if (depth < maxDepth && !visited.has(child))
+          {
+            visited.add(child);
+            pending.push([child, depth + 1]);
+          }
+        }
+        else if (!matches.has(entry) && test(entry)) matches.add(entry);
+      }
+    }
+    return [...matches].sort();
+  }
+
+
   /** `IsDirectory` - whether any file system has a directory at the path (cpp:119-130). */
   IsDirectory(path)
   {
@@ -325,6 +427,7 @@ CjsSchema.decorateMethod(CjsBluePaths, "RegisterFileSystem", meta.adapted);
 CjsSchema.decorateMethod(CjsBluePaths, "UnregisterFileSystem", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBluePaths, "IsFileSystemRegistered", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBluePaths, "GetDirectoryContents", meta.implemented);
+CjsSchema.decorateMethod(CjsBluePaths, "Filter", meta.cjs, meta.implemented);
 CjsSchema.decorateMethod(CjsBluePaths, "IsDirectory", blue.method, meta.implemented);
 CjsSchema.decorateMethod(CjsBluePaths, "FileExists", blue.method, meta.implemented);
 CjsSchema.decorateMethod(CjsBluePaths, "FileExistsLocally", blue.method, meta.implemented);
@@ -388,4 +491,42 @@ function pathsError(code, path, message)
   error.code = code;
   error.path = path;
   return error;
+}
+
+/** Canonicalizes a rooted res path without guessing a protocol or root. */
+function filterResPath(path)
+{
+  const normalized = typeof path === "string" ? normalizeResPath(path.toLowerCase()) : null;
+  if (normalized === null || !normalized.startsWith("res:/"))
+  {
+    throw new TypeError("Filter: a rooted res:/ path is required.");
+  }
+  return normalized;
+}
+
+/** Compiles the private *, ** and ? glob grammar, escaping every other regex character. */
+function filterGlob(pattern)
+{
+  let source = "^";
+  for (let index = 0; index < pattern.length; index++)
+  {
+    const character = pattern[index];
+    if (character === "*")
+    {
+      if (pattern[index + 1] === "*")
+      {
+        index++;
+        if ((index === 1 || pattern[index - 2] === "/") && pattern[index + 1] === "/")
+        {
+          source += "(?:.*/)?";
+          index++;
+        }
+        else source += ".*";
+      }
+      else source += "[^/]*";
+    }
+    else if (character === "?") source += "[^/]";
+    else source += /[\\^$.*+?()[\]{}|]/u.test(character) ? "\\" + character : character;
+  }
+  return new RegExp(source + "$", "iu");
 }
