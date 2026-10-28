@@ -34,7 +34,7 @@ export const CARBON_EFFECT_DATA_VERSION = 15;
  * cannot emit and writing v15 bytes under its number. That produces a file that
  * lies about itself, which is strictly worse than refusing.
  */
-export const CARBON_EFFECT_WRITE_VERSIONS = Object.freeze([ 15 ]);
+export const CARBON_EFFECT_WRITE_VERSIONS = [ 15 ];
 
 /**
  * Validate a requested write version, or fall back to the default.

@@ -34,7 +34,7 @@ import {
  * (shader libraries, parameter annotations, pipeline-input/register
  * signatures) is still emitted as plain, JSON-compatible data.
  */
-export const CLASS_KEYS = Object.freeze([
+export const CLASS_KEYS = [
     "Root",
     "Permutation",
     "EffectDescription",
@@ -45,7 +45,7 @@ export const CLASS_KEYS = Object.freeze([
     "Resource",
     "Sampler",
     "ShaderBytecode"
-]);
+];
 
 /**
  * Instantiate and populate a node class, or return the plain props unchanged.

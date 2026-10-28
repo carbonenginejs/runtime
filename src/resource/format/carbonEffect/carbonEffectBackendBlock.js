@@ -1,3 +1,4 @@
+import { blueEnums } from "../../../global/blue/enums/CjsBlueEnumRegistry.js";
 import { CjsByteWriter } from "../CjsByteWriter.js";
 import { CjsByteReader } from "../CjsByteReader.js";
 import { CjsFormatReadError, CjsFormatWriteError } from "../CjsFormatError.js";
@@ -68,12 +69,12 @@ import {
  * Resource kinds, ordered so the wire value is stable
  * (`buildWgslSet.js:117-122`).
  */
-export const CARBON_BACKEND_RESOURCE_KIND = Object.freeze([
-    "uniform-buffer",
-    "sampled-resource",
-    "sampler",
-    "storage-resource"
-]);
+export const CARBON_BACKEND_RESOURCE_KIND = blueEnums.Create("resource.carbonEffect.CARBON_BACKEND_RESOURCE_KIND", {
+    "uniform-buffer": 0,
+    "sampled-resource": 1,
+    "sampler": 2,
+    "storage-resource": 3
+});
 
 /**
  * The bound view format of a typed buffer or typed UAV texture, ordered so the
@@ -117,13 +118,27 @@ export const CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE = "cjsCoverageDiscard";
  * first is the default. Sampler records use the same byte for their filtering
  * type; other resource kinds write zero.
  */
-export const CARBON_BACKEND_TEXTURE_SAMPLE_TYPE = Object.freeze([ "float", "unfilterable-float", "depth", "uint", "sint" ]);
+export const CARBON_BACKEND_TEXTURE_SAMPLE_TYPE = blueEnums.Create("resource.carbonEffect.CARBON_BACKEND_TEXTURE_SAMPLE_TYPE", {
+    "float": 0,
+    "unfilterable-float": 1,
+    "depth": 2,
+    "uint": 3,
+    "sint": 4
+});
 
 /** Sampler filtering types in the kind-dependent sample-type byte. */
-export const CARBON_BACKEND_SAMPLER_BINDING_TYPE = Object.freeze([ "filtering", "non-filtering", "comparison" ]);
+export const CARBON_BACKEND_SAMPLER_BINDING_TYPE = blueEnums.Create("resource.carbonEffect.CARBON_BACKEND_SAMPLER_BINDING_TYPE", {
+    "filtering": 0,
+    "non-filtering": 1,
+    "comparison": 2
+});
 
 /** Shader stages, as a bit position in the visibility mask. */
-export const CARBON_BACKEND_VISIBILITY = Object.freeze([ "vertex", "fragment", "compute" ]);
+export const CARBON_BACKEND_VISIBILITY = blueEnums.Create("resource.carbonEffect.CARBON_BACKEND_VISIBILITY", {
+    "vertex": 0,
+    "fragment": 1,
+    "compute": 2
+});
 
 // The transform section is shared with the GLSL block; both re-export the
 // family enum and defaults so a consumer of either codec sees them.
@@ -143,7 +158,7 @@ function packVisibility(visibility)
     let mask = 0;
     for (const stage of visibility ?? [])
     {
-        const bit = CARBON_BACKEND_VISIBILITY.indexOf(stage);
+        const bit = (typeof (stage) === "string" && Object.hasOwn(CARBON_BACKEND_VISIBILITY, stage) ? CARBON_BACKEND_VISIBILITY[stage] : -1);
         if (bit < 0)
         {
             throw new CjsFormatWriteError(`Unknown binding visibility "${stage}"`, { stage });
@@ -162,9 +177,9 @@ function packVisibility(visibility)
 function unpackVisibility(mask)
 {
     const stages = [];
-    for (let bit = 0; bit < CARBON_BACKEND_VISIBILITY.length; bit += 1)
+    for (let bit = 0; bit < blueEnums.GetEnumInfo("resource.carbonEffect.CARBON_BACKEND_VISIBILITY").members.length; bit += 1)
     {
-        if (mask & (1 << bit)) stages.push(CARBON_BACKEND_VISIBILITY[bit]);
+        if (mask & (1 << bit)) stages.push(blueEnums.GetEnumInfo("resource.carbonEffect.CARBON_BACKEND_VISIBILITY").members[bit]?.name);
     }
     return stages;
 }
@@ -362,7 +377,7 @@ export function writeBackendBlock(block)
         writer.u8(group.bindings.length);
         for (const binding of group.bindings)
         {
-            const kind = CARBON_BACKEND_RESOURCE_KIND.indexOf(binding.resourceKind);
+            const kind = (typeof (binding.resourceKind) === "string" && Object.hasOwn(CARBON_BACKEND_RESOURCE_KIND, binding.resourceKind) ? CARBON_BACKEND_RESOURCE_KIND[binding.resourceKind] : -1);
             if (kind < 0)
             {
                 throw new CjsFormatWriteError(`Unknown resource kind "${binding.resourceKind}"`, {
@@ -380,7 +395,7 @@ export function writeBackendBlock(block)
             const isSampler = binding.resourceKind === "sampler";
             const types = isSampler ? CARBON_BACKEND_SAMPLER_BINDING_TYPE : CARBON_BACKEND_TEXTURE_SAMPLE_TYPE;
             const value = isSampler ? binding.sampler?.type ?? "filtering" : binding.texture?.sampleType ?? "float";
-            const sampleType = types.indexOf(value);
+            const sampleType = typeof value === "string" && Object.hasOwn(types, value) ? types[value] : -1;
             if (sampleType < 0)
             {
                 throw new CjsFormatWriteError(`Unknown ${isSampler ? "sampler binding" : "texture sample"} type "${value}"`, {
@@ -432,7 +447,7 @@ export function readBackendBlock(bytes, options = {})
         const bindingCount = reader.ReadUint8();
         for (let index = 0; index < bindingCount; index += 1)
         {
-            const resourceKind = CARBON_BACKEND_RESOURCE_KIND[reader.ReadUint8()];
+            const resourceKind = blueEnums.GetEnumInfo("resource.carbonEffect.CARBON_BACKEND_RESOURCE_KIND").members[reader.ReadUint8()]?.name;
             const registerSpace = reader.ReadUint8();
             const binding = reader.ReadUint8();
             const visibility = unpackVisibility(reader.ReadUint8());
@@ -440,8 +455,8 @@ export function readBackendBlock(bytes, options = {})
             const structureStride = reader.ReadUint32();
             const arrayLayerCount = reader.ReadUint8();
             const sampleType = reader.ReadUint8();
-            const textureSampleType = CARBON_BACKEND_TEXTURE_SAMPLE_TYPE[sampleType];
-            const samplerBindingType = CARBON_BACKEND_SAMPLER_BINDING_TYPE[sampleType];
+            const textureSampleType = blueEnums.GetEnumInfo("resource.carbonEffect.CARBON_BACKEND_TEXTURE_SAMPLE_TYPE").members[sampleType]?.name;
+            const samplerBindingType = blueEnums.GetEnumInfo("resource.carbonEffect.CARBON_BACKEND_SAMPLER_BINDING_TYPE").members[sampleType]?.name;
             const isSampler = resourceKind === "sampler";
             if (!(isSampler ? samplerBindingType : textureSampleType))
             {
