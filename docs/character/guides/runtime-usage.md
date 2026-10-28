@@ -1,10 +1,94 @@
 # Runtime character usage
 
 Status: Evolving
-Reviewed: 2026-10-05
+Reviewed: 2026-10-29
 Scope: `@carbonenginejs/runtime/character`
 Audience: Runtime and application integrators
-Summary: Builds model-shaped character JSON and hydrates its source-backed record graph.
+Summary: Stores and writes flat typed character sources alongside the existing document graph.
+
+## Store original character sources
+
+Schema 13 adds flat typed holdings beside the existing document collections.
+Shared configurations live in `generic`; each other source shape has its own
+list. References remain the strings written by the source file. Black, texture,
+clip, rig, state and static resources are stored as paths.
+
+```js
+import {
+    CjsCharacterLibrary,
+    CjsCharacterLibraryBuilder,
+    CjsCharacterLibraryManager,
+    CjsCharacterLibraryWriter
+} from "@carbonenginejs/runtime/character";
+
+const builder = new CjsCharacterLibraryBuilder({ paths: blue.paths, resMan: blue.resMan });
+const library = await builder.Build({ lazy: true });
+const manager = new CjsCharacterLibraryManager(null, { sourceBuilder: builder });
+const names = await manager.ListColorVariationNames();
+const color = await manager.GetColorVariation(names[0]);
+const originalFormat = CjsCharacterLibraryWriter.write(color);
+
+const snapshot = library.GetValues();
+const restored = CjsCharacterLibrary.from(JSON.parse(JSON.stringify(snapshot)));
+const restoredManager = new CjsCharacterLibraryManager(restored);
+```
+
+`Build()` eagerly loads all configured text families. `Build({ lazy: true })`
+indexes them without reading their bytes. The first kind query loads that
+family in groups of at most eight; simultaneous queries share the operation.
+Camera and post families contain two shapes each, identified during reading.
+Their `List…Names()` methods therefore load the shared family before listing
+only the requested shape. `builder.ListSourceNames(kind)` lists candidates
+without reading them. Binary path records never trigger binary acquisition.
+
+The configuration owns the logical roots, match/kind rows, exclusions and
+original-format layouts. It uses Blue's path filtering and object-loading
+route. Install it before loading these sources through the same resource
+manager. Unmatched YAML continues through the previous object builder.
+
+Canonical source paths are lookup identities because filenames repeat across
+folders. `GetPart(partPath)` joins metadata, types, local colour/projection
+names and Black/texture paths. A relative paperdoll path is accepted only when
+it identifies one indexed folder. The result also exposes modifier path and
+weight separately, retaining the original strings on its metadata. Joins are
+cached in `parts`; a missing or ambiguous target rejects explicitly.
+`ResolveReference(path)` resolves an exact indexed source. `ResolveTypeColor`
+uses the part and colour names explicitly stored in a `.type` record.
+
+The library-owned `sourceNames` map pairs each list with its lookup names.
+Use `AddKind(kind, name, record)` and `RemoveKind(kind, name)` to maintain both.
+If editing paired arrays directly, keep their positions aligned and call
+`Reindex()`. A snapshot contains loaded records, not pending lazy reads. It
+preserves concrete native subclasses through the existing values type tags.
+References in the original data are not replaced with hydrated relationships.
+
+`CjsCharacterLibraryWriter.write(record)` also accepts newly created or
+JSON-hydrated records. The declared kind layout supplies Python tuples,
+object/unicode tags, numeric map keys and the optional recipe sex entry.
+When a reader-owned source document is available, writing additionally keeps
+its key order, optional-field presence, aliases, tag spelling and duplicate
+mapping pairs. An edited field that was absent is written; an unchanged class
+default does not invent an authored field. `sourceDocument` and `kind` may be
+supplied explicitly when reattaching a source layout after hydration.
+
+The general `CjsYamlFormat.write`/`Write` API accepts raw values, or an actual
+`yaml.Document` with `{ input: "document" }`. Its optional `sourceDocument`
+preserves layout while updating raw values. This AST is different from the
+inventory record returned by `ReadDocument`. Divergent edits to an existing
+alias reject rather than silently changing its anchor's other uses.
+
+Null strings/lists become empty strings/lists in the character reading profile.
+Native light flags authored as 0/1 become booleans. Sculpting limits explicitly
+allow repeated keys and expose the final value while retaining source pairs;
+other families remain strict. Numeric values are not rounded by this profile.
+JSON itself converts negative zero to zero; canonical writing preserves the
+values it receives after that conversion.
+
+The existing schema 7–12 document APIs and `prepareCatalog` remain available.
+Their legacy-only classes and preparation method have lifecycle records with
+removal gates under the owning character layer. Schema 13 does not run their
+relationship migration or material/texture preparation.
+
 
 ## Build and hydrate a character library
 

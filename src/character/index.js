@@ -22,3 +22,11 @@ export { createCharacterYamlTagHandlers, readCharacterYamlObject } from "./libra
 export * from "./library/kinds/index.js";
 export { CjsCharacterObjectBuilder } from "./library/CjsCharacterObjectBuilder.js";
 export { CjsCharacterLibraryConfiguration } from "./library/CjsCharacterLibraryConfiguration.js";
+export { CjsCharacterNamedValue } from "./library/CjsCharacterNamedValue.js";
+export { CjsCharacterTexture } from "./library/CjsCharacterTexture.js";
+export { CjsCharacterClip } from "./library/CjsCharacterClip.js";
+export { CjsCharacterRig } from "./library/CjsCharacterRig.js";
+export { CjsCharacterGState } from "./library/CjsCharacterGState.js";
+export { CjsCharacterModifier } from "./library/CjsCharacterModifier.js";
+export { CjsCharacterPart } from "./library/CjsCharacterPart.js";
+export { CjsCharacterLibraryWriter } from "./library/CjsCharacterLibraryWriter.js";

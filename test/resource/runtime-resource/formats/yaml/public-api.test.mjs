@@ -16,7 +16,7 @@ test("format facade exposes the standard reusable API", () =>
 {
     assert.deepEqual(Object.getOwnPropertyNames(CjsYamlFormat.prototype).sort(), [
         "GetValues", "Inspect", "Read", "ReadDocument", "ReadPayload", "ReadRaw",
-        "SetValues", "ToJSON", "constructor"
+        "SetValues", "ToJSON", "Write", "constructor"
     ].sort());
     assert.equal(CjsYamlFormat.id, "CjsYamlFormat");
     assert.deepEqual(CjsYamlFormat.extensions, [ ".yaml", ".yml" ]);

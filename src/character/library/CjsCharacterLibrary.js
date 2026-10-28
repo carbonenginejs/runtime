@@ -1,3 +1,5 @@
+import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
+import { CjsCharacterGeneric } from "./kinds/CjsCharacterGeneric.js";
 import { exposure as be } from "#be";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsSchema, meta, type } from "#schema";
@@ -21,6 +23,154 @@ import { CjsCharacterUnresolvedRelationship } from "./CjsCharacterUnresolvedRela
 @meta.define("CjsCharacterLibrary")
 export class CjsCharacterLibrary
 {
+
+    /** Runtime indexes rebuilt from the paired sourceNames and kind lists. */
+    _kindIndexes = new Map();
+
+    /** Shared original source documents; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.object.ref("CjsCharacterGeneric")
+    generic = new CjsCharacterGeneric();
+
+    /** Names aligned with each kind list. Mutate both through AddKind/RemoveKind. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.map({ kind: "list", itemType: "string" })
+    sourceNames = new Map();
+
+    /** Flat parts holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterPart")
+    parts = [];
+
+    /** Flat avatarPartMetaData holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsAvatarPartMetaData")
+    avatarPartMetaData = [];
+
+    /** Flat colorVariations holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterColorVariation")
+    colorVariations = [];
+
+    /** Flat baseColors holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterBaseColor")
+    baseColors = [];
+
+    /** Flat types holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterType")
+    types = [];
+
+    /** Flat projectedDecals holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsProjectedDecal")
+    projectedDecals = [];
+
+    /** Flat recipes holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterRecipe")
+    recipes = [];
+
+    /** Flat cameras holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterCamera")
+    cameras = [];
+
+    /** Flat cameraSequences holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterCameraSequence")
+    cameraSequences = [];
+
+    /** Flat positions holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterPosition")
+    positions = [];
+
+    /** Flat poses holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterPose")
+    poses = [];
+
+    /** Flat lights holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("Tr2InteriorScene")
+    lights = [];
+
+    /** Flat backgrounds holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterBackground")
+    backgrounds = [];
+
+    /** Flat posts holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterPost")
+    posts = [];
+
+    /** Flat scalarPosts holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterScalarPost")
+    scalarPosts = [];
+
+    /** Flat characters holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterPreset")
+    characters = [];
+
+    /** Flat scenes holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterScene")
+    scenes = [];
+
+    /** Flat curveSetMetadata holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterCurveSetMetadata")
+    curveSetMetadata = [];
+
+    /** Flat curveCacheLists holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterCurveCacheList")
+    curveCacheLists = [];
+
+    /** Flat materialSets holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterMaterialSet")
+    materialSets = [];
+
+    /** Flat clips holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterClip")
+    clips = [];
+
+    /** Flat rigs holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterRig")
+    rigs = [];
+
+    /** Flat gstates holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterGState")
+    gstates = [];
+
+    /** Flat textures holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterTexture")
+    textures = [];
+
+    /** Flat blackResources holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterNamedValue")
+    blackResources = [];
+
+    /** Flat geometryResources holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterNamedValue")
+    geometryResources = [];
+
+    /** Flat staticResources holdings; schema 13 only. */
+    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterNamedValue")
+    staticResources = [];
 
     _documentIndexes = new Map();
 
@@ -222,7 +372,17 @@ export class CjsCharacterLibrary
     /** Exports the declared schema version, excluding newer fields from legacy payloads. */
     GetValues(options = {})
     {
-        const values = new DictWriter().WriteObject(this, {}, options);
+        const values = new DictWriter().WriteObject(this, {}, this.schemaVersion === 13
+            ? { persistOnly: true, typeTags: true, ...options } : options);
+        if (this.schemaVersion < 13)
+        {
+            delete values.generic;
+            delete values.sourceNames;
+            for (const [kind, declaration] of Object.entries(CjsCharacterLibraryConfiguration.kinds))
+            {
+                if (!declaration.generic) delete values[kind];
+            }
+        }
         if (this.schemaVersion < 12)
         {
             VisitVersionFields(values, CjsCharacterLibrary, (owner, key) => { delete owner[key]; });
@@ -249,6 +409,7 @@ export class CjsCharacterLibrary
             : values;
         if (!CjsSchema.assertValues(input, "CjsCharacterLibrary.SetValues")) return false;
         const changed = ReadValues(this, input, options);
+        this._kindIndexes.clear();
         return changed instanceof Set && !changed.size ? false : changed;
     }
 
@@ -262,6 +423,23 @@ export class CjsCharacterLibrary
     static validateValues(value)
     {
         RequirePlainObject(value, "Character library");
+        if (value.schema === "carbonenginejs.characterLibrary" && value.schemaVersion === 13)
+        {
+            RequirePlainObject(value.generic, "Character generic holdings");
+            RequirePlainObject(value.sourceNames, "Character source names");
+            for (const key of Object.keys(value.sourceNames))
+            {
+                if (!Object.hasOwn(CjsCharacterLibraryConfiguration.kinds, key)) throw new TypeError(`Unknown character kind ${key}`);
+            }
+            for (const [kind, declaration] of Object.entries(CjsCharacterLibraryConfiguration.kinds))
+            {
+                const records = declaration.generic ? value.generic[kind] : value[kind];
+                const names = value.sourceNames[kind] ?? [];
+                ValidateKindNames(kind, records, names);
+            }
+            ValidateModelValue(value, CjsCharacterLibrary, "Character library");
+            return value;
+        }
 
         if (value.schema !== "carbonenginejs.characterLibrary"
             || ![ 7, 8, 9, 10, 11, 12 ].includes(value.schemaVersion))
@@ -271,6 +449,11 @@ export class CjsCharacterLibrary
             );
         }
 
+        for (const key of ["generic", "sourceNames", ...Object.keys(CjsCharacterLibraryConfiguration.kinds)
+            .filter(kind => !CjsCharacterLibraryConfiguration.kinds[kind].generic)])
+        {
+            if (Object.hasOwn(value, key)) throw new TypeError(`Character schema ${value.schemaVersion} cannot define schema-13 field ${key}`);
+        }
         RequirePlainObject(value.documents, "Character library documents");
         if (value.schemaVersion < 9
             && Object.hasOwn(value.documents, "characterTextureMetadata"))
@@ -326,6 +509,90 @@ export class CjsCharacterLibrary
 
         ValidateModelValue(normalized, CjsCharacterLibrary, "Character library");
         return normalized;
+    }
+
+    /**
+     * Returns the declared flat list without changing legacy document access.
+     * @param {string} kind Configured kind.
+     * @returns {Array<object>} Stored records.
+     */
+    GetKind(kind)
+    {
+        if (this.schemaVersion !== 13) throw new TypeError("Flat character kinds require schema 13.");
+        const declaration = CjsCharacterLibraryConfiguration.kinds[kind];
+        if (!Object.hasOwn(CjsCharacterLibraryConfiguration.kinds, kind)) throw new TypeError(`Unknown character kind ${kind}`);
+        return declaration.generic ? this.generic[kind] : this[kind];
+    }
+
+    /**
+     * Pairs a typed record with its canonical source identity.
+     * @param {string} kind Configured kind.
+     * @param {string} name Library identity; never stored inside the raw record.
+     * @param {object} record Registered typed record.
+     * @returns {object} The stored record.
+     */
+    AddKind(kind, name, record)
+    {
+        const records = this.GetKind(kind);
+        const Constructor = CjsSchema.getConstructor(CjsCharacterLibraryConfiguration.kinds[kind].className);
+        if (!CjsSchema.cast(record, Constructor)) throw new TypeError(`Invalid record for ${kind}`);
+        if (typeof name !== "string" || !name.trim()) throw new TypeError("Character source name must be nonempty.");
+        if (this.GetKindRecord(kind, name)) throw new TypeError(`Duplicate ${kind} name ${name}`);
+        const names = this.sourceNames.get(kind) ?? [];
+        records.push(record);
+        names.push(name);
+        this.sourceNames.set(kind, names);
+        this._kindIndexes.get(kind).set(name, record);
+        return record;
+    }
+
+    /**
+     * Removes a paired flat record and name, leaving its referenced data untouched.
+     * @param {string} kind Configured kind.
+     * @param {string} name Stored identity.
+     * @returns {boolean} Whether a record was removed.
+     */
+    RemoveKind(kind, name)
+    {
+        const records = this.GetKind(kind);
+        const names = this.sourceNames.get(kind) ?? [];
+        const index = names.indexOf(name);
+        if (index < 0) return false;
+        records.splice(index, 1);
+        names.splice(index, 1);
+        this._kindIndexes.delete(kind);
+        return true;
+    }
+
+    /**
+     * Looks up a loaded flat record by the explicit source identity.
+     * @param {string} kind Configured kind.
+     * @param {string} name Stored identity.
+     * @returns {object|null} Stored record, or null.
+     */
+    GetKindRecord(kind, name)
+    {
+        const records = this.GetKind(kind);
+        if (!this._kindIndexes.has(kind))
+        {
+            const names = this.sourceNames.get(kind) ?? [];
+            ValidateKindNames(kind, records, names);
+            this._kindIndexes.set(kind, new Map(names.map((key, index) => [key, records[index]])));
+        }
+        return this._kindIndexes.get(kind).get(name) ?? null;
+    }
+
+    /**
+     * Lists stored flat identities without returning the mutable index array.
+     * @param {string} kind Configured kind.
+     * @returns {Array<string>} Names in stored order.
+     */
+    ListKindNames(kind)
+    {
+        const records = this.GetKind(kind);
+        const names = this.sourceNames.get(kind) ?? [];
+        ValidateKindNames(kind, records, names);
+        return names.slice();
     }
 
     /** Lists the document collections declared by this library model. */
@@ -425,6 +692,7 @@ export class CjsCharacterLibrary
     /** Clears one or every private record lookup index after direct editor mutation. */
     Reindex(documentName = null)
     {
+        if (documentName === null || documentName === undefined) this._kindIndexes.clear();
         if (documentName === null || documentName === undefined)
         {
             const indexes = new Map();
@@ -832,7 +1100,7 @@ function IsCompleteLibraryValue(value)
         && !Array.isArray(value)
         && Object.hasOwn(value, "schema")
         && Object.hasOwn(value, "schemaVersion")
-        && Object.hasOwn(value, "documents");
+        && (value.schemaVersion === 13 || Object.hasOwn(value, "documents"));
 }
 
 export default CjsCharacterLibrary;
@@ -914,4 +1182,19 @@ function ValidatePreparedCatalog(library)
             }
         }
     }
+}
+
+/**
+ * Checks the paired library-owned name index without modifying raw records.
+ * @param {string} kind Configured kind.
+ * @param {Array<object>} records Stored records.
+ * @param {Array<string>} names Paired names.
+ * @returns {void}
+ */
+function ValidateKindNames(kind, records, names)
+{
+    if (!Array.isArray(records) || !Array.isArray(names) || records.length !== names.length)
+        throw new TypeError(`Character ${kind} records and source names must have equal lengths.`);
+    if (names.some(name => typeof name !== "string" || !name.trim()) || new Set(names).size !== names.length)
+        throw new TypeError(`Character ${kind} source names must be nonempty and unique.`);
 }

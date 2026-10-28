@@ -1,3 +1,4 @@
+import { writeYaml } from "./core/write.js";
 import { CjsSchema } from "#schema/CjsSchema";
 
 import { CjsFormat } from "../../format/CjsFormat.js";
@@ -220,6 +221,33 @@ export class CjsYamlFormat extends CjsFormat
     {
         return toJsonGraph(value, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
     }
+
+    /**
+     * Writes raw values or an actual yaml.Document AST, separate from ReadDocument's inventory.
+     * @param {*} value Raw values or AST, selected by options.input.
+     * @param {object} [options={}] input, optional sourceDocument and stringify settings.
+     * @returns {string} YAML source text.
+     */
+    Write(value, options = {})
+    {
+        return CjsYamlFormat.write(value, options);
+    }
+
+    /**
+     * Writes canonical raw values or preserves an optional source AST's layout.
+     * @param {*} value Raw values or AST, selected by options.input.
+     * @param {object} [options={}] input, sourceDocument, tagField, valueField and stringify settings.
+     * @returns {string} YAML source text; input objects/documents are not mutated.
+     */
+    static write(value, options = {})
+    {
+        return writeYaml(value, options);
+    }
+
+    static inputs = CjsFormat.defineInputs({
+        raw: { default: true, options: ["sourceDocument", "tagField", "valueField", "stringify"] },
+        document: { options: ["stringify"] }
+    });
 
     static id = "CjsYamlFormat";
 

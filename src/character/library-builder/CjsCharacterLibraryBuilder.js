@@ -1,3 +1,6 @@
+import { getResourceExtension, normalizeResourcePath } from "#utils/path";
+import { CjsCharacterLibraryConfiguration } from "../library/CjsCharacterLibraryConfiguration.js";
+import { CjsCharacterObjectBuilder } from "../library/CjsCharacterObjectBuilder.js";
 import { CjsSchema } from "#schema";
 
 import * as CcpLog from "../../global/logging/ccpLog.js";
@@ -18,6 +21,202 @@ const METADATA_FIELDS = [
 /** Builds versioned model-shaped JSON from source documents and lossless definition catalogs. */
 export class CjsCharacterLibraryBuilder
 {
+
+    _paths = null;
+
+    _resMan = null;
+
+    _configuration = CjsCharacterLibraryConfiguration;
+
+    _flatLibrary = null;
+
+    _sourceKinds = new Map();
+
+    _kindPaths = new Map();
+
+    _kindLoads = new Map();
+
+    _indexed = false;
+
+    _readerOptions = {};
+
+    /**
+     * Creates the optional Blue-only source loader beside the legacy static APIs.
+     * @param {object} options Blue paths/resMan, optional configuration and YAML options.
+     */
+    constructor(options = {})
+    {
+        this._paths = options.paths ?? null;
+        this._resMan = options.resMan ?? null;
+        this._configuration = options.configuration ?? CjsCharacterLibraryConfiguration;
+        this._readerOptions = options.readerOptions ?? {};
+        this._flatLibrary = new CjsCharacterLibrary();
+        this._flatLibrary.schemaVersion = 13;
+    }
+
+    /**
+     * Indexes configured Blue paths and installs one object builder per text extension.
+     * @returns {CjsCharacterLibraryBuilder} This loader.
+     */
+    Index()
+    {
+        if (this._indexed) return this;
+        if (!this._paths || !this._resMan) throw new TypeError("Character source loading requires Blue paths and resMan.");
+        const excluded = new Set();
+        for (const root of this._configuration.roots)
+        {
+            for (const pattern of this._configuration.excludes)
+            {
+                for (const path of this._paths.Filter(root, pattern)) excluded.add(path);
+            }
+        }
+        for (const kind of Object.keys(this._configuration.kinds)) this._kindPaths.set(kind, new Set());
+        for (const row of this._configuration.getRows())
+        {
+            if (!this._kindPaths.has(row.kind)) throw new TypeError(`Unknown configured character kind ${row.kind}`);
+            for (const path of this._paths.Filter(row.match))
+            {
+                if (excluded.has(path)) continue;
+                const previous = this._sourceKinds.get(path);
+                if (previous && previous !== row.kind) throw new TypeError(`Character source matches both ${previous} and ${row.kind}: ${path}`);
+                this._sourceKinds.set(path, row.kind);
+                this._kindPaths.get(row.kind).add(path);
+            }
+        }
+        const extensions = new Set();
+        for (const [path, kind] of this._sourceKinds)
+        {
+            if (!this._configuration.kinds[kind].pathOnly) extensions.add(getResourceExtension(path) || ".yaml");
+        }
+        for (const extension of extensions)
+        {
+            const previous = this._resMan.GetObjectLoader(extension);
+            this._resMan.RegisterObjectBuilder(extension, (bytes, context) =>
+            {
+                const path = normalizeResourcePath(context.path);
+                const kind = this._sourceKinds.get(path);
+                if (kind && !this._configuration.kinds[kind].pathOnly)
+                    return new CjsCharacterObjectBuilder(bytes, kind, path, this._readerOptions);
+                if (previous) return previous(bytes, context);
+                throw new TypeError(`No configured character source for ${path}`);
+            });
+        }
+        this._indexed = true;
+        return this;
+    }
+
+    /**
+     * Returns the flat holdings, optionally loading every configured source kind.
+     * @param {object} [options={}] Set lazy to true to defer reads until LoadKind/Get.
+     * @returns {Promise<CjsCharacterLibrary>} Flat library; opaque resources stay paths.
+     */
+    async Build(options = {})
+    {
+        this.Index();
+        if (!options.lazy)
+        {
+            for (const kind of this._kindPaths.keys()) await this.LoadKind(kind);
+        }
+        return this._flatLibrary;
+    }
+
+    /** Returns the flat holdings associated with this builder. */
+    GetLibrary()
+    {
+        return this._flatLibrary;
+    }
+
+    /**
+     * Lists indexed source candidates without fetching bytes or inventing basenames.
+     * @param {string} kind Configured family; content variants share their source family.
+     * @returns {Array<string>} Sorted canonical source paths.
+     */
+    ListSourceNames(kind)
+    {
+        this.Index();
+        const family = kind === "cameraSequences" ? "cameras" : kind === "scalarPosts" ? "posts" : kind;
+        if (!this._kindPaths.has(family)) throw new TypeError(`Unknown character kind ${kind}`);
+        return [...this._kindPaths.get(family)].sort();
+    }
+
+    /**
+     * Loads a source family once, identifying shared camera/post variants as it reads.
+     * Failed batches may be retried without duplicating already stored records.
+     * @param {string} kind Configured kind.
+     * @returns {Promise<Array<object>>} Loaded records of the requested shape.
+     */
+    async LoadKind(kind)
+    {
+        this.Index();
+        const family = kind === "cameraSequences" ? "cameras" : kind === "scalarPosts" ? "posts" : kind;
+        if (!this._kindPaths.has(family)) throw new TypeError(`Unknown character kind ${kind}`);
+        if (!this._kindLoads.has(family))
+        {
+            const operation = this.LoadSourceFamily(family);
+            this._kindLoads.set(family, operation);
+            operation.catch(() => { if (this._kindLoads.get(family) === operation) this._kindLoads.delete(family); });
+        }
+        await this._kindLoads.get(family);
+        return this._flatLibrary.GetKind(kind);
+    }
+
+    /**
+     * Acquires one family in bounded groups through the existing Blue object route.
+     * @param {string} kind Configured source family.
+     * @returns {Promise<void>} Completion of the family read.
+     */
+    async LoadSourceFamily(kind)
+    {
+        const declaration = this._configuration.kinds[kind];
+        const names = [...this._kindPaths.get(kind)].sort();
+        for (let start = 0; start < names.length; start += 8)
+        {
+            const results = await Promise.allSettled(names.slice(start, start + 8).map(async path =>
+            {
+                if (this._flatLibrary.GetKindRecord(kind, path)) return;
+                const variant = kind === "cameras" ? "cameraSequences" : kind === "posts" ? "scalarPosts" : null;
+                if (variant && this._flatLibrary.GetKindRecord(variant, path)) return;
+                if (!await this._paths.FileExists(path)) throw new Error(`Missing indexed character source: ${path}`);
+                let record, actual = kind;
+                if (declaration.pathOnly)
+                {
+                    const Constructor = CjsSchema.getConstructor(declaration.className);
+                    record = new Constructor();
+                    const value = declaration.className === "CjsCharacterNamedValue" ? { name: path, value: path } : { name: path, resFilePath: path };
+                    CjsSchema.setValues(record, value, { initialize: false });
+                }
+                else
+                {
+                    record = await this._resMan.LoadObject(path, getResourceExtension(path) ? {} : { ext: ".yaml" });
+                    if (!record) throw new Error(`Character source did not load: ${path}`);
+                    const source = CjsCharacterObjectBuilder.getSource(record);
+                    if (!source) throw new TypeError(`Character source bypassed its configured object builder: ${path}`);
+                    actual = source.kind;
+                }
+                this._flatLibrary.AddKind(actual, path, record);
+            }));
+            const failure = results.find(result => result.status === "rejected");
+            if (failure) throw failure.reason;
+        }
+    }
+
+    /**
+     * Resolves only an exact indexed reference; no fallback or path guessing occurs.
+     * @param {string} path Canonical res path.
+     * @returns {Promise<object>} Loaded record or opaque resource path record.
+     */
+    async Resolve(path)
+    {
+        this.Index();
+        const key = normalizeResourcePath(path);
+        const kind = this._sourceKinds.get(key);
+        if (!kind) throw new Error(`Unresolved character reference: ${path}`);
+        await this.LoadKind(kind);
+        const variant = kind === "cameras" ? "cameraSequences" : kind === "posts" ? "scalarPosts" : null;
+        return this._flatLibrary.GetKindRecord(kind, key)
+            ?? (variant ? this._flatLibrary.GetKindRecord(variant, key) : null);
+    }
+
 
     static schema = "carbonenginejs.characterLibrary";
 
