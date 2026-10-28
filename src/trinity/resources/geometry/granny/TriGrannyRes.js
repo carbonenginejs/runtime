@@ -11,7 +11,6 @@ import { ResourceRequirement } from "#blue";
 import { Failed } from "../../../../trinityal/ALResult.js";
 import { TriGeometryRes } from "../TriGeometryRes.js";
 import { CjsCmfFormat } from "../../../../resource/formats/cmf/index.js";
-import { PackLodGeometry } from "../packGeometry.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2GrannyIntersectionResult } from "./Tr2GrannyIntersectionResult.js";
 
@@ -1106,7 +1105,7 @@ export class TriGrannyRes extends CjsResource
           vertex[channel][i] = f(vertex[channel][i] + f(weight * f(target[channel][i] - base[channel][i])));
       }
     }
-    const packed = PackLodGeometry({ ...source, lods: [{ ...source.lods[0], vertex }] }, 0);
+    const packed = TriGeometryRes.packLodGeometry({ ...source, lods: [{ ...source.lods[0], vertex }] }, 0);
     if (packed.vertex.stride !== destination.bytesPerVertex || packed.vertex.count !== lod.vertexCount) throw new Error("Blendshape destination buffer mismatch");
     if (Failed(lod.vertexAllocation.Update(packed.vertex.bytes, Tr2RenderContext_GetMainThreadRenderContext())))
     {

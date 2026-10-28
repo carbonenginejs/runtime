@@ -1,9 +1,24 @@
+import { CjsGifFormat } from "../../../resource/formats/gif/CjsGifFormat.js";
+import { CjsBmpFormat } from "../../../resource/formats/bmp/CjsBmpFormat.js";
+import { CjsTgaFormat } from "../../../resource/formats/tga/CjsTgaFormat.js";
+import { CjsJpegFormat } from "../../../resource/formats/jpeg/CjsJpegFormat.js";
+import { CjsVtaFormat } from "../../../resource/formats/vta/CjsVtaFormat.js";
+import { CjsPngFormat } from "../../../resource/formats/png/CjsPngFormat.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
+import { ImageIO } from "../../../resource/imageio/ImageIO.js";
+import { createDdsBitmap } from "../../../resource/formats/dds/ddsBitmap.js";
+import { CjsDdsFormat } from "../../../resource/formats/dds/CjsDdsFormat.js";
+import { compressBitmapAsync, selectCompression } from "#resource/codecs/bcn";
+import { DECODE_BITMAP_CALLBACK, IMAGE_DECODE_FORMATS } from "../../../resource/imageio/imageDecodeCallbacks.js";
+import { BeCallbackMan, BlueCallbackMan } from "../../../global/blue/BlueCallbackMan.js";
+import { asUint8Array } from "#utils/bytes";
+import { getResourceExtension } from "#utils/path";
 import { exposure as be } from "#be";
 // Source: trinity/trinity/Resources/TriTextureRes.h
 // Source: trinity/trinity/Resources/TriTextureRes.cpp
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
 import { CjsSchema, meta, type, blue } from "#schema";
-import { HostBitmap } from "#imageio";
+import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
 import { CjsResource, ICacheable } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "../procedural/solidColorTexture.js";
@@ -18,6 +33,9 @@ import {
 /** INVALID_LOD (TriTextureRes.cpp:76): no mip has been requested. */
 const INVALID_LOD = 0xffffffff;
 
+/** Stable DDS reader identity preserves ReadFormatOnce sharing. */
+const DDS_BITMAP_DESCRIPTOR = { Format: CjsDdsFormat, defaults: { emit: "bitmap" } };
+
 /**
  * Resource record that owns Carbon-style texture identity and validated
  * HostBitmap data with mirrored dimension/format
@@ -29,6 +47,169 @@ const INVALID_LOD = 0xffffffff;
  */
 export class TriTextureRes extends CjsResource
 {
+  /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/TriTextureRes.cpp:46-55). */
+  static extensions = ["dds", "png", "sdd", "tga", "jpg", "jpeg", "bmp", "ecs", "ctr", "vta"];
+
+  /** Our GIF route extends Carbon's image list for the browser ImageIO decoder. */
+  static additionalExtensions = ["gif"];
+
+  /**
+   * Formats for the declared extensions. Null means no format route is implemented;
+   * it does not advertise a decoder. ImageIO still selects registered image handlers.
+   */
+  static extensionFormats = {
+    dds: CjsDdsFormat, png: CjsPngFormat, sdd: null, tga: CjsTgaFormat,
+    jpg: CjsJpegFormat, jpeg: CjsJpegFormat, bmp: CjsBmpFormat,
+    ecs: null, ctr: null, vta: CjsVtaFormat, gif: CjsGifFormat
+  };
+
+  /**
+   * Declared by Carbon, not routed here. The .ctr behavior is implemented by
+   * LoadPipeline with a pipeline supplied by our dynamic constructors; the
+   * shipped builds contain no .ctr files. Carbon loads that object itself
+   * (trinity/trinity/Resources/TriTextureRes.cpp:238-260).
+   */
+  static unroutedExtensions = {
+    sdd: "declared by Carbon, not routed here: no image handler",
+    ecs: "declared by Carbon, not routed here: no image handler",
+    ctr: "declared by Carbon, not routed here: dynamic constructors supply LoadPipeline's object"
+  };
+
+  /** Our asynchronous ImageIO decode bridge uses Carbon's BeCallbackMan worker owner. */
+  @meta.cjs
+  @meta.adapted
+  static async _decodeImageBitmap(Format, bytes, context)
+  {
+    if (!BeCallbackMan.HasCallbackModule(DECODE_BITMAP_CALLBACK)) return Format.readBitmapAsync(bytes, { source: context.path });
+    const id = { value: 0 };
+    const cancel = () => BeCallbackMan.Cancel(id.value);
+    const signal = context.signal;
+    if (signal) signal.addEventListener("abort", cancel, { once: true });
+    try
+    {
+      return await BeCallbackMan.Add__Name(DECODE_BITMAP_CALLBACK,
+        { format: Format.id, input: asUint8Array(bytes), source: context.path }, BlueCallbackMan.BCBF_NONE, id);
+    }
+    finally
+    {
+      if (signal) signal.removeEventListener("abort", cancel);
+    }
+  }
+
+  /**
+   * Carbon: Tr2ImageRes::DoLoad (trinity/trinity/Resources/Tr2ImageRes.cpp:39-52).
+   * Adapted: PNG/VTA and worker decoding may await; finish the bitmap in LOADING
+   * before synchronous publication. Shared by textures, raw images and light profiles.
+   * @param {Uint8Array|ArrayBuffer} bytes Image bytes.
+   * @param {object} context Resource manager's load context.
+   * @param {object} [compression] Optional backend compression policy.
+   * @returns {Promise<HostBitmap>} Completed CPU bitmap.
+   */
+  @meta.cjs
+  @meta.adapted
+  static async readImageResource(bytes, context, compression = {})
+  {
+    // Snapshot before decoding: LOAD changes affect later loads, never this one.
+    const texture = CjsSchema.cast(context.resource, TriTextureRes);
+    const request = texture ? { enabled: TriTextureRes.compressUncompressedTextures,
+      backend: compression.backend, features: Array.from(compression.features ?? []),
+      role: compression.resolveRole ? compression.resolveRole(context.path) : null } : null;
+    let bitmap;
+    if (getResourceExtension(context.resource.GetPath()) === "dds")
+    {
+      const packet = await context.resMan.ReadFormatOnce(context.resource, DDS_BITMAP_DESCRIPTOR, bytes, {
+        ...context, emit: "bitmap"
+      });
+      bitmap = createDdsBitmap(packet);
+    }
+    else if (TriTextureRes._isDecodedImage(ImageIO.getImageHandler(ImageIO.getExtension(context.path))))
+    {
+      const Format = ImageIO.getImageHandler(ImageIO.getExtension(context.path));
+      try
+      {
+        bitmap = createDdsBitmap(await TriTextureRes._decodeImageBitmap(Format, bytes, context));
+      }
+      catch (error)
+      {
+        if (error.name === "AbortError") throw error;
+        CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Tr2ImageRes: error reading '%S' - %s", context.path, error.message);
+        const failure = new Error(`${context.path || "image"}: ${error.message}`, { cause: error });
+        failure.code = "CJS_RESOURCE_IMAGE_READ_FAILED";
+        throw failure;
+      }
+    }
+    else
+    {
+      bitmap = new HostBitmap();
+      const metadata = new Metadata();
+      const path = context.path;
+      const result = await ImageIO.readImageAsync(bytes, new LoadParameters(path), bitmap, metadata);
+
+      if (!result.IsOk())
+      {
+        CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Tr2ImageRes: error reading '%S' - %s", path, result.GetErrorMessage());
+        const error = new Error(`${path || "image"}: ${result.GetErrorMessage()}`);
+        error.code = "CJS_RESOURCE_IMAGE_READ_FAILED";
+        throw error;
+      }
+
+      bitmap.metadata = metadata;
+    }
+    if (request) bitmap = await TriTextureRes._compressLoadedBitmap(bitmap, request, context.path, context.signal);
+    return bitmap;
+  }
+
+  /** Our worker-format membership check keeps non-worker ImageIO handlers local. */
+  @meta.cjs
+  @meta.implemented
+  static _isDecodedImage(Format)
+  {
+    return Format !== null && IMAGE_DECODE_FORMATS.get(Format.id) === Format;
+  }
+
+  /**
+   * Optional load extension; complete output and diagnostics publish together.
+   * A compression, or a failed one, is also logged on trinity's Main channel,
+   * where texture loading logs (a skip is only recorded in the diagnostic).
+   */
+  @meta.cjs
+  @meta.adapted
+  static async _compressLoadedBitmap(bitmap, request, path, signal)
+  {
+    const packet = { description: {
+      type: bitmap.GetType(), format: bitmap.GetFormat(), width: bitmap.GetWidth(),
+      height: bitmap.GetHeight(), depth: bitmap.GetDepth(), mipCount: bitmap.GetMipCount(),
+      arraySize: bitmap.GetArraySize()
+    }, data: bitmap.GetRawData(), metadata: bitmap.metadata };
+    const choice = selectCompression(packet, request);
+    const diagnostic = { requested: request.enabled, backend: request.backend ?? null,
+      activeFeatures: request.features, role: request.role, outcome: "skipped", reason: choice.reason,
+      originalFormat: bitmap.GetFormat(), outputFormat: bitmap.GetFormat(),
+      originalBytes: packet.data.length, outputBytes: packet.data.length, encodeTimeMs: 0 };
+    if (choice.mode !== null)
+    {
+      try
+      {
+        const encoded = await compressBitmapAsync(packet, choice.mode, { signal });
+        bitmap = createDdsBitmap(encoded);
+        diagnostic.outcome = "compressed";
+        diagnostic.outputFormat = bitmap.GetFormat(); diagnostic.outputBytes = encoded.data.length;
+        diagnostic.encodeTimeMs = encoded.encodeTimeMs;
+        CcpLog.CCP_LOG_CH(CcpLog.GetModuleChannel("trinity"), "Compressed '%S' on load: mode %d, format %d to %d, %d to %d bytes in %g ms",
+          path, choice.mode, diagnostic.originalFormat, diagnostic.outputFormat, diagnostic.originalBytes, diagnostic.outputBytes, diagnostic.encodeTimeMs);
+      }
+      catch (error)
+      {
+        if (signal?.aborted) throw error;
+        diagnostic.reason = `worker-failed: ${error.message}`;
+        CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "On-load compression of '%S' failed: %s", path, error.message);
+      }
+    }
+    bitmap.compression = diagnostic;
+    return bitmap;
+  }
+
+
   /** Optional DDS worker encoding for subsequent immutable sampled texture loads. */
   @meta.setting("compressUncompressedTextures", { applies: meta.setting.LOAD })
   static compressUncompressedTextures = false;

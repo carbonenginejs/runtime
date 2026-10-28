@@ -16,13 +16,12 @@
 // fields set on it are the ones `Tr2RenderBatch.resolveDrawArguments` already
 // reads.
 //
-// The vertex bytes come from `PackLodGeometry`, which interleaves the payload's
+// The vertex bytes come from `TriGeometryRes.packLodGeometry`, which interleaves the payload's
 // channels by the declaration (Carbon uploads the file's interleaved view
 // verbatim; our payload is deinterleaved, so the packer is the inverse of the
 // reader) and re-strides to a multiple of four.
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
-import { PackLodGeometry, PackLodIndices } from "#trinity/resources/geometry/pack";
 import { TriGeometryRes } from "#trinity/resources/geometry";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { Tr2GpuUsage } from "#consts/render-context";
@@ -119,7 +118,7 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
 
   try
   {
-    packed = PackLodGeometry(mesh, lodIndex);
+    packed = TriGeometryRes.packLodGeometry(mesh, lodIndex);
   }
   catch
   {
@@ -231,7 +230,7 @@ export function CreateLodWireframeIndices(geometry, meshIndex, lod, renderContex
 
   const mesh = geometry.GetPayload()?.meshes?.[meshIndex];
   const lodIndex = mesh && Array.isArray(mesh.lods) ? Math.max(0, mesh.lods.indexOf(lod)) : 0;
-  const indices = mesh ? PackLodIndices(mesh, lodIndex) : null;
+  const indices = mesh ? TriGeometryRes.packLodIndices(mesh, lodIndex) : null;
 
   if (!indices)
   {

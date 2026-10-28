@@ -1,3 +1,4 @@
+import { packVertexBuffer, packIndexBuffer } from "../../../resource/formats/cmf/core/pack.js";
 import { exposure as be } from "#be";
 import { ResourceRequirement } from "#blue";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
@@ -22,6 +23,40 @@ import {
   resourceBoundaryError,
   resourcePayloadError
 } from "../../../resource/resourceBoundary.js";
+
+/** WebGPU's `arrayStride` alignment, which WebGL2 also satisfies trivially. */
+const STRIDE_ALIGNMENT = 4;
+
+
+/**
+ * Rounds a packed vertex buffer up to an aligned stride.
+ *
+ * A declaration's extent is a TIGHT max-offset sum with no rounding, so a decl
+ * of three `UInt8Norm` components packs at stride 3 and no device will take it.
+ * Element offsets are unchanged by the widening - only the gap after the last
+ * component grows - so the declaration stays correct against the result.
+ *
+ * @param {{bytes: Uint8Array, stride: number, count: number}} packed
+ * @returns {{bytes: Uint8Array, stride: number, count: number}} The input when already aligned.
+ */
+function AlignStride(packed)
+{
+  const remainder = packed.stride % STRIDE_ALIGNMENT;
+
+  if (packed.stride > 0 && remainder === 0) return packed;
+
+  const stride = packed.stride + (STRIDE_ALIGNMENT - remainder);
+  const bytes = new Uint8Array(stride * packed.count);
+
+  for (let i = 0; i < packed.count; i++)
+  {
+    bytes.set(packed.bytes.subarray(i * packed.stride, (i + 1) * packed.stride), i * stride);
+  }
+
+  return { bytes, stride, count: packed.count };
+}
+
+
 
 // Scratch edges for the picking cross product. Picking is synchronous and the
 // result is consumed before the next hit, so one pair is enough.
@@ -62,6 +97,75 @@ function boundsPair(bounds)
 
 export class TriGeometryRes extends CjsResource
 {
+  /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:18-21). */
+  static extensions = ["gr2", "cmf"];
+
+  /** Native format identities; .cmf is declared but not routed by our current defaults. */
+  static extensionFormats = { gr2: CjsGr2Format, cmf: CjsCmfFormat };
+
+  /** Declared by Carbon, not routed here; keep current loading support during relocation. */
+  static unroutedExtensions = { cmf: "declared by Carbon, not routed here: default CMF resource route pending" };
+
+  /** Our worker read preserves the Granny graph and Carbon's rebuilt geometry bounds. */
+  static readOptions = { gr2: { emit: "json", rebuildMissingBounds: true } };
+
+  /**
+   * Carbon: TriGeometryRes::CreateLodFromCMFMesh (trinity/trinity/Resources/TriGeometryRes.cpp:2019-2140).
+   * Adapted: our worker payload is deinterleaved; repack it and align the stride
+   * for WebGPU before the existing allocation path consumes it.
+   * Packs one LOD of a decoded mesh into interleaved vertex bytes and an index
+   * buffer.
+   *
+   * Channels and index groups are taken from the LOD when it carries its own and
+   * from the mesh otherwise, because a single-LOD payload keeps them only on the
+   * mesh. The declaration is always the mesh's: a LOD varies which triangles it
+   * draws, not what a vertex is.
+   *
+   * @param {object} mesh Decoded mesh carrying `decl` and channels.
+   * @param {number} [lodIndex] Which LOD to pack.
+   * @returns {{decl: Array<object>, vertex: object, index: object|null}}
+   * @throws {Error} When the mesh has no declaration to pack against.
+   */
+  static packLodGeometry(mesh, lodIndex = 0)
+  {
+    const decl = mesh?.decl ?? mesh?.vertexElements;
+
+    if (!decl?.length)
+    {
+      throw new Error("Cannot pack geometry: the mesh carries no vertex declaration");
+    }
+
+    const lod = mesh?.lods?.[lodIndex] ?? null;
+    const channels = lod?.vertex ?? mesh?.vertex ?? {};
+
+    const vertex = AlignStride(packVertexBuffer(decl, channels));
+
+    return { decl, vertex, index: TriGeometryRes.packLodIndices(mesh, lodIndex) };
+  }
+
+  /**
+   * Carbon: TriGeometryRes::CreateLodFromCMFMesh (trinity/trinity/Resources/TriGeometryRes.cpp:2055-2076).
+   * Adapted: our deinterleaved payload needs packing before native-style buffer allocation.
+   * Packs one LOD's index buffer alone, from the same LOD-then-mesh sources
+   * packLodGeometry uses; the wireframe edge build reads it without repacking
+   * the vertices.
+   *
+   * @param {object} mesh Decoded mesh.
+   * @param {number} [lodIndex] Which LOD to pack.
+   * @returns {{bytes: Uint8Array, format: string, count: number}|null} Null when the LOD has no indices.
+   */
+  static packLodIndices(mesh, lodIndex = 0)
+  {
+    const lod = mesh?.lods?.[lodIndex] ?? null;
+    const groups = lod?.indices ?? mesh?.indices ?? null;
+    const indexBuffer = lod?.indexBuffer ?? (lod?.indices ? null : mesh?.indexBuffer) ?? null;
+    const packedIndices = groups || indexBuffer ? packIndexBuffer(groups, indexBuffer) : null;
+
+    return packedIndices && packedIndices.count > 0
+      ? { bytes: packedIndices.bytes, format: packedIndices.stride === 4 ? "uint32" : "uint16", count: packedIndices.count }
+      : null;
+  }
+
   forceLod = false;
   forcedLodIndex = -1;
   name = "";
@@ -1652,3 +1756,6 @@ CjsSchema.exposure.mapInterface(ICacheable)(TriGeometryRes);
 CjsSchema.exposure.mapInterface(ITr2InstanceData)(TriGeometryRes);
 // Carbon: TriGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:175).
 CjsSchema.blue.chainTo(CjsResource)(TriGeometryRes);
+
+CjsSchema.decorateMethod(TriGeometryRes, "packLodGeometry", meta.cjs, meta.adapted);
+CjsSchema.decorateMethod(TriGeometryRes, "packLodIndices", meta.cjs, meta.adapted);

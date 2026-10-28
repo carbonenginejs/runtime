@@ -29,6 +29,30 @@ let effectBackend = null;
  */
 export class Tr2EffectRes extends CjsResource
 {
+  /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/Tr2EffectRes.cpp:25-34). */
+  static extensions = ["SM_1_1", "SM_2_0_LO", "SM_2_0_HI", "SM_3_0_LO", "SM_3_0_HI", "SM_3_0_DEPTH", "SM_LO", "SM_HI", "SM_DEPTH"];
+
+  /** Our Incarna route: .fxt carries v3/v4 effect containers (approved 2026-10-25). */
+  static additionalExtensions = ["fxt"];
+
+  /** All declared shader extensions use the same retained Carbon effect reader. */
+  static extensionFormats = Object.fromEntries(
+    [...Tr2EffectRes.extensions, ...Tr2EffectRes.additionalExtensions].map(extension => [extension, CjsCarbonEffectFormat])
+  );
+
+  /**
+   * Carbon: Tr2EffectRes::DoLoad (trinity/trinity/Resources/Tr2EffectRes.cpp:137-243).
+   * Our LOADING adapter passes bytes unchanged; DoLoad retains the reader to
+   * decode permutation bodies on demand. Pre-decoding here loses that lifetime.
+   * @param {Uint8Array|ArrayBuffer} bytes Compiled effect container.
+   * @returns {Uint8Array|ArrayBuffer} The same bytes.
+   */
+  static readShaderResource(bytes)
+  {
+    return bytes;
+  }
+
+
 
   _shaders = new Map();
 
@@ -778,3 +802,5 @@ be.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
 CjsSchema.exposure.mapInterface(ICacheable)(Tr2EffectRes);
 // Carbon: Tr2EffectRes::ExposeToBlue (trinity/trinity/Resources/Tr2EffectRes_Blue.cpp:87).
 CjsSchema.blue.chainTo(CjsResource)(Tr2EffectRes);
+
+CjsSchema.decorateMethod(Tr2EffectRes, "readShaderResource", meta.cjs, meta.adapted);

@@ -18,6 +18,16 @@ import { ResourceRequirement } from "#blue";
  */
 export class Tr2ImageRes extends CjsResource
 {
+  /** Carbon: BLUE_REGISTER_RESOURCE_EXTENSION (trinity/trinity/Resources/Tr2ImageRes_Blue.cpp:15-18). */
+  static extensions = ["pngraw", "ddsraw", "sddraw", "tgaraw"];
+
+  /** Our additional raw image routes reuse the existing browser ImageIO formats. */
+  static additionalExtensions = ["jpgraw", "jpegraw", "vtaraw", "gifraw"];
+
+  /** Declared by Carbon, not routed here: no SDD image handler is implemented. */
+  static unroutedExtensions = { sddraw: "declared by Carbon, not routed here: no image handler" };
+
+
 
   /** m_bitmap: the decoded image (Tr2ImageRes.h:38). */
   bitmap = new HostBitmap();
