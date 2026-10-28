@@ -1758,7 +1758,8 @@ export class CjsBlueResMan
   _IsObjectBuilderResource(resource)
   {
     return !this._resourceExtensionRoutes.has(resource)
-      && this._objectBuilderLoaders.has(this.GetObjectLoader(getResourceExtension(resource.GetPath())));
+      // Keep the explicit extension aligned with _GetResource and _ResolveResourceObjectRead.
+      && this._objectBuilderLoaders.has(this.GetObjectLoader(resource.GetObjectRequest()?.ext || getResourceExtension(resource.GetPath())));
   }
 
   /**

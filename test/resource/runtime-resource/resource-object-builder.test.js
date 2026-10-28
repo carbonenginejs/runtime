@@ -360,3 +360,27 @@ test("an idle sweep releases a builder's cached bytes, and the next load reads a
   assert.equal(counter.reads, 2);
   assert.equal(counter.builders, 2);
 });
+
+test("explicit extension selects a cached builder for extensionless object names", async () =>
+{
+  let reads = 0, parses = 0;
+  const resMan = new CjsBlueResMan({ source: { Read(path) { if (path === "res:/extensionless") reads++; return new Uint8Array([7]); } } });
+  resMan.RegisterObjectBuilder("example", bytes =>
+  {
+    parses++;
+    return { CreateObject: () => ({ values: [bytes[0]] }) };
+  });
+  try
+  {
+    assert.throws(() => resMan.LoadObject("res:/plain-without-override"), /yields plain data/);
+    const first = await resMan.LoadObject("res:/extensionless", { ext: ".example" });
+    const second = await resMan.LoadObject("res:/extensionless", { ext: ".example" });
+    assert.notEqual(first, second);
+    assert.notEqual(first.values, second.values);
+    first.values[0] = 99;
+    assert.deepEqual(second.values, [7]);
+    assert.equal(reads, 1);
+    assert.equal(parses, 1);
+  }
+  finally { resMan.Clear(); }
+});
