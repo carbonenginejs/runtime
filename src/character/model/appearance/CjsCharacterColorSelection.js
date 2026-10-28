@@ -14,17 +14,17 @@ export class CjsCharacterColorSelection
     @type.float64
     weight = 0;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "colorID")
     @type.object.ref("CjsCharacterColorLocation")
-    colorID = null;
+    colorLocation = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "colorNameA")
     @type.object.ref("CjsCharacterColorName")
-    colorNameA = null;
+    colorA = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "colorNameBC")
     @type.object.ref("CjsCharacterColorName")
-    colorNameBC = null;
+    colorBC = null;
 
 }
 

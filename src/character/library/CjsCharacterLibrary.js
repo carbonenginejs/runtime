@@ -714,6 +714,15 @@ function NormalizeTextureResource(value)
     return { identity, pngPath: `${identity}.png` };
 }
 
+/**
+ * Validates a serialized record against the schema's exposed declarations.
+ * Attribute aliases retain authored document keys when JavaScript fields are renamed.
+ *
+ * @param {object} value Serialized record or graph reference.
+ * @param {Function} Constructor The record's registered constructor.
+ * @param {string} label Document path used in validation errors.
+ * @returns {void}
+ */
 function ValidateModelValue(value, Constructor, label)
 {
     RequirePlainObject(value, label);
@@ -729,7 +738,8 @@ function ValidateModelValue(value, Constructor, label)
     }
 
     const schema = CjsSchema.getSchema(Constructor);
-    const fields = new Map(schema.fields.map(field => [ field.name, field ]));
+    // Incoming records use exposed document names, not JavaScript storage keys.
+    const fields = new Map([ ...schema.members, ...schema.properties ].map(field => [ field.name, field ]));
 
     for (const key of Object.keys(value))
     {

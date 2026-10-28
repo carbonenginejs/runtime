@@ -8,52 +8,42 @@ export class CjsCharacterResource extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.list("string")
     empireRestrictions = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.path
     resPath = "";
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.object.ref("CjsCharacterPartType")
     partType = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
-
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "clothingAlsoCoversCategory")
     @type.object.ref("CjsCharacterModifierLocation")
-    clothingAlsoCoversCategory = null;
+    clothingAlsoCoversModifierLocation = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
-
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "clothingAlsoCoversCategory2")
     @type.object.ref("CjsCharacterModifierLocation")
-    clothingAlsoCoversCategory2 = null;
+    clothingAlsoCoversModifierLocation2 = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
-
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "clothingRemovesCategory")
     @type.object.ref("CjsCharacterModifierLocation")
-    clothingRemovesCategory = null;
+    clothingRemovesModifierLocation = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
-
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "clothingRemovesCategory2")
     @type.object.ref("CjsCharacterModifierLocation")
-    clothingRemovesCategory2 = null;
+    clothingRemovesModifierLocation2 = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.string
     typeID = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.uint8
     clothingRuleException = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-
     @type.uint8
     resGender = null;
 

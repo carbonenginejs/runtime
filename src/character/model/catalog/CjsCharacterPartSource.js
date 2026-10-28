@@ -34,7 +34,7 @@ export class CjsCharacterPartSource extends CjsCharacterRecord
     versions = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
-    @type.object.ref("CjsCharacterPartMetadata")
+    @type.object.ref("CjsAvatarPartMetaData")
     metadata = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)

@@ -1,6 +1,6 @@
 import { CjsSchema } from "#schema";
 
-import { CjsCharacterPartMetadata } from "../catalog/CjsCharacterPartMetadata.js";
+import { CjsAvatarPartMetaData } from "../catalog/CjsAvatarPartMetaData.js";
 import { CjsCharacterModifierReference } from "../catalog/CjsCharacterModifierReference.js";
 import { CjsCharacterPartSource } from "../catalog/CjsCharacterPartSource.js";
 import { CjsCharacterPartSourceVersion } from "../catalog/CjsCharacterPartSourceVersion.js";
@@ -333,9 +333,9 @@ function ResolveColorSelections(plan, paperdoll)
             recordID: paperdoll.recordID,
             jsonPointer: `/colorSelections/${index}`
         });
-        const location = value?.colorID;
-        const colorA = value?.colorNameA;
-        const colorBC = value?.colorNameBC;
+        const location = value?.colorLocation;
+        const colorA = value?.colorA;
+        const colorBC = value?.colorBC;
 
         if (!(location instanceof CjsCharacterColorLocation)
             || !(colorA instanceof CjsCharacterColorName)
@@ -383,7 +383,7 @@ function ResolveModifier(
         recordID: paperdoll.recordID,
         jsonPointer: `/modifiers/${modifierIndex}`
     });
-    const location = modifier?.modifierLocationID;
+    const location = modifier?.modifierLocation;
 
     if (!(location instanceof CjsCharacterModifierLocation) || !location.modifierKey)
     {
@@ -437,7 +437,7 @@ function ResolveModifier(
         );
     }
 
-    const resource = modifier.paperdollResourceID;
+    const resource = modifier.paperdollResource;
 
     if (!(resource instanceof CjsCharacterResource))
     {
@@ -668,8 +668,8 @@ function ResolvePartSource(plan, partType, resource, origin)
 function DiagnoseCharacterRules(plan, resource, selection, origin)
 {
     const hasUnresolvedCoverageRules = [
-        resource.clothingAlsoCoversCategory,
-        resource.clothingAlsoCoversCategory2
+        resource.clothingAlsoCoversModifierLocation,
+        resource.clothingAlsoCoversModifierLocation2
     ].some(Boolean);
 
     if (hasUnresolvedCoverageRules || resource.clothingRuleException !== null)
@@ -710,7 +710,7 @@ function DiagnosePartMetadata(library, plan, metadata, partSource, versionIndex,
         return null;
     }
 
-    if (!(metadata instanceof CjsCharacterPartMetadata))
+    if (!(metadata instanceof CjsAvatarPartMetaData))
     {
         AddDiagnostic(
             plan,
@@ -722,9 +722,9 @@ function DiagnosePartMetadata(library, plan, metadata, partSource, versionIndex,
         return null;
     }
 
-    for (let index = 0; index < metadata.dependentModifiers.length; index++)
+    for (let index = 0; index < metadata.dependantModifiers.length; index++)
     {
-        const value = metadata.dependentModifiers[index];
+        const value = metadata.dependantModifiers[index];
         const relation = metadata.dependencies[index];
 
         if (relation instanceof CjsCharacterModifierReference
@@ -794,8 +794,8 @@ function ResolveSelectionSuppressions(
     {
         const targets = [];
         for (const value of [
-            owner.resource?.clothingRemovesCategory,
-            owner.resource?.clothingRemovesCategory2
+            owner.resource?.clothingRemovesModifierLocation,
+            owner.resource?.clothingRemovesModifierLocation2
         ])
         {
             if (value instanceof CjsCharacterModifierLocation)
@@ -924,11 +924,11 @@ function CollectUtilityShapes(
     { protectedOwner = null } = {}
 )
 {
-    if (!(metadata instanceof CjsCharacterPartMetadata)) return;
+    if (!(metadata instanceof CjsAvatarPartMetaData)) return;
 
-    for (let index = 0; index < metadata.dependentModifiers.length; index++)
+    for (let index = 0; index < metadata.dependantModifiers.length; index++)
     {
-        const authoredValue = metadata.dependentModifiers[index];
+        const authoredValue = metadata.dependantModifiers[index];
         const relation = metadata.dependencies[index];
         const decoded = DecodeUtilityDependency(relation, authoredValue);
 
@@ -1065,11 +1065,11 @@ function ResolvePartDependencies(
     utilityOcclusions
 )
 {
-    if (!(metadata instanceof CjsCharacterPartMetadata)) return;
+    if (!(metadata instanceof CjsAvatarPartMetaData)) return;
 
-    for (let index = 0; index < metadata.dependentModifiers.length; index++)
+    for (let index = 0; index < metadata.dependantModifiers.length; index++)
     {
-        const authoredValue = metadata.dependentModifiers[index];
+        const authoredValue = metadata.dependantModifiers[index];
         const relation = metadata.dependencies[index];
 
         if (!(relation instanceof CjsCharacterModifierReference)

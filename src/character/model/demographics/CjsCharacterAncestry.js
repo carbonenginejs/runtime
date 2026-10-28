@@ -11,9 +11,9 @@ export class CjsCharacterAncestry extends CjsCharacterRecord
     @type.string
     shortDescription = null;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "bloodlineID")
     @type.object.ref("CjsCharacterBloodline")
-    bloodlineID = null;
+    bloodline = null;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.int32

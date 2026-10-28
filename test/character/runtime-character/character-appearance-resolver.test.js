@@ -349,7 +349,7 @@ test("refuses candidate inheritance while preserving the exact source-version co
     documents.characterPartSources["source/top"].metadata = "metadata/top";
     documents.characterPartMetadata["metadata/top"] = {
         sourcePath: "res:/character/top/metadata.json",
-        dependentModifiers: [ "support/top" ]
+        dependantModifiers: [ "support/top" ]
     };
     version.configurationCandidates = [];
     documents.characterPartSources["source/top"].versions.unshift({
@@ -466,7 +466,7 @@ test("preserves duplicate authored groups and reports unresolved policy fields",
     documents.characterPartSources["source/top"].versions[0].metadata = "metadata/top";
     documents.characterPartMetadata["metadata/top"] = {
         sourcePath: "res:/character/top/metadata.json",
-        dependentModifiers: [ "support/top#1.0" ]
+        dependantModifiers: [ "support/top#1.0" ]
     };
 
     const library = CreateLibrary(documents);
@@ -494,7 +494,7 @@ test("preserves raw dependency and occlusion facts without fabricating layers", 
     documents.characterPartSources["source/top"].versions[0].metadata = "metadata/top";
     documents.characterPartMetadata["metadata/top"] = {
         sourcePath: "res:/character/top/metadata.json",
-        dependentModifiers: [ "Support/Top###0.7", "Utility#2" ],
+        dependantModifiers: [ "Support/Top###0.7", "Utility#2" ],
         occludesModifiers: [ "BottomOuter/Mixed#1" ],
         lod1Replacement: "Top/Replacement",
         lod2Replacement: "Top/ReplacementLow"
@@ -589,7 +589,7 @@ test("projects exact typed dependencies as requester-owned source contributions"
     };
     documents.characterPartMetadata["metadata/top"] = {
         sourcePath: "res:/character/top/metadata.yaml",
-        dependentModifiers: [
+        dependantModifiers: [
             "dependants/tuck/basic",
             "dependants/masktuck/tuckmaskmid",
             "dependants/waisttucking/standard",
@@ -622,7 +622,7 @@ test("projects exact typed dependencies as requester-owned source contributions"
     };
     documents.characterPartMetadata["metadata/outer"] = {
         sourcePath: "res:/character/outer/metadata.yaml",
-        dependentModifiers: [ "utilityshapes/pushhemshape###0.7" ],
+        dependantModifiers: [ "utilityshapes/pushhemshape###0.7" ],
         dependencies: [ {
             authoredValue: "utilityshapes/pushhemshape###0.7"
         } ]
@@ -707,7 +707,7 @@ test("uses the unique unversioned dependency when the owner version has no peer"
     };
     documents.characterPartMetadata["metadata/top"] = {
         sourcePath: "res:/character/top/metadata.yaml",
-        dependentModifiers: [ "dependants/drape/standard" ],
+        dependantModifiers: [ "dependants/drape/standard" ],
         dependencies: [ {
             authoredValue: "dependants/drape/standard",
             modifierPath: "dependants/drape/standard",
@@ -747,7 +747,7 @@ test("resolves an exact weighted part dependency without dropping its authored w
     };
     documents.characterPartMetadata["metadata/top"] = {
         sourcePath: "res:/character/top/metadata.yaml",
-        dependentModifiers: [ "makeup/eyelashes/eyelashes_02###0.4" ],
+        dependantModifiers: [ "makeup/eyelashes/eyelashes_02###0.4" ],
         dependencies: [ {
             authoredValue: "makeup/eyelashes/eyelashes_02###0.4"
         } ]
@@ -777,7 +777,7 @@ test("resolves proved utility dependency weights and exact active occlusions", (
     documents.characterPartSources["source/top"].versions[0].metadata = "metadata/top";
     documents.characterPartMetadata["metadata/top"] = {
         sourcePath: "res:/character/top/metadata.yaml",
-        dependentModifiers: [
+        dependantModifiers: [
             "utilityshapes/PinchTuckShape",
             "utilityshapes/PushHemMidShape###0.35",
             "utilityshapes/ZeroShape###0",

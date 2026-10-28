@@ -13,11 +13,11 @@ import {
     CjsCharacterLibraryManager,
     CjsCharacterModifierLocation,
     CjsCharacterModifierReference,
-    CjsCharacterPartMetadata,
+    CjsAvatarPartMetaData,
     CjsCharacterPartSource,
     CjsCharacterPartType,
     CjsCharacterPaperdoll,
-    CjsCharacterProjectionProfile,
+    CjsProjectedDecal,
     CjsCharacterRace,
     CjsCharacterRecipeProfile,
     CjsCharacterResource,
@@ -289,11 +289,11 @@ test("from and SetValues hydrate the same character-library model shape", () =>
         assert.ok(race instanceof CjsCharacterRace);
         assert.ok(resource instanceof CjsCharacterResource);
         assert.ok(paperdoll instanceof CjsCharacterPaperdoll);
-        assert.strictEqual(ancestry.bloodlineID, bloodline);
-        assert.strictEqual(bloodline.raceID, race);
-        assert.strictEqual(paperdoll.modifiers[0].paperdollResourceID, resource);
+        assert.strictEqual(ancestry.bloodline, bloodline);
+        assert.strictEqual(bloodline.race, race);
+        assert.strictEqual(paperdoll.modifiers[0].paperdollResource, resource);
         // A dangling identity: null in the member, recorded on the library.
-        assert.equal(paperdoll.modifiers[1].paperdollResourceID, null);
+        assert.equal(paperdoll.modifiers[1].paperdollResource, null);
         assert.equal(library.GetUnresolvedRelationship("paperdolls", 30, "modifiers[1].paperdollResourceID").targetID, "404");
         assert.equal(resource.typeID, "9001");
         assert.equal(library.sourceProvider, "synthetic");
@@ -336,7 +336,7 @@ test("migrates a schema-v10 library's dangling identities out of their typed mem
     const library = CjsCharacterLibrary.from(legacy);
 
     assert.equal(library.schemaVersion, 11);
-    assert.equal(library.Get("paperdolls", 30).modifiers[1].paperdollResourceID, null);
+    assert.equal(library.Get("paperdolls", 30).modifiers[1].paperdollResource, null);
     assert.deepEqual(
         library.unresolvedRelationships.map(entry => [ entry.document, entry.recordID, entry.field, entry.targetDocument, entry.targetID ]),
         [ [ "paperdolls", "30", "modifiers[1].paperdollResourceID", "characterResources", "404" ] ]
@@ -457,7 +457,7 @@ test("folds source-backed profiles and exact external resource candidates into o
         [metadataPath]: {
             sourcePath: metadataPath,
             forcesLooseTop: true,
-            dependentModifiers: [ "dependants/tuck/basic" ],
+            dependantModifiers: [ "dependants/tuck/basic" ],
             occludesModifiers: [ "topinner" ],
             dependencies: [ {
                 authoredValue: "dependants/tuck/basic",
@@ -491,8 +491,15 @@ test("folds source-backed profiles and exact external resource candidates into o
             aspectRatio: 1,
             bodyEnabled: true,
             texturePath: "res:/example/topinner/logo.asset",
-            offset: [ 0.25, 0.5 ],
-            position: [ 1, 2, 3 ],
+            offsetx: 0.25,
+            offsety: 0.5,
+            posx: 1,
+            posy: 2,
+            posz: 3,
+            flipx: true,
+            flipy: false,
+            maskResource: null,
+            textureResource: null,
             scale: 1
         }
     };
@@ -563,9 +570,9 @@ test("folds source-backed profiles and exact external resource candidates into o
     assert.ok(partType instanceof CjsCharacterPartType);
     assert.ok(definition instanceof CjsCharacterDefinition);
     assert.ok(source instanceof CjsCharacterPartSource);
-    assert.ok(source.metadata instanceof CjsCharacterPartMetadata);
+    assert.ok(source.metadata instanceof CjsAvatarPartMetaData);
     assert.ok(material instanceof CjsCharacterMaterialProfile);
-    assert.ok(projection instanceof CjsCharacterProjectionProfile);
+    assert.ok(projection instanceof CjsProjectedDecal);
     assert.ok(recipe instanceof CjsCharacterRecipeProfile);
     assert.strictEqual(resource.partType, partType);
     assert.deepEqual(definition.values, [ "topinner/example", "v2", "blue", [ 1, 2 ] ]);
@@ -584,7 +591,7 @@ test("folds source-backed profiles and exact external resource candidates into o
     assert.strictEqual(source.metadata, metadata);
     assert.strictEqual(source.versions[0].metadata, metadata);
     assert.equal(metadata.forcesLooseTop, true);
-    assert.deepEqual(metadata.dependentModifiers, [ "dependants/tuck/basic" ]);
+    assert.deepEqual(metadata.dependantModifiers, [ "dependants/tuck/basic" ]);
     assert.ok(metadata.dependencies[0] instanceof CjsCharacterModifierReference);
     assert.strictEqual(metadata.dependencies[0].partSource, source);
     assert.strictEqual(
@@ -596,7 +603,13 @@ test("folds source-backed profiles and exact external resource candidates into o
     ));
     assert.equal(material.pattern, "stripe");
     assert.equal(projection.bodyEnabled, true);
-    assert.deepEqual(Array.from(projection.offset), [ 0.25, 0.5 ]);
+    assert.deepEqual([ projection.offsetx, projection.offsety ], [ 0.25, 0.5 ]);
+    assert.deepEqual([ projection.posx, projection.posy, projection.posz ], [ 1, 2, 3 ]);
+    assert.equal(projection.flipx, true);
+    assert.equal(projection.flipy, false);
+    assert.equal(projection.maskResource, null);
+    assert.equal(projection.textureResource, null);
+    assert.equal(metadata.wap, null, "absent wap must not become an explicit compatibility flag");
     assert.equal(recipe.entries[0].category, "topinner");
     assert.equal(recipe.entries[0].colorVariation, "blue");
     assert.ok(Array.from(recipe.entries[0].colors[0].value).every(
@@ -1135,19 +1148,27 @@ test("Schema graph export round-trips a hydrated library", () =>
     const clone = new Copier().CloneTo(library);
 
     assert.equal(values.documents.characterResources[0].typeID, "9001");
+    assert.ok(Object.hasOwn(values.documents.ancestries[0], "bloodlineID"));
+    assert.equal(Object.hasOwn(values.documents.ancestries[0], "bloodline"), false);
+    // The library graph may emit bloodlines as _ref after visiting ancestry.
+    const bloodlineValues = CjsSchema.getValues(library.Get("bloodlines", 2), {}, { refs: true });
+    assert.ok(Object.hasOwn(bloodlineValues, "raceID"));
+    assert.equal(Object.hasOwn(bloodlineValues, "race"), false);
+    assert.ok(Object.hasOwn(values.documents.paperdolls[0].modifiers[0], "paperdollResourceID"));
+    assert.equal(Object.hasOwn(values.documents.paperdolls[0].modifiers[0], "paperdollResource"), false);
     assert.ok(JSON.stringify(values).includes("_id"));
     assert.ok(JSON.stringify(values).includes("_ref"));
     assert.strictEqual(
-        roundTrip.Get("ancestries", 1).bloodlineID,
+        roundTrip.Get("ancestries", 1).bloodline,
         roundTrip.Get("bloodlines", 2)
     );
     assert.strictEqual(
-        roundTrip.Get("paperdolls", 30).modifiers[0].paperdollResourceID,
+        roundTrip.Get("paperdolls", 30).modifiers[0].paperdollResource,
         roundTrip.Get("characterResources", 21)
     );
     assert.notStrictEqual(clone, library);
     assert.strictEqual(
-        clone.Get("bloodlines", 2).raceID,
+        clone.Get("bloodlines", 2).race,
         clone.Get("races", 3)
     );
 });

@@ -4,15 +4,17 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
  * Authored metadata associated with one character part source.
+ * The name is observed as the YAML tag
+ * `!!python/object:paperDoll.AvatarPartMetaData` in metadata.yaml content.
  *
- * `dependentModifiers` and `occludesModifiers` keep the raw authored strings.
+ * `dependantModifiers` and `occludesModifiers` keep the raw authored strings.
  * `dependencies` and `occlusions` hold ordered `CjsCharacterModifierReference`
  * projections beside them, each with its `authoredValue`, an
  * optional normalized unsuffixed `modifierPath`, and exact `partSource` /
  * `modifierLocation` relationships only when a join is exact.
  */
-@meta.define("CjsCharacterPartMetadata")
-export class CjsCharacterPartMetadata extends CjsCharacterRecord
+@meta.define("CjsAvatarPartMetaData")
+export class CjsAvatarPartMetaData extends CjsCharacterRecord
 {
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
@@ -25,11 +27,11 @@ export class CjsCharacterPartMetadata extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
-    forcesLooseTop = null;
+    forcesLooseTop = false;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
-    hidesBootShin = null;
+    hidesBootShin = false;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.string
@@ -41,11 +43,11 @@ export class CjsCharacterPartMetadata extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.int32
-    numColorAreas = null;
+    numColorAreas = 0;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.list("string")
-    dependentModifiers = [];
+    dependantModifiers = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.list("string")
@@ -65,15 +67,15 @@ export class CjsCharacterPartMetadata extends CjsCharacterRecord
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
-    swapTops = null;
+    swapTops = false;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
-    swapBottom = null;
+    swapBottom = false;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
-    swapSocks = null;
+    swapSocks = false;
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
     @type.boolean
@@ -81,4 +83,4 @@ export class CjsCharacterPartMetadata extends CjsCharacterRecord
 
 }
 
-export default CjsCharacterPartMetadata;
+export default CjsAvatarPartMetaData;

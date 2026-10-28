@@ -18,9 +18,9 @@ export class CjsCharacterSculptSelection
     @type.float64
     weightUpDown = 0;
 
-    @meta.attribute(meta.READWRITE | meta.PERSIST)
+    @meta.attribute(meta.READWRITE | meta.PERSIST, "sculptLocationID")
     @type.object.ref("CjsCharacterSculptingLocation")
-    sculptLocationID = null;
+    sculptingLocation = null;
 
 }
 

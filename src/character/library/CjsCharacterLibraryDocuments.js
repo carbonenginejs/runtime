@@ -19,9 +19,9 @@ const DOCUMENT_DEFINITIONS = [
     [ "characterDefinitions", "CjsCharacterDefinition", false ],
     [ "characterPartTypes", "CjsCharacterPartType", false ],
     [ "characterPartSources", "CjsCharacterPartSource", false ],
-    [ "characterPartMetadata", "CjsCharacterPartMetadata", false ],
+    [ "characterPartMetadata", "CjsAvatarPartMetaData", false ],
     [ "characterMaterialProfiles", "CjsCharacterMaterialProfile", false ],
-    [ "characterProjectionProfiles", "CjsCharacterProjectionProfile", false ],
+    [ "characterProjectionProfiles", "CjsProjectedDecal", false ],
     [ "characterRecipeProfiles", "CjsCharacterRecipeProfile", false ],
     [ "characterTextureMetadata", "CjsCharacterTextureMetadata", false ]
 ];
@@ -209,7 +209,7 @@ export class CjsCharacterLibraryDocuments
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
 
-    @type.list("CjsCharacterPartMetadata")
+    @type.list("CjsAvatarPartMetaData")
     characterPartMetadata = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
@@ -221,7 +221,7 @@ export class CjsCharacterLibraryDocuments
     @meta.attribute(meta.READWRITE | meta.PERSIST)
 
 
-    @type.list("CjsCharacterProjectionProfile")
+    @type.list("CjsProjectedDecal")
     characterProjectionProfiles = [];
 
     @meta.attribute(meta.READWRITE | meta.PERSIST)
