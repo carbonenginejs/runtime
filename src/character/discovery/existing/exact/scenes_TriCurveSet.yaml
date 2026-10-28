@@ -1,0 +1,50 @@
+# Runtime comparison: exact; TriCurveSet.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# Class-only persisted members (not mismatches): driver, ranges, scale, playOnLoad, useSimTimeRebase, useRealTime.
+# curves: ownership: unverified (class declares none).
+# Runtime declaration: src/trinity/curves/TriCurveSet.js:38
+# bindings: ownership: unverified (class declares none).
+# Runtime declaration: src/trinity/curves/TriCurveSet.js:44
+# End runtime comparison.
+#
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 5056 files contain 5107 named TriCurveSet objects; 5048 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 5107 objects in 5056 files; keys ["bindings","curves","name"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black; MD5 7c4b330b47c23cee3505a9d8cd495b58.
+# Verbatim hex at offset 324; object span 436 bytes (96-byte truncated excerpt):
+# b00100000000010002000300010000000200000058010000040005008000000006000700050000001400000000000000003f7f7e31be7f7e31be040002020000803f0000003f0000003e0000003e05000201000000400000403f0000003e0000
+# Separately decoded field evidence (not source YAML):
+# name: "Aura_V3_Effect_BodyGlow_OrangePulse_0"
+# curves: [{"referenceClass":"Tr2CurveVector3"}]
+# bindings: [{"referenceClass":"TriValueBinding"}]
+#
+type: TriCurveSet # class discriminator, not a default value
+# name: 5107 of 5107 objects (5056 files); 190 distinct values; examples "Aura_V3_Effect_BodyGlow_OrangePulse_0", "Aura_V3_Effect_DrapeGlow_OrangePulse_0", "Aura_V3_Effect_HairGlow_OrangePulse_0".
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+name: string
+# curves: 5107 of 5107 objects (5056 files); kinds array:object:Tr2CurveVector3; array:object:Tr2CurveScalar; array:object:Tr2CurveColor.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+# Target counts: Tr2CurveVector3 446, Tr2CurveScalar 8420, Tr2CurveColor 64.
+# Tr2CurveVector3: inline-shared, 446 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 344; referenced elsewhere in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+# Tr2CurveScalar: inline-shared, 8420 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 302; referenced elsewhere in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_headglow_specularalpha_0.black
+# Tr2CurveColor: inline-shared, 64 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 403; referenced elsewhere in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2782_1/curvesets/backleft_light_backleft_alerttodanger_0.black
+# → scenes_Tr2CurveVector3.yaml, scenes_Tr2CurveScalar.yaml, Tr2CurveColor.yaml
+curves: [Tr2CurveVector3, Tr2CurveScalar, Tr2CurveColor] # class alternatives, not fixed list positions; shared/reference links
+# bindings: 5107 of 5107 objects (5056 files); kinds array:object:TriValueBinding.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+# Target counts: TriValueBinding 8930.
+# TriValueBinding: inline-owned, 8930 occurrences. Wire example: first U32 object ID 3 plus inline payload at offset 702; no other pointer to this object observed in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+# → scenes_TriValueBinding.yaml
+bindings: [TriValueBinding] # class alternatives, not fixed list positions; inline objects

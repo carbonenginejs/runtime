@@ -1,0 +1,133 @@
+# Runtime comparison: mismatch; Tr2InteriorLightSource.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# type differs: primaryLighting: authored numeric 0 in 7 YAML occurrences (alongside 13 boolean values); registered boolean.
+# Runtime declaration: src/character/trinity/interior/Tr2InteriorLightSource.js:76
+# type differs: useKelvinColor: authored numeric 1 in 1 YAML occurrence (alongside 1 boolean value); registered boolean.
+# Runtime declaration: src/character/trinity/interior/Tr2InteriorLightSource.js:125
+# Class-only persisted members (not mismatches): specularIntensity, curveSets.
+# kelvinColor: ownership: unverified (class declares none).
+# Runtime declaration: src/character/trinity/interior/Tr2InteriorLightSource.js:93
+# End runtime comparison.
+#
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 700 files contain 2624 named Tr2InteriorLightSource objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 12 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 999 objects in 353 files; keys ["color","coneAlphaInner","coneAlphaOuter","coneDirection","falloff","kelvinColor","name","position","radius"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black; MD5 d2dd459d413e6528f8a7531eb7ac4a7e.
+# Verbatim hex at offset 235; object span 92 bytes (92-byte excerpt):
+# 58000000020003000400050069909dbdff460140ed16503f0600000040400700dee0e03ddee0e03da4a0203e0000803f0800030000000200000009000a0028fdb2400b00000020420c00000070410d00f718093eb42d20bfc9bb44bf
+# Separately decoded field evidence (not source YAML):
+# name: "FrontMain"
+# position: [-0.07693559676408768,2.019958257675171,0.8128498196601868]
+# radius: 3
+# color: [0.10980390012264252,0.10980390012264252,0.1568627953529358,1]
+# kelvinColor: {"referenceClass":"Tr2KelvinColor"}
+# falloff: 5.593402862548828
+# coneAlphaOuter: 40
+# coneAlphaInner: 15
+# coneDirection: [0.13388429582118988,-0.6256973743438721,-0.7684903740882874]
+#
+# Variant 2: 955 objects in 317 files; keys ["color","coneAlphaInner","coneAlphaOuter","coneDirection","falloff","kelvinColor","name","position","radius","type"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights.yaml; MD5 f5ecf3cb4e33e72ed94b48256e9bdfb4.
+# Verbatim authored YAML excerpt:
+# type: Tr2InteriorLightSource
+#     name: "BackLeft"
+#     position: [-1.1647642, 1.9526398, -0.4567019]
+#     radius: 3.0
+#     color: [0.0, 0.565098, 1.1, 1.0]
+#     kelvinColor:
+#         type: Tr2KelvinColor
+#     falloff: 50.0
+#     coneAlphaOuter: 30.0
+#     coneAlphaInner: 15.0
+#     coneDirection: [0.7167743, -0.5106208, 0.4748693]
+#
+#
+# Variant 3: 293 objects in 292 files; keys ["color","coneAlphaInner","coneAlphaOuter","coneDirection","kelvinColor","name","position","radius"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black; MD5 d2dd459d413e6528f8a7531eb7ac4a7e.
+# Verbatim hex at offset 331; object span 86 bytes (86-byte excerpt):
+# 52000000020003000e000500a6de39be7573ae3f6a0b173f06000000c03f0700f0ec6c3ea7a6a63e8785053f0000803f0800050000000200000009000b00000070420c000000f0410d0023cc293f3046043ea9b53cbf
+# Separately decoded field evidence (not source YAML):
+# name: "FrontAmbient"
+# position: [-0.18151339888572693,1.3628984689712524,0.5900179147720337]
+# radius: 1.5
+# color: [0.23137259483337402,0.32549020648002625,0.5215687155723572,1]
+# kelvinColor: {"referenceClass":"Tr2KelvinColor"}
+# coneAlphaOuter: 60
+# coneAlphaInner: 30
+# coneDirection: [0.6632711291313171,0.12917399406433105,-0.7371469140052795]
+#
+# Variant 4: 266 objects in 265 files; keys ["color","coneAlphaInner","coneAlphaOuter","coneDirection","kelvinColor","name","position","radius","type"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights.yaml; MD5 f5ecf3cb4e33e72ed94b48256e9bdfb4.
+#
+# Variant 5: 43 objects in 42 files; keys ["coneAlphaInner","coneAlphaOuter","coneDirection","falloff","kelvinColor","name","position","radius"].
+# Example res:/animation_gstate/scenes/air_npe/elias/air_npe_elias_2932_1/lights_client.black; MD5 d5ec4301f75e4cb90c18a395e819e964.
+#
+# Variant 6: 40 objects in 39 files; keys ["coneAlphaInner","coneAlphaOuter","coneDirection","falloff","kelvinColor","name","position","radius","type"].
+# Example res:/animation_gstate/scenes/air_npe/elias/air_npe_elias_2932_1/lights.yaml; MD5 d1fad7d84c7486fe8740ce05e52058b0.
+#
+# Variant 7: 13 objects in 13 files; keys ["color","coneAlphaInner","coneAlphaOuter","coneDirection","falloff","kelvinColor","name","position","primaryLighting","radius"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/curvesets/backright_light_backright_neutraltoalert_0.black; MD5 d2b9df52ffcaf514a773cbaadeed2c2d.
+#
+# Variant 8: 7 objects in 7 files; keys ["color","coneAlphaInner","coneAlphaOuter","coneDirection","falloff","kelvinColor","name","position","primaryLighting","radius","type"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/lights.yaml; MD5 5705f2b9641be571f978c4637e43a25a.
+#
+# Variant 9: 5 objects in 1 files; keys ["color","falloff","kelvinColor","name","position","radius"].
+# Example res:/graphics/interior/charactercreation/customization.black; MD5 9ff8c7fbcd127224010e214010bfe5ae.
+#
+# Variant 10: 1 objects in 1 files; keys ["color","kelvinColor","name","position","useKelvinColor"].
+# Example res:/animation_gstate/scenes/npc/sarvaburman/lights_client.black; MD5 6173f6a405ab494e02deec9f3afcb3bb.
+#
+# Variant 11: 1 objects in 1 files; keys ["kelvinColor","position","radius"].
+# Example res:/graphics/interior/charactercreation/raceselection/exports/raceselectionscene.black; MD5 d0ff9a060ed097f62789aa8ce724ac00.
+#
+# Variant 12: 1 objects in 1 files; keys ["color","kelvinColor","name","position","type","useKelvinColor"].
+# Example res:/animation_gstate/scenes/npc/sarvaburman/lights.yaml; MD5 5c4ebb23ebf28ff41a974bb6168db531.
+#
+type: Tr2InteriorLightSource # class discriminator, not a default value
+# name: 2623 of 2624 objects (699 files); values "FrontMain", "FrontAmbient", "BackLeft", "BackRight", "FrontFaceFill", "Front", "RBack", "FillFront", "LSide", "RSide", "LBack".
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+name: string
+# position: 2624 of 2624 objects (700 files); 116 distinct vectors; component ranges [[-4.533834,2.7137971],[0.4784066,5.2534361],[-4.9487128257751465,5.1790128]].
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+position: [float, float, float]
+# radius: 2622 of 2624 objects (700 files); range 1.5 .. 50 (23 distinct).
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+radius: float
+# color: 2540 of 2624 objects (699 files); 154 distinct vectors; component ranges [[0,1.264433741569519],[0,1.212353],[0,1.3499999046325684],[1,1]].
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+color: [float, float, float, float]
+# kelvinColor: 2624 of 2624 objects (700 files); kinds object:Tr2KelvinColor.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+# Target counts: Tr2KelvinColor 2624.
+# Tr2KelvinColor: inline-owned, 1355 occurrences. Wire example: first U32 object ID 3 plus inline payload at offset 289; no other pointer to this object observed in this file.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+# Tr2KelvinColor: yaml-inline-owned, 1269 occurrences. Wire example: authored nested YAML object, no reference alias.
+# Wire source: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights.yaml
+# → scenes_Tr2KelvinColor.yaml
+kelvinColor: Tr2KelvinColor
+# falloff: 2062 of 2624 objects (677 files); values 3, 5, 10, 15, 20, 50, 5.593402862548828, 3.5219740867614746, 3.5220000743865967, 5.593400001525879, 5.590000152587891, 11.66189956665039, 1.5, 3.5219741, 5.5934029, 3.5220001, 5.5934, 5.5900002, 11.6618996.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+falloff: float
+# coneAlphaOuter: 2616 of 2624 objects (699 files); values 15, 30, 35, 40, 45, 50, 60, 40.818660736083984, 40.81869888305664, 38.90836715698242, 39.704463958740234, 39.990501403808594, 33.300819396972656, 40.8186607, 40.8186989, 39.9905014, 38.9083672, 39.704464, 33.3008194.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+coneAlphaOuter: float
+# coneAlphaInner: 2616 of 2624 objects (699 files); range 0 .. 76.0932999 (24 distinct).
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+coneAlphaInner: float
+# coneDirection: 2616 of 2624 objects (699 files); 85 distinct vectors; component ranges [[-0.854133129119873,0.896804928779602],[-0.780441,0.7192018032073975],[-0.9999261,0.8682957291603088]].
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/lights_client.black
+coneDirection: [float, float, float]
+# primaryLighting: 20 of 2624 objects (20 files); kinds boolean; number.
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/curvesets/backright_light_backright_neutraltoalert_0.black
+primaryLighting: bool|float
+# useKelvinColor: 2 of 2624 objects (2 files); kinds boolean; number.
+# Example: res:/animation_gstate/scenes/npc/sarvaburman/lights_client.black
+useKelvinColor: bool|float
+# Authored type key: 1269 of 2624 objects; values "Tr2InteriorLightSource".

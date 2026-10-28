@@ -1,0 +1,29 @@
+# Runtime comparison: exact; Tr2Matrix4Parameter.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# End runtime comparison.
+#
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 453 files contain 3536 named Tr2Matrix4Parameter objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 3536 objects in 453 files; keys ["name","value"].
+# Example res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black; MD5 2a9847f91b1e8b89da561ba60afcad5a.
+# Verbatim hex at offset 1569; object span 76 bytes (76-byte excerpt):
+# 48000000260003002700150000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+# Separately decoded field evidence (not source YAML):
+# name: "spotLightViewProj0"
+# value: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+#
+type: Tr2Matrix4Parameter # class discriminator, not a default value
+# name: 3536 of 3536 objects (453 files); values "spotLightViewProj0", "spotLightViewProj1", "spotLightViewProj2", "spotLightViewProj3".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+name: string
+# value: 3536 of 3536 objects (453 files); 43 distinct vectors; component ranges [[-1.6334810256958008,3.3275680541992188],[-3.2225489616394043,2.1478888988494873],[-0.552300214767456,0.7975394129753113],[-2.9382479190826416,5.923694133758545],[-1.386741042137146,1.9989479780197144],[-1.9324380159378052,0.8407561779022217],[-2.7048089504241943,1.4594229459762573],[-0.6855800747871399,4.180438995361328],[-0.6853753924369812,0.6381651163101196],[-0.8584243059158325,0.6468374133110046],[-0.8288283944129944,0.7270466089248657],[0,2.5855889320373535],[-0.6603186130523682,0.6168929934501648],[-0.8322768807411194,0.6152390241622925],[-0.7883396148681641,0.7028117775917053],[0,2.599402904510498]].
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+value: [float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float]

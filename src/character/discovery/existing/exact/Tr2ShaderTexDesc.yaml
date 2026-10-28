@@ -1,0 +1,64 @@
+# Runtime comparison: exact; Tr2ShaderTexDesc.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# End runtime comparison.
+#
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 17 files contain 71 named Tr2ShaderTexDesc objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 4 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 39 objects in 16 files; keys ["defaultTexture","helpText","name","parameterName","section"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 4021; object span 26 bytes (26-byte excerpt):
+# 1600000006000d000e0007000f0001000f00090010000b001100
+# Separately decoded field evidence (not source YAML):
+# defaultTexture: "res:/Graphics/Shared_Texture/Global/DS_Flat.dds"
+# parameterName: "OverlayMap"
+# name: "OverlayMap"
+# helpText: "Overlay diffuse, specular, reflect, alpha/glow map"
+# section: "Base Maps"
+#
+# Variant 2: 20 objects in 7 files; keys ["defaultTexture","helpText","name","parameterName"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnastaticcustomizable_normaldepth.black; MD5 d77cdda7d7376a011330b127eef291dd.
+# Verbatim hex at offset 1348; object span 22 bytes (22-byte excerpt):
+# 12000000060007000f0009001000010010000b001100
+# Separately decoded field evidence (not source YAML):
+# defaultTexture: "res:/Graphics/Shared_Texture/Global/normal_flat.dds"
+# parameterName: "DetailNormalMap"
+# name: "DetailNormalMap"
+# helpText: "High frequency Tiling Detail"
+#
+# Variant 3: 11 objects in 5 files; keys ["helpText","name","parameterName","section"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 3995; object span 22 bytes (22-byte excerpt):
+# 120000000600070008000100080009000a000b000c00
+# Separately decoded field evidence (not source YAML):
+# parameterName: "ReflectionMap"
+# name: "ReflectionMap"
+# helpText: "Cubic Reflection Map (if blank, the cell reflection will be used)"
+# section: "Hidden"
+#
+# Variant 4: 1 objects in 1 files; keys ["helpText","name","parameterName"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnastatictransparent.black; MD5 257e411724de1da3a6c9a9981f8a0c64.
+#
+type: Tr2ShaderTexDesc # class discriminator, not a default value
+# parameterName: 71 of 71 objects (17 files); values "ReflectionMap", "OverlayMap", "DetailDiffuseMap", "NormalMap", "GrimeMap", "OilFilmMap", "LightMap", "DetailNormalMap", "DiffuseMap", "ReflectAlphaGlowMap", "GlowGrimeReflectMask", "SpecularMap", "FresnelLookupMap", "ColorNdotLLookupMap", "CutMaskMap", "LightControlMap".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+parameterName: string
+# name: 71 of 71 objects (17 files); values "ReflectionMap", "OverlayMap", "DetailDiffuseMap", "NormalMap", "GrimeMap", "OilFilmMap", "LightMap", "DetailNormalMap", "DiffuseMap", "ReflectAlphaGlowMap", "GlowGrimeReflectMask", "SpecularMap", "FresnelLookupMap", "ColorNdotLLookupMap", "CutMaskMap", "LightControlMap".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+name: string
+# helpText: 71 of 71 objects (17 files); values "Cubic Reflection Map (if blank, the cell reflection will be used)", "Overlay diffuse, specular, reflect, alpha/glow map", "High frequency Tiling Detail", "normal map for this texture (with grime intensity)", "High frequency Tiling Grime Detail", "Oil film map", "Light map", "normal map for this texture", "Diffuse (variance) texture for this object", "Packed reflection, alpha/glow mask map", "High frequency Tiling Detail Normal", "Packed effect reveal masks", "Diffuse texture for this object", "specular color for this map, RGB is color, A is eccentricity.", "normal map for this shader", "fresnel map for this shader", "lookup map for this shader", "alpha test map", "light control map", "lookup ramp".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+helpText: string
+# section: 50 of 71 objects (16 files); values "Hidden", "Base Maps", "OilFilm", "Diffuse", "Normal", "Grime and Glow", "Surface", "Specular".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+section: string
+# defaultTexture: 59 of 71 objects (17 files); values "res:/Graphics/Shared_Texture/Global/DS_Flat.dds", "res:/Texture/Global/white.dds", "res:/Graphics/Shared_Texture/Global/normal_nm.dds", "res:/Graphics/Shared_Texture/Global/normal_flat.dds", "res:/Graphics/Shared_Texture/Global/Packed_Flat.dds", "white.dds", "flatnormal.dds", "res:/graphics/texture/global/50gray.dds", "res:/graphics/texture/global/flatnormal.dds", "res:/graphics/texture/global/white.dds".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+defaultTexture: string

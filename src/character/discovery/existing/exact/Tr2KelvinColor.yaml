@@ -1,0 +1,46 @@
+# Runtime comparison: exact; Tr2KelvinColor.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# Class-only persisted members (not mismatches): whiteBalance.
+# End runtime comparison.
+#
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 67 files contain 318 named Tr2KelvinColor objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 4 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 160 objects in 53 files; keys [].
+# Example res:/graphics/character/global/paperdollsettings/lightcolors/amberleftblueright.black; MD5 4585e38137147cfc363536f4eddefc38.
+# Verbatim hex at offset 650; object span 6 bytes (6-byte excerpt):
+# 020000000900
+# Separately decoded field evidence (not source YAML):
+#
+# Variant 2: 107 objects in 31 files; keys ["temperature","tint"].
+# Example res:/graphics/character/global/paperdollsettings/lightcolors/amberleftblueright.black; MD5 4585e38137147cfc363536f4eddefc38.
+# Verbatim hex at offset 335; object span 18 bytes (18-byte excerpt):
+# 0e00000009000a00c19e87450b000000043f
+# Separately decoded field evidence (not source YAML):
+# temperature: 4339.84423828125
+# tint: 0.515625
+#
+# Variant 3: 48 objects in 12 files; keys ["type"].
+# Example res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml; MD5 8d87b342513a11b3211c95810f7f36fc.
+# Verbatim authored YAML excerpt:
+# type: Tr2KelvinColor
+#
+#
+# Variant 4: 3 objects in 3 files; keys ["temperature"].
+# Example res:/graphics/character/global/paperdollsettings/lightcolors/platinum.black; MD5 323e1e121304eec2c43c0caf5d267c9d.
+#
+type: Tr2KelvinColor # class discriminator, not a default value
+# Authored type key: 48 of 318 objects; values "Tr2KelvinColor".
+# temperature: 110 of 318 objects (32 files); range 3003.906005859375 .. 10000 (24 distinct).
+# Example: res:/graphics/character/global/paperdollsettings/lightcolors/amberleftblueright.black
+temperature: float
+# tint: 107 of 318 objects (31 files); values 0.515625, 0.5195313096046448, 0.53125, 0.5664063096046448, 0.4960938096046448, 0.5273438096046448, 0.5099999904632568, 0.5429688096046448, 0.5390625, 0.5585938096046448, 0.546875, 0.5078125, 0.5039063096046448.
+# Example: res:/graphics/character/global/paperdollsettings/lightcolors/amberleftblueright.black
+tint: float

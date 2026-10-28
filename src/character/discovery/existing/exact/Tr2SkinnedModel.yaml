@@ -1,0 +1,63 @@
+# Runtime comparison: exact; Tr2SkinnedModel.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# Class-only persisted members (not mismatches): skinScale.
+# meshes: ownership: unverified (class declares none).
+# Runtime declaration: src/character/trinity/trinityCore/Tr2Model.js:24
+# Wire: Tr2Mesh: first definition inline; 1776 occurrences.
+# End runtime comparison.
+#
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 999 files contain 999 named Tr2SkinnedModel objects; 970 Black roots and 0 YAML roots.
+# Variable shape: 3 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 969 objects in 969 files; keys ["meshes","name","skeletonName"].
+# Example res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black; MD5 2a9847f91b1e8b89da561ba60afcad5a.
+# Verbatim hex at offset 1142; object span 1043 bytes (96-byte truncated excerpt):
+# 0f0400000000010002000300040005000100000002000000f703000006000700080009000103000a000b000100000003000000dc0300000c0003000a000d0004000000cc0300000e0003000f0010001100120018000000050000001800000013
+# Separately decoded field evidence (not source YAML):
+# skeletonName: "Root"
+# name: "JewelryForehead_01.gr2"
+# meshes: [{"referenceClass":"Tr2Mesh"}]
+#
+# Variant 2: 27 objects in 27 files; keys ["geometryResPath","meshes","name","skeletonName"].
+# Example res:/graphics/character/global/lowlods/female/basicfemale/basicfemale.black; MD5 59c330b7d418bd5bbb0985bf3287558d.
+# Verbatim hex at offset 1025; object span 702 bytes (96-byte truncated excerpt):
+# ba0200000200030004000500060007000800090001000000030000009e0200000a000300040007000b000c000100000004000000dc0000000d0007000b000e0005000000cc0000000f0007001000110012001300040000000600000018000000
+# Separately decoded field evidence (not source YAML):
+# geometryResPath: "res:/Graphics/Character/Global/LowLODs/Female/BasicFemale/BasicFemale.gr2"
+# skeletonName: "Root"
+# name: "BasicFemale.gr2"
+# meshes: [{"referenceClass":"Tr2Mesh"}]
+#
+# Variant 3: 3 objects in 3 files; keys ["name","skeletonName"].
+# Example res:/graphics/character/female/skeleton/masterskeletonfemale.black; MD5 37dfaaf54ecf89b882c71ea7d9f2788f.
+# Verbatim hex at offset 160; object span 14 bytes (14-byte excerpt):
+# 0a00000002000300040005000600
+# Separately decoded field evidence (not source YAML):
+# skeletonName: "Root"
+# name: "masterSkeletonFemale.gr2"
+#
+type: Tr2SkinnedModel # class discriminator, not a default value
+# skeletonName: 999 of 999 objects (999 files); values "Root".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+skeletonName: string
+# name: 999 of 999 objects (999 files); 728 distinct values; examples "JewelryForehead_01.gr2", "Ring01_BLA.gr2", "Ring01_BRA.gr2".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+name: string
+# meshes: 996 of 999 objects (996 files); kinds array:object:Tr2Mesh.
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# Target counts: Tr2Mesh 1776.
+# Tr2Mesh: inline-owned, 1776 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 1166; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# → Tr2Mesh.yaml
+meshes: [Tr2Mesh] # class alternatives, not fixed list positions; inline objects
+# geometryResPath: 27 of 999 objects (27 files); values "res:/Graphics/Character/Global/LowLODs/Female/BasicFemale/BasicFemale.gr2", "res:/Graphics/Character/Male/Skeleton/masterSkeletonMale.gr2", "res:/Graphics/Character/Female/Skeleton/masterSkeletonFemale.gr2".
+# Example: res:/graphics/character/global/lowlods/female/basicfemale/basicfemale.black
+# → exact indexed resource paths: res:/Graphics/Character/Global/LowLODs/Female/BasicFemale/BasicFemale.gr2, res:/Graphics/Character/Male/Skeleton/masterSkeletonMale.gr2, res:/Graphics/Character/Female/Skeleton/masterSkeletonFemale.gr2.
+geometryResPath: string

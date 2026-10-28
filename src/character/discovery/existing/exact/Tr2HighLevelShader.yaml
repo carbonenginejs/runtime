@@ -1,0 +1,67 @@
+# Runtime comparison: exact; Tr2HighLevelShader.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# parameterDescriptions: ownership: unverified (class declares none).
+# Runtime declaration: src/character/incarna/shader/Tr2HighLevelShader.js:59
+# Wire: Tr2ShaderTexDesc: first definition inline; 71 occurrences.
+# Wire: Tr2ShaderFloat4Desc: first definition inline; 56 occurrences.
+# Wire: Tr2ShaderFloat2Desc: first definition inline; 14 occurrences.
+# Wire: Tr2ShaderFloatDesc: first definition inline; 85 occurrences.
+# Wire: Tr2ShaderFloat3Desc: first definition inline; 13 occurrences.
+# permuteTags: ownership: unverified (class declares none).
+# Runtime declaration: src/character/incarna/shader/Tr2HighLevelShader.js:46
+# Wire: Tr2ShaderPermuteTag: first definition inline; 138 occurrences.
+# End runtime comparison.
+#
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 17 files contain 17 named Tr2HighLevelShader objects; 17 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 17 objects in 17 files; keys ["name","parameterDescriptions","permuteTags","renderClass","shaderPath"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 3971; object span 1589 bytes (96-byte truncated excerpt):
+# 310600000000010002000300040005002000000002000000120000000600070008000100080009000a000b000c00030000001600000006000d000e0007000f0001000f00090010000b001100040000001600000006000d001200070013000100
+# Separately decoded field evidence (not source YAML):
+# name: "IncarnaDetailed"
+# shaderPath: "res:/graphics/shaders/IncarnaDetailed.fx"
+# parameterDescriptions: [{"referenceClass":"Tr2ShaderTexDesc"},{"referenceClass":"Tr2ShaderTexDesc"},{"referenceClass":"Tr2ShaderTexDesc"}]
+# permuteTags: [{"referenceClass":"Tr2ShaderPermuteTag"},{"referenceClass":"Tr2ShaderPermuteTag"},{"referenceClass":"Tr2ShaderPermuteTag"}]
+# renderClass: "opaque"
+#
+type: Tr2HighLevelShader # class discriminator, not a default value
+# name: 17 of 17 objects (17 files); values "IncarnaDetailed", "IncarnaDetailed_NormalDepth", "IncarnaDetailed_Shadow", "IncarnaDetailedTransparent", "IncarnaSimple", "IncarnaSimple_NormalDepth", "IncarnaSimple_Shadow", "IncarnaSimpleTransparent", "IncarnaStaticCustomizable", "IncarnaStaticCustomizable_NormalDepth", "IncarnaStaticShadow", "IncarnaStaticTransparent", "ClothAvatar", "GlassAvatar", "SkinnedAvatar", "SkinnedAvatarBrdf", "SkinnedAvatarBRDFDouble".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+name: string
+# shaderPath: 17 of 17 objects (17 files); values "res:/graphics/shaders/IncarnaDetailed.fx", "res:/graphics/shaders/IncarnaDetailed_NormalDepth.fx", "res:/graphics/shaders/IncarnaDetailed_Shadow.fx", "res:/graphics/shaders/IncarnaDetailedTransparent.fx", "res:/graphics/shaders/IncarnaSimple.fx", "res:/graphics/shaders/IncarnaSimple_NormalDepth.fx", "res:/graphics/shaders/IncarnaSimpleTransparent.fx", "res:/graphics/shaders/IncarnaStaticCustomizable.fx", "res:/graphics/shaders/IncarnaStaticCustomizable_NormalDepth.fx", "res:/graphics/shaders/IncarnaStaticShadow.fx", "res:/graphics/shaders/IncarnaStaticTransparent.fx", "res:/graphics/shaders/Legacy/ClothAvatar.fx", "res:/graphics/shaders/Legacy/GlassAvatar.fx", "res:/graphics/shaders/Legacy/SkinnedAvatar.fx", "res:/graphics/shaders/Legacy/SkinnedAvatarBrdf.fx", "res:/graphics/shaders/Legacy/SkinnedAvatarBrdfDouble.fx".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+shaderPath: string
+# parameterDescriptions: 17 of 17 objects (17 files); kinds array:object:Tr2ShaderFloat2Desc|object:Tr2ShaderFloat3Desc|object:Tr2ShaderFloat4Desc|object:Tr2ShaderFloatDesc|object:Tr2ShaderTexDesc; array:object:Tr2ShaderFloat2Desc|object:Tr2ShaderFloatDesc|object:Tr2ShaderTexDesc; array:object:Tr2ShaderFloatDesc|object:Tr2ShaderTexDesc; array:object:Tr2ShaderFloat2Desc|object:Tr2ShaderFloat4Desc|object:Tr2ShaderFloatDesc|object:Tr2ShaderTexDesc; array:object:Tr2ShaderFloat4Desc|object:Tr2ShaderTexDesc; array:object:Tr2ShaderFloat4Desc|object:Tr2ShaderFloatDesc|object:Tr2ShaderTexDesc.
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+# Target counts: Tr2ShaderTexDesc 71, Tr2ShaderFloat4Desc 56, Tr2ShaderFloat2Desc 14, Tr2ShaderFloatDesc 85, Tr2ShaderFloat3Desc 13.
+# Tr2ShaderTexDesc: inline-owned, 71 occurrences. Wire example: first U32 object ID 2 plus inline payload at offset 3995; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+# Tr2ShaderFloat4Desc: inline-owned, 56 occurrences. Wire example: first U32 object ID 7 plus inline payload at offset 4141; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+# Tr2ShaderFloat2Desc: inline-owned, 14 occurrences. Wire example: first U32 object ID 9 plus inline payload at offset 4235; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+# Tr2ShaderFloatDesc: inline-owned, 85 occurrences. Wire example: first U32 object ID 11 plus inline payload at offset 4307; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+# Tr2ShaderFloat3Desc: inline-owned, 13 occurrences. Wire example: first U32 object ID 25 plus inline payload at offset 4792; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+# → Tr2ShaderTexDesc.yaml, Tr2ShaderFloat4Desc.yaml, Tr2ShaderFloat2Desc.yaml, Tr2ShaderFloatDesc.yaml, Tr2ShaderFloat3Desc.yaml
+parameterDescriptions: [Tr2ShaderTexDesc, Tr2ShaderFloat4Desc, Tr2ShaderFloat2Desc, Tr2ShaderFloatDesc, Tr2ShaderFloat3Desc] # class alternatives, not fixed list positions; inline objects
+# permuteTags: 17 of 17 objects (17 files); kinds array:object:Tr2ShaderPermuteTag.
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+# Target counts: Tr2ShaderPermuteTag 138.
+# Tr2ShaderPermuteTag: inline-owned, 138 occurrences. Wire example: first U32 object ID 34 plus inline payload at offset 5104; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+# → Tr2ShaderPermuteTag.yaml
+permuteTags: [Tr2ShaderPermuteTag] # class alternatives, not fixed list positions; inline objects
+# renderClass: 17 of 17 objects (17 files); values "opaque", "shadow", "transparent".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+renderClass: string

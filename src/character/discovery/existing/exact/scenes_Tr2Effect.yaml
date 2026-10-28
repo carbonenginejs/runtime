@@ -1,0 +1,74 @@
+# Runtime comparison: exact; Tr2Effect.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# Class-only persisted members (not mismatches): options, samplerOverrides.
+# Opaque stored block (not a mismatch): constParameters.
+# resources: ownership: unverified (class declares none).
+# Runtime declaration: src/trinity/shader/Tr2Effect.js:184
+# parameters: ownership: unverified (class declares none).
+# Runtime declaration: src/trinity/shader/Tr2Effect.js:173
+# End runtime comparison.
+#
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 7 files contain 10 named Tr2Effect objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 3 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 8 objects in 6 files; keys ["effectFilePath","name","parameters","resources"].
+# Example res:/dx9/scene/postprocess/portraitlut.black; MD5 46f36da991c35982399a1598d521e41f.
+# Verbatim hex at offset 296; object span 58 bytes (58-byte excerpt):
+# 360000000200030004000500060007000100000003000000060000000800030009000a0001000000040000000a0000000b0003000c000d000e00
+# Separately decoded field evidence (not source YAML):
+# name: "portraitLUT"
+# effectFilePath: "res:/Graphics/Effect/Managed/Space/PostProcess/ColorLUT.fx"
+# parameters: [{"referenceClass":"Tr2Vector4Parameter"}]
+# resources: [{"referenceClass":"TriTextureParameter"}]
+#
+# Variant 2: 1 objects in 1 files; keys ["constParameters","effectFilePath","name","resources"].
+# Example res:/dx9/scene/postprocess/character_postprocess.black; MD5 605346688d4023d82c126cae79d900a5.
+# Verbatim hex at offset 356; object span 70 bytes (70-byte excerpt):
+# 4200000002000300040005000600070001000000180008000000000000000000003f0000003f0000003f0000003f090001000000030000000a0000000a0003000b000c000d00
+# Separately decoded field evidence (not source YAML):
+# name: "DefaultLUT"
+# effectFilePath: "res:/Graphics/Effect/Managed/Space/PostProcess/ColorLUT.fx"
+# constParameters: {"byteOffset":372,"byteLength":30}
+# resources: [{"referenceClass":"TriTextureParameter"}]
+#
+# Variant 3: 1 objects in 1 files; keys ["constParameters","effectFilePath","name"].
+# Example res:/dx9/scene/postprocess/character_postprocess.black; MD5 605346688d4023d82c126cae79d900a5.
+# Verbatim hex at offset 430; object span 46 bytes (46-byte excerpt):
+# 2a000000020003000e0005000f00070001000000180008000000000000000000803f0000803f0000803f0000803f
+# Separately decoded field evidence (not source YAML):
+# name: "OriginalFade"
+# effectFilePath: "res:/Graphics/Effect/Managed/Space/PostProcess/OriginalFade.fx"
+# constParameters: {"byteOffset":446,"byteLength":30}
+#
+type: Tr2Effect # class discriminator, not a default value
+# name: 10 of 10 objects (7 files); values "DefaultLUT", "OriginalFade", "portraitLUT", "lambert1".
+# Example: res:/dx9/scene/postprocess/character_postprocess.black
+name: string
+# effectFilePath: 10 of 10 objects (7 files); values "res:/Graphics/Effect/Managed/Space/PostProcess/ColorLUT.fx", "res:/Graphics/Effect/Managed/Space/PostProcess/OriginalFade.fx", "res:/Graphics/Effect/Managed/Interior/Avatar/PortraitDropshadow.fx", "res:/Graphics/Effect/Managed/Interior/Static/Unpacked_StaticStandardWithGlowEnlighten.fx".
+# Example: res:/dx9/scene/postprocess/character_postprocess.black
+effectFilePath: string
+# constParameters: 2 of 10 objects (1 files); kinds opaque.
+# Example: res:/dx9/scene/postprocess/character_postprocess.black
+# Opaque native structure-list bytes; no inner member names are stored.
+constParameters: [int] # raw byte payload placeholder, not decoded native records
+# resources: 9 of 10 objects (7 files); kinds array:object:TriTextureParameter.
+# Example: res:/dx9/scene/postprocess/character_postprocess.black
+# Target counts: TriTextureParameter 29.
+# TriTextureParameter: inline-owned, 29 occurrences. Wire example: first U32 object ID 3 plus inline payload at offset 412; no other pointer to this object observed in this file.
+# Wire source: res:/dx9/scene/postprocess/character_postprocess.black
+# → scenes_TriTextureParameter.yaml
+resources: [TriTextureParameter] # class alternatives, not fixed list positions; inline objects
+# parameters: 8 of 10 objects (6 files); kinds array:object:Tr2Vector4Parameter.
+# Example: res:/dx9/scene/postprocess/portraitlut.black
+# Target counts: Tr2Vector4Parameter 40.
+# Tr2Vector4Parameter: inline-owned, 40 occurrences. Wire example: first U32 object ID 3 plus inline payload at offset 320; no other pointer to this object observed in this file.
+# Wire source: res:/dx9/scene/postprocess/portraitlut.black
+# → scenes_Tr2Vector4Parameter.yaml
+parameters: [Tr2Vector4Parameter] # class alternatives, not fixed list positions; inline objects

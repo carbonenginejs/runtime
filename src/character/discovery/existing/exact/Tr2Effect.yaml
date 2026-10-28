@@ -1,0 +1,118 @@
+# Runtime comparison: exact; Tr2Effect.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# Class-only persisted members (not mismatches): options.
+# Opaque stored block (not a mismatch): constParameters.
+# Opaque stored block (not a mismatch): samplerOverrides.
+# parameters: ownership: unverified (class declares none).
+# Runtime declaration: src/trinity/shader/Tr2Effect.js:173
+# Wire: Tr2Vector4Parameter: first definition inline; 37127 occurrences.
+# Wire: Tr2FloatParameter: first definition inline; 2935 occurrences.
+# Wire: TriVariableParameter: first definition inline; 680 occurrences.
+# Wire: Tr2Matrix4Parameter: first definition inline; 3533 occurrences.
+# Wire: Tr2Vector4Parameter: first definition inline, referenced elsewhere; 163 occurrences.
+# Wire: Tr2FloatParameter: first definition inline, referenced elsewhere; 16 occurrences.
+# Wire: Tr2Vector4Parameter: repeated object ID; 355 occurrences.
+# Wire: Tr2FloatParameter: repeated object ID; 32 occurrences.
+# Wire: Tr2Matrix4Parameter: first definition inline, referenced elsewhere; 3 occurrences.
+# Wire: Tr2Matrix4Parameter: repeated object ID; 3 occurrences.
+# resources: ownership: unverified (class declares none).
+# Runtime declaration: src/trinity/shader/Tr2Effect.js:184
+# Wire: TriTextureParameter: first definition inline; 14897 occurrences.
+# End runtime comparison.
+#
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 1011 files contain 2277 named Tr2Effect objects; 11 Black roots and 0 YAML roots.
+# Variable shape: 6 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 1819 objects in 994 files; keys ["effectFilePath","name","parameters","resources"].
+# Example res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black; MD5 2a9847f91b1e8b89da561ba60afcad5a.
+# Verbatim hex at offset 1209; object span 976 bytes (96-byte truncated excerpt):
+# cc0300000e0003000f00100011001200180000000500000018000000130003001400150000000000000000000000003f0000803f0600000006000000160003001700070000000a0000001800030019001a001b00080000000c00000016000300
+# Separately decoded field evidence (not source YAML):
+# name: "C_S2_JewelryForhead"
+# effectFilePath: "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdflinear.fx"
+# parameters: [{"referenceClass":"Tr2Vector4Parameter"},{"referenceClass":"Tr2FloatParameter"},{"referenceClass":"TriVariableParameter"}]
+# resources: [{"referenceClass":"TriTextureParameter"},{"referenceClass":"TriTextureParameter"},{"referenceClass":"TriTextureParameter"}]
+#
+# Variant 2: 428 objects in 26 files; keys ["effectFilePath","name","parameters","resources","samplerOverrides"].
+# Example res:/graphics/character/global/paperdollsettings/lightsettings/assetrenderer/shoes.black; MD5 403b93727771273273007a272fc5d2c4.
+# Verbatim hex at offset 7323; object span 1158 bytes (96-byte truncated excerpt):
+# 820400002e000300670030006800320016000000640000001800000033000300340035000000003f0000003f0000403f0000803f6500000006000000330003003d00660000000c0000003600030069003500cdcccc3d67000000180000003300
+# Separately decoded field evidence (not source YAML):
+# name: "hairshader_0"
+# effectFilePath: "res:/Graphics/Effect/Managed/Interior/Avatar/skinnedavatarhair_detailed.fx"
+# parameters: [{"referenceClass":"Tr2Vector4Parameter"},{"referenceClass":"Tr2Vector4Parameter"},{"referenceClass":"Tr2FloatParameter"}]
+# resources: [{"referenceClass":"TriTextureParameter"},{"referenceClass":"TriTextureParameter"},{"referenceClass":"TriTextureParameter"}]
+# samplerOverrides: {"byteOffset":8419,"byteLength":62}
+#
+# Variant 3: 24 objects in 15 files; keys ["effectFilePath","name","parameters"].
+# Example res:/graphics/character/female/paperdoll/bottomouter/pantscorpbusinessf01/pantscorpbusinessf01.black; MD5 61e3a55c3410c3068cb9b071fafcce18.
+# Verbatim hex at offset 1514; object span 882 bytes (96-byte truncated excerpt):
+# 6e0300000e0003000f00100011001200180000000500000018000000130003001400150000000000000000000000003f0000803f0600000006000000160003001700070000000a0000001800030019001a001b00080000000c00000016000300
+# Separately decoded field evidence (not source YAML):
+# name: "C_S2_Pants_M_Un"
+# effectFilePath: "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdflinear.fx"
+# parameters: [{"referenceClass":"Tr2Vector4Parameter"},{"referenceClass":"Tr2FloatParameter"},{"referenceClass":"TriVariableParameter"}]
+#
+# Variant 4: 3 objects in 3 files; keys ["constParameters","effectFilePath","name","resources"].
+# Example res:/graphics/character/global/paperdolllibrary/posts/defaultlut.black; MD5 2e8afa5edeeb647cf13c96718044bde4.
+#
+# Variant 5: 2 objects in 1 files; keys ["effectFilePath","parameters","resources"].
+# Example res:/graphics/character/male/paperdoll/accessories/piercings/stud08/stud08.black; MD5 7b852fff419794fe991d43603fcda7f3.
+#
+# Variant 6: 1 objects in 1 files; keys ["effectFilePath","name"].
+# Example res:/graphics/character/global/lowlods/female/basicfemale/basicfemale.black; MD5 59c330b7d418bd5bbb0985bf3287558d.
+#
+type: Tr2Effect # class discriminator, not a default value
+# name: 2275 of 2277 objects (1011 files); 231 distinct values; examples "C_S2_JewelryForhead", "C_S2_Ring01", "C_SkinShiny_EyeLashes".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+name: string
+# effectFilePath: 2277 of 2277 objects (1011 files); 27 distinct values; examples "res:/graphics/effect/managed/interior/avatar/skinnedavatarbrdflinear.fx", "res:/Graphics/Effect/Managed/Interior/Avatar/SkinnedAvatarBRDFDoubleLinear.fx", "res:/Graphics/Effect/Managed/Interior/Avatar/SkinnedAvatarBRDF.fx".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+effectFilePath: string
+# parameters: 2273 of 2277 objects (1008 files); kinds array:object:Tr2FloatParameter|object:Tr2Matrix4Parameter|object:Tr2Vector4Parameter|object:TriVariableParameter; array:object:Tr2FloatParameter|object:Tr2Vector4Parameter; array:object:Tr2FloatParameter|object:Tr2Matrix4Parameter|object:Tr2Vector4Parameter; array:object:Tr2FloatParameter|object:Tr2Vector4Parameter|object:TriVariableParameter; array:object:Tr2Vector4Parameter; array:object:Tr2Matrix4Parameter|object:Tr2Vector4Parameter.
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# Target counts: Tr2Vector4Parameter 37645, Tr2FloatParameter 2983, TriVariableParameter 680, Tr2Matrix4Parameter 3539.
+# Tr2Vector4Parameter: inline-owned, 37127 occurrences. Wire example: first U32 object ID 5 plus inline payload at offset 1233; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# Tr2FloatParameter: inline-owned, 2935 occurrences. Wire example: first U32 object ID 6 plus inline payload at offset 1265; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# TriVariableParameter: inline-owned, 680 occurrences. Wire example: first U32 object ID 7 plus inline payload at offset 1279; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# Tr2Matrix4Parameter: inline-owned, 3533 occurrences. Wire example: first U32 object ID 18 plus inline payload at offset 1569; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# Tr2Vector4Parameter: inline-shared, 163 occurrences. Wire example: first U32 object ID 5 plus inline payload at offset 845; referenced elsewhere in this file.
+# Wire source: res:/graphics/character/female/paperdoll_lod/hair/hair_dreadlocks_01/hair_dreadlocks_01_lod1.black
+# Tr2FloatParameter: inline-shared, 16 occurrences. Wire example: first U32 object ID 9 plus inline payload at offset 937; referenced elsewhere in this file.
+# Wire source: res:/graphics/character/female/paperdoll_lod/hair/hair_dreadlocks_01/hair_dreadlocks_01_lod1.black
+# Tr2Vector4Parameter: reference, 355 occurrences. Wire example: repeated U32 object ID 5, bytes 05000000 at offset 1188; first payload offset 845.
+# Wire source: res:/graphics/character/female/paperdoll_lod/hair/hair_dreadlocks_01/hair_dreadlocks_01_lod1.black
+# Tr2FloatParameter: reference, 32 occurrences. Wire example: repeated U32 object ID 9, bytes 09000000 at offset 1204; first payload offset 937.
+# Wire source: res:/graphics/character/female/paperdoll_lod/hair/hair_dreadlocks_01/hair_dreadlocks_01_lod1.black
+# Tr2Matrix4Parameter: inline-shared, 3 occurrences. Wire example: first U32 object ID 19 plus inline payload at offset 1549; referenced elsewhere in this file.
+# Wire source: res:/graphics/character/female/paperdoll_lod/hair/hair_ponytail_02/v3/hair_ponytail_bun_small_lod1.black
+# Tr2Matrix4Parameter: reference, 3 occurrences. Wire example: repeated U32 object ID 19, bytes 13000000 at offset 2042; first payload offset 1549.
+# Wire source: res:/graphics/character/female/paperdoll_lod/hair/hair_ponytail_02/v3/hair_ponytail_bun_small_lod1.black
+# → Tr2Vector4Parameter.yaml, Tr2FloatParameter.yaml, TriVariableParameter.yaml, Tr2Matrix4Parameter.yaml
+parameters: [Tr2Vector4Parameter, Tr2FloatParameter, TriVariableParameter, Tr2Matrix4Parameter] # class alternatives, not fixed list positions; shared/reference links
+# resources: 2252 of 2277 objects (997 files); kinds array:object:TriTextureParameter.
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# Target counts: TriTextureParameter 14897.
+# TriTextureParameter: inline-owned, 14897 occurrences. Wire example: first U32 object ID 29 plus inline payload at offset 2101; no other pointer to this object observed in this file.
+# Wire source: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+# → TriTextureParameter.yaml
+resources: [TriTextureParameter] # class alternatives, not fixed list positions; inline objects
+# constParameters: 3 of 2277 objects (3 files); kinds opaque.
+# Example: res:/graphics/character/global/paperdolllibrary/posts/defaultlut.black
+# Opaque native structure-list bytes; no inner member names are stored.
+constParameters: [int] # raw byte payload placeholder, not decoded native records
+# samplerOverrides: 428 of 2277 objects (26 files); kinds opaque.
+# Example: res:/graphics/character/global/paperdollsettings/lightsettings/assetrenderer/shoes.black
+# Opaque native structure-list bytes; no inner member names are stored.
+samplerOverrides: [int] # raw byte payload placeholder, not decoded native records

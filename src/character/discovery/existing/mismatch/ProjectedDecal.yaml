@@ -1,0 +1,213 @@
+# Runtime comparison: mismatch; CjsProjectedDecal.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# type differs: maskResource: All 181 authored occurrences are null; registered string metadata has no nullable declaration.
+# Runtime declaration: src/character/model/catalog/CjsProjectedDecal.js:58
+# type differs: textureResource: All 181 authored occurrences are null; registered string metadata has no nullable declaration.
+# Runtime declaration: src/character/model/catalog/CjsProjectedDecal.js:49
+# Class-only persisted members (not mismatches): sourcePath, recordID.
+# End runtime comparison.
+#
+# Raw res-file shape; build 3646012.
+# Family: ProjectedDecal
+# Source pattern: res:/graphics/character/*
+# Files: 181
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Authored tag: !!python/object:paperDoll.ProjectedDecal
+# Authored tag: !!python/object:eve.client.script.paperDoll.projectedDecals.ProjectedDecal
+# Variant 1: 181 of 181; map ["angleRotation","aspectRatio","azimuth","bodyEnabled","flipx","flipy","headEnabled","height","incline","label","layer","maskPath","maskPathEnabled","maskResource","mode","offsetx","offsety","pitch","planarBeta","planarScale","posx","posy","posz","radius","roll","scale","texturePath","textureResource","yaw"]
+# Example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# !!python/object:paperDoll.ProjectedDecal {angleRotation: 0.0, aspectRatio: 1.0, azimuth: 0.0,
+#   bodyEnabled: true, flipx: false, flipy: false, headEnabled: false, height: 0.7,
+#   incline: 1.5707963267948966, label: !!python/unicode 'arml', layer: 0, maskPath: !!python/unicode 'res:/graphics/character/global/tattoomask/tattoomaskarms.dds',
+#   maskPathEnabled: true, maskResource: null, mode: 1.0, offsetx: -0.25, offsety: 0.0,
+#   pitch: -1.5836419500895749, planarBeta: 1.5, planarScale: 1.5, posx: 0.325, posy: 1.43,
+#   posz: -0.076, radius: 0.15, roll: -0.050946160865714483, scale: 0.0, texturePath: !!python/unicode 'res:/graphics/character/decals/tattoos/sleeve/sleeve01/sleeve01.dds',
+#   textureResource: null, yaw: 0.1938188134339703}
+#
+# END VERBATIM RAW YAML
+# Root variant: map !!python/object:paperDoll.ProjectedDecal; 167 of 181
+!!python/object:paperDoll.ProjectedDecal
+# 167 of 167; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"angleRotation":
+  float
+# 167 of 167; kinds: number; values: 1; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"aspectRatio":
+  float
+# 167 of 167; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"azimuth":
+  float
+# 167 of 167; kinds: boolean; values: true, false; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"bodyEnabled":
+  bool
+# 167 of 167; kinds: boolean; values: false, true; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"flipx":
+  bool
+# 167 of 167; kinds: boolean; values: false, true; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"flipy":
+  bool
+# 167 of 167; kinds: boolean; values: false, true; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"headEnabled":
+  bool
+# 167 of 167; kinds: number; values: 0.7, 0.22956, 0.25; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"height":
+  float
+# 167 of 167; kinds: number; values: 1.5707963267948966; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"incline":
+  float
+# 167 of 167; kinds: string; values: "arml", "Head"; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"label":
+  !!python/unicode string
+# 167 of 167; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"layer":
+  int
+# 167 of 167; kinds: string; values: "res:/graphics/character/global/tattoomask/tattoomaskarms.dds", "res:/graphics/character/global/tattoomask/tattoomask.dds"; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+# → res:/graphics/character/global/tattoomask/*; verified 167 of 167 authored res paths in current index
+"maskPath":
+  !!python/unicode string
+# 167 of 167; kinds: boolean; values: true; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"maskPathEnabled":
+  bool
+# 167 of 167; kinds: null; values: null; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"maskResource":
+  null
+# 167 of 167; kinds: number; values: 1; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"mode":
+  float
+# 167 of 167; kinds: number; values: -0.25, 0, -0.27; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"offsetx":
+  float
+# 167 of 167; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"offsety":
+  float
+# 167 of 167; kinds: number; values: -1.5836419500895749, 0; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"pitch":
+  float|int
+# 167 of 167; kinds: number; values: 1.5; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"planarBeta":
+  float
+# 167 of 167; kinds: number; values: 1.5; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"planarScale":
+  float
+# 167 of 167; kinds: number; values: 0.325, -0.325, 0, 0.385, 0.403, -0.38, -0.385; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"posx":
+  float
+# 167 of 167; kinds: number; values: 1.43, 1.6420000000000001, 1.519, 1.5450000000000002, 1.75701; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"posy":
+  float
+# 167 of 167; kinds: number; values: -0.076, 0.031, 0.04564; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"posz":
+  float
+# 167 of 167; kinds: number; values: 0.15, 0.12; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"radius":
+  float
+# 167 of 167; kinds: number; values: -0.050946160865714483, 0; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"roll":
+  float|int
+# 167 of 167; kinds: number; values: 0, -0.016; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"scale":
+  float
+# 167 of 167; kinds: string; distinct scalar values: 58; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+# → res:/graphics/character/decals/tattoos/*; verified 167 of 167 authored res paths in current index
+"texturePath":
+  !!python/unicode string
+# 167 of 167; kinds: null; values: null; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"textureResource":
+  null
+# 167 of 167; kinds: number; values: 0.1938188134339703, -0.1938188134339703, 0, 0.12840387306922282, -0.12840387306922282; example: res:/graphics/character/female/paperdoll/tattoo/armleft/sleeve01/sleeve01.proj
+"yaw":
+  float|int
+---
+# Root variant: map !!python/object:eve.client.script.paperDoll.projectedDecals.ProjectedDecal; 14 of 181
+!!python/object:eve.client.script.paperDoll.projectedDecals.ProjectedDecal
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"angleRotation":
+  float
+# 14 of 14; kinds: number; values: 1; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"aspectRatio":
+  float
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"azimuth":
+  float
+# 14 of 14; kinds: boolean; values: false; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"bodyEnabled":
+  bool
+# 14 of 14; kinds: boolean; values: true; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"flipx":
+  bool
+# 14 of 14; kinds: boolean; values: true; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"flipy":
+  bool
+# 14 of 14; kinds: boolean; values: true; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"headEnabled":
+  bool
+# 14 of 14; kinds: number; values: 0.22956, 0.25; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"height":
+  float
+# 14 of 14; kinds: number; values: 1.5707963267948966; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"incline":
+  float
+# 14 of 14; kinds: string; values: "Head"; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"label":
+  !!python/unicode string
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"layer":
+  int
+# 14 of 14; kinds: string; values: "res:/graphics/character/global/tattoomask/tattoomask.dds"; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+# → res:/graphics/character/global/tattoomask/*; verified 14 of 14 authored res paths in current index
+"maskPath":
+  !!python/unicode string
+# 14 of 14; kinds: boolean; values: true; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"maskPathEnabled":
+  bool
+# 14 of 14; kinds: null; values: null; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"maskResource":
+  null
+# 14 of 14; kinds: number; values: 1; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"mode":
+  float
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"offsetx":
+  float
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"offsety":
+  float
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"pitch":
+  int
+# 14 of 14; kinds: number; values: 1.5; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"planarBeta":
+  float
+# 14 of 14; kinds: number; values: 1.5; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"planarScale":
+  float
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"posx":
+  float
+# 14 of 14; kinds: number; values: 1.6420000000000001, 1.75701; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"posy":
+  float
+# 14 of 14; kinds: number; values: 0.031, 0.04564; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"posz":
+  float
+# 14 of 14; kinds: number; values: 0.12, 0.15; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"radius":
+  float
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"roll":
+  int
+# 14 of 14; kinds: number; values: 0, -0.016; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"scale":
+  float
+# 14 of 14; kinds: string; values: "res:/graphics/character/decals/tattoos/face/tattooelabm_ld_01/tattooelabm_ld_01_d.dds", "res:/graphics/character/decals/tattoos/face/tattooelabm_ld_02/tattooelabm_ld_02_d.dds", "res:/graphics/character/decals/tattoos/face/tattooelabm_ld_03/tattooelabm_ld_03_d.dds", "res:/graphics/character/decals/tattoos/face/tattooelabm_ld_04/tattooelabm_ld_04_d.dds", "res:/graphics/character/decals/tattoos/face/tattooelabm_ld_05/tattooelabm_ld_05_d.dds", "res:/graphics/character/decals/tattoos/face/tattooelabm_ld_06/tattooelabm_ld_06_d.dds", "res:/graphics/character/decals/tattoos/face/tattooelabm_ld_07/tattooelabm_ld_07_d.dds"; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+# → res:/graphics/character/decals/tattoos/face/*; verified 14 of 14 authored res paths in current index
+"texturePath":
+  !!python/unicode string
+# 14 of 14; kinds: null; values: null; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"textureResource":
+  null
+# 14 of 14; kinds: number; values: 0; example: res:/graphics/character/female/paperdoll/tattoo/head/tattooelabm_ld_01/projection.proj
+"yaw":
+  int

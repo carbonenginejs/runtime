@@ -1,0 +1,36 @@
+# Runtime comparison: exact; Tr2Vector4Parameter.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# End runtime comparison.
+#
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 412 files contain 446 named Tr2Vector4Parameter objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 2 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 229 objects in 206 files; keys ["name","value"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black; MD5 7c4b330b47c23cee3505a9d8cd495b58.
+# Verbatim hex at offset 728; object span 28 bytes (28-byte excerpt):
+# 180000001300010014001500000000008a89093f0000803f0000803f
+# Separately decoded field evidence (not source YAML):
+# name: "SkinGlowColor"
+# value: [0,0.5372549295425415,1,1]
+#
+# Variant 2: 217 objects in 211 files; keys ["name"].
+# Example res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_headglow_orangepulse_0.black; MD5 c259cea794f3439d393a356d8d0c08d8.
+# Verbatim hex at offset 728; object span 10 bytes (10-byte excerpt):
+# 06000000130001001400
+# Separately decoded field evidence (not source YAML):
+# name: "SkinGlowColor"
+#
+type: Tr2Vector4Parameter # class discriminator, not a default value
+# name: 446 of 446 objects (412 files); values "SkinGlowColor", "Influence", "MaterialDiffuseColor", "MaterialSpecularCurve", "MaterialSpecularFactors", "MaterialSpecularColor", "Controls", "Controls2", "Origin", "ShadowSelector", "MaterialGlowColor".
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+name: string
+# value: 229 of 446 objects (206 files); values [0,0.5372549295425415,1,1], [0,50,0,0], [1,0,0,0], [3.5,1,0,0.5], [1.2000000476837158,0,0,0], [-0.3199999928474426,0.14000000059604645,2.4000000953674316,0], [0,0,0,0], [0.3199999928474426,0.14000000059604645,2.299999952316284,0], [0.5,0.5,0.5,1], [0.5098040103912354,0.5098040103912354,0.5098040103912354,255].
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0.black
+value: [float, float, float, float]

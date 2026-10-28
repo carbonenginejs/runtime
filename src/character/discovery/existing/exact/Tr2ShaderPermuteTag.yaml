@@ -1,0 +1,68 @@
+# Runtime comparison: exact; Tr2ShaderPermuteTag.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# End runtime comparison.
+#
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 17 files contain 138 named Tr2ShaderPermuteTag objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 5 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 66 objects in 17 files; keys ["name","permuteDefineString","tagBits"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 5420; object span 20 bytes (20-byte excerpt):
+# 1000000075000100930077009400790000100000
+# Separately decoded field evidence (not source YAML):
+# name: "AlphaCutout"
+# permuteDefineString: "OPT_CUTOUT"
+# tagBits: 4096
+#
+# Variant 2: 36 objects in 10 files; keys ["name","permuteDefineString","predicate","tagBits"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 5104; object span 24 bytes (24-byte excerpt):
+# 14000000750001007600770078007900010000007a007b00
+# Separately decoded field evidence (not source YAML):
+# name: "GenerateEnlightenAlbedo"
+# permuteDefineString: "OPT_GENERATE_ALBEDO"
+# tagBits: 1
+# predicate: "not OPT_GENERATE_EMISSIVE_LIGHTMAP and not OPT_GENERATE_EMISSIVE and not OPT_SKINNING and not OPT_DYNAMIC_OBJECT"
+#
+# Variant 3: 19 objects in 6 files; keys ["name","permuteDefineString","tagBits","unused"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 5160; object span 24 bytes (24-byte excerpt):
+# 14000000750001007f0077007f0079000400000080008100
+# Separately decoded field evidence (not source YAML):
+# name: "OPT_INTERIOR_SM_HIGH"
+# permuteDefineString: "OPT_INTERIOR_SM_HIGH"
+# tagBits: 4
+# unused: "OPT_GENERATE_ALBEDO or OPT_GENERATE_EMISSIVE"
+#
+# Variant 4: 9 objects in 6 files; keys ["name","permuteDefineString","precompileHint","tagBits"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+#
+# Variant 5: 8 objects in 3 files; keys ["name","permuteDefineString","predicate","tagBits","unused"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+#
+type: Tr2ShaderPermuteTag # class discriminator, not a default value
+# name: 138 of 138 objects (17 files); 33 distinct values; examples "GenerateEnlightenAlbedo", "GenerateEnlightenEmissive", "OPT_INTERIOR_SM_HIGH".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+name: string
+# permuteDefineString: 138 of 138 objects (17 files); 34 distinct values; examples "OPT_GENERATE_ALBEDO", "OPT_GENERATE_EMISSIVE", "OPT_INTERIOR_SM_HIGH".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+permuteDefineString: string
+# tagBits: 138 of 138 objects (17 files); values 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536.
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+tagBits: int
+# predicate: 44 of 138 objects (10 files); values "not OPT_GENERATE_EMISSIVE_LIGHTMAP and not OPT_GENERATE_EMISSIVE and not OPT_SKINNING and not OPT_DYNAMIC_OBJECT", "not OPT_GENERATE_EMISSIVE_LIGHTMAP and not OPT_GENERATE_ALBEDO and not OPT_SKINNING and not OPT_DYNAMIC_OBJECT", "not OPT_DYNAMIC_OBJECT", "not OPT_GENERATE_ALBEDO and not OPT_GENERATE_EMISSIVE", "OPT_DYNAMIC_OBJECT and not OPT_GENERATE_ALBEDO and not OPT_GENERATE_EMISSIVE", "not OPT_SKINNING and not OPT_DYNAMIC_OBJECT and not OPT_GENERATE_ALBEDO and not OPT_GENERATE_EMISSIVE", "not OPT_DYNAMIC_OBJECT and not OPT_SKINNING", "OPT_DYNAMIC_OBJECT", "OPT_STATIC_OBJECT", "OPT_STATIC_OBJECT and not OPT_ENLIGHTEN_SH", "not OPT_STATIC_OBJECT", "not OPT_GENERATE_EMISSIVE and not OPT_SKINNING and not OPT_DYNAMIC_OBJECT", "not OPT_GENERATE_ALBEDO and not OPT_SKINNING and not OPT_DYNAMIC_OBJECT", "not OPT_DYNAMIC_OBJECT and not OPT_ENLIGHTEN_DIRECTIONAL_IRRADIANCE", "not OPT_DYNAMIC_OBJECT and not OPT_ENLIGHTEN_SH", "not OPT_SKINNING", "OPT_SKINNING", "not OPT_SKINNING and not OPT_DYNAMIC_OBJECT", "not OPT_SKIN", "OPT_SKIN and OPT_INTERIOR_SM_HIGH".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+predicate: string
+# unused: 27 of 138 objects (6 files); values "OPT_GENERATE_ALBEDO or OPT_GENERATE_EMISSIVE", "OPT_GENERATE_ALBEDO or OPT_GENERATE_EMISSIVE or not OPT_INTERIOR_SM_HIGH", "not OPT_DYNAMIC_OBJECT", "OPT_GENERATE_POSITIONS_NORMALS".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+unused: string
+# precompileHint: 9 of 138 objects (6 files); values 1, 4294967295.
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+precompileHint: int

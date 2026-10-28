@@ -1,0 +1,56 @@
+# Runtime comparison: exact; Tr2ShaderFloat3Desc.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# End runtime comparison.
+#
+# Source: character-related animation scenes, interior, postprocess and shader-description resources outside res:/graphics/character/.
+# Build 3646012; 5 files contain 13 named Tr2ShaderFloat3Desc objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 2 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 5,402 Black +317 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 9 objects in 3 files; keys ["defaultValue","helpText","isColor","name","parameterName","section"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 4792; object span 39 bytes (39-byte excerpt):
+# 230000005a001b000000803f0000803f0000803f1c000107005b0001005c0009005d000b005600
+# Separately decoded field evidence (not source YAML):
+# defaultValue: [1,1,1]
+# isColor: true
+# parameterName: "OilFilmTint"
+# name: "Oil Film Tint"
+# helpText: "Tint of oil film effect"
+# section: "OilFilm"
+#
+# Variant 2: 4 objects in 4 files; keys ["helpText","isColor","name","parameterName","section"].
+# Example res:/graphics/shaders/shaderdescriptions/incarnadetailed.black; MD5 068fba5ff57c039acf76897dba868518.
+# Verbatim hex at offset 5037; object span 25 bytes (25-byte excerpt):
+# 150000005a001c000107006f0001007000090071000b002c00
+# Separately decoded field evidence (not source YAML):
+# isColor: true
+# parameterName: "MaterialGrimeSpecularColor"
+# name: "Grime Specular Color"
+# helpText: "Grime specular color"
+# section: "Grime and Glow"
+#
+type: Tr2ShaderFloat3Desc # class discriminator, not a default value
+# defaultValue: 9 of 13 objects (3 files); values [1,1,1].
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+defaultValue: [float, float, float]
+# isColor: 13 of 13 objects (5 files); values true.
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+isColor: bool
+# parameterName: 13 of 13 objects (5 files); values "OilFilmTint", "EnlightenAlbedoColor", "EnlightenEmissiveColor", "MaterialGrimeSpecularColor".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+parameterName: string
+# name: 13 of 13 objects (5 files); values "Oil Film Tint", "Albedo Color", "Emissive Color", "Grime Specular Color".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+name: string
+# helpText: 13 of 13 objects (5 files); values "Tint of oil film effect", "Enlighten albedo color", "Enlighten emissive color", "Grime specular color".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+helpText: string
+# section: 13 of 13 objects (5 files); values "OilFilm", "Enlighten", "Grime and Glow", "Detail".
+# Example: res:/graphics/shaders/shaderdescriptions/incarnadetailed.black
+section: string

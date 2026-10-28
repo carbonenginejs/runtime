@@ -1,0 +1,29 @@
+# Runtime comparison: exact; TriVariableParameter.
+# Compared registered inherited, exposed persisted names and types; ownership is a separate flag.
+# Every stored non-opaque attribute matches one persisted exposed member and a compatible type.
+# End runtime comparison.
+#
+# Source: res:/graphics/character/ (recursive .black files); light classes also global/paperdolllibrary/lights/ .yaml files.
+# Build 3646012; 546 files contain 680 named TriVariableParameter objects; 0 Black roots and 0 YAML roots.
+# Variable shape: 1 stored key sets; union below.
+# Per-key counts/ranges cover every occurrence in 1,074 Black +12 light YAML files.
+# One class per file; linked objects have their own shapes. Counts describe stored values, not defaults.
+# Black discriminators use the requested .red text presentation. No .red occurs in the current index.
+# Actual type/nesting example: res:/graphics/character/global/paperdolllibrary/lights/air_balin_ship.yaml
+# This is a type-placeholder shape, not a loadable object.
+#
+# Variant 1: 680 objects in 546 files; keys ["name","variableName"].
+# Example res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black; MD5 2a9847f91b1e8b89da561ba60afcad5a.
+# Verbatim hex at offset 1279; object span 14 bytes (14-byte excerpt):
+# 0a0000001800030019001a001b00
+# Separately decoded field evidence (not source YAML):
+# name: "ReflectionMap"
+# variableName: "EnvMap1"
+#
+type: TriVariableParameter # class discriminator, not a default value
+# name: 680 of 680 objects (546 files); values "ReflectionMap".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+name: string
+# variableName: 680 of 680 objects (546 files); values "EnvMap1".
+# Example: res:/graphics/character/female/paperdoll/accessories/brow/jewelryforehead_01/jewelryforehead_01.black
+variableName: string
