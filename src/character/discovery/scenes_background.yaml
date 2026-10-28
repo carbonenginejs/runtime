@@ -1,0 +1,35 @@
+# Raw res-file shape; build 3646012.
+# Family: scenes_background
+# Source pattern: res:/animation_gstate/scenes/*
+# Files: 317
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 317 of 317; map ["aspect_ratio","offset","path","scale"]
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/background.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# aspect_ratio: 0.75
+# offset: !!python/tuple
+# - 0
+# - 0
+# path: !!python/unicode 'res:/graphics/character/global/paperdolllibrary/backgrounds/aura_bg.png'
+# scale: 1
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 317 of 317
+# 317 of 317; kinds: number; values: 0.75, 1, 1.6; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/background.yaml
+"aspect_ratio":
+  float
+# 317 of 317; kinds: sequence; lengths: 2; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/background.yaml
+"offset":
+  !!python/tuple
+  # Item 0: 317 of 317; kinds: number; values: 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/background.yaml
+  # Item 1: 317 of 317; kinds: number; values: 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/background.yaml
+  [int, int]
+# 317 of 317; kinds: string; values: "res:/graphics/character/global/paperdolllibrary/backgrounds/aura_bg.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/air_ship_closeup.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/air_ship_medium.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/mining_ship_closeup.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/mining_ship_medium.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/a ue 1 blur.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/air_station_medium.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/air_station_closeup.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/spacestation_01.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/gallente_serpentis.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/caldari_guristas.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/spacestation_03.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/spacestation_02.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/amarr_bloodraider.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/iris_bg.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/station_neutral.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/minmatar_angel.png", "res:/graphics/character/global/paperdolllibrary/backgrounds/spacestation_04.png"; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/background.yaml
+# → res:/graphics/character/global/paperdolllibrary/backgrounds/*; 317 indexed candidates via exact; indexed existence only, not runtime resolution
+"path":
+  !!python/unicode string
+# 317 of 317; kinds: number; values: 1; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/background.yaml
+"scale":
+  int

@@ -1,0 +1,60 @@
+# Raw res-file shape; build 3646012.
+# Family: scenes_post
+# Source pattern: res:/animation_gstate/scenes/*
+# Files: 317
+# Variable shape: 2 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 203 of 317; map ["lut","lut_influence","lut_path","transmission_noise"]
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# lut: false
+# lut_influence: !!python/tuple
+# - 1.0
+# - 1.0
+# - 1.0
+# - 1.0
+# lut_path: ''
+# transmission_noise: false
+#
+# END VERBATIM RAW YAML
+# Variant 2: 114 of 317; map ["lut","lut_influence","lut_path"]
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/post.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# lut: ''
+# lut_influence: 0
+# lut_path: !!python/unicode ''
+#
+# END VERBATIM RAW YAML
+# Root variant: map  lut_influence:number; 90 of 317
+# 90 of 90; kinds: string; values: ""; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/post.yaml
+"lut":
+  string
+# 90 of 90; kinds: number; values: 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/post.yaml
+"lut_influence":
+  int
+# 90 of 90; kinds: string; values: ""; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/post.yaml
+"lut_path":
+  !!python/unicode string
+---
+# Root variant: map  lut_influence:sequence; 227 of 317
+# Nested key-set variant: 203 of 227; map ["lut","lut_influence","lut_path","transmission_noise"]; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+# Nested key-set variant: 24 of 227; map ["lut","lut_influence","lut_path"]; example: res:/animation_gstate/scenes/air_npe/balin/air_npe_balin_2753_1/post.yaml
+# 227 of 227; kinds: boolean; values: false, true; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+"lut":
+  bool
+# 227 of 227; kinds: sequence; lengths: 4; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+"lut_influence":
+  !!python/tuple
+  # Item 0: 227 of 227; kinds: number; values: 1, 0, 0.2734375, 0.1875; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+  # Item 1: 227 of 227; kinds: number; values: 1, 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+  # Item 2: 227 of 227; kinds: number; values: 1, 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+  # Item 3: 227 of 227; kinds: number; values: 1, 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+  [float, float, float, float]
+# 227 of 227; kinds: string; values: "", "res:/Graphics/Character/Global/PaperdollLibrary/Posts/LUT_not_so_default.dds", "res:/Graphics/Character/Global/PaperdollLibrary/Posts/NCC_BR_green.dds", "R:\\Graphics\\Character\\Global\\PaperdollLibrary\\Posts\\TheraLUT64.dds"; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+# (sampled 198) → res:/graphics/character/global/paperdolllibrary/posts/*; 198 indexed candidates via casefold; indexed existence only, not runtime resolution
+"lut_path":
+  string
+# 203 of 227; kinds: boolean; values: false; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2783_1/post.yaml
+"transmission_noise":
+  bool

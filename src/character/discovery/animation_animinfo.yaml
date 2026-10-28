@@ -1,0 +1,96 @@
+# Raw res-file shape; build 3646012.
+# Family: animation_animinfo
+# Source pattern: res:/animation/*
+# Files: 1
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 1 of 1; map ["Attach_To_Slay_Table","Detach_From_Slay_Table","Enter_Sofa","Exit_Sofa","Interact","SkillComplete","SkillInject"]
+# Example: res:/animation/animinfo.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# SkillComplete:
+#   Category: Skill Training
+#   ControlParameters: {AnimIndex: 0.0}
+#   Request: UpperbodyAction
+#   duration: 3.0
+#   startDistance: 0.0
+#   synchronized: false
+#   id: 0
+# SkillInject:
+#   Category: Skill Training
+#   ControlParameters: {AnimIndex: 0.0}
+#   Request: UpperbodyAction
+#   duration: 8.3334
+#   startDistance: 0.0
+#   synchronized: false
+#   id: 1
+# Interact:
+#   ControlParameters: {AnimIndex: 2.5}
+#   Request: UpperbodyAction
+#   duration: 5.0
+#   startDistance: 0.0
+#   synchronized: false
+#   id: 2
+# Enter_Sofa:
+#   Category: Sitting
+#   ControlParameters: {AttachmentType: 0.0}
+#   Request: AttachTo
+#   duration: 2.333334
+#   startDistance: 0.5
+#   synchronized: false
+#   id: 3
+# Exit_Sofa:
+#   Category: Sitting
+#   ControlParameters: {AttachmentType: 0.0}
+#   Request: DetachFrom
+#   duration: 2.333334
+#   startDistance: 0.5
+#   synchronized: false
+#   id: 4
+# Attach_To_Slay_Table:
+#   Category: Slay
+#   ControlParameters: {AttachmentType: 1.0}
+#   Request: AttachTo
+#   duration: 4.4
+#   startDistance: 0.5
+#   synchronized: false
+#   id: 5
+# Detach_From_Slay_Table:
+#   Category: Slay
+#   ControlParameters: {AttachmentType: 1.0}
+#   Request: DetachFrom
+#   duration: 2.666667
+#   startDistance: 0.5
+#   synchronized: false
+#   id: 6
+# END VERBATIM RAW YAML
+# Root variant: map ; 1 of 1
+# Identifier keys: 7 distinct string keys; all: ["SkillComplete","SkillInject","Interact","Enter_Sofa","Exit_Sofa","Attach_To_Slay_Table","Detach_From_Slay_Table"]
+# 7 of 7; kinds: map; example: res:/animation/animinfo.yaml
+<string key>:
+  # Nested key-set variant: 6 of 7; map ["Category","ControlParameters","Request","duration","id","startDistance","synchronized"]; example: res:/animation/animinfo.yaml
+  # Nested key-set variant: 1 of 7; map ["ControlParameters","Request","duration","id","startDistance","synchronized"]; example: res:/animation/animinfo.yaml
+  # 6 of 7; kinds: string; values: "Skill Training", "Sitting", "Slay"; example: res:/animation/animinfo.yaml
+  "Category":
+    string
+  # 7 of 7; kinds: map; example: res:/animation/animinfo.yaml
+  "ControlParameters":
+    # Identifier keys: 2 distinct string keys; all: ["AnimIndex","AttachmentType"]
+    # 7 of 7; kinds: number; values: 0, 2.5, 1; example: res:/animation/animinfo.yaml
+    <string key>:
+      float
+  # 7 of 7; kinds: string; values: "UpperbodyAction", "AttachTo", "DetachFrom"; example: res:/animation/animinfo.yaml
+  "Request":
+    string
+  # 7 of 7; kinds: number; values: 3, 8.3334, 5, 2.333334, 4.4, 2.666667; example: res:/animation/animinfo.yaml
+  "duration":
+    float
+  # 7 of 7; kinds: number; values: 0, 0.5; example: res:/animation/animinfo.yaml
+  "startDistance":
+    float
+  # 7 of 7; kinds: boolean; values: false; example: res:/animation/animinfo.yaml
+  "synchronized":
+    bool
+  # 7 of 7; kinds: number; values: 0, 1, 2, 3, 4, 5, 6; example: res:/animation/animinfo.yaml
+  "id":
+    int

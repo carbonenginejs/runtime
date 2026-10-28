@@ -1,0 +1,50 @@
+# Raw res-file shape; build 3646012.
+# Family: curvesets_metadata
+# Source pattern: res:/animation_gstate/scenes/*
+# Files: 5048
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 5048 of 5048; map ["cue_level","curveset","description","name","object_name","offset","original_name","parameter_name","parameter_path","path","type"]
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# {cue_level: 0, curveset: Aura_V3_Effect_BodyGlow_OrangePulse_0, description: default,
+#   name: !!python/unicode 'Aura_V3_Effect_BodyGlow_OrangePulse_0', object_name: Aura_V3,
+#   offset: 1.0, original_name: '', parameter_name: C_SkinShiny_Body, parameter_path: !!python/unicode 'Owner.visualModel.meshes["topouter0"].decalAreas["JacketShape"].effect.parameters["SkinGlowColor"]',
+#   path: '', type: 5}
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 5048 of 5048
+# 5048 of 5048; kinds: number; values: 0; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"cue_level":
+  int
+# 5048 of 5048; kinds: string; distinct scalar values: 190; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"curveset":
+  string
+# 5048 of 5048; kinds: string; values: "default", "", "GState Curve", "Subtle start animation", "Normal start animation", "Lock Eyes on target", "Random or specific talk", "GState Talk", "Value going up and down", "Trigger Normal talk animations", "Expressive start animation", "Change Posture", "Breathing control", "Subtle or Animated idle", "Control Eyes yaw movements", "Enable Head Look with HeadYaw and HeadPitch parameters"; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"description":
+  string
+# 5048 of 5048; kinds: string; distinct scalar values: 190; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"name":
+  string
+# 5048 of 5048; kinds: string; distinct scalar values: 22; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"object_name":
+  string
+# 5048 of 5048; kinds: number; values: 1, 0, 0.5, 18; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"offset":
+  float
+# 5048 of 5048; kinds: string; distinct scalar values: 33; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"original_name":
+  string
+# 5048 of 5048; kinds: string; values: "C_SkinShiny_Body", "C_Skin_blinn1", "", "color", "position", "falloff", "coneAlphaInner", "coneDirection", "coneAlphaOuter"; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"parameter_name":
+  string
+# 5048 of 5048; kinds: string; distinct scalar values: 52; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"parameter_path":
+  string
+# 5048 of 5048; kinds: string; values: ""; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"path":
+  string
+# 5048 of 5048; kinds: number; values: 5, 1, 2, 3; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/curvesets/aura_v3_effect_bodyglow_orangepulse_0_metadata.yaml
+"type":
+  int

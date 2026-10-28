@@ -1,0 +1,1206 @@
+# Raw res-file shape; build 3646012.
+# Family: scenes_prs
+# Source pattern: res:/animation_gstate/scenes/*
+# Files: 317
+# Variable shape: 15 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 205 of 317; sequence length 16
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# - female
+# - category: utilityshapes
+#   path: utilityshapes/tightdrapeshape
+#   weight: 0.95
+# - category: utilityshapes
+#   path: utilityshapes/beltinshape
+#   weight: 1.0
+# - category: head
+#   path: head/head_generic
+#   weight: 1.0
+# - category: archetypes
+#   path: archetypes/cdshape
+#   weight: 0.26
+# - category: archetypes
+#   path: archetypes/msshape
+#   weight: 0.17
+# - category: skintype
+#   colors: '[(0.74902, 0.823529, 0.933333, 1), (0.701961, 0.811765, 1, 1), (0, 0, 0,
+#     1)]'
+#   path: skintype/au
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.211765
+#     - 0.356863
+#     - 0.509804
+#     - 2.0
+#   - !!python/tuple
+#     - 0.211765
+#     - 0.356863
+#     - 0.509804
+#     - 2.0
+#   - !!python/tuple
+#     - 0.372549
+#     - 0.372549
+#     - 0.372549
+#     - 1
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.886275, 0.866667, 0.968627, 1), (0.796078, 0.827451, 0.952941, 1),
+#     (0.5, 0.5, 0.5, 1.0)]'
+#   path: makeup/eyelashes/eyelashes_01
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0, 0.286275, 0.458824, 1), (0.427451, 0.470588, 0.505882, 1), (0.529412,
+#     0.6, 0.647059, 1)]'
+#   path: makeup/eyes/eyes_au
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 0.0
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.670588, 0.788235, 0.905882, 1), (0.74902, 0.823529, 0.933333, 1), (0.74902,
+#     0.823529, 0.933333, 1)]'
+#   path: makeup/teeth/teeth_au
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.211765
+#     - 0.360784
+#     - 0.513725
+#     - 0.6
+#   - &id001 !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   - *id001
+#   weight: 1.0
+# - category: bottominner
+#   path: bottominner/legs_nude
+#   weight: 1.0
+# - category: feet
+#   path: feet/feet_nude
+#   weight: 1.0
+# - category: hands
+#   path: hands/hands_nude
+#   weight: 8.0
+# - category: topouter
+#   colors: '[(0.74902, 0.823529, 0.933333, 1), (0, 0, 0, 1), (0.5, 0.5, 0.5, 1.0)]'
+#   path: topouter/bodysuitau
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.211765
+#     - 0.360784
+#     - 0.513725
+#     - 1.4
+#   - !!python/tuple
+#     - 0.360784
+#     - 0.360784
+#     - 0.360784
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1
+#   weight: 2.0
+# - category: hair
+#   colors: '[(0.74902, 0.819608, 0.929412, 1), (0, 0, 0, 1), (0.5, 0.5, 0.5, 1.0)]'
+#   path: hair/aura_hp
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.211765
+#     - 0.356863
+#     - 0.509804
+#     - 1.4
+#   - !!python/tuple
+#     - 0.498039
+#     - 0.498039
+#     - 0.498039
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   weight: 1.0
+# - category: outer
+#   colors: '[(0.74902, 0.823529, 0.933333, 1), (0, 0, 0, 1), (0.701961, 0.811765, 1,
+#     1)]'
+#   path: outer/drapeau
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.117647
+#     - 0.203922
+#     - 0.301961
+#     - 1.4
+#   - !!python/tuple
+#     - 0.360784
+#     - 0.360784
+#     - 0.360784
+#     - 1
+#   - !!python/tuple
+#     - 0.211765
+#     - 0.360784
+#     - 0.513725
+#     - 1
+#   weight: 1.0
+#
+# END VERBATIM RAW YAML
+# Variant 2: 48 of 317; sequence length 101
+# Example: res:/animation_gstate/scenes/air_npe/vesper/air_npe_vesper_2811_2/vesperv1.prs
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# - female
+# - category: facemodifiers
+#   path: facemodifiers/eyesouter_forwardshape
+#   weight: 0.1496
+# - category: facemodifiers
+#   path: facemodifiers/upperlip_forwardshape
+#   weight: 0.13839999999999997
+# - category: facemodifiers
+#   path: facemodifiers/outerbrow_downshape
+#   weight: 0.2995
+# - category: facemodifiers
+#   path: facemodifiers/upperlip_downshape
+#   weight: 0.16499999999999998
+# - category: facemodifiers
+#   path: facemodifiers/upperlip_leftshape
+#   weight: 0.5
+# - category: facemodifiers
+#   path: facemodifiers/nostrils_rightshape
+#   weight: 0.17999995708465577
+# - category: facemodifiers
+#   path: facemodifiers/nosetip_upshape
+#   weight: 0.19
+# - category: facemodifiers
+#   path: facemodifiers/nosetip_backshape
+#   weight: 0.15000001668930052
+# - category: facemodifiers
+#   path: facemodifiers/eyes_downshape
+#   weight: 0.19
+# - category: facemodifiers
+#   path: facemodifiers/cheeksupper_downshape
+#   weight: 0.5099999856948851
+# - category: facemodifiers
+#   path: facemodifiers/chin_leftshape
+#   weight: 0.25
+# - category: facemodifiers
+#   path: facemodifiers/lowerlip_backshape
+#   weight: 0.195
+# - category: facemodifiers
+#   path: facemodifiers/nostrils_downshape
+#   weight: 0.17
+# - category: facemodifiers
+#   path: facemodifiers/nostrils_forwardshape
+#   weight: 0.3549999904632568
+# - category: facemodifiers
+#   path: facemodifiers/mouthcorner_leftshape
+#   weight: 0.15
+# - category: facemodifiers
+#   path: facemodifiers/mouthcorner_downshape
+#   weight: 0.009000000000000008
+# - category: facemodifiers
+#   path: facemodifiers/cheeksupper_backshape
+#   weight: 0.15000000000000002
+# - category: facemodifiers
+#   path: facemodifiers/innerbrow_rightshape
+#   weight: 0.41999999999999993
+# - category: facemodifiers
+#   path: facemodifiers/innerbrow_upshape
+#   weight: 0.03
+# - category: facemodifiers
+#   path: facemodifiers/outerbrow_leftshape
+#   weight: 0.030000000000000027
+# - category: facemodifiers
+#   path: facemodifiers/eyes_rightshape
+#   weight: 0.023400000000000004
+# - category: facemodifiers
+#   path: facemodifiers/eyes_forwardshape
+#   weight: 0.255
+# - category: facemodifiers
+#   path: facemodifiers/cheeksmiddle_upshape
+#   weight: 0.35
+# - category: facemodifiers
+#   path: facemodifiers/cheeksmiddle_leftshape
+#   weight: 0.075
+# - category: facemodifiers
+#   path: facemodifiers/nose_upshape
+#   weight: 0.24
+# - category: facemodifiers
+#   path: facemodifiers/nosebone_upshape
+#   weight: 0.10000000000000014
+# - category: facemodifiers
+#   path: facemodifiers/nose_backshape
+#   weight: 0.18
+# - category: facemodifiers
+#   path: facemodifiers/nose_rightshape
+#   weight: 0.24
+# - category: facemodifiers
+#   path: facemodifiers/chin_backshape
+#   weight: 0.06
+# - category: facemodifiers
+#   path: facemodifiers/chin_downshape
+#   weight: 0.12000001788139353
+# - category: facemodifiers
+#   path: facemodifiers/cheeksupper_leftshape
+#   weight: 0.1900000000000001
+# - category: facemodifiers
+#   path: facemodifiers/ears_upshape
+#   weight: 0.009999976158142118
+# - category: facemodifiers
+#   path: facemodifiers/jaw_leftshape
+#   weight: 0.030000000000000096
+# - category: facemodifiers
+#   path: facemodifiers/lowerlip_downshape
+#   weight: 0.03170006901025772
+# - category: facemodifiers
+#   path: facemodifiers/lowerlip_leftshape
+#   weight: 0.47500000000000003
+# - category: utilityshapes
+#   path: utilityshapes/pinchskirtsidesshape
+#   weight: 0.7
+# - category: utilityshapes
+#   path: utilityshapes/pinchskirtbackshape
+#   weight: 0.7
+# - category: utilityshapes
+#   path: utilityshapes/pinchskirtfrontshape
+#   weight: 0.7
+# - category: utilityshapes
+#   path: utilityshapes/pinchleftouterhipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchleftouterlowerhipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchleftoutermiddlehipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchleftouterupperhipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchrightouterhipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchrightouterlowerhipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchrightoutermiddlehipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchrightouterupperhipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchchestshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchforearmlowshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/tighhhipsshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchhemlongshape
+#   weight: 0.8
+# - category: utilityshapes
+#   path: utilityshapes/pinchhemfullshape
+#   weight: 0.2
+# - category: utilityshapes
+#   path: utilityshapes/pinchouterhemlongshape
+#   weight: 0.8
+# - category: utilityshapes
+#   path: utilityshapes/pinchouterhemfullshape
+#   weight: 0.2
+# - category: utilityshapes
+#   path: utilityshapes/beltinshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchbootkneeshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/tucklowshape
+#   weight: 0.8
+# - category: utilityshapes
+#   path: utilityshapes/tucktopshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pushhemhighshape
+#   weight: 0.05
+# - category: utilityshapes
+#   path: utilityshapes/pushtophighshape
+#   weight: 0.05
+# - category: utilityshapes
+#   path: utilityshapes/tightdrapeshape
+#   weight: 0.3
+# - category: utilityshapes
+#   path: utilityshapes/lashes_upshape
+#   weight: 0.4
+# - category: utilityshapes
+#   path: utilityshapes/belttiltfrontshape
+#   weight: 0.2
+# - category: utilityshapes
+#   path: utilityshapes/tightwaistshape
+#   weight: 1.0
+# - category: head
+#   path: head/head_generic
+#   weight: 1.0
+# - category: head
+#   path: head/amarr_nikunni
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/ragdoll/ragdollhair
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/sleevesupper/standard
+#   weight: 2.0
+# - category: dependants
+#   path: dependants/sleeveslower/standard
+#   weight: 2.0
+# - category: dependants
+#   path: dependants/ragdoll/ragdollthicktop
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/ragdoll/ragdolllegs
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/waisttucking/standard
+#   variation: v0
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/tuck/basic
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/masktuck/tuckmasktop
+#   weight: 1.0
+# - category: archetypes
+#   path: archetypes/anshape
+#   weight: 1.2
+# - category: bodyshapes
+#   path: bodyshapes/abs_backshape
+#   weight: 0.4748
+# - category: bodyshapes
+#   path: bodyshapes/abs_rightshape
+#   weight: 0.6542
+# - category: bodyshapes
+#   path: bodyshapes/pelvis_downshape
+#   weight: 0.6401
+# - category: bodyshapes
+#   path: bodyshapes/legs_downshape
+#   weight: 0.0526
+# - category: bodyshapes
+#   path: bodyshapes/thinshape
+#   weight: 0.01744186046511631
+# - category: skintype
+#   colors: '[(0.556863, 0.568627, 0.533333, 1), (0.482353, 0.494118, 0.454902, 1),
+#     (0.5, 0.5, 0.5, 1)]'
+#   colorvariation: c5
+#   path: skintype/an
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.35589128732681274, 0.33962172269821167, 0.28674641251564026, 0.5185840725898743),
+#     (0.607843, 0.576471, 0.533333, 1), (0.803922, 0.796078, 0.772549, 1)]'
+#   colorvariation: none
+#   path: makeup/eyebrows/eyebrows_02
+#   specularcolors: &id001
+#   - !!python/tuple
+#     - 0.4
+#     - 0.360784
+#     - 0.32549
+#     - 1
+#   - !!python/tuple
+#     - 0.360784
+#     - 0.356863
+#     - 0.329412
+#     - 1
+#   - !!python/tuple
+#     - 0.360784
+#     - 0.356863
+#     - 0.329412
+#     - 1
+#   weight: 1.0
+# - category: makeup
+#   path: makeup/eyelashes/eyelashes_01
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0, 0, 0, 1), (0, 0, 0, 1), (0, 0, 0, 1)]'
+#   colorvariation: default
+#   path: makeup/eyelashes/eyelashes_02
+#   specularcolors:
+#   - !!python/tuple
+#     - 0
+#     - 0
+#     - 0
+#     - 1
+#   - !!python/tuple
+#     - 0
+#     - 0
+#     - 0
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1
+#   weight: 0.4
+# - category: makeup
+#   colors: '[(0.513725, 0.658824, 0.776471, 1), (0.5, 0.5, 0.5, 1.0), (0.705882, 0.796078,
+#     0.788235, 1)]'
+#   path: makeup/eyes/eyes_01
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.541176, 0.560784, 0.584314, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5,
+#     1.0)]'
+#   colorvariation: default
+#   path: makeup/implants/plugs_02
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.572549
+#     - 0.654902
+#     - 0.694118
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0, 0, 0, 1), (0.976471, 0.976471, 1, 1), (0.976471, 0.976471, 1, 1)]'
+#   colorvariation: default
+#   path: makeup/eyeshadow/eyeshadow_08
+#   weight: 0.5929203539823009
+# - category: makeup
+#   path: makeup/scarring/scarring_01
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.717647, 0.4, 0.478431, 1), (0.717647, 0.4, 0.478431, 1), (0.717647,
+#     0.4, 0.478431, 1)]'
+#   colorvariation: default
+#   path: makeup/blush/blush_02
+#   weight: 0.4424778761061947
+# - category: makeup
+#   colors: '[(0, 0, 0, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   colorvariation: default
+#   path: makeup/eyeliner/eyeliner_02
+#   weight: 0.1592920353982301
+# - category: makeup
+#   colors: '[(0.811765, 0.811765, 0.811765, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5,
+#     1.0)]'
+#   path: makeup/lipstick/lipstick_02
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.7575221238938052
+#     - 0.7575221238938052
+#     - 0.7575221238938052
+#     - 1.343362831858407
+#   - !!python/tuple
+#     - 0.32831858407079645
+#     - 0.32831858407079645
+#     - 0.32831858407079645
+#     - 1.0
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   variation: v0
+#   weight: 0.10619469026548672
+# - category: topinner
+#   path: topinner/torso_nude
+#   weight: 1.0
+# - category: bottomunderwear
+#   colors: '[(0.0431373, 0.0431373, 0.0431373, 1), (0.211765, 0.211765, 0.211765, 1),
+#     (0.219608, 0.219608, 0.219608, 1)]'
+#   colorvariation: default
+#   path: bottomunderwear/bikinibottomaf01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.294118
+#     - 0.294118
+#     - 0.294118
+#     - 1
+#   - !!python/tuple
+#     - 0.329412
+#     - 0.329412
+#     - 0.329412
+#     - 1
+#   - !!python/tuple
+#     - 0.211765
+#     - 0.211765
+#     - 0.211765
+#     - 1
+#   weight: 1.0
+# - category: topunderwear
+#   colors: '[(0.0470588, 0.0470588, 0.0470588, 1), (0.215686, 0.215686, 0.215686, 1),
+#     (0.219608, 0.219608, 0.219608, 1)]'
+#   colorvariation: default
+#   path: topunderwear/bikinitopaf01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.294118
+#     - 0.294118
+#     - 0.294118
+#     - 1
+#   - !!python/tuple
+#     - 0.333333
+#     - 0.333333
+#     - 0.333333
+#     - 1
+#   - !!python/tuple
+#     - 0.211765
+#     - 0.211765
+#     - 0.211765
+#     - 1
+#   weight: 1.0
+# - category: bottomouter
+#   colors: '[(0.0392157, 0.0392157, 0.0392157, 1), (0.0392157, 0.0392157, 0.0392157,
+#     1), (0.0392157, 0.0392157, 0.0392157, 1)]'
+#   colorvariation: matblack
+#   path: bottomouter/skirtmilf01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.027451
+#     - 0.027451
+#     - 0.027451
+#     - 1
+#   - !!python/tuple
+#     - 0.027451
+#     - 0.027451
+#     - 0.027451
+#     - 1
+#   - !!python/tuple
+#     - 0.027451
+#     - 0.027451
+#     - 0.027451
+#     - 1
+#   variation: v0
+#   weight: 1.0
+# - category: feet
+#   colors: '[(0.0784314, 0.0862745, 0.0862745, 1), (0.5, 0.5, 0.5, 1), (0.5, 0.5, 0.5,
+#     1.0)]'
+#   colorvariation: black
+#   path: feet/bootsmilf01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.407843
+#     - 0.423529
+#     - 0.435294
+#     - 0.7
+#   - !!python/tuple
+#     - 0.545098
+#     - 0.505882
+#     - 0.454902
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   variation: v0
+#   weight: 1.0
+# - category: accessories
+#   path: accessories/browbase/an
+#   weight: 1.0
+# - category: accessories
+#   path: accessories/earslow/earring01_paira
+#   weight: 1.0
+# - category: hands
+#   path: hands/hands_nude
+#   weight: 1.0
+# - category: hair
+#   colors: '[(0.686275, 0.654902, 0.552941, 1), (0.607843, 0.576471, 0.533333, 1),
+#     (0.803922, 0.796078, 0.772549, 1)]'
+#   path: hair/hair_bun_01
+#   specularcolors: *id001
+#   weight: 1.0
+# - category: outer
+#   colors: '[(0.109804, 0.180392, 0.282353, 1), (0.0509804, 0.0509804, 0.0509804, 1),
+#     (0.298039, 0.298039, 0.298039, 1)]'
+#   colorvariation: blue
+#   path: outer/jacketslf_01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0
+#     - 0
+#     - 0
+#     - 1
+#   - !!python/tuple
+#     - 0.0392157
+#     - 0.0352941
+#     - 0.027451
+#     - 1
+#   - !!python/tuple
+#     - 0.513725
+#     - 0.513725
+#     - 0.513725
+#     - 1
+#   variation: v0
+#   weight: 1.0
+#
+# END VERBATIM RAW YAML
+# Variant 3: 30 of 317; sequence length 74
+# Example: res:/animation_gstate/scenes/air_npe/elias/air_npe_elias_2932_1/eliaspeltonnenv1.prs
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# - male
+# - category: facemodifiers
+#   path: facemodifiers/cheeksmiddle_backshape
+#   weight: 0.3345
+# - category: facemodifiers
+#   path: facemodifiers/outerbrow_rightshape
+#   weight: 0.51
+# - category: facemodifiers
+#   path: facemodifiers/innerbrow_upshape
+#   weight: 0.65
+# - category: facemodifiers
+#   path: facemodifiers/nostrils_rightshape
+#   weight: 0.16499999999999998
+# - category: facemodifiers
+#   path: facemodifiers/nosetip_leftshape
+#   weight: 0.135
+# - category: facemodifiers
+#   path: facemodifiers/nosetip_backshape
+#   weight: 0.59
+# - category: facemodifiers
+#   path: facemodifiers/nose_upshape
+#   weight: 0.12
+# - category: facemodifiers
+#   path: facemodifiers/mouthcorner_rightshape
+#   weight: 0.22500000000000003
+# - category: facemodifiers
+#   path: facemodifiers/upperlip_backshape
+#   weight: 0.4
+# - category: facemodifiers
+#   path: facemodifiers/upperlip_upshape
+#   weight: 0.255
+# - category: facemodifiers
+#   path: facemodifiers/lowerlip_backshape
+#   weight: 0.525
+# - category: facemodifiers
+#   path: facemodifiers/lowerlip_leftshape
+#   weight: 0.5150001001358033
+# - category: facemodifiers
+#   path: facemodifiers/lowerlip_downshape
+#   weight: 0.009999999999999787
+# - category: facemodifiers
+#   path: facemodifiers/outerbrow_downshape
+#   weight: 0.4899999952316284
+# - category: facemodifiers
+#   path: facemodifiers/innerbrow_rightshape
+#   weight: 0.6
+# - category: facemodifiers
+#   path: facemodifiers/eyesouter_rightshape
+#   weight: 0.46999989390373226
+# - category: facemodifiers
+#   path: facemodifiers/eyes_upshape
+#   weight: 0.135
+# - category: facemodifiers
+#   path: facemodifiers/eyes_leftshape
+#   weight: 0.045
+# - category: facemodifiers
+#   path: facemodifiers/eyesouter_upshape
+#   weight: 0.36
+# - category: facemodifiers
+#   path: facemodifiers/jawcheek_rightshape
+#   weight: 0.39999999999999997
+# - category: facemodifiers
+#   path: facemodifiers/jaw_upshape
+#   weight: 0.135
+# - category: facemodifiers
+#   path: facemodifiers/chin_leftshape
+#   weight: 0.07500002861022949
+# - category: facemodifiers
+#   path: facemodifiers/mouthcorner_upshape
+#   weight: 0.135
+# - category: facemodifiers
+#   path: facemodifiers/nostrils_upshape
+#   weight: 0.255
+# - category: facemodifiers
+#   path: facemodifiers/nose_rightshape
+#   weight: 0.375
+# - category: facemodifiers
+#   path: facemodifiers/cheeksupper_upshape
+#   weight: 0.15
+# - category: facemodifiers
+#   path: facemodifiers/ears_downshape
+#   weight: 0.07500008583068851
+# - category: facemodifiers
+#   path: facemodifiers/cheeksupper_rightshape
+#   weight: 0.030000000000000027
+# - category: facemodifiers
+#   path: facemodifiers/jaw_rightshape
+#   weight: 0.20999999999999996
+# - category: facemodifiers
+#   path: facemodifiers/chin_downshape
+#   weight: 0.08500000000000008
+# - category: facemodifiers
+#   path: facemodifiers/chin_backshape
+#   weight: 0.075
+# - category: facemodifiers
+#   path: facemodifiers/nosebone_upshape
+#   weight: 0.020000000000000018
+# - category: facemodifiers
+#   path: facemodifiers/nosetip_upshape
+#   weight: 0.27
+# - category: facemodifiers
+#   path: facemodifiers/nose_backshape
+#   weight: 0.15000000000000002
+# - category: utilityshapes
+#   path: utilityshapes/pinchtuckshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pinchbootankleshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/tucktopshape
+#   weight: 1.0
+# - category: utilityshapes
+#   path: utilityshapes/pushhemmidshape
+#   weight: 0.35
+# - category: utilityshapes
+#   path: utilityshapes/pushtopmidshape
+#   weight: 0.35
+# - category: utilityshapes
+#   path: utilityshapes/pantstucklowshape
+#   weight: 1.0
+# - category: head
+#   path: head/head_generic
+#   weight: 1.0
+# - category: head
+#   path: head/caldari_deteis
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/ragdoll/ragdollhair
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/sleevesupper/standard
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/sleeveslower/standard
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/waisttucking/standard
+#   variation: v0
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/boottucking/standard
+#   variation: v0
+#   weight: 1.0
+# - category: dependants
+#   path: dependants/tuck/basic
+#   weight: 1.0
+# - category: archetypes
+#   path: archetypes/cdshape
+#   weight: 1.2
+# - category: archetypes
+#   path: archetypes/msshape
+#   weight: 0.2
+# - category: bodyshapes
+#   path: bodyshapes/muscularshape
+#   weight: 0.49273255813953487
+# - category: bodyshapes
+#   path: bodyshapes/fatshape
+#   weight: 0.37209302325581395
+# - category: bodyshapes
+#   path: bodyshapes/shoulders_upshape
+#   weight: 0.6050000000000001
+# - category: skintype
+#   colorvariation: c7
+#   path: skintype/cd
+#   weight: 1.0
+# - category: skintype
+#   path: skintype/ms
+#   weight: 0.8
+# - category: makeup
+#   colors: '[(0.08470560610294342, 0.06352920085191727, 0.04000002145767212, 0.6000000238418579),
+#     (0.317647, 0.227451, 0.141176, 1), (0.235294, 0.168627, 0.101961, 1)]'
+#   colorvariation: none
+#   path: makeup/eyebrows/eyebrows_03
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.360784
+#     - 0.313725
+#     - 0.278431
+#     - 1
+#   - !!python/tuple
+#     - 0.321569
+#     - 0.301961
+#     - 0.254902
+#     - 1
+#   - !!python/tuple
+#     - 0.321569
+#     - 0.301961
+#     - 0.254902
+#     - 1
+#   weight: 1.0
+# - category: makeup
+#   path: makeup/eyelashes/eyelashes_01
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.333333, 0.4, 0.133333, 1), (0.5, 0.5, 0.5, 1.0), (0.34902, 0.247059,
+#     0.141176, 1)]'
+#   path: makeup/eyes/eyes_01
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.541176, 0.560784, 0.584314, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5,
+#     1.0)]'
+#   colorvariation: default
+#   path: makeup/implants/plugs_01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.572549
+#     - 0.654902
+#     - 0.694118
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0.705882, 0.6, 0.403922, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   colorvariation: default
+#   path: makeup/eyeshadow/eyeshadow_01
+#   weight: 0.5
+# - category: makeup
+#   path: makeup/scarring/scarring_01
+#   weight: 1.0
+# - category: makeup
+#   colors: '[(0, 0, 0, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5, 1.0)]'
+#   colorvariation: default
+#   path: makeup/eyeliner/eyeliner_01
+#   weight: 0.5
+# - category: makeup
+#   colors: '[(0.054902, 0.027451, 0.054902, 1), (0.5, 0.5, 0.5, 1.0), (0.5, 0.5, 0.5,
+#     1.0)]'
+#   path: makeup/lipstick/lipstick_01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.65
+#     - 0.65
+#     - 0.65
+#     - 1.2
+#   - !!python/tuple
+#     - 0.4
+#     - 0.4
+#     - 0.4
+#     - 1.0
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   weight: 0.1504424778761062
+# - category: beard
+#   path: beard/fiveoc
+#   weight: 1.0
+# - category: beard
+#   path: beard/stubble
+#   weight: 1.0
+# - category: topinner
+#   path: topinner/torso_nude
+#   weight: 1.0
+# - category: bottomunderwear
+#   colors: '[(0.0705882, 0.0705882, 0.0705882, 1), (0.12549, 0.12549, 0.12549, 1),
+#     (0.32549, 0.32549, 0.32549, 1)]'
+#   colorvariation: default
+#   path: bottomunderwear/boxersam01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.235294
+#     - 0.235294
+#     - 0.235294
+#     - 1
+#   - !!python/tuple
+#     - 0.584314
+#     - 0.584314
+#     - 0.584314
+#     - 1
+#   - !!python/tuple
+#     - 0.5
+#     - 0.5
+#     - 0.5
+#     - 1.0
+#   weight: 1.0
+# - category: bottomouter
+#   colors: '[(0.0980392, 0.0980392, 0.0980392, 1), (0.0666667, 0.0666667, 0.0666667,
+#     1), (0.25098, 0.25098, 0.25098, 1)]'
+#   colorvariation: blackleather
+#   path: bottomouter/pantsclm01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.266667
+#     - 0.266667
+#     - 0.266667
+#     - 1
+#   - !!python/tuple
+#     - 0.372549
+#     - 0.372549
+#     - 0.372549
+#     - 1
+#   - !!python/tuple
+#     - 0.823529
+#     - 0.823529
+#     - 0.823529
+#     - 1.4
+#   weight: 1.0
+# - category: feet
+#   colors: '[(0.105882, 0.109804, 0.113725, 1), (0.141176, 0.14902, 0.156863, 1), (0.196078,
+#     0.196078, 0.196078, 1)]'
+#   colorvariation: graphite
+#   path: feet/bootsclm01
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.0901961
+#     - 0.0901961
+#     - 0.0901961
+#     - 1
+#   - !!python/tuple
+#     - 0.0980392
+#     - 0.0980392
+#     - 0.0980392
+#     - 1
+#   - !!python/tuple
+#     - 0.494118
+#     - 0.494118
+#     - 0.494118
+#     - 1.4
+#   weight: 1.0
+# - category: accessories
+#   path: accessories/browbase/cd
+#   weight: 1.0
+# - category: hands
+#   path: hands/hands_nude
+#   weight: 1.0
+# - category: hair
+#   colors: '[(0.141176, 0.105882, 0.0666667, 1), (0.141176, 0.105882, 0.0666667, 1),
+#     (0.141176, 0.105882, 0.0666667, 1)]'
+#   colorvariation: 18_a
+#   path: hair/hair_mediumparted_03
+#   specularcolors:
+#   - !!python/tuple
+#     - 0.360784
+#     - 0.313725
+#     - 0.278431
+#     - 1
+#   - !!python/tuple
+#     - 0.360784
+#     - 0.313725
+#     - 0.278431
+#     - 1
+#   - !!python/tuple
+#     - 0.360784
+#     - 0.313725
+#     - 0.278431
+#     - 1
+#   weight: 1.0
+# - category: outer
+#   path: outer/explorationsuit_m01
+#   weight: 1.0
+#
+# END VERBATIM RAW YAML
+# Variant 4: 18 of 317; sequence length 81
+# Example: res:/animation_gstate/scenes/air_npe/balin/air_npe_balin_2753_1/balinv1.prs
+# Variant 5: 4 of 317; sequence length 85
+# Example: res:/animation_gstate/scenes/air_npe/elias/air_npe_elias_2956_1/eliaspeltonnenv1.prs
+# Variant 6: 2 of 317; sequence length 64
+# Example: res:/animation_gstate/scenes/npc/haratmamtan/haratmamtan.prs
+# Variant 7: 2 of 317; sequence length 68
+# Example: res:/animation_gstate/scenes/npc/iris_idle/iris_amarr.prs
+# Variant 8: 1 of 317; sequence length 66
+# Example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+# Variant 9: 1 of 317; sequence length 106
+# Example: res:/animation_gstate/scenes/npc/asanikkaa/asanikkaa.prs
+# Variant 10: 1 of 317; sequence length 63
+# Example: res:/animation_gstate/scenes/npc/cephuszafir/cephuszafir.prs
+# Variant 11: 1 of 317; sequence length 96
+# Example: res:/animation_gstate/scenes/npc/danahuginn/danahuginn.prs
+# Variant 12: 1 of 317; sequence length 49
+# Example: res:/animation_gstate/scenes/npc/pirateraider_neutral/pirateraider_neutral.prs
+# Variant 13: 1 of 317; sequence length 65
+# Example: res:/animation_gstate/scenes/npc/sarvaburman/sarvaburman.prs
+# Variant 14: 1 of 317; sequence length 57
+# Example: res:/animation_gstate/scenes/npc/tahmar/tahmar.prs
+# Variant 15: 1 of 317; sequence length 103
+# Example: res:/animation_gstate/scenes/npc/wolf/wolf.prs
+# Root variant: sequence ; 317 of 317
+# Optional first item: 317 of 317; kinds: string; values: "female", "male"; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+- string
+# Repeated entry: 12698 of 12698; kinds: map; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+-
+  # Nested key-set variant: 9563 of 12698; map ["category","path","weight"]; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+  # Nested key-set variant: 1360 of 12698; map ["category","colors","path","specularcolors","weight"]; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+  # Nested key-set variant: 633 of 12698; map ["category","colors","colorvariation","path","specularcolors","weight"]; example: res:/animation_gstate/scenes/air_npe/balin/air_npe_balin_2753_1/balinv1.prs
+  # Nested key-set variant: 317 of 12698; map ["category","colors","path","weight"]; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+  # Nested key-set variant: 313 of 12698; map ["category","colors","colorvariation","path","weight"]; example: res:/animation_gstate/scenes/air_npe/balin/air_npe_balin_2753_1/balinv1.prs
+  # Nested key-set variant: 253 of 12698; map ["category","path","variation","weight"]; example: res:/animation_gstate/scenes/air_npe/balin/air_npe_balin_2753_1/balinv1.prs
+  # Nested key-set variant: 153 of 12698; map ["category","colors","colorvariation","path","specularcolors","variation","weight"]; example: res:/animation_gstate/scenes/air_npe/elias/air_npe_elias_2956_1/eliaspeltonnenv1.prs
+  # Nested key-set variant: 51 of 12698; map ["category","colors","path","specularcolors","variation","weight"]; example: res:/animation_gstate/scenes/air_npe/vesper/air_npe_vesper_2811_2/vesperv1.prs
+  # Nested key-set variant: 35 of 12698; map ["category","colorvariation","path","weight"]; example: res:/animation_gstate/scenes/air_npe/elias/air_npe_elias_2932_1/eliaspeltonnenv1.prs
+  # Nested key-set variant: 5 of 12698; map ["category","colors","colorvariation","path","variation","weight"]; example: res:/animation_gstate/scenes/air_npe/elias/air_npe_elias_2956_1/eliaspeltonnenv1.prs
+  # Nested key-set variant: 5 of 12698; map ["category","colors","decaldata","path","weight"]; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+  # Nested key-set variant: 5 of 12698; map ["category","colors","colorvariation","path","pattern","specularcolors","variation","weight"]; example: res:/animation_gstate/scenes/npc/danahuginn/danahuginn.prs
+  # Nested key-set variant: 4 of 12698; map ["category","colorvariation","path","variation","weight"]; example: res:/animation_gstate/scenes/npc/asanikkaa/asanikkaa.prs
+  # Nested key-set variant: 1 of 12698; map ["category","colorvariation","path","specularcolors","variation","weight"]; example: res:/animation_gstate/scenes/npc/pirateraider_neutral/pirateraider_neutral.prs
+  # 12698 of 12698; kinds: string; distinct scalar values: 23; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+  "category":
+    string
+  # 12698 of 12698; kinds: string; distinct scalar values: 365; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+  # (sampled 6288) → res:/graphics/character/<sex>/paperdoll/<path>/; verified folder prefixes 6288 of 12698
+  "path":
+    string
+  # 12698 of 12698; kinds: number; distinct scalar values: 323; range: 0.0036 .. 13; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+  "weight":
+    float
+  # 2842 of 12698; kinds: string; distinct scalar values: 121; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+  "colors":
+    string
+  # 2203 of 12698; kinds: sequence; lengths: 3; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs; written as a YAML alias to an earlier identical value in the same file in 131 of 2203 occurrences (anchors &id002, &id001); alias example: res:/animation_gstate/scenes/air_npe/balin/air_npe_balin_2753_1/balinv1.prs
+  "specularcolors":
+    # Item 0: 2203 of 2203; kinds: sequence; lengths: 4; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+    -
+      !!python/tuple
+      # Item 0: 2203 of 2203; kinds: number; distinct scalar values: 46; range: 0 .. 0.7575221238938052; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 1: 2203 of 2203; kinds: number; distinct scalar values: 46; range: 0 .. 0.7575221238938052; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 2: 2203 of 2203; kinds: number; distinct scalar values: 51; range: 0 .. 0.7575221238938052; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 3: 2203 of 2203; kinds: number; values: 2, 1, 0.6, 1.4, 0.4, 1.2, 1.343362831858407, 0.7, 0.2, 1.05, 5, 1.056637168141593, 0.8, 1.7, 1.5; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      [float|int, float|int, float|int, float|int]
+    # Item 1: 2203 of 2203; kinds: sequence; lengths: 4; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+    -
+      !!python/tuple
+      # Item 0: 2203 of 2203; kinds: number; distinct scalar values: 51; range: 0 .. 0.886275; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 1: 2203 of 2203; kinds: number; distinct scalar values: 50; range: 0 .. 0.886275; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 2: 2203 of 2203; kinds: number; distinct scalar values: 50; range: 0 .. 0.886275; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 3: 2203 of 2203; kinds: number; values: 2, 1, 0.4, 1.05, 0.7, 0.8, 0.2, 0.6, 3, 0.5; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      [float|int, float|int, float|int, float|int]
+    # Item 2: 2203 of 2203; kinds: sequence; lengths: 4; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs; written as a YAML alias to an earlier identical value in the same file in 226 of 2203 occurrences (anchors &id001, &id002); alias example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+    -
+      !!python/tuple
+      # Item 0: 2203 of 2203; kinds: number; distinct scalar values: 40; range: 0 .. 0.854902; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 1: 2203 of 2203; kinds: number; distinct scalar values: 42; range: 0 .. 0.823529; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 2: 2203 of 2203; kinds: number; distinct scalar values: 39; range: 0 .. 0.823529; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      # Item 3: 2203 of 2203; kinds: number; values: 1, 0, 1.4, 0.9, 0.5, 1.05, 0.2, 0.8, 0.6; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/aura_v3.prs
+      [float|int, float|int, float|int, int|float]
+  # 472 of 12698; kinds: string; values: "v0", "v5", "v15", "v6", "v3", "v2", "v1", "v11", "v9", "v4", "v8", "v12"; example: res:/animation_gstate/scenes/air_npe/balin/air_npe_balin_2753_1/balinv1.prs
+  "variation":
+    string
+  # 1149 of 12698; kinds: string; distinct scalar values: 49; example: res:/animation_gstate/scenes/air_npe/balin/air_npe_balin_2753_1/balinv1.prs
+  "colorvariation":
+    string
+  # 5 of 12698; kinds: map; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+  "decaldata":
+    !!python/object:eve.client.script.paperDoll.projectedDecals.ProjectedDecal
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "angleRotation":
+      float
+    # 5 of 5; kinds: number; values: 1; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "aspectRatio":
+      float
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "azimuth":
+      float
+    # 5 of 5; kinds: boolean; values: false; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "bodyEnabled":
+      bool
+    # 5 of 5; kinds: boolean; values: true, false; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "flipx":
+      bool
+    # 5 of 5; kinds: boolean; values: true; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "flipy":
+      bool
+    # 5 of 5; kinds: boolean; values: true; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "headEnabled":
+      bool
+    # 5 of 5; kinds: number; values: 0.25, 0.22956; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "height":
+      float
+    # 5 of 5; kinds: number; values: 1.5707963267948966; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "incline":
+      float
+    # 5 of 5; kinds: string; values: "Head"; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "label":
+      !!python/unicode string
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "layeres":
+      int
+    # 5 of 5; kinds: string; values: "res:/graphics/character/global/tattoomask/tattoomask.dds"; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    # → res:/graphics/character/global/tattoomask/*; 5 indexed candidates via exact; indexed existence only, not runtime resolution
+    "maskPath":
+      !!python/unicode string
+    # 5 of 5; kinds: boolean; values: true; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "maskPathEnabled":
+      bool
+    # 5 of 5; kinds: null; values: null; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "maskResource":
+      null
+    # 5 of 5; kinds: number; values: 1; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "mode":
+      float
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "offsetx":
+      float
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "offsety":
+      float
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "pitch":
+      int
+    # 5 of 5; kinds: number; values: 1.5; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "planarBeta":
+      float
+    # 5 of 5; kinds: number; values: 1.5; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "planarScale":
+      float
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "posx":
+      float
+    # 5 of 5; kinds: number; values: 1.75701, 1.6420000000000001; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "posy":
+      float
+    # 5 of 5; kinds: number; values: 0.04564, 0.031; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "posz":
+      float
+    # 5 of 5; kinds: number; values: 0.15, 0.12; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "radius":
+      float
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "roll":
+      int
+    # 5 of 5; kinds: number; values: -0.016, 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "scale":
+      float
+    # 5 of 5; kinds: string; values: "res:/graphics/character/decals/tattoos/face/tattoofaceg09/tattoofaceg09_d.dds", "res:/graphics/character/decals/tattoos/face/tattoofacec01/tattoofacec01_d.dds", "res:/graphics/character/decals/tattoos/face/tattoofacea05/tattoofacea05_d.dds", "res:/graphics/character/decals/tattoos/face/tattoofacem09/tattoofacem09_d.dds"; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    # → res:/graphics/character/decals/tattoos/face/*; 5 indexed candidates via exact; indexed existence only, not runtime resolution
+    "texturePath":
+      !!python/unicode string
+    # 5 of 5; kinds: null; values: null; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "textureResource":
+      null
+    # 5 of 5; kinds: number; values: 0; example: res:/animation_gstate/scenes/npc/anzarpuydenmont/anzarpuydenmont.prs
+    "yaw":
+      int
+  # 5 of 12698; kinds: string; values: "Camo_Minmatar", "CamoJungle", "Noise"; example: res:/animation_gstate/scenes/npc/danahuginn/danahuginn.prs
+  "pattern":
+    !!python/unicode string

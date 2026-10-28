@@ -1,0 +1,777 @@
+# Verbatim raw examples retain authored trailing spaces; these are source bytes, not generated padding.
+# Raw res-file shape; build 3646012.
+# Family: animation_movementstates
+# Source pattern: res:/animation/*
+# Files: 1
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 1 of 1; sequence length 1
+# Example: res:/animation/movementstates.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# -   name: MOVING
+#     startsEnabled: true
+#     baseSpeed: 1.6
+#     runningMod: 2.0
+#     staticStates:
+#         -   name: IDLE
+#             speed: 0.0
+#             heading: [0.0, 0.0, 0.0]
+#             rotSpeed: 0.0
+#             transitions:
+#                 - blendTime: 0.5
+#                   maxInterruptPercent: 0.0
+#         -   name: FORWARD
+#             speed: &FULL_SPEED 1.0
+#             heading: [0.0, 0.0, 1.0]
+#             rotSpeed: &STANDARD_ROTATION 360.0
+#             minSpeed: &STANDARD_MIN_SPEED 0.4
+#             transitions:
+#                   # idle 45s
+#                 - fromState: IDLE
+#                   blendTime: &STANDARD_BLEND_TIME 0.3
+#                   targetRotation: 45.0
+#                   tolerance: 22.5
+#                   executeRotation: 45.0
+#                   maxInterruptPercent: &STANDARD_INTERRUPT 0.0
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 315.0
+#                   tolerance: 22.5
+#                   executeRotation: -45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 90s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 90.0
+#                   tolerance: 22.5
+#                   executeRotation: 90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 270.0
+#                   tolerance: 22.5
+#                   executeRotation: -90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 135s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 135
+#                   tolerance: 22.5
+#                   executeRotation: 135.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 225
+#                   tolerance: 22.5
+#                   executeRotation: -135.0                 
+#                   maxInterruptPercent: *STANDARD_INTERRUPT 
+#                   # +/- 180
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 191.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 168.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                   #  Moving 180s
+#                 - fromState: FORWARD
+#                   blendTime: &ONE_EIGHTY_BLEND_TIME 0.7
+#                   targetRotation: 191.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: FORWARD
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 168.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0       
+#                   maxInterruptPercent: *STANDARD_INTERRUPT         
+#
+#                 - fromState: BACKWARD
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 180.0
+#                   tolerance: 45.0
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - blendTime: *STANDARD_BLEND_TIME
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#         -   name: LEFT
+#             speed: *FULL_SPEED
+#             heading: [0.0, 0.0, 1.0]
+#             rotSpeed: *STANDARD_ROTATION
+#             minSpeed: *STANDARD_MIN_SPEED
+#             camOffset: 90.0
+#             transitions:
+#                   # idle 45s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 315.0
+#                   tolerance: 22.5
+#                   executeRotation: 45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 225.0
+#                   tolerance: 22.5
+#                   executeRotation: -45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 90s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 0.0
+#                   tolerance: 22.5
+#                   executeRotation: 90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 180.0
+#                   tolerance: 22.5
+#                   executeRotation: -90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 135s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 45
+#                   tolerance: 22.5
+#                   executeRotation: 135.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 135
+#                   tolerance: 22.5
+#                   executeRotation: -135.0    
+#                   maxInterruptPercent: *STANDARD_INTERRUPT              
+#                   # +/- 180
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 101.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 78.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#
+#                   # +/- 180
+#                 - fromState: LEFT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 101.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: LEFT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 78.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 - fromState: RIGHT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 90.0
+#                   tolerance: 45.0
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - blendTime: *STANDARD_BLEND_TIME
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#         -   name: RIGHT
+#             speed: *FULL_SPEED
+#             heading: [0.0, 0.0, 1.0]
+#             rotSpeed: *STANDARD_ROTATION
+#             minSpeed: *STANDARD_MIN_SPEED
+#             camOffset: 270.0
+#             transitions:
+#                   # idle 45s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 135.0
+#                   tolerance: 22.5
+#                   executeRotation: 45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 45.0
+#                   tolerance: 22.5
+#                   executeRotation: -45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 90s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 180.0
+#                   tolerance: 22.5
+#                   executeRotation: 90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 0.0
+#                   tolerance: 22.5
+#                   executeRotation: -90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 135s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 225
+#                   tolerance: 22.5
+#                   executeRotation: 135.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 315
+#                   tolerance: 22.5
+#                   executeRotation: -135.0     
+#                   maxInterruptPercent: *STANDARD_INTERRUPT             
+#                   # +/- 180
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 281.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 258.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                   # +/- 180
+#                 - fromState: RIGHT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 281.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: RIGHT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 258.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#
+#                 - fromState: LEFT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 270.0
+#                   tolerance: 45.0
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - blendTime: *STANDARD_BLEND_TIME
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#         -   name: FORWARD_LEFT
+#             speed: *FULL_SPEED
+#             heading: [0.0, 0.0, 1.0]
+#             rotSpeed: *STANDARD_ROTATION
+#             minSpeed: *STANDARD_MIN_SPEED
+#             camOffset: 45.0
+#             transitions:
+#                   # idle 45s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 0.0
+#                   tolerance: 22.5
+#                   executeRotation: 45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 270.0
+#                   tolerance: 22.5
+#                   executeRotation: -45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 90s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 45.0
+#                   tolerance: 22.5
+#                   executeRotation: 90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 225.0
+#                   tolerance: 22.5
+#                   executeRotation: -90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 135s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 90
+#                   tolerance: 22.5
+#                   executeRotation: 135.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 180
+#                   tolerance: 22.5
+#                   executeRotation: -135.0    
+#                   maxInterruptPercent: *STANDARD_INTERRUPT              
+#                   # +/- 180
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 146.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 123.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                   # +/- 180
+#                 - fromState: FORWARD_LEFT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 146.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: FORWARD_LEFT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 123.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 - blendTime: *STANDARD_BLEND_TIME
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#         -   name: FORWARD_RIGHT
+#             speed: *FULL_SPEED
+#             heading: [0.0, 0.0, 1.0]
+#             rotSpeed: *STANDARD_ROTATION
+#             minSpeed: *STANDARD_MIN_SPEED
+#             camOffset: 315.0
+#             transitions:
+#                   # idle 45s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 90.0
+#                   tolerance: 22.5
+#                   executeRotation: 45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 0.0
+#                   tolerance: 22.5
+#                   executeRotation: -45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 90s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 135.0
+#                   tolerance: 22.5
+#                   executeRotation: 90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 315.0
+#                   tolerance: 22.5
+#                   executeRotation: -90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 135s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 180
+#                   tolerance: 22.5
+#                   executeRotation: 135.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 270
+#                   tolerance: 22.5
+#                   executeRotation: -135.0     
+#                   maxInterruptPercent: *STANDARD_INTERRUPT             
+#                   # +/- 180
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 236.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 213.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                   # +/- 180
+#                 - fromState: FORWARD_RIGHT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 236.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: FORWARD_RIGHT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 213.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 - blendTime: *STANDARD_BLEND_TIME
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#         -   name: BACKWARD
+#             speed: *FULL_SPEED
+#             heading: [0.0, 0.0, 1.0]
+#             rotSpeed: *STANDARD_ROTATION
+#             minSpeed: *STANDARD_MIN_SPEED
+#             camOffset: 180.0
+#             transitions:
+#                   # idle 45s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 225
+#                   tolerance: 22.5
+#                   executeRotation: 45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 135
+#                   tolerance: 22.5
+#                   executeRotation: -45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 90s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 270.0
+#                   tolerance: 22.5
+#                   executeRotation: 90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 90.0
+#                   tolerance: 22.5
+#                   executeRotation: -90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 135s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 315.0
+#                   tolerance: 22.5
+#                   executeRotation: 135.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 45
+#                   tolerance: 22.5
+#                   executeRotation: -135.0        
+#                   maxInterruptPercent: *STANDARD_INTERRUPT          
+#                   # +/- 180
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 11.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 348.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                   # +/- 180
+#                 - fromState: BACKWARD
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 11.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: BACKWARD
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 348.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 - fromState: FORWARD
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 0.0
+#                   tolerance: 45.0
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 - blendTime: *STANDARD_BLEND_TIME
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#         -   name: BACKWARD_LEFT
+#             speed: *FULL_SPEED
+#             heading: [0.0, 0.0, 1.0]
+#             rotSpeed: *STANDARD_ROTATION
+#             minSpeed: *STANDARD_MIN_SPEED
+#             camOffset: 135.0
+#             transitions:
+#                   # idle 45s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 270
+#                   tolerance: 22.5
+#                   executeRotation: 45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 180
+#                   tolerance: 22.5
+#                   executeRotation: -45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 90s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 315.0
+#                   tolerance: 22.5
+#                   executeRotation: 90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 135.0
+#                   tolerance: 22.5
+#                   executeRotation: -90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 135s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 0.0
+#                   tolerance: 22.5
+#                   executeRotation: 135.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 90
+#                   tolerance: 22.5
+#                   executeRotation: -135.0   
+#                   maxInterruptPercent: *STANDARD_INTERRUPT               
+#                   # +/- 180
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 56.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 33.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 # +/- 180
+#                 - fromState: BACKWARD_LEFT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 56.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: BACKWARD_LEFT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 33.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 - blendTime: *STANDARD_BLEND_TIME
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#         -   name: BACKWARD_RIGHT
+#             speed: *FULL_SPEED
+#             heading: [0.0, 0.0, 1.0]
+#             rotSpeed: *STANDARD_ROTATION
+#             minSpeed: *STANDARD_MIN_SPEED
+#             camOffset: 225.0
+#             transitions:
+#                   # idle 45s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 180
+#                   tolerance: 22.5
+#                   executeRotation: 45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 90
+#                   tolerance: 22.5
+#                   executeRotation: -45.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 90s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 225.0
+#                   tolerance: 22.5
+#                   executeRotation: 90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 45.0
+#                   tolerance: 22.5
+#                   executeRotation: -90.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                   #  idle 135s
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 270.0
+#                   tolerance: 22.5
+#                   executeRotation: 135.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 0
+#                   tolerance: 22.5
+#                   executeRotation: -135.0   
+#                   maxInterruptPercent: *STANDARD_INTERRUPT               
+#                   # +/- 180
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 326.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: IDLE
+#                   blendTime: *STANDARD_BLEND_TIME
+#                   targetRotation: 303.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 # +/- 180
+#                 - fromState: BACKWARD_RIGHT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 326.25
+#                   tolerance: 11.25
+#                   executeRotation: -180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#                 - fromState: BACKWARD_RIGHT
+#                   blendTime: *ONE_EIGHTY_BLEND_TIME
+#                   targetRotation: 303.75
+#                   tolerance: 11.25
+#                   executeRotation: 180.0
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#
+#                 - blendTime: *STANDARD_BLEND_TIME
+#                   maxInterruptPercent: *STANDARD_INTERRUPT
+#     keymaplist: 
+#         - input: [0,0,0]       # x, z, MouseMove
+#           state: IDLE
+#         - input: [0,0,1]
+#           state: FORWARD
+#         - input: [0,1,0]
+#           state: FORWARD
+#         - input: [0,1,1]
+#           state: FORWARD
+#         - input: [0,-1,0]
+#           state: BACKWARD
+#         - input: [0,-1,1]
+#           state: BACKWARD
+#         - input: [1,0,0]
+#           state: LEFT
+#         - input: [1,0,1]
+#           state: FORWARD_LEFT
+#         - input: [1,1,0]
+#           state: FORWARD_LEFT
+#         - input: [1,1,1]
+#           state: FORWARD_LEFT
+#         - input: [1,-1,0]
+#           state: BACKWARD_LEFT
+#         - input: [1,-1,1]
+#           state: BACKWARD_LEFT
+#         - input: [-1,0,0]
+#           state: RIGHT
+#         - input: [-1,0,1]
+#           state: FORWARD_RIGHT
+#         - input: [-1,1,0]
+#           state: FORWARD_RIGHT
+#         - input: [-1,1,1]
+#           state: FORWARD_RIGHT
+#         - input: [-1,-1,0]
+#           state: BACKWARD_RIGHT
+#         - input: [-1,-1,1]
+#           state: BACKWARD_RIGHT
+#
+# END VERBATIM RAW YAML
+# Root variant: sequence ; 1 of 1
+# Repeated item: 1 of 1; kinds: map; example: res:/animation/movementstates.yaml
+-
+  # 1 of 1; kinds: string; values: "MOVING"; example: res:/animation/movementstates.yaml
+  "name":
+    string
+  # 1 of 1; kinds: boolean; values: true; example: res:/animation/movementstates.yaml
+  "startsEnabled":
+    bool
+  # 1 of 1; kinds: number; values: 1.6; example: res:/animation/movementstates.yaml
+  "baseSpeed":
+    float
+  # 1 of 1; kinds: number; values: 2; example: res:/animation/movementstates.yaml
+  "runningMod":
+    float
+  # 1 of 1; kinds: sequence; lengths: 9; example: res:/animation/movementstates.yaml
+  "staticStates":
+    # Repeated item: 9 of 9; kinds: map; example: res:/animation/movementstates.yaml
+    -
+      # Nested key-set variant: 7 of 9; map ["camOffset","heading","minSpeed","name","rotSpeed","speed","transitions"]; example: res:/animation/movementstates.yaml
+      # Nested key-set variant: 1 of 9; map ["heading","name","rotSpeed","speed","transitions"]; example: res:/animation/movementstates.yaml
+      # Nested key-set variant: 1 of 9; map ["heading","minSpeed","name","rotSpeed","speed","transitions"]; example: res:/animation/movementstates.yaml
+      # 9 of 9; kinds: string; values: "IDLE", "FORWARD", "LEFT", "RIGHT", "FORWARD_LEFT", "FORWARD_RIGHT", "BACKWARD", "BACKWARD_LEFT", "BACKWARD_RIGHT"; example: res:/animation/movementstates.yaml
+      "name":
+        string
+      # 9 of 9; kinds: number; values: 0, 1; example: res:/animation/movementstates.yaml; written as a YAML alias to an earlier identical value in the same file in 7 of 9 occurrences (anchors &FULL_SPEED); alias example: res:/animation/movementstates.yaml
+      "speed":
+        float
+      # 9 of 9; kinds: sequence; lengths: 3; example: res:/animation/movementstates.yaml
+      "heading":
+        # Item 0: 9 of 9; kinds: number; values: 0; example: res:/animation/movementstates.yaml
+        # Item 1: 9 of 9; kinds: number; values: 0; example: res:/animation/movementstates.yaml
+        # Item 2: 9 of 9; kinds: number; values: 0, 1; example: res:/animation/movementstates.yaml
+        [float, float, float]
+      # 9 of 9; kinds: number; values: 0, 360; example: res:/animation/movementstates.yaml; written as a YAML alias to an earlier identical value in the same file in 7 of 9 occurrences (anchors &STANDARD_ROTATION); alias example: res:/animation/movementstates.yaml
+      "rotSpeed":
+        float
+      # 9 of 9; kinds: sequence; lengths: 1, 11, 12; example: res:/animation/movementstates.yaml
+      "transitions":
+        # Repeated item: 93 of 93; kinds: map; example: res:/animation/movementstates.yaml
+        -
+          # Nested key-set variant: 84 of 93; map ["blendTime","executeRotation","fromState","maxInterruptPercent","targetRotation","tolerance"]; example: res:/animation/movementstates.yaml
+          # Nested key-set variant: 9 of 93; map ["blendTime","maxInterruptPercent"]; example: res:/animation/movementstates.yaml
+          # 93 of 93; kinds: number; values: 0.5, 0.3, 0.7; example: res:/animation/movementstates.yaml; written as a YAML alias to an earlier identical value in the same file in 90 of 93 occurrences (anchors &STANDARD_BLEND_TIME, &ONE_EIGHTY_BLEND_TIME); alias example: res:/animation/movementstates.yaml
+          "blendTime":
+            float
+          # 93 of 93; kinds: number; values: 0; example: res:/animation/movementstates.yaml; written as a YAML alias to an earlier identical value in the same file in 91 of 93 occurrences (anchors &STANDARD_INTERRUPT); alias example: res:/animation/movementstates.yaml
+          "maxInterruptPercent":
+            float
+          # 84 of 93; kinds: string; values: "IDLE", "FORWARD", "BACKWARD", "LEFT", "RIGHT", "FORWARD_LEFT", "FORWARD_RIGHT", "BACKWARD_LEFT", "BACKWARD_RIGHT"; example: res:/animation/movementstates.yaml
+          "fromState":
+            string
+          # 84 of 93; kinds: number; distinct scalar values: 24; range: 0 .. 348.75; example: res:/animation/movementstates.yaml
+          "targetRotation":
+            float|int
+          # 84 of 93; kinds: number; values: 22.5, 11.25, 45; example: res:/animation/movementstates.yaml
+          "tolerance":
+            float
+          # 84 of 93; kinds: number; values: 45, -45, 90, -90, 135, -135, -180, 180; example: res:/animation/movementstates.yaml
+          "executeRotation":
+            float
+      # 8 of 9; kinds: number; values: 0.4; example: res:/animation/movementstates.yaml; written as a YAML alias to an earlier identical value in the same file in 7 of 8 occurrences (anchors &STANDARD_MIN_SPEED); alias example: res:/animation/movementstates.yaml
+      "minSpeed":
+        float
+      # 7 of 9; kinds: number; values: 90, 270, 45, 315, 180, 135, 225; example: res:/animation/movementstates.yaml
+      "camOffset":
+        float
+  # 1 of 1; kinds: sequence; lengths: 18; example: res:/animation/movementstates.yaml
+  "keymaplist":
+    # Repeated item: 18 of 18; kinds: map; example: res:/animation/movementstates.yaml
+    -
+      # 18 of 18; kinds: sequence; lengths: 3; example: res:/animation/movementstates.yaml
+      "input":
+        # Item 0: 18 of 18; kinds: number; values: 0, 1, -1; example: res:/animation/movementstates.yaml
+        # Item 1: 18 of 18; kinds: number; values: 0, 1, -1; example: res:/animation/movementstates.yaml
+        # Item 2: 18 of 18; kinds: number; values: 0, 1; example: res:/animation/movementstates.yaml
+        [int, int, int]
+      # 18 of 18; kinds: string; values: "IDLE", "FORWARD", "BACKWARD", "LEFT", "FORWARD_LEFT", "BACKWARD_LEFT", "RIGHT", "FORWARD_RIGHT", "BACKWARD_RIGHT"; example: res:/animation/movementstates.yaml
+      "state":
+        string

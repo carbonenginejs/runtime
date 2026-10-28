@@ -1,0 +1,87 @@
+# Raw res-file shape; build 3646012.
+# Family: scenes_camera
+# Source pattern: res:/animation_gstate/scenes/*
+# Files: 317
+# Variable shape: 1 variants (root key sets or sequence lengths).
+# Type placeholders describe observed authored values; they are not defaults.
+# Counts refer to field occurrences; aliases expand only for value-type shape statistics.
+# Variant 1: 317 of 317; map ["aspect_ratio","back_clip","field_of_view","front_clip","hook_names","point_of_interest","position","transform_hook_scale","viewport_size"]
+# Example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+# BEGIN VERBATIM RAW YAML (comment prefix added)
+# aspect_ratio: 2.5848217010498047
+# back_clip: 200.0
+# field_of_view: 0.2
+# front_clip: 0.1
+# hook_names:
+#   fov: ''
+#   name: ''
+#   target: ''
+#   transform: ''
+#   translation: ''
+# point_of_interest: !!python/tuple
+# - -0.021293722093105316
+# - 1.40545654296875
+# - -0.015391366556286812
+# position: !!python/tuple
+# - -0.1908694952726364
+# - 1.225740909576416
+# - 3.866563558578491
+# transform_hook_scale: 1.0
+# viewport_size: !!python/tuple
+# - 1737
+# - 672
+#
+# END VERBATIM RAW YAML
+# Root variant: map ; 317 of 317
+# 317 of 317; kinds: number; distinct scalar values: 28; range: 1.1358174085617065 .. 3.9657535552978516; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"aspect_ratio":
+  float
+# 317 of 317; kinds: number; values: 200; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"back_clip":
+  float
+# 317 of 317; kinds: number; values: 0.2, 0.09; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"field_of_view":
+  float
+# 317 of 317; kinds: number; values: 0.1; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"front_clip":
+  float
+# 317 of 317; kinds: map; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"hook_names":
+  # 317 of 317; kinds: string; values: ""; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  "fov":
+    string
+  # 317 of 317; kinds: string; values: ""; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  "name":
+    string
+  # 317 of 317; kinds: string; values: ""; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  "target":
+    string
+  # 317 of 317; kinds: string; values: ""; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  "transform":
+    string
+  # 317 of 317; kinds: string; values: ""; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  "translation":
+    string
+# 317 of 317; kinds: sequence; lengths: 3; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"point_of_interest":
+  !!python/tuple
+  # Item 0: 317 of 317; kinds: number; distinct scalar values: 81; range: -0.09878306090831757 .. 0.06516746431589127; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  # Item 1: 317 of 317; kinds: number; distinct scalar values: 81; range: 1.392263412475586 .. 1.7384111881256104; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  # Item 2: 317 of 317; kinds: number; distinct scalar values: 81; range: -0.016107376664876938 .. 0.0006884756730869412; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  [float, float, float]
+# 317 of 317; kinds: sequence; lengths: 3; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"position":
+  !!python/tuple
+  # Item 0: 317 of 317; kinds: number; distinct scalar values: 83; range: -0.2400355041027069 .. 0.5335924625396729; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  # Item 1: 317 of 317; kinds: number; distinct scalar values: 83; range: 1.212547779083252 .. 1.6160800457000732; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  # Item 2: 317 of 317; kinds: number; distinct scalar values: 83; range: 1.7290921211242676 .. 4.283987045288086; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  [float, float, float]
+# 317 of 317; kinds: number; values: 1; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"transform_hook_scale":
+  float
+# 317 of 317; kinds: sequence; lengths: 2; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+"viewport_size":
+  !!python/tuple
+  # Item 0: 317 of 317; kinds: number; values: 1737, 1741, 1589, 1938, 1149, 1659, 948, 1920, 1400, 952, 1715, 1759, 943, 926, 945; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  # Item 1: 317 of 317; kinds: number; values: 672, 643, 581, 438, 641, 637, 699, 686, 736, 687, 747, 501, 697, 670, 660, 673, 1037, 1029, 832; example: res:/animation_gstate/scenes/air_npe/aura/air_npe_aura_2755_1/camera.yaml
+  [int, int]
